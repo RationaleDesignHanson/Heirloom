@@ -187,7 +187,7 @@ struct CookingModeView: View {
 
     private var timerSection: some View {
         VStack(spacing: HeirloomSpacing.md) {
-            if let endTime = timerEndTime, remainingTime > 0 {
+            if let _ = timerEndTime, remainingTime > 0 {
                 // Active Timer Display
                 VStack(spacing: HeirloomSpacing.sm) {
                     HStack {

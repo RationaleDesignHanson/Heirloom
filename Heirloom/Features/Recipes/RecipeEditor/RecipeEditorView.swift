@@ -25,7 +25,12 @@ struct RecipeEditorView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var recipeImage: UIImage?
 
-    init(recipe: Recipe? = nil) {
+    init(
+        recipe: Recipe? = nil,
+        initialImage: UIImage? = nil,
+        initialIngredients: [String]? = nil,
+        initialInstructions: [String]? = nil
+    ) {
         let editingRecipe = recipe ?? Recipe()
         _recipe = State(initialValue: editingRecipe)
         _isNewRecipe = State(initialValue: recipe == nil)
@@ -43,6 +48,20 @@ struct RecipeEditorView: View {
 
             if let ingredients = recipe.ingredients, !ingredients.isEmpty {
                 _ingredientInputs = State(initialValue: ingredients.map { $0.originalText })
+            }
+        } else {
+            // Initialize from OCR/scanner if provided
+            if let image = initialImage {
+                _recipeImage = State(initialValue: image)
+                _sourceType = State(initialValue: .cookbook)
+            }
+
+            if let ingredients = initialIngredients, !ingredients.isEmpty {
+                _ingredientInputs = State(initialValue: ingredients)
+            }
+
+            if let instructions = initialInstructions, !instructions.isEmpty {
+                _instructions = State(initialValue: instructions)
             }
         }
     }

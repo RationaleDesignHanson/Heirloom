@@ -9,6 +9,7 @@ struct RecipeListView: View {
     @State private var searchText = ""
     @State private var showAddRecipe = false
     @State private var showImportRecipe = false
+    @State private var showCookbookScanner = false
     @State private var showFilters = false
     @State private var filters = RecipeFilters()
 
@@ -63,6 +64,12 @@ struct RecipeListView: View {
                             Label("Import from URL", systemImage: "link")
                         }
 
+                        Button {
+                            showCookbookScanner = true
+                        } label: {
+                            Label("Scan Cookbook", systemImage: "book.pages")
+                        }
+
                         Divider()
 
                         Button {
@@ -83,6 +90,9 @@ struct RecipeListView: View {
             }
             .sheet(isPresented: $showImportRecipe) {
                 RecipeImportView()
+            }
+            .sheet(isPresented: $showCookbookScanner) {
+                CookbookScannerView()
             }
             .sheet(isPresented: $showFilters) {
                 RecipeFiltersView(filters: $filters)
