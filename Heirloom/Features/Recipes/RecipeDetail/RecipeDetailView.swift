@@ -10,6 +10,7 @@ struct RecipeDetailView: View {
     @State private var showEditSheet = false
     @State private var showCookingMode = false
     @State private var showShareSheet = false
+    @State private var showTagCollectionPicker = false
     @State private var servingMultiplier: Double = 1.0
 
     var body: some View {
@@ -24,6 +25,11 @@ struct RecipeDetailView: View {
                 VStack(alignment: .leading, spacing: HeirloomSpacing.xl) {
                     // Header Section
                     headerSection
+
+                    // Tags and Collections Section
+                    if (recipe.tags != nil && !recipe.tags!.isEmpty) || (recipe.collections != nil && !recipe.collections!.isEmpty) {
+                        tagsAndCollectionsSection
+                    }
 
                     // Metadata Section
                     metadataSection
@@ -98,6 +104,12 @@ struct RecipeDetailView: View {
                         Label("Edit", systemImage: "pencil")
                     }
 
+                    Button {
+                        showTagCollectionPicker = true
+                    } label: {
+                        Label("Organize", systemImage: "tag")
+                    }
+
                     Divider()
 
                     Button(role: .destructive) {
@@ -125,6 +137,9 @@ struct RecipeDetailView: View {
         }
         .sheet(isPresented: $showEditSheet) {
             RecipeEditorView(recipe: recipe)
+        }
+        .sheet(isPresented: $showTagCollectionPicker) {
+            TagCollectionPickerView(recipe: recipe)
         }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe)
@@ -181,6 +196,69 @@ struct RecipeDetailView: View {
                     .font(HeirloomFonts.bodyBold)
                 }
                 .buttonStyle(SecondaryButtonStyle())
+            }
+        }
+    }
+
+    // MARK: - Tags and Collections Section
+    private var tagsAndCollectionsSection: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            // Tags
+            if let tags = recipe.tags, !tags.isEmpty {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                    Text("Tags")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .textCase(.uppercase)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: HeirloomSpacing.xs) {
+                            ForEach(tags, id: \.id) { tag in
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .fill(tag.swiftUIColor)
+                                        .frame(width: 8, height: 8)
+
+                                    Text(tag.name)
+                                        .font(HeirloomFonts.caption1)
+                                }
+                                .padding(.horizontal, HeirloomSpacing.sm)
+                                .padding(.vertical, 6)
+                                .background(tag.swiftUIColor.opacity(0.15))
+                                .cornerRadius(12)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Collections
+            if let collections = recipe.collections, !collections.isEmpty {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                    Text("Collections")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .textCase(.uppercase)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: HeirloomSpacing.xs) {
+                            ForEach(collections, id: \.id) { collection in
+                                HStack(spacing: 6) {
+                                    Image(systemName: collection.iconName)
+                                        .font(.caption2)
+                                        .foregroundStyle(collection.swiftUIColor)
+
+                                    Text(collection.name)
+                                        .font(HeirloomFonts.caption1)
+                                }
+                                .padding(.horizontal, HeirloomSpacing.sm)
+                                .padding(.vertical, 6)
+                                .background(collection.swiftUIColor.opacity(0.15))
+                                .cornerRadius(12)
+                            }
+                        }
+                    }
+                }
             }
         }
     }

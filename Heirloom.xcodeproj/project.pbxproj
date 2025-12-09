@@ -39,6 +39,11 @@
 		C5F2EF372EE7B5DB0033058D /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF362EE7B5DB0033058D /* EmptyStateView.swift */; };
 		C5F2EF392EE7B6770033058D /* RecipeShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF382EE7B6770033058D /* RecipeShareService.swift */; };
 		C5F2EF3C2EE7B8C90033058D /* CookbookScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF3A2EE7B8C90033058D /* CookbookScannerView.swift */; };
+		C5F2EF3F2EE7BA250033058D /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF3E2EE7BA250033058D /* Tag.swift */; };
+		C5F2EF402EE7BA250033058D /* RecipeCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF3D2EE7BA250033058D /* RecipeCollection.swift */; };
+		C5F2EF442EE7BA3E0033058D /* TagManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF422EE7BA3E0033058D /* TagManagementView.swift */; };
+		C5F2EF452EE7BA3E0033058D /* TagCollectionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF412EE7BA3E0033058D /* TagCollectionPickerView.swift */; };
+		C5F2EF482EE7BA470033058D /* CollectionManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF462EE7BA470033058D /* CollectionManagementView.swift */; };
 		F4B1A0AFB96B040047C28032 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A9B3D94D12C38881E14669 /* Colors.swift */; };
 /* End PBXBuildFile section */
 
@@ -74,6 +79,11 @@
 		C5F2EF362EE7B5DB0033058D /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		C5F2EF382EE7B6770033058D /* RecipeShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeShareService.swift; sourceTree = "<group>"; };
 		C5F2EF3A2EE7B8C90033058D /* CookbookScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookbookScannerView.swift; sourceTree = "<group>"; };
+		C5F2EF3D2EE7BA250033058D /* RecipeCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCollection.swift; sourceTree = "<group>"; };
+		C5F2EF3E2EE7BA250033058D /* Tag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tag.swift; sourceTree = "<group>"; };
+		C5F2EF412EE7BA3E0033058D /* TagCollectionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagCollectionPickerView.swift; sourceTree = "<group>"; };
+		C5F2EF422EE7BA3E0033058D /* TagManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementView.swift; sourceTree = "<group>"; };
+		C5F2EF462EE7BA470033058D /* CollectionManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionManagementView.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EFF2A4FC35D119FCC34DE5BA /* Ingredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ingredient.swift; sourceTree = "<group>"; };
@@ -167,6 +177,8 @@
 		99534F5D5C4435D669F1B56B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C5F2EF3D2EE7BA250033058D /* RecipeCollection.swift */,
+				C5F2EF3E2EE7BA250033058D /* Tag.swift */,
 				EFF2A4FC35D119FCC34DE5BA /* Ingredient.swift */,
 				95B1795DB5F1B37A1F96C636 /* Recipe.swift */,
 				4BECC4D86B452C1C18B6F42F /* SchemaV1.swift */,
@@ -264,6 +276,23 @@
 			path = CookbookScanner;
 			sourceTree = "<group>";
 		};
+		C5F2EF432EE7BA3E0033058D /* Tags */ = {
+			isa = PBXGroup;
+			children = (
+				C5F2EF412EE7BA3E0033058D /* TagCollectionPickerView.swift */,
+				C5F2EF422EE7BA3E0033058D /* TagManagementView.swift */,
+			);
+			path = Tags;
+			sourceTree = "<group>";
+		};
+		C5F2EF472EE7BA470033058D /* Collections */ = {
+			isa = PBXGroup;
+			children = (
+				C5F2EF462EE7BA470033058D /* CollectionManagementView.swift */,
+			);
+			path = Collections;
+			sourceTree = "<group>";
+		};
 		C8004A9A6B408625BEFCB6D2 /* Design */ = {
 			isa = PBXGroup;
 			children = (
@@ -285,6 +314,8 @@
 		CC9AF2BB0CC0DBBEC558EC0F /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				C5F2EF472EE7BA470033058D /* Collections */,
+				C5F2EF432EE7BA3E0033058D /* Tags */,
 				C5F2EF342EE7B4EE0033058D /* Onboarding */,
 				C5F2EF272EE79C670033058D /* Settings */,
 				C5F2EF1C2EE787BD0033058D /* Shopping */,
@@ -400,6 +431,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				C5F2EF2A2EE79F850033058D /* RecipeImportService.swift in Sources */,
+				C5F2EF442EE7BA3E0033058D /* TagManagementView.swift in Sources */,
+				C5F2EF452EE7BA3E0033058D /* TagCollectionPickerView.swift in Sources */,
 				F4B1A0AFB96B040047C28032 /* Colors.swift in Sources */,
 				C5F2EF282EE79C670033058D /* SettingsView.swift in Sources */,
 				C5F2EF2D2EE79F980033058D /* RecipeImportView.swift in Sources */,
@@ -420,6 +453,8 @@
 				C53429472EE7790400CB608E /* RecipeEditorView.swift in Sources */,
 				C534293C2EE7714D00CB608E /* ButtonStyles.swift in Sources */,
 				74DC70C5F9BED2FC3AD88944 /* Recipe.swift in Sources */,
+				C5F2EF3F2EE7BA250033058D /* Tag.swift in Sources */,
+				C5F2EF402EE7BA250033058D /* RecipeCollection.swift in Sources */,
 				C5F2EF1D2EE787BD0033058D /* ShoppingListView.swift in Sources */,
 				28E4E26F3EBD90318EF438B2 /* RecipeListView.swift in Sources */,
 				C5F2EF372EE7B5DB0033058D /* EmptyStateView.swift in Sources */,
@@ -428,6 +463,7 @@
 				C5F2EF242EE794660033058D /* RemindersService.swift in Sources */,
 				64CF275134BD2DF05BC42B58 /* SchemaV1.swift in Sources */,
 				C5F2EF222EE790B70033058D /* SampleRecipeLibrary.swift in Sources */,
+				C5F2EF482EE7BA470033058D /* CollectionManagementView.swift in Sources */,
 				7F0DA576A2BA5C4746384423 /* Typography.swift in Sources */,
 				14B54EA78DD910B9F98D715B /* UIImage+Helpers.swift in Sources */,
 			);

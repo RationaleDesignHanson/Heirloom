@@ -66,6 +66,11 @@ struct HeirloomApp: App {
         // Clean up old broken recipe data (one-time migration)
         if let container = modelContainer {
             cleanupOldRecipeData(container: container)
+
+            // Create system collections on first launch
+            Task { @MainActor in
+                RecipeCollection.createSystemCollections(context: container.mainContext)
+            }
         }
     }
 

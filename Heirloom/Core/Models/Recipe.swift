@@ -47,7 +47,10 @@ final class Recipe {
     var lastCooked: Date?
     var isFavorite: Bool = false
     var isInShoppingList: Bool = false
-    var tags: [String] = []
+
+    // MARK: - Organization
+    var tags: [Tag]?
+    var collections: [RecipeCollection]?
 
     // MARK: - Social (Phase 2)
     var sharedBy: String?
@@ -82,7 +85,6 @@ final class Recipe {
         self.isFavorite = false
         self.isInShoppingList = false
         self.generationCount = 1
-        self.tags = []
     }
 }
 

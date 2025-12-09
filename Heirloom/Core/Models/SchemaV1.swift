@@ -10,6 +10,8 @@ enum SchemaV1: VersionedSchema {
         [
             Recipe.self,
             Ingredient.self,
+            Tag.self,
+            RecipeCollection.self,
             CardStyle.self,
             Sticker.self,
             Annotation.self,
