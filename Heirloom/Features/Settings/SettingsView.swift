@@ -65,6 +65,12 @@ struct SettingsView: View {
             } label: {
                 Label("Sync Details", systemImage: "info.circle")
             }
+
+            NavigationLink {
+                CloudKitDashboardView()
+            } label: {
+                Label("CloudKit Monitor", systemImage: "chart.xyaxis.line")
+            }
         } header: {
             Text("Cloud Storage")
         } footer: {

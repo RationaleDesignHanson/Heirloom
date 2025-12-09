@@ -9,6 +9,7 @@ class CloudKitShareService {
     private let container: CKContainer
     private let publicDatabase: CKDatabase
     private let privateDatabase: CKDatabase
+    private let monitor = CloudKitMonitoringService.shared
 
     private init() {
         // Use default container (configured in entitlements)
@@ -45,9 +46,30 @@ class CloudKitShareService {
                     "has_message": message != nil
                 ])
 
+                // Log monitoring event
+                monitor.logSyncEvent(
+                    type: .share,
+                    details: "Shared '\(recipe.title)'",
+                    success: true
+                )
+
                 completion(.success(shareURL))
             } catch {
                 print("❌ CloudKit share failed: \(error.localizedDescription)")
+
+                // Log error
+                monitor.logError(
+                    operation: "Share Recipe",
+                    error: error,
+                    details: "Failed to share '\(recipe.title)'"
+                )
+
+                monitor.logSyncEvent(
+                    type: .share,
+                    details: "Failed to share '\(recipe.title)'",
+                    success: false
+                )
+
                 completion(.failure(error))
             }
         }
@@ -85,9 +107,30 @@ class CloudKitShareService {
                     "generation": recipe.generationCount
                 ])
 
+                // Log monitoring event
+                monitor.logSyncEvent(
+                    type: .passDown,
+                    details: "Passed down '\(recipe.title)' to \(recipient)",
+                    success: true
+                )
+
                 completion(.success(shareURL))
             } catch {
                 print("❌ CloudKit pass-down failed: \(error.localizedDescription)")
+
+                // Log error
+                monitor.logError(
+                    operation: "Pass Down Recipe",
+                    error: error,
+                    details: "Failed to pass down '\(recipe.title)' to \(recipient)"
+                )
+
+                monitor.logSyncEvent(
+                    type: .passDown,
+                    details: "Failed to pass down '\(recipe.title)'",
+                    success: false
+                )
+
                 completion(.failure(error))
             }
         }
@@ -126,9 +169,30 @@ class CloudKitShareService {
                     "generation": recipe.generationCount
                 ])
 
+                // Log monitoring event
+                monitor.logSyncEvent(
+                    type: .accept,
+                    details: "Accepted shared recipe '\(recipe.title)'",
+                    success: true
+                )
+
                 completion(.success(recipe))
             } catch {
                 print("❌ CloudKit receive failed: \(error.localizedDescription)")
+
+                // Log error
+                monitor.logError(
+                    operation: "Accept Shared Recipe",
+                    error: error,
+                    details: "Failed to accept shared recipe from \(url.absoluteString)"
+                )
+
+                monitor.logSyncEvent(
+                    type: .accept,
+                    details: "Failed to accept shared recipe",
+                    success: false
+                )
+
                 completion(.failure(error))
             }
         }
