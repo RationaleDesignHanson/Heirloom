@@ -3,7 +3,7 @@ import SwiftData
 import SwiftUI
 
 @Model
-final class Sticker {
+final class RecipeSticker {
     var id: UUID
     var stickerType: StickerType
     var stickerName: String // SF Symbol name or asset name
@@ -55,7 +55,7 @@ final class Sticker {
 
 // MARK: - Sticker Library
 
-extension Sticker {
+extension RecipeSticker {
     static let foodStickers = [
         "carrot.fill",
         "leaf.fill",

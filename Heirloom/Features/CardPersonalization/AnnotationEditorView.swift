@@ -1,16 +1,16 @@
 import SwiftUI
 import SwiftData
 
-struct AnnotationEditorView: View {
+struct RecipeAnnotationEditorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
     @Bindable var recipe: Recipe
 
-    let annotation: Annotation?
+    let annotation: RecipeAnnotation?
 
     @State private var text: String = ""
-    @State private var style: Annotation.AnnotationStyle = .stickyNote
+    @State private var style: RecipeAnnotation.RecipeAnnotationStyle = .stickyNote
     @State private var colorHex: String = "#FFD93D"
     @State private var fontSize: Double = 14.0
     @State private var rotation: Double = 0.0
@@ -21,7 +21,7 @@ struct AnnotationEditorView: View {
         annotation != nil
     }
 
-    init(recipe: Recipe, annotation: Annotation? = nil) {
+    init(recipe: Recipe, annotation: RecipeAnnotation? = nil) {
         self.recipe = recipe
         self.annotation = annotation
 
@@ -60,7 +60,7 @@ struct AnnotationEditorView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button(isEditing ? "Save" : "Add") {
-                        saveAnnotation()
+                        saveRecipeAnnotation()
                     }
                     .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
                     .fontWeight(.semibold)
@@ -79,7 +79,7 @@ struct AnnotationEditorView: View {
                 .shadow(color: .black.opacity(0.1), radius: 10)
                 .padding()
 
-            // Preview Annotation
+            // Preview RecipeAnnotation
             if !text.isEmpty {
                 annotationPreview
                     .position(
@@ -208,7 +208,7 @@ struct AnnotationEditorView: View {
                         .font(HeirloomFonts.bodyBold)
 
                     HStack(spacing: HeirloomSpacing.sm) {
-                        ForEach([Annotation.AnnotationStyle.stickyNote, .handwritten, .marker], id: \.self) { styleOption in
+                        ForEach([RecipeAnnotation.RecipeAnnotationStyle.stickyNote, .handwritten, .marker], id: \.self) { styleOption in
                             styleButton(styleOption)
                         }
                     }
@@ -223,7 +223,7 @@ struct AnnotationEditorView: View {
                         columns: [GridItem(.adaptive(minimum: 50))],
                         spacing: HeirloomSpacing.sm
                     ) {
-                        ForEach(Annotation.predefinedColors, id: \.self) { color in
+                        ForEach(RecipeAnnotation.predefinedColors, id: \.self) { color in
                             colorSwatchButton(color)
                         }
                     }
@@ -337,7 +337,7 @@ struct AnnotationEditorView: View {
                 // Delete Button (if editing)
                 if isEditing {
                     Button(role: .destructive) {
-                        deleteAnnotation()
+                        deleteRecipeAnnotation()
                     } label: {
                         Label("Delete Note", systemImage: "trash")
                             .frame(maxWidth: .infinity)
@@ -373,7 +373,7 @@ struct AnnotationEditorView: View {
         }
     }
 
-    private func styleButton(_ styleOption: Annotation.AnnotationStyle) -> some View {
+    private func styleButton(_ styleOption: RecipeAnnotation.RecipeAnnotationStyle) -> some View {
         let isSelected = style == styleOption
 
         return Button {
@@ -407,7 +407,7 @@ struct AnnotationEditorView: View {
         .buttonStyle(.plain)
     }
 
-    private func styleIcon(_ style: Annotation.AnnotationStyle) -> String {
+    private func styleIcon(_ style: RecipeAnnotation.RecipeAnnotationStyle) -> String {
         switch style {
         case .handwritten:
             return "pencil.tip"
@@ -449,7 +449,7 @@ struct AnnotationEditorView: View {
 
     // MARK: - Actions
 
-    private func saveAnnotation() {
+    private func saveRecipeAnnotation() {
         let trimmedText = text.trimmingCharacters(in: .whitespaces)
         guard !trimmedText.isEmpty else { return }
 
@@ -465,7 +465,7 @@ struct AnnotationEditorView: View {
             annotation.lastModified = Date()
         } else {
             // Create new annotation
-            let newAnnotation = Annotation(
+            let newRecipeAnnotation = RecipeAnnotation(
                 text: trimmedText,
                 style: style,
                 positionX: positionX,
@@ -475,14 +475,14 @@ struct AnnotationEditorView: View {
                 colorHex: colorHex
             )
 
-            newAnnotation.recipe = recipe
-            modelContext.insert(newAnnotation)
+            newRecipeAnnotation.recipe = recipe
+            modelContext.insert(newRecipeAnnotation)
 
             // Add to recipe's annotations array
             if recipe.annotations == nil {
                 recipe.annotations = []
             }
-            recipe.annotations?.append(newAnnotation)
+            recipe.annotations?.append(newRecipeAnnotation)
         }
 
         do {
@@ -511,7 +511,7 @@ struct AnnotationEditorView: View {
         }
     }
 
-    private func deleteAnnotation() {
+    private func deleteRecipeAnnotation() {
         guard let annotation = annotation else { return }
 
         modelContext.delete(annotation)
@@ -538,14 +538,14 @@ struct AnnotationEditorView: View {
 // MARK: - Preview
 
 #Preview("New") {
-    AnnotationEditorView(recipe: .example)
+    RecipeAnnotationEditorView(recipe: .example)
         .modelContainer(for: Recipe.self, inMemory: true)
         .toastContainer()
 }
 
 #Preview("Editing") {
-    let annotation = Annotation(text: "Mom's favorite!", style: .stickyNote)
-    return AnnotationEditorView(recipe: .example, annotation: annotation)
+    let annotation = RecipeAnnotation(text: "Mom's favorite!", style: .stickyNote)
+    return RecipeAnnotationEditorView(recipe: .example, annotation: annotation)
         .modelContainer(for: Recipe.self, inMemory: true)
         .toastContainer()
 }

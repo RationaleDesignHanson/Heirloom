@@ -1,14 +1,14 @@
 import SwiftUI
 import SwiftData
 
-struct StickerPickerView: View {
+struct RecipeStickerPickerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
     @Bindable var recipe: Recipe
 
-    @State private var selectedCategory: Sticker.StickerType = .food
-    @State private var selectedStickerName: String?
+    @State private var selectedCategory: RecipeSticker.RecipeStickerType = .food
+    @State private var selectedRecipeStickerName: String?
     @State private var stickerScale: Double = 1.0
     @State private var stickerRotation: Double = 0.0
     @State private var stickerColor: String = "#FF6B6B"
@@ -31,17 +31,17 @@ struct StickerPickerView: View {
 
                 Divider()
 
-                // Sticker Grid
+                // RecipeSticker Grid
                 stickerGrid
 
                 Divider()
 
                 // Customization Controls
-                if selectedStickerName != nil {
+                if selectedRecipeStickerName != nil {
                     customizationControls
                 }
             }
-            .navigationTitle("Add Sticker")
+            .navigationTitle("Add RecipeSticker")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -52,9 +52,9 @@ struct StickerPickerView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
-                        addSticker()
+                        addRecipeSticker()
                     }
-                    .disabled(selectedStickerName == nil)
+                    .disabled(selectedRecipeStickerName == nil)
                     .fontWeight(.semibold)
                 }
             }
@@ -71,8 +71,8 @@ struct StickerPickerView: View {
                 .shadow(color: .black.opacity(0.1), radius: 10)
                 .padding()
 
-            // Preview Sticker
-            if let stickerName = selectedStickerName {
+            // Preview RecipeSticker
+            if let stickerName = selectedRecipeStickerName {
                 Image(systemName: stickerName)
                     .font(.system(size: 60 * stickerScale))
                     .foregroundStyle(Color(hex: stickerColor) ?? .red)
@@ -109,7 +109,7 @@ struct StickerPickerView: View {
     private var categoryTabs: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: HeirloomSpacing.md) {
-                ForEach(Sticker.allCategories, id: \.self) { category in
+                ForEach(RecipeSticker.allCategories, id: \.self) { category in
                     categoryTab(category)
                 }
             }
@@ -118,13 +118,13 @@ struct StickerPickerView: View {
         }
     }
 
-    private func categoryTab(_ category: Sticker.StickerType) -> some View {
+    private func categoryTab(_ category: RecipeSticker.RecipeStickerType) -> some View {
         let isSelected = selectedCategory == category
 
         return Button {
             withAnimation(.spring(response: 0.3)) {
                 selectedCategory = category
-                selectedStickerName = nil // Reset selection when changing category
+                selectedRecipeStickerName = nil // Reset selection when changing category
             }
 
             // Haptic feedback
@@ -147,7 +147,7 @@ struct StickerPickerView: View {
         .buttonStyle(.plain)
     }
 
-    private func categoryIcon(_ category: Sticker.StickerType) -> String {
+    private func categoryIcon(_ category: RecipeSticker.RecipeStickerType) -> String {
         switch category {
         case .food:
             return "carrot.fill"
@@ -160,7 +160,7 @@ struct StickerPickerView: View {
         }
     }
 
-    // MARK: - Sticker Grid
+    // MARK: - RecipeSticker Grid
 
     private var stickerGrid: some View {
         ScrollView {
@@ -170,7 +170,7 @@ struct StickerPickerView: View {
                 ],
                 spacing: HeirloomSpacing.md
             ) {
-                ForEach(Sticker.stickers(for: selectedCategory), id: \.self) { stickerName in
+                ForEach(RecipeSticker.stickers(for: selectedCategory), id: \.self) { stickerName in
                     stickerButton(stickerName)
                 }
             }
@@ -179,11 +179,11 @@ struct StickerPickerView: View {
     }
 
     private func stickerButton(_ stickerName: String) -> some View {
-        let isSelected = selectedStickerName == stickerName
+        let isSelected = selectedRecipeStickerName == stickerName
 
         return Button {
             withAnimation(.spring(response: 0.3)) {
-                selectedStickerName = stickerName
+                selectedRecipeStickerName = stickerName
             }
 
             // Haptic feedback
@@ -418,10 +418,10 @@ struct StickerPickerView: View {
 
     // MARK: - Actions
 
-    private func addSticker() {
-        guard let stickerName = selectedStickerName else { return }
+    private func addRecipeSticker() {
+        guard let stickerName = selectedRecipeStickerName else { return }
 
-        let sticker = Sticker(
+        let sticker = RecipeSticker(
             stickerType: selectedCategory,
             stickerName: stickerName,
             positionX: positionX,
@@ -448,7 +448,7 @@ struct StickerPickerView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Sticker added!")
+            ToastManager.shared.success(title: "RecipeSticker added!")
 
             // Track analytics
             AnalyticsService.shared.track(event: .recipeEdited, properties: [
@@ -469,7 +469,7 @@ struct StickerPickerView: View {
 // MARK: - Preview
 
 #Preview {
-    StickerPickerView(recipe: .example)
+    RecipeStickerPickerView(recipe: .example)
         .modelContainer(for: Recipe.self, inMemory: true)
         .toastContainer()
 }

@@ -8,10 +8,10 @@ struct CardPersonalizationView: View {
     @Bindable var recipe: Recipe
 
     @State private var selectedTab: PersonalizationTab = .background
-    @State private var showingStickerPicker = false
-    @State private var showingAnnotationEditor = false
-    @State private var selectedSticker: Sticker?
-    @State private var selectedAnnotation: Annotation?
+    @State private var showingRecipeStickerPicker = false
+    @State private var showingRecipeAnnotationEditor = false
+    @State private var selectedRecipeSticker: RecipeSticker?
+    @State private var selectedRecipeAnnotation: RecipeAnnotation?
 
     enum PersonalizationTab {
         case background
@@ -57,11 +57,11 @@ struct CardPersonalizationView: View {
                     .fontWeight(.semibold)
                 }
             }
-            .sheet(isPresented: $showingStickerPicker) {
-                StickerPickerView(recipe: recipe)
+            .sheet(isPresented: $showingRecipeStickerPicker) {
+                RecipeStickerPickerView(recipe: recipe)
             }
-            .sheet(isPresented: $showingAnnotationEditor) {
-                AnnotationEditorView(recipe: recipe, annotation: selectedAnnotation)
+            .sheet(isPresented: $showingRecipeAnnotationEditor) {
+                RecipeAnnotationEditorView(recipe: recipe, annotation: selectedRecipeAnnotation)
             }
         }
     }
@@ -87,23 +87,23 @@ struct CardPersonalizationView: View {
                 .padding(.top, 20)
                 .padding(.horizontal, 16)
 
-            // Stickers
+            // RecipeStickers
             if let stickers = recipe.stickers {
                 ForEach(stickers, id: \.id) { sticker in
                     stickerView(sticker)
                         .onTapGesture {
-                            selectedSticker = sticker
+                            selectedRecipeSticker = sticker
                         }
                 }
             }
 
-            // Annotations
+            // RecipeAnnotations
             if let annotations = recipe.annotations {
                 ForEach(annotations, id: \.id) { annotation in
                     annotationView(annotation)
                         .onTapGesture {
-                            selectedAnnotation = annotation
-                            showingAnnotationEditor = true
+                            selectedRecipeAnnotation = annotation
+                            showingRecipeAnnotationEditor = true
                         }
                 }
             }
@@ -125,7 +125,7 @@ struct CardPersonalizationView: View {
             if let cardStyle = recipe.cardStyle {
                 switch cardStyle.backgroundType {
                 case .default, .solid:
-                    Color(hex: cardStyle.backgroundColorHex ?? CardStyle.predefinedBackgroundColors[0]) ?? HeirloomColors.cream
+                    Color(hex: cardStyle.backgroundColorHex ?? RecipeCardStyle.predefinedBackgroundColors[0]) ?? HeirloomColors.cream
                 case .gradient:
                     LinearGradient(
                         colors: [
@@ -144,7 +144,7 @@ struct CardPersonalizationView: View {
         }
     }
 
-    private func stickerView(_ sticker: Sticker) -> some View {
+    private func stickerView(_ sticker: RecipeSticker) -> some View {
         Image(systemName: sticker.stickerName)
             .font(.system(size: 40 * sticker.scale))
             .foregroundStyle(Color(hex: sticker.colorHex ?? "#FF6B6B") ?? .red)
@@ -156,7 +156,7 @@ struct CardPersonalizationView: View {
             )
     }
 
-    private func annotationView(_ annotation: Annotation) -> some View {
+    private func annotationView(_ annotation: RecipeAnnotation) -> some View {
         Text(annotation.text)
             .font(annotation.style.font)
             .foregroundStyle(Color(hex: annotation.colorHex) ?? Color.yellow)
@@ -176,7 +176,7 @@ struct CardPersonalizationView: View {
             )
     }
 
-    private func loveMarksOverlay(_ cardStyle: CardStyle) -> some View {
+    private func loveMarksOverlay(_ cardStyle: RecipeCardStyle) -> some View {
         ZStack {
             // Coffee Stain
             if cardStyle.coffeeStainEnabled, let position = cardStyle.coffeeStainPosition {
@@ -197,7 +197,7 @@ struct CardPersonalizationView: View {
         }
     }
 
-    private func coffeeStainPosition(_ position: CardStyle.CoffeeStainPosition) -> CGPoint {
+    private func coffeeStainPosition(_ position: RecipeCardStyle.CoffeeStainPosition) -> CGPoint {
         let width = UIScreen.main.bounds.width * 0.9
         let height: CGFloat = 400
 
@@ -220,7 +220,7 @@ struct CardPersonalizationView: View {
     private var tabSelector: some View {
         HStack(spacing: 0) {
             tabButton(tab: .background, icon: "photo.fill", title: "Background")
-            tabButton(tab: .stickers, icon: "star.fill", title: "Stickers")
+            tabButton(tab: .stickers, icon: "star.fill", title: "RecipeStickers")
             tabButton(tab: .annotations, icon: "note.text", title: "Notes")
             tabButton(tab: .loveMarks, icon: "heart.fill", title: "Love Marks")
         }
@@ -272,7 +272,7 @@ struct CardPersonalizationView: View {
                 columns: [GridItem(.adaptive(minimum: 60))],
                 spacing: HeirloomSpacing.md
             ) {
-                ForEach(CardStyle.predefinedBackgroundColors, id: \.self) { colorHex in
+                ForEach(RecipeCardStyle.predefinedBackgroundColors, id: \.self) { colorHex in
                     colorSwatch(colorHex)
                 }
             }
@@ -303,9 +303,9 @@ struct CardPersonalizationView: View {
     private var stickersEditor: some View {
         VStack(spacing: HeirloomSpacing.lg) {
             Button {
-                showingStickerPicker = true
+                showingRecipeStickerPicker = true
             } label: {
-                Label("Add Sticker", systemImage: "plus.circle.fill")
+                Label("Add RecipeSticker", systemImage: "plus.circle.fill")
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(HeirloomColors.tomato)
@@ -315,7 +315,7 @@ struct CardPersonalizationView: View {
 
             if let stickers = recipe.stickers, !stickers.isEmpty {
                 VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                    Text("Current Stickers")
+                    Text("Current RecipeStickers")
                         .font(HeirloomFonts.bodyBold)
 
                     ForEach(stickers, id: \.id) { sticker in
@@ -330,7 +330,7 @@ struct CardPersonalizationView: View {
                             Spacer()
 
                             Button {
-                                removeSticker(sticker)
+                                removeRecipeSticker(sticker)
                             } label: {
                                 Image(systemName: "trash")
                                     .foregroundStyle(.red)
@@ -354,8 +354,8 @@ struct CardPersonalizationView: View {
     private var annotationsEditor: some View {
         VStack(spacing: HeirloomSpacing.lg) {
             Button {
-                selectedAnnotation = nil
-                showingAnnotationEditor = true
+                selectedRecipeAnnotation = nil
+                showingRecipeAnnotationEditor = true
             } label: {
                 Label("Add Note", systemImage: "plus.circle.fill")
                     .frame(maxWidth: .infinity)
@@ -379,15 +379,15 @@ struct CardPersonalizationView: View {
                             Spacer()
 
                             Button {
-                                selectedAnnotation = annotation
-                                showingAnnotationEditor = true
+                                selectedRecipeAnnotation = annotation
+                                showingRecipeAnnotationEditor = true
                             } label: {
                                 Image(systemName: "pencil")
                                     .foregroundStyle(HeirloomColors.tomato)
                             }
 
                             Button {
-                                removeAnnotation(annotation)
+                                removeRecipeAnnotation(annotation)
                             } label: {
                                 Image(systemName: "trash")
                                     .foregroundStyle(.red)
@@ -415,7 +415,7 @@ struct CardPersonalizationView: View {
                 Toggle("Coffee Stain", isOn: Binding(
                     get: { recipe.cardStyle?.coffeeStainEnabled ?? false },
                     set: { enabled in
-                        ensureCardStyle()
+                        ensureRecipeCardStyle()
                         recipe.cardStyle?.coffeeStainEnabled = enabled
                         if enabled && recipe.cardStyle?.coffeeStainPosition == nil {
                             recipe.cardStyle?.coffeeStainPosition = .topRight
@@ -429,11 +429,11 @@ struct CardPersonalizationView: View {
                         get: { recipe.cardStyle?.coffeeStainPosition ?? .topRight },
                         set: { recipe.cardStyle?.coffeeStainPosition = $0 }
                     )) {
-                        Text("Top Left").tag(CardStyle.CoffeeStainPosition.topLeft)
-                        Text("Top Right").tag(CardStyle.CoffeeStainPosition.topRight)
-                        Text("Bottom Left").tag(CardStyle.CoffeeStainPosition.bottomLeft)
-                        Text("Bottom Right").tag(CardStyle.CoffeeStainPosition.bottomRight)
-                        Text("Center").tag(CardStyle.CoffeeStainPosition.center)
+                        Text("Top Left").tag(RecipeCardStyle.CoffeeStainPosition.topLeft)
+                        Text("Top Right").tag(RecipeCardStyle.CoffeeStainPosition.topRight)
+                        Text("Bottom Left").tag(RecipeCardStyle.CoffeeStainPosition.bottomLeft)
+                        Text("Bottom Right").tag(RecipeCardStyle.CoffeeStainPosition.bottomRight)
+                        Text("Center").tag(RecipeCardStyle.CoffeeStainPosition.center)
                     }
                     .pickerStyle(.menu)
                 }
@@ -448,7 +448,7 @@ struct CardPersonalizationView: View {
                     value: Binding(
                         get: { recipe.cardStyle?.wornEdgesIntensity ?? 0.0 },
                         set: { value in
-                            ensureCardStyle()
+                            ensureRecipeCardStyle()
                             recipe.cardStyle?.wornEdgesIntensity = value
                         }
                     ),
@@ -465,7 +465,7 @@ struct CardPersonalizationView: View {
             Toggle("Auto Love Marks", isOn: Binding(
                 get: { recipe.cardStyle?.autoLoveMarks ?? false },
                 set: { enabled in
-                    ensureCardStyle()
+                    ensureRecipeCardStyle()
                     recipe.cardStyle?.autoLoveMarks = enabled
                 }
             ))
@@ -479,9 +479,9 @@ struct CardPersonalizationView: View {
 
     // MARK: - Actions
 
-    private func ensureCardStyle() {
+    private func ensureRecipeCardStyle() {
         if recipe.cardStyle == nil {
-            let cardStyle = CardStyle()
+            let cardStyle = RecipeCardStyle()
             cardStyle.recipe = recipe
             recipe.cardStyle = cardStyle
             modelContext.insert(cardStyle)
@@ -489,7 +489,7 @@ struct CardPersonalizationView: View {
     }
 
     private func selectBackgroundColor(_ colorHex: String) {
-        ensureCardStyle()
+        ensureRecipeCardStyle()
         recipe.cardStyle?.backgroundColorHex = colorHex
         recipe.cardStyle?.backgroundType = .solid
         recipe.cardStyle?.lastModified = Date()
@@ -499,7 +499,7 @@ struct CardPersonalizationView: View {
         generator.impactOccurred()
     }
 
-    private func removeSticker(_ sticker: Sticker) {
+    private func removeRecipeSticker(_ sticker: RecipeSticker) {
         modelContext.delete(sticker)
 
         // Haptic feedback
@@ -507,7 +507,7 @@ struct CardPersonalizationView: View {
         generator.notificationOccurred(.success)
     }
 
-    private func removeAnnotation(_ annotation: Annotation) {
+    private func removeRecipeAnnotation(_ annotation: RecipeAnnotation) {
         modelContext.delete(annotation)
 
         // Haptic feedback

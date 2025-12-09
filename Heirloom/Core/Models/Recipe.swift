@@ -39,14 +39,14 @@ final class Recipe {
     var notes: String?
 
     // MARK: - Personalization (Phase 2)
-    @Relationship(deleteRule: .cascade, inverse: \CardStyle.recipe)
-    var cardStyle: CardStyle?
+    @Relationship(deleteRule: .cascade, inverse: \RecipeCardStyle.recipe)
+    var cardStyle: RecipeCardStyle?
 
-    @Relationship(deleteRule: .cascade, inverse: \Sticker.recipe)
-    var stickers: [Sticker]?
+    @Relationship(deleteRule: .cascade, inverse: \RecipeSticker.recipe)
+    var stickers: [RecipeSticker]?
 
-    @Relationship(deleteRule: .cascade, inverse: \Annotation.recipe)
-    var annotations: [Annotation]?
+    @Relationship(deleteRule: .cascade, inverse: \RecipeAnnotation.recipe)
+    var annotations: [RecipeAnnotation]?
 
     // MARK: - Metadata
     var timesCooked: Int = 0

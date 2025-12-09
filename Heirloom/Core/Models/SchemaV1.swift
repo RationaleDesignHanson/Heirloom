@@ -12,9 +12,9 @@ enum SchemaV1: VersionedSchema {
             Ingredient.self,
             Tag.self,
             RecipeCollection.self,
-            CardStyle.self,
-            Sticker.self,
-            Annotation.self,
+            RecipeCardStyle.self,
+            RecipeSticker.self,
+            RecipeAnnotation.self,
             Substitution.self
             // DinnerParty and SharedRecipeCard will be added in Phase 3
         ]

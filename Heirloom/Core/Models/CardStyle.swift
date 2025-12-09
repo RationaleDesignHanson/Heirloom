@@ -3,7 +3,7 @@ import SwiftData
 import SwiftUI
 
 @Model
-final class CardStyle {
+final class RecipeCardStyle {
     var id: UUID
     var createdDate: Date
     var lastModified: Date
@@ -56,7 +56,7 @@ final class CardStyle {
 
 // MARK: - Predefined Styles
 
-extension CardStyle {
+extension RecipeCardStyle {
     static let predefinedBackgroundColors = [
         "#FEFDFB", // Cream (default)
         "#FFF9E6", // Warm White

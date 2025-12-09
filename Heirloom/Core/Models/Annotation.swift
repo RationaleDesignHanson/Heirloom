@@ -3,7 +3,7 @@ import SwiftData
 import SwiftUI
 
 @Model
-final class Annotation {
+final class RecipeAnnotation {
     var id: UUID
     var text: String
     var style: AnnotationStyle
@@ -75,7 +75,7 @@ final class Annotation {
 
 // MARK: - Predefined Colors
 
-extension Annotation {
+extension RecipeAnnotation {
     static let predefinedColors = [
         "#FFD93D", // Yellow (sticky note)
         "#FF6B6B", // Red
