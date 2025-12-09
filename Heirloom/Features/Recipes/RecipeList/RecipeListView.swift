@@ -106,90 +106,64 @@ struct RecipeListView: View {
                     }
                     .buttonStyle(.plain)
                     .id(recipe.id)
+                    .contextMenu {
+                        Button {
+                            recipe.isFavorite.toggle()
+                        } label: {
+                            Label(
+                                recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                                systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
+                            )
+                        }
+
+                        Button {
+                            recipe.isInShoppingList.toggle()
+                        } label: {
+                            Label(
+                                recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List",
+                                systemImage: recipe.isInShoppingList ? "cart.badge.minus" : "cart.badge.plus"
+                            )
+                        }
+
+                        Divider()
+
+                        Button(role: .destructive) {
+                            deleteRecipe(recipe)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
                 }
             }
             .padding(.horizontal, HeirloomSpacing.md)
             .padding(.vertical, HeirloomSpacing.sm)
+        }
+        .refreshable {
+            await refreshRecipes()
         }
         .background(HeirloomColors.appBackground)
     }
 
     // MARK: - Empty State
     private var emptyState: some View {
-        VStack(spacing: HeirloomSpacing.lg) {
-            Image(systemName: "book.closed")
-                .font(.system(size: 60))
-                .foregroundStyle(HeirloomColors.warmGray)
-
-            VStack(spacing: HeirloomSpacing.sm) {
-                Text("No Recipes Yet")
-                    .font(HeirloomFonts.title2)
-                    .foregroundStyle(HeirloomColors.primaryText)
-
-                Text("Tap the + button to add your first recipe")
-                    .font(HeirloomFonts.body)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .multilineTextAlignment(.center)
-            }
-
-            Button {
-                // Add sample recipe for testing
-                addSampleRecipe()
-            } label: {
-                Text("Add Sample Recipe")
-                    .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, HeirloomSpacing.lg)
-                    .padding(.vertical, HeirloomSpacing.md)
-                    .background(HeirloomColors.tomato)
-                    .cornerRadius(12)
-            }
+        EmptyStateView.noRecipes {
+            showAddRecipe = true
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(HeirloomColors.appBackground)
     }
 
     // MARK: - No Results State
     private var noResultsState: some View {
-        VStack(spacing: HeirloomSpacing.lg) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 60))
-                .foregroundStyle(HeirloomColors.warmGray)
-
-            VStack(spacing: HeirloomSpacing.sm) {
-                Text("No Recipes Found")
-                    .font(HeirloomFonts.title2)
-                    .foregroundStyle(HeirloomColors.primaryText)
-
-                if !searchText.isEmpty {
-                    Text("No results for \"\(searchText)\"")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .multilineTextAlignment(.center)
-                } else if filters.isActive {
-                    Text("Try adjusting your filters")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .multilineTextAlignment(.center)
+        Group {
+            if !searchText.isEmpty {
+                EmptyStateView.noSearchResults(query: searchText) {
+                    searchText = ""
                 }
-            }
-
-            if filters.isActive {
-                Button {
+            } else if filters.isActive {
+                EmptyStateView.noFilterResults {
                     filters = RecipeFilters()
-                } label: {
-                    Text("Clear Filters")
-                        .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, HeirloomSpacing.lg)
-                        .padding(.vertical, HeirloomSpacing.md)
-                        .background(HeirloomColors.tomato)
-                        .cornerRadius(12)
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(HeirloomColors.appBackground)
     }
 
     // MARK: - Computed Properties
@@ -250,6 +224,47 @@ struct RecipeListView: View {
     }
 
     // MARK: - Actions
+
+    private func refreshRecipes() async {
+        // Add haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+
+        // Simulate refresh (in reality, SwiftData query auto-updates)
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+        // Success haptic
+        let successGenerator = UINotificationFeedbackGenerator()
+        successGenerator.notificationOccurred(.success)
+    }
+
+    private func deleteRecipe(_ recipe: Recipe) {
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+
+        // Delete recipe
+        modelContext.delete(recipe)
+
+        do {
+            try modelContext.save()
+
+            // Success haptic
+            let successGenerator = UINotificationFeedbackGenerator()
+            successGenerator.notificationOccurred(.success)
+
+            ToastManager.shared.success(title: "Recipe deleted")
+
+            // Track analytics
+            AnalyticsService.shared.trackRecipeDeleted(recipeTitle: recipe.title)
+        } catch {
+            ToastManager.shared.error(
+                title: "Failed to delete",
+                message: error.localizedDescription
+            )
+        }
+    }
+
     private func addSampleRecipe() {
         // Pick a random sample recipe from our library
         let sampleRecipes = SampleRecipeLibrary.all

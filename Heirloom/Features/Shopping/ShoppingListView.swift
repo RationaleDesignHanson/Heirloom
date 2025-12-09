@@ -72,25 +72,13 @@ struct ShoppingListView: View {
 
     // MARK: - Empty State
     private var emptyState: some View {
-        VStack(spacing: HeirloomSpacing.lg) {
-            Image(systemName: "cart")
-                .font(.system(size: 60))
-                .foregroundStyle(HeirloomColors.warmGray)
-
-            VStack(spacing: HeirloomSpacing.sm) {
-                Text("No Items Yet")
-                    .font(HeirloomFonts.title2)
-                    .foregroundStyle(HeirloomColors.primaryText)
-
-                Text("Add recipes to your shopping list to see their ingredients here")
-                    .font(HeirloomFonts.body)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, HeirloomSpacing.xl)
+        EmptyStateView.emptyShoppingList {
+            // Switch to Recipes tab
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let tabBar = windowScene.windows.first?.rootViewController as? UITabBarController {
+                tabBar.selectedIndex = 0
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(HeirloomColors.appBackground)
     }
 
     // MARK: - Shopping List

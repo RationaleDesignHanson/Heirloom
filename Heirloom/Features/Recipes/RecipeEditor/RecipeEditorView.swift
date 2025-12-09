@@ -287,6 +287,11 @@ struct RecipeEditorView: View {
 
                 await MainActor.run {
                     isSaving = false
+
+                    // Haptic feedback
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+
                     ToastManager.shared.success(
                         title: isNewRecipe ? "Recipe created!" : "Recipe updated!"
                     )
@@ -295,6 +300,11 @@ struct RecipeEditorView: View {
             } catch {
                 await MainActor.run {
                     isSaving = false
+
+                    // Haptic feedback
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.error)
+
                     ToastManager.shared.error(
                         title: "Failed to save recipe",
                         message: error.localizedDescription

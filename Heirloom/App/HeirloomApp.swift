@@ -143,6 +143,7 @@ struct HeirloomApp: App {
 struct ContentView: View {
     @State private var selectedTab = 0
     @State private var showAddRecipe = false
+    @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -180,6 +181,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showAddRecipe) {
             RecipeEditorView()
+        }
+        .fullScreenCover(isPresented: $showOnboarding) {
+            OnboardingView()
         }
     }
 }

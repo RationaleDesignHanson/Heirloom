@@ -501,6 +501,10 @@ struct RecipeDetailView: View {
         recipe.isFavorite.toggle()
         recipe.lastModified = Date()
 
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: recipe.isFavorite ? .medium : .light)
+        generator.impactOccurred()
+
         let message = recipe.isFavorite ? "Added to favorites" : "Removed from favorites"
         ToastManager.shared.success(title: message)
 
@@ -512,6 +516,10 @@ struct RecipeDetailView: View {
         recipe.isInShoppingList.toggle()
         recipe.lastModified = Date()
 
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: recipe.isInShoppingList ? .medium : .light)
+        generator.impactOccurred()
+
         let message = recipe.isInShoppingList ? "Added to shopping list" : "Removed from shopping list"
         ToastManager.shared.success(title: message)
 
@@ -521,6 +529,10 @@ struct RecipeDetailView: View {
 
     private func deleteRecipe() {
         isDeleting = true
+
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
 
         // Track analytics before deletion
         AnalyticsService.shared.trackRecipeDeleted(recipeTitle: recipe.title)

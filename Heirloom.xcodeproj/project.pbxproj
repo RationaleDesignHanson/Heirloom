@@ -35,6 +35,8 @@
 		C5F2EF2D2EE79F980033058D /* RecipeImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF2B2EE79F980033058D /* RecipeImportView.swift */; };
 		C5F2EF2F2EE7A8620033058D /* RecipeFiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF2E2EE7A8620033058D /* RecipeFiltersView.swift */; };
 		C5F2EF322EE7AFBB0033058D /* CookingModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF302EE7AFBB0033058D /* CookingModeView.swift */; };
+		C5F2EF352EE7B4EE0033058D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF332EE7B4EE0033058D /* OnboardingView.swift */; };
+		C5F2EF372EE7B5DB0033058D /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF362EE7B5DB0033058D /* EmptyStateView.swift */; };
 		F4B1A0AFB96B040047C28032 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A9B3D94D12C38881E14669 /* Colors.swift */; };
 /* End PBXBuildFile section */
 
@@ -66,6 +68,8 @@
 		C5F2EF2B2EE79F980033058D /* RecipeImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImportView.swift; sourceTree = "<group>"; };
 		C5F2EF2E2EE7A8620033058D /* RecipeFiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeFiltersView.swift; sourceTree = "<group>"; };
 		C5F2EF302EE7AFBB0033058D /* CookingModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookingModeView.swift; sourceTree = "<group>"; };
+		C5F2EF332EE7B4EE0033058D /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		C5F2EF362EE7B5DB0033058D /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EFF2A4FC35D119FCC34DE5BA /* Ingredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ingredient.swift; sourceTree = "<group>"; };
@@ -104,6 +108,7 @@
 		1DCD93B7E846905705091E32 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				C5F2EF362EE7B5DB0033058D /* EmptyStateView.swift */,
 				C53429372EE7714D00CB608E /* ButtonStyles.swift */,
 				C53429382EE7714D00CB608E /* LoadingViews.swift */,
 				C53429392EE7714D00CB608E /* ToastView.swift */,
@@ -237,6 +242,14 @@
 			path = CookingMode;
 			sourceTree = "<group>";
 		};
+		C5F2EF342EE7B4EE0033058D /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				C5F2EF332EE7B4EE0033058D /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		C8004A9A6B408625BEFCB6D2 /* Design */ = {
 			isa = PBXGroup;
 			children = (
@@ -258,6 +271,7 @@
 		CC9AF2BB0CC0DBBEC558EC0F /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				C5F2EF342EE7B4EE0033058D /* Onboarding */,
 				C5F2EF272EE79C670033058D /* Settings */,
 				C5F2EF1C2EE787BD0033058D /* Shopping */,
 				8AC18A265A5E4A850FD25D2C /* Recipes */,
@@ -384,6 +398,7 @@
 				C5F2EF1F2EE7909B0033058D /* IngredientParser.swift in Sources */,
 				C534293A2EE7714D00CB608E /* LoadingViews.swift in Sources */,
 				C534293B2EE7714D00CB608E /* ToastView.swift in Sources */,
+				C5F2EF352EE7B4EE0033058D /* OnboardingView.swift in Sources */,
 				C53429432EE7775C00CB608E /* AnalyticsService.swift in Sources */,
 				C53429442EE7775C00CB608E /* MixpanelService.swift in Sources */,
 				C5F2EF322EE7AFBB0033058D /* CookingModeView.swift in Sources */,
@@ -392,6 +407,7 @@
 				74DC70C5F9BED2FC3AD88944 /* Recipe.swift in Sources */,
 				C5F2EF1D2EE787BD0033058D /* ShoppingListView.swift in Sources */,
 				28E4E26F3EBD90318EF438B2 /* RecipeListView.swift in Sources */,
+				C5F2EF372EE7B5DB0033058D /* EmptyStateView.swift in Sources */,
 				C5F2EF2F2EE7A8620033058D /* RecipeFiltersView.swift in Sources */,
 				C5F2EF242EE794660033058D /* RemindersService.swift in Sources */,
 				64CF275134BD2DF05BC42B58 /* SchemaV1.swift in Sources */,
