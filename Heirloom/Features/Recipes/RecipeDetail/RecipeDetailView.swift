@@ -11,6 +11,7 @@ struct RecipeDetailView: View {
     @State private var showCookingMode = false
     @State private var showShareSheet = false
     @State private var showTagCollectionPicker = false
+    @State private var showCardPersonalization = false
     @State private var servingMultiplier: Double = 1.0
 
     var body: some View {
@@ -110,6 +111,12 @@ struct RecipeDetailView: View {
                         Label("Organize", systemImage: "tag")
                     }
 
+                    Button {
+                        showCardPersonalization = true
+                    } label: {
+                        Label("Personalize Card", systemImage: "paintbrush.fill")
+                    }
+
                     Divider()
 
                     Button(role: .destructive) {
@@ -140,6 +147,9 @@ struct RecipeDetailView: View {
         }
         .sheet(isPresented: $showTagCollectionPicker) {
             TagCollectionPickerView(recipe: recipe)
+        }
+        .sheet(isPresented: $showCardPersonalization) {
+            CardPersonalizationView(recipe: recipe)
         }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe)

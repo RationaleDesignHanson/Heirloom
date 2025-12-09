@@ -42,6 +42,12 @@ final class Recipe {
     @Relationship(deleteRule: .cascade, inverse: \CardStyle.recipe)
     var cardStyle: CardStyle?
 
+    @Relationship(deleteRule: .cascade, inverse: \Sticker.recipe)
+    var stickers: [Sticker]?
+
+    @Relationship(deleteRule: .cascade, inverse: \Annotation.recipe)
+    var annotations: [Annotation]?
+
     // MARK: - Metadata
     var timesCooked: Int = 0
     var lastCooked: Date?

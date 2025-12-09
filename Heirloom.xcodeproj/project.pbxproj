@@ -44,6 +44,10 @@
 		C5F2EF442EE7BA3E0033058D /* TagManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF422EE7BA3E0033058D /* TagManagementView.swift */; };
 		C5F2EF452EE7BA3E0033058D /* TagCollectionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF412EE7BA3E0033058D /* TagCollectionPickerView.swift */; };
 		C5F2EF482EE7BA470033058D /* CollectionManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF462EE7BA470033058D /* CollectionManagementView.swift */; };
+		C5F2EF4C2EE7BE540033058D /* Annotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF492EE7BE540033058D /* Annotation.swift */; };
+		C5F2EF4D2EE7BE540033058D /* CardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF4A2EE7BE540033058D /* CardStyle.swift */; };
+		C5F2EF4E2EE7BE540033058D /* Sticker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF4B2EE7BE540033058D /* Sticker.swift */; };
+		C5F2EF512EE7BE630033058D /* CardPersonalizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF4F2EE7BE630033058D /* CardPersonalizationView.swift */; };
 		F4B1A0AFB96B040047C28032 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A9B3D94D12C38881E14669 /* Colors.swift */; };
 /* End PBXBuildFile section */
 
@@ -84,6 +88,10 @@
 		C5F2EF412EE7BA3E0033058D /* TagCollectionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagCollectionPickerView.swift; sourceTree = "<group>"; };
 		C5F2EF422EE7BA3E0033058D /* TagManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementView.swift; sourceTree = "<group>"; };
 		C5F2EF462EE7BA470033058D /* CollectionManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionManagementView.swift; sourceTree = "<group>"; };
+		C5F2EF492EE7BE540033058D /* Annotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Annotation.swift; sourceTree = "<group>"; };
+		C5F2EF4A2EE7BE540033058D /* CardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardStyle.swift; sourceTree = "<group>"; };
+		C5F2EF4B2EE7BE540033058D /* Sticker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sticker.swift; sourceTree = "<group>"; };
+		C5F2EF4F2EE7BE630033058D /* CardPersonalizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardPersonalizationView.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EFF2A4FC35D119FCC34DE5BA /* Ingredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ingredient.swift; sourceTree = "<group>"; };
@@ -177,6 +185,9 @@
 		99534F5D5C4435D669F1B56B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C5F2EF492EE7BE540033058D /* Annotation.swift */,
+				C5F2EF4A2EE7BE540033058D /* CardStyle.swift */,
+				C5F2EF4B2EE7BE540033058D /* Sticker.swift */,
 				C5F2EF3D2EE7BA250033058D /* RecipeCollection.swift */,
 				C5F2EF3E2EE7BA250033058D /* Tag.swift */,
 				EFF2A4FC35D119FCC34DE5BA /* Ingredient.swift */,
@@ -293,6 +304,14 @@
 			path = Collections;
 			sourceTree = "<group>";
 		};
+		C5F2EF502EE7BE630033058D /* CardPersonalization */ = {
+			isa = PBXGroup;
+			children = (
+				C5F2EF4F2EE7BE630033058D /* CardPersonalizationView.swift */,
+			);
+			path = CardPersonalization;
+			sourceTree = "<group>";
+		};
 		C8004A9A6B408625BEFCB6D2 /* Design */ = {
 			isa = PBXGroup;
 			children = (
@@ -314,6 +333,7 @@
 		CC9AF2BB0CC0DBBEC558EC0F /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				C5F2EF502EE7BE630033058D /* CardPersonalization */,
 				C5F2EF472EE7BA470033058D /* Collections */,
 				C5F2EF432EE7BA3E0033058D /* Tags */,
 				C5F2EF342EE7B4EE0033058D /* Onboarding */,
@@ -461,6 +481,10 @@
 				C5F2EF2F2EE7A8620033058D /* RecipeFiltersView.swift in Sources */,
 				C5F2EF3C2EE7B8C90033058D /* CookbookScannerView.swift in Sources */,
 				C5F2EF242EE794660033058D /* RemindersService.swift in Sources */,
+				C5F2EF512EE7BE630033058D /* CardPersonalizationView.swift in Sources */,
+				C5F2EF4C2EE7BE540033058D /* Annotation.swift in Sources */,
+				C5F2EF4D2EE7BE540033058D /* CardStyle.swift in Sources */,
+				C5F2EF4E2EE7BE540033058D /* Sticker.swift in Sources */,
 				64CF275134BD2DF05BC42B58 /* SchemaV1.swift in Sources */,
 				C5F2EF222EE790B70033058D /* SampleRecipeLibrary.swift in Sources */,
 				C5F2EF482EE7BA470033058D /* CollectionManagementView.swift in Sources */,
