@@ -10,7 +10,7 @@ struct RecipeAnnotationEditorView: View {
     let annotation: RecipeAnnotation?
 
     @State private var text: String = ""
-    @State private var style: RecipeAnnotation.RecipeAnnotationStyle = .stickyNote
+    @State private var style: RecipeAnnotation.AnnotationStyle = .stickyNote
     @State private var colorHex: String = "#FFD93D"
     @State private var fontSize: Double = 14.0
     @State private var rotation: Double = 0.0
@@ -208,7 +208,7 @@ struct RecipeAnnotationEditorView: View {
                         .font(HeirloomFonts.bodyBold)
 
                     HStack(spacing: HeirloomSpacing.sm) {
-                        ForEach([RecipeAnnotation.RecipeAnnotationStyle.stickyNote, .handwritten, .marker], id: \.self) { styleOption in
+                        ForEach([RecipeAnnotation.AnnotationStyle.stickyNote, .handwritten, .marker], id: \.self) { styleOption in
                             styleButton(styleOption)
                         }
                     }
@@ -373,7 +373,7 @@ struct RecipeAnnotationEditorView: View {
         }
     }
 
-    private func styleButton(_ styleOption: RecipeAnnotation.RecipeAnnotationStyle) -> some View {
+    private func styleButton(_ styleOption: RecipeAnnotation.AnnotationStyle) -> some View {
         let isSelected = style == styleOption
 
         return Button {
@@ -407,7 +407,7 @@ struct RecipeAnnotationEditorView: View {
         .buttonStyle(.plain)
     }
 
-    private func styleIcon(_ style: RecipeAnnotation.RecipeAnnotationStyle) -> String {
+    private func styleIcon(_ style: RecipeAnnotation.AnnotationStyle) -> String {
         switch style {
         case .handwritten:
             return "pencil.tip"

@@ -7,7 +7,7 @@ struct RecipeStickerPickerView: View {
 
     @Bindable var recipe: Recipe
 
-    @State private var selectedCategory: RecipeSticker.RecipeStickerType = .food
+    @State private var selectedCategory: RecipeSticker.StickerType = .food
     @State private var selectedRecipeStickerName: String?
     @State private var stickerScale: Double = 1.0
     @State private var stickerRotation: Double = 0.0
@@ -118,7 +118,7 @@ struct RecipeStickerPickerView: View {
         }
     }
 
-    private func categoryTab(_ category: RecipeSticker.RecipeStickerType) -> some View {
+    private func categoryTab(_ category: RecipeSticker.StickerType) -> some View {
         let isSelected = selectedCategory == category
 
         return Button {
@@ -147,7 +147,7 @@ struct RecipeStickerPickerView: View {
         .buttonStyle(.plain)
     }
 
-    private func categoryIcon(_ category: RecipeSticker.RecipeStickerType) -> String {
+    private func categoryIcon(_ category: RecipeSticker.StickerType) -> String {
         switch category {
         case .food:
             return "carrot.fill"

@@ -23,7 +23,7 @@ class CloudKitShareService {
     func shareRecipe(
         _ recipe: Recipe,
         message: String? = nil,
-        completion: @escaping (Result<CKShare.URL, Error>) -> Void
+        completion: @escaping (Result<URL, Error>) -> Void
     ) {
         Task {
             do {
@@ -58,7 +58,7 @@ class CloudKitShareService {
         _ recipe: Recipe,
         to recipient: String,
         message: String,
-        completion: @escaping (Result<CKShare.URL, Error>) -> Void
+        completion: @escaping (Result<URL, Error>) -> Void
     ) {
         Task {
             do {
@@ -110,10 +110,7 @@ class CloudKitShareService {
                 try await acceptShare(metadata)
 
                 // Fetch the actual recipe record
-                guard let recordID = metadata.rootRecordID else {
-                    throw CloudKitError.invalidShare
-                }
-
+                let recordID = metadata.rootRecordID
                 let record = try await fetchRecord(recordID, from: publicDatabase)
 
                 // Convert CloudKit record to Recipe

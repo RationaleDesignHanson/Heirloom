@@ -264,12 +264,12 @@ struct CollectionEditorView: View {
             VStack(spacing: 4) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(selectedIcon == iconName ? Color(hex: selectedColor)?.opacity(0.2) ?? .gray.opacity(0.2) : .gray.opacity(0.1))
+                        .fill(selectedIcon == iconName ? Color(hex: selectedColor).opacity(0.2) : .gray.opacity(0.1))
                         .frame(width: 60, height: 60)
 
                     Image(systemName: iconName)
                         .font(.title2)
-                        .foregroundStyle(selectedIcon == iconName ? Color(hex: selectedColor) ?? .gray : .gray)
+                        .foregroundStyle(selectedIcon == iconName ? Color(hex: selectedColor) : .gray)
                 }
 
                 if selectedIcon == iconName {
