@@ -37,6 +37,7 @@
 		C5F2EF322EE7AFBB0033058D /* CookingModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF302EE7AFBB0033058D /* CookingModeView.swift */; };
 		C5F2EF352EE7B4EE0033058D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF332EE7B4EE0033058D /* OnboardingView.swift */; };
 		C5F2EF372EE7B5DB0033058D /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF362EE7B5DB0033058D /* EmptyStateView.swift */; };
+		C5F2EF392EE7B6770033058D /* RecipeShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF382EE7B6770033058D /* RecipeShareService.swift */; };
 		F4B1A0AFB96B040047C28032 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A9B3D94D12C38881E14669 /* Colors.swift */; };
 /* End PBXBuildFile section */
 
@@ -70,6 +71,7 @@
 		C5F2EF302EE7AFBB0033058D /* CookingModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookingModeView.swift; sourceTree = "<group>"; };
 		C5F2EF332EE7B4EE0033058D /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		C5F2EF362EE7B5DB0033058D /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+		C5F2EF382EE7B6770033058D /* RecipeShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeShareService.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EFF2A4FC35D119FCC34DE5BA /* Ingredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ingredient.swift; sourceTree = "<group>"; };
@@ -137,6 +139,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5F2EF382EE7B6770033058D /* RecipeShareService.swift */,
 				C5F2EF292EE79F850033058D /* RecipeImportService.swift */,
 				C5F2EF232EE794660033058D /* RemindersService.swift */,
 				C5F2EF1E2EE7909B0033058D /* IngredientParser.swift */,
@@ -400,6 +403,7 @@
 				C534293B2EE7714D00CB608E /* ToastView.swift in Sources */,
 				C5F2EF352EE7B4EE0033058D /* OnboardingView.swift in Sources */,
 				C53429432EE7775C00CB608E /* AnalyticsService.swift in Sources */,
+				C5F2EF392EE7B6770033058D /* RecipeShareService.swift in Sources */,
 				C53429442EE7775C00CB608E /* MixpanelService.swift in Sources */,
 				C5F2EF322EE7AFBB0033058D /* CookingModeView.swift in Sources */,
 				C53429472EE7790400CB608E /* RecipeEditorView.swift in Sources */,

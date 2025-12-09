@@ -9,6 +9,7 @@ struct RecipeDetailView: View {
     @State private var isDeleting = false
     @State private var showEditSheet = false
     @State private var showCookingMode = false
+    @State private var showShareSheet = false
     @State private var servingMultiplier: Double = 1.0
 
     var body: some View {
@@ -75,8 +76,18 @@ struct RecipeDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button {
-                        // TODO: Share recipe
+                    Menu {
+                        Button {
+                            shareRecipe(as: .text)
+                        } label: {
+                            Label("As Text", systemImage: "doc.text")
+                        }
+
+                        Button {
+                            shareRecipe(as: .pdf)
+                        } label: {
+                            Label("As PDF", systemImage: "doc.richtext")
+                        }
                     } label: {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }
@@ -497,6 +508,27 @@ struct RecipeDetailView: View {
     }
 
     // MARK: - Actions
+
+    private func shareRecipe(as format: RecipeShareService.ShareFormat) {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            return
+        }
+
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+
+        RecipeShareService.shared.shareRecipe(recipe, as: format, from: window)
+
+        // Track analytics
+        AnalyticsService.shared.track(event: .recipeShared, properties: [
+            "recipe_id": recipe.id.uuidString,
+            "recipe_title": recipe.title,
+            "share_format": String(describing: format)
+        ])
+    }
+
     private func toggleFavorite() {
         recipe.isFavorite.toggle()
         recipe.lastModified = Date()
