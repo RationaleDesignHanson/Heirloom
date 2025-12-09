@@ -1,0 +1,368 @@
+import Foundation
+import SwiftSoup
+
+/// Service for importing recipes from URLs
+class RecipeImportService {
+    static let shared = RecipeImportService()
+
+    private init() {}
+
+    /// Import a recipe from a URL
+    func importRecipe(from urlString: String) async throws -> ImportedRecipe {
+        // Clean up URL (trim whitespace, remove invisible characters)
+        let cleanedURL = urlString
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\u{200B}", with: "") // Zero-width space
+            .replacingOccurrences(of: "\u{FEFF}", with: "") // Byte order mark
+
+        print("🔍 Starting import from: \(cleanedURL)")
+
+        // Validate URL
+        guard let url = URL(string: cleanedURL) else {
+            print("❌ Invalid URL: \(cleanedURL)")
+            throw ImportError.invalidURL
+        }
+
+        // Fetch HTML
+        print("📥 Fetching HTML...")
+        let html = try await fetchHTML(from: url)
+        print("✅ Fetched \(html.count) characters")
+
+        // Parse recipe data
+        print("🔍 Parsing recipe data...")
+        let recipe = try parseRecipe(from: html, sourceURL: urlString)
+        print("✅ Successfully parsed recipe: \(recipe.title)")
+        return recipe
+    }
+
+    // MARK: - Private Methods
+
+    private func fetchHTML(from url: URL) async throws -> String {
+        // Configure request with proper headers to avoid being blocked
+        var request = URLRequest(url: url)
+        request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1", forHTTPHeaderField: "User-Agent")
+        request.setValue("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", forHTTPHeaderField: "Accept")
+        request.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
+        request.timeoutInterval = 30
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            print("❌ Invalid response type")
+            throw ImportError.networkError
+        }
+
+        print("📡 HTTP Status: \(httpResponse.statusCode)")
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            print("❌ HTTP error: \(httpResponse.statusCode)")
+            throw ImportError.networkError
+        }
+
+        guard let html = String(data: data, encoding: .utf8) else {
+            print("❌ Failed to decode HTML")
+            throw ImportError.invalidHTML
+        }
+
+        return html
+    }
+
+    private func parseRecipe(from html: String, sourceURL: String) throws -> ImportedRecipe {
+        let doc = try SwiftSoup.parse(html)
+
+        // Try schema.org JSON-LD first (most reliable)
+        print("🔍 Looking for JSON-LD recipe data...")
+        if let recipe = try? parseJSONLD(from: doc) {
+            print("✅ Found JSON-LD recipe data")
+            var result = recipe
+            result.sourceURL = sourceURL
+            return result
+        }
+        print("⚠️ No JSON-LD recipe data found")
+
+        // Fallback to microdata/HTML parsing
+        print("🔍 Trying microdata fallback...")
+        if let recipe = try? parseMicrodata(from: doc) {
+            print("✅ Found microdata recipe data")
+            var result = recipe
+            result.sourceURL = sourceURL
+            return result
+        }
+        print("⚠️ No microdata recipe data found")
+
+        throw ImportError.noRecipeFound
+    }
+
+    // MARK: - JSON-LD Parsing (Schema.org)
+
+    private func parseJSONLD(from doc: Document) throws -> ImportedRecipe {
+        // Find script tags with type="application/ld+json"
+        let scripts = try doc.select("script[type=application/ld+json]")
+
+        print("📋 Found \(scripts.count) JSON-LD script tags")
+
+        for (index, script) in scripts.enumerated() {
+            let jsonText = try script.html()
+            guard let jsonData = jsonText.data(using: .utf8) else {
+                print("⚠️ Script \(index): Failed to get data")
+                continue
+            }
+
+            print("🔍 Script \(index): Parsing JSON...")
+            if let recipe = try? parseRecipeJSON(from: jsonData) {
+                print("✅ Script \(index): Found recipe!")
+                return recipe
+            } else {
+                print("⚠️ Script \(index): No recipe data")
+            }
+        }
+
+        throw ImportError.noRecipeFound
+    }
+
+    private func parseRecipeJSON(from data: Data) throws -> ImportedRecipe {
+        let jsonObject = try JSONSerialization.jsonObject(with: data)
+
+        // Handle array of JSON-LD objects (e.g., [Recipe, BreadcrumbList, Organization])
+        if let jsonArray = jsonObject as? [[String: Any]] {
+            print("🔍 Found JSON array with \(jsonArray.count) items")
+            for item in jsonArray {
+                if isRecipeType(item) {
+                    print("✅ Found Recipe in array")
+                    return parseRecipeDict(item)
+                }
+            }
+        }
+
+        // Handle single JSON-LD object
+        if let json = jsonObject as? [String: Any] {
+            // Handle @graph array (some sites use this)
+            if let graph = json["@graph"] as? [[String: Any]] {
+                print("🔍 Found @graph with \(graph.count) items")
+                for item in graph {
+                    if isRecipeType(item) {
+                        print("✅ Found Recipe in @graph")
+                        return parseRecipeDict(item)
+                    }
+                }
+            }
+
+            // Handle direct Recipe object
+            if isRecipeType(json) {
+                print("✅ Found direct Recipe object")
+                return parseRecipeDict(json)
+            }
+        }
+
+        print("⚠️ JSON structure doesn't contain Recipe")
+        throw ImportError.noRecipeFound
+    }
+
+    private func isRecipeType(_ dict: [String: Any]) -> Bool {
+        // @type can be a String or Array of Strings
+        if let typeString = dict["@type"] as? String {
+            return typeString == "Recipe"
+        }
+        if let typeArray = dict["@type"] as? [String] {
+            return typeArray.contains("Recipe")
+        }
+        return false
+    }
+
+    private func parseRecipeDict(_ dict: [String: Any]) -> ImportedRecipe {
+        var recipe = ImportedRecipe()
+
+        // Title
+        recipe.title = dict["name"] as? String ?? ""
+
+        // Image
+        if let imageData = dict["image"] {
+            if let imageString = imageData as? String {
+                recipe.imageURL = imageString
+            } else if let imageDict = imageData as? [String: Any],
+                      let url = imageDict["url"] as? String {
+                recipe.imageURL = url
+            } else if let imageArray = imageData as? [Any],
+                      let firstImage = imageArray.first {
+                if let url = firstImage as? String {
+                    recipe.imageURL = url
+                } else if let dict = firstImage as? [String: Any],
+                          let url = dict["url"] as? String {
+                    recipe.imageURL = url
+                }
+            }
+        }
+
+        // Description
+        recipe.description = dict["description"] as? String
+
+        // Servings
+        if let yield = dict["recipeYield"] {
+            if let yieldInt = yield as? Int {
+                recipe.servings = "\(yieldInt) servings"
+            } else if let yieldString = yield as? String {
+                recipe.servings = yieldString
+            } else if let yieldArray = yield as? [Any],
+                      let first = yieldArray.first as? String {
+                recipe.servings = first
+            }
+        }
+
+        // Prep Time
+        if let prepTime = dict["prepTime"] as? String {
+            recipe.prepTime = formatDuration(prepTime)
+        }
+
+        // Cook Time
+        if let cookTime = dict["cookTime"] as? String {
+            recipe.cookTime = formatDuration(cookTime)
+        }
+
+        // Total Time (fallback if prep/cook not available)
+        if let totalTime = dict["totalTime"] as? String,
+           recipe.prepTime == nil && recipe.cookTime == nil {
+            recipe.cookTime = formatDuration(totalTime)
+        }
+
+        // Ingredients
+        if let ingredients = dict["recipeIngredient"] as? [String] {
+            recipe.ingredients = ingredients
+        } else if let ingredients = dict["ingredients"] as? [String] {
+            recipe.ingredients = ingredients
+        }
+
+        // Instructions
+        if let instructions = dict["recipeInstructions"] {
+            recipe.instructions = parseInstructions(instructions)
+        }
+
+        return recipe
+    }
+
+    private func parseInstructions(_ data: Any) -> [String] {
+        var steps: [String] = []
+
+        if let instructionsString = data as? String {
+            // Single string, split by newlines or periods
+            steps = instructionsString
+                .components(separatedBy: .newlines)
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+        } else if let instructionsArray = data as? [Any] {
+            for item in instructionsArray {
+                if let stepString = item as? String {
+                    steps.append(stepString)
+                } else if let stepDict = item as? [String: Any] {
+                    // HowToStep format
+                    if let text = stepDict["text"] as? String {
+                        steps.append(text)
+                    }
+                }
+            }
+        }
+
+        return steps
+    }
+
+    // MARK: - Microdata Parsing (Fallback)
+
+    private func parseMicrodata(from doc: Document) throws -> ImportedRecipe {
+        var recipe = ImportedRecipe()
+
+        // Try to find recipe container
+        guard let container = try? doc.select("[itemtype*=Recipe]").first() else {
+            throw ImportError.noRecipeFound
+        }
+
+        // Title
+        if let titleElement = try? container.select("[itemprop=name]").first() {
+            recipe.title = try titleElement.text()
+        }
+
+        // Image
+        if let imgElement = try? container.select("[itemprop=image]").first() {
+            recipe.imageURL = try? imgElement.attr("src")
+        }
+
+        // Ingredients
+        let ingredientElements = try container.select("[itemprop=recipeIngredient]")
+        recipe.ingredients = ingredientElements.compactMap { try? $0.text() }
+
+        // Instructions
+        let instructionElements = try container.select("[itemprop=recipeInstructions]")
+        if let instructionsText = try? instructionElements.first()?.text() {
+            recipe.instructions = instructionsText
+                .components(separatedBy: .newlines)
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+        }
+
+        return recipe
+    }
+
+    // MARK: - Utilities
+
+    private func formatDuration(_ isoDuration: String) -> String {
+        // Parse ISO 8601 duration (e.g., "PT30M" = 30 minutes)
+        let duration = isoDuration.replacingOccurrences(of: "PT", with: "")
+
+        var result = ""
+
+        // Hours
+        if let hoursRange = duration.range(of: #"(\d+)H"#, options: .regularExpression) {
+            let hours = String(duration[hoursRange]).replacingOccurrences(of: "H", with: "")
+            result += "\(hours)h "
+        }
+
+        // Minutes
+        if let minutesRange = duration.range(of: #"(\d+)M"#, options: .regularExpression) {
+            let minutes = String(duration[minutesRange]).replacingOccurrences(of: "M", with: "")
+            result += "\(minutes)m"
+        }
+
+        return result.trimmingCharacters(in: .whitespaces)
+    }
+}
+
+// MARK: - Imported Recipe Model
+
+struct ImportedRecipe {
+    var title: String = ""
+    var description: String?
+    var imageURL: String?
+    var sourceURL: String = ""
+    var servings: String?
+    var prepTime: String?
+    var cookTime: String?
+    var ingredients: [String] = []
+    var instructions: [String] = []
+
+    var isValid: Bool {
+        !title.isEmpty && !ingredients.isEmpty && !instructions.isEmpty
+    }
+}
+
+// MARK: - Import Errors
+
+enum ImportError: LocalizedError {
+    case invalidURL
+    case networkError
+    case invalidHTML
+    case noRecipeFound
+    case parsingFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "Invalid URL. Please enter a valid recipe URL."
+        case .networkError:
+            return "Failed to fetch recipe. Please check your internet connection."
+        case .invalidHTML:
+            return "Unable to read recipe page. The website may be unavailable."
+        case .noRecipeFound:
+            return "No recipe found on this page. Make sure the URL points to a recipe."
+        case .parsingFailed:
+            return "Failed to parse recipe data. This website may not be supported."
+        }
+    }
+}
