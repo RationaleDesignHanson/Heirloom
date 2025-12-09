@@ -12,6 +12,8 @@ struct RecipeDetailView: View {
     @State private var showShareSheet = false
     @State private var showTagCollectionPicker = false
     @State private var showCardPersonalization = false
+    @State private var showCloudKitShare = false
+    @State private var showPassDown = false
     @State private var servingMultiplier: Double = 1.0
 
     var body: some View {
@@ -95,6 +97,20 @@ struct RecipeDetailView: View {
                         } label: {
                             Label("As PDF", systemImage: "doc.richtext")
                         }
+
+                        Divider()
+
+                        Button {
+                            showCloudKitShare = true
+                        } label: {
+                            Label("Via iCloud (Live Recipe)", systemImage: "icloud.fill")
+                        }
+
+                        Button {
+                            showPassDown = true
+                        } label: {
+                            Label("Pass Down (Special)", systemImage: "arrow.down.heart.fill")
+                        }
                     } label: {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }
@@ -150,6 +166,12 @@ struct RecipeDetailView: View {
         }
         .sheet(isPresented: $showCardPersonalization) {
             CardPersonalizationView(recipe: recipe)
+        }
+        .sheet(isPresented: $showCloudKitShare) {
+            RecipeShareSheetView(recipe: recipe)
+        }
+        .sheet(isPresented: $showPassDown) {
+            PassDownView(recipe: recipe)
         }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe)

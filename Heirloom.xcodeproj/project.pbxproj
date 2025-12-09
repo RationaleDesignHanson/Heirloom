@@ -48,6 +48,8 @@
 		C5F2EF4D2EE7BE540033058D /* CardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF4A2EE7BE540033058D /* CardStyle.swift */; };
 		C5F2EF4E2EE7BE540033058D /* Sticker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF4B2EE7BE540033058D /* Sticker.swift */; };
 		C5F2EF512EE7BE630033058D /* CardPersonalizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF4F2EE7BE630033058D /* CardPersonalizationView.swift */; };
+		C5F2EF542EE7BFF10033058D /* StickerPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF532EE7BFF10033058D /* StickerPickerView.swift */; };
+		C5F2EF552EE7BFF10033058D /* AnnotationEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2EF522EE7BFF10033058D /* AnnotationEditorView.swift */; };
 		F4B1A0AFB96B040047C28032 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A9B3D94D12C38881E14669 /* Colors.swift */; };
 /* End PBXBuildFile section */
 
@@ -92,6 +94,8 @@
 		C5F2EF4A2EE7BE540033058D /* CardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardStyle.swift; sourceTree = "<group>"; };
 		C5F2EF4B2EE7BE540033058D /* Sticker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sticker.swift; sourceTree = "<group>"; };
 		C5F2EF4F2EE7BE630033058D /* CardPersonalizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardPersonalizationView.swift; sourceTree = "<group>"; };
+		C5F2EF522EE7BFF10033058D /* AnnotationEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationEditorView.swift; sourceTree = "<group>"; };
+		C5F2EF532EE7BFF10033058D /* StickerPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickerPickerView.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EFF2A4FC35D119FCC34DE5BA /* Ingredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ingredient.swift; sourceTree = "<group>"; };
@@ -307,6 +311,8 @@
 		C5F2EF502EE7BE630033058D /* CardPersonalization */ = {
 			isa = PBXGroup;
 			children = (
+				C5F2EF522EE7BFF10033058D /* AnnotationEditorView.swift */,
+				C5F2EF532EE7BFF10033058D /* StickerPickerView.swift */,
 				C5F2EF4F2EE7BE630033058D /* CardPersonalizationView.swift */,
 			);
 			path = CardPersonalization;
@@ -454,6 +460,8 @@
 				C5F2EF442EE7BA3E0033058D /* TagManagementView.swift in Sources */,
 				C5F2EF452EE7BA3E0033058D /* TagCollectionPickerView.swift in Sources */,
 				F4B1A0AFB96B040047C28032 /* Colors.swift in Sources */,
+				C5F2EF542EE7BFF10033058D /* StickerPickerView.swift in Sources */,
+				C5F2EF552EE7BFF10033058D /* AnnotationEditorView.swift in Sources */,
 				C5F2EF282EE79C670033058D /* SettingsView.swift in Sources */,
 				C5F2EF2D2EE79F980033058D /* RecipeImportView.swift in Sources */,
 				C534293F2EE7716E00CB608E /* RecipeDetailView.swift in Sources */,
