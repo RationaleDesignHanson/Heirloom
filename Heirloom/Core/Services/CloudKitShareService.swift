@@ -110,7 +110,7 @@ class CloudKitShareService {
                 try await acceptShare(metadata)
 
                 // Fetch the actual recipe record
-                let recordID = metadata.rootRecordID
+                let recordID = metadata.share.recordID
                 let record = try await fetchRecord(recordID, from: publicDatabase)
 
                 // Convert CloudKit record to Recipe
@@ -194,7 +194,7 @@ class CloudKitShareService {
         }
 
         // Image (if available)
-        if let imageFileName = recipe.imageFileName {
+        if recipe.imageFileName != nil {
             Task {
                 if let image = await recipe.loadImage() {
                     if let imageData = image.jpegData(compressionQuality: 0.7) {

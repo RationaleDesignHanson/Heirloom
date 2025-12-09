@@ -274,7 +274,7 @@ struct CollectionEditorView: View {
 
                 if selectedIcon == iconName {
                     Circle()
-                        .fill(Color(hex: selectedColor) ?? .gray)
+                        .fill(Color(hex: selectedColor))
                         .frame(width: 6, height: 6)
                 } else {
                     Circle()
@@ -298,7 +298,7 @@ struct CollectionEditorView: View {
         } label: {
             ZStack {
                 Circle()
-                    .fill(Color(hex: colorHex) ?? .gray)
+                    .fill(Color(hex: colorHex))
                     .frame(width: 50, height: 50)
 
                 if selectedColor == colorHex {

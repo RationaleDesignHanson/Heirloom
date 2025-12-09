@@ -125,18 +125,18 @@ struct CardPersonalizationView: View {
             if let cardStyle = recipe.cardStyle {
                 switch cardStyle.backgroundType {
                 case .default, .solid:
-                    Color(hex: cardStyle.backgroundColorHex ?? RecipeCardStyle.predefinedBackgroundColors[0]) ?? HeirloomColors.cream
+                    Color(hex: cardStyle.backgroundColorHex ?? RecipeCardStyle.predefinedBackgroundColors[0])
                 case .gradient:
                     LinearGradient(
                         colors: [
-                            Color(hex: cardStyle.backgroundColorHex ?? "#FFF9E6") ?? .white,
-                            Color(hex: cardStyle.backgroundColorHex ?? "#FFE5D9") ?? .white.opacity(0.8)
+                            Color(hex: cardStyle.backgroundColorHex ?? "#FFF9E6"),
+                            Color(hex: cardStyle.backgroundColorHex ?? "#FFE5D9").opacity(0.8)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 case .pattern, .texture:
-                    Color(hex: cardStyle.backgroundColorHex ?? "#FEFDFB") ?? HeirloomColors.cream
+                    Color(hex: cardStyle.backgroundColorHex ?? "#FEFDFB")
                 }
             } else {
                 HeirloomColors.cream
@@ -147,7 +147,7 @@ struct CardPersonalizationView: View {
     private func stickerView(_ sticker: RecipeSticker) -> some View {
         Image(systemName: sticker.stickerName)
             .font(.system(size: 40 * sticker.scale))
-            .foregroundStyle(Color(hex: sticker.colorHex ?? "#FF6B6B") ?? .red)
+            .foregroundStyle(Color(hex: sticker.colorHex ?? "#FF6B6B"))
             .opacity(sticker.opacity)
             .rotationEffect(.degrees(sticker.rotation))
             .position(
@@ -159,13 +159,13 @@ struct CardPersonalizationView: View {
     private func annotationView(_ annotation: RecipeAnnotation) -> some View {
         Text(annotation.text)
             .font(annotation.style.font)
-            .foregroundStyle(Color(hex: annotation.colorHex) ?? Color.yellow)
+            .foregroundStyle(Color(hex: annotation.colorHex))
             .padding(8)
             .background(
                 annotation.style == .stickyNote ?
                 AnyView(
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(hex: annotation.colorHex) ?? Color.yellow)
+                        .fill(Color(hex: annotation.colorHex))
                 ) :
                 AnyView(Color.clear)
             )
@@ -287,7 +287,7 @@ struct CardPersonalizationView: View {
         } label: {
             ZStack {
                 Circle()
-                    .fill(Color(hex: colorHex) ?? .gray)
+                    .fill(Color(hex: colorHex))
                     .frame(width: 60, height: 60)
 
                 if isSelected {
@@ -322,7 +322,7 @@ struct CardPersonalizationView: View {
                         HStack {
                             Image(systemName: sticker.stickerName)
                                 .font(.title2)
-                                .foregroundStyle(Color(hex: sticker.colorHex ?? "#FF6B6B") ?? .red)
+                                .foregroundStyle(Color(hex: sticker.colorHex ?? "#FF6B6B"))
 
                             Text(sticker.stickerType.rawValue.capitalized)
                                 .font(HeirloomFonts.body)

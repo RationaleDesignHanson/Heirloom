@@ -131,7 +131,7 @@ struct RecipeAnnotationEditorView: View {
             .background(
                 ZStack {
                     Rectangle()
-                        .fill(Color(hex: colorHex) ?? .yellow)
+                        .fill(Color(hex: colorHex))
                         .shadow(color: .black.opacity(0.2), radius: 4, x: 2, y: 2)
 
                     // Paper texture lines
@@ -157,7 +157,7 @@ struct RecipeAnnotationEditorView: View {
     private var handwrittenPreview: some View {
         Text(text)
             .font(.custom("Bradley Hand", size: fontSize).weight(.regular))
-            .foregroundStyle(Color(hex: colorHex) ?? .black)
+            .foregroundStyle(Color(hex: colorHex))
             .padding(8)
             .background(Color.clear)
     }
@@ -170,7 +170,7 @@ struct RecipeAnnotationEditorView: View {
             .padding(.vertical, 6)
             .background(
                 Capsule()
-                    .fill(Color(hex: colorHex) ?? .red)
+                    .fill(Color(hex: colorHex))
             )
     }
 
@@ -430,7 +430,7 @@ struct RecipeAnnotationEditorView: View {
         } label: {
             ZStack {
                 Circle()
-                    .fill(Color(hex: color) ?? .gray)
+                    .fill(Color(hex: color))
                     .frame(width: 50, height: 50)
 
                 if isSelected {

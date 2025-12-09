@@ -212,7 +212,7 @@ struct TagEditorView: View {
         } label: {
             ZStack {
                 Circle()
-                    .fill(Color(hex: colorHex) ?? .gray)
+                    .fill(Color(hex: colorHex))
                     .frame(width: 50, height: 50)
 
                 if selectedColor == colorHex {

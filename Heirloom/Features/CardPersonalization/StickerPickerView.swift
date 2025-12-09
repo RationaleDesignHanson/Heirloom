@@ -75,7 +75,7 @@ struct RecipeStickerPickerView: View {
             if let stickerName = selectedRecipeStickerName {
                 Image(systemName: stickerName)
                     .font(.system(size: 60 * stickerScale))
-                    .foregroundStyle(Color(hex: stickerColor) ?? .red)
+                    .foregroundStyle(Color(hex: stickerColor))
                     .opacity(stickerOpacity)
                     .rotationEffect(.degrees(stickerRotation))
                     .position(
@@ -382,7 +382,7 @@ struct RecipeStickerPickerView: View {
         } label: {
             ZStack {
                 Circle()
-                    .fill(Color(hex: colorHex) ?? .gray)
+                    .fill(Color(hex: colorHex))
                     .frame(width: 50, height: 50)
 
                 if isSelected {

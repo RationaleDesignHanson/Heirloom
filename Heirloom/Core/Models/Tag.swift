@@ -25,7 +25,7 @@ final class Tag {
     // MARK: - Computed Properties
 
     var swiftUIColor: Color {
-        Color(hex: color) ?? HeirloomColors.tomato
+        Color(hex: color)
     }
 
     var recipeCount: Int {
