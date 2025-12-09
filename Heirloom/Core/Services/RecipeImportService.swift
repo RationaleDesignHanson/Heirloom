@@ -23,16 +23,67 @@ class RecipeImportService {
             throw ImportError.invalidURL
         }
 
+        // Detect site
+        let site = detectSite(from: url)
+        print("🌐 Detected site: \(site.rawValue)")
+
         // Fetch HTML
         print("📥 Fetching HTML...")
         let html = try await fetchHTML(from: url)
         print("✅ Fetched \(html.count) characters")
 
+        // Check for site-specific issues
+        try checkSiteSpecificIssues(html: html, site: site)
+
         // Parse recipe data
         print("🔍 Parsing recipe data...")
-        let recipe = try parseRecipe(from: html, sourceURL: urlString)
+        let recipe = try parseRecipe(from: html, sourceURL: urlString, site: site)
         print("✅ Successfully parsed recipe: \(recipe.title)")
         return recipe
+    }
+
+    // MARK: - Site Detection
+
+    enum RecipeSite: String {
+        case nytCooking = "NYT Cooking"
+        case foodNetwork = "Food Network"
+        case bonAppetit = "Bon Appétit"
+        case allRecipes = "AllRecipes"
+        case seriousEats = "Serious Eats"
+        case unknown = "Unknown"
+    }
+
+    private func detectSite(from url: URL) -> RecipeSite {
+        guard let host = url.host() else { return .unknown }
+
+        let lowercasedHost = host.lowercased()
+
+        if lowercasedHost.contains("nytimes.com") {
+            return .nytCooking
+        } else if lowercasedHost.contains("foodnetwork.com") {
+            return .foodNetwork
+        } else if lowercasedHost.contains("bonappetit.com") {
+            return .bonAppetit
+        } else if lowercasedHost.contains("allrecipes.com") {
+            return .allRecipes
+        } else if lowercasedHost.contains("seriouseats.com") {
+            return .seriousEats
+        }
+
+        return .unknown
+    }
+
+    private func checkSiteSpecificIssues(html: String, site: RecipeSite) throws {
+        switch site {
+        case .nytCooking:
+            // Check for NYT paywall
+            if html.contains("nytcooking-paywall") || html.contains("paywall-bar") {
+                print("⚠️ NYT paywall detected")
+                throw ImportError.paywallDetected
+            }
+        default:
+            break
+        }
     }
 
     // MARK: - Private Methods
@@ -67,7 +118,7 @@ class RecipeImportService {
         return html
     }
 
-    private func parseRecipe(from html: String, sourceURL: String) throws -> ImportedRecipe {
+    private func parseRecipe(from html: String, sourceURL: String, site: RecipeSite) throws -> ImportedRecipe {
         let doc = try SwiftSoup.parse(html)
 
         // Try schema.org JSON-LD first (most reliable)
@@ -80,6 +131,16 @@ class RecipeImportService {
         }
         print("⚠️ No JSON-LD recipe data found")
 
+        // Try site-specific parsers
+        print("🔍 Trying site-specific parser for \(site.rawValue)...")
+        if let recipe = try? parseSiteSpecific(from: doc, site: site) {
+            print("✅ Site-specific parser succeeded")
+            var result = recipe
+            result.sourceURL = sourceURL
+            return result
+        }
+        print("⚠️ Site-specific parser failed")
+
         // Fallback to microdata/HTML parsing
         print("🔍 Trying microdata fallback...")
         if let recipe = try? parseMicrodata(from: doc) {
@@ -91,6 +152,70 @@ class RecipeImportService {
         print("⚠️ No microdata recipe data found")
 
         throw ImportError.noRecipeFound
+    }
+
+    // MARK: - Site-Specific Parsers
+
+    private func parseSiteSpecific(from doc: Document, site: RecipeSite) throws -> ImportedRecipe {
+        switch site {
+        case .foodNetwork:
+            return try parseFoodNetwork(from: doc)
+        case .bonAppetit:
+            return try parseBonAppetit(from: doc)
+        default:
+            throw ImportError.noRecipeFound
+        }
+    }
+
+    private func parseFoodNetwork(from doc: Document) throws -> ImportedRecipe {
+        // Food Network sometimes has non-standard JSON-LD
+        // Try alternate selectors
+        var recipe = ImportedRecipe()
+
+        // Title - try multiple selectors
+        if let title = try? doc.select("h1.o-AssetTitle__a-HeadlineText").first()?.text() {
+            recipe.title = title
+        }
+
+        // Ingredients - Food Network uses specific classes
+        let ingredientElements = try doc.select("div.o-Ingredients__a-Ingredient")
+        recipe.ingredients = ingredientElements.compactMap { try? $0.text() }
+
+        // Instructions - look for step-by-step
+        let instructionElements = try doc.select("li.o-Method__m-Step")
+        recipe.instructions = instructionElements.compactMap { try? $0.text() }
+
+        // Only return if we have minimum viable data
+        guard !recipe.title.isEmpty && !recipe.ingredients.isEmpty else {
+            throw ImportError.noRecipeFound
+        }
+
+        return recipe
+    }
+
+    private func parseBonAppetit(from doc: Document) throws -> ImportedRecipe {
+        // Bon Appétit uses React-based rendering, JSON-LD should work
+        // This is a fallback for edge cases
+        var recipe = ImportedRecipe()
+
+        // Title
+        if let title = try? doc.select("h1[data-testid=ContentHeaderHed]").first()?.text() {
+            recipe.title = title
+        }
+
+        // Ingredients - Bon Appétit uses data-testid
+        let ingredientElements = try doc.select("div[data-testid=IngredientList] p")
+        recipe.ingredients = ingredientElements.compactMap { try? $0.text() }
+
+        // Instructions
+        let instructionElements = try doc.select("div[data-testid=InstructionsWrapper] li")
+        recipe.instructions = instructionElements.compactMap { try? $0.text() }
+
+        guard !recipe.title.isEmpty && !recipe.ingredients.isEmpty else {
+            throw ImportError.noRecipeFound
+        }
+
+        return recipe
     }
 
     // MARK: - JSON-LD Parsing (Schema.org)
@@ -350,6 +475,7 @@ enum ImportError: LocalizedError {
     case invalidHTML
     case noRecipeFound
     case parsingFailed
+    case paywallDetected
 
     var errorDescription: String? {
         switch self {
@@ -363,6 +489,8 @@ enum ImportError: LocalizedError {
             return "No recipe found on this page. Make sure the URL points to a recipe."
         case .parsingFailed:
             return "Failed to parse recipe data. This website may not be supported."
+        case .paywallDetected:
+            return "This recipe is behind a paywall. Please log in on the website and try again."
         }
     }
 }
