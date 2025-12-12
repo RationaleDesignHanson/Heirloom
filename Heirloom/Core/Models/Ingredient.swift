@@ -88,6 +88,11 @@ extension Ingredient {
     }
 
     private func formatQuantity(_ value: Double) -> String {
+        // Handle zero or very small values
+        if value < 0.05 {
+            return ""
+        }
+
         // Convert decimals to fractions for better display
         let fractions: [(Double, String)] = [
             (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
@@ -98,17 +103,25 @@ extension Ingredient {
         let whole = Int(value)
         let fraction = value - Double(whole)
 
+        // If it's essentially a whole number
         if fraction < 0.05 {
-            return whole == 0 ? "" : "\(whole)"
+            return "\(whole)"
         }
 
+        // Try to match common fractions
         for (threshold, symbol) in fractions {
             if abs(fraction - threshold) < 0.05 {
                 return whole > 0 ? "\(whole) \(symbol)" : symbol
             }
         }
 
-        return String(format: "%.1f", value)
+        // Fallback: use decimal notation for odd values
+        // Round to 1 decimal place
+        let rounded = round(value * 10) / 10
+        if rounded == Double(Int(rounded)) {
+            return "\(Int(rounded))"
+        }
+        return String(format: "%.1f", rounded)
     }
 }
 
@@ -180,13 +193,24 @@ enum GroceryCategory: String, Codable, CaseIterable, Identifiable {
     static func categorize(_ ingredientName: String) -> GroceryCategory {
         let lowercased = ingredientName.lowercased()
 
+        // Frozen (check FIRST before dairy/produce since "ice cream" contains "cream" and we want frozen)
+        if lowercased.contains("frozen") || lowercased.contains("ice cream") || lowercased.contains("ice-cream") || lowercased.contains("popsicle") {
+            return .frozen
+        }
+
+        // Beverages (check BEFORE produce since "orange juice" contains "orange" but should be beverage)
+        // Note: Exclude "baking soda" - check for "soda" only if not preceded by "baking"
+        if lowercased.contains("juice") || lowercased.contains("coffee") || lowercased.contains("tea") || (lowercased.contains("soda") && !lowercased.contains("baking soda")) || lowercased.contains("water") {
+            return .beverages
+        }
+
         // Dairy & Eggs (check eggs BEFORE produce since "egg" might match in "eggplant")
         if lowercased.contains("milk") || lowercased.contains("cheese") || lowercased.contains("butter") || lowercased.contains("cream") || lowercased.contains("yogurt") || lowercased.contains(" egg") || lowercased.hasPrefix("egg") {
             return .dairy
         }
 
         // Meat & Seafood
-        if lowercased.contains("chicken") || lowercased.contains("beef") || lowercased.contains("pork") || lowercased.contains("fish") || lowercased.contains("meat") || lowercased.contains("bacon") || lowercased.contains("sausage") || lowercased.contains("turkey") {
+        if lowercased.contains("chicken") || lowercased.contains("beef") || lowercased.contains("pork") || lowercased.contains("fish") || lowercased.contains("meat") || lowercased.contains("bacon") || lowercased.contains("sausage") || lowercased.contains("turkey") || lowercased.contains("salmon") || lowercased.contains("tuna") || lowercased.contains("shrimp") || lowercased.contains("cod") || lowercased.contains("seafood") {
             return .meat
         }
 
@@ -205,11 +229,6 @@ enum GroceryCategory: String, Codable, CaseIterable, Identifiable {
             return .pantry
         }
 
-        // Frozen
-        if lowercased.contains("frozen") || lowercased.contains("ice cream") {
-            return .frozen
-        }
-
         // Spices & Seasonings (includes extracts)
         if lowercased.contains("salt") || lowercased.contains("pepper") || lowercased.contains("cumin") || lowercased.contains("paprika") || lowercased.contains("vanilla") || lowercased.contains("cinnamon") || lowercased.contains("oregano") || lowercased.contains("basil") || lowercased.contains("thyme") || lowercased.contains("extract") {
             return .spices
@@ -218,11 +237,6 @@ enum GroceryCategory: String, Codable, CaseIterable, Identifiable {
         // Condiments & Sauces
         if lowercased.contains("sauce") || lowercased.contains("ketchup") || lowercased.contains("mustard") || lowercased.contains("mayonnaise") || lowercased.contains("mayo") || lowercased.contains("dressing") {
             return .condiments
-        }
-
-        // Beverages
-        if lowercased.contains("juice") || lowercased.contains("coffee") || lowercased.contains("tea") || lowercased.contains("soda") || lowercased.contains("water") {
-            return .beverages
         }
 
         return .other

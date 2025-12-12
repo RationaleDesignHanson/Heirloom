@@ -30,8 +30,59 @@ struct IngredientParser {
         var quantity: Double?
         var quantityMax: Double?
 
-        // Try to scan a number (handles decimals)
-        if let firstNumber = scanner.scanDouble() {
+        // Helper: Check for unicode fraction characters and convert to decimal
+        func scanUnicodeFraction() -> Double? {
+            let remainingText = String(text[scanner.currentIndex...]).trimmingCharacters(in: .whitespaces)
+            guard !remainingText.isEmpty else { return nil }
+
+            let unicodeFractions: [Character: Double] = [
+                "¼": 0.25, "½": 0.5, "¾": 0.75,
+                "⅐": 1.0/7, "⅑": 1.0/9, "⅒": 0.1,
+                "⅓": 1.0/3, "⅔": 2.0/3,
+                "⅕": 0.2, "⅖": 0.4, "⅗": 0.6, "⅘": 0.8,
+                "⅙": 1.0/6, "⅚": 5.0/6,
+                "⅛": 0.125, "⅜": 0.375, "⅝": 0.625, "⅞": 0.875
+            ]
+
+            let firstChar = remainingText.first!
+            if let value = unicodeFractions[firstChar] {
+                // Move scanner past the unicode fraction character
+                scanner.currentIndex = remainingText.index(after: remainingText.startIndex)
+                return value
+            }
+            return nil
+        }
+
+        // Helper: Check if text at current position looks like a fraction (e.g., "1/4")
+        func looksLikeFraction() -> Bool {
+            let remainingText = String(text[scanner.currentIndex...]).trimmingCharacters(in: .whitespaces)
+            // Match pattern: digit(s) followed by / or ⁄ followed by digit(s)
+            let fractionPattern = "^\\d+[/⁄]\\d+"
+            return remainingText.range(of: fractionPattern, options: .regularExpression) != nil
+        }
+
+        // Try unicode fraction first (e.g., "½ cup")
+        if let unicodeFrac = scanUnicodeFraction() {
+            quantity = unicodeFrac
+            // No range support for unicode fractions yet
+            let remaining = String(text[scanner.currentIndex...])
+            return (quantity, nil, remaining)
+        }
+
+        // Try to scan a fraction first if it looks like one (e.g., "1/4" not "1.5")
+        if looksLikeFraction(), let fraction = scanFraction(scanner: scanner) {
+            quantity = fraction
+
+            // Check for range with fractions (e.g., "1/4-1/2")
+            if scanner.scanString("-") != nil || scanner.scanString("to") != nil {
+                if let fraction2 = scanFraction(scanner: scanner) {
+                    quantityMax = fraction2
+                } else if let secondNumber = scanner.scanDouble() {
+                    quantityMax = secondNumber
+                }
+            }
+        } else if let firstNumber = scanner.scanDouble() {
+            // Not a simple fraction, try whole/decimal number
             quantity = firstNumber
 
             // Check for fraction after whole number (e.g., "2 1/4")
@@ -41,17 +92,14 @@ struct IngredientParser {
 
             // Check for range (e.g., "2-3" or "2 to 3")
             if scanner.scanString("-") != nil || scanner.scanString("to") != nil {
-                if let secondNumber = scanner.scanDouble() {
+                if let fraction = scanFraction(scanner: scanner) {
+                    quantityMax = fraction
+                } else if let secondNumber = scanner.scanDouble() {
                     quantityMax = secondNumber
                     if let fraction = scanFraction(scanner: scanner) {
                         quantityMax! += fraction
                     }
                 }
-            }
-        } else {
-            // Try to scan fraction without whole number (e.g., "1/4")
-            if let fraction = scanFraction(scanner: scanner) {
-                quantity = fraction
             }
         }
 
@@ -62,16 +110,25 @@ struct IngredientParser {
     private static func scanFraction(scanner: Scanner) -> Double? {
         let start = scanner.currentIndex
 
-        if scanner.scanString("/") != nil || scanner.scanString("⁄") != nil {
-            // Backtrack to get numerator
+        // Try to scan numerator
+        guard let numerator = scanner.scanInt() else {
             scanner.currentIndex = start
-            guard let numerator = scanner.scanInt() else { return nil }
-            _ = scanner.scanString("/") ?? scanner.scanString("⁄")
-            guard let denominator = scanner.scanInt(), denominator != 0 else { return nil }
-            return Double(numerator) / Double(denominator)
+            return nil
         }
 
-        return nil
+        // Try to scan slash (regular or unicode)
+        guard scanner.scanString("/") != nil || scanner.scanString("⁄") != nil else {
+            scanner.currentIndex = start
+            return nil
+        }
+
+        // Try to scan denominator
+        guard let denominator = scanner.scanInt(), denominator != 0 else {
+            scanner.currentIndex = start
+            return nil
+        }
+
+        return Double(numerator) / Double(denominator)
     }
 
     // MARK: - Unit Extraction
