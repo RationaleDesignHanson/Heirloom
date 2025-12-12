@@ -19,7 +19,9 @@ enum HeirloomFonts {
     static let subheadline = Font.system(size: 15, weight: .regular)
     static let footnote = Font.system(size: 13, weight: .regular)
     static let caption1 = Font.system(size: 12, weight: .regular)
+    static let caption1Bold = Font.system(size: 12, weight: .semibold)
     static let caption2 = Font.system(size: 11, weight: .regular)
+    static let caption2Bold = Font.system(size: 11, weight: .semibold)
 
     // MARK: - Special Fonts
     static func handwritten(_ size: CGFloat = 18) -> Font {

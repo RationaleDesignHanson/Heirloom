@@ -13,6 +13,9 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+                // AI Features Section
+                aiSection
+
                 // iCloud Section
                 iCloudSection
 
@@ -43,6 +46,31 @@ struct SettingsView: View {
             } message: {
                 Text("This will permanently delete all \(recipes.count) recipes. This cannot be undone.")
             }
+        }
+    }
+
+    // MARK: - AI Section
+
+    private var aiSection: some View {
+        Section {
+            NavigationLink {
+                AISettingsView()
+            } label: {
+                HStack {
+                    Image(systemName: "brain")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("AI Features")
+                        Text(AIConfiguration.shared.isConfigured(provider: .anthropic) ? "Configured" : "Not Set")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+                }
+            }
+        } header: {
+            Text("Intelligence")
+        } footer: {
+            Text("Configure AI-powered features like smart ingredient parsing and recipe enhancement.")
         }
     }
 
