@@ -34,6 +34,11 @@ enum AnalyticsEvent: String {
     case addedToShoppingList = "Added to Shopping List"
     case removedFromShoppingList = "Removed from Shopping List"
 
+    // Recipe Scaling (Smallify)
+    case recipeScaled = "Recipe Scaled"
+    case scalingExplanationViewed = "Scaling Explanation Viewed"
+    case scaledRecipeAddedToCart = "Scaled Recipe Added to Cart"
+
     // Search & Discovery
     case searchPerformed = "Search Performed"
     case filterApplied = "Filter Applied"
@@ -52,6 +57,15 @@ enum AnalyticsEvent: String {
     // Settings
     case settingChanged = "Setting Changed"
     case dataCleared = "Data Cleared"
+
+    // AI Services
+    case aiTokensUsed = "AI Tokens Used"
+    case aiIngredientParseSuccess = "AI Ingredient Parse Success"
+    case aiIngredientParseFailed = "AI Ingredient Parse Failed"
+    case aiCategoryDetectionSuccess = "AI Category Detection Success"
+    case aiCategoryDetectionFailed = "AI Category Detection Failed"
+    case aiEnhancementSuccess = "AI Enhancement Success"
+    case aiEnhancementFailed = "AI Enhancement Failed"
 }
 
 // MARK: - Console-Only Analytics (Fallback)

@@ -77,6 +77,14 @@ struct RecipeListView: View {
                         } label: {
                             Label("Add Sample Recipe", systemImage: "sparkles")
                         }
+
+                        Divider()
+
+                        Button {
+                            testAIAPI()
+                        } label: {
+                            Label("🧪 Test AI API", systemImage: "wand.and.stars")
+                        }
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -118,7 +126,7 @@ struct RecipeListView: View {
                     .id(recipe.id)
                     .contextMenu {
                         Button {
-                            recipe.isFavorite.toggle()
+                            toggleFavorite(recipe)
                         } label: {
                             Label(
                                 recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites",
@@ -127,7 +135,7 @@ struct RecipeListView: View {
                         }
 
                         Button {
-                            recipe.isInShoppingList.toggle()
+                            toggleShoppingList(recipe)
                         } label: {
                             Label(
                                 recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List",
@@ -275,12 +283,100 @@ struct RecipeListView: View {
         }
     }
 
+    private func toggleFavorite(_ recipe: Recipe) {
+        recipe.isFavorite.toggle()
+        recipe.lastModified = Date()
+
+        do {
+            try modelContext.save()
+
+            // Haptic feedback
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.impactOccurred()
+
+            let message = recipe.isFavorite ? "Added to favorites" : "Removed from favorites"
+            ToastManager.shared.success(title: message)
+        } catch {
+            ToastManager.shared.error(
+                title: "Failed to update favorite",
+                message: error.localizedDescription
+            )
+        }
+    }
+
+    private func toggleShoppingList(_ recipe: Recipe) {
+        if let existingCartRecipe = recipe.shoppingCartRecipe(context: modelContext) {
+            // Remove from shopping list
+            modelContext.delete(existingCartRecipe)
+            recipe.isInShoppingList = false
+
+            do {
+                try modelContext.save()
+
+                // Haptic feedback
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+
+                ToastManager.shared.success(title: "Removed from shopping list")
+            } catch {
+                ToastManager.shared.error(
+                    title: "Failed to remove",
+                    message: error.localizedDescription
+                )
+            }
+        } else {
+            // Add to shopping list with original serving size
+            let targetServings = recipe.parsedServingCount
+            let cartRecipe = ShoppingCartRecipe(recipe: recipe, targetServings: targetServings)
+            modelContext.insert(cartRecipe)
+            recipe.isInShoppingList = true
+
+            do {
+                try modelContext.save()
+
+                // Haptic feedback
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+
+                ToastManager.shared.success(title: "Added to shopping list")
+            } catch {
+                ToastManager.shared.error(
+                    title: "Failed to add to shopping list",
+                    message: error.localizedDescription
+                )
+            }
+        }
+
+        recipe.lastModified = Date()
+        try? modelContext.save()
+    }
+
     private func addSampleRecipe() {
         // Pick a random sample recipe from our library
         let sampleRecipes = SampleRecipeLibrary.all
         guard let sampleRecipe = sampleRecipes.randomElement() else { return }
 
-        let recipe = sampleRecipe.recipe
+        let sampleData = sampleRecipe.recipe
+
+        // IMPORTANT: Create a NEW Recipe object (don't reuse the sample)
+        // Reusing the same @Model instance causes SwiftData to crash/hang
+        let recipe = Recipe(
+            title: sampleData.title,
+            sourceType: sampleData.sourceType ?? .manual,
+            sourceURL: sampleData.sourceURL,
+            instructions: sampleData.instructions,
+            servings: sampleData.servings,
+            prepTime: sampleData.prepTime,
+            cookTime: sampleData.cookTime
+        )
+
+        // Copy additional properties
+        recipe.sourcePerson = sampleData.sourcePerson
+        recipe.sourceDate = sampleData.sourceDate
+        recipe.sourceBookTitle = sampleData.sourceBookTitle
+        recipe.timesCooked = sampleData.timesCooked
+        recipe.isFavorite = sampleData.isFavorite
+        recipe.notes = sampleData.notes
 
         // Insert recipe first
         modelContext.insert(recipe)
@@ -296,6 +392,7 @@ struct RecipeListView: View {
                 name: parsed.name,
                 quantity: parsed.quantity,
                 unit: parsed.unit,
+                category: GroceryCategory.categorize(parsed.name),
                 orderIndex: index
             )
             ingredient.quantityMax = parsed.quantityMax
@@ -308,9 +405,130 @@ struct RecipeListView: View {
 
         do {
             try modelContext.save()
+
+            // Success feedback
+            ToastManager.shared.success(
+                title: "Sample Recipe Added",
+                message: recipe.title
+            )
+
+            // Haptic feedback
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+
             print("✅ Sample recipe '\(recipe.title)' saved with \(ingredients.count) ingredients")
         } catch {
+            ToastManager.shared.error(
+                title: "Failed to add sample recipe",
+                message: error.localizedDescription
+            )
             print("❌ Failed to save sample recipe: \(error)")
+        }
+    }
+
+    // MARK: - AI API Test
+
+    private func testAIAPI() {
+        Task {
+            print("\n🧪 Starting AI API Test...")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+            // Enable AI features (API key should be configured via Settings)
+            // For testing: Read API key from file at /Users/matthanson/Desktop/heriloom.txt
+            if let apiKey = try? String(contentsOfFile: "/Users/matthanson/Desktop/heriloom.txt", encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines), !apiKey.isEmpty {
+                AIConfiguration.shared.setAPIKey(apiKey, for: .anthropic)
+                AIConfiguration.shared.enableAIParsing = true
+                print("✅ AI parsing enabled for recipe imports")
+            } else {
+                print("⚠️ No API key found. Please add key to /Users/matthanson/Desktop/heriloom.txt")
+                print("   Or configure via Settings once AI Settings UI is built")
+            }
+
+            // Step 1: Check configuration
+            print("\n1️⃣ Checking configuration...")
+            let config = AIConfiguration.shared
+
+            if config.isConfigured(provider: .anthropic) {
+                print("✅ Anthropic API key is configured")
+            } else {
+                print("❌ Anthropic API key NOT configured")
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                return
+            }
+
+            // Step 2: Test simple completion
+            print("\n2️⃣ Testing simple completion...")
+            do {
+                let service = AnthropicAIService.shared
+                let response = try await service.complete(
+                    prompt: "Say 'Hello from Heirloom!' in exactly 3 words.",
+                    options: AICompletionOptions(
+                        model: "claude-3-haiku-20240307",
+                        temperature: 0.7,
+                        maxTokens: 50,
+                        systemMessage: "You are a helpful assistant.",
+                        stopSequences: nil
+                    )
+                )
+
+                print("✅ API call successful!")
+                print("   Response: \(response.content)")
+                print("   Model: \(response.model)")
+                print("   Tokens used: \(response.usage.totalTokens)")
+                print("   Cost: $\(response.usage.totalCost)")
+
+            } catch let error as AIError {
+                print("❌ API call failed: \(error.errorDescription ?? "Unknown error")")
+                print("   Context: \(error.context)")
+            } catch {
+                print("❌ Unexpected error: \(error)")
+            }
+
+            // Step 3: Test structured completion (JSON response)
+            print("\n3️⃣ Testing structured completion (JSON)...")
+
+            struct IngredientTest: Codable {
+                let quantity: Double?
+                let unit: String?
+                let name: String
+            }
+
+            do {
+                let service = AnthropicAIService.shared
+                let ingredient = try await service.completeStructured(
+                    prompt: """
+                    Parse this ingredient: "2 cups flour"
+
+                    Return JSON:
+                    {
+                      "quantity": 2.0,
+                      "unit": "cups",
+                      "name": "flour"
+                    }
+                    """,
+                    schema: IngredientTest.self
+                )
+
+                print("✅ Structured completion successful!")
+                print("   Quantity: \(ingredient.quantity ?? 0)")
+                print("   Unit: \(ingredient.unit ?? "none")")
+                print("   Name: \(ingredient.name)")
+
+            } catch let error as AIError {
+                print("❌ Structured completion failed: \(error.errorDescription ?? "Unknown error")")
+            } catch {
+                print("❌ Unexpected error: \(error)")
+            }
+
+            // Step 4: Show usage statistics
+            print("\n4️⃣ Usage statistics...")
+            let tracker = AIUsageTracker.shared
+            print("   Total tokens used: \(tracker.totalTokensUsed)")
+            print("   Total cost: $\(tracker.totalCost)")
+            print("   Request count: \(tracker.requestCount)")
+
+            print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            print("✅ Test complete!")
         }
     }
 }

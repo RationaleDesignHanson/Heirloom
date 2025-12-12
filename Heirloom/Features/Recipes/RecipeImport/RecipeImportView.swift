@@ -307,10 +307,28 @@ struct RecipeImportView: View {
         // Insert recipe first
         modelContext.insert(recipe)
 
-        // Create and parse ingredients
+        // Parse ingredients with AI (async batch parsing for efficiency)
+        Task {
+            await parseAndSaveIngredients(recipe: recipe, ingredientTexts: imported.ingredients)
+        }
+    }
+
+    private func parseAndSaveIngredients(recipe: Recipe, ingredientTexts: [String]) async {
+        // Use AI batch parsing for better efficiency
+        let parsedIngredients: [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)]
+
+        do {
+            parsedIngredients = try await AIIngredientParser.shared.parseBatch(ingredientTexts)
+        } catch {
+            // Fallback to regex parsing on error (already handled in AIIngredientParser)
+            print("⚠️ Batch parsing encountered an error: \(error.localizedDescription)")
+            parsedIngredients = ingredientTexts.map { IngredientParser.parse($0) }
+        }
+
+        // Create Ingredient objects
         var ingredients: [Ingredient] = []
-        for (index, text) in imported.ingredients.enumerated() {
-            let parsed = IngredientParser.parse(text)
+        for (index, text) in ingredientTexts.enumerated() {
+            let parsed = parsedIngredients[index]
 
             let ingredient = Ingredient(
                 originalText: text,
@@ -327,14 +345,16 @@ struct RecipeImportView: View {
 
         recipe.ingredients = ingredients
 
+        // Auto-detect recipe category for smart serving presets
+        CategoryDetectionService.shared.detectAndApply(to: recipe)
+
         // Download and save image if available
-        if let imageURLString = imported.imageURL,
+        if let imageURLString = importedRecipe?.imageURL,
            let imageURL = URL(string: imageURLString) {
-            Task {
-                await downloadAndSaveImage(from: imageURL, for: recipe)
-            }
+            await downloadAndSaveImage(from: imageURL, for: recipe)
         }
 
+        // Save to database
         do {
             try modelContext.save()
 
@@ -346,7 +366,8 @@ struct RecipeImportView: View {
             AnalyticsService.shared.track(event: .recipeImported, properties: [
                 "source": "url",
                 "ingredient_count": ingredients.count,
-                "has_image": imported.imageURL != nil
+                "has_image": importedRecipe?.imageURL != nil,
+                "used_ai_parsing": AIConfiguration.shared.enableAIParsing
             ])
 
             dismiss()

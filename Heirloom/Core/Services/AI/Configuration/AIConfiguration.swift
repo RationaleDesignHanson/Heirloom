@@ -233,7 +233,7 @@ class AIUsageTracker: ObservableObject {
         saveToUserDefaults()
 
         // Track in analytics
-        AnalyticsService.shared.track(.aiTokensUsed, properties: [
+        AnalyticsService.shared.track(event: .aiTokensUsed, properties: [
             "provider": provider.rawValue,
             "input_tokens": tokens.inputTokens,
             "output_tokens": tokens.outputTokens,
@@ -283,16 +283,4 @@ class AIUsageTracker: ObservableObject {
         UserDefaults.standard.set(requestCount, forKey: "ai_request_count")
         UserDefaults.standard.set(totalCost.description, forKey: "ai_total_cost")
     }
-}
-
-// MARK: - Analytics Extension
-
-extension AnalyticsEvent {
-    static let aiTokensUsed = AnalyticsEvent(rawValue: "AI Tokens Used")
-    static let aiIngredientParseSuccess = AnalyticsEvent(rawValue: "AI Ingredient Parse Success")
-    static let aiIngredientParseFailed = AnalyticsEvent(rawValue: "AI Ingredient Parse Failed")
-    static let aiCategoryDetectionSuccess = AnalyticsEvent(rawValue: "AI Category Detection Success")
-    static let aiCategoryDetectionFailed = AnalyticsEvent(rawValue: "AI Category Detection Failed")
-    static let aiEnhancementSuccess = AnalyticsEvent(rawValue: "AI Enhancement Success")
-    static let aiEnhancementFailed = AnalyticsEvent(rawValue: "AI Enhancement Failed")
 }
