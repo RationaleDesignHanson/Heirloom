@@ -15,8 +15,10 @@ enum SchemaV1: VersionedSchema {
             RecipeCardStyle.self,
             RecipeSticker.self,
             RecipeAnnotation.self,
-            Substitution.self
-            // DinnerParty and SharedRecipeCard will be added in Phase 3
+            Substitution.self,
+            DinnerParty.self,
+            DinnerPartyRecipe.self,
+            ShoppingCartRecipe.self  // ADDED: Required for shopping list functionality
         ]
     }
 

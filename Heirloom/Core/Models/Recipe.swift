@@ -54,9 +54,22 @@ final class Recipe {
     var isFavorite: Bool = false
     var isInShoppingList: Bool = false
 
+    // MARK: - Shopping Cart
+    var shoppingCartRecipes: [ShoppingCartRecipe]?
+
+    // MARK: - Scaling (Smallify Feature)
+    var scalabilityRating: String = "easy" // ScalabilityRating raw value
+    var recipeCategory: String? // RecipeCategory raw value
+    var minimumServings: Int = 1
+    var maximumServings: Int? // nil = no upper limit
+    var scalingNote: String?
+
     // MARK: - Organization
     var tags: [Tag]?
     var collections: [RecipeCollection]?
+
+    // MARK: - Dinner Party Integration
+    var dinnerPartyRecipes: [DinnerPartyRecipe]?
 
     // MARK: - Social (Phase 2)
     var sharedBy: String?
@@ -134,6 +147,47 @@ extension Recipe {
         min(Double(timesCooked) / 20.0, 1.0)
     }
 
+    /// Parse prep time string to minutes
+    var parsedPrepTime: Int {
+        guard let prepTime = prepTime else { return 0 }
+        return parseTimeString(prepTime)
+    }
+
+    /// Parse cook time string to minutes
+    var parsedCookTime: Int {
+        guard let cookTime = cookTime else { return 0 }
+        return parseTimeString(cookTime)
+    }
+
+    /// Helper to parse time strings like "30 min", "1 hr 30 min", "2 hours"
+    private func parseTimeString(_ timeString: String) -> Int {
+        let lowercased = timeString.lowercased()
+        var totalMinutes = 0
+
+        // Extract hours
+        if let hoursMatch = lowercased.range(of: #"(\d+)\s*(hr|hour|hours)"#, options: .regularExpression) {
+            let hoursText = String(lowercased[hoursMatch])
+            if let hours = Int(hoursText.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) {
+                totalMinutes += hours * 60
+            }
+        }
+
+        // Extract minutes
+        if let minutesMatch = lowercased.range(of: #"(\d+)\s*(min|minute|minutes)"#, options: .regularExpression) {
+            let minutesText = String(lowercased[minutesMatch])
+            if let minutes = Int(minutesText.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) {
+                totalMinutes += minutes
+            }
+        }
+
+        // If no time units found, try to parse as plain number (assume minutes)
+        if totalMinutes == 0, let number = Int(lowercased.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()), number > 0 {
+            totalMinutes = number
+        }
+
+        return totalMinutes
+    }
+
     /// Lightweight DTO for list views (per iOS Engineer recommendation)
     var listItem: RecipeListItem {
         RecipeListItem(
@@ -146,6 +200,100 @@ extension Recipe {
             timesCooked: timesCooked,
             dateAdded: dateAdded
         )
+    }
+
+    // MARK: - Scaling Helpers
+
+    /// Computed property for scalability rating enum
+    var scalability: ScalabilityRating {
+        get { ScalabilityRating(rawValue: scalabilityRating) ?? .easy }
+        set { scalabilityRating = newValue.rawValue }
+    }
+
+    /// Computed property for recipe category enum
+    var category: RecipeCategory? {
+        get {
+            guard let rawValue = recipeCategory else { return nil }
+            return RecipeCategory(rawValue: rawValue)
+        }
+        set { recipeCategory = newValue?.rawValue }
+    }
+
+    /// Whether this recipe can be scaled
+    var isScalingAllowed: Bool {
+        scalability != .locked
+    }
+
+    /// The allowed serving range for this recipe
+    var allowedServingRange: ClosedRange<Int>? {
+        guard isScalingAllowed else { return nil }
+        let max = maximumServings ?? 16 // Default max of 4x typical batch
+        return minimumServings...max
+    }
+
+    /// Parse servings string to extract base serving count
+    /// Examples: "6 servings" → 6, "Makes 12 cookies" → 12, "4-6 servings" → 4
+    var parsedServingCount: Int {
+        guard let servings = servings else { return 4 } // Default assumption
+
+        // Try to extract first number from servings string
+        let numbers = servings.components(separatedBy: CharacterSet.decimalDigits.inverted)
+            .compactMap { Int($0) }
+            .filter { $0 > 0 } // Filter out zeros
+
+        return numbers.first ?? 4
+    }
+
+    /// Display string for locked recipes
+    var scalingDisplayString: String {
+        if isScalingAllowed {
+            return servings ?? "\(parsedServingCount) servings"
+        } else {
+            return "\(parsedServingCount) servings (fixed)"
+        }
+    }
+
+    /// Available serving size presets for dropdown
+    /// Returns category-based presets filtered by allowed range, always including original
+    var availableServingSizes: [Int] {
+        guard let category = category else {
+            // No category: use default presets
+            let defaults = [2, 4, 6, 8, 12]
+            return filterServingSizes(defaults)
+        }
+
+        // Locked recipes return only original serving size
+        if !isScalingAllowed {
+            return [parsedServingCount]
+        }
+
+        // Get category presets and filter by range
+        let presets = category.presetServingSizes
+        return filterServingSizes(presets)
+    }
+
+    /// Helper to filter serving sizes by allowed range and ensure original is included
+    private func filterServingSizes(_ presets: [Int]) -> [Int] {
+        let original = parsedServingCount
+        var sizes = Set<Int>()
+
+        // Always include original
+        sizes.insert(original)
+
+        // Add presets that fall within allowed range
+        if let range = allowedServingRange {
+            for preset in presets {
+                if range.contains(preset) {
+                    sizes.insert(preset)
+                }
+            }
+        } else {
+            // No range restrictions, add all presets
+            sizes.formUnion(presets)
+        }
+
+        // Return sorted array
+        return Array(sizes).sorted()
     }
 }
 
@@ -241,6 +389,12 @@ extension Recipe {
         recipe.sourceDate = "1987"
         recipe.timesCooked = 12
         recipe.isFavorite = true
+
+        // Scaling metadata
+        recipe.category = .cookies
+        recipe.scalability = .easy
+        recipe.minimumServings = 4
+        recipe.maximumServings = 96
 
         return recipe
     }

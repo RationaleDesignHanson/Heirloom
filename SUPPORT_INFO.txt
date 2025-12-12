@@ -1,0 +1,412 @@
+HEIRLOOM - SUPPORT AND CONTACT INFORMATION
+
+Last Updated: December 9, 2024
+
+================================================================================
+HOW TO GET SUPPORT
+================================================================================
+
+OPTION 1: IN-APP FEEDBACK
+The fastest way to get help is through the app:
+1. Open Heirloom
+2. Tap the Settings tab
+3. Tap "Send Feedback"
+4. Describe your issue or question
+5. We'll respond within 1-2 business days
+
+OPTION 2: EMAIL
+Email us directly at: [your-email@example.com]
+
+Include:
+- Your iOS version (Settings → General → About)
+- Your device model (iPhone 14, iPad Pro, etc.)
+- App version (Settings → About)
+- Description of the issue
+- Steps to reproduce (if reporting a bug)
+- Screenshots (if helpful)
+
+We typically respond within 24-48 hours.
+
+================================================================================
+FREQUENTLY ASKED QUESTIONS
+================================================================================
+
+GETTING STARTED
+----------------
+
+Q: Do I need to create an account?
+A: No! Heirloom doesn't require account creation. Just download and start adding recipes.
+
+Q: How do I add my first recipe?
+A: Tap the + button and choose:
+   - "Import from URL" to import from a website
+   - "Add Manually" to type in your own recipe
+   - "From Photo" to scan a cookbook page (coming soon)
+
+Q: Is there a limit to how many recipes I can save?
+A: No limit! Save as many recipes as you want. Storage is limited only by your device and iCloud space.
+
+RECIPE IMPORT
+-------------
+
+Q: Which websites can I import recipes from?
+A: Heirloom works with any site that uses Schema.org recipe markup, including:
+   - AllRecipes.com
+   - Serious Eats
+   - King Arthur Baking
+   - Most major food blogs
+
+   If a site doesn't work, email us and we'll try to add support!
+
+Q: Why didn't my recipe import correctly?
+A: Some sites don't structure their recipes in a way we can read. Try:
+   - Checking if the URL copied correctly (no extra spaces)
+   - Making sure you're copying the recipe page URL (not homepage)
+   - Manually adding the recipe if import fails
+
+Q: Can I edit imported recipes?
+A: Yes! Tap the recipe, then tap "Edit" to modify any part of it.
+
+ICLOUD SYNC
+-----------
+
+Q: How do I enable iCloud sync?
+A: iCloud sync is automatic if you're signed into iCloud. Check:
+   iOS Settings → [Your Name] → iCloud → Heirloom → Enable
+
+Q: My recipes aren't syncing between devices. Why?
+A: Check these:
+   - You're signed into the same Apple ID on both devices
+   - iCloud sync is enabled for Heirloom on both devices
+   - You have available iCloud storage
+   - Both devices have internet connection
+   - Give it a few minutes - initial sync can take time
+
+Q: Can I use Heirloom without iCloud?
+A: Yes! Recipes are always stored locally on your device. iCloud sync is optional.
+
+Q: How much iCloud storage does Heirloom use?
+A: Very little! A typical recipe with a photo uses about 200-500KB. Even 1000 recipes would only use ~200-500MB.
+
+SHOPPING LIST
+-------------
+
+Q: How do I add recipes to my shopping list?
+A: Open a recipe, tap the shopping cart icon, then "Add to Shopping List"
+
+Q: Why are ingredients combined in my shopping list?
+A: Heirloom automatically combines identical ingredients across recipes.
+   For example: "2 cups flour" + "3 cups flour" = "5 cups flour total"
+
+Q: Can I export my shopping list?
+A: Yes! Open Shopping List, tap "Export to Reminders". This creates a
+   "Heirloom Shopping" list in the iOS Reminders app.
+
+Q: Do I need to grant Reminders permission?
+A: Only if you want to export shopping lists. Tap "Export to Reminders"
+   and iOS will ask for permission. You can revoke it anytime in
+   iOS Settings → Heirloom → Reminders.
+
+COOKING MODE
+------------
+
+Q: What is Cooking Mode?
+A: A distraction-free, step-by-step cooking experience with large text
+   that's easy to read while cooking.
+
+Q: How do I use Cooking Mode?
+A: Open any recipe and tap "Start Cooking" at the bottom.
+
+Q: Does Cooking Mode track my progress?
+A: Yes! Mark steps as complete, and when you finish, Heirloom increments
+   the "times cooked" counter.
+
+RECIPE SCALING
+--------------
+
+Q: How do I scale a recipe?
+A: Open the recipe and use the +/- buttons next to "Servings" to adjust
+   from 0.5x to 10x. Ingredient quantities update automatically.
+
+Q: Why don't all my ingredients scale?
+A: Heirloom only scales ingredients with recognized quantities.
+   Ingredients like "salt to taste" or "1 package yeast" don't scale
+   automatically.
+
+SEARCH AND FILTERS
+------------------
+
+Q: How do I search for recipes?
+A: Use the search bar at the top of the recipe list. Search by recipe name.
+
+Q: What filters are available?
+A: Tap the filter icon to filter by:
+   - Source (Family, URL, Manual, Cookbook)
+   - Favorites only
+   - In shopping list
+   - Cooked / Never cooked
+   - Sort by date, title, or times cooked
+
+DATA AND PRIVACY
+----------------
+
+Q: Where is my recipe data stored?
+A: Locally on your device and (if enabled) in your personal iCloud account.
+
+Q: Can you see my recipes?
+A: No! We have zero access to your recipe data. It's private to you.
+
+Q: What data do you collect?
+A: We collect anonymous usage analytics (like "user opened cooking mode")
+   to improve the app. We do NOT collect recipe content, personal info,
+   or anything that identifies you. See Privacy Policy for details.
+
+Q: How do I delete all my data?
+A: Settings → "Clear All Data" → Confirm. This deletes all recipes from
+   your device. To delete from iCloud: iOS Settings → iCloud → Manage
+   Storage → Heirloom → Delete Data.
+
+TROUBLESHOOTING
+---------------
+
+Q: The app is crashing. What should I do?
+A: Try:
+   1. Force quit and reopen the app
+   2. Restart your device
+   3. Check for app updates in the App Store
+   4. If still crashing, email us with details
+
+Q: Recipe images aren't loading.
+A: Try:
+   1. Check your internet connection
+   2. Make sure you have available device storage
+   3. Try deleting and re-importing the recipe
+   4. Contact us if the problem persists
+
+Q: I found a bug!
+A: Please report it! Use Settings → Send Feedback or email us with:
+   - What you were doing when the bug occurred
+   - What you expected to happen
+   - What actually happened
+   - Screenshots if possible
+
+Q: The app is running slowly.
+A: Try:
+   1. Close other apps running in the background
+   2. Restart your device
+   3. Check for iOS updates
+   4. Ensure you have at least 1GB of free storage
+
+================================================================================
+FEATURE REQUESTS
+================================================================================
+
+Have an idea for a new feature? We'd love to hear it!
+
+Send feature requests via:
+- Settings → Send Feedback
+- Email: [your-email@example.com]
+
+Popular feature requests we're considering:
+- Meal planning calendar
+- Nutritional information
+- More recipe import sites
+- Recipe sharing with friends
+- Cookbook photo scanning
+- Voice commands for cooking mode
+
+================================================================================
+SYSTEM REQUIREMENTS
+================================================================================
+
+MINIMUM REQUIREMENTS:
+- iOS 17.0 or later
+- iPhone 8 or newer, or iPad (6th generation) or newer
+- 100 MB free storage (more for recipe photos)
+- Internet connection (for recipe import and iCloud sync)
+
+RECOMMENDED:
+- iOS 17.4 or later
+- iPhone 12 or newer, or iPad Air (4th generation) or newer
+- 500 MB free storage
+- iCloud account for sync
+
+OPTIONAL REQUIREMENTS:
+- iCloud account (for cross-device sync)
+- Apple Reminders (for shopping list export)
+- Camera (for future photo scanning feature)
+
+================================================================================
+APP STORE INFORMATION
+================================================================================
+
+App Name: Heirloom
+Category: Food & Drink
+Price: Free
+In-App Purchases: None (currently)
+Age Rating: 4+
+Languages: English
+Size: ~15 MB (download), ~50 MB (installed)
+
+Developer: [Your Name or Company]
+Copyright: © 2024 Heirloom
+Bundle ID: com.heirloom.app
+
+================================================================================
+VERSION HISTORY
+================================================================================
+
+VERSION 1.0.0 (December 2024)
+- Initial release
+- Recipe import from web URLs
+- Manual recipe creation
+- Smart shopping list with Reminders integration
+- Step-by-step cooking mode
+- Recipe scaling (0.5x to 10x)
+- Advanced search and filtering
+- iCloud sync across devices
+- Mixpanel analytics integration
+
+Upcoming features (future versions):
+- Meal planning calendar
+- Recipe tags and collections
+- Recipe sharing
+- Cookbook photo scanning
+- More recipe website support
+- Nutritional information
+- Ingredient substitutions
+
+================================================================================
+LEGAL AND POLICY DOCUMENTS
+================================================================================
+
+For complete legal information, see:
+
+- Privacy Policy: PRIVACY_POLICY.txt
+- Terms of Service: TERMS_OF_SERVICE.txt
+- End User License Agreement: EULA.txt
+
+These documents are also available in the app:
+Settings → Privacy Policy / Terms of Service
+
+================================================================================
+CONTACT INFORMATION
+================================================================================
+
+GENERAL SUPPORT
+Email: [your-email@example.com]
+In-App: Settings → Send Feedback
+
+BUSINESS INQUIRIES
+Partnerships: [your-business-email@example.com]
+Press: [your-press-email@example.com]
+
+LEGAL
+Legal inquiries: [your-legal-email@example.com]
+DMCA notices: [your-dmca-email@example.com]
+
+WEBSITE
+[your-website.com]
+[your-website.com]/privacy
+[your-website.com]/terms
+[your-website.com]/support
+
+SOCIAL MEDIA (Optional)
+Twitter: @HeirloomApp
+Instagram: @HeirloomApp
+Facebook: /HeirloomApp
+
+================================================================================
+RESPONSE TIMES
+================================================================================
+
+We aim to respond to all inquiries within:
+- Bug reports: 24 hours
+- Support questions: 48 hours
+- Feature requests: 1 week
+- Business inquiries: 3 business days
+- Legal inquiries: 5 business days
+
+Critical issues (app crashes, data loss) receive priority support.
+
+================================================================================
+COMMUNITY GUIDELINES
+================================================================================
+
+When contacting support:
+✓ Be respectful and courteous
+✓ Provide clear descriptions of issues
+✓ Include relevant details (device, iOS version, etc.)
+✓ Be patient - we're a small team!
+
+We do not tolerate:
+✗ Harassment or abusive language
+✗ Spam or advertising
+✗ Requests for piracy or illegal activity
+✗ Disclosure of others' private information
+
+================================================================================
+ACCESSIBILITY
+================================================================================
+
+Heirloom is designed with accessibility in mind:
+- VoiceOver support
+- Dynamic Type for text sizing
+- High contrast mode compatibility
+- Keyboard navigation support
+
+If you encounter accessibility issues, please let us know so we can fix them!
+
+================================================================================
+DATA EXPORT AND PORTABILITY
+================================================================================
+
+Q: Can I export my recipes?
+A: Currently, recipes can be shared one at a time via the share sheet.
+   Bulk export is planned for a future update.
+
+Q: What happens if I switch to Android?
+A: Currently, Heirloom is iOS-only. If you switch platforms, you'll need
+   to manually transfer recipes. We're considering an export feature for
+   this use case.
+
+Q: Can I import recipes from other apps?
+A: Not currently, but we're exploring import from common formats like
+   CookML, JSON, and CSV.
+
+================================================================================
+BETA PROGRAM
+================================================================================
+
+Interested in testing new features before release?
+
+Join our TestFlight beta program:
+1. Email [your-email@example.com] with "Beta Tester" in subject
+2. Include your Apple ID email
+3. We'll send a TestFlight invitation
+
+Beta testers get:
+- Early access to new features
+- Direct communication with developers
+- Influence on feature priorities
+- Recognition in app credits (optional)
+
+================================================================================
+ACKNOWLEDGMENTS
+================================================================================
+
+Heirloom is built with:
+- SwiftUI and SwiftData (Apple frameworks)
+- SwiftSoup (HTML parsing) - MIT License
+- Mixpanel (analytics)
+- SF Symbols (Apple icons)
+
+Special thanks to beta testers and early users for their feedback!
+
+================================================================================
+END OF SUPPORT INFORMATION
+================================================================================
+
+Last Updated: December 9, 2024
+
+For the latest information, visit [your-website.com]/support

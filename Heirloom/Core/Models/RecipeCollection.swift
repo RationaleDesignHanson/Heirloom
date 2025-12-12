@@ -4,13 +4,13 @@ import SwiftUI
 
 @Model
 final class RecipeCollection {
-    var id: UUID
-    var name: String
+    var id: UUID = UUID()
+    var name: String = ""
     var desc: String? // "description" is a reserved keyword
-    var iconName: String
-    var color: String // Hex color code
-    var createdDate: Date
-    var isSystemCollection: Bool // For built-in collections like "Favorites"
+    var iconName: String = "folder.fill"
+    var color: String = "#FF6B6B" // Hex color code
+    var createdDate: Date = Date()
+    var isSystemCollection: Bool = false // For built-in collections like "Favorites"
 
     // Relationships
     @Relationship(inverse: \Recipe.collections) var recipes: [Recipe]?

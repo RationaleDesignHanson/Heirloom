@@ -12,17 +12,41 @@ struct HeirloomApp: App {
             // Use versioned schema for future migrations
             let schema = SchemaV1.schema
 
-            let config = ModelConfiguration(
-                schema: schema,
-                isStoredInMemoryOnly: false,
-                allowsSave: true,
-                cloudKitDatabase: .automatic  // iCloud sync enabled
-            )
+            // Try CloudKit first, fallback to local-only if it fails
+            var container: ModelContainer?
 
-            let container = try ModelContainer(
-                for: schema,
-                configurations: config
-            )
+            // Attempt 1: Try with CloudKit
+            do {
+                let config = ModelConfiguration(
+                    schema: schema,
+                    isStoredInMemoryOnly: false,
+                    allowsSave: true,
+                    cloudKitDatabase: .automatic  // iCloud sync enabled
+                )
+
+                container = try ModelContainer(
+                    for: schema,
+                    configurations: config
+                )
+                print("✅ SwiftData initialized with CloudKit sync")
+            } catch {
+                print("⚠️ CloudKit init failed: \(error.localizedDescription)")
+                print("🔄 Falling back to local storage only...")
+
+                // Attempt 2: Fallback to local-only storage
+                let localConfig = ModelConfiguration(
+                    schema: schema,
+                    isStoredInMemoryOnly: false,
+                    allowsSave: true,
+                    cloudKitDatabase: .none  // Local only, no sync
+                )
+
+                container = try ModelContainer(
+                    for: schema,
+                    configurations: localConfig
+                )
+                print("✅ SwiftData initialized with local storage only")
+            }
 
             _modelContainer = State(wrappedValue: container)
 
@@ -30,7 +54,7 @@ struct HeirloomApp: App {
             setupServices()
 
         } catch {
-            print("⚠️ Failed to configure SwiftData: \(error.localizedDescription)")
+            print("❌ Failed to configure SwiftData: \(error.localizedDescription)")
             _showDataError = State(wrappedValue: true)
         }
     }
@@ -170,11 +194,17 @@ struct ContentView: View {
                 }
                 .tag(2)
 
+            DinnerPartyListView()
+                .tabItem {
+                    Label("Parties", systemImage: "fork.knife")
+                }
+                .tag(3)
+
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
-                .tag(3)
+                .tag(4)
         }
         .tint(HeirloomColors.tomato)
         .toastContainer()

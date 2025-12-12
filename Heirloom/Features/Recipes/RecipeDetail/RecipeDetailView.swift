@@ -5,6 +5,7 @@ struct RecipeDetailView: View {
     let recipe: Recipe
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
     @State private var showEditSheet = false
@@ -15,6 +16,8 @@ struct RecipeDetailView: View {
     @State private var showCloudKitShare = false
     @State private var showPassDown = false
     @State private var servingMultiplier: Double = 1.0
+    @State private var targetServings: Int = 0
+    @State private var showScalingExplanation = false
 
     var body: some View {
         ScrollView {
@@ -34,7 +37,7 @@ struct RecipeDetailView: View {
                         tagsAndCollectionsSection
                     }
 
-                    // Metadata Section
+                    // Metadata Section (includes serving selector dropdown)
                     metadataSection
 
                     // Start Cooking Button
@@ -80,6 +83,11 @@ struct RecipeDetailView: View {
         .background(HeirloomColors.cream)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            // Initialize target servings to recipe's base serving count
+            if targetServings == 0 {
+                targetServings = recipe.parsedServingCount
+            }
+
             AnalyticsService.shared.trackRecipeViewed(recipe: recipe)
         }
         .toolbar {
@@ -222,8 +230,8 @@ struct RecipeDetailView: View {
                     addToShoppingList()
                 } label: {
                     Label(
-                        recipe.isInShoppingList ? "In List" : "Shopping List",
-                        systemImage: recipe.isInShoppingList ? "checkmark.circle.fill" : "cart"
+                        isInShoppingCart ? "In List" : "Shopping List",
+                        systemImage: isInShoppingCart ? "checkmark.circle.fill" : "cart"
                     )
                     .font(HeirloomFonts.bodyBold)
                 }
@@ -298,9 +306,8 @@ struct RecipeDetailView: View {
     // MARK: - Metadata Section
     private var metadataSection: some View {
         HStack(spacing: HeirloomSpacing.lg) {
-            if let servings = recipe.servings {
-                metadataItem(icon: "person.2.fill", label: "Servings", value: servings)
-            }
+            // Servings with dropdown
+            servingsMetadataItem
 
             if let prepTime = recipe.prepTime {
                 metadataItem(icon: "clock.fill", label: "Prep", value: prepTime)
@@ -317,6 +324,95 @@ struct RecipeDetailView: View {
                 .fill(.white)
                 .shadow(color: HeirloomColors.cardShadow, radius: 4, x: 0, y: 2)
         )
+    }
+
+    private var servingsMetadataItem: some View {
+        VStack(spacing: 4) {
+            Image(systemName: "person.2.fill")
+                .font(.title3)
+                .foregroundStyle(HeirloomColors.tomato)
+
+            Text("Servings")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
+
+            // Dropdown menu for serving sizes
+            Menu {
+                let availableSizes = recipe.availableServingSizes
+
+                if recipe.isScalingAllowed {
+                    // Scalable recipe: show all preset options
+                    ForEach(availableSizes, id: \.self) { size in
+                        Button {
+                            let originalServings = recipe.parsedServingCount
+                            targetServings = size
+
+                            // Track scaling event
+                            if size != originalServings {
+                                AnalyticsService.shared.track(event: .recipeScaled, properties: [
+                                    "recipe_title": recipe.title,
+                                    "category": recipe.category?.rawValue ?? "unknown",
+                                    "original_servings": originalServings,
+                                    "target_servings": size,
+                                    "scale_factor": Double(size) / Double(originalServings)
+                                ])
+                            }
+                        } label: {
+                            HStack {
+                                Text("\(size) \(servingUnitText(size))")
+                                if size == targetServings {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Locked recipe: show explanation when tapped
+                    Button {
+                        showScalingExplanation = true
+
+                        // Track explanation view
+                        AnalyticsService.shared.track(event: .scalingExplanationViewed, properties: [
+                            "recipe_title": recipe.title,
+                            "category": recipe.category?.rawValue ?? "unknown"
+                        ])
+                    } label: {
+                        Label("Why can't I scale this?", systemImage: "info.circle")
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("\(targetServings) \(servingUnitText(targetServings))")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.charcoal)
+
+                    Image(systemName: recipe.isScalingAllowed ? "chevron.down" : "lock.fill")
+                        .font(.caption)
+                        .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .sheet(isPresented: $showScalingExplanation) {
+            ScalingExplanationSheet(recipe: recipe)
+        }
+    }
+
+    private func servingUnitText(_ count: Int) -> String {
+        if let servings = recipe.servings {
+            // Try to extract unit from original servings string
+            let lowercased = servings.lowercased()
+            if lowercased.contains("cookie") {
+                return count == 1 ? "cookie" : "cookies"
+            } else if lowercased.contains("muffin") {
+                return count == 1 ? "muffin" : "muffins"
+            } else if lowercased.contains("serving") {
+                return count == 1 ? "serving" : "servings"
+            } else if lowercased.contains("portion") {
+                return count == 1 ? "portion" : "portions"
+            }
+        }
+        return count == 1 ? "serving" : "servings"
     }
 
     private func metadataItem(icon: String, label: String, value: String) -> some View {
@@ -362,20 +458,11 @@ struct RecipeDetailView: View {
     // MARK: - Ingredients Section
     private func ingredientsSection(_ ingredients: [Ingredient]) -> some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            HStack {
-                sectionHeader(
-                    title: "Ingredients",
-                    icon: "list.bullet",
-                    count: ingredients.count
-                )
-
-                Spacer()
-
-                // Serving size adjuster
-                if recipe.servings != nil {
-                    servingSizeAdjuster
-                }
-            }
+            sectionHeader(
+                title: "Ingredients",
+                icon: "list.bullet",
+                count: ingredients.count
+            )
 
             VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                 ForEach(ingredients.sorted(by: { $0.orderIndex < $1.orderIndex })) { ingredient in
@@ -449,8 +536,12 @@ struct RecipeDetailView: View {
     }
 
     private func scaledIngredientText(_ ingredient: Ingredient) -> String {
-        // If multiplier is 1.0, just show original text
-        guard servingMultiplier != 1.0 else {
+        // Calculate scale factor from target servings
+        let originalServings = recipe.parsedServingCount
+        let scaleFactor = Double(targetServings) / Double(originalServings)
+
+        // If scaling is 1.0, just show original text
+        guard scaleFactor != 1.0 else {
             return ingredient.displayText
         }
 
@@ -460,8 +551,8 @@ struct RecipeDetailView: View {
         }
 
         // Scale the quantity
-        let scaledQty = quantity * servingMultiplier
-        let scaledQtyMax = ingredient.quantityMax.map { $0 * servingMultiplier }
+        let scaledQty = quantity * scaleFactor
+        let scaledQtyMax = ingredient.quantityMax.map { $0 * scaleFactor }
 
         // Build scaled display text
         var parts: [String] = []
@@ -654,19 +745,76 @@ struct RecipeDetailView: View {
         AnalyticsService.shared.trackRecipeFavorited(recipe: recipe, isFavorite: recipe.isFavorite)
     }
 
+    private var isInShoppingCart: Bool {
+        recipe.isInShoppingCart(context: modelContext)
+    }
+
     private func addToShoppingList() {
-        recipe.isInShoppingList.toggle()
+        if let existingCartRecipe = recipe.shoppingCartRecipe(context: modelContext) {
+            // Remove from cart
+            modelContext.delete(existingCartRecipe)
+            recipe.isInShoppingList = false
+
+            // Save changes
+            do {
+                try modelContext.save()
+
+                // Haptic feedback
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+
+                ToastManager.shared.success(title: "Removed from shopping list")
+
+                // Track analytics
+                AnalyticsService.shared.trackShoppingListToggle(recipe: recipe, isInList: false)
+            } catch {
+                ToastManager.shared.error(
+                    title: "Failed to remove",
+                    message: error.localizedDescription
+                )
+            }
+        } else {
+            // Add to cart with current target servings
+            let cartRecipe = ShoppingCartRecipe(recipe: recipe, targetServings: targetServings)
+            modelContext.insert(cartRecipe)
+            recipe.isInShoppingList = true
+
+            // Save changes
+            do {
+                try modelContext.save()
+
+                // Haptic feedback
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+
+                let servingText = targetServings == recipe.parsedServingCount
+                    ? ""
+                    : " (for \(targetServings))"
+                ToastManager.shared.success(title: "Added to shopping list\(servingText)")
+
+                // Track analytics
+                AnalyticsService.shared.trackShoppingListToggle(recipe: recipe, isInList: true)
+
+                // Track scaled recipe added to cart
+                if targetServings != recipe.parsedServingCount {
+                    AnalyticsService.shared.track(event: .scaledRecipeAddedToCart, properties: [
+                        "recipe_title": recipe.title,
+                        "category": recipe.category?.rawValue ?? "unknown",
+                        "original_servings": recipe.parsedServingCount,
+                        "target_servings": targetServings,
+                        "scale_factor": Double(targetServings) / Double(recipe.parsedServingCount)
+                    ])
+                }
+            } catch {
+                ToastManager.shared.error(
+                    title: "Failed to add to shopping list",
+                    message: error.localizedDescription
+                )
+            }
+        }
+
         recipe.lastModified = Date()
-
-        // Haptic feedback
-        let generator = UIImpactFeedbackGenerator(style: recipe.isInShoppingList ? .medium : .light)
-        generator.impactOccurred()
-
-        let message = recipe.isInShoppingList ? "Added to shopping list" : "Removed from shopping list"
-        ToastManager.shared.success(title: message)
-
-        // Track analytics
-        AnalyticsService.shared.trackShoppingListToggle(recipe: recipe, isInList: recipe.isInShoppingList)
+        try? modelContext.save()
     }
 
     private func deleteRecipe() {
@@ -679,9 +827,25 @@ struct RecipeDetailView: View {
         // Track analytics before deletion
         AnalyticsService.shared.trackRecipeDeleted(recipeTitle: recipe.title)
 
-        // TODO: Implement delete with model context
-        ToastManager.shared.success(title: "Recipe deleted")
-        dismiss()
+        // Delete from context
+        modelContext.delete(recipe)
+
+        do {
+            try modelContext.save()
+
+            // Success haptic
+            let successGenerator = UINotificationFeedbackGenerator()
+            successGenerator.notificationOccurred(.success)
+
+            ToastManager.shared.success(title: "Recipe deleted")
+            dismiss()
+        } catch {
+            isDeleting = false
+            ToastManager.shared.error(
+                title: "Failed to delete",
+                message: error.localizedDescription
+            )
+        }
     }
 }
 

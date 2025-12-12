@@ -1,0 +1,361 @@
+HEIRLOOM BETA TESTING INSTRUCTIONS
+Version 1.0.0 (Beta 1)
+
+================================================================================
+WELCOME TO THE HEIRLOOM BETA!
+================================================================================
+
+Thank you for helping test Heirloom - an iOS app for capturing, organizing,
+and sharing family recipes across generations.
+
+Your feedback will help make Heirloom the best recipe app for home cooks.
+
+
+================================================================================
+GETTING STARTED
+================================================================================
+
+1. INSTALL TESTFLIGHT
+   - Download TestFlight from the App Store (if not already installed)
+   - It's Apple's official beta testing app
+
+2. ACCEPT THE INVITATION
+   - Check your email for the Heirloom TestFlight invitation
+   - Click "View in TestFlight" or copy the link
+   - Open in TestFlight app and tap "Accept"
+
+3. INSTALL HEIRLOOM
+   - Tap "Install" in TestFlight
+   - Wait for download to complete
+   - Launch Heirloom from your home screen
+
+4. COMPLETE ONBOARDING
+   - Follow the 4-page onboarding flow
+   - Grant permissions when requested:
+     * iCloud (for syncing recipes across devices)
+     * Notifications (for cooking timers - optional)
+     * Reminders (for shopping list export - optional)
+
+
+================================================================================
+SYSTEM REQUIREMENTS
+================================================================================
+
+- iPhone running iOS 17.0 or later
+- Active iCloud account (for sync features)
+- ~50MB free storage space
+
+
+================================================================================
+WHAT TO TEST
+================================================================================
+
+WEEK 1 FOCUS: Core Recipe Features
+----------------------------------
+✓ Import a recipe from a URL (try AllRecipes, Serious Eats, or King Arthur)
+✓ Create a recipe manually from scratch
+✓ Add 5-10 recipes to your library
+✓ Mark a recipe as favorite
+✓ Search for a recipe by name
+✓ Use cooking mode on at least 2 recipes
+✓ Scale a recipe up (2x) and down (0.5x)
+
+WEEK 2 FOCUS: Shopping List & Organization
+------------------------------------------
+✓ Add 3+ recipes to your shopping list
+✓ Review aggregated ingredient list
+✓ Check off items as you "shop"
+✓ Export shopping list to Reminders app
+✓ Create tags and add them to recipes
+✓ Use filters to find recipes by source type
+✓ Test sorting options (date, title, times cooked)
+
+WEEK 3 FOCUS: Advanced Features
+-------------------------------
+✓ Create a dinner party with 3-4 recipes
+✓ Review the party timeline
+✓ Generate shopping list for entire party
+✓ Share a recipe with another beta tester (CloudKit)
+✓ Customize recipe cards (colors, stickers)
+✓ Test with 20+ recipes in your library
+✓ Try the app offline, then sync when online
+
+BONUS: Multi-Device Testing (If Available)
+------------------------------------------
+✓ Add recipe on iPhone, verify it appears on iPad
+✓ Edit recipe on one device, check sync on another
+✓ Test recipe sharing between devices
+
+
+================================================================================
+KNOWN ISSUES & LIMITATIONS
+================================================================================
+
+This is Beta 1, so some features are still in development:
+
+• Cookbook scanning UI exists but OCR not yet functional
+• Limited recipe site support (works best with AllRecipes, Serious Eats,
+  King Arthur Baking - other sites may work but aren't fully tested)
+• iPad layout not yet optimized (works but not ideal)
+• Card personalization features may need refinement
+• Push notifications for cooking timers not yet implemented
+
+
+================================================================================
+HOW TO REPORT BUGS
+================================================================================
+
+We need your help finding issues! When you encounter a bug:
+
+OPTION 1: TestFlight Feedback (Preferred)
+-----------------------------------------
+1. Open TestFlight app
+2. Select Heirloom
+3. Tap "Send Beta Feedback"
+4. Include screenshot if possible
+5. Describe what happened
+
+OPTION 2: Email
+--------------
+Send to: [YOUR EMAIL]
+Subject: "Heirloom Beta Bug Report"
+
+Please include:
+• Device model (e.g., iPhone 14 Pro)
+• iOS version (e.g., iOS 17.5)
+• Steps to reproduce
+• What you expected vs. what happened
+• Screenshots or screen recording (if helpful)
+• App version/build (found in Settings tab)
+
+BUG PRIORITY GUIDE:
+• CRITICAL: App crashes, data loss, can't use core features
+• HIGH: Feature broken or major usability issue
+• MEDIUM: Minor bug with workaround available
+• LOW: Cosmetic issue or small annoyance
+
+
+================================================================================
+HOW TO SHARE FEEDBACK
+================================================================================
+
+We want to hear what you think!
+
+STRUCTURED FEEDBACK (Week 1 Survey):
+-----------------------------------
+You'll receive a survey link after 1 week of testing asking about:
+• Ease of importing recipes
+• Cooking mode experience
+• Shopping list usefulness
+• Feature requests
+• Overall satisfaction
+
+GENERAL FEEDBACK:
+----------------
+Email anytime: [YOUR EMAIL]
+
+Tell us:
+✓ What's your favorite feature?
+✓ What's frustrating or confusing?
+✓ What's missing that you expected?
+✓ Which recipe sites do you want supported?
+✓ Would you recommend Heirloom to friends?
+
+
+================================================================================
+TIPS FOR SUCCESSFUL TESTING
+================================================================================
+
+1. USE IT LIKE YOU WOULD A REAL APP
+   - Import your actual recipes
+   - Use it for real cooking sessions
+   - Build your actual shopping list
+   - This gives the most valuable feedback
+
+2. TRY TO BREAK IT
+   - Import weird recipe formats
+   - Scale recipes to extreme values (0.25x, 10x)
+   - Add 50+ recipes to test performance
+   - Go offline and online repeatedly
+
+3. TEST EDGE CASES
+   - Very long recipe titles (50+ characters)
+   - Recipes with no images
+   - Unusual ingredient formats
+   - Recipes with 20+ ingredients or 15+ steps
+
+4. PROVIDE CONTEXT
+   - "Export to Reminders failed" = okay
+   - "Export to Reminders failed when I tapped Export on shopping list
+      with 15 items from 3 recipes. iPhone 14 Pro, iOS 17.5." = great!
+
+5. BE HONEST
+   - We want real feedback, not just positivity
+   - If something is confusing or broken, tell us
+   - Your honest input makes the app better
+
+
+================================================================================
+TESTFLIGHT TIPS
+================================================================================
+
+• Updates appear automatically in TestFlight
+• You'll get notifications when new builds are ready
+• Beta builds expire after 90 days (we'll update regularly)
+• TestFlight builds don't affect App Store versions
+• Your recipes are stored in YOUR iCloud account - we can't see them
+• You can uninstall anytime via TestFlight
+
+
+================================================================================
+SUPPORTED RECIPE SITES (Beta 1)
+================================================================================
+
+✓ CONFIRMED WORKING:
+  - AllRecipes (allrecipes.com)
+  - Serious Eats (seriouseats.com)
+  - King Arthur Baking (kingarthurbaking.com)
+
+✓ LIKELY TO WORK (using Schema.org standard):
+  - Food Network
+  - Bon Appétit
+  - NYT Cooking
+  - Epicurious
+  - Most major recipe sites
+
+✗ MANUAL ENTRY REQUIRED:
+  - Recipes in images/PDFs
+  - Handwritten recipes (use camera + cookbook scanner)
+  - Social media posts
+  - Recipe sites without structured data
+
+
+================================================================================
+FAQ
+================================================================================
+
+Q: Will my recipes sync across my iPhone and iPad?
+A: Yes, if you're signed into iCloud on both devices. Sync happens
+   automatically in the background.
+
+Q: Can I use Heirloom without iCloud?
+A: Yes! Heirloom works fine without iCloud. You'll just lose cross-device
+   sync and recipe sharing features.
+
+Q: What happens to my recipes after beta ends?
+A: Your recipes stay in your iCloud account. When the public app launches,
+   you'll seamlessly transition with all your data intact.
+
+Q: Can I share recipes with non-beta testers?
+A: Recipe sharing only works between Heirloom users (beta or public).
+   For now, share with other beta testers only.
+
+Q: How do I find my app version/build number?
+A: Open Heirloom → Settings tab → scroll to bottom → see "Version 1.0.0 (1)"
+
+Q: The app crashed! What should I do?
+A: Apple automatically sends crash reports via TestFlight. Please also email
+   us with what you were doing when it crashed so we can reproduce it.
+
+Q: I want to suggest a new feature. Where do I send it?
+A: Email [YOUR EMAIL] or include in the Week 1 survey. We're collecting all
+   feature requests to prioritize for future updates.
+
+Q: Can I invite friends to the beta?
+A: Not yet - we're keeping this initial beta small. If you know someone who
+   would be a great tester, send their email to [YOUR EMAIL] and we'll
+   consider expanding the group.
+
+
+================================================================================
+TESTING SCHEDULE
+================================================================================
+
+WEEK 1:
+  • Internal testing + first 10 beta testers
+  • Focus: Core functionality and critical bugs
+  • Beta 2 release (bug fixes) on Friday
+
+WEEK 2:
+  • Full beta group (20-30 testers)
+  • Focus: Shopping list, sync, advanced features
+  • Beta 3 release (refinements) at end of week
+
+WEEK 3:
+  • Feedback collection and surveys
+  • Focus: Edge cases, performance, polish
+  • Beta 4 release (final polish)
+
+WEEK 4:
+  • Release Candidate testing
+  • Go/No-Go decision for public launch
+  • Thank you to all testers!
+
+
+================================================================================
+PRIVACY & DATA
+================================================================================
+
+• Your recipes are stored in YOUR personal iCloud account
+• We cannot see your recipe data
+• Basic usage analytics are collected (which screens you visit, which
+  features you use) to help improve the app
+• No personal information is collected beyond what Apple provides
+  (your email for beta testing purposes)
+• Crash reports are anonymous
+• See our privacy policy at: [PRIVACY POLICY URL]
+
+
+================================================================================
+BETA TESTER APPRECIATION
+================================================================================
+
+Thank you for being an early Heirloom beta tester! Your time and feedback
+are invaluable.
+
+As a token of appreciation:
+• You'll receive credit in the app's "About" section (optional)
+• You'll get early access to future features
+• [Optional: Free lifetime Pro features when we launch freemium model]
+• [Optional: Entry into $50 Amazon gift card raffle for active testers]
+
+Your input directly shapes Heirloom's future. Thank you for helping us build
+something special.
+
+
+================================================================================
+SUPPORT CONTACT
+================================================================================
+
+Beta Program Manager: [YOUR NAME]
+Email: [YOUR EMAIL]
+Response Time: Within 24 hours (usually faster)
+
+Emergency Contact (critical issues only): [YOUR PHONE]
+
+TestFlight Link: [TESTFLIGHT PUBLIC LINK OR "Check your email"]
+
+
+================================================================================
+QUICK START CHECKLIST
+================================================================================
+
+Before you start testing, make sure you've:
+☐ Installed TestFlight from App Store
+☐ Accepted Heirloom beta invitation
+☐ Installed Heirloom via TestFlight
+☐ Completed onboarding flow
+☐ Granted iCloud permission
+☐ Imported or created your first recipe
+☐ Read these instructions
+☐ Bookmarked feedback email: [YOUR EMAIL]
+
+Ready to cook? Let's go!
+
+
+================================================================================
+
+Last updated: December 9, 2025
+Version: 1.0.0 (Beta 1)
+
+Questions? Email [YOUR EMAIL]

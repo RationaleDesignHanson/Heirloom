@@ -279,6 +279,9 @@ struct RecipeEditorView: View {
 
             recipe.ingredients = newIngredients.isEmpty ? nil : newIngredients
 
+            // Auto-detect recipe category for smart serving presets
+            CategoryDetectionService.shared.detectAndApply(to: recipe)
+
             // Save image if provided
             if let image = recipeImage {
                 do {

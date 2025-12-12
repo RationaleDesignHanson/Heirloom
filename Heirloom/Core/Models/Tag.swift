@@ -4,10 +4,10 @@ import SwiftUI
 
 @Model
 final class Tag {
-    var id: UUID
-    var name: String
-    var color: String // Hex color code
-    var createdDate: Date
+    var id: UUID = UUID()
+    var name: String = ""
+    var color: String = "#FF6B6B" // Hex color code
+    var createdDate: Date = Date()
 
     // Relationships
     @Relationship(inverse: \Recipe.tags) var recipes: [Recipe]?

@@ -10,7 +10,6 @@ struct CookbookScannerView: View {
     @State private var capturedImage: UIImage?
     @State private var isProcessing = false
     @State private var recognizedText: String = ""
-    @State private var showEditor = false
 
     var body: some View {
         NavigationStack {
@@ -34,7 +33,7 @@ struct CookbookScannerView: View {
 
                 if capturedImage != nil && !isProcessing {
                     ToolbarItem(placement: .primaryAction) {
-                        Button("Use Photo") {
+                        Button("Extract Recipe") {
                             processImage()
                         }
                     }
@@ -42,16 +41,6 @@ struct CookbookScannerView: View {
             }
             .sheet(isPresented: $showCamera) {
                 CameraView(capturedImage: $capturedImage)
-            }
-            .sheet(isPresented: $showEditor) {
-                if let image = capturedImage {
-                    RecipeEditorView(
-                        recipe: nil,
-                        initialImage: image,
-                        initialIngredients: extractIngredients(from: recognizedText),
-                        initialInstructions: extractInstructions(from: recognizedText)
-                    )
-                }
             }
         }
     }
@@ -179,23 +168,30 @@ struct CookbookScannerView: View {
 
         Task {
             do {
+                // Step 1: Extract raw text using OCR
                 let text = try await recognizeText(in: image)
+                recognizedText = text
+
+                // Step 2: Use AI to structure the recipe (if enabled)
+                let extractedRecipe = try await AIRecipeExtractor.shared.extractRecipe(from: text)
 
                 await MainActor.run {
-                    recognizedText = text
                     isProcessing = false
 
                     // Haptic feedback
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
 
-                    // Show editor with extracted text
-                    showEditor = true
+                    // Create recipe from AI-extracted data
+                    createRecipeFromExtraction(extractedRecipe, image: image)
 
                     // Track analytics
                     AnalyticsService.shared.track(event: .recipeImported, properties: [
                         "source": "cookbook_scan",
-                        "text_length": text.count
+                        "text_length": text.count,
+                        "used_ai_extraction": AIConfiguration.shared.enableAIEnhancement,
+                        "ingredient_count": extractedRecipe.ingredients.count,
+                        "instruction_count": extractedRecipe.instructions.count
                     ])
                 }
             } catch {
@@ -207,8 +203,8 @@ struct CookbookScannerView: View {
                     generator.notificationOccurred(.error)
 
                     ToastManager.shared.error(
-                        title: "OCR Failed",
-                        message: "Couldn't extract text from image. Try a clearer photo."
+                        title: "Processing Failed",
+                        message: "Couldn't extract recipe from image. Try a clearer photo."
                     )
                 }
             }
@@ -238,7 +234,94 @@ struct CookbookScannerView: View {
         return recognizedStrings.joined(separator: "\n")
     }
 
-    // MARK: - Text Extraction
+    // MARK: - Recipe Creation
+
+    private func createRecipeFromExtraction(_ extracted: AIRecipeExtractor.ExtractedRecipe, image: UIImage) {
+        // Create Recipe object
+        let recipe = Recipe(
+            title: extracted.title,
+            sourceType: .cookbook,
+            instructions: extracted.instructions,
+            servings: extracted.servings,
+            prepTime: extracted.prepTime,
+            cookTime: extracted.cookTime
+        )
+
+        if let notes = extracted.notes {
+            recipe.notes = notes
+        }
+
+        // Insert recipe first
+        modelContext.insert(recipe)
+
+        // Parse and create ingredients with AI
+        Task {
+            await createIngredients(for: recipe, ingredientTexts: extracted.ingredients)
+
+            // Save the image
+            await saveRecipeImage(image, for: recipe)
+
+            // Save to database
+            do {
+                try modelContext.save()
+
+                ToastManager.shared.success(
+                    title: "Recipe Added!",
+                    message: "'\(recipe.title)' has been added to your collection"
+                )
+
+                // Dismiss scanner
+                dismiss()
+
+            } catch {
+                ToastManager.shared.error(
+                    title: "Failed to save recipe",
+                    message: error.localizedDescription
+                )
+            }
+        }
+    }
+
+    private func createIngredients(for recipe: Recipe, ingredientTexts: [String]) async {
+        // Use AI batch parsing for better accuracy
+        let parsedIngredients: [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)]
+
+        do {
+            parsedIngredients = try await AIIngredientParser.shared.parseBatch(ingredientTexts)
+        } catch {
+            print("⚠️ AI ingredient parsing failed, using fallback: \(error.localizedDescription)")
+            parsedIngredients = ingredientTexts.map { IngredientParser.parse($0) }
+        }
+
+        // Create Ingredient objects
+        for (index, text) in ingredientTexts.enumerated() {
+            let parsed = parsedIngredients[index]
+
+            let ingredient = Ingredient(
+                originalText: text,
+                name: parsed.name,
+                quantity: parsed.quantity,
+                unit: parsed.unit,
+                category: GroceryCategory.categorize(parsed.name),
+                orderIndex: index
+            )
+            ingredient.quantityMax = parsed.quantityMax
+            ingredient.recipe = recipe
+            modelContext.insert(ingredient)
+        }
+    }
+
+    private func saveRecipeImage(_ image: UIImage, for recipe: Recipe) async {
+        do {
+            let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
+            recipe.imageFileName = fileName
+            print("✅ Saved recipe image: \(fileName)")
+        } catch {
+            print("⚠️ Failed to save recipe image: \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - Text Extraction (Legacy - kept for fallback)
 
     private func extractIngredients(from text: String) -> [String] {
         let lines = text.components(separatedBy: .newlines)

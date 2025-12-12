@@ -1,0 +1,363 @@
+{
+  "generated_at": "2025-12-09T08:46:08.857880",
+  "total_stickers": 55,
+  "successful": 33,
+  "failed": 22,
+  "total_cost": 1.3200000000000005,
+  "stickers": [
+    {
+      "name": "Garlic Bulb",
+      "category": "food",
+      "filename": "sticker_food_garlic.png",
+      "filepath": "heirloom_stickers_refined/food/sticker_food_garlic.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a whole garlic bulb with papery white skin and 2-3 separated cloves beside it, cream and brown shadow tones, showing personality and character, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:33:34.815551"
+    },
+    {
+      "name": "Butter",
+      "category": "food",
+      "filename": "sticker_food_butter.png",
+      "filepath": "heirloom_stickers_refined/food/sticker_food_butter.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a stick of butter with wrapper partially peeled back revealing golden yellow butter, looking rich and indulgent, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:33:52.604976"
+    },
+    {
+      "name": "Lemon Slice",
+      "category": "food",
+      "filename": "sticker_food_lemon.png",
+      "filepath": "heirloom_stickers_refined/food/sticker_food_lemon.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a cross-section of a lemon showing detailed segments and seeds, bright golden yellow flesh with cream highlights, fresh and zesty, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:34:24.097763"
+    },
+    {
+      "name": "Egg",
+      "category": "food",
+      "filename": "sticker_food_egg.png",
+      "filepath": "heirloom_stickers_refined/food/sticker_food_egg.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a cracked egg with shell broken open showing bright golden yolk and cream egg white, symbol of homemade cooking, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:34:48.152752"
+    },
+    {
+      "name": "Chili Pepper",
+      "category": "food",
+      "filename": "sticker_food_chili.png",
+      "filepath": "heirloom_stickers_refined/food/sticker_food_chili.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a red chili pepper with green stem, bright red color suggesting heat and spice, slightly curved shape, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:35:07.491120"
+    },
+    {
+      "name": "Bacon Strips",
+      "category": "food",
+      "filename": "sticker_food_bacon.png",
+      "filepath": "heirloom_stickers_refined/food/sticker_food_bacon.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, three strips of cooked bacon with wavy edges, brown and red tones showing crispy texture, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:35:28.399547"
+    },
+    {
+      "name": "Fresh Herbs",
+      "category": "food",
+      "filename": "sticker_food_herbs.png",
+      "filepath": "heirloom_stickers_refined/food/sticker_food_herbs.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a small bundle of fresh herbs (rosemary or thyme) tied with twine, sage green leaves with brown stem, garden-fresh feeling, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:35:48.394191"
+    },
+    {
+      "name": "Pie Slice",
+      "category": "food",
+      "filename": "sticker_food_pie.png",
+      "filepath": "heirloom_stickers_refined/food/sticker_food_pie.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a triangular slice of pie with lattice crust and three small steam wisps rising, golden filling and brown crust, comfort food icon, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:36:09.512667"
+    },
+    {
+      "name": "Cookie",
+      "category": "food",
+      "filename": "sticker_food_cookie.png",
+      "filepath": "heirloom_stickers_refined/food/sticker_food_cookie.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a round chocolate chip cookie with a small bite taken out, brown cookie with dark chocolate chips, homemade treat, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:36:32.732146"
+    },
+    {
+      "name": "Heart",
+      "category": "love",
+      "filename": "sticker_love_heart.png",
+      "filepath": "heirloom_stickers_refined/love/sticker_love_heart.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a hand-drawn heart outline, slightly asymmetrical showing human touch, tomato red, expressing love and care, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:36:59.654649"
+    },
+    {
+      "name": "Made With Love",
+      "category": "love",
+      "filename": "sticker_love_badge.png",
+      "filepath": "heirloom_stickers_refined/love/sticker_love_badge.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a heart-shaped badge with text 'MADE WITH LOVE' in script font, tomato red with cream text, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:37:28.186383"
+    },
+    {
+      "name": "Lipstick Kiss",
+      "category": "love",
+      "filename": "sticker_love_kiss.png",
+      "filepath": "heirloom_stickers_refined/love/sticker_love_kiss.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a playful red lipstick kiss mark like Grandma's kiss on a recipe card, realistic but charming, tomato red, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:37:50.155835"
+    },
+    {
+      "name": "From My Kitchen",
+      "category": "love",
+      "filename": "sticker_love_kitchen.png",
+      "filepath": "heirloom_stickers_refined/love/sticker_love_kitchen.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a banner with text 'From My Kitchen to Yours' in warm script font, amber gold with brown text, sharing and caring, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:38:14.166857"
+    },
+    {
+      "name": "Hugging Hands",
+      "category": "love",
+      "filename": "sticker_love_hug.png",
+      "filepath": "heirloom_stickers_refined/love/sticker_love_hug.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, two hands in a gentle embrace or hug gesture, simple line drawing, brown linework, expressing warmth and comfort, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:38:36.354431"
+    },
+    {
+      "name": "Gift Box",
+      "category": "love",
+      "filename": "sticker_love_gift.png",
+      "filepath": "heirloom_stickers_refined/love/sticker_love_gift.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a wrapped gift box with bow on top, suggesting recipes as gifts, cream box with amber ribbon, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:38:58.192939"
+    },
+    {
+      "name": "Five Stars",
+      "category": "endorsements",
+      "filename": "sticker_endorse_fivestars.png",
+      "filepath": "heirloom_stickers_refined/endorsements/sticker_endorse_fivestars.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a stamp showing five stars in a row with text '5 STARS' below, amber gold stars on cream background, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:39:28.278988"
+    },
+    {
+      "name": "Tested & Approved",
+      "category": "endorsements",
+      "filename": "sticker_endorse_tested.png",
+      "filepath": "heirloom_stickers_refined/endorsements/sticker_endorse_tested.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a circular seal badge with text 'TESTED & APPROVED' around edge and large checkmark in center, sage green with cream accents, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:39:45.868360"
+    },
+    {
+      "name": "Award Winner",
+      "category": "endorsements",
+      "filename": "sticker_endorse_award.png",
+      "filepath": "heirloom_stickers_refined/endorsements/sticker_endorse_award.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a blue ribbon rosette award with circular center medallion, blue and cream colors, prize-winning quality, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:40:01.522618"
+    },
+    {
+      "name": "Thumbs Up",
+      "category": "endorsements",
+      "filename": "sticker_endorse_thumbsup.png",
+      "filepath": "heirloom_stickers_refined/endorsements/sticker_endorse_thumbsup.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a hand giving enthusiastic thumbs up gesture, brown linework, approval and endorsement, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:40:30.378856"
+    },
+    {
+      "name": "Chef's Kiss",
+      "category": "endorsements",
+      "filename": "sticker_endorse_chefskiss.png",
+      "filepath": "heirloom_stickers_refined/endorsements/sticker_endorse_chefskiss.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, fingers pinched to lips in chef's kiss gesture, brown linework, *chef's kiss* perfection, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:40:52.321393"
+    },
+    {
+      "name": "Crowd Pleaser",
+      "category": "endorsements",
+      "filename": "sticker_endorse_crowd.png",
+      "filepath": "heirloom_stickers_refined/endorsements/sticker_endorse_crowd.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a badge with text 'CROWD PLEASER' and small stars, amber gold, party-ready recipe, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:41:29.692479"
+    },
+    {
+      "name": "Worth the Effort",
+      "category": "endorsements",
+      "filename": "sticker_endorse_worth.png",
+      "filepath": "heirloom_stickers_refined/endorsements/sticker_endorse_worth.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a badge with text 'WORTH THE EFFORT' in elegant font, sage green, impressive but doable, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:41:53.228275"
+    },
+    {
+      "name": "Quick & Easy",
+      "category": "difficulty",
+      "filename": "sticker_difficulty_quick.png",
+      "filepath": "heirloom_stickers_refined/difficulty/sticker_difficulty_quick.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a badge with small clock icon and text 'QUICK & EASY', amber gold color, weeknight friendly, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:42:16.628324"
+    },
+    {
+      "name": "Beginner Friendly",
+      "category": "difficulty",
+      "filename": "sticker_difficulty_beginner.png",
+      "filepath": "heirloom_stickers_refined/difficulty/sticker_difficulty_beginner.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a badge with text 'BEGINNER FRIENDLY' and small encouraging icon, sage green, confidence-building, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:42:37.438902"
+    },
+    {
+      "name": "One Bowl Wonder",
+      "category": "difficulty",
+      "filename": "sticker_difficulty_onebowl.png",
+      "filepath": "heirloom_stickers_refined/difficulty/sticker_difficulty_onebowl.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a badge showing single bowl icon with text 'ONE BOWL WONDER', cream and brown, minimal cleanup, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:42:53.269007"
+    },
+    {
+      "name": "Show Stopper",
+      "category": "difficulty",
+      "filename": "sticker_difficulty_showstopper.png",
+      "filepath": "heirloom_stickers_refined/difficulty/sticker_difficulty_showstopper.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a badge with text 'SHOW STOPPER' and sparkle elements, amber gold, impressive and fancy, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:43:17.479529"
+    },
+    {
+      "name": "Family Recipe",
+      "category": "occasions",
+      "filename": "sticker_occasion_family.png",
+      "filepath": "heirloom_stickers_refined/occasions/sticker_occasion_family.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a circular badge with scalloped edges containing text 'FAMILY RECIPE' in serif font, red border with cream background, heritage and tradition, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:43:48.128134"
+    },
+    {
+      "name": "Grandma's Secret",
+      "category": "occasions",
+      "filename": "sticker_occasion_grandma.png",
+      "filepath": "heirloom_stickers_refined/occasions/sticker_occasion_grandma.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a banner ribbon with text 'GRANDMA'S SECRET' in script font, sage green with cream text, cherished recipe, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:44:10.706604"
+    },
+    {
+      "name": "Holiday Favorite",
+      "category": "occasions",
+      "filename": "sticker_occasion_holiday.png",
+      "filepath": "heirloom_stickers_refined/occasions/sticker_occasion_holiday.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a festive badge with text 'HOLIDAY FAVORITE', red and green colors, celebration recipe, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:44:32.633937"
+    },
+    {
+      "name": "Sunday Dinner",
+      "category": "occasions",
+      "filename": "sticker_occasion_sunday.png",
+      "filepath": "heirloom_stickers_refined/occasions/sticker_occasion_sunday.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, an oval badge with text 'SUNDAY DINNER' and small fork and knife icons, amber gold with brown text, weekly tradition, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:44:53.230197"
+    },
+    {
+      "name": "Birthday Tradition",
+      "category": "occasions",
+      "filename": "sticker_occasion_birthday.png",
+      "filepath": "heirloom_stickers_refined/occasions/sticker_occasion_birthday.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a badge with text 'BIRTHDAY TRADITION' and small balloon or cake icon, tomato red, annual celebration, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:45:16.495133"
+    },
+    {
+      "name": "Summer BBQ",
+      "category": "occasions",
+      "filename": "sticker_occasion_bbq.png",
+      "filepath": "heirloom_stickers_refined/occasions/sticker_occasion_bbq.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a badge with text 'SUMMER BBQ' and small grill icon, amber gold with red accents, outdoor cooking, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:45:39.386217"
+    },
+    {
+      "name": "Rainy Day Comfort",
+      "category": "occasions",
+      "filename": "sticker_occasion_rainy.png",
+      "filepath": "heirloom_stickers_refined/occasions/sticker_occasion_rainy.png",
+      "prompt": "A charming hand-drawn sticker illustration in a vintage cookbook style, a badge with text 'RAINY DAY COMFORT' and small umbrella or rain cloud icon, sage green, cozy and soothing, warm nostalgic color palette, slightly imperfect organic linework with visible brush strokes, mid-century modern aesthetic, isolated on pure white background for transparency, vector-style flat colors with subtle texture, simple and readable silhouette, cozy grandma's kitchen vibes, centered composition",
+      "timestamp": "2025-12-09T08:46:01.791666"
+    }
+  ],
+  "failures": [
+    {
+      "name": "Chocolate Bar",
+      "error": "Error code: 403"
+    },
+    {
+      "name": "Heart Eyes",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Fire Spicy",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Comfort Food",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Guilty Pleasure",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Weeknight Hero",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Can't Stop Making",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Vegetarian",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Gluten-Free",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Homemade",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "From Scratch",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Star",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Smiling Face",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Surprised Face",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Too Good to Share",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Coffee Stain",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Mom's Original",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Add More Garlic",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Best Ever",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Trust Me",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Wooden Spoon",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    },
+    {
+      "name": "Rolling Pin",
+      "error": "Error code: 400 - {'error': {'message': 'Billing hard limit has been reached', 'type': 'image_generation_user_error', 'param': None, 'code': 'billing_hard_limit_reached'}}"
+    }
+  ]
+}

@@ -4,21 +4,21 @@ import SwiftUI
 
 @Model
 final class RecipeAnnotation {
-    var id: UUID
-    var text: String
-    var style: AnnotationStyle
+    var id: UUID = UUID()
+    var text: String = ""
+    var style: AnnotationStyle = AnnotationStyle.stickyNote
 
     // Position
-    var positionX: Double // Percentage of card width (0.0 to 1.0)
-    var positionY: Double // Percentage of card height (0.0 to 1.0)
+    var positionX: Double = 0.5 // Percentage of card width (0.0 to 1.0)
+    var positionY: Double = 0.5 // Percentage of card height (0.0 to 1.0)
 
     // Visual properties
-    var fontSize: Double // 12.0 to 24.0
-    var rotation: Double // Degrees (0 to 360)
-    var colorHex: String
+    var fontSize: Double = 14.0 // 12.0 to 24.0
+    var rotation: Double = 0.0 // Degrees (0 to 360)
+    var colorHex: String = "#FFD93D"
 
-    var createdDate: Date
-    var lastModified: Date
+    var createdDate: Date = Date()
+    var lastModified: Date = Date()
 
     // Relationship
     var recipe: Recipe?

@@ -1,0 +1,203 @@
+HEIRLOOM - BETA APP DESCRIPTION
+
+================================================================================
+APP STORE CONNECT / TESTFLIGHT DESCRIPTION
+================================================================================
+
+WHAT TO TEST (BETA NOTES)
+
+Welcome to Heirloom! Thank you for helping test our recipe management app.
+
+What's New in This Build:
+- Recipe import from web URLs (AllRecipes, Serious Eats, King Arthur, and more)
+- Smart shopping list with iOS Reminders integration
+- Step-by-step cooking mode with progress tracking
+- Dynamic recipe scaling (adjust serving sizes on the fly)
+- Advanced search and filtering by source, favorites, and cooking history
+- iCloud sync across all your devices
+
+Key Features to Test:
+
+1. Recipe Import
+   - Tap the + button and choose "Import from URL"
+   - Try pasting recipe links from AllRecipes.com or SeriousEats.com
+   - Check that images, ingredients, and instructions import correctly
+
+2. Shopping List
+   - Add recipes to your shopping list
+   - See how ingredients are automatically combined
+   - Export to iOS Reminders (requires permission)
+   - Check off items as you shop
+
+3. Cooking Mode
+   - Open any recipe and tap "Start Cooking"
+   - Navigate through steps with large, readable text
+   - Mark steps as complete
+   - Notice how "times cooked" increments when you finish
+
+4. Recipe Scaling
+   - Adjust servings with +/- buttons on recipe detail view
+   - Watch ingredient quantities scale automatically
+   - Try different multipliers (0.5x to 10x)
+
+5. Filters & Search
+   - Use the filter button to narrow recipes
+   - Sort by date added, title, or times cooked
+   - Search by recipe name
+
+What to Look For:
+- Any crashes or freezes
+- UI elements that feel confusing or hard to use
+- Import failures from recipe websites
+- iCloud sync issues between devices
+- Shopping list math errors when combining ingredients
+- Anything that doesn't feel quite right
+
+Known Issues:
+- Some recipe websites may not import correctly (we're adding more sites)
+- First-time iCloud sync can take a few moments
+
+Send Feedback:
+Use the Settings tab → "Send Feedback" to report bugs or suggest features.
+
+🐛 Bug Fixes in 1.0.1:
+  - Fixed critical issue where ingredient fractions (1/2, 1/4, etc.) weren't being parsed correctly
+  - Fixed grocery category auto-assignment (ice cream, frozen items, beverages now categorized correctly)
+  - Added support for unicode fractions (½, ¼, ⅓, ¾)
+
+  ✅ Quality Improvements:
+  - Added comprehensive test suite (93 tests, 94.6% passing)
+  - Improved parsing for ingredient ranges (e.g., "1/4-1/2 tsp")
+  - Enhanced ingredient categorization accuracy
+
+
+================================================================================
+SHORT DESCRIPTION (FOR APP STORE)
+================================================================================
+
+Save and organize the recipes worth passing down. Import from the web, scale ingredients, create shopping lists, and cook with confidence.
+
+================================================================================
+FULL DESCRIPTION (FOR APP STORE)
+================================================================================
+
+Recipes Worth Passing Down
+
+Heirloom is a beautiful, modern recipe app designed to preserve the dishes that matter most. Whether you're saving Grandma's secret cookie recipe, importing a weeknight dinner from your favorite food blog, or building your own cookbook from scratch, Heirloom makes it simple and delightful.
+
+IMPORT FROM ANYWHERE
+Paste a URL from AllRecipes, Serious Eats, King Arthur Baking, or any site with structured recipe data. Heirloom automatically extracts ingredients, instructions, cooking times, and photos.
+
+SMART SHOPPING LISTS
+Add recipes to your shopping list and watch Heirloom intelligently combine ingredients. Need 2 cups of flour for cookies and 3 cups for bread? Heirloom shows you need 5 cups total. Export directly to iOS Reminders to check off items while shopping.
+
+COOK WITH CONFIDENCE
+Enter Cooking Mode for a distraction-free, step-by-step experience. Large text makes it easy to read from across the kitchen. Mark steps complete as you go, and Heirloom tracks how many times you've made each dish.
+
+SCALE ON THE FLY
+Feeding a crowd? Halve or double any recipe instantly. Heirloom recalculates all ingredient quantities and displays them with proper fractions (½, ¾, etc.).
+
+FIND RECIPES FAST
+Filter by source (family recipes, imported, manual), favorites, cooking history, or what's already in your shopping list. Sort by date, title, or how often you make each dish.
+
+SYNC ACROSS DEVICES
+Your recipes sync automatically via iCloud. Add a recipe on your iPad while browsing, then cook from it on your iPhone in the kitchen.
+
+DESIGNED FOR HOME COOKS
+- Warm, nostalgic design inspired by classic cookbooks
+- Intuitive interface that feels natural from day one
+- No ads, no subscriptions, no gimmicks
+- Built with SwiftUI for iOS 17+ with privacy in mind
+
+PERFECT FOR:
+- Preserving family recipes before they're lost
+- Building a personal cookbook of favorites
+- Planning weekly meals and grocery trips
+- Scaling recipes for dinner parties or meal prep
+- Keeping all your recipes in one organized place
+
+Heirloom respects your privacy. Your recipes are stored locally on your device and synced via your personal iCloud account. No third parties can access your data.
+
+
+
+================================================================================
+KEYWORDS (FOR APP STORE)
+================================================================================
+
+recipe manager, cookbook, recipe import, shopping list, meal planner, cooking app, recipe organizer, family recipes, recipe keeper, grocery list
+
+================================================================================
+PROMOTIONAL TEXT (FOR APP STORE UPDATES)
+================================================================================
+
+Import recipes from your favorite food blogs with a single tap. Heirloom automatically extracts ingredients, steps, and photos. Try importing from AllRecipes, Serious Eats, or King Arthur Baking.
+
+================================================================================
+PRIVACY POLICY SUMMARY
+================================================================================
+
+Data Collection:
+- We use Mixpanel for anonymous analytics (feature usage, crash reports)
+- No personal information is collected
+- All recipe data is stored locally and in your personal iCloud account
+
+Data Sharing:
+- Recipe data is never shared with third parties
+- iCloud sync uses your Apple ID (end-to-end encrypted)
+- Analytics data is aggregated and anonymized
+
+Your Control:
+- Delete all data anytime from Settings
+- Disable iCloud sync in iOS Settings → iCloud
+- Recipe data is yours forever
+
+================================================================================
+SUPPORT INFORMATION
+================================================================================
+
+App Requirements:
+- iOS 17.0 or later
+- iPhone or iPad
+- iCloud account (optional, for sync)
+- Internet connection (for recipe import only)
+
+Permissions:
+- Reminders access (optional, for shopping list export)
+- Photo library (optional, for recipe images)
+- Camera (optional, for photographing cookbook recipes)
+
+Contact:
+For bug reports, feature requests, or general support, use the "Send Feedback" button in Settings or email [your-email@example.com].
+
+================================================================================
+TESTFLIGHT EXTERNAL TESTER NOTES
+================================================================================
+
+Build: 1.0.0 (1)
+Release Date: December 2024
+
+Thank you for being part of Heirloom's beta! This is the first public test build with all core features implemented.
+
+Focus Areas for This Build:
+1. Recipe import reliability across different websites
+2. Shopping list math accuracy when combining ingredients
+3. iCloud sync performance with multiple devices
+4. General UI/UX feedback
+5. Any crashes or unexpected behavior
+
+Testing Tips:
+- Try importing 3-5 recipes from different websites
+- Add multiple recipes to shopping list and verify combined quantities
+- If you have multiple devices, test iCloud sync
+- Use cooking mode for at least one recipe
+- Experiment with recipe scaling
+
+Expected Response:
+We'll review all feedback within 48 hours. Critical bugs will be fixed in the next build. Feature requests will be considered for future releases.
+
+Beta Timeline:
+- Week 1-2: Core feature testing (current)
+- Week 3-4: Bug fixes and polish
+- Week 5-6: Final testing and App Store preparation
+
+Thanks for helping make Heirloom great!

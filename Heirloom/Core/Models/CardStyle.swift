@@ -4,20 +4,20 @@ import SwiftUI
 
 @Model
 final class RecipeCardStyle {
-    var id: UUID
-    var createdDate: Date
-    var lastModified: Date
+    var id: UUID = UUID()
+    var createdDate: Date = Date()
+    var lastModified: Date = Date()
 
     // Background customization
-    var backgroundType: BackgroundType
+    var backgroundType: BackgroundType = BackgroundType.default
     var backgroundColorHex: String? // For solid colors
     var backgroundImageName: String? // For patterns/textures
 
     // Love marks (worn, coffee-stained appearance)
-    var coffeeStainEnabled: Bool
+    var coffeeStainEnabled: Bool = false
     var coffeeStainPosition: CoffeeStainPosition?
-    var wornEdgesIntensity: Double // 0.0 to 1.0
-    var autoLoveMarks: Bool // Automatically add marks based on times cooked
+    var wornEdgesIntensity: Double = 0.0 // 0.0 to 1.0
+    var autoLoveMarks: Bool = false // Automatically add marks based on times cooked
 
     // Relationship
     var recipe: Recipe?

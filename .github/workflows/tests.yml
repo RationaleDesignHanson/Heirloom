@@ -1,0 +1,97 @@
+name: Heirloom Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+
+    - name: Show Xcode version
+      run: xcodebuild -version
+
+    - name: Run Unit Tests
+      run: |
+        xcodebuild test \
+          -project Heirloom.xcodeproj \
+          -scheme Heirloom \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+          -enableCodeCoverage YES \
+          -resultBundlePath TestResults
+
+    - name: Generate Code Coverage Report
+      run: |
+        xcrun xccov view --report --json TestResults.xcresult > coverage.json
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: TestResults.xcresult
+
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: coverage-report
+        path: coverage.json
+
+  ui-tests:
+    name: UI Tests
+    runs-on: macos-14
+    needs: unit-tests
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+
+    - name: Run UI Tests
+      run: |
+        xcodebuild test \
+          -project Heirloom.xcodeproj \
+          -scheme HeirloomUITests \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+          -resultBundlePath UITestResults
+
+    - name: Upload UI Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: ui-test-results
+        path: UITestResults.xcresult
+
+  coverage-check:
+    name: Coverage Threshold Check
+    runs-on: macos-14
+    needs: unit-tests
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download Coverage Report
+      uses: actions/download-artifact@v3
+      with:
+        name: coverage-report
+
+    - name: Check Coverage Threshold
+      run: |
+        # Extract overall coverage percentage
+        # Fail if below 60% threshold
+        # (Script to be implemented based on coverage.json format)
+        echo "Coverage check: See uploaded artifacts for detailed report"

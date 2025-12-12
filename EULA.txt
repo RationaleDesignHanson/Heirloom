@@ -1,0 +1,438 @@
+END USER LICENSE AGREEMENT (EULA)
+HEIRLOOM
+
+Last Updated: December 9, 2024
+
+================================================================================
+IMPORTANT - READ CAREFULLY
+================================================================================
+
+This End User License Agreement ("EULA") is a legal agreement between you ("Licensee," "you," or "your") and Heirloom ("Licensor," "we," "us," or "our") for the Heirloom mobile application software product, including any associated media, printed materials, and electronic documentation (the "Software").
+
+BY CLICKING "ACCEPT," DOWNLOADING, INSTALLING, OR USING THE SOFTWARE, YOU AGREE TO BE BOUND BY THE TERMS OF THIS EULA. IF YOU DO NOT AGREE, DO NOT INSTALL OR USE THE SOFTWARE.
+
+================================================================================
+1. LICENSE GRANT
+================================================================================
+
+Subject to the terms and conditions of this EULA, we grant you a limited, non-exclusive, non-transferable, revocable license to:
+
+(a) Download, install, and use the Software on iOS devices that you own or control;
+(b) Use the Software for personal, non-commercial purposes only;
+(c) Make copies of the Software as necessary for backup or archival purposes;
+(d) Sync your data across your personal devices via Apple iCloud.
+
+================================================================================
+2. LICENSE RESTRICTIONS
+================================================================================
+
+You may NOT:
+
+(a) Distribute, sublicense, rent, lease, or lend the Software;
+(b) Copy the Software except as expressly permitted in Section 1;
+(c) Reverse engineer, decompile, disassemble, or attempt to derive source code from the Software;
+(d) Modify, adapt, translate, or create derivative works based on the Software;
+(e) Remove, alter, or obscure any copyright, trademark, or other proprietary notices;
+(f) Use the Software for any commercial purpose without written permission;
+(g) Use the Software to violate any applicable laws or regulations;
+(h) Use the Software in any way that could damage, disable, or impair the Software;
+(i) Attempt to gain unauthorized access to any services, accounts, or networks;
+(j) Use automated systems to access the Software without permission;
+(k) Circumvent any technological measures that control access to the Software;
+(l) Use the Software to infringe on intellectual property rights of others.
+
+================================================================================
+3. OWNERSHIP AND INTELLECTUAL PROPERTY
+================================================================================
+
+3.1 SOFTWARE OWNERSHIP
+The Software is licensed, not sold. We and our licensors retain all right, title, and interest in and to the Software, including all intellectual property rights.
+
+3.2 YOUR CONTENT
+You retain ownership of all recipe data, photos, and content you create or add to the Software ("User Content"). By using the Software, you grant us a limited license to store and process your User Content solely to provide the Software's functionality.
+
+3.3 TRADEMARKS
+"Heirloom" and associated logos are trademarks owned by us. You may not use these trademarks without our prior written consent.
+
+================================================================================
+4. USER CONTENT AND CONDUCT
+================================================================================
+
+4.1 RESPONSIBILITY FOR CONTENT
+You are solely responsible for all User Content you create, upload, or import using the Software.
+
+4.2 PROHIBITED CONTENT
+You agree not to use the Software to store or share content that:
+- Violates any law or regulation;
+- Infringes on intellectual property rights of others;
+- Contains malware, viruses, or harmful code;
+- Is fraudulent, false, or misleading;
+- Is obscene, defamatory, or offensive;
+- Harasses, threatens, or harms others.
+
+4.3 IMPORTED RECIPES
+When importing recipes from third-party websites:
+- You are responsible for ensuring you have rights to save the content;
+- Recipe content may be subject to copyright of the original source;
+- We recommend using imported recipes for personal use only;
+- We are not responsible for copyright infringement by users.
+
+================================================================================
+5. PRIVACY AND DATA COLLECTION
+================================================================================
+
+5.1 PRIVACY POLICY
+Our collection and use of personal information is governed by our Privacy Policy, which is incorporated into this EULA by reference. By using the Software, you consent to our Privacy Policy.
+
+5.2 ANONYMOUS ANALYTICS
+We collect anonymous usage analytics via Mixpanel to improve the Software. This includes:
+- Feature usage patterns
+- App performance metrics
+- Device information (iOS version, model)
+- Crash reports and error logs
+
+We do NOT collect:
+- Your personal identification information
+- Recipe content or text
+- Information that identifies you personally
+
+5.3 ICLOUD SYNC
+If you enable iCloud sync:
+- Your recipe data is stored in your personal iCloud account;
+- We do not have access to your iCloud data;
+- iCloud sync is subject to Apple's iCloud Terms of Service;
+- You can disable sync at any time in iOS Settings.
+
+================================================================================
+6. SYSTEM REQUIREMENTS
+================================================================================
+
+The Software requires:
+- iOS 17.0 or later
+- Compatible iPhone or iPad
+- Internet connection (for recipe import and initial iCloud sync)
+- Apple iCloud account (optional, for sync feature)
+
+You are responsible for obtaining and maintaining compatible devices and services.
+
+================================================================================
+7. UPDATES AND SUPPORT
+================================================================================
+
+7.1 UPDATES
+We may provide updates, patches, or new versions of the Software. Updates may:
+- Add new features
+- Fix bugs or security vulnerabilities
+- Modify or remove existing features
+- Require acceptance of new terms
+
+You may need to install updates to continue using the Software.
+
+7.2 SUPPORT
+We provide support via:
+- In-app feedback form (Settings → Send Feedback)
+- Email at [your-email@example.com]
+
+Support is provided "as is" with no guarantees of response time or resolution.
+
+================================================================================
+8. FEES AND PAYMENT
+================================================================================
+
+8.1 FREE SOFTWARE
+The Software is currently provided free of charge.
+
+8.2 FUTURE PRICING
+We reserve the right to:
+- Charge fees for the Software or certain features in the future;
+- Offer premium features or subscriptions;
+- Discontinue free access with reasonable notice.
+
+If we introduce paid features, they will be optional and clearly disclosed.
+
+================================================================================
+9. TERM AND TERMINATION
+================================================================================
+
+9.1 TERM
+This EULA is effective from the date you first use the Software and continues until terminated.
+
+9.2 TERMINATION BY YOU
+You may terminate this EULA at any time by:
+- Uninstalling the Software from all your devices;
+- Deleting your User Content;
+- Ceasing all use of the Software.
+
+9.3 TERMINATION BY US
+We may terminate this EULA immediately if:
+- You breach any term of this EULA;
+- You use the Software for illegal purposes;
+- We discontinue the Software;
+- Required by law or court order.
+
+9.4 EFFECTS OF TERMINATION
+Upon termination:
+- Your license to use the Software ends immediately;
+- You must uninstall the Software from all devices;
+- You must cease all use of the Software;
+- Sections 3, 10, 11, 12, and 13 survive termination.
+
+Your User Content remains on your devices until you delete it.
+
+================================================================================
+10. WARRANTIES AND DISCLAIMERS
+================================================================================
+
+10.1 LIMITED WARRANTY
+We warrant that the Software will perform substantially in accordance with its documentation for 90 days from your first use.
+
+10.2 DISCLAIMER OF WARRANTIES
+EXCEPT FOR THE LIMITED WARRANTY ABOVE, THE SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTIES OF ANY KIND.
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, INCLUDING:
+
+- Implied warranties of merchantability
+- Implied warranties of fitness for a particular purpose
+- Warranties of non-infringement
+- Warranties of accuracy, reliability, or completeness
+- Warranties of uninterrupted or error-free operation
+- Warranties regarding data security or privacy
+
+WE DO NOT WARRANT THAT:
+- The Software will meet your requirements;
+- The Software will be available at all times;
+- The Software will be free from bugs or errors;
+- Recipe imports will work for all websites;
+- Your data will never be lost or corrupted;
+- iCloud sync will always function correctly.
+
+10.3 RECIPE DISCLAIMERS
+THE SOFTWARE DOES NOT PROVIDE:
+- Medical, nutritional, or dietary advice;
+- Verification of recipe accuracy or safety;
+- Allergen or dietary restriction detection;
+- Food safety guidance.
+
+You are solely responsible for:
+- Verifying recipe accuracy and safety;
+- Checking for allergens and dietary concerns;
+- Following proper food safety practices.
+
+Some jurisdictions do not allow disclaimer of implied warranties, so the above may not apply to you.
+
+================================================================================
+11. LIMITATION OF LIABILITY
+================================================================================
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW:
+
+11.1 EXCLUSION OF DAMAGES
+WE SHALL NOT BE LIABLE FOR:
+- Indirect, incidental, special, consequential, or punitive damages;
+- Loss of profits, revenue, data, use, or goodwill;
+- Business interruption or lost opportunities;
+- Cost of substitute products or services;
+- Personal injury, death, or property damage;
+- Food allergies, dietary issues, or health problems;
+- Copyright infringement from imported content;
+- Errors in recipe data (ingredients, measurements, instructions);
+- Data loss or corruption;
+- Unauthorized access to your data;
+- Failure of iCloud sync or third-party services.
+
+11.2 CAP ON LIABILITY
+OUR TOTAL LIABILITY FOR ALL CLAIMS SHALL NOT EXCEED THE AMOUNT YOU PAID FOR THE SOFTWARE IN THE 12 MONTHS PRECEDING THE CLAIM.
+
+SINCE THE SOFTWARE IS FREE, OUR LIABILITY IS LIMITED TO $0 (ZERO DOLLARS).
+
+11.3 ALLOCATION OF RISK
+The disclaimers and limitations in this EULA reflect an allocation of risk. The license fees (currently free) reflect this allocation. Without these limitations, we could not provide the Software economically.
+
+Some jurisdictions do not allow limitation of liability for incidental or consequential damages, so the above limitations may not apply to you.
+
+================================================================================
+12. INDEMNIFICATION
+================================================================================
+
+You agree to indemnify, defend, and hold harmless Heirloom, its officers, directors, employees, agents, and licensors from and against any claims, liabilities, damages, losses, costs, or expenses (including reasonable attorneys' fees) arising from or relating to:
+
+(a) Your use or misuse of the Software;
+(b) Your User Content;
+(c) Your violation of this EULA;
+(d) Your violation of any rights of another party;
+(e) Your violation of any applicable laws or regulations;
+(f) Your import of recipes you don't have rights to use;
+(g) Any harm resulting from recipes you create, share, or follow.
+
+This indemnification obligation survives termination of this EULA.
+
+================================================================================
+13. APPLE-SPECIFIC TERMS
+================================================================================
+
+Because the Software is distributed via the Apple App Store:
+
+13.1 ACKNOWLEDGEMENT
+- This EULA is between you and us, not Apple, Inc.;
+- Apple is not responsible for the Software or its content;
+- Apple has no obligation to provide support or maintenance.
+
+13.2 SCOPE OF LICENSE
+- Your license is limited to use on Apple-branded devices you own or control;
+- You must comply with Apple's App Store Terms of Service;
+- Usage rules in Apple's Terms of Service apply.
+
+13.3 MAINTENANCE AND SUPPORT
+- We are solely responsible for maintenance and support;
+- Apple has no support obligations;
+- Contact us (not Apple) for support requests.
+
+13.4 WARRANTY
+- Apple has no warranty obligations;
+- We are responsible for warranties (to the extent not disclaimed);
+- In case of warranty failure, you may notify Apple for a refund;
+- Apple has no other warranty obligations.
+
+13.5 PRODUCT CLAIMS
+- We are responsible for:
+  - Product liability claims;
+  - Claims that the Software fails to conform to legal requirements;
+  - Claims under consumer protection laws;
+- Apple is not responsible for such claims.
+
+13.6 INTELLECTUAL PROPERTY INFRINGEMENT
+- We are responsible for investigation, defense, settlement, and discharge of intellectual property infringement claims;
+- Apple is not responsible for such claims.
+
+13.7 THIRD-PARTY BENEFICIARY
+- Apple and its subsidiaries are third-party beneficiaries of this EULA;
+- Upon your acceptance, Apple has the right to enforce this EULA against you;
+- No other third parties are beneficiaries.
+
+13.8 LEGAL COMPLIANCE
+- You represent and warrant that:
+  - You are not located in a country subject to U.S. government embargo;
+  - You are not listed on any U.S. government list of prohibited parties;
+  - You will comply with all applicable export control laws.
+
+================================================================================
+14. THIRD-PARTY SOFTWARE
+================================================================================
+
+The Software includes third-party libraries and components:
+
+14.1 SWIFTSOUP
+- License: MIT License
+- Purpose: HTML parsing for recipe import
+- Copyright: © SwiftSoup contributors
+
+14.2 MIXPANEL
+- Purpose: Analytics and crash reporting
+- Subject to Mixpanel's Terms of Service
+- Privacy Policy: https://mixpanel.com/legal/privacy-policy/
+
+14.3 APPLE FRAMEWORKS
+The Software uses Apple-provided frameworks (SwiftUI, SwiftData, CloudKit, EventKit) subject to Apple's SDK License Agreement.
+
+All third-party software is used in accordance with their respective licenses.
+
+================================================================================
+15. EXPORT COMPLIANCE
+================================================================================
+
+The Software may be subject to export control laws of the United States and other countries. You agree to comply with all applicable export laws and regulations.
+
+You may not use or export the Software:
+- To countries subject to U.S. embargo;
+- To parties on U.S. government restricted lists;
+- For purposes prohibited by U.S. law.
+
+You represent that you are not located in, under control of, or a national of any such country or on any such list.
+
+================================================================================
+16. GOVERNING LAW
+================================================================================
+
+16.1 GOVERNING LAW
+This EULA shall be governed by and construed in accordance with the laws of [Your State/Country], without regard to conflict of law principles.
+
+16.2 JURISDICTION
+Any disputes shall be resolved in the courts of [Your Jurisdiction]. You consent to the personal jurisdiction of such courts.
+
+16.3 CONSUMER RIGHTS
+If you are a consumer in the European Union or other jurisdiction with consumer protection laws, you may have additional rights that cannot be waived by this EULA.
+
+================================================================================
+17. DISPUTE RESOLUTION
+================================================================================
+
+17.1 INFORMAL RESOLUTION
+Before filing any legal claim, you agree to contact us at [your-email@example.com] to attempt informal resolution. We will try to resolve disputes within 60 days.
+
+17.2 INDIVIDUAL BASIS
+All disputes must be brought on an individual basis. You waive any right to bring disputes as a class action, collective action, or representative action.
+
+17.3 SMALL CLAIMS COURT
+Either party may bring individual disputes in small claims court.
+
+================================================================================
+18. GENERAL PROVISIONS
+================================================================================
+
+18.1 ENTIRE AGREEMENT
+This EULA, together with the Privacy Policy and Terms of Service, constitutes the entire agreement between you and us regarding the Software.
+
+18.2 AMENDMENTS
+We may amend this EULA by:
+- Posting the updated EULA in the Software;
+- Updating the "Last Updated" date;
+- Notifying you via in-app message.
+
+Your continued use after changes constitutes acceptance. If you don't agree, you must stop using the Software.
+
+18.3 SEVERABILITY
+If any provision is found invalid or unenforceable, the remaining provisions remain in effect. The invalid provision will be modified to the minimum extent necessary to make it enforceable.
+
+18.4 WAIVER
+Our failure to enforce any provision does not constitute a waiver of that provision or our right to enforce it later.
+
+18.5 ASSIGNMENT
+You may not assign this EULA without our written consent. We may assign this EULA to any affiliate, successor, or acquirer without your consent.
+
+18.6 FORCE MAJEURE
+We are not liable for failure to perform due to causes beyond our reasonable control, including natural disasters, war, terrorism, riots, embargoes, acts of government, or interruption of internet services.
+
+18.7 NO AGENCY
+This EULA does not create any agency, partnership, joint venture, or employment relationship between you and us.
+
+18.8 NOTICES
+Notices to you may be provided via email, in-app messages, or through the App Store. Notices to us should be sent to [your-email@example.com].
+
+18.9 SURVIVAL
+Sections 3, 10, 11, 12, 16, 17, and 18 survive termination of this EULA.
+
+================================================================================
+19. CONTACT INFORMATION
+================================================================================
+
+For questions about this EULA, contact us:
+
+Heirloom
+Email: [your-email@example.com]
+In-App: Settings → Send Feedback
+Website: [your-website.com]
+
+================================================================================
+ACCEPTANCE
+================================================================================
+
+BY INSTALLING, COPYING, OR USING THE SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ THIS EULA, UNDERSTAND IT, AND AGREE TO BE BOUND BY ITS TERMS AND CONDITIONS.
+
+IF YOU DO NOT AGREE TO THE TERMS OF THIS EULA, DO NOT INSTALL, COPY, OR USE THE SOFTWARE.
+
+================================================================================
+END OF END USER LICENSE AGREEMENT
+================================================================================
+
+Effective Date: December 9, 2024
+Version: 1.0

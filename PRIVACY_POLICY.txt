@@ -1,0 +1,311 @@
+HEIRLOOM PRIVACY POLICY
+
+Last Updated: December 9, 2024
+
+================================================================================
+INTRODUCTION
+================================================================================
+
+Heirloom ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our iOS application.
+
+By using Heirloom, you agree to the collection and use of information in accordance with this policy.
+
+================================================================================
+INFORMATION WE COLLECT
+================================================================================
+
+1. INFORMATION YOU PROVIDE
+
+Recipe Data:
+- Recipe titles, ingredients, instructions, notes
+- Recipe photos you add or import
+- Cooking times, serving sizes, and other recipe metadata
+- Source information (URLs, cookbook references, family attribution)
+- Your personal ratings, favorites, and cooking history
+
+User Preferences:
+- App settings and preferences
+- Shopping list selections
+- Filter and sort preferences
+
+2. AUTOMATICALLY COLLECTED INFORMATION
+
+Usage Analytics (via Mixpanel):
+- Feature usage patterns (which features you use and how often)
+- App performance data (load times, errors, crashes)
+- Device information (iOS version, device model, screen size)
+- Session data (app opens, duration, screens viewed)
+- Recipe import success/failure rates
+- Anonymous interaction events (button taps, navigation patterns)
+
+Technical Data:
+- App version and build number
+- Device identifier (anonymized)
+- Operating system version
+- Network type (WiFi, cellular)
+
+3. INFORMATION WE DO NOT COLLECT
+
+We do NOT collect:
+- Your name, email address, or contact information
+- Location data or GPS coordinates
+- Photos from your photo library (except those you explicitly select for recipes)
+- Payment or financial information
+- Health or biometric data
+- Personal identification numbers
+- Contacts or address book data
+- Browsing history outside the app
+
+================================================================================
+HOW WE USE YOUR INFORMATION
+================================================================================
+
+We use your information for the following purposes:
+
+1. To Provide and Maintain the App:
+- Store and sync your recipes across your devices via iCloud
+- Display your recipes, shopping lists, and cooking history
+- Import recipes from URLs you provide
+- Export shopping lists to iOS Reminders (with your permission)
+
+2. To Improve the App:
+- Analyze usage patterns to understand which features are most valuable
+- Identify and fix bugs, crashes, and performance issues
+- Optimize user experience based on aggregate behavior
+- Plan future features based on how you use the app
+
+3. To Communicate with You:
+- Respond to your support requests or feedback
+- Send important updates about the app (via App Store only)
+- Notify you of privacy policy changes
+
+================================================================================
+HOW WE STORE YOUR INFORMATION
+================================================================================
+
+Recipe Data Storage:
+- Your recipe data is stored locally on your device using SwiftData
+- Recipe images are stored in your device's local file system
+- All recipe data is private to your device
+
+iCloud Sync:
+- If enabled, your recipe data syncs via your personal iCloud account
+- iCloud sync uses Apple's CloudKit service
+- Your data is encrypted in transit and at rest using Apple's security
+- We do not have access to your iCloud data
+- Your data is subject to Apple's iCloud Privacy Policy
+
+Analytics Data:
+- Anonymous usage data is stored on Mixpanel's secure servers
+- Data is aggregated and cannot be traced back to you personally
+- No recipe content or personal information is sent to analytics
+
+================================================================================
+DATA SHARING AND DISCLOSURE
+================================================================================
+
+We do NOT sell, trade, or rent your personal information to third parties.
+
+Third-Party Services:
+We use the following third-party services:
+
+1. Mixpanel (Analytics):
+- Purpose: Anonymous usage analytics and crash reporting
+- Data shared: Device type, iOS version, feature usage, app events
+- Data NOT shared: Recipe content, personal information, identifiers
+- Privacy Policy: https://mixpanel.com/legal/privacy-policy/
+
+2. Apple iCloud (Optional Sync):
+- Purpose: Sync your recipes across your Apple devices
+- Data shared: Your recipe data (stored in your personal iCloud)
+- Control: You control iCloud sync in iOS Settings
+- Privacy Policy: https://www.apple.com/legal/privacy/
+
+3. Recipe Websites (Import Feature):
+- Purpose: Import recipes from URLs you provide
+- Data shared: The URL you paste (sent to that website to fetch recipe)
+- Note: Standard web request, same as visiting the site in Safari
+
+Legal Requirements:
+We may disclose your information if required to do so by law or in response to valid requests by public authorities (e.g., court orders, subpoenas).
+
+================================================================================
+YOUR PRIVACY RIGHTS AND CHOICES
+================================================================================
+
+You have the following rights regarding your data:
+
+1. Access and Portability:
+- All your recipe data is stored locally on your device
+- You can view all your data within the app at any time
+- Export recipes manually by sharing them
+
+2. Deletion:
+- Delete individual recipes at any time within the app
+- Delete all data via Settings → "Clear All Data"
+- Uninstalling the app deletes all local data
+- To delete iCloud data: iOS Settings → iCloud → Manage Storage → Heirloom
+
+3. Control iCloud Sync:
+- Enable/disable in iOS Settings → iCloud → Heirloom
+- When disabled, recipes remain local to each device
+
+4. Control Analytics:
+- We do not currently offer an opt-out for analytics
+- Analytics data is anonymous and cannot identify you
+- Future versions may include an analytics opt-out option
+
+5. Reminders Permission:
+- Grant or revoke in iOS Settings → Heirloom → Reminders
+- Only used when you explicitly export shopping lists
+
+6. Photo Library Permission:
+- Grant or revoke in iOS Settings → Heirloom → Photos
+- Only accessed when you add photos to recipes
+
+================================================================================
+CHILDREN'S PRIVACY
+================================================================================
+
+Heirloom is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us so we can delete it.
+
+================================================================================
+DATA RETENTION
+================================================================================
+
+Recipe Data:
+- Stored on your device until you delete it
+- Stored in iCloud until you delete it or disable sync
+- We do not have access to or control over your recipe data
+
+Analytics Data:
+- Retained by Mixpanel according to their data retention policy
+- Typically retained for 5 years for analysis and trend tracking
+- Anonymous and cannot identify you personally
+
+================================================================================
+DATA SECURITY
+================================================================================
+
+We take reasonable measures to protect your information:
+
+Local Storage:
+- Recipe data protected by iOS device encryption
+- Access controlled by your device passcode/biometrics
+
+iCloud Sync:
+- Encrypted in transit using TLS
+- Encrypted at rest using Apple's security standards
+- Protected by your Apple ID credentials
+
+Analytics:
+- Transmitted over encrypted HTTPS connections
+- Stored on secure Mixpanel servers
+- No sensitive or identifiable information included
+
+However, no method of transmission or storage is 100% secure. While we strive to protect your information, we cannot guarantee absolute security.
+
+================================================================================
+INTERNATIONAL DATA TRANSFERS
+================================================================================
+
+Your information may be transferred to and stored on servers located outside your country of residence. By using Heirloom, you consent to such transfers.
+
+Analytics data may be processed in the United States where Mixpanel's servers are located. Mixpanel complies with applicable data protection laws.
+
+iCloud data is stored according to Apple's iCloud data location policies, which may vary by region.
+
+================================================================================
+CHANGES TO THIS PRIVACY POLICY
+================================================================================
+
+We may update this Privacy Policy from time to time. Changes will be effective when posted in the app and on our website.
+
+We will notify you of significant changes by:
+- Updating the "Last Updated" date at the top of this policy
+- Displaying a notice in the app
+- Requiring acceptance of new terms before continued use
+
+Your continued use of Heirloom after changes indicates acceptance of the updated policy.
+
+================================================================================
+CALIFORNIA PRIVACY RIGHTS (CCPA)
+================================================================================
+
+If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA):
+
+- Right to Know: You can request information about data we've collected
+- Right to Delete: You can request deletion of your data
+- Right to Opt-Out: You can opt-out of data sales (we don't sell data)
+- Right to Non-Discrimination: We won't discriminate for exercising your rights
+
+To exercise these rights, contact us using the information below.
+
+Note: Since we collect minimal personal information and don't sell data, most CCPA provisions don't apply to our practices.
+
+================================================================================
+EUROPEAN PRIVACY RIGHTS (GDPR)
+================================================================================
+
+If you are in the European Economic Area (EEA), you have rights under the General Data Protection Regulation (GDPR):
+
+Legal Basis for Processing:
+- Legitimate Interest: Improving app functionality and user experience
+- Consent: When you grant permissions (Reminders, Photos)
+- Contract: Providing the app service you requested
+
+Your GDPR Rights:
+- Right to Access: Request a copy of your data
+- Right to Rectification: Correct inaccurate data
+- Right to Erasure: Request deletion of your data
+- Right to Restrict Processing: Limit how we use your data
+- Right to Data Portability: Receive your data in a portable format
+- Right to Object: Object to certain processing activities
+- Right to Withdraw Consent: Revoke permissions at any time
+
+To exercise these rights, contact us using the information below.
+
+Data Protection Officer:
+We have not appointed a DPO as we are not required to under GDPR.
+
+================================================================================
+CONTACT US
+================================================================================
+
+If you have questions about this Privacy Policy or our data practices, please contact us:
+
+Email: [your-email@example.com]
+App Support: Settings → Send Feedback
+
+We will respond to privacy inquiries within 30 days.
+
+================================================================================
+APP STORE PRIVACY LABELS
+================================================================================
+
+For transparency, here's what we report in the App Store privacy labels:
+
+Data Linked to You:
+- None
+
+Data Not Linked to You:
+- Product Interaction (usage data, analytics)
+- Diagnostics (crash data, performance data)
+
+Data Not Collected:
+- Contact Info
+- User Content (recipes stored locally/iCloud only)
+- Identifiers
+- Location
+- Purchases
+- Financial Info
+- Health & Fitness
+- Search History
+- Browsing History
+- Sensitive Info
+
+================================================================================
+END OF PRIVACY POLICY
+================================================================================
+
+This privacy policy is effective as of December 9, 2024.

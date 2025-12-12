@@ -1,21 +1,26 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Ingredient Recipe Data
+/// Identifiable wrapper for ingredient recipe data to use with .sheet(item:)
+struct IngredientRecipeData: Identifiable {
+    let id = UUID()
+    let name: String
+    let displayText: String
+    let recipes: [(recipeId: UUID, recipeTitle: String, sourceIcon: String, ingredientText: String)]
+}
+
 struct ShoppingListView: View {
-    @Query(filter: #Predicate<Recipe> { recipe in
-        recipe.isInShoppingList == true
-    })
-    private var recipesInList: [Recipe]
+    @Query private var cartRecipes: [ShoppingCartRecipe]
 
     @Environment(\.modelContext) private var modelContext
     @State private var selectedRecipeIds: Set<UUID> = []
-    @State private var showRecipeList = false
-    @State private var selectedCombinedIngredient: CombinedIngredient?
+    @State private var selectedIngredientData: IngredientRecipeData?
 
     var body: some View {
         NavigationStack {
             Group {
-                if recipesInList.isEmpty {
+                if cartRecipes.isEmpty {
                     emptyState
                 } else {
                     shoppingList
@@ -24,7 +29,7 @@ struct ShoppingListView: View {
             .navigationTitle("Shopping List")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                if !recipesInList.isEmpty {
+                if !cartRecipes.isEmpty {
                     ToolbarItem(placement: .primaryAction) {
                         Menu {
                             Button {
@@ -62,10 +67,12 @@ struct ShoppingListView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showRecipeList) {
-                if let combinedIngredient = selectedCombinedIngredient {
-                    IngredientRecipeListView(combinedIngredient: combinedIngredient)
-                }
+            .sheet(item: $selectedIngredientData) { data in
+                IngredientRecipeListView(
+                    ingredientName: data.name,
+                    displayText: data.displayText,
+                    recipeData: data.recipes
+                )
             }
         }
     }
@@ -109,11 +116,11 @@ struct ShoppingListView: View {
                 .textCase(.uppercase)
 
             VStack(spacing: HeirloomSpacing.xs) {
-                ForEach(recipesInList) { recipe in
+                ForEach(cartRecipes) { cartRecipe in
                     Button {
-                        toggleRecipeSelection(recipe)
+                        toggleRecipeSelection(cartRecipe)
                     } label: {
-                        recipeRow(recipe)
+                        recipeRow(cartRecipe)
                     }
                     .buttonStyle(.plain)
                 }
@@ -122,15 +129,19 @@ struct ShoppingListView: View {
         .onAppear {
             // Initialize with all recipes selected
             if selectedRecipeIds.isEmpty {
-                selectedRecipeIds = Set(recipesInList.map { $0.id })
+                selectedRecipeIds = Set(cartRecipes.compactMap { $0.recipe?.id })
             }
         }
     }
 
-    private func recipeRow(_ recipe: Recipe) -> some View {
+    private func recipeRow(_ cartRecipe: ShoppingCartRecipe) -> some View {
+        guard let recipe = cartRecipe.recipe else {
+            return AnyView(EmptyView())
+        }
+
         let isSelected = selectedRecipeIds.contains(recipe.id)
 
-        return HStack {
+        return AnyView(HStack {
             // Checkbox
             Image(systemName: isSelected ? "checkmark.square.fill" : "square")
                 .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.warmGray)
@@ -141,25 +152,24 @@ struct ShoppingListView: View {
                 .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.warmGray)
                 .font(.caption)
 
-            // Recipe title
-            Text(recipe.title)
+            // Recipe title (with serving info)
+            Text(cartRecipe.displayTitle)
                 .font(HeirloomFonts.callout)
                 .foregroundStyle(isSelected ? HeirloomColors.primaryText : HeirloomColors.secondaryText)
 
             Spacer()
 
             // Ingredient count
-            if let count = recipe.ingredients?.count {
-                Text("\(count) items")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-            }
+            let ingredientCount = cartRecipe.scaledIngredients.count
+            Text("\(ingredientCount) items")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
         }
         .padding(HeirloomSpacing.sm)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isSelected ? .white : HeirloomColors.warmGray.opacity(0.1))
-        )
+        ))
     }
 
     // MARK: - Category Section
@@ -221,8 +231,49 @@ struct ShoppingListView: View {
                     // Show aggregate indicator for items from multiple recipes
                     if isAggregated {
                         Button {
-                            selectedCombinedIngredient = combinedIngredient
-                            showRecipeList = true
+                            // Extract data to avoid SwiftData context issues in sheet
+                            let ingredientName = combinedIngredient.scaledIngredients.first?.originalIngredient.name ?? ""
+                            let displayText = combinedIngredient.displayText
+
+                            // Build recipe data array
+                            var recipeData: [(recipeId: UUID, recipeTitle: String, sourceIcon: String, ingredientText: String)] = []
+                            var seenIds = Set<UUID>()
+
+                            for scaledIngredient in combinedIngredient.scaledIngredients {
+                                if let recipe = scaledIngredient.originalIngredient.recipe,
+                                   !seenIds.contains(recipe.id) {
+                                    let data = (
+                                        recipeId: recipe.id,
+                                        recipeTitle: recipe.title,
+                                        sourceIcon: recipe.sourceType?.iconName ?? "fork.knife",
+                                        ingredientText: scaledIngredient.fullDisplayString
+                                    )
+                                    recipeData.append(data)
+                                    seenIds.insert(recipe.id)
+                                }
+                            }
+
+                            // Only show sheet if we successfully extracted data
+                            guard !recipeData.isEmpty else {
+                                print("⚠️ Failed to extract recipe data - relationships may not be loaded yet")
+
+                                // Ensure sheet is not shown
+                                selectedIngredientData = nil
+
+                                // Show user feedback
+                                ToastManager.shared.info(
+                                    title: "Loading recipe data...",
+                                    message: "Please try again"
+                                )
+                                return
+                            }
+
+                            // Create Identifiable data struct for sheet presentation
+                            selectedIngredientData = IngredientRecipeData(
+                                name: ingredientName,
+                                displayText: displayText,
+                                recipes: recipeData.sorted { $0.recipeTitle < $1.recipeTitle }
+                            )
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: "square.stack.3d.up.fill")
@@ -253,31 +304,35 @@ struct ShoppingListView: View {
 
     // MARK: - Grouped Ingredients
     private var groupedIngredients: [GroceryCategory: [CombinedIngredient]] {
-        // First, collect all ingredients with their categories (only from selected recipes)
-        var allIngredients: [(Ingredient, GroceryCategory)] = []
+        // First, collect all SCALED ingredients with their categories (only from selected recipes)
+        var allIngredients: [(ScaledIngredient, GroceryCategory)] = []
 
-        for recipe in recipesInList where selectedRecipeIds.contains(recipe.id) {
-            guard let ingredients = recipe.ingredients else { continue }
-            for ingredient in ingredients {
-                let category = GroceryCategory.categorize(ingredient.name)
-                allIngredients.append((ingredient, category))
+        for cartRecipe in cartRecipes {
+            guard let recipe = cartRecipe.recipe,
+                  selectedRecipeIds.contains(recipe.id) else { continue }
+
+            // Use scaled ingredients from ShoppingCartRecipe
+            let scaledIngredients = cartRecipe.scaledIngredients
+            for scaledIngredient in scaledIngredients {
+                let category = GroceryCategory.categorize(scaledIngredient.originalIngredient.name)
+                allIngredients.append((scaledIngredient, category))
             }
         }
 
         // Combine ingredients with the same name
-        var combined: [String: (category: GroceryCategory, ingredients: [Ingredient])] = [:]
-        for (ingredient, category) in allIngredients {
-            let key = ingredient.name.lowercased().trimmingCharacters(in: .whitespaces)
+        var combined: [String: (category: GroceryCategory, scaledIngredients: [ScaledIngredient])] = [:]
+        for (scaledIngredient, category) in allIngredients {
+            let key = scaledIngredient.originalIngredient.name.lowercased().trimmingCharacters(in: .whitespaces)
             if combined[key] == nil {
-                combined[key] = (category: category, ingredients: [])
+                combined[key] = (category: category, scaledIngredients: [])
             }
-            combined[key]?.ingredients.append(ingredient)
+            combined[key]?.scaledIngredients.append(scaledIngredient)
         }
 
         // Group by category
         var grouped: [GroceryCategory: [CombinedIngredient]] = [:]
         for (_, value) in combined {
-            let combinedIngredient = CombinedIngredient(ingredients: value.ingredients, category: value.category)
+            let combinedIngredient = CombinedIngredient(scaledIngredients: value.scaledIngredients, category: value.category)
             if grouped[value.category] == nil {
                 grouped[value.category] = []
             }
@@ -290,22 +345,22 @@ struct ShoppingListView: View {
     // MARK: - Combined Ingredient Helper
     struct CombinedIngredient: Identifiable {
         let id = UUID()
-        let ingredients: [Ingredient]
+        let scaledIngredients: [ScaledIngredient]
         let category: GroceryCategory
 
         var displayText: String {
-            if ingredients.count == 1 {
-                return ingredients[0].displayText
+            if scaledIngredients.count == 1 {
+                return scaledIngredients[0].fullDisplayString
             }
 
             // Try to combine quantities if they have the same unit
-            let firstIngredient = ingredients[0]
-            let allHaveQuantities = ingredients.allSatisfy { $0.quantity != nil }
-            let allHaveSameUnit = Set(ingredients.compactMap { $0.unit }).count <= 1
+            let firstIngredient = scaledIngredients[0].originalIngredient
+            let allHaveQuantities = scaledIngredients.allSatisfy { $0.scaledQuantity != nil }
+            let allHaveSameUnit = Set(scaledIngredients.compactMap { $0.originalIngredient.unit }).count <= 1
 
             if allHaveQuantities && allHaveSameUnit {
-                // Calculate total quantity
-                let totalQty = ingredients.compactMap { $0.quantity }.reduce(0.0, +)
+                // Calculate total SCALED quantity
+                let totalQty = scaledIngredients.compactMap { $0.scaledQuantity }.reduce(0.0, +)
                 let unit = firstIngredient.unit ?? ""
                 let name = firstIngredient.name
 
@@ -326,47 +381,53 @@ struct ShoppingListView: View {
                 return parts.joined(separator: " ")
             } else {
                 // Fallback: show count multiplier
-                return "\(ingredients.count)× \(firstIngredient.displayText)"
+                return "\(scaledIngredients.count)× \(scaledIngredients[0].fullDisplayString)"
             }
         }
 
         private func formatQuantity(_ value: Double) -> String {
+            // Handle zero or very small values
+            if value < 0.05 {
+                return ""
+            }
+
             // Convert decimals to fractions for better display
             let fractions: [(Double, String)] = [
                 (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
                 (0.375, "⅜"), (0.5, "½"), (0.625, "⅝"),
-                (0.666, "⅔"), (0.75, "¾"), (0.875, "⅞")
+                (0.667, "⅔"), (0.75, "¾"), (0.875, "⅞")
             ]
 
-            let wholePart = Int(value)
-            let fractionalPart = value - Double(wholePart)
+            let whole = Int(value)
+            let fraction = value - Double(whole)
 
-            // Check if it matches a common fraction
-            for (decimalValue, fractionSymbol) in fractions {
-                if abs(fractionalPart - decimalValue) < 0.01 {
-                    if wholePart > 0 {
-                        return "\(wholePart) \(fractionSymbol)"
-                    } else {
-                        return fractionSymbol
-                    }
+            // If it's essentially a whole number
+            if fraction < 0.05 {
+                return "\(whole)"
+            }
+
+            // Try to match common fractions
+            for (threshold, symbol) in fractions {
+                if abs(fraction - threshold) < 0.05 {
+                    return whole > 0 ? "\(whole) \(symbol)" : symbol
                 }
             }
 
-            // If it's a whole number, return it as an integer
-            if fractionalPart < 0.01 {
-                return "\(wholePart)"
+            // Fallback: use decimal notation for odd values
+            // Round to 1 decimal place
+            let rounded = round(value * 10) / 10
+            if rounded == Double(Int(rounded)) {
+                return "\(Int(rounded))"
             }
-
-            // Otherwise return as decimal
-            return String(format: "%.1f", value)
+            return String(format: "%.1f", rounded)
         }
 
         var isCheckedOff: Bool {
-            ingredients.allSatisfy { $0.isCheckedOff }
+            scaledIngredients.allSatisfy { $0.originalIngredient.isCheckedOff }
         }
 
         var recipeCount: Int {
-            ingredients.count
+            scaledIngredients.count
         }
     }
 
@@ -414,25 +475,26 @@ struct ShoppingListView: View {
     }
 
     private func toggleCombinedIngredient(_ combinedIngredient: CombinedIngredient) {
-        // Toggle all ingredients in the combined group
+        // Toggle all ORIGINAL ingredients in the combined group
         let newState = !combinedIngredient.isCheckedOff
-        for ingredient in combinedIngredient.ingredients {
-            ingredient.isCheckedOff = newState
+        for scaledIngredient in combinedIngredient.scaledIngredients {
+            scaledIngredient.originalIngredient.isCheckedOff = newState
         }
         try? modelContext.save()
     }
 
-    private func toggleRecipeSelection(_ recipe: Recipe) {
-        if selectedRecipeIds.contains(recipe.id) {
-            selectedRecipeIds.remove(recipe.id)
+    private func toggleRecipeSelection(_ cartRecipe: ShoppingCartRecipe) {
+        guard let recipeId = cartRecipe.recipe?.id else { return }
+        if selectedRecipeIds.contains(recipeId) {
+            selectedRecipeIds.remove(recipeId)
         } else {
-            selectedRecipeIds.insert(recipe.id)
+            selectedRecipeIds.insert(recipeId)
         }
     }
 
     private func checkOffAll() {
-        for recipe in recipesInList {
-            guard let ingredients = recipe.ingredients else { continue }
+        for cartRecipe in cartRecipes {
+            guard let ingredients = cartRecipe.recipe?.ingredients else { continue }
             for ingredient in ingredients {
                 ingredient.isCheckedOff = true
             }
@@ -441,8 +503,8 @@ struct ShoppingListView: View {
     }
 
     private func uncheckAll() {
-        for recipe in recipesInList {
-            guard let ingredients = recipe.ingredients else { continue }
+        for cartRecipe in cartRecipes {
+            guard let ingredients = cartRecipe.recipe?.ingredients else { continue }
             for ingredient in ingredients {
                 ingredient.isCheckedOff = false
             }
@@ -451,14 +513,19 @@ struct ShoppingListView: View {
     }
 
     private func clearList() {
-        for recipe in recipesInList {
-            recipe.isInShoppingList = false
-
-            // Uncheck all ingredients
-            guard let ingredients = recipe.ingredients else { continue }
-            for ingredient in ingredients {
-                ingredient.isCheckedOff = false
+        for cartRecipe in cartRecipes {
+            // Uncheck all ingredients in the recipe
+            if let ingredients = cartRecipe.recipe?.ingredients {
+                for ingredient in ingredients {
+                    ingredient.isCheckedOff = false
+                }
             }
+
+            // Update recipe flag
+            cartRecipe.recipe?.isInShoppingList = false
+
+            // Delete the ShoppingCartRecipe
+            modelContext.delete(cartRecipe)
         }
         try? modelContext.save()
     }
@@ -467,78 +534,78 @@ struct ShoppingListView: View {
 // MARK: - Ingredient Recipe List View
 
 struct IngredientRecipeListView: View {
-    let combinedIngredient: ShoppingListView.CombinedIngredient
+    let ingredientName: String
+    let displayText: String
+    let recipeData: [(recipeId: UUID, recipeTitle: String, sourceIcon: String, ingredientText: String)]
+
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Text(combinedIngredient.displayText)
-                        .font(HeirloomFonts.body)
+            if recipeData.isEmpty {
+                // Fallback empty state (shouldn't normally happen)
+                VStack(spacing: 16) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 48))
+                        .foregroundStyle(HeirloomColors.warmGray)
+
+                    Text("No recipe data available")
+                        .font(HeirloomFonts.title3)
                         .foregroundStyle(HeirloomColors.primaryText)
-                } header: {
-                    Text("Ingredient")
+
+                    Text("Please try again")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+
+                    Button("Close") {
+                        dismiss()
+                    }
+                    .buttonStyle(.bordered)
                 }
+                .navigationTitle("Recipe Sources")
+                .navigationBarTitleDisplayMode(.inline)
+            } else {
+                List {
+                    Section {
+                        Text(displayText)
+                            .font(HeirloomFonts.body)
+                            .foregroundStyle(HeirloomColors.primaryText)
+                    } header: {
+                        Text("Ingredient")
+                    }
 
-                Section {
-                    ForEach(recipeList, id: \.id) { recipe in
-                        HStack {
-                            Image(systemName: recipe.sourceType?.iconName ?? "fork.knife")
-                                .foregroundStyle(HeirloomColors.tomato)
+                    Section {
+                        ForEach(recipeData, id: \.recipeId) { data in
+                            HStack {
+                                Image(systemName: data.sourceIcon)
+                                    .foregroundStyle(HeirloomColors.tomato)
 
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(recipe.title)
-                                    .font(HeirloomFonts.body)
-                                    .foregroundStyle(HeirloomColors.primaryText)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(data.recipeTitle)
+                                        .font(HeirloomFonts.body)
+                                        .foregroundStyle(HeirloomColors.primaryText)
 
-                                if let ingredientText = ingredientTextForRecipe(recipe) {
-                                    Text(ingredientText)
+                                    Text(data.ingredientText)
                                         .font(HeirloomFonts.caption1)
                                         .foregroundStyle(HeirloomColors.secondaryText)
                                 }
                             }
                         }
-                    }
-                } header: {
-                    Text("From \(recipeList.count) \(recipeList.count == 1 ? "Recipe" : "Recipes")")
-                }
-            }
-            .navigationTitle("Recipe Sources")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        dismiss()
+                    } header: {
+                        Text("From \(recipeData.count) \(recipeData.count == 1 ? "Recipe" : "Recipes")")
                     }
                 }
+                .navigationTitle("Recipe Sources")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") {
+                            dismiss()
+                        }
+                    }
+                }
             }
         }
-    }
-
-    private var recipeList: [Recipe] {
-        // Get unique recipes from the combined ingredient
-        var uniqueRecipes: [Recipe] = []
-        var seenIds = Set<UUID>()
-
-        for ingredient in combinedIngredient.ingredients {
-            if let recipe = ingredient.recipe, !seenIds.contains(recipe.id) {
-                uniqueRecipes.append(recipe)
-                seenIds.insert(recipe.id)
-            }
-        }
-
-        return uniqueRecipes.sorted { $0.title < $1.title }
-    }
-
-    private func ingredientTextForRecipe(_ recipe: Recipe) -> String? {
-        // Find the ingredient from this recipe
-        for ingredient in combinedIngredient.ingredients {
-            if ingredient.recipe?.id == recipe.id {
-                return ingredient.displayText
-            }
-        }
-        return nil
     }
 }
 

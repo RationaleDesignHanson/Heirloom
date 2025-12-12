@@ -4,21 +4,21 @@ import SwiftUI
 
 @Model
 final class RecipeSticker {
-    var id: UUID
-    var stickerType: StickerType
-    var stickerName: String // SF Symbol name or asset name
+    var id: UUID = UUID()
+    var stickerType: StickerType = StickerType.food
+    var stickerName: String = "" // SF Symbol name or asset name
 
     // Position and transforms
-    var positionX: Double // Percentage of card width (0.0 to 1.0)
-    var positionY: Double // Percentage of card height (0.0 to 1.0)
-    var scale: Double // 0.5 to 2.0
-    var rotation: Double // Degrees (0 to 360)
+    var positionX: Double = 0.5 // Percentage of card width (0.0 to 1.0)
+    var positionY: Double = 0.5 // Percentage of card height (0.0 to 1.0)
+    var scale: Double = 1.0 // 0.5 to 2.0
+    var rotation: Double = 0.0 // Degrees (0 to 360)
 
     // Visual properties
     var colorHex: String?
-    var opacity: Double // 0.0 to 1.0
+    var opacity: Double = 1.0 // 0.0 to 1.0
 
-    var createdDate: Date
+    var createdDate: Date = Date()
 
     // Relationship
     var recipe: Recipe?
