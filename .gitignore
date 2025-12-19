@@ -50,6 +50,27 @@ fastlane/test_output
 # Secrets
 Secrets.swift
 APIKeys.swift
+Config.xcconfig
+*.xcconfig
 
 # Images stored in Documents (not tracked)
 RecipeImages/
+
+# Backend (Firebase Functions)
+backend/node_modules/
+backend/functions/node_modules/
+backend/functions/lib/
+backend/.firebase/
+backend/.firebaserc.local
+backend/*.cache
+backend/.env
+backend/.env.local
+backend/.env.*.local
+backend/functions/.env
+backend/functions/.env.local
+backend/serviceAccountKey.json
+backend/*-firebase-adminsdk-*.json
+backend/*.log
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*

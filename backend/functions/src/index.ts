@@ -1,0 +1,234 @@
+/**
+ * Heirloom Cloud Functions
+ * Recipe import and analytics endpoints
+ */
+
+import {onRequest, Request} from 'firebase-functions/v2/https';
+import {onSchedule} from 'firebase-functions/v2/scheduler';
+import {Response} from 'express';
+import * as admin from 'firebase-admin';
+import {RecipeImporter} from './services/recipeImporter';
+import {AnalyticsService} from './services/analyticsService';
+import {ImportRequest, FeedbackRequest} from './types';
+
+// Initialize Firebase Admin
+admin.initializeApp();
+
+const db = admin.firestore();
+const analyticsService = new AnalyticsService(db);
+const recipeImporter = new RecipeImporter(analyticsService);
+
+/**
+ * Main recipe import endpoint
+ * POST /importRecipe
+ * Body: { url: string, userId?: string }
+ */
+export const importRecipe = onRequest(
+    {
+      timeoutSeconds: 60,
+      memory: '512MiB',
+      cors: true,
+    },
+    async (req: Request, res: Response) => {
+      if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+      }
+
+      if (req.method !== 'POST') {
+        res.status(405).json({error: 'Method not allowed'});
+        return;
+      }
+
+      try {
+        const requestBody = req.body as ImportRequest;
+
+        if (!requestBody || !requestBody.url) {
+          res.status(400).json({
+            error: 'Missing required field: url',
+          });
+          return;
+        }
+
+        console.log(`📥 Import request for: ${requestBody.url}`);
+
+        // Import the recipe
+        const result = await recipeImporter.import(
+            requestBody.url,
+            requestBody.userId
+        );
+
+        console.log(`✅ Import ${result.status}: ${result.importId}`);
+
+        res.status(200).json(result);
+      } catch (error: any) {
+        console.error('❌ Import error:', error);
+        res.status(500).json({
+          error: 'Internal server error',
+          message: error.message,
+        });
+      }
+    }
+);
+
+/**
+ * Submit user feedback endpoint
+ * POST /submitFeedback
+ * Body: FeedbackRequest
+ */
+export const submitFeedback = onRequest(
+    {
+      timeoutSeconds: 30,
+      memory: '256MiB',
+      cors: true,
+    },
+    async (req: Request, res: Response) => {
+      if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+      }
+
+      if (req.method !== 'POST') {
+        res.status(405).json({error: 'Method not allowed'});
+        return;
+      }
+
+      try {
+        const feedback = req.body as FeedbackRequest;
+
+        if (!feedback || !feedback.importId) {
+          res.status(400).json({
+            error: 'Missing required field: importId',
+          });
+          return;
+        }
+
+        console.log(`📝 Feedback for import: ${feedback.importId}`);
+
+        await analyticsService.storeFeedback(
+            feedback.importId,
+            feedback.userId,
+            feedback.wasAccurate,
+            feedback.corrections,
+            feedback.rating,
+            feedback.comment
+        );
+
+        res.status(200).json({
+          success: true,
+          message: 'Feedback received',
+        });
+      } catch (error: any) {
+        console.error('❌ Feedback error:', error);
+        res.status(500).json({
+          error: 'Internal server error',
+          message: error.message,
+        });
+      }
+    }
+);
+
+/**
+ * Get import statistics
+ * GET /getStats
+ */
+export const getStats = onRequest(
+    {
+      timeoutSeconds: 30,
+      memory: '256MiB',
+      cors: true,
+    },
+    async (req: Request, res: Response) => {
+      if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+      }
+
+      try {
+        const stats = await analyticsService.getStats();
+        res.status(200).json(stats);
+      } catch (error: any) {
+        console.error('❌ Stats error:', error);
+        res.status(500).json({
+          error: 'Internal server error',
+          message: error.message,
+        });
+      }
+    }
+);
+
+/**
+ * Scheduled function: Update site patterns
+ * Runs every 6 hours
+ */
+export const updateSitePatterns = onSchedule(
+    {
+      schedule: 'every 6 hours',
+      timeoutSeconds: 300,
+      memory: '512MiB',
+    },
+    async () => {
+      console.log('🔄 Updating site patterns...');
+
+      try {
+        // Get all site patterns
+        const patterns = await db.collection('site_patterns').get();
+
+        console.log(`📊 Analyzed ${patterns.size} site patterns`);
+
+        // TODO: Implement pattern learning algorithm
+        // For now, just log stats
+        patterns.docs.forEach((doc) => {
+          const data = doc.data();
+          console.log(
+              `  ${doc.id}: ${(data.successRate * 100).toFixed(1)}% success (${data.totalAttempts} attempts)`
+          );
+        });
+      } catch (error) {
+        console.error('❌ Error updating site patterns:', error);
+        throw error;
+      }
+    }
+);
+
+/**
+ * Scheduled function: Clean old cache
+ * Runs daily at 3 AM
+ */
+export const cleanCache = onSchedule(
+    {
+      schedule: 'every day 03:00',
+      timeoutSeconds: 300,
+      memory: '256MiB',
+    },
+    async () => {
+      console.log('🧹 Cleaning old cache...');
+
+      try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        // Delete old import attempts (keep failures for 1 year)
+        const oldSuccessfulImports = await db
+            .collection('import_attempts')
+            .where('status', '==', 'success')
+            .where('timestamp', '<', thirtyDaysAgo)
+            .get();
+
+        console.log(
+            `🗑️  Deleting ${oldSuccessfulImports.size} old successful imports...`
+        );
+
+        const batch = db.batch();
+        oldSuccessfulImports.docs.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+        await batch.commit();
+
+        console.log('✅ Cache cleaned successfully');
+      } catch (error) {
+        console.error('❌ Error cleaning cache:', error);
+        throw error;
+      }
+    }
+);

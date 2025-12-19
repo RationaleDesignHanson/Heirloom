@@ -1,0 +1,43 @@
+{
+  "name": "heirloom-functions",
+  "version": "1.0.0",
+  "description": "Heirloom recipe import and analytics Cloud Functions",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.2",
+    "node-fetch": "^3.3.2",
+    "node-html-parser": "^6.1.12",
+    "sharp": "^0.33.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.3.3"
+  },
+  "private": true
+}

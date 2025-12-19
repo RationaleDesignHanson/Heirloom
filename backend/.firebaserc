@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "heriloom-dev",
+    "dev": "heriloom-dev",
+    "staging": "heirloom-staging",
+    "prod": "heirloom-prod"
+  }
+}

@@ -78,35 +78,46 @@ Since Xcodeproj files are complex binary formats, you'll need to create the proj
 
 ```
 Heirloom/
-├── App/
-│   └── HeirloomApp.swift          # App entry point
-│
-├── Core/
-│   ├── Design/
-│   │   ├── Colors.swift            # Color palette
-│   │   ├── Typography.swift        # Font system
-│   │   └── Components/             # (Day 2+)
+├── Heirloom/                       # iOS App
+│   ├── App/
+│   │   └── HeirloomApp.swift          # App entry point
 │   │
-│   ├── Models/
-│   │   ├── SchemaV1.swift          # Versioned schema
-│   │   ├── Recipe.swift            # Main recipe model
-│   │   └── Ingredient.swift        # Ingredient model
+│   ├── Core/
+│   │   ├── Design/
+│   │   │   ├── Colors.swift            # Color palette
+│   │   │   ├── Typography.swift        # Font system
+│   │   │   └── Components/             # (Day 2+)
+│   │   │
+│   │   ├── Models/
+│   │   │   ├── SchemaV1.swift          # Versioned schema
+│   │   │   ├── Recipe.swift            # Main recipe model
+│   │   │   └── Ingredient.swift        # Ingredient model
+│   │   │
+│   │   ├── Services/
+│   │   │   └── Storage/
+│   │   │       ├── ImageStorageService.swift  # File system image handling
+│   │   │       └── ImageCache.swift           # Memory cache
+│   │   │
+│   │   └── Extensions/                 # (Day 2+)
 │   │
-│   ├── Services/
-│   │   └── Storage/
-│   │       ├── ImageStorageService.swift  # File system image handling
-│   │       └── ImageCache.swift           # Memory cache
+│   ├── Features/
+│   │   └── Recipes/
+│   │       └── RecipeList/
+│   │           └── RecipeListView.swift  # Recipe grid
 │   │
-│   └── Extensions/                 # (Day 2+)
+│   └── Resources/
+│       ├── Assets.xcassets/            # (Day 2: Add colors, app icon)
+│       └── Info.plist                  # Permissions
 │
-├── Features/
-│   └── Recipes/
-│       └── RecipeList/
-│           └── RecipeListView.swift  # Recipe grid
+├── backend/                        # Firebase Backend
+│   ├── functions/                  # Cloud Functions (Node.js/TypeScript)
+│   ├── deploy.sh                   # Deployment script
+│   ├── firebase.json               # Firebase config
+│   ├── firestore.rules            # Database security rules
+│   └── README.md                   # Backend documentation
 │
-└── Resources/
-    ├── Assets.xcassets/            # (Day 2: Add colors, app icon)
-    └── Info.plist                  # Permissions
+├── Heirloom.xcodeproj/            # Xcode project
+└── (documentation files)
 ```
 
 ## 🏗️ Architecture Decisions

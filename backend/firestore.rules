@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Import attempts - Cloud Functions only can write, users can read their own
+    // Cloud Functions with Admin SDK bypass these rules entirely
+    match /import_attempts/{attemptId} {
+      allow create: if false; // Only Cloud Functions can create
+      allow read: if isAuthenticated() &&
+                     (resource.data.userId == request.auth.uid);
+      allow update: if false; // Only Cloud Functions can update (for feedback)
+      allow delete: if false; // Never delete (analytics data)
+    }
+
+    // Site patterns - read-only for clients, writable by server
+    match /site_patterns/{domain} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only server can write
+    }
+
+    // Training queue - admin only
+    match /training_queue/{queueId} {
+      allow read, write: if false; // Admin only via Firebase console
+    }
+
+    // User feedback - writable by owner
+    match /user_feedback/{feedbackId} {
+      allow create: if isAuthenticated();
+      allow read: if isOwner(resource.data.userId);
+      allow update: if isOwner(resource.data.userId);
+      allow delete: if false;
+    }
+  }
+}
