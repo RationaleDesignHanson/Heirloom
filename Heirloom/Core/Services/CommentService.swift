@@ -250,6 +250,79 @@ final class CommentService {
         try context.save()
     }
 
+    // MARK: - Shared Comments (Phase 2C)
+
+    /// Get comments by scope
+    func getComments(
+        for recipe: Recipe,
+        scope: CommentScope
+    ) -> [RecipeComment] {
+        recipe.comments?.filter { $0.shareScope == scope } ?? []
+    }
+
+    /// Get comments visible to lineage (non-private)
+    func getLineageVisibleComments(for recipe: Recipe) -> [RecipeComment] {
+        recipe.comments?.filter { $0.isVisibleToLineage } ?? []
+    }
+
+    /// Get comments from other recipe copies in lineage
+    func getLineageComments(for recipe: Recipe) -> [RecipeComment] {
+        recipe.comments?.filter { $0.isFromLineage } ?? []
+    }
+
+    /// Endorse a comment (for lineage comments)
+    func endorseComment(_ comment: RecipeComment, context: ModelContext) async throws {
+        // Update local endorsement count
+        comment.endorsementCount += 1
+        try context.save()
+
+        // Sync to CloudKit if comment is shared
+        if comment.isVisibleToLineage {
+            try await SharedCommentService.shared.updateEndorsement(
+                for: comment.id,
+                increment: true
+            )
+        }
+    }
+
+    /// Remove endorsement from comment
+    func unendorseComment(_ comment: RecipeComment, context: ModelContext) async throws {
+        // Update local endorsement count
+        comment.endorsementCount = max(0, comment.endorsementCount - 1)
+        try context.save()
+
+        // Sync to CloudKit if comment is shared
+        if comment.isVisibleToLineage {
+            try await SharedCommentService.shared.updateEndorsement(
+                for: comment.id,
+                increment: false
+            )
+        }
+    }
+
+    /// Update comment scope
+    func updateCommentScope(
+        _ comment: RecipeComment,
+        scope: CommentScope,
+        recipe: Recipe,
+        context: ModelContext
+    ) async throws {
+        let oldScope = comment.shareScope
+        comment.shareScope = scope
+
+        // Set origin provenance hash if not already set
+        if comment.originProvenanceHash == nil {
+            comment.originProvenanceHash = recipe.provenance?.rootProvenanceHash
+        }
+
+        try context.save()
+
+        // Share to CloudKit if changing from private to shared
+        if oldScope == .private && scope != .private {
+            try await SharedCommentService.shared.shareComment(comment, from: recipe)
+        }
+    }
+
     // MARK: - Statistics
 
     /// Get comment statistics for a recipe

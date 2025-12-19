@@ -1,6 +1,6 @@
 HEIRLOOM PRIVACY POLICY
 
-Last Updated: December 9, 2024
+Last Updated: December 19, 2024
 
 ================================================================================
 INTRODUCTION
@@ -23,10 +23,18 @@ Recipe Data:
 - Source information (URLs, cookbook references, family attribution)
 - Your personal ratings, favorites, and cooking history
 
+Social Features Data (When You Choose to Share):
+- Recipes you explicitly choose to share with others
+- Comments you add to recipes and their visibility settings
+- Recipe lineage information (who shared the recipe, generation tracking)
+- Personal messages attached to shared recipes
+- Comment endorsements and upvotes
+
 User Preferences:
 - App settings and preferences
 - Shopping list selections
 - Filter and sort preferences
+- Privacy and sharing consent choices
 
 2. AUTOMATICALLY COLLECTED INFORMATION
 
@@ -95,10 +103,72 @@ iCloud Sync:
 - We do not have access to your iCloud data
 - Your data is subject to Apple's iCloud Privacy Policy
 
+Recipe Sharing (CloudKit Public Database):
+- When you explicitly share a recipe, it's stored in Apple's CloudKit public database
+- Shared recipes include: title, ingredients, instructions, photos, and optional messages
+- Recipients can import shared recipes into their own collections
+- Shared comments (when you choose "Share with Family") are visible to anyone with that recipe
+- Lineage tracking connects shared recipe copies to track family history
+- You control what you share - nothing is shared without your explicit action
+- Shared data is encrypted in transit and stored on Apple's secure servers
+- You can choose privacy levels for comments: Private, Share with Family, or Public
+
+Comment Visibility:
+- Private comments: Only visible to you on your device
+- Share with Family comments: Visible to anyone who has your shared recipe
+- Public comments: Visible to the broader Heirloom community (future feature)
+- You choose the visibility level for each comment
+
 Analytics Data:
 - Anonymous usage data is stored on Mixpanel's secure servers
 - Data is aggregated and cannot be traced back to you personally
 - No recipe content or personal information is sent to analytics
+
+================================================================================
+RECIPE SHARING AND SOCIAL FEATURES
+================================================================================
+
+Heirloom includes optional social features to share recipes with family and friends.
+These features are OFF by default and require your explicit consent.
+
+What Gets Shared:
+When you explicitly choose to share a recipe, the following data is shared via Apple's CloudKit:
+- Recipe title, ingredients, instructions, and metadata
+- Recipe photos (if you choose to include them)
+- Optional personal message you write
+- Generation tracking (who shared it to you, how many times it's been shared)
+- Comments you mark as "Share with Family" or "Public"
+- Recipe lineage information (provenance tracking)
+
+What Does NOT Get Shared:
+- Private comments (marked as "Private")
+- Personal notes unless you explicitly include them
+- Your ratings or cooking history
+- Shopping lists
+- Other recipes in your collection
+- Any data you haven't explicitly chosen to share
+
+Share Links:
+- Shared recipes generate a unique share link
+- Share links can be sent via Messages, Email, AirDrop, or QR code
+- Recipients can preview and import the shared recipe
+- Share links don't expire but can be deleted by you
+- Anyone with the share link can view and import the recipe
+
+Comment Sharing Across Recipe Lineage:
+- When you share a recipe and add "Share with Family" comments, those comments follow the recipe
+- Recipients who import your recipe can see your shared comments
+- If they re-share the recipe, your comments continue to follow it
+- You can endorse helpful comments from others in your recipe lineage
+- All participants in a recipe lineage can see shared comments
+- Private comments are never shared
+
+Consent and Control:
+- Sharing features require your consent on first use
+- You can enable/disable sharing in Settings → Privacy
+- You can delete previously shared recipes from CloudKit
+- You can change comment visibility at any time
+- Withdrawing consent doesn't affect recipes already shared (they remain accessible)
 
 ================================================================================
 DATA SHARING AND DISCLOSURE
@@ -150,18 +220,37 @@ You have the following rights regarding your data:
 - Enable/disable in iOS Settings → iCloud → Heirloom
 - When disabled, recipes remain local to each device
 
-4. Control Analytics:
-- We do not currently offer an opt-out for analytics
-- Analytics data is anonymous and cannot identify you
-- Future versions may include an analytics opt-out option
+4. Control Recipe Sharing:
+- Enable/disable recipe sharing in Settings → Privacy → Recipe Sharing
+- Choose whether to require consent before sharing recipes
+- View and manage previously shared recipes
+- Export your shared recipe data
+- Delete shared recipes from CloudKit
 
-5. Reminders Permission:
+5. Control Comment Sharing:
+- Choose default comment visibility (Private/Family/Public)
+- Change visibility for individual comments at any time
+- View comments you've shared across all recipes
+- Opt-out of comment aggregation
+
+6. Control Analytics:
+- Enable/disable anonymous usage analytics in Settings → Privacy → Analytics
+- Analytics data is anonymous and cannot identify you
+- Opt-out at any time without affecting app functionality
+
+7. Reminders Permission:
 - Grant or revoke in iOS Settings → Heirloom → Reminders
 - Only used when you explicitly export shopping lists
 
-6. Photo Library Permission:
+8. Photo Library Permission:
 - Grant or revoke in iOS Settings → Heirloom → Photos
 - Only accessed when you add photos to recipes
+
+9. Two-Tier Consent Model:
+- Consent 1: Recipe Sharing Features (share recipes, view shared recipes, pass-down)
+- Consent 2: Anonymous Usage Analytics (help improve the app)
+- Both are opt-in and can be changed at any time
+- You can use the app fully without enabling either consent option
 
 ================================================================================
 CHILDREN'S PRIVACY
@@ -308,4 +397,12 @@ Data Not Collected:
 END OF PRIVACY POLICY
 ================================================================================
 
-This privacy policy is effective as of December 9, 2024.
+This privacy policy is effective as of December 19, 2024.
+
+Key Updates in this Version:
+- Added Recipe Sharing and Social Features section
+- Clarified CloudKit public database usage for sharing
+- Described comment sharing and lineage tracking
+- Added two-tier consent model (Sharing + Analytics)
+- Enhanced privacy controls for shared content
+- Added data export and deletion rights for shared recipes

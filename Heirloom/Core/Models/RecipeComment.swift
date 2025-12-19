@@ -65,6 +65,17 @@ final class RecipeComment {
     /// Whether comment is shown on recipe card back
     var showOnCardBack: Bool = false
 
+    // MARK: - Shared Comments (Phase 2C)
+    /// Visibility scope for this comment
+    var shareScope: CommentScope = .private
+
+    /// Provenance hash of the recipe version this comment was made on
+    /// Used to aggregate comments across shared copies
+    var originProvenanceHash: String?
+
+    /// Number of endorsements from users across lineage
+    var endorsementCount: Int = 0
+
     // MARK: - Rich Content
     /// Structured data extracted from comment (e.g., ingredient modifications)
     var structuredData: CommentStructuredData?
@@ -123,6 +134,36 @@ enum CommentType: String, Codable, CaseIterable {
     case warning = "warning"                        // Warning or caution
     case question = "question"                      // Question about recipe
     case review = "review"                          // Overall review/rating
+}
+
+enum CommentScope: String, Codable, CaseIterable {
+    case `private` = "private"      // Only visible to you
+    case lineage = "lineage"        // Visible to anyone in the recipe's lineage (shares)
+    case `public` = "public"        // Visible to everyone (future: public recipe comments)
+
+    var displayName: String {
+        switch self {
+        case .private: return "Private"
+        case .lineage: return "Share with Family"
+        case .public: return "Public"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .private: return "Only you can see this"
+        case .lineage: return "Visible to everyone who has this recipe"
+        case .public: return "Visible to anyone"
+        }
+    }
+
+    var iconName: String {
+        switch self {
+        case .private: return "lock.fill"
+        case .lineage: return "person.2.fill"
+        case .public: return "globe"
+        }
+    }
 }
 
 struct CommentStructuredData: Codable {
@@ -191,6 +232,33 @@ extension RecipeComment {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: originalDate ?? createdAt, relativeTo: Date())
+    }
+
+    // MARK: - Shared Comment Helpers
+
+    /// Whether this comment is shared beyond private scope
+    var isShared: Bool {
+        shareScope != .private
+    }
+
+    /// Whether this comment can be seen by recipe lineage
+    var isVisibleToLineage: Bool {
+        shareScope == .lineage || shareScope == .public
+    }
+
+    /// Whether this comment is from another user's recipe copy
+    var isFromLineage: Bool {
+        originProvenanceHash != nil && originProvenanceHash != recipe?.provenance?.rootProvenanceHash
+    }
+
+    /// Total engagement score (upvotes + endorsements - downvotes)
+    var totalEngagementScore: Int {
+        upvotes + endorsementCount - downvotes
+    }
+
+    /// Whether this comment has significant engagement
+    var hasSignificantEngagement: Bool {
+        totalEngagementScore >= 5 || endorsementCount >= 3
     }
 }
 
