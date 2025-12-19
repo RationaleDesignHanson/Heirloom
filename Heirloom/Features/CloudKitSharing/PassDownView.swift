@@ -1,8 +1,10 @@
 import SwiftUI
-import CloudKit
+import SwiftData
 
 struct PassDownView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var shareService = PublicShareService.shared
 
     let recipe: Recipe
 
@@ -71,6 +73,8 @@ struct PassDownView: View {
                     TextField("Recipient's name", text: $recipientName)
                         .textFieldStyle(.roundedBorder)
                         .font(HeirloomFonts.body)
+                        .textContentType(.name)
+                        .autocorrectionDisabled()
 
                     Text("This will be recorded in the recipe's history")
                         .font(HeirloomFonts.caption2)
@@ -375,31 +379,37 @@ struct PassDownView: View {
 
         isSharing = true
         errorMessage = nil
-
-        CloudKitShareService.shared.passDownRecipe(
-            recipe,
-            to: trimmedRecipient,
-            message: message
-        ) { result in
-            Task { @MainActor in
-                isSharing = false
-
-                switch result {
-                case .success(let url):
+        
+        Task {
+            do {
+                // Use the public share service for pass down
+                let url = try await shareService.passDownRecipe(
+                    recipe,
+                    to: trimmedRecipient,
+                    message: message.isEmpty ? nil : message
+                )
+                
+                await MainActor.run {
                     // Haptic feedback with celebration
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
-
-                    // Confetti or special animation could go here
-
+                    
                     shareURL = url
-
-                case .failure(let error):
+                    
+                    // Update recipe provenance
+                    recipe.passedDownDate = Date()
+                    recipe.sharedDate = Date()
+                    
+                    isSharing = false
+                }
+            } catch {
+                await MainActor.run {
                     // Haptic feedback
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.error)
-
+                    
                     errorMessage = error.localizedDescription
+                    isSharing = false
                 }
             }
         }

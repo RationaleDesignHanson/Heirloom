@@ -135,29 +135,57 @@ struct IngredientParser {
 
     private static func extractUnit(from text: String) -> (unit: String?, remaining: String) {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return (nil, trimmed) }
 
-        // Common units (including abbreviations and plural forms)
+        // Helper to check if a unit matches at the start
+        func matchUnit(_ unit: String, caseSensitive: Bool = false) -> Bool {
+            let options: NSRegularExpression.Options = caseSensitive ? [] : .caseInsensitive
+            let pattern = "^" + NSRegularExpression.escapedPattern(for: unit) + "\\b"
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return false }
+            return regex.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) != nil
+        }
+
+        // Helper to extract matched unit
+        func extractMatched(_ unit: String) -> (String, String) {
+            let afterUnit = String(trimmed.dropFirst(unit.count)).trimmingCharacters(in: .whitespaces)
+            return (unit, afterUnit)
+        }
+
+        // SPECIAL CASE: Single-letter abbreviations with case-sensitivity rules
+        // T (capital) = tablespoon, t (lowercase) = teaspoon, c = cup (case-insensitive)
+        let firstChar = trimmed.first!
+        if trimmed.count == 1 || (trimmed.count > 1 && trimmed[trimmed.index(after: trimmed.startIndex)].isWhitespace) {
+            // It's a single letter followed by space or end of string
+            if firstChar == "T" { return extractMatched("T") }
+            if firstChar == "t" { return extractMatched("t") }
+            if firstChar == "c" || firstChar == "C" { return extractMatched(String(firstChar)) }
+        }
+
+        // Common units (sorted by length descending to match longer units first)
         let units = [
             // Volume
-            "cup", "cups", "c", "c.",
-            "tablespoon", "tablespoons", "tbsp", "tbsp.", "tbs", "tbs.", "T",
-            "teaspoon", "teaspoons", "tsp", "tsp.", "t",
-            "fluid ounce", "fluid ounces", "fl oz", "fl. oz.", "fl oz.", "fl. oz",
-            "milliliter", "milliliters", "ml", "ml.",
-            "liter", "liters", "l", "l.",
-            "pint", "pints", "pt", "pt.",
-            "quart", "quarts", "qt", "qt.",
-            "gallon", "gallons", "gal", "gal.",
+            "tablespoon", "tablespoons", "teaspoon", "teaspoons",
+            "fluid ounce", "fluid ounces",
+            "milliliter", "milliliters",
+            "kilogram", "kilograms",
+            "fl oz.", "fl. oz.", "fl oz", "fl. oz",
+            "tbsp.", "tbsp", "tbs.", "tbs",
+            "tsp.", "tsp",
+            "cups", "cup", "c.",
+            "pint", "pints", "pt.", "pt",
+            "quart", "quarts", "qt.", "qt",
+            "gallon", "gallons", "gal.", "gal",
+            "liter", "liters", "l.", "l",
+            "ml.", "ml",
 
             // Weight
-            "pound", "pounds", "lb", "lb.", "lbs", "lbs.",
-            "ounce", "ounces", "oz", "oz.",
-            "gram", "grams", "g", "g.",
-            "kilogram", "kilograms", "kg", "kg.",
+            "pound", "pounds", "lbs.", "lbs", "lb.", "lb",
+            "ounce", "ounces", "oz.", "oz",
+            "gram", "grams", "g.", "g",
+            "kg.", "kg",
 
             // Other
-            "can", "cans",
-            "package", "packages", "pkg", "pkg.",
+            "package", "packages", "pkg.", "pkg",
             "bunch", "bunches",
             "clove", "cloves",
             "slice", "slices",
@@ -165,17 +193,14 @@ struct IngredientParser {
             "stick", "sticks",
             "pinch", "pinches",
             "dash", "dashes",
+            "can", "cans",
             "large", "medium", "small",
         ]
 
-        // Try to find a unit at the beginning
+        // Try to match each unit (case-insensitive)
         for unit in units {
-            let pattern = "^" + NSRegularExpression.escapedPattern(for: unit) + "\\b"
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
-               let match = regex.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) {
-                let matchedUnit = String(trimmed[Range(match.range, in: trimmed)!])
-                let afterUnit = String(trimmed.dropFirst(matchedUnit.count)).trimmingCharacters(in: .whitespaces)
-                return (matchedUnit, afterUnit)
+            if matchUnit(unit) {
+                return extractMatched(unit)
             }
         }
 

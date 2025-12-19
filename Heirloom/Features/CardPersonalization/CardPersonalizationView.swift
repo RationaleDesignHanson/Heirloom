@@ -12,12 +12,15 @@ struct CardPersonalizationView: View {
     @State private var showingRecipeAnnotationEditor = false
     @State private var selectedRecipeSticker: RecipeSticker?
     @State private var selectedRecipeAnnotation: RecipeAnnotation?
+    @State private var isCardFlipped = false
+    @State private var showCardBackEditor = false
 
     enum PersonalizationTab {
         case background
         case stickers
         case annotations
         case loveMarks
+        case cardBack
     }
 
     var body: some View {
@@ -63,12 +66,35 @@ struct CardPersonalizationView: View {
             .sheet(isPresented: $showingRecipeAnnotationEditor) {
                 RecipeAnnotationEditorView(recipe: recipe, annotation: selectedRecipeAnnotation)
             }
+            .sheet(isPresented: $showCardBackEditor) {
+                CardBackEditorView(recipe: recipe)
+            }
         }
     }
 
     // MARK: - Preview Card
 
     private var previewCard: some View {
+        Group {
+            if selectedTab == .cardBack {
+                // Show FlipCard with animation
+                FlipCard(isFlipped: $isCardFlipped) {
+                    cardFrontView
+                } back: {
+                    cardBackView
+                }
+                .frame(maxWidth: CGFloat.infinity)
+                .aspectRatio(3/4, contentMode: ContentMode.fit)
+            } else {
+                // Show static front view for other tabs
+                cardFrontView
+                    .frame(maxWidth: .infinity)
+                    .aspectRatio(3/4, contentMode: .fit)
+            }
+        }
+    }
+
+    private var cardFrontView: some View {
         ZStack {
             // Background
             cardBackground
@@ -79,7 +105,7 @@ struct CardPersonalizationView: View {
                 .frame(height: 150)
                 .overlay {
                     Text(recipe.title)
-                        .font(HeirloomFonts.title3)
+                        .font(.title3)
                         .foregroundStyle(HeirloomColors.primaryText)
                         .multilineTextAlignment(.center)
                         .padding()
@@ -113,9 +139,118 @@ struct CardPersonalizationView: View {
                 loveMarksOverlay(cardStyle)
             }
         }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(3/4, contentMode: .fit)
         .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+    }
+
+    private var cardBackView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Recipe title
+                Text(recipe.title)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(HeirloomColors.charcoal)
+
+                // Attribution
+                if let cardBack = recipe.cardBack, cardBack.visibleSections.contains(.attribution), cardBack.showAttribution {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: recipe.sourceType?.iconName ?? "book.closed.fill")
+                            Text(recipe.sourceDisplayName)
+                                .font(.subheadline)
+                        }
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+
+                    Divider()
+                }
+
+                // Note to friends
+                if let cardBack = recipe.cardBack, cardBack.visibleSections.contains(.noteToFriends), let note = cardBack.noteToFriends {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("A Note from Me")
+                            .font(.headline)
+
+                        Text(note)
+                            .font(.subheadline)
+                            .italic()
+                    }
+
+                    Divider()
+                }
+
+                // User rating
+                if let cardBack = recipe.cardBack, cardBack.visibleSections.contains(.userRating), let rating = cardBack.userRating {
+                    HStack {
+                        Text("My Rating:")
+                            .font(.subheadline)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                        ForEach(1...5, id: \.self) { star in
+                            Image(systemName: star <= rating ? "star.fill" : "star")
+                                .foregroundStyle(.yellow)
+                                .font(.caption)
+                        }
+                    }
+
+                    Divider()
+                }
+
+                // Personal tips
+                if let cardBack = recipe.cardBack, cardBack.visibleSections.contains(.userTips), !cardBack.personalTips.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("My Tips")
+                            .font(.headline)
+
+                        ForEach(cardBack.personalTips, id: \.self) { tip in
+                            HStack(alignment: .top, spacing: 8) {
+                                Image(systemName: "lightbulb.fill")
+                                    .foregroundStyle(.yellow)
+                                    .font(.caption)
+                                Text(tip)
+                                    .font(.subheadline)
+                            }
+                        }
+                    }
+
+                    Divider()
+                }
+
+                // Pinned comments preview
+                if let cardBack = recipe.cardBack, cardBack.visibleSections.contains(.pinnedComments), !cardBack.pinnedCommentIDs.isEmpty {
+                    let pinnedComments = recipe.comments?
+                        .filter { cardBack.pinnedCommentIDs.contains($0.id) }
+                        .prefix(cardBack.maxCommentsToDisplay) ?? []
+
+                    if !pinnedComments.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Highlighted Comments")
+                                .font(.headline)
+
+                            ForEach(Array(pinnedComments)) { comment in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(comment.text)
+                                        .font(.subheadline)
+
+                                    if let author = comment.authorName {
+                                        Text("— \(author)")
+                                            .font(.caption)
+                                            .foregroundStyle(HeirloomColors.secondaryText)
+                                    }
+                                }
+                                .padding(12)
+                                .background(Color(.systemGray6))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(20)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(recipe.cardBack?.backgroundStyle.color ?? HeirloomColors.cream)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
     }
@@ -218,11 +353,14 @@ struct CardPersonalizationView: View {
     // MARK: - Tab Selector
 
     private var tabSelector: some View {
-        HStack(spacing: 0) {
-            tabButton(tab: .background, icon: "photo.fill", title: "Background")
-            tabButton(tab: .stickers, icon: "star.fill", title: "RecipeStickers")
-            tabButton(tab: .annotations, icon: "note.text", title: "Notes")
-            tabButton(tab: .loveMarks, icon: "heart.fill", title: "Love Marks")
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 0) {
+                tabButton(tab: .background, icon: "photo.fill", title: "Background")
+                tabButton(tab: .stickers, icon: "star.fill", title: "Stickers")
+                tabButton(tab: .annotations, icon: "note.text", title: "Notes")
+                tabButton(tab: .loveMarks, icon: "heart.fill", title: "Love Marks")
+                tabButton(tab: .cardBack, icon: "rectangle.portrait.on.rectangle.portrait", title: "Card Back")
+            }
         }
         .background(Color.gray.opacity(0.1))
     }
@@ -260,13 +398,15 @@ struct CardPersonalizationView: View {
             annotationsEditor
         case .loveMarks:
             loveMarksEditor
+        case .cardBack:
+            cardBackEditor
         }
     }
 
     private var backgroundEditor: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.lg) {
             Text("Background Color")
-                .font(HeirloomFonts.bodyBold)
+                .font(.body.bold())
 
             LazyVGrid(
                 columns: [GridItem(.adaptive(minimum: 60))],
@@ -316,7 +456,7 @@ struct CardPersonalizationView: View {
             if let stickers = recipe.stickers, !stickers.isEmpty {
                 VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                     Text("Current RecipeStickers")
-                        .font(HeirloomFonts.bodyBold)
+                        .font(.body.bold())
 
                     ForEach(stickers, id: \.id) { sticker in
                         HStack {
@@ -325,7 +465,7 @@ struct CardPersonalizationView: View {
                                 .foregroundStyle(Color(hex: sticker.colorHex ?? "#FF6B6B"))
 
                             Text(sticker.stickerType.rawValue.capitalized)
-                                .font(HeirloomFonts.body)
+                                .font(.body)
 
                             Spacer()
 
@@ -343,7 +483,7 @@ struct CardPersonalizationView: View {
                 }
             } else {
                 Text("No stickers yet")
-                    .font(HeirloomFonts.caption1)
+                    .font(.caption)
                     .foregroundStyle(HeirloomColors.secondaryText)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -368,12 +508,12 @@ struct CardPersonalizationView: View {
             if let annotations = recipe.annotations, !annotations.isEmpty {
                 VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                     Text("Current Notes")
-                        .font(HeirloomFonts.bodyBold)
+                        .font(.body.bold())
 
                     ForEach(annotations, id: \.id) { annotation in
                         HStack {
                             Text(annotation.text)
-                                .font(HeirloomFonts.body)
+                                .font(.body)
                                 .lineLimit(2)
 
                             Spacer()
@@ -400,7 +540,7 @@ struct CardPersonalizationView: View {
                 }
             } else {
                 Text("No notes yet")
-                    .font(HeirloomFonts.caption1)
+                    .font(.caption)
                     .foregroundStyle(HeirloomColors.secondaryText)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -422,7 +562,7 @@ struct CardPersonalizationView: View {
                         }
                     }
                 ))
-                .font(HeirloomFonts.bodyBold)
+                .font(.body.bold())
 
                 if recipe.cardStyle?.coffeeStainEnabled == true {
                     Picker("Position", selection: Binding(
@@ -442,7 +582,7 @@ struct CardPersonalizationView: View {
             // Worn Edges
             VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                 Text("Worn Edges")
-                    .font(HeirloomFonts.bodyBold)
+                    .font(.body.bold())
 
                 Slider(
                     value: Binding(
@@ -457,7 +597,7 @@ struct CardPersonalizationView: View {
                 .tint(HeirloomColors.tomato)
 
                 Text("Intensity: \(Int((recipe.cardStyle?.wornEdgesIntensity ?? 0.0) * 100))%")
-                    .font(HeirloomFonts.caption1)
+                    .font(.caption)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
 
@@ -469,11 +609,109 @@ struct CardPersonalizationView: View {
                     recipe.cardStyle?.autoLoveMarks = enabled
                 }
             ))
-            .font(HeirloomFonts.bodyBold)
+            .font(.body.bold())
 
             Text("Automatically add wear based on how many times you've cooked this recipe")
-                .font(HeirloomFonts.caption1)
+                .font(.caption)
                 .foregroundStyle(HeirloomColors.secondaryText)
+        }
+    }
+
+    private var cardBackEditor: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.xl) {
+            // Flip button
+            Button {
+                withAnimation(.easeInOut(duration: 0.6)) {
+                    isCardFlipped.toggle()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                    Text(isCardFlipped ? "Show Front" : "Show Back")
+                        .font(.body.bold())
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(HeirloomColors.tomato)
+                .foregroundStyle(.white)
+                .cornerRadius(12)
+            }
+
+            Divider()
+
+            // Card Back Status
+            VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+                Text("Card Back Content")
+                    .font(.body.bold())
+
+                if let cardBack = recipe.cardBack {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                        if let note = cardBack.noteToFriends, !note.isEmpty {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("Personal note added")
+                                    .font(.body)
+                            }
+                        }
+
+                        if !cardBack.personalTips.isEmpty {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("\(cardBack.personalTips.count) tips added")
+                                    .font(.body)
+                            }
+                        }
+
+                        if cardBack.userRating != nil {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("Rating added")
+                                    .font(.body)
+                            }
+                        }
+
+                        if !cardBack.pinnedCommentIDs.isEmpty {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("\(cardBack.pinnedCommentIDs.count) comments pinned")
+                                    .font(.body)
+                            }
+                        }
+                    }
+                } else {
+                    Text("No content added yet")
+                        .font(.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
+
+            Divider()
+
+            // Edit Button
+            Button {
+                showCardBackEditor = true
+            } label: {
+                HStack {
+                    Image(systemName: "square.and.pencil")
+                    Text("Customize Card Back")
+                        .font(.body.bold())
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(HeirloomColors.tomato.opacity(0.1))
+                .foregroundStyle(HeirloomColors.tomato)
+                .cornerRadius(12)
+            }
+
+            // Info text
+            Text("The card back displays personal notes, tips, and selected comments for friends and family.")
+                .font(.caption)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .padding(.top, HeirloomSpacing.sm)
         }
     }
 

@@ -9,6 +9,7 @@ struct RecipeListView: View {
     @State private var searchText = ""
     @State private var showAddRecipe = false
     @State private var showImportRecipe = false
+    @State private var showBulkImport = false
     @State private var showCookbookScanner = false
     @State private var showFilters = false
     @State private var filters = RecipeFilters()
@@ -65,6 +66,12 @@ struct RecipeListView: View {
                         }
 
                         Button {
+                            showBulkImport = true
+                        } label: {
+                            Label("Bulk Import", systemImage: "square.stack.3d.down.forward")
+                        }
+
+                        Button {
                             showCookbookScanner = true
                         } label: {
                             Label("Scan Cookbook", systemImage: "book.pages")
@@ -98,6 +105,9 @@ struct RecipeListView: View {
             }
             .sheet(isPresented: $showImportRecipe) {
                 RecipeImportView()
+            }
+            .sheet(isPresented: $showBulkImport) {
+                BulkImportView()
             }
             .sheet(isPresented: $showCookbookScanner) {
                 CookbookScannerView()

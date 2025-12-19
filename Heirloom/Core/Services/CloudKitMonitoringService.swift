@@ -67,7 +67,9 @@ class CloudKitMonitoringService: ObservableObject {
     // MARK: - Initialization
 
     private init() {
-        self.container = CKContainer(identifier: "iCloud.com.rationale.Heirloom")
+        // Use the default container which matches the entitlements
+        // Container ID: iCloud.com.matthanson.heirloom
+        self.container = CKContainer.default()
 
         Task {
             await checkConnection()
@@ -78,23 +80,34 @@ class CloudKitMonitoringService: ObservableObject {
     // MARK: - Connection Status
 
     func checkConnection() async {
+        // For SwiftData + CloudKit apps, the account status is the best indicator
+        // of CloudKit connectivity. SwiftData uses the private database which
+        // doesn't allow direct queries for connection testing.
         do {
-            // Try to fetch a dummy record type to test connection
-            let query = CKQuery(recordType: "Recipe", predicate: NSPredicate(value: false))
-            let database = container.publicCloudDatabase
-
-            _ = try await database.records(matching: query, resultsLimit: 1)
-            isConnected = true
+            let status = try await container.accountStatus()
+            accountStatus = status
+            
+            // Connected if account is available
+            isConnected = (status == .available)
+            
+            if !isConnected {
+                print("☁️ CloudKit not connected: account status = \(status.rawValue)")
+            }
         } catch {
             isConnected = false
+            accountStatus = .couldNotDetermine
+            logError(operation: "Check Connection", error: error)
         }
     }
 
     func checkAccountStatus() async {
         do {
             accountStatus = try await container.accountStatus()
+            // Keep isConnected in sync with account status
+            isConnected = (accountStatus == .available)
         } catch {
             accountStatus = .couldNotDetermine
+            isConnected = false
             logError(operation: "Check Account Status", error: error)
         }
     }

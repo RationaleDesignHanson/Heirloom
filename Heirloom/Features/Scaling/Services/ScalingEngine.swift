@@ -142,7 +142,7 @@ class ScalingEngine {
         // Spices (scale less when scaling up)
         let spiceKeywords = ["cinnamon", "nutmeg", "ginger", "cloves", "cardamom",
                             "cumin", "coriander", "paprika", "cayenne", "turmeric",
-                            "oregano", "basil", "thyme", "rosemary", "sage"]
+                            "oregano", "basil", "thyme", "rosemary", "sage", "vanilla"]
         if spiceKeywords.contains(where: name.contains) {
             return .spices
         }
@@ -230,9 +230,10 @@ class ScalingEngine {
     ) -> [ScalingWarning] {
         var warnings: [ScalingWarning] = []
 
-        // Check if approaching minimum
-        if targetServings <= recipe.minimumServings {
-            if let warningMessage = recipe.category?.minimumWarning {
+        // Check if approaching category minimum
+        if let category = recipe.category,
+           targetServings <= category.minimumServings {
+            if let warningMessage = category.minimumWarning {
                 warnings.append(ScalingWarning(
                     type: .categoryLimit,
                     message: warningMessage,

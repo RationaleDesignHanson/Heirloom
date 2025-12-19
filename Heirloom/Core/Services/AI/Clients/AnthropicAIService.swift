@@ -34,13 +34,19 @@ class AnthropicAIService: AIServiceProtocol {
         prompt: String,
         options: AICompletionOptions? = nil
     ) async throws -> AICompletionResponse {
-        // Validate configuration
-        guard isConfigured else {
-            throw AIError.notConfigured(provider: providerName)
+        // Check rate limit (for default key users)
+        let config = AIConfiguration.shared
+        guard config.canMakeRequest() else {
+            throw AIError.quotaExceeded(
+                provider: providerName,
+                limit: 100,
+                resetDate: Calendar.current.startOfDay(for: Date().addingTimeInterval(86400))
+            )
         }
 
-        guard let apiKey = AIConfiguration.shared.apiKey(for: .anthropic) else {
-            throw AIError.invalidAPIKey(provider: providerName)
+        // Validate configuration
+        guard let apiKey = config.currentAPIKey else {
+            throw AIError.notConfigured(provider: providerName)
         }
 
         // Build request
@@ -182,6 +188,9 @@ class AnthropicAIService: AIServiceProtocol {
 
         // Track usage
         AIUsageTracker.shared.trackUsage(tokens: usage, provider: .anthropic)
+
+        // Increment request counter for rate limiting
+        AIConfiguration.shared.incrementRequestCount()
 
         return AICompletionResponse(
             content: content,

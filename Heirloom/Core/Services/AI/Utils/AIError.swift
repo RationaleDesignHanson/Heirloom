@@ -19,7 +19,7 @@ enum AIError: LocalizedError, CustomStringConvertible {
     case apiError(statusCode: Int, message: String?)
     case invalidRequest(reason: String)
     case invalidResponse(reason: String)
-    case quotaExceeded(provider: String)
+    case quotaExceeded(provider: String, limit: Int? = nil, resetDate: Date? = nil)
 
     // MARK: - Processing Errors
     case parsingFailed(reason: String)
@@ -64,7 +64,13 @@ enum AIError: LocalizedError, CustomStringConvertible {
         case .invalidResponse(let reason):
             return "Invalid response: \(reason)"
 
-        case .quotaExceeded(let provider):
+        case .quotaExceeded(let provider, let limit, let resetDate):
+            if let limit = limit, let resetDate = resetDate {
+                let formatter = DateFormatter()
+                formatter.timeStyle = .short
+                let resetTime = formatter.string(from: resetDate)
+                return "Daily limit of \(limit) recipes reached. Resets at \(resetTime). Add your own API key for unlimited usage."
+            }
             return "\(provider) API quota exceeded. Please check your billing."
 
         case .parsingFailed(let reason):
@@ -93,9 +99,17 @@ enum AIError: LocalizedError, CustomStringConvertible {
 
         switch self {
         case .notConfigured(let provider),
-             .invalidAPIKey(let provider),
-             .quotaExceeded(let provider):
+             .invalidAPIKey(let provider):
             ctx["provider"] = provider
+
+        case .quotaExceeded(let provider, let limit, let resetDate):
+            ctx["provider"] = provider
+            if let limit = limit {
+                ctx["limit"] = limit
+            }
+            if let resetDate = resetDate {
+                ctx["reset_date"] = resetDate
+            }
 
         case .missingConfiguration(let field):
             ctx["field"] = field
@@ -177,8 +191,11 @@ extension AIError {
             return "Network connection issue. Please try again."
         case .rateLimited:
             return "Too many requests. Please wait a moment."
-        case .quotaExceeded:
-            return "AI service limit reached. Please contact support."
+        case .quotaExceeded(_, let limit, _):
+            if let limit = limit {
+                return "Daily limit of \(limit) recipes reached. Add your own API key in Settings for unlimited usage."
+            }
+            return "AI service limit reached. Add your own API key in Settings."
         default:
             return "Something went wrong. Using standard parsing instead."
         }

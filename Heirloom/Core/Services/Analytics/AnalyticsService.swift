@@ -45,6 +45,7 @@ enum AnalyticsEvent: String {
 
     // Import & Export
     case recipeImported = "Recipe Imported"
+    case recipeScanned = "Recipe Scanned"
     case recipeExported = "Recipe Exported"
     case recipeShared = "Recipe Shared"
 

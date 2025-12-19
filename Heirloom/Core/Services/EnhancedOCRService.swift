@@ -1,5 +1,5 @@
 import Foundation
-import Vision
+@preconcurrency import Vision
 import UIKit
 
 /// Enhanced OCR service using Vision framework for recipe card text recognition
@@ -94,31 +94,23 @@ final class EnhancedOCRService {
         _ request: VNRecognizeTextRequest,
         on cgImage: CGImage
     ) async throws -> [VNRecognizedTextObservation] {
-
-        return try await withCheckedThrowingContinuation { continuation in
-            // Create request handler
-            let handler = VNImageRequestHandler(
-                cgImage: cgImage,
-                orientation: .up,
-                options: [:]
-            )
-
-            // Perform request on background queue
-            DispatchQueue.global(qos: .userInitiated).async {
-                do {
-                    try handler.perform([request])
-
-                    guard let observations = request.results as? [VNRecognizedTextObservation] else {
-                        continuation.resume(throwing: OCRError.noTextFound)
-                        return
-                    }
-
-                    continuation.resume(returning: observations)
-                } catch {
-                    continuation.resume(throwing: OCRError.visionError(error))
-                }
+        // Create request handler
+        let handler = VNImageRequestHandler(
+            cgImage: cgImage,
+            orientation: .up,
+            options: [:]
+        )
+        
+        // Perform request on background queue using Task
+        return try await Task.detached(priority: .userInitiated) {
+            try handler.perform([request])
+            
+            guard let observations = request.results, !observations.isEmpty else {
+                throw OCRError.noTextFound
             }
-        }
+            
+            return observations
+        }.value
     }
 
     // MARK: - Result Processing

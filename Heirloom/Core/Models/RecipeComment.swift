@@ -1,0 +1,218 @@
+import Foundation
+import SwiftData
+
+/// Represents a comment on a recipe - can be from website scraping or user-generated
+/// Supports threading for conversations and sentiment analysis for insights
+@Model
+final class RecipeComment {
+    // MARK: - Identity
+    var id: UUID = UUID()
+    var createdAt: Date = Date()
+    var modifiedAt: Date?
+
+    // MARK: - Relationships
+    var recipe: Recipe?
+
+    /// Parent comment for threading (nil if top-level comment)
+    var parentComment: RecipeComment?
+
+    /// Child comments (replies)
+    /// Note: For self-referential relationships, only the "many" side (array) has inverse
+    @Relationship(deleteRule: .cascade, inverse: \RecipeComment.parentComment)
+    var replies: [RecipeComment]?
+
+    // MARK: - Content
+    var text: String = ""
+    var authorName: String?
+    var authorAvatar: String? // URL or asset name
+
+    // MARK: - Source
+    /// Where this comment came from
+    var source: CommentSource = CommentSource.user
+
+    /// Original URL if scraped from website
+    var sourceURL: String?
+
+    /// Date from original comment (may differ from createdAt if scraped)
+    var originalDate: Date?
+
+    // MARK: - Classification & Analysis
+    /// Type of insight this comment provides
+    var commentType: CommentType = CommentType.general
+
+    /// Sentiment score (-1.0 to 1.0, where -1 is negative, 0 neutral, 1 positive)
+    var sentimentScore: Double?
+
+    /// Extracted topics/themes (e.g., "texture", "timing", "ingredient substitution")
+    var topics: [String] = []
+
+    /// Confidence score for AI-generated analysis (0.0 to 1.0)
+    var analysisConfidence: Double?
+
+    // MARK: - User Interaction
+    /// Useful votes (upvotes)
+    var upvotes: Int = 0
+
+    /// Not useful votes (downvotes)
+    var downvotes: Int = 0
+
+    /// Whether user has pinned this comment to card back
+    var isPinned: Bool = false
+
+    /// Whether user has marked as favorite
+    var isFavorite: Bool = false
+
+    /// Whether comment is shown on recipe card back
+    var showOnCardBack: Bool = false
+
+    // MARK: - Rich Content
+    /// Structured data extracted from comment (e.g., ingredient modifications)
+    var structuredData: CommentStructuredData?
+
+    // MARK: - Moderation
+    /// Whether comment has been flagged for review
+    var isFlagged: Bool = false
+
+    /// Whether comment is hidden from view
+    var isHidden: Bool = false
+
+    /// Reason for hiding/flagging
+    var moderationNote: String?
+
+    // MARK: - Initialization
+    init(
+        text: String,
+        authorName: String? = nil,
+        source: CommentSource = .user,
+        commentType: CommentType = .general,
+        recipe: Recipe? = nil,
+        parentComment: RecipeComment? = nil
+    ) {
+        self.id = UUID()
+        self.text = text
+        self.authorName = authorName
+        self.source = source
+        self.commentType = commentType
+        self.recipe = recipe
+        self.parentComment = parentComment
+        self.createdAt = Date()
+        self.replies = []
+        self.topics = []
+    }
+}
+
+// MARK: - Supporting Types
+
+enum CommentSource: String, Codable, CaseIterable {
+    case user = "user"              // Created by app user
+    case scraped = "scraped"        // Scraped from recipe website
+    case ai = "ai"                  // AI-generated insight
+    case imported = "imported"      // Imported from another service
+}
+
+enum CommentType: String, Codable, CaseIterable {
+    case general = "general"                        // General comment
+    case tip = "tip"                                // Cooking tip or trick
+    case modification = "modification"              // Recipe modification or substitution
+    case timing = "timing"                          // Timing adjustment suggestion
+    case technique = "technique"                    // Technique clarification
+    case substitution = "substitution"              // Ingredient substitution
+    case scaling = "scaling"                        // Scaling advice
+    case storage = "storage"                        // Storage tips
+    case pairing = "pairing"                        // Pairing suggestions
+    case warning = "warning"                        // Warning or caution
+    case question = "question"                      // Question about recipe
+    case review = "review"                          // Overall review/rating
+}
+
+struct CommentStructuredData: Codable {
+    /// Original ingredient mentioned
+    var originalIngredient: String?
+
+    /// Suggested replacement
+    var replacementIngredient: String?
+
+    /// Original timing
+    var originalTiming: String?
+
+    /// Suggested timing adjustment
+    var adjustedTiming: String?
+
+    /// Temperature adjustment
+    var temperatureAdjustment: String?
+
+    /// Serving size context
+    var servingContext: String?
+
+    /// Success rating (1-5)
+    var successRating: Int?
+
+    /// Additional structured notes
+    var notes: [String: String] = [:]
+}
+
+// MARK: - Extensions
+
+extension RecipeComment {
+    /// Whether this is a top-level comment (no parent)
+    var isTopLevel: Bool {
+        parentComment == nil
+    }
+
+    /// Total number of votes (upvotes - downvotes)
+    var voteScore: Int {
+        upvotes - downvotes
+    }
+
+    /// Whether comment has high engagement
+    var isHighEngagement: Bool {
+        upvotes >= 5 || voteScore >= 3
+    }
+
+    /// Whether comment is positive (based on sentiment)
+    var isPositive: Bool {
+        guard let score = sentimentScore else { return false }
+        return score > 0.2
+    }
+
+    /// Whether comment is negative (based on sentiment)
+    var isNegative: Bool {
+        guard let score = sentimentScore else { return false }
+        return score < -0.2
+    }
+
+    /// Formatted author display name
+    var displayAuthor: String {
+        authorName ?? "Anonymous"
+    }
+
+    /// Formatted date string
+    var displayDate: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: originalDate ?? createdAt, relativeTo: Date())
+    }
+}
+
+// MARK: - Sample Data
+
+extension RecipeComment {
+    static func sample(
+        text: String = "This recipe turned out amazing! I doubled the garlic and it was perfect.",
+        source: CommentSource = .scraped,
+        commentType: CommentType = .modification
+    ) -> RecipeComment {
+        let comment = RecipeComment(
+            text: text,
+            authorName: "Sarah M.",
+            source: source,
+            commentType: commentType
+        )
+        comment.upvotes = 12
+        comment.sentimentScore = 0.85
+        comment.topics = ["garlic", "modification", "flavor"]
+        comment.analysisConfidence = 0.92
+
+        return comment
+    }
+}

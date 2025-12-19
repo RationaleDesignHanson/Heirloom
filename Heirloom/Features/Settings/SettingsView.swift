@@ -9,6 +9,10 @@ struct SettingsView: View {
     @State private var showClearDataConfirmation = false
     @State private var iCloudStatus: String = "Checking..."
     @State private var storageSize: String = "Calculating..."
+    
+    // Developer testing states
+    @State private var cloudKitTestResult: String = ""
+    @State private var isTestingCloudKit = false
 
     var body: some View {
         NavigationStack {
@@ -25,6 +29,9 @@ struct SettingsView: View {
                 // App Info Section
                 appInfoSection
 
+                // Developer Section (for testing)
+                developerSection
+                
                 // Support Section
                 supportSection
             }
@@ -245,6 +252,182 @@ struct SettingsView: View {
         .background(HeirloomColors.appBackground)
         .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    // MARK: - Developer Section
+    
+    private var developerSection: some View {
+        Section {
+            // Test CloudKit Public Database
+            Button {
+                testCloudKitPublicDatabase()
+            } label: {
+                HStack {
+                    Image(systemName: "icloud.and.arrow.up")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Test: Create Public Record")
+                    Spacer()
+                    if isTestingCloudKit {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    }
+                }
+            }
+            .disabled(isTestingCloudKit)
+            
+            // Test CloudKit Query
+            Button {
+                testCloudKitQuery()
+            } label: {
+                HStack {
+                    Image(systemName: "icloud.and.arrow.down")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Test: Fetch Public Records")
+                    Spacer()
+                    if isTestingCloudKit {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    }
+                }
+            }
+            .disabled(isTestingCloudKit)
+            
+            // Test Offline Queue
+            Button {
+                testOfflineQueue()
+            } label: {
+                HStack {
+                    Image(systemName: "airplane")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Test: Queue Offline Operation")
+                    Spacer()
+                }
+            }
+            
+            // Process Pending Operations
+            Button {
+                processPendingOperations()
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Process Pending Operations")
+                    Spacer()
+                    Text("\(CloudKitSyncCoordinator.shared.pendingOperations.count)")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
+            
+            // Result display
+            if !cloudKitTestResult.isEmpty {
+                Text(cloudKitTestResult)
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(cloudKitTestResult.contains("✅") ? .green : (cloudKitTestResult.contains("❌") ? .red : HeirloomColors.secondaryText))
+            }
+        } header: {
+            Text("Developer Testing")
+        } footer: {
+            Text("Test CloudKit sync infrastructure. Records appear in CloudKit Dashboard → Development → Data.")
+        }
+    }
+    
+    private func testCloudKitPublicDatabase() {
+        isTestingCloudKit = true
+        cloudKitTestResult = "Testing..."
+        
+        Task {
+            let coordinator = CloudKitSyncCoordinator.shared
+            
+            // Create a test record
+            let record = CKRecord(recordType: "ProvenanceAggregate")
+            record["rootHash"] = "test-\(UUID().uuidString.prefix(8))"
+            record["totalUsers"] = 1 as CKRecordValue
+            record["totalCooks"] = 0 as CKRecordValue
+            record["averageRating"] = 5.0 as CKRecordValue
+            record["trendingScore"] = 1.0 as CKRecordValue
+            record["lastUpdated"] = Date() as CKRecordValue
+            
+            do {
+                try await coordinator.saveToPublic(record)
+                await MainActor.run {
+                    cloudKitTestResult = "✅ Record saved! Check CloudKit Dashboard."
+                    isTestingCloudKit = false
+                }
+                print("✅ CloudKit Test: Record saved successfully!")
+            } catch {
+                await MainActor.run {
+                    cloudKitTestResult = "❌ Error: \(error.localizedDescription)"
+                    isTestingCloudKit = false
+                }
+                print("❌ CloudKit Test Error: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func testCloudKitQuery() {
+        isTestingCloudKit = true
+        cloudKitTestResult = "Fetching..."
+        
+        Task {
+            let coordinator = CloudKitSyncCoordinator.shared
+            
+            do {
+                let records = try await coordinator.queryPublic(recordType: "ProvenanceAggregate")
+                await MainActor.run {
+                    cloudKitTestResult = "✅ Fetched \(records.count) records"
+                    isTestingCloudKit = false
+                }
+                print("✅ CloudKit Test: Fetched \(records.count) records")
+                for record in records {
+                    print("  - rootHash: \(record["rootHash"] as? String ?? "nil")")
+                }
+            } catch {
+                await MainActor.run {
+                    cloudKitTestResult = "❌ Error: \(error.localizedDescription)"
+                    isTestingCloudKit = false
+                }
+                print("❌ CloudKit Test Error: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func testOfflineQueue() {
+        let coordinator = CloudKitSyncCoordinator.shared
+        
+        // Create a test record
+        let record = CKRecord(recordType: "ProvenanceAggregate")
+        record["rootHash"] = "queued-\(UUID().uuidString.prefix(8))"
+        record["totalUsers"] = 1 as CKRecordValue
+        record["totalCooks"] = 0 as CKRecordValue
+        record["averageRating"] = 5.0 as CKRecordValue
+        record["trendingScore"] = 1.0 as CKRecordValue
+        record["lastUpdated"] = Date() as CKRecordValue
+        
+        // Queue it (simulating offline behavior)
+        coordinator.queueOperation(type: .create, record: record)
+        
+        cloudKitTestResult = "📋 Queued! Pending: \(coordinator.pendingOperations.count)"
+        print("📋 Queued operation. Pending count: \(coordinator.pendingOperations.count)")
+    }
+    
+    private func processPendingOperations() {
+        cloudKitTestResult = "Processing..."
+        
+        Task {
+            let coordinator = CloudKitSyncCoordinator.shared
+            await coordinator.processPendingOperations()
+            
+            await MainActor.run {
+                let remaining = coordinator.pendingOperations.count
+                if remaining == 0 {
+                    cloudKitTestResult = "✅ All operations processed!"
+                } else {
+                    cloudKitTestResult = "⚠️ \(remaining) operations remaining"
+                }
+            }
+            print("✅ Processed pending operations. Remaining: \(coordinator.pendingOperations.count)")
+        }
     }
 
     // MARK: - Support Section

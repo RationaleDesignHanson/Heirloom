@@ -237,7 +237,7 @@ struct AsyncRecipeImage: View {
 
 // MARK: - Preview
 #Preview("Skeleton Views") {
-    ScrollView {
+    ScrollView(.vertical) {
         VStack(spacing: HeirloomSpacing.lg) {
             Text("Recipe Card Skeleton")
                 .font(HeirloomFonts.title2)

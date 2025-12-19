@@ -18,7 +18,9 @@ enum SchemaV1: VersionedSchema {
             Substitution.self,
             DinnerParty.self,
             DinnerPartyRecipe.self,
-            ShoppingCartRecipe.self  // ADDED: Required for shopping list functionality
+            ShoppingCartRecipe.self,  // ADDED: Required for shopping list functionality
+            RecipeComment.self,  // ADDED: Social comments feature with AI sentiment analysis
+            RecipeCardBack.self  // ADDED: Card back customization with personal notes & comments
         ]
     }
 

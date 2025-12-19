@@ -51,37 +51,82 @@ struct AISettingsView: View {
                     .font(HeirloomFonts.caption1)
             }
 
-            HStack {
-                Image(systemName: config.isConfigured(provider: .anthropic) ? "checkmark.circle.fill" : "xmark.circle")
-                    .foregroundStyle(config.isConfigured(provider: .anthropic) ? .green : .red)
-                Text("API Key")
-                Spacer()
-                Text(config.isConfigured(provider: .anthropic) ? "Configured" : "Not Set")
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .font(HeirloomFonts.caption1)
+            // API Key Status Row
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Image(systemName: config.currentAPIKey != nil ? "checkmark.circle.fill" : "xmark.circle")
+                        .foregroundStyle(config.currentAPIKey != nil ? .green : .red)
+                    Text("API Key")
+                    Spacer()
+
+                    if config.isUsingDefaultKey {
+                        Text("Shared Key")
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                            .font(HeirloomFonts.caption1)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(HeirloomColors.cream)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    } else {
+                        Text("Personal Key")
+                            .foregroundStyle(.green)
+                            .font(HeirloomFonts.caption1)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.green.opacity(0.1))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                }
+
+                // Show masked key
+                if let maskedKey = config.maskedAPIKey {
+                    Text(maskedKey)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
             }
 
+            // Daily quota (only for default key)
+            if config.isUsingDefaultKey {
+                HStack {
+                    Image(systemName: "chart.bar")
+                        .foregroundStyle(HeirloomColors.amber)
+                    Text("Daily Quota")
+                    Spacer()
+                    Text("\(config.remainingDailyQuota)/100 recipes")
+                        .foregroundStyle(config.remainingDailyQuota > 20 ? HeirloomColors.secondaryText : HeirloomColors.tomato)
+                        .font(HeirloomFonts.caption1)
+                }
+            }
+
+            // Action button
             Button {
                 showingAPIKeyInput = true
             } label: {
-                Label(
-                    config.isConfigured(provider: .anthropic) ? "Update API Key" : "Set API Key",
-                    systemImage: "key"
-                )
+                if config.isUsingDefaultKey {
+                    Label("Add Your Own Key (Unlimited)", systemImage: "key")
+                } else {
+                    Label("Update Personal Key", systemImage: "key")
+                }
             }
 
-            if config.isConfigured(provider: .anthropic) {
+            // Remove button (only for personal keys)
+            if !config.isUsingDefaultKey {
                 Button(role: .destructive) {
                     removeAPIKey()
                 } label: {
-                    Label("Remove API Key", systemImage: "trash")
+                    Label("Remove Personal Key", systemImage: "trash")
                         .foregroundStyle(.red)
                 }
             }
         } header: {
             Text("Configuration")
         } footer: {
-            Text("Configure your Anthropic API key to enable AI-powered features. Get your key at console.anthropic.com")
+            if config.isUsingDefaultKey {
+                Text("You're using a shared API key with a daily limit of 100 recipes. Add your own Anthropic key for unlimited usage. Get your key at console.anthropic.com")
+            } else {
+                Text("You're using your personal Anthropic API key with unlimited usage.")
+            }
         }
     }
 
@@ -98,7 +143,7 @@ struct AISettingsView: View {
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
             }
-            .disabled(!config.isConfigured(provider: .anthropic))
+            .disabled(config.currentAPIKey == nil)
 
             Toggle(isOn: $config.enableAICategories) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -109,7 +154,7 @@ struct AISettingsView: View {
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
             }
-            .disabled(!config.isConfigured(provider: .anthropic))
+            .disabled(config.currentAPIKey == nil)
 
             Toggle(isOn: $config.enableAIEnhancement) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -120,14 +165,16 @@ struct AISettingsView: View {
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
             }
-            .disabled(!config.isConfigured(provider: .anthropic))
+            .disabled(config.currentAPIKey == nil)
         } header: {
             Text("AI Features")
         } footer: {
-            if !config.isConfigured(provider: .anthropic) {
+            if config.currentAPIKey == nil {
                 Text("Configure your API key to enable AI features.")
+            } else if config.isUsingDefaultKey {
+                Text("Enable the AI features you want to use. You have \(config.remainingDailyQuota) requests remaining today.")
             } else {
-                Text("Enable the AI features you want to use. Each feature consumes API credits.")
+                Text("Enable the AI features you want to use. Each feature consumes API credits from your personal account.")
             }
         }
     }
@@ -171,7 +218,7 @@ struct AISettingsView: View {
                     }
                 }
             }
-            .disabled(!config.isConfigured(provider: .anthropic) || isTestRunning)
+            .disabled(config.currentAPIKey == nil || isTestRunning)
 
             if !testResult.isEmpty {
                 Text(testResult)
@@ -241,9 +288,9 @@ struct AISettingsView: View {
                         Label("Get API Key", systemImage: "arrow.up.right")
                     }
                 } header: {
-                    Text("Anthropic API Key")
+                    Text("Personal Anthropic API Key")
                 } footer: {
-                    Text("Your API key is stored securely in the iOS Keychain and never shared. Free tier includes $5 credit.")
+                    Text("Add your personal API key for unlimited usage with no daily limits. Your key is stored securely in the iOS Keychain and never shared. Free tier includes $5 credit.")
                 }
 
                 Section {
@@ -307,12 +354,19 @@ struct AISettingsView: View {
         config.setAPIKey(nil, for: .anthropic)
         apiKey = ""
 
-        // Disable all AI features
-        config.enableAIParsing = false
-        config.enableAICategories = false
-        config.enableAIEnhancement = false
-
-        ToastManager.shared.success(title: "API Key Removed")
+        // Don't disable AI features - they'll fall back to the default key
+        // Only disable if there's no default key available
+        if config.currentAPIKey == nil {
+            config.enableAIParsing = false
+            config.enableAICategories = false
+            config.enableAIEnhancement = false
+            ToastManager.shared.success(title: "API Key Removed")
+        } else {
+            ToastManager.shared.success(
+                title: "Personal Key Removed",
+                message: "Now using shared key with daily limits"
+            )
+        }
 
         AnalyticsService.shared.track(event: .settingChanged, properties: [
             "setting": "ai_api_key",

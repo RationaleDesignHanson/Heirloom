@@ -255,7 +255,7 @@ final class ScalingEngineTests: XCTestCase {
         XCTAssertTrue(hasCeilingWarning ?? false)
     }
 
-    func test_minimumServings_generatesWarning() {
+    func test_minimumServings_generatesWarning() throws {
         let recipe = RecipeBuilder()
             .withTitle("Layer Cake")
             .withServings("12 servings")
@@ -313,7 +313,7 @@ final class ScalingEngineTests: XCTestCase {
         XCTAssertTrue(scaled?.adjustedCookTime?.contains("reduce") ?? false)
     }
 
-    func test_bakingTimeAdjustment_scalingUp() {
+    func test_bakingTimeAdjustment_scalingUp() throws {
         let recipe = RecipeBuilder()
             .withTitle("Muffins")
             .withServings("6 muffins")
@@ -326,9 +326,10 @@ final class ScalingEngineTests: XCTestCase {
         let scaled = engine.scaleRecipe(recipe, toServings: 18)
 
         XCTAssertNotNil(scaled)
+        print("DEBUG time: scaleFactor=\(scaled?.scaleFactor ?? 0), adjustedCookTime=\(scaled?.adjustedCookTime ?? "nil")")
         // Muffins get time adjustment when scaled up
-        XCTAssertNotNil(scaled?.adjustedCookTime)
-        XCTAssertTrue(scaled?.adjustedCookTime?.contains("add") ?? false)
+        XCTAssertNotNil(scaled?.adjustedCookTime, "Should have adjusted cook time")
+        XCTAssertTrue(scaled?.adjustedCookTime?.contains("add") ?? false, "Should contain 'add', got: \(scaled?.adjustedCookTime ?? "nil")")
     }
 
     // MARK: - Rounding Tests
@@ -381,7 +382,7 @@ final class ScalingEngineTests: XCTestCase {
 
     // MARK: - Category-Specific Tests
 
-    func test_cookiesCategory_usesCorrectPresets() {
+    func test_cookiesCategory_usesCorrectPresets() throws {
         let recipe = RecipeBuilder()
             .withTitle("Chocolate Chip Cookies")
             .withServings("24 cookies")
@@ -396,7 +397,8 @@ final class ScalingEngineTests: XCTestCase {
 
         // Vanilla (extract/spice) should be scaled non-linearly
         let vanillaIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("vanilla") }
-        XCTAssertTrue(vanillaIngredient?.wasAdjusted ?? false)
+        print("DEBUG cookies: vanilla ingredient name='\(vanillaIngredient?.originalIngredient.name ?? "nil")', wasAdjusted=\(vanillaIngredient?.wasAdjusted ?? false), reason=\(vanillaIngredient?.adjustmentReason ?? "nil")")
+        XCTAssertTrue(vanillaIngredient?.wasAdjusted ?? false, "Vanilla should be adjusted")
     }
 
     func test_soupCategory_scalesLinearly() {

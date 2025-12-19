@@ -26,6 +26,23 @@ class AIConfiguration: ObservableObject {
         didSet { UserDefaults.standard.set(selectedProvider.rawValue, forKey: Keys.selectedProvider) }
     }
 
+    // MARK: - Rate Limiting (for default key)
+
+    private let dailyRequestLimit = 100 // Soft limit for default API key
+
+    @Published var dailyRequestCount: Int {
+        didSet {
+            UserDefaults.standard.set(dailyRequestCount, forKey: Keys.dailyRequestCount)
+            UserDefaults.standard.set(Date(), forKey: Keys.lastResetDate)
+        }
+    }
+
+    private var lastResetDate: Date {
+        get {
+            return UserDefaults.standard.object(forKey: Keys.lastResetDate) as? Date ?? Date()
+        }
+    }
+
     // MARK: - Initialization
 
     private init() {
@@ -38,6 +55,17 @@ class AIConfiguration: ObservableObject {
             self.selectedProvider = provider
         } else {
             self.selectedProvider = .anthropic // Default to Anthropic
+        }
+
+        // Load or reset daily request count
+        let savedCount = UserDefaults.standard.integer(forKey: Keys.dailyRequestCount)
+        let lastReset = UserDefaults.standard.object(forKey: Keys.lastResetDate) as? Date ?? Date()
+
+        // Reset counter if it's a new day
+        if !Calendar.current.isDateInToday(lastReset) {
+            self.dailyRequestCount = 0
+        } else {
+            self.dailyRequestCount = savedCount
         }
     }
 
@@ -65,8 +93,68 @@ class AIConfiguration: ObservableObject {
     }
 
     /// Get the current active provider's API key
+    /// Checks user-provided key first, then falls back to default key from bundle
     var currentAPIKey: String? {
-        return apiKey(for: selectedProvider)
+        // User-provided key takes precedence
+        if let userKey = apiKey(for: selectedProvider), !userKey.isEmpty {
+            return userKey
+        }
+
+        // Fall back to default key from bundle (Config.xcconfig)
+        return defaultAPIKey(for: selectedProvider)
+    }
+
+    /// Get default API key from bundle configuration
+    private func defaultAPIKey(for provider: AIProvider) -> String? {
+        switch provider {
+        case .anthropic:
+            let key = Bundle.main.object(forInfoDictionaryKey: "DEFAULT_ANTHROPIC_KEY") as? String
+            // Validate it's not the placeholder
+            if let key = key, key != "YOUR_ANTHROPIC_API_KEY_HERE", !key.isEmpty {
+                return key
+            }
+            return nil
+        case .openai:
+            return nil // No default OpenAI key configured
+        }
+    }
+
+    /// Check if using the default (shared) API key
+    var isUsingDefaultKey: Bool {
+        let userKey = apiKey(for: selectedProvider)
+        return userKey == nil || userKey?.isEmpty == true
+    }
+
+    /// Get masked version of current API key for display
+    var maskedAPIKey: String? {
+        guard let key = currentAPIKey else { return nil }
+        let prefix = selectedProvider.keyPrefix
+        let visibleLength = min(prefix.count + 4, key.count)
+        if key.count > visibleLength {
+            return String(key.prefix(visibleLength)) + String(repeating: "*", count: 12)
+        }
+        return key
+    }
+
+    /// Remaining quota for today (only relevant for default key)
+    var remainingDailyQuota: Int {
+        guard isUsingDefaultKey else { return Int.max } // Unlimited for personal keys
+        return max(0, dailyRequestLimit - dailyRequestCount)
+    }
+
+    /// Check if we can make a request (for rate limiting)
+    func canMakeRequest() -> Bool {
+        // Personal keys have unlimited usage
+        guard isUsingDefaultKey else { return true }
+
+        // Check daily limit for default key
+        return dailyRequestCount < dailyRequestLimit
+    }
+
+    /// Increment request counter (call after successful AI request)
+    func incrementRequestCount() {
+        guard isUsingDefaultKey else { return }
+        dailyRequestCount += 1
     }
 
     /// Check if any AI feature is enabled
@@ -97,6 +185,8 @@ class AIConfiguration: ObservableObject {
         static let enableAICategories = "ai_categories_enabled"
         static let enableAIEnhancement = "ai_enhancement_enabled"
         static let selectedProvider = "ai_selected_provider"
+        static let dailyRequestCount = "ai_daily_request_count"
+        static let lastResetDate = "ai_last_reset_date"
     }
 }
 
@@ -235,6 +325,7 @@ class AIUsageTracker: ObservableObject {
         // Track in analytics
         AnalyticsService.shared.track(event: .aiTokensUsed, properties: [
             "provider": provider.rawValue,
+            "key_source": AIConfiguration.shared.isUsingDefaultKey ? "default" : "user",
             "input_tokens": tokens.inputTokens,
             "output_tokens": tokens.outputTokens,
             "total_tokens": tokens.totalTokens,

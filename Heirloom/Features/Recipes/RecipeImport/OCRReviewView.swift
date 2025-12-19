@@ -337,7 +337,7 @@ struct OCRReviewView: View {
         // Create Recipe object
         let recipe = Recipe(
             title: title,
-            sourceType: .scan,
+            sourceType: .scan,  // Scanned from recipe card
             instructions: instructions.filter { !$0.isEmpty },
             servings: servings.isEmpty ? nil : servings,
             prepTime: prepTime.isEmpty ? nil : prepTime,
@@ -376,6 +376,7 @@ struct OCRReviewView: View {
                 )
 
                 AnalyticsService.shared.track(event: .recipeScanned, properties: [
+                    "source": "ocr_scan",
                     "ocr_quality": ocrResult.quality.displayName,
                     "ocr_confidence": ocrResult.overallConfidence,
                     "parse_confidence": parsedRecipe.confidence,

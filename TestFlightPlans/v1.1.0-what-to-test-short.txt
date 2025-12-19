@@ -1,0 +1,39 @@
+AI Features Now Work Instantly - No Setup Required!
+
+NEW IN v1.1.0:
+- AI cookbook scanner - snap photos, instant recipe extraction
+- Smart ingredient parsing with AI
+- Bulk URL import (3-5 recipes at once)
+- 100 free AI imports per day (shared key)
+- Optional personal API key for unlimited usage
+
+WHAT TO TEST:
+
+Instant AI Experience
+Launch app → Import recipe immediately (zero setup needed)
+Check Settings → AI Features → See "Shared Key" badge + quota
+
+Cookbook Scanner
+Snap photos of printed recipes → AI extracts ingredients/steps
+Test with various cookbook types (modern, vintage, magazines)
+
+Bulk Import
+Paste 3-5 recipe URLs → Import all at once
+
+Personal Key Upgrade (Optional)
+Settings → "Add Your Own Key" → Unlimited usage
+Add/remove key to test fallback to shared
+
+Daily Limits
+Import multiple recipes → Watch quota count down
+At 100/day, see friendly upgrade message
+
+FEEDBACK NEEDED:
+- Does instant AI feel intuitive or confusing?
+- Is 100/day limit reasonable?
+- Cookbook scanner accuracy?
+- Any privacy concerns about shared vs personal keys?
+
+PRIVACY: Recipes NEVER used for AI training. Personal keys stored in iOS Keychain.
+
+Build 3 | v1.1.0 | December 2024

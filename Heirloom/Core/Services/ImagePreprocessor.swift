@@ -215,8 +215,10 @@ final class ImagePreprocessor {
         }
 
         // Extract pixel data
-        let data = bitmap.dataProvider?.data
-        let bytes = CFDataGetBytePtr(data!)
+        guard let data = bitmap.dataProvider?.data,
+              let bytes = CFDataGetBytePtr(data) else {
+            return .good // Assume good if can't analyze
+        }
         let brightness = Double(bytes[0]) / 255.0
 
         if brightness < 0.3 {

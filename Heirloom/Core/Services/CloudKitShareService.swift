@@ -2,6 +2,21 @@ import Foundation
 import CloudKit
 import SwiftData
 
+// MARK: - ⚠️ DEPRECATED SERVICE
+// This service has been replaced by RecipeShareService which uses proper
+// CKShare-based sharing with the private database.
+//
+// Problems with this old approach:
+// 1. Uses public database with custom "SharedRecipe" record type
+// 2. Requires manual CloudKit schema deployment
+// 3. Doesn't support native CloudKit participant invitations
+// 4. Less secure than private database sharing
+//
+// Migration: Use RecipeShareService.shared instead
+// - For sharing: RecipeShareService.shared.createShare(for:options:context:)
+// - For pass down: RecipeShareService.shared.passDownRecipe(_:options:context:)
+
+@available(*, deprecated, message: "Use RecipeShareService instead. This service uses public database which requires schema deployment.")
 @MainActor
 class CloudKitShareService {
     static let shared = CloudKitShareService()
@@ -21,6 +36,8 @@ class CloudKitShareService {
     // MARK: - Share Recipe
 
     /// Share a recipe with another user via CloudKit
+    /// - Note: ⚠️ DEPRECATED - Use RecipeShareService.shared.createShare() instead
+    @available(*, deprecated, message: "Use RecipeShareService.shared.createShare(for:options:context:) instead")
     func shareRecipe(
         _ recipe: Recipe,
         message: String? = nil,
@@ -76,6 +93,8 @@ class CloudKitShareService {
     }
 
     /// Pass down a recipe (special sharing action with generational tracking)
+    /// - Note: ⚠️ DEPRECATED - Use RecipeShareService.shared.passDownRecipe() instead
+    @available(*, deprecated, message: "Use RecipeShareService.shared.passDownRecipe(_:options:context:) instead")
     func passDownRecipe(
         _ recipe: Recipe,
         to recipient: String,

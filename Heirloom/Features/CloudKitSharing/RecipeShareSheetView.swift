@@ -1,8 +1,10 @@
 import SwiftUI
-import CloudKit
+import SwiftData
 
 struct RecipeShareSheetView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var shareService = PublicShareService.shared
 
     let recipe: Recipe
 
@@ -46,6 +48,22 @@ struct RecipeShareSheetView: View {
                 if let shareURL = shareURL {
                     ShareSheet(items: [shareURL])
                 }
+            }
+            .alert("Share Error", isPresented: .init(
+                get: { errorMessage != nil },
+                set: { if !$0 { errorMessage = nil } }
+            )) {
+                Button("OK") { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "Unknown error")
+            }
+            .alert("Debug: CloudKit Status", isPresented: .init(
+                get: { debugMessage != nil },
+                set: { if !$0 { debugMessage = nil } }
+            )) {
+                Button("OK") { debugMessage = nil }
+            } message: {
+                Text(debugMessage ?? "")
             }
         }
     }
@@ -223,6 +241,14 @@ struct RecipeShareSheetView: View {
                     .foregroundStyle(HeirloomColors.secondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, HeirloomSpacing.xl)
+                
+                // Show the actual URL for debugging
+                Text(url.absoluteString)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(HeirloomColors.warmGray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, HeirloomSpacing.md)
+                    .padding(.top, HeirloomSpacing.sm)
             }
 
             Spacer()
@@ -275,29 +301,47 @@ struct RecipeShareSheetView: View {
     private func shareRecipe() {
         isSharing = true
         errorMessage = nil
-
-        CloudKitShareService.shared.shareRecipe(recipe, message: message.isEmpty ? nil : message) { result in
-            Task { @MainActor in
-                isSharing = false
-
-                switch result {
-                case .success(let url):
+        
+        Task {
+            do {
+                // Create share options with personal message
+                var options = ShareOptions.default
+                options.personalMessage = message.isEmpty ? nil : message
+                
+                print("🚀 Starting share for: \(recipe.title)")
+                
+                // Use the public share service
+                let url = try await shareService.shareRecipe(recipe, options: options)
+                
+                print("✅✅✅ SHARE COMPLETE - URL: \(url.absoluteString)")
+                
+                await MainActor.run {
                     // Haptic feedback
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
-
+                    
                     shareURL = url
-
-                case .failure(let error):
+                    isSharing = false
+                    
+                    // Show alert to confirm CloudKit save worked
+                    debugMessage = "CloudKit save succeeded!\nShare ID: \(url.lastPathComponent)"
+                }
+            } catch {
+                print("❌❌❌ SHARE FAILED: \(error)")
+                
+                await MainActor.run {
                     // Haptic feedback
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.error)
-
-                    errorMessage = error.localizedDescription
+                    
+                    errorMessage = "Share failed: \(error.localizedDescription)"
+                    isSharing = false
                 }
             }
         }
     }
+    
+    @State private var debugMessage: String?
 }
 
 // MARK: - Share Sheet

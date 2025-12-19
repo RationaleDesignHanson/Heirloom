@@ -1,6 +1,6 @@
 name: Heirloom
 options:
-  bundleIdPrefix: com.heirloom
+  bundleIdPrefix: com.matthanson
   deploymentTarget:
     iOS: "17.0"
   developmentLanguage: en
@@ -9,7 +9,36 @@ options:
 settings:
   SWIFT_VERSION: "5.9"
   DEVELOPMENT_TEAM: Q2HHH2GDN8
-
+  # Recommended settings to prevent Xcode prompts
+  DEAD_CODE_STRIPPING: YES
+  ENABLE_USER_SCRIPT_SANDBOXING: YES
+  CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING: YES
+  CLANG_WARN_BOOL_CONVERSION: YES
+  CLANG_WARN_COMMA: YES
+  CLANG_WARN_CONSTANT_CONVERSION: YES
+  CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS: YES
+  CLANG_WARN_EMPTY_BODY: YES
+  CLANG_WARN_ENUM_CONVERSION: YES
+  CLANG_WARN_INFINITE_RECURSION: YES
+  CLANG_WARN_INT_CONVERSION: YES
+  CLANG_WARN_NON_LITERAL_NULL_CONVERSION: YES
+  CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF: YES
+  CLANG_WARN_OBJC_LITERAL_CONVERSION: YES
+  CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER: YES
+  CLANG_WARN_RANGE_LOOP_ANALYSIS: YES
+  CLANG_WARN_STRICT_PROTOTYPES: YES
+  CLANG_WARN_SUSPICIOUS_MOVE: YES
+  CLANG_WARN_UNREACHABLE_CODE: YES
+  CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED: YES
+  ENABLE_STRICT_OBJC_MSGSEND: YES
+  GCC_NO_COMMON_BLOCKS: YES
+  GCC_WARN_64_TO_32_BIT_CONVERSION: YES
+  GCC_WARN_ABOUT_RETURN_TYPE: YES_ERROR
+  GCC_WARN_UNDECLARED_SELECTOR: YES
+  GCC_WARN_UNINITIALIZED_AUTOS: YES_AGGRESSIVE
+  GCC_WARN_UNUSED_FUNCTION: YES
+  GCC_WARN_UNUSED_VARIABLE: YES
+  
 targets:
   Heirloom:
     type: application
@@ -17,7 +46,7 @@ targets:
     deploymentTarget: "17.0"
 
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.heirloom.app
+      PRODUCT_BUNDLE_IDENTIFIER: com.matthanson.heirloom
       DEVELOPMENT_TEAM: Q2HHH2GDN8
       INFOPLIST_FILE: Heirloom/Resources/Info.plist
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -26,6 +55,9 @@ targets:
       TARGETED_DEVICE_FAMILY: "1"
       SUPPORTS_MACCATALYST: false
       ENABLE_PREVIEWS: true
+      # Recommended settings
+      DEAD_CODE_STRIPPING: YES
+      ENABLE_USER_SCRIPT_SANDBOXING: YES
 
     sources:
       - path: Heirloom
@@ -37,8 +69,8 @@ targets:
       path: Heirloom/Resources/Info.plist
       properties:
         CFBundleDisplayName: Heirloom
-        CFBundleShortVersionString: "1.0.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.1.0"
+        CFBundleVersion: "13"
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
@@ -46,6 +78,13 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         UIRequiredDeviceCapabilities:
           - arm64
+        UIBackgroundModes:
+          - remote-notification
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.matthanson.heirloom
+            CFBundleURLSchemes:
+              - heirloom
         NSRemindersFullAccessUsageDescription: "Heirloom exports your shopping list to Reminders so you can check off items while shopping."
         NSCameraUsageDescription: "Heirloom needs camera access to photograph recipe cards from your cookbooks."
         NSPhotoLibraryUsageDescription: "Heirloom needs photo library access to import recipe images."
@@ -58,12 +97,12 @@ targets:
       path: Heirloom/Heirloom.entitlements
       properties:
         com.apple.developer.icloud-container-identifiers:
-          - iCloud.com.heirloom.app
+          - iCloud.com.matthanson.heirloom
         com.apple.developer.icloud-services:
           - CloudKit
-        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)com.heirloom.app
+        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)com.matthanson.heirloom
         com.apple.security.application-groups:
-          - group.com.heirloom.shared
+          - group.com.matthanson.heirloom.shared
 
 packages:
   SwiftSoup:

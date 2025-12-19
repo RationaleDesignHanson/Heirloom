@@ -1,0 +1,327 @@
+import Foundation
+import SwiftData
+
+/// Service for managing recipe comments - CRUD operations, threading, and persistence
+@MainActor
+final class CommentService {
+    static let shared = CommentService()
+    private init() {}
+
+    // MARK: - Create
+
+    /// Add a comment to a recipe
+    func addComment(
+        to recipe: Recipe,
+        text: String,
+        authorName: String? = nil,
+        source: CommentSource = .user,
+        commentType: CommentType = .general,
+        parentComment: RecipeComment? = nil,
+        context: ModelContext
+    ) throws -> RecipeComment {
+        let comment = RecipeComment(
+            text: text,
+            authorName: authorName,
+            source: source,
+            commentType: commentType,
+            recipe: recipe,
+            parentComment: parentComment
+        )
+
+        context.insert(comment)
+
+        // Add to recipe's comments array
+        if recipe.comments == nil {
+            recipe.comments = []
+        }
+        recipe.comments?.append(comment)
+
+        // If this is a reply, add to parent's replies
+        if let parent = parentComment {
+            if parent.replies == nil {
+                parent.replies = []
+            }
+            parent.replies?.append(comment)
+        }
+
+        try context.save()
+        return comment
+    }
+
+    /// Batch import comments (for scraped comments from websites)
+    func importComments(
+        _ commentTexts: [String],
+        to recipe: Recipe,
+        source: CommentSource = .scraped,
+        context: ModelContext
+    ) throws -> [RecipeComment] {
+        var importedComments: [RecipeComment] = []
+
+        for text in commentTexts {
+            let comment = RecipeComment(
+                text: text,
+                source: source,
+                commentType: .general,
+                recipe: recipe
+            )
+
+            context.insert(comment)
+            importedComments.append(comment)
+
+            if recipe.comments == nil {
+                recipe.comments = []
+            }
+            recipe.comments?.append(comment)
+        }
+
+        try context.save()
+        return importedComments
+    }
+
+    // MARK: - Read
+
+    /// Get all top-level comments for a recipe (no parent)
+    func getTopLevelComments(for recipe: Recipe) -> [RecipeComment] {
+        recipe.comments?.filter { $0.isTopLevel } ?? []
+    }
+
+    /// Get comments sorted by vote score
+    func getTopComments(
+        for recipe: Recipe,
+        limit: Int = 5
+    ) -> [RecipeComment] {
+        let comments = recipe.comments ?? []
+        return comments
+            .filter { !$0.isHidden }
+            .sorted { $0.voteScore > $1.voteScore }
+            .prefix(limit)
+            .map { $0 }
+    }
+
+    /// Get pinned comments
+    func getPinnedComments(for recipe: Recipe) -> [RecipeComment] {
+        recipe.comments?.filter { $0.isPinned } ?? []
+    }
+
+    /// Get comments by type
+    func getComments(
+        for recipe: Recipe,
+        ofType type: CommentType
+    ) -> [RecipeComment] {
+        recipe.comments?.filter { $0.commentType == type } ?? []
+    }
+
+    /// Get high engagement comments (lots of upvotes)
+    func getHighEngagementComments(for recipe: Recipe) -> [RecipeComment] {
+        recipe.comments?.filter { $0.isHighEngagement } ?? []
+    }
+
+    /// Get positive comments (based on sentiment)
+    func getPositiveComments(for recipe: Recipe) -> [RecipeComment] {
+        recipe.comments?.filter { $0.isPositive } ?? []
+    }
+
+    /// Search comments by text
+    func searchComments(
+        for recipe: Recipe,
+        query: String
+    ) -> [RecipeComment] {
+        let lowercasedQuery = query.lowercased()
+        return recipe.comments?.filter {
+            $0.text.lowercased().contains(lowercasedQuery) ||
+            $0.topics.contains { $0.lowercased().contains(lowercasedQuery) }
+        } ?? []
+    }
+
+    // MARK: - Update
+
+    /// Update comment text
+    func updateComment(
+        _ comment: RecipeComment,
+        text: String,
+        context: ModelContext
+    ) throws {
+        comment.text = text
+        comment.modifiedAt = Date()
+        try context.save()
+    }
+
+    /// Vote on a comment
+    func upvoteComment(_ comment: RecipeComment, context: ModelContext) throws {
+        comment.upvotes += 1
+        try context.save()
+    }
+
+    func downvoteComment(_ comment: RecipeComment, context: ModelContext) throws {
+        comment.downvotes += 1
+        try context.save()
+    }
+
+    /// Toggle pin status
+    func togglePin(_ comment: RecipeComment, context: ModelContext) throws {
+        comment.isPinned.toggle()
+        try context.save()
+    }
+
+    /// Toggle favorite status
+    func toggleFavorite(_ comment: RecipeComment, context: ModelContext) throws {
+        comment.isFavorite.toggle()
+        try context.save()
+    }
+
+    /// Toggle card back visibility
+    func toggleCardBackVisibility(
+        _ comment: RecipeComment,
+        context: ModelContext
+    ) throws {
+        comment.showOnCardBack.toggle()
+
+        // If showing on card back, also pin it
+        if comment.showOnCardBack {
+            comment.isPinned = true
+        }
+
+        try context.save()
+    }
+
+    /// Update sentiment score (typically done by CommentAnalysisService)
+    func updateSentiment(
+        for comment: RecipeComment,
+        score: Double,
+        confidence: Double,
+        topics: [String],
+        context: ModelContext
+    ) throws {
+        comment.sentimentScore = score
+        comment.analysisConfidence = confidence
+        comment.topics = topics
+        try context.save()
+    }
+
+    /// Update comment type classification
+    func updateCommentType(
+        _ comment: RecipeComment,
+        type: CommentType,
+        context: ModelContext
+    ) throws {
+        comment.commentType = type
+        try context.save()
+    }
+
+    // MARK: - Delete
+
+    /// Delete a comment (and all replies if top-level)
+    func deleteComment(_ comment: RecipeComment, context: ModelContext) throws {
+        context.delete(comment)
+        try context.save()
+    }
+
+    /// Delete all comments for a recipe
+    func deleteAllComments(for recipe: Recipe, context: ModelContext) throws {
+        guard let comments = recipe.comments else { return }
+
+        for comment in comments {
+            context.delete(comment)
+        }
+
+        recipe.comments = []
+        try context.save()
+    }
+
+    /// Hide comment (soft delete)
+    func hideComment(
+        _ comment: RecipeComment,
+        reason: String?,
+        context: ModelContext
+    ) throws {
+        comment.isHidden = true
+        comment.moderationNote = reason
+        try context.save()
+    }
+
+    /// Flag comment for review
+    func flagComment(
+        _ comment: RecipeComment,
+        reason: String?,
+        context: ModelContext
+    ) throws {
+        comment.isFlagged = true
+        comment.moderationNote = reason
+        try context.save()
+    }
+
+    // MARK: - Statistics
+
+    /// Get comment statistics for a recipe
+    func getStatistics(for recipe: Recipe) -> CommentStatistics {
+        let comments = recipe.comments ?? []
+
+        let total = comments.count
+        let topLevel = comments.filter { $0.isTopLevel }.count
+        let replies = comments.filter { !$0.isTopLevel }.count
+        let pinned = comments.filter { $0.isPinned }.count
+        let scraped = comments.filter { $0.source == .scraped }.count
+        let user = comments.filter { $0.source == .user }.count
+
+        let avgSentiment = comments.compactMap { $0.sentimentScore }.average()
+        let totalUpvotes = comments.map { $0.upvotes }.reduce(0, +)
+        let totalDownvotes = comments.map { $0.downvotes }.reduce(0, +)
+
+        // Count by type
+        var typeBreakdown: [CommentType: Int] = [:]
+        for comment in comments {
+            typeBreakdown[comment.commentType, default: 0] += 1
+        }
+
+        return CommentStatistics(
+            totalComments: total,
+            topLevelComments: topLevel,
+            replies: replies,
+            pinnedComments: pinned,
+            scrapedComments: scraped,
+            userComments: user,
+            averageSentiment: avgSentiment,
+            totalUpvotes: totalUpvotes,
+            totalDownvotes: totalDownvotes,
+            commentsByType: typeBreakdown
+        )
+    }
+}
+
+// MARK: - Supporting Types
+
+struct CommentStatistics {
+    let totalComments: Int
+    let topLevelComments: Int
+    let replies: Int
+    let pinnedComments: Int
+    let scrapedComments: Int
+    let userComments: Int
+    let averageSentiment: Double?
+    let totalUpvotes: Int
+    let totalDownvotes: Int
+    let commentsByType: [CommentType: Int]
+
+    var hasComments: Bool {
+        totalComments > 0
+    }
+
+    var engagementRate: Double {
+        guard totalComments > 0 else { return 0 }
+        return Double(totalUpvotes + totalDownvotes) / Double(totalComments)
+    }
+
+    var positivityRate: Double? {
+        guard let sentiment = averageSentiment else { return nil }
+        return (sentiment + 1.0) / 2.0 // Convert -1...1 to 0...1
+    }
+}
+
+// MARK: - Array Extension
+
+private extension Array where Element == Double {
+    func average() -> Double? {
+        guard !isEmpty else { return nil }
+        return reduce(0, +) / Double(count)
+    }
+}

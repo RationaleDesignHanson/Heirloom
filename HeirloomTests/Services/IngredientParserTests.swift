@@ -220,18 +220,19 @@ final class IngredientParserTests: XCTestCase {
 
     // MARK: - Unit Abbreviation Tests
 
-    func test_parse_teaspoonAbbreviations() {
+    func test_parse_teaspoonAbbreviations() throws {
         let variations = ["tsp", "tsp.", "t", "teaspoon", "teaspoons"]
 
         for abbr in variations {
             let result = IngredientParser.parse("1 \(abbr) salt")
-            XCTAssertEqual(result.quantity, 1.0)
-            XCTAssertNotNil(result.unit)
-            XCTAssertEqual(result.name, "salt")
+            print("DEBUG: Testing abbr '\(abbr)' -> qty=\(String(describing: result.quantity)), unit=\(String(describing: result.unit)), name='\(result.name)'")
+            XCTAssertEqual(result.quantity, 1.0, "Failed for '\(abbr)'")
+            XCTAssertNotNil(result.unit, "Failed for '\(abbr)'")
+            XCTAssertEqual(result.name, "salt", "Failed for '\(abbr)'")
         }
     }
 
-    func test_parse_tablespoonAbbreviations() {
+    func test_parse_tablespoonAbbreviations() throws {
         let variations = ["tbsp", "tbsp.", "T", "tablespoon", "tablespoons"]
 
         for abbr in variations {
@@ -242,7 +243,7 @@ final class IngredientParserTests: XCTestCase {
         }
     }
 
-    func test_parse_cupAbbreviations() {
+    func test_parse_cupAbbreviations() throws {
         let variations = ["cup", "cups", "c", "c."]
 
         for abbr in variations {

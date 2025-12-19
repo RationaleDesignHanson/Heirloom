@@ -1,0 +1,53 @@
+NEW: AI Features Work Instantly (No Setup Required!)
+
+AI-powered recipe features now work out of the box with 100 free imports per day. Power users can optionally add their own Anthropic API key for unlimited usage.
+
+WHAT'S NEW:
+Instant AI Cookbook Scanner - Snap photos, AI extracts recipes
+Smart Ingredient Parsing - Handles complex formats perfectly
+Bulk URL Import - Import 3-5 recipes at once
+Transparent Quota System - See usage in Settings → AI Features
+
+KEY TESTING AREAS:
+
+1. INSTANT AI (Zero Setup)
+   - Launch app → Import recipe immediately
+   - No API key configuration needed
+   - Check Settings → AI Features for quota display
+   - Verify "Shared Key" badge shows
+
+2. DAILY QUOTA
+   - Import multiple recipes
+   - Watch quota count down (X/100)
+   - At limit, see friendly upgrade message
+   - Resets midnight local time
+
+3. PERSONAL KEY UPGRADE (Optional)
+   - Tap "Add Your Own Key" in Settings
+   - Add Anthropic key (free at console.anthropic.com)
+   - Badge changes to "Personal Key"
+   - Unlimited usage
+
+4. COOKBOOK SCANNER
+   - Test with printed cookbooks, magazines
+   - Verify OCR + AI extraction accuracy
+   - Try vintage and modern sources
+
+5. BULK IMPORT
+   - Paste 3-5 recipe URLs at once
+   - All import in parallel
+
+FOCUS FEEDBACK ON:
+- Does instant AI feel intuitive?
+- Is 100/day limit reasonable?
+- Is upgrade path to personal key clear?
+- Cookbook scanner accuracy
+- Any privacy concerns?
+
+PRIVACY: Your recipes are NEVER used for AI training. Shared key is for convenience. Personal keys stored securely in iOS Keychain.
+
+KNOWN ISSUES:
+- Handwritten recipes may have reduced accuracy
+- First AI request takes 2-3 seconds
+
+Build: 3 | Version: 1.1.0 | December 2024

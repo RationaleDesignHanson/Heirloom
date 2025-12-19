@@ -456,6 +456,7 @@ struct ImportedRecipe {
     var description: String?
     var imageURL: String?
     var sourceURL: String = ""
+    var author: String?
     var servings: String?
     var prepTime: String?
     var cookTime: String?

@@ -3,8 +3,8 @@ import PDFKit
 import SwiftUI
 
 @MainActor
-class RecipeShareService {
-    static let shared = RecipeShareService()
+class RecipeExportService {
+    static let shared = RecipeExportService()
     private init() {}
 
     // MARK: - Share Methods

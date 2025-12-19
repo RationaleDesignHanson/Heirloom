@@ -79,6 +79,18 @@ final class Recipe {
     var passedDownMessage: String?
     var generationCount: Int = 1
 
+    // MARK: - Provenance Tracking (Phase 2A)
+    /// Comprehensive provenance and lineage tracking
+    /// Replaces legacy fields above (maintained for backward compatibility)
+    var provenance: ProvenanceMetadata?
+
+    // MARK: - Social Features (Comments & Card Back)
+    @Relationship(deleteRule: .cascade, inverse: \RecipeComment.recipe)
+    var comments: [RecipeComment]?
+
+    @Relationship(deleteRule: .cascade, inverse: \RecipeCardBack.recipe)
+    var cardBack: RecipeCardBack?
+
     // MARK: - Initialization
     init(
         title: String = "",
@@ -104,6 +116,23 @@ final class Recipe {
         self.isFavorite = false
         self.isInShoppingList = false
         self.generationCount = 1
+
+        // Initialize provenance for new recipes
+        let provenanceSourceType: ProvenanceMetadata.SourceType = {
+            switch sourceType {
+            case .manual: return .userCreated
+            case .url: return .imported
+            case .cookbook: return .scanned
+            case .scan: return .scanned
+            case .family: return .userCreated
+            }
+        }()
+
+        self.provenance = ProvenanceMetadata(
+            sourceType: provenanceSourceType,
+            sourceURL: sourceURL,
+            generation: 0
+        )
     }
 }
 
@@ -326,12 +355,108 @@ extension Recipe {
     }
 }
 
+// MARK: - Provenance Helpers
+extension Recipe {
+    /// Ensure provenance metadata exists, creating it if needed
+    func ensureProvenance() {
+        if provenance == nil {
+            // Create provenance from existing fields (migration path)
+            let sourceTypeEnum: ProvenanceMetadata.SourceType
+            switch sourceType {
+            case .manual:
+                sourceTypeEnum = .userCreated
+            case .url:
+                sourceTypeEnum = .imported
+            case .family:
+                sourceTypeEnum = sharedBy != nil ? .shared : .userCreated
+            case .cookbook:
+                sourceTypeEnum = .scanned
+            case .scan:
+                sourceTypeEnum = .scanned
+            default:
+                sourceTypeEnum = .userCreated
+            }
+
+            let generation = generationCount > 0 ? generationCount - 1 : 0
+
+            provenance = ProvenanceMetadata(
+                sourceType: sourceTypeEnum,
+                sourceURL: sourceURL,
+                sourceAttribution: sourceAttribution,
+                generation: generation,
+                sharedByName: sharedBy ?? passedDownBy,
+                createdAt: dateAdded
+            )
+        }
+    }
+
+    /// Attribution text for display (uses provenance if available, falls back to legacy fields)
+    var sourceAttribution: String? {
+        provenance?.sourceAttribution ?? sourcePerson ?? sourceBookTitle
+    }
+
+    /// Display source for UI (provenance-aware)
+    var displaySource: String {
+        if let prov = provenance {
+            return prov.displaySource
+        }
+        return sourceDisplayName
+    }
+
+    /// Whether this recipe is original (generation 0)
+    var isOriginalRecipe: Bool {
+        provenance?.isOriginal ?? (generationCount <= 1)
+    }
+
+    /// Whether this recipe was shared/received
+    var isSharedRecipe: Bool {
+        provenance?.isShared ?? (sharedBy != nil || passedDownBy != nil)
+    }
+
+    /// Display-friendly generation info
+    var generationDisplayText: String? {
+        if let prov = provenance, prov.generation > 0 {
+            if prov.generation == 1 {
+                return "1st Generation"
+            } else if prov.generation == 2 {
+                return "2nd Generation"
+            } else if prov.generation == 3 {
+                return "3rd Generation"
+            } else {
+                return "\(prov.generation)th Generation"
+            }
+        }
+
+        if generationCount > 1 {
+            return "Gen \(generationCount)"
+        }
+
+        return nil
+    }
+
+    /// Trending status from cached metrics
+    var isTrending: Bool {
+        provenance?.cachedMetrics.isTrending ?? false
+    }
+
+    /// Total shares from metrics
+    var totalShares: Int {
+        provenance?.cachedMetrics.totalShares ?? 0
+    }
+
+    /// Share count display text
+    var shareCountDisplay: String {
+        provenance?.cachedMetrics.displayShareCount ?? ""
+    }
+}
+
 // MARK: - RecipeSourceType
 enum RecipeSourceType: String, Codable, CaseIterable {
     case url = "url"
     case cookbook = "cookbook"
     case family = "family"
     case manual = "manual"
+    case scan = "scan"
 
     var iconName: String {
         switch self {
@@ -339,6 +464,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .cookbook: return "book.closed.fill"
         case .family: return "heart.fill"
         case .manual: return "square.and.pencil"
+        case .scan: return "doc.viewfinder"
         }
     }
 
@@ -348,6 +474,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .cookbook: return "Cookbook"
         case .family: return "Family"
         case .manual: return "My Recipe"
+        case .scan: return "Scanned"
         }
     }
 }

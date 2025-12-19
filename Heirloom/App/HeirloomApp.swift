@@ -174,6 +174,9 @@ struct ContentView: View {
     @State private var showAddRecipe = false
     @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
 
+    // Deep link handler for recipe sharing
+    @StateObject private var deepLinkHandler = DeepLinkHandler.shared
+
     var body: some View {
         TabView(selection: $selectedTab) {
             RecipeListView()
@@ -217,8 +220,23 @@ struct ContentView: View {
         .sheet(isPresented: $showAddRecipe) {
             RecipeEditorView()
         }
+        .sheet(isPresented: $deepLinkHandler.showReceiveSheet) {
+            if let shareURL = deepLinkHandler.pendingShareURL {
+                SharePreviewView(shareURL: shareURL)
+            }
+        }
         .fullScreenCover(isPresented: $showOnboarding) {
             OnboardingView()
+        }
+        .environment(\.deepLinkHandler, deepLinkHandler)
+        .onOpenURL { url in
+            print("📱 App received URL: \(url.absoluteString)")
+            let handled = deepLinkHandler.handleURL(url)
+            if handled {
+                print("✅ URL handled by deep link handler")
+            } else {
+                print("⚠️ URL not recognized by deep link handler")
+            }
         }
     }
 }

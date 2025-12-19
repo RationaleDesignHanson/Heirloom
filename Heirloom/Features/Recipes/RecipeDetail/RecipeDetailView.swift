@@ -18,6 +18,8 @@ struct RecipeDetailView: View {
     @State private var servingMultiplier: Double = 1.0
     @State private var targetServings: Int = 0
     @State private var showScalingExplanation = false
+    @State private var showComments = false
+    @State private var showCardBack = false
 
     var body: some View {
         ScrollView {
@@ -76,6 +78,9 @@ struct RecipeDetailView: View {
 
                     // Source Section
                     sourceSection
+
+                    // Comments Section
+                    commentsSection
                 }
                 .padding(HeirloomSpacing.lg)
             }
@@ -143,6 +148,21 @@ struct RecipeDetailView: View {
 
                     Divider()
 
+                    Button {
+                        showComments = true
+                    } label: {
+                        let commentCount = recipe.comments?.count ?? 0
+                        Label("Comments (\(commentCount))", systemImage: "bubble.left.fill")
+                    }
+
+                    Button {
+                        showCardBack = true
+                    } label: {
+                        Label("Customize Card Back", systemImage: "rectangle.portrait.on.rectangle.portrait")
+                    }
+
+                    Divider()
+
                     Button(role: .destructive) {
                         showDeleteConfirmation = true
                     } label: {
@@ -180,6 +200,14 @@ struct RecipeDetailView: View {
         }
         .sheet(isPresented: $showPassDown) {
             PassDownView(recipe: recipe)
+        }
+        .sheet(isPresented: $showComments) {
+            NavigationStack {
+                RecipeCommentListView(recipe: recipe)
+            }
+        }
+        .sheet(isPresented: $showCardBack) {
+            CardBackEditorView(recipe: recipe)
         }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe)
@@ -688,6 +716,148 @@ struct RecipeDetailView: View {
         .padding(.top, HeirloomSpacing.lg)
     }
 
+    // MARK: - Comments Section
+    private var commentsSection: some View {
+        let comments = recipe.comments ?? []
+        let commentCount = comments.count
+        let topComments = CommentService.shared.getTopComments(for: recipe, limit: 3)
+
+        return VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            // Section header
+            Button {
+                showComments = true
+            } label: {
+                HStack {
+                    sectionHeader(
+                        title: "Comments",
+                        icon: "bubble.left.fill",
+                        count: commentCount
+                    )
+
+                    Spacer()
+
+                    if commentCount > 0 {
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+
+            if commentCount > 0 {
+                // Show top 3 comments preview
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                    ForEach(topComments) { comment in
+                        commentPreviewRow(comment)
+                            .onTapGesture {
+                                showComments = true
+                            }
+                    }
+                }
+                .padding(HeirloomSpacing.md)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(.white)
+                )
+
+                // View all button
+                if commentCount > 3 {
+                    Button {
+                        showComments = true
+                    } label: {
+                        HStack {
+                            Text("View all \(commentCount) comments")
+                                .font(HeirloomFonts.bodyBold)
+                            Image(systemName: "arrow.right")
+                                .font(.caption)
+                        }
+                        .foregroundStyle(HeirloomColors.tomato)
+                    }
+                }
+            } else {
+                // Empty state
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                    Text("No comments yet")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
+
+                    Button {
+                        showComments = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                            Text("Add the first comment")
+                        }
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.tomato)
+                    }
+                }
+                .padding(HeirloomSpacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(.white)
+                )
+            }
+        }
+        .padding(.top, HeirloomSpacing.lg)
+    }
+
+    private func commentPreviewRow(_ comment: RecipeComment) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Author and sentiment
+            HStack {
+                Text(comment.displayAuthor)
+                    .font(HeirloomFonts.caption1)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(HeirloomColors.charcoal.opacity(0.8))
+
+                if let sentiment = comment.sentimentScore {
+                    HStack(spacing: 2) {
+                        Image(systemName: sentimentIcon(sentiment))
+                            .font(.caption2)
+                        Text(String(format: "%.0f%%", abs(sentiment) * 100))
+                            .font(.caption2)
+                    }
+                    .foregroundStyle(sentimentColor(sentiment))
+                }
+
+                Spacer()
+
+                if comment.upvotes > 0 {
+                    HStack(spacing: 2) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.caption2)
+                        Text("\(comment.upvotes)")
+                            .font(.caption2)
+                    }
+                    .foregroundStyle(.green)
+                }
+            }
+
+            // Comment text
+            Text(comment.text)
+                .font(HeirloomFonts.subheadline)
+                .foregroundStyle(HeirloomColors.charcoal)
+                .lineLimit(2)
+        }
+    }
+
+    private func sentimentIcon(_ score: Double) -> String {
+        if score > 0.5 { return "face.smiling" }
+        if score > 0.2 { return "hand.thumbsup.fill" }
+        if score < -0.5 { return "exclamationmark.triangle.fill" }
+        if score < -0.2 { return "hand.thumbsdown.fill" }
+        return "minus.circle"
+    }
+
+    private func sentimentColor(_ score: Double) -> Color {
+        if score > 0.2 { return .green }
+        if score < -0.2 { return .red }
+        return .secondary
+    }
+
     // MARK: - Helper Views
     private func sectionHeader(title: String, icon: String, count: Int? = nil) -> some View {
         HStack(spacing: HeirloomSpacing.sm) {
@@ -710,7 +880,7 @@ struct RecipeDetailView: View {
 
     // MARK: - Actions
 
-    private func shareRecipe(as format: RecipeShareService.ShareFormat) {
+    private func shareRecipe(as format: RecipeExportService.ShareFormat) {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first else {
             return
@@ -720,7 +890,7 @@ struct RecipeDetailView: View {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
 
-        RecipeShareService.shared.shareRecipe(recipe, as: format, from: window)
+        RecipeExportService.shared.shareRecipe(recipe, as: format, from: window)
 
         // Track analytics
         AnalyticsService.shared.track(event: .recipeShared, properties: [

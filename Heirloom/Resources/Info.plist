@@ -17,9 +17,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>$(MARKETING_VERSION)</string>
+	<string>1.1.0</string>
 	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<string>13</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Heirloom needs camera access to photograph recipe cards from your cookbooks.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
@@ -43,6 +43,19 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.matthanson.heirloom</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>heirloom</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>
