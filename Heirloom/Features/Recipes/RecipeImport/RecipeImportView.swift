@@ -9,6 +9,7 @@ struct RecipeImportView: View {
     @State private var isImporting = false
     @State private var importedRecipe: ImportedRecipe?
     @State private var importError: String?
+    @State private var isSaving = false
 
     var body: some View {
         NavigationStack {
@@ -30,10 +31,21 @@ struct RecipeImportView: View {
 
                 if importedRecipe != nil {
                     ToolbarItem(placement: .primaryAction) {
-                        Button("Save") {
-                            saveRecipe()
+                        Button {
+                            Task {
+                                await saveRecipe()
+                            }
+                        } label: {
+                            if isSaving {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                                    .tint(.white)
+                            } else {
+                                Text("Save")
+                                    .fontWeight(.semibold)
+                            }
                         }
-                        .fontWeight(.semibold)
+                        .disabled(isSaving)
                     }
                 }
             }
@@ -271,11 +283,25 @@ struct RecipeImportView: View {
         isImporting = true
 
         do {
-            let recipe = try await RecipeImportService.shared.importRecipe(from: urlText)
+            // Try cloud import with automatic fallback to local parser
+            let response = try await CloudRecipeImportService.shared.importWithFallback(from: urlText)
 
             await MainActor.run {
-                if recipe.isValid {
+                if let recipe = response.toImportedRecipe() {
                     importedRecipe = recipe
+
+                    // Log confidence and parser used
+                    print("✅ Imported with \(String(format: "%.1f%%", response.confidence * 100)) confidence")
+                    print("   Parser: \(response.metadata.parserUsed.rawValue)")
+                    print("   Domain: \(response.metadata.domain)")
+                    if let author = recipe.author {
+                        print("   Author: \(author)")
+                    }
+                    if let imageURL = recipe.imageURL {
+                        print("   Image URL: \(imageURL)")
+                    } else {
+                        print("   ⚠️ No image URL")
+                    }
                 } else {
                     importError = "The recipe is incomplete. Please try a different URL."
                 }
@@ -289,8 +315,12 @@ struct RecipeImportView: View {
         }
     }
 
-    private func saveRecipe() {
+    private func saveRecipe() async {
         guard let imported = importedRecipe else { return }
+
+        // Set saving state
+        isSaving = true
+        defer { isSaving = false }
 
         // Create Recipe object
         let recipe = Recipe(
@@ -308,9 +338,7 @@ struct RecipeImportView: View {
         modelContext.insert(recipe)
 
         // Parse ingredients with AI (async batch parsing for efficiency)
-        Task {
-            await parseAndSaveIngredients(recipe: recipe, ingredientTexts: imported.ingredients)
-        }
+        await parseAndSaveIngredients(recipe: recipe, ingredientTexts: imported.ingredients)
     }
 
     private func parseAndSaveIngredients(recipe: Recipe, ingredientTexts: [String]) async {
@@ -380,15 +408,23 @@ struct RecipeImportView: View {
     }
 
     private func downloadAndSaveImage(from url: URL, for recipe: Recipe) async {
+        print("🖼️ Downloading image from: \(url.absoluteString)")
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
+            print("✅ Downloaded image data: \(data.count) bytes")
 
             if let image = UIImage(data: data) {
+                print("✅ Created UIImage from data")
                 let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
+                print("✅ Saved image as: \(fileName)")
                 await MainActor.run {
                     recipe.imageFileName = fileName
+                    print("✅ Set recipe.imageFileName = \(fileName)")
                     try? modelContext.save()
+                    print("✅ Saved modelContext")
                 }
+            } else {
+                print("⚠️ Failed to create UIImage from downloaded data")
             }
         } catch {
             print("⚠️ Failed to download recipe image: \(error)")
