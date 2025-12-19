@@ -67,6 +67,16 @@ enum AnalyticsEvent: String {
     case aiCategoryDetectionFailed = "AI Category Detection Failed"
     case aiEnhancementSuccess = "AI Enhancement Success"
     case aiEnhancementFailed = "AI Enhancement Failed"
+
+    // Engagement Tracking (Phase 2D - Prompt 11)
+    case recipeEngaged = "Recipe Engaged"
+    case recipeSaved = "Recipe Saved"
+    case recipeUnsaved = "Recipe Unsaved"
+    case recipeTimeSpent = "Recipe Time Spent"
+    case discoveryFeedViewed = "Discovery Feed Viewed"
+    case trendingRecipeViewed = "Trending Recipe Viewed"
+    case lineageViewed = "Lineage Viewed"
+    case featureUsed = "Feature Used"
 }
 
 // MARK: - Console-Only Analytics (Fallback)

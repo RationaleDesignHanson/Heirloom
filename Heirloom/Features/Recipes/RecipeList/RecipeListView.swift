@@ -587,6 +587,25 @@ struct RecipeCardView: View {
                 }
 
                 Spacer()
+
+                // Generation badge for lineage
+                if let generation = recipe.provenance?.generation, generation > 0 {
+                    HStack(spacing: 2) {
+                        Image(systemName: "circle.fill")
+                            .font(.system(size: 6))
+                            .foregroundStyle(generationColor(for: generation))
+
+                        Text(generationBadge(for: generation))
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(generationColor(for: generation))
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule()
+                            .fill(generationColor(for: generation).opacity(0.15))
+                    )
+                }
             }
             .frame(height: 20)
         }
@@ -600,6 +619,26 @@ struct RecipeCardView: View {
             x: HeirloomShadows.card.x,
             y: HeirloomShadows.card.y
         )
+    }
+
+    // MARK: - Generation Badge Helpers
+
+    private func generationBadge(for generation: Int) -> String {
+        switch generation {
+        case 1: return "1st Gen"
+        case 2: return "2nd Gen"
+        case 3: return "3rd Gen"
+        default: return "\(generation)th Gen"
+        }
+    }
+
+    private func generationColor(for generation: Int) -> Color {
+        switch generation {
+        case 1: return .blue
+        case 2: return .green
+        case 3: return .orange
+        default: return HeirloomColors.warmGray
+        }
     }
 }
 
