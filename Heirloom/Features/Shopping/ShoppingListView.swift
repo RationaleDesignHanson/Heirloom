@@ -39,6 +39,8 @@ struct ShoppingListView: View {
                             } label: {
                                 Label("Export to Reminders", systemImage: "list.bullet.rectangle")
                             }
+                            .accessibilityLabel("Export to Reminders")
+                            .accessibilityHint("Export shopping list to Apple Reminders app")
 
                             Divider()
 
@@ -47,12 +49,14 @@ struct ShoppingListView: View {
                             } label: {
                                 Label("Check Off All", systemImage: "checkmark.circle")
                             }
+                            .accessibilityLabel("Check Off All Items")
 
                             Button {
                                 uncheckAll()
                             } label: {
                                 Label("Uncheck All", systemImage: "circle")
                             }
+                            .accessibilityLabel("Uncheck All Items")
 
                             Divider()
 
@@ -61,9 +65,13 @@ struct ShoppingListView: View {
                             } label: {
                                 Label("Clear List", systemImage: "trash")
                             }
+                            .accessibilityLabel("Clear Shopping List")
+                            .accessibilityHint("Removes all recipes and items from shopping list")
                         } label: {
                             Image(systemName: "ellipsis.circle")
                         }
+                        .accessibilityLabel("Shopping List Options")
+                        .accessibilityHint("Opens menu with export, check off, and clear options")
                     }
                 }
             }
@@ -123,6 +131,27 @@ struct ShoppingListView: View {
                         recipeRow(cartRecipe)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("\(cartRecipe.recipe?.title ?? "Recipe"), \(selectedRecipeIds.contains(cartRecipe.recipe?.id ?? UUID()) ? "Selected" : "Not selected")")
+                    .accessibilityHint("Toggle recipe inclusion in shopping list")
+                    .contextMenu {
+                        if let recipe = cartRecipe.recipe {
+                            Button {
+                                removeRecipeFromList(cartRecipe)
+                            } label: {
+                                Label("Remove from List", systemImage: "cart.badge.minus")
+                            }
+
+                            Button {
+                                toggleRecipeSelection(cartRecipe)
+                            } label: {
+                                let isSelected = selectedRecipeIds.contains(recipe.id)
+                                Label(
+                                    isSelected ? "Hide Items" : "Show Items",
+                                    systemImage: isSelected ? "eye.slash" : "eye"
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -196,6 +225,8 @@ struct ShoppingListView: View {
                     .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(category.rawValue), \(ingredients.count) items, \(category.aisleHint)")
 
             VStack(spacing: HeirloomSpacing.sm) {
                 ForEach(ingredients) { combinedIngredient in
@@ -285,6 +316,8 @@ struct ShoppingListView: View {
                             }
                             .foregroundStyle(HeirloomColors.tomato)
                         }
+                        .accessibilityLabel("View details, from \(combinedIngredient.recipeCount) recipes")
+                        .accessibilityHint("Shows which recipes use this ingredient")
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -300,6 +333,63 @@ struct ShoppingListView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(combinedIngredient.displayText), \(combinedIngredient.isCheckedOff ? "Checked off" : "Not checked")\(isAggregated ? ", From \(combinedIngredient.recipeCount) recipes" : "")")
+        .accessibilityHint("Toggles item as checked or unchecked")
+        .accessibilityAddTraits(combinedIngredient.isCheckedOff ? .isSelected : [])
+        .contextMenu {
+            Button {
+                toggleCombinedIngredient(combinedIngredient)
+            } label: {
+                Label(
+                    combinedIngredient.isCheckedOff ? "Uncheck" : "Check Off",
+                    systemImage: combinedIngredient.isCheckedOff ? "circle" : "checkmark.circle.fill"
+                )
+            }
+
+            if isAggregated {
+                Button {
+                    // Extract data to avoid SwiftData context issues in sheet
+                    let ingredientName = combinedIngredient.scaledIngredients.first?.originalIngredient.name ?? ""
+                    let displayText = combinedIngredient.displayText
+
+                    // Build recipe data array
+                    var recipeData: [(recipeId: UUID, recipeTitle: String, sourceIcon: String, ingredientText: String)] = []
+                    var seenIds = Set<UUID>()
+
+                    for scaledIngredient in combinedIngredient.scaledIngredients {
+                        if let recipe = scaledIngredient.originalIngredient.recipe,
+                           !seenIds.contains(recipe.id) {
+                            let data = (
+                                recipeId: recipe.id,
+                                recipeTitle: recipe.title,
+                                sourceIcon: recipe.sourceType?.iconName ?? "fork.knife",
+                                ingredientText: scaledIngredient.fullDisplayString
+                            )
+                            recipeData.append(data)
+                            seenIds.insert(recipe.id)
+                        }
+                    }
+
+                    // Only show sheet if we successfully extracted data
+                    guard !recipeData.isEmpty else { return }
+
+                    // Create Identifiable data struct for sheet presentation
+                    selectedIngredientData = IngredientRecipeData(
+                        name: ingredientName,
+                        displayText: displayText,
+                        recipes: recipeData.sorted { $0.recipeTitle < $1.recipeTitle }
+                    )
+                } label: {
+                    Label("View Recipes", systemImage: "square.stack.3d.up.fill")
+                }
+            }
+
+            Button {
+                UIPasteboard.general.string = combinedIngredient.displayText
+            } label: {
+                Label("Copy", systemImage: "doc.on.doc")
+            }
+        }
     }
 
     // MARK: - Grouped Ingredients
@@ -432,6 +522,31 @@ struct ShoppingListView: View {
     }
 
     // MARK: - Actions
+    private func removeRecipeFromList(_ cartRecipe: ShoppingCartRecipe) {
+        // Uncheck all ingredients in the recipe
+        if let ingredients = cartRecipe.recipe?.ingredients {
+            for ingredient in ingredients {
+                ingredient.isCheckedOff = false
+            }
+        }
+
+        // Update recipe flag
+        cartRecipe.recipe?.isInShoppingList = false
+
+        // Remove from selected recipes
+        if let recipeId = cartRecipe.recipe?.id {
+            selectedRecipeIds.remove(recipeId)
+        }
+
+        // Delete the ShoppingCartRecipe
+        modelContext.delete(cartRecipe)
+        try? modelContext.save()
+
+        // Add haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+    }
+
     private func exportToReminders() async {
         // Collect all unchecked items from selected recipes
         var items: [ShoppingListItem] = []
@@ -463,6 +578,9 @@ struct ShoppingListView: View {
                     title: "Exported to Reminders",
                     message: "Added \(items.count) items to 'Heirloom Shopping' list"
                 )
+
+                // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
+                // AccessibilityAnnouncementService.shared.announceExportToRemindersSuccess(listName: "Heirloom Shopping")
             }
         } catch {
             await MainActor.run {
@@ -470,6 +588,9 @@ struct ShoppingListView: View {
                     title: "Export failed",
                     message: error.localizedDescription
                 )
+
+                // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
+                // AccessibilityAnnouncementService.shared.announceExportToRemindersFailed(error: error.localizedDescription)
             }
         }
     }
@@ -481,6 +602,10 @@ struct ShoppingListView: View {
             scaledIngredient.originalIngredient.isCheckedOff = newState
         }
         try? modelContext.save()
+
+        // Add haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
     }
 
     private func toggleRecipeSelection(_ cartRecipe: ShoppingCartRecipe) {
@@ -490,6 +615,10 @@ struct ShoppingListView: View {
         } else {
             selectedRecipeIds.insert(recipeId)
         }
+
+        // Add haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
     }
 
     private func checkOffAll() {
@@ -500,6 +629,9 @@ struct ShoppingListView: View {
             }
         }
         try? modelContext.save()
+
+        // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
+        // AccessibilityAnnouncementService.shared.announceAllItemsChecked()
     }
 
     private func uncheckAll() {
@@ -510,6 +642,9 @@ struct ShoppingListView: View {
             }
         }
         try? modelContext.save()
+
+        // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
+        // AccessibilityAnnouncementService.shared.announceAllItemsUnchecked()
     }
 
     private func clearList() {
@@ -528,6 +663,9 @@ struct ShoppingListView: View {
             modelContext.delete(cartRecipe)
         }
         try? modelContext.save()
+
+        // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
+        // AccessibilityAnnouncementService.shared.announceShoppingListCleared()
     }
 }
 

@@ -19,9 +19,36 @@ struct CookingModeView: View {
     @State private var timer: Timer?
     @State private var remainingTime: TimeInterval = 0
 
+    // Version selection
+    @State private var selectedVersionID: UUID?
+
+    // MARK: - Computed Properties
+
+    /// Get instructions from active version
+    private var activeInstructions: [String] {
+        if let activeVersion = recipe.activeVersion,
+           let versionInstructions = activeVersion.instructions,
+           !versionInstructions.isEmpty {
+            return versionInstructions
+        }
+        return recipe.instructions
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // Version Selector (if multiple versions exist)
+                if recipe.hasMultipleVersions {
+                    VersionSelectorView(
+                        recipe: recipe,
+                        selectedVersionID: Binding(
+                            get: { selectedVersionID ?? recipe.selectedVersionID },
+                            set: { selectedVersionID = $0 }
+                        )
+                    )
+                    .padding(.top, HeirloomSpacing.sm)
+                }
+
                 // Progress Bar
                 progressBar
 
@@ -58,7 +85,7 @@ struct CookingModeView: View {
                 }
                 Button("Continue Cooking", role: .cancel) {}
             } message: {
-                Text("You've completed \(completedSteps.count) of \(recipe.instructions.count) steps. Mark this recipe as cooked?")
+                Text("You've completed \(completedSteps.count) of \(activeInstructions.count) steps. Mark this recipe as cooked?")
             }
         }
     }
@@ -68,7 +95,7 @@ struct CookingModeView: View {
     private var progressBar: some View {
         VStack(spacing: HeirloomSpacing.sm) {
             HStack {
-                Text("Step \(currentStep + 1) of \(recipe.instructions.count)")
+                Text("Step \(currentStep + 1) of \(activeInstructions.count)")
                     .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
 
@@ -99,8 +126,8 @@ struct CookingModeView: View {
     }
 
     private var progress: Double {
-        guard !recipe.instructions.isEmpty else { return 0 }
-        return Double(currentStep + 1) / Double(recipe.instructions.count)
+        guard !activeInstructions.isEmpty else { return 0 }
+        return Double(currentStep + 1) / Double(activeInstructions.count)
     }
 
     // MARK: - Step Content
@@ -173,10 +200,10 @@ struct CookingModeView: View {
     }
 
     private var currentStepText: String {
-        guard currentStep < recipe.instructions.count else {
+        guard currentStep < activeInstructions.count else {
             return "All steps complete!"
         }
-        return recipe.instructions[currentStep]
+        return activeInstructions[currentStep]
     }
 
     private var isCurrentStepComplete: Bool {
@@ -281,7 +308,7 @@ struct CookingModeView: View {
                             }
                         }
                         .pickerStyle(.wheel)
-                        .frame(width: 100)
+                        .frame(width: 100, height: 150)
 
                         Text("min")
                             .font(HeirloomFonts.caption1)
@@ -296,7 +323,7 @@ struct CookingModeView: View {
                             }
                         }
                         .pickerStyle(.wheel)
-                        .frame(width: 100)
+                        .frame(width: 100, height: 150)
 
                         Text("sec")
                             .font(HeirloomFonts.caption1)
@@ -383,7 +410,7 @@ struct CookingModeView: View {
 
                 // Next/Finish Button
                 Button {
-                    if currentStep < recipe.instructions.count - 1 {
+                    if currentStep < activeInstructions.count - 1 {
                         withAnimation {
                             currentStep += 1
                         }
@@ -392,8 +419,8 @@ struct CookingModeView: View {
                     }
                 } label: {
                     HStack {
-                        Text(currentStep < recipe.instructions.count - 1 ? "Next" : "Finish")
-                        Image(systemName: currentStep < recipe.instructions.count - 1 ? "chevron.right" : "checkmark")
+                        Text(currentStep < activeInstructions.count - 1 ? "Next" : "Finish")
+                        Image(systemName: currentStep < activeInstructions.count - 1 ? "chevron.right" : "checkmark")
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -521,12 +548,22 @@ struct CookingModeView: View {
                 message: "You've cooked this \(recipe.timesCooked) \(recipe.timesCooked == 1 ? "time" : "times")"
             )
 
+            // Mark active version as cooked
+            if let activeVersion = recipe.activeVersion {
+                do {
+                    try RecipeVersionService.shared.markAsCooked(activeVersion, context: modelContext)
+                } catch {
+                    print("Failed to mark version as cooked: \(error)")
+                }
+            }
+
             AnalyticsService.shared.track(event: .cookingCompleted, properties: [
                 "recipe_id": recipe.id.uuidString,
                 "recipe_title": recipe.title,
                 "times_cooked": recipe.timesCooked,
                 "steps_completed": completedSteps.count,
-                "total_steps": recipe.instructions.count
+                "total_steps": activeInstructions.count,
+                "version_used": recipe.activeVersion?.creatorDisplayName ?? "base"
             ])
 
             dismiss()

@@ -186,7 +186,7 @@ struct RecipeShareSheetView: View {
             }
         }
         .padding()
-        .background(Color.white)
+        .background(HeirloomColors.cardBackground)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
     }

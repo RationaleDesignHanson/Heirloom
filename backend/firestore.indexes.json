@@ -33,6 +33,28 @@
         { "fieldPath": "priority", "order": "DESCENDING" },
         { "fieldPath": "attemptCount", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "short_urls",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "longUrl", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "short_urls",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "short_urls",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "expiresAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

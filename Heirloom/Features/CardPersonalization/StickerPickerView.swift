@@ -270,45 +270,12 @@ struct RecipeStickerPickerView: View {
                         Spacer()
 
                         Text("\(Int(stickerRotation))°")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-
-                    HStack(spacing: HeirloomSpacing.sm) {
-                        Image(systemName: "rotate.left.fill")
-                            .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
-                            .onTapGesture {
-                                withAnimation {
-                                    stickerRotation = max(0, stickerRotation - 15)
-                                }
-                            }
-
-                        Slider(value: $stickerRotation, in: 0...360)
-                            .tint(HeirloomColors.tomato)
-
-                        Image(systemName: "rotate.right.fill")
+                            .font(HeirloomFonts.body)
                             .foregroundStyle(HeirloomColors.tomato)
-                            .onTapGesture {
-                                withAnimation {
-                                    stickerRotation = min(360, stickerRotation + 15)
-                                }
-                            }
                     }
 
-                    HStack(spacing: HeirloomSpacing.xs) {
-                        ForEach([0, 45, 90, 180, 270], id: \.self) { angle in
-                            Button("\(angle)°") {
-                                withAnimation {
-                                    stickerRotation = Double(angle)
-                                }
-                            }
-                            .font(HeirloomFonts.caption2)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(4)
-                        }
-                    }
+                    Slider(value: $stickerRotation, in: 0...360)
+                        .tint(HeirloomColors.tomato)
                 }
 
                 // Color

@@ -1,6 +1,6 @@
-# Heirloom Backend - Recipe Import Service
+# Heirloom Backend - Recipe Import & URL Shortening Service
 
-TypeScript/Node.js Cloud Functions for web recipe import with analytics and machine learning foundation.
+TypeScript/Node.js Cloud Functions for web recipe import, URL shortening, and analytics.
 
 ## 🏗️ Architecture
 
@@ -13,11 +13,17 @@ TypeScript/Node.js Cloud Functions for web recipe import with analytics and mach
 ## 📦 What's Included
 
 ### Cloud Functions
+**Recipe Import:**
 - `importRecipe` - Main import endpoint (called by iOS app)
 - `submitFeedback` - User feedback collection
 - `getStats` - Admin analytics dashboard
 - `updateSitePatterns` - Scheduled learning (every 6 hours)
 - `cleanCache` - Scheduled cleanup (daily)
+
+**URL Shortening:**
+- `shortenURL` - Generate short URLs for recipe sharing
+- `expandURL` - Redirect short codes to CloudKit URLs
+- `urlAnalytics` - Get analytics for short URLs
 
 ### Parsers
 - **Schema.org Parser**: Extracts structured recipe data (JSON-LD)
@@ -189,6 +195,35 @@ URLs needing human review:
   status: 'pending' | 'reviewed' | 'training',
   extractedData?: {...},
   groundTruth?: {...}  // Human-labeled
+}
+```
+
+### `short_urls`
+Shortened URLs for recipe sharing:
+```typescript
+{
+  code: string,  // Document ID (e.g., "abc123")
+  longUrl: string,  // Original CloudKit URL
+  recipeId?: string,
+  userId?: string,
+  createdAt: Date,
+  expiresAt?: Date,
+  clicks: number,
+  lastAccessed?: Date,
+  clicksByDay?: Record<string, number>,  // Daily click stats
+  referrers?: Record<string, number>  // Traffic sources
+}
+```
+
+### `url_clicks`
+Individual click events for detailed analytics:
+```typescript
+{
+  code: string,
+  timestamp: Date,
+  userAgent?: string,
+  referrer?: string,
+  ipHash?: string  // Hashed for privacy
 }
 ```
 

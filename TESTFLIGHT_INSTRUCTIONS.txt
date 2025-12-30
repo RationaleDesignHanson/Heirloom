@@ -1,0 +1,116 @@
+Heirloom TestFlight - Phase 2A Testing
+
+Welcome to Heirloom TestFlight! This build focuses on testing CloudKit recipe sharing between devices.
+
+WHAT'S NEW
+- CloudKit sharing: Share recipes with friends and family
+- Generation tracking: See who shared recipes and when
+- Provenance metadata: Track recipe lineage across shares
+- Share permissions: Control read-only access and re-sharing
+
+PRE-TEST SETUP
+You'll need 2 iOS devices for full testing:
+- Both devices with TestFlight installed
+- Both signed into iCloud (Settings > Apple ID)
+- Both with Heirloom installed from TestFlight
+- Internet connection on both devices
+
+QUICK TEST FLOW (10 minutes)
+
+Device A (Sender):
+1. Open Heirloom and navigate to any recipe
+2. Tap the Share button (top right)
+3. Fill out the share form:
+   - Message: "Testing CloudKit!"
+   - Your name: [Your name]
+   - Permission: Read-Only
+   - Expiration: 7 days
+4. Tap "Create Share Link"
+5. Wait for CloudKit URL to generate
+6. Send link via Messages to Device B
+
+Device B (Receiver):
+1. Open Messages and tap the CloudKit share URL
+2. Review the recipe preview sheet
+3. Check that sharer name and message appear
+4. Tap "Add to My Recipes"
+5. Verify recipe appears in your recipe list
+6. Open recipe and confirm all content is there
+7. Check for "Shared by [Name]" provenance badge
+
+WHAT TO TEST
+
+Core Functionality:
+- Can create shares without errors
+- Share URL generates and sends
+- Share preview loads on receiving device
+- Recipe imports with all content intact
+- Provenance shows correctly ("Shared by...")
+- Generation tracking works (Generation 1, 2, etc.)
+
+Error Handling:
+- Try creating share with Airplane Mode on
+- Try accepting share with Airplane Mode on
+- Decline a share (should close cleanly)
+
+Performance:
+- Share creation completes in under 5 seconds
+- Share preview loads in under 3 seconds
+- No app crashes or freezes
+
+Re-sharing (Advanced):
+- On Device B, re-share the imported recipe
+- Accept on another device or back to Device A
+- Verify generation increments (Gen 1 to Gen 2)
+
+HOW TO REPORT BUGS
+
+Please report bugs via TestFlight feedback or email.
+
+Bug Report Format:
+- Bug Title: [Short description]
+- Steps to reproduce: 1) 2) 3)
+- Expected behavior: [What should happen]
+- Actual behavior: [What actually happened]
+- Device: [iPhone model, iOS version]
+- Frequency: Always / Sometimes / Once
+- Screenshots: [If applicable]
+
+Priority Levels:
+- P0: App crashes, data loss, can't use core features
+- P1: Major features broken or not working as expected
+- P2: Minor bugs, edge cases, visual glitches
+- P3: Polish, UX improvements, nice-to-haves
+
+KNOWN LIMITATIONS
+
+This build focuses on CloudKit sharing. The following features are still in development:
+- Social features (following, activity feeds)
+- Recipe collections/folders
+- Advanced search and filters
+- Recipe recommendations
+
+CLOUDKIT DASHBOARD (Optional)
+
+For advanced testing, you can monitor CloudKit records:
+1. Go to: https://icloud.developer.apple.com/dashboard
+2. Select "Heirloom" app
+3. Select "Development" environment
+4. Navigate to Data > Private Database
+5. Look for CKShare records created during your test
+
+SUCCESS CRITERIA
+
+You've successfully tested the build if:
+- You can share a recipe from Device A
+- Device B receives and accepts the share
+- Recipe appears in Device B's collection
+- All recipe content preserved (title, ingredients, instructions)
+- Provenance metadata shows ("Shared by [Name]")
+- No crashes or critical errors
+
+QUESTIONS OR ISSUES?
+
+If you encounter critical bugs or have questions, use TestFlight's built-in feedback tool or email with screenshots/screen recordings when possible.
+
+Thank you for testing Heirloom! Your feedback is invaluable in making this the best recipe app for preserving family recipes.

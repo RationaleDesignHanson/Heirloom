@@ -16,5 +16,20 @@
 	<array>
 		<string>group.com.matthanson.heirloom.shared</string>
 	</array>
+	<!--
+	UNIVERSAL LINKS (for future use)
+	Uncomment when ready to switch from CloudKit share URLs to universal links
+	Requires:
+	1. Apple Developer account configuration for associated domains
+	2. Deploy apple-app-site-association file to heirloom.app/.well-known/
+	3. Backend service to map short URLs to CloudKit share URLs
+	-->
+	<!--
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:heirloom.app</string>
+		<string>applinks:www.heirloom.app</string>
+	</array>
+	-->
 </dict>
 </plist>

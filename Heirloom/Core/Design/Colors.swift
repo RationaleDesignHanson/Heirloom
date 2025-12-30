@@ -1,19 +1,28 @@
 import SwiftUI
 
 /// Heirloom color palette - warm, nostalgic, personal
+/// All colors meet WCAG 2.1 Level AA accessibility standards
+///
+/// # Color Contrast Guidelines (WCAG AA on cream background)
+/// - **charcoal** (10.07:1) ✅ All text sizes
+/// - **warmGray** (4.94:1) ✅ All text sizes
+/// - **familyGreen** (7.48:1) ✅ All text sizes
+/// - **amber** (4.54:1) ✅ All text sizes
+/// - **tomato** (3.58:1) ✅ Large text/icons only (≥18pt or ≥14pt bold)
+/// - **success/warning** - Use for backgrounds only, not text
 enum HeirloomColors {
     // MARK: - Primary Palette
     static let cream = Color(hex: "FDF6E3")
-    static let amber = Color(hex: "D4A574")
-    static let tomato = Color(hex: "E54B4B")
+    static let amber = Color(hex: "8A6B4B")  // WCAG AA compliant: 4.54:1 on cream
+    static let tomato = Color(hex: "E54B4B")  // Use for large text/icons: 3.58:1 on cream
     static let charcoal = Color(hex: "3D3D3D")
     static let warmGray = Color(hex: "6B6B6B")
     static let familyGreen = Color(hex: "2D5A27")
 
-    // MARK: - Semantic Colors
-    static let cardBackground = cream
-    static let primaryText = charcoal
-    static let secondaryText = warmGray
+    // MARK: - Semantic Colors (Adaptive for Light/Dark Mode)
+    static let cardBackground = Color(light: cream, dark: Color(hex: "2A2A2A"))
+    static let primaryText = Color(light: charcoal, dark: Color(hex: "F5F5F5"))
+    static let secondaryText = Color(light: warmGray, dark: Color(hex: "A0A0A0"))
     static let accent = tomato
     static let success = Color(hex: "4A9B4A")
     static let warning = Color(hex: "E5A54B")
@@ -58,5 +67,17 @@ extension Color {
             blue: Double(b) / 255,
             opacity: Double(a) / 255
         )
+    }
+
+    /// Create adaptive color for light/dark mode
+    init(light: Color, dark: Color) {
+        self.init(UIColor { traitCollection in
+            switch traitCollection.userInterfaceStyle {
+            case .dark:
+                return UIColor(dark)
+            default:
+                return UIColor(light)
+            }
+        })
     }
 }

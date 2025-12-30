@@ -15,6 +15,7 @@ struct RecipeDetailView: View {
     @State private var showCardPersonalization = false
     @State private var showCloudKitShare = false
     @State private var showPassDown = false
+    @State private var showHeirloomExplanation = false
     @State private var servingMultiplier: Double = 1.0
     @State private var targetServings: Int = 0
     @State private var showScalingExplanation = false
@@ -93,6 +94,10 @@ struct RecipeDetailView: View {
                 targetServings = recipe.parsedServingCount
             }
 
+            // Track last viewed timestamp
+            recipe.lastViewed = Date()
+            try? modelContext.save()
+
             AnalyticsService.shared.trackRecipeViewed(recipe: recipe)
         }
         .toolbar {
@@ -100,29 +105,21 @@ struct RecipeDetailView: View {
                 Menu {
                     Menu {
                         Button {
-                            shareRecipe(as: .text)
-                        } label: {
-                            Label("As Text", systemImage: "doc.text")
-                        }
-
-                        Button {
-                            shareRecipe(as: .pdf)
-                        } label: {
-                            Label("As PDF", systemImage: "doc.richtext")
-                        }
-
-                        Divider()
-
-                        Button {
                             showCloudKitShare = true
                         } label: {
-                            Label("Via iCloud (Live Recipe)", systemImage: "icloud.fill")
+                            Label("Share Recipe", systemImage: "icloud.fill")
                         }
 
                         Button {
                             showPassDown = true
                         } label: {
-                            Label("Pass Down (Special)", systemImage: "arrow.down.heart.fill")
+                            Label("Share Recipe as Heirloom", systemImage: "arrow.down.heart.fill")
+                        }
+
+                        Button {
+                            showHeirloomExplanation = true
+                        } label: {
+                            Label("What's an Heirloom Share?", systemImage: "info.circle")
                         }
                     } label: {
                         Label("Share", systemImage: "square.and.arrow.up")
@@ -144,6 +141,12 @@ struct RecipeDetailView: View {
                         showCardPersonalization = true
                     } label: {
                         Label("Personalize Card", systemImage: "paintbrush.fill")
+                    }
+
+                    Button {
+                        duplicateRecipe()
+                    } label: {
+                        Label("Duplicate", systemImage: "doc.on.doc")
                     }
 
                     Divider()
@@ -196,7 +199,7 @@ struct RecipeDetailView: View {
             CardPersonalizationView(recipe: recipe)
         }
         .sheet(isPresented: $showCloudKitShare) {
-            RecipeShareSheetView(recipe: recipe)
+            RecipeShareSheet(recipe: recipe)
         }
         .sheet(isPresented: $showPassDown) {
             PassDownView(recipe: recipe)
@@ -208,6 +211,9 @@ struct RecipeDetailView: View {
         }
         .sheet(isPresented: $showCardBack) {
             CardBackEditorView(recipe: recipe)
+        }
+        .sheet(isPresented: $showHeirloomExplanation) {
+            HeirloomShareExplanationView()
         }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe)
@@ -497,6 +503,7 @@ struct RecipeDetailView: View {
                     ingredientRow(ingredient)
                 }
             }
+            .id(targetServings) // Force refresh when servings change
             .padding(HeirloomSpacing.md)
             .background(
                 RoundedRectangle(cornerRadius: 12)
@@ -693,6 +700,44 @@ struct RecipeDetailView: View {
     // MARK: - Source Section
     private var sourceSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            // Provenance information
+            if let provenance = recipe.provenance {
+                HStack(spacing: HeirloomSpacing.sm) {
+                    Image(systemName: provenance.sourceType.iconName)
+                        .foregroundStyle(HeirloomColors.tomato)
+                        .font(.callout)
+
+                    Text(provenance.displaySource)
+                        .font(HeirloomFonts.callout)
+                        .foregroundStyle(HeirloomColors.charcoal.opacity(0.8))
+
+                    // Generation badge
+                    if provenance.isOriginal {
+                        Text("Original")
+                            .font(HeirloomFonts.caption2)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule()
+                                    .fill(HeirloomColors.tomato)
+                            )
+                    } else if let badgeText = provenance.generationBadgeText {
+                        Text(badgeText)
+                            .font(HeirloomFonts.caption2)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule()
+                                    .fill(HeirloomColors.familyGreen)
+                            )
+                    }
+                }
+            }
+
             if recipe.timesCooked > 0 {
                 HStack {
                     Image(systemName: "flame.fill")
@@ -911,6 +956,13 @@ struct RecipeDetailView: View {
         let message = recipe.isFavorite ? "Added to favorites" : "Removed from favorites"
         ToastManager.shared.success(title: message)
 
+        // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
+        // if recipe.isFavorite {
+        //     AccessibilityAnnouncementService.shared.announceRecipeFavorited(title: recipe.title)
+        // } else {
+        //     AccessibilityAnnouncementService.shared.announceRecipeUnfavorited(title: recipe.title)
+        // }
+
         // Track analytics
         AnalyticsService.shared.trackRecipeFavorited(recipe: recipe, isFavorite: recipe.isFavorite)
     }
@@ -939,7 +991,7 @@ struct RecipeDetailView: View {
                 AnalyticsService.shared.trackShoppingListToggle(recipe: recipe, isInList: false)
             } catch {
                 ToastManager.shared.error(
-                    title: "Failed to remove",
+                    title: "Failed to remove from shopping list",
                     message: error.localizedDescription
                 )
             }
@@ -994,8 +1046,11 @@ struct RecipeDetailView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.warning)
 
+        // Store title before deletion
+        let recipeTitle = recipe.title
+
         // Track analytics before deletion
-        AnalyticsService.shared.trackRecipeDeleted(recipeTitle: recipe.title)
+        AnalyticsService.shared.trackRecipeDeleted(recipeTitle: recipeTitle)
 
         // Delete from context
         modelContext.delete(recipe)
@@ -1008,13 +1063,237 @@ struct RecipeDetailView: View {
             successGenerator.notificationOccurred(.success)
 
             ToastManager.shared.success(title: "Recipe deleted")
+
+            // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
+            // AccessibilityAnnouncementService.shared.announceRecipeDeleted(title: recipeTitle)
+
             dismiss()
         } catch {
             isDeleting = false
             ToastManager.shared.error(
-                title: "Failed to delete",
+                title: "Failed to delete recipe",
                 message: error.localizedDescription
             )
+        }
+    }
+
+    private func duplicateRecipe() {
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+
+        // Create a new recipe with copied data
+        let duplicate = Recipe(
+            title: "\(recipe.title) (Copy)",
+            sourceType: recipe.sourceType ?? .manual,
+            sourceURL: recipe.sourceURL,
+            instructions: recipe.instructions,
+            servings: recipe.servings,
+            prepTime: recipe.prepTime,
+            cookTime: recipe.cookTime
+        )
+
+        // Copy additional content
+        duplicate.notes = recipe.notes
+        duplicate.totalTime = recipe.totalTime
+
+        // Copy source information (but not CloudKit/share metadata)
+        duplicate.sourceBookTitle = recipe.sourceBookTitle
+        duplicate.sourceBookAuthor = recipe.sourceBookAuthor
+        duplicate.sourceBookPage = recipe.sourceBookPage
+        duplicate.sourcePerson = recipe.sourcePerson
+        duplicate.sourceDate = recipe.sourceDate
+        duplicate.sourceStory = recipe.sourceStory
+        duplicate.sourceImageURL = recipe.sourceImageURL
+
+        // Copy scaling metadata
+        duplicate.scalabilityRating = recipe.scalabilityRating
+        duplicate.recipeCategory = recipe.recipeCategory
+        duplicate.minimumServings = recipe.minimumServings
+        duplicate.maximumServings = recipe.maximumServings
+        duplicate.scalingNote = recipe.scalingNote
+
+        // Copy organization (tags and collections will be nil - user can add them later)
+        // NOT copying: isFavorite, timesCooked, lastCooked, isInShoppingList
+
+        // Copy ingredients
+        if let ingredients = recipe.ingredients {
+            duplicate.ingredients = ingredients.map { ingredient in
+                let newIngredient = Ingredient(
+                    originalText: ingredient.originalText,
+                    name: ingredient.name,
+                    quantity: ingredient.quantity,
+                    unit: ingredient.unit,
+                    category: ingredient.category ?? .other,
+                    orderIndex: ingredient.orderIndex
+                )
+                // Set additional properties not in init
+                newIngredient.quantityMax = ingredient.quantityMax
+                newIngredient.preparation = ingredient.preparation
+                return newIngredient
+            }
+        }
+
+        // Copy image filename (will point to same image file)
+        duplicate.imageFileName = recipe.imageFileName
+
+        // Insert into context
+        modelContext.insert(duplicate)
+
+        do {
+            try modelContext.save()
+
+            // Success haptic
+            let successGenerator = UINotificationFeedbackGenerator()
+            successGenerator.notificationOccurred(.success)
+
+            ToastManager.shared.success(title: "Recipe duplicated")
+
+            // Track analytics
+            AnalyticsService.shared.track(event: .featureUsed, properties: [
+                "feature": "recipe_duplicated",
+                "original_title": recipe.title,
+                "has_ingredients": recipe.ingredients?.isEmpty == false,
+                "has_instructions": !recipe.instructions.isEmpty
+            ])
+
+            // Navigate to the duplicate
+            dismiss()
+        } catch {
+            ToastManager.shared.error(
+                title: "Failed to duplicate recipe",
+                message: error.localizedDescription
+            )
+        }
+    }
+}
+
+// MARK: - Heirloom Share Explanation View
+struct HeirloomShareExplanationView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xl) {
+                    // Header
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                        Image(systemName: "arrow.down.heart.fill")
+                            .font(.system(size: 48))
+                            .foregroundStyle(HeirloomColors.familyGreen)
+
+                        Text("What's an Heirloom Share?")
+                            .font(HeirloomFonts.title2)
+                            .foregroundStyle(HeirloomColors.primaryText)
+
+                        Text("A special way to pass down family recipes through generations")
+                            .font(HeirloomFonts.body)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+
+                    // Features
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.lg) {
+                        featureRow(
+                            icon: "person.2.fill",
+                            title: "Tracks Lineage",
+                            description: "Records who shared it and tracks generations (1st Gen, 2nd Gen, etc.)"
+                        )
+
+                        featureRow(
+                            icon: "clock.arrow.circlepath",
+                            title: "Preserves History",
+                            description: "Keeps the story of where the recipe came from and how it traveled through your family"
+                        )
+
+                        featureRow(
+                            icon: "doc.on.doc.fill",
+                            title: "Creates a Copy",
+                            description: "Recipients get their own version to customize while preserving the original"
+                        )
+
+                        featureRow(
+                            icon: "heart.fill",
+                            title: "Special Meaning",
+                            description: "Shows this recipe has personal significance and family history"
+                        )
+                    }
+
+                    // Comparison
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+                        Text("When to use each option:")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                            HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
+                                Image(systemName: "icloud.fill")
+                                    .foregroundStyle(HeirloomColors.tomato)
+                                    .frame(width: 24)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Share Recipe")
+                                        .font(HeirloomFonts.bodyBold)
+                                        .foregroundStyle(HeirloomColors.primaryText)
+                                    Text("Quick sharing for any recipe. Best for sharing with friends or trying recipes together.")
+                                        .font(HeirloomFonts.caption1)
+                                        .foregroundStyle(HeirloomColors.secondaryText)
+                                }
+                            }
+
+                            HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
+                                Image(systemName: "arrow.down.heart.fill")
+                                    .foregroundStyle(HeirloomColors.familyGreen)
+                                    .frame(width: 24)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Share Recipe as Heirloom")
+                                        .font(HeirloomFonts.bodyBold)
+                                        .foregroundStyle(HeirloomColors.primaryText)
+                                    Text("For cherished family recipes being passed down through generations. Preserves lineage and history.")
+                                        .font(HeirloomFonts.caption1)
+                                        .foregroundStyle(HeirloomColors.secondaryText)
+                                }
+                            }
+                        }
+                        .padding(HeirloomSpacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(HeirloomColors.cardBackground)
+                        )
+                    }
+                }
+                .padding(HeirloomSpacing.lg)
+            }
+            .navigationTitle("Heirloom Sharing")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Got It") {
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+    }
+
+    private func featureRow(icon: String, title: String, description: String) -> some View {
+        HStack(alignment: .top, spacing: HeirloomSpacing.md) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(HeirloomColors.familyGreen)
+                .frame(width: 32)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(HeirloomColors.primaryText)
+
+                Text(description)
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

@@ -36,37 +36,81 @@ final class CloudKitSyncCoordinator: ObservableObject {
     
     /// User's CloudKit account status
     @Published private(set) var accountStatus: CKAccountStatus = .couldNotDetermine
-    
+
+    /// Last sync error for debugging
+    @Published private(set) var lastSyncError: CloudKitSyncError?
+
+    /// Timestamp of last sync error
+    @Published private(set) var lastErrorTime: Date?
+
     /// Logger for debugging
     private let logger = Logger(subsystem: "com.heirloom.app", category: "CloudKit")
-    
+
+    /// Network monitor for offline detection
+    private let networkMonitor = NetworkMonitor.shared
+
+    /// Track last network status to detect changes
+    private var wasOnline = true
+
     // MARK: - Configuration
-    
+
     /// Maximum retry attempts for failed operations
     private let maxRetryAttempts = 3
-    
+
     /// Exponential backoff base (seconds)
     private let backoffBase: TimeInterval = 2.0
-    
+
     /// Batch size for bulk operations
     private let batchSize = 100
-    
+
     // MARK: - Initialization
-    
+
     private init() {
         // Get the default CloudKit container
         // This matches your "iCloud.com.matthanson.heirloom" identifier
         self.container = CKContainer.default()
         self.publicDatabase = container.publicCloudDatabase
         self.sharedDatabase = container.sharedCloudDatabase
-        
+
         // Load pending operations from disk
         loadPendingOperations()
-        
+
         // Check account status on init
         Task {
             await checkAccountStatus()
+            await startNetworkMonitoring()
         }
+    }
+
+    // MARK: - Network Monitoring
+
+    /// Start monitoring network status for automatic sync
+    private func startNetworkMonitoring() async {
+        // Process initial state
+        if networkMonitor.isConnected {
+            await processPendingOperations()
+        }
+
+        // Monitor for changes (check every 5 seconds)
+        Task {
+            while true {
+                try? await Task.sleep(for: .seconds(5))
+                await checkNetworkStatus()
+            }
+        }
+    }
+
+    /// Check if network status changed
+    private func checkNetworkStatus() async {
+        let isOnline = networkMonitor.isConnected
+
+        // Detect transition from offline to online
+        if !wasOnline && isOnline {
+            logger.info("📡 Network restored, processing pending operations")
+            await processPendingOperations()
+        }
+
+        wasOnline = isOnline
     }
     
     // MARK: - Account Status
@@ -94,17 +138,26 @@ final class CloudKitSyncCoordinator: ObservableObject {
     // MARK: - Public Database Operations
     
     /// Save a record to public database with retry logic
+    /// Automatically queues if offline
     func saveToPublic(_ record: CKRecord) async throws {
         // Check account first
         guard accountStatus == .available else {
             throw CloudKitSyncError.notAuthenticated
         }
-        
+
+        // If offline, queue for later
+        guard networkMonitor.isConnected else {
+            logger.info("📴 Offline: Queuing save operation for later")
+            queueOperation(type: .update, record: record)
+            // Return success - operation will process when online
+            return
+        }
+
         // Try to save with retry
         _ = try await retryOperation {
             try await self.publicDatabase.save(record)
         }
-        
+
         logger.info("Saved record to public DB: \(record.recordID.recordName)")
     }
     
@@ -145,15 +198,25 @@ final class CloudKitSyncCoordinator: ObservableObject {
     }
     
     /// Delete record from public database
+    /// Automatically queues if offline
     func deleteFromPublic(recordID: CKRecord.ID) async throws {
         guard accountStatus == .available else {
             throw CloudKitSyncError.notAuthenticated
         }
-        
+
+        // If offline, queue for later
+        guard networkMonitor.isConnected else {
+            logger.info("📴 Offline: Queuing delete operation for later")
+            // Create a placeholder record for deletion
+            let record = CKRecord(recordType: "Placeholder", recordID: recordID)
+            queueOperation(type: .delete, record: record)
+            return
+        }
+
         try await retryOperation {
             _ = try await self.publicDatabase.deleteRecord(withID: recordID)
         }
-        
+
         logger.info("Deleted record from public DB: \(recordID.recordName)")
     }
     
@@ -337,18 +400,170 @@ final class CloudKitSyncCoordinator: ObservableObject {
     
     // MARK: - Helper Methods
     
-    /// Retry an operation with exponential backoff
-    private func retryOperation<T>(_ operation: @escaping () async throws -> T) async throws -> T {
+    // MARK: - Conflict Resolution
+
+    /// Handle a save conflict by merging client and server records
+    /// Strategy: Most recent metadata wins, merge arrays intelligently
+    func handleConflict(clientRecord: CKRecord, serverRecord: CKRecord) -> CKRecord {
+        logger.info("🔀 Resolving conflict for record: \(clientRecord.recordID.recordName)")
+
+        // Use server record as base (has valid change tag)
+        let resolvedRecord = serverRecord
+
+        // Get modification dates
+        let clientModified = clientRecord.modificationDate ?? Date.distantPast
+        let serverModified = serverRecord.modificationDate ?? Date.distantPast
+
+        // Strategy 1: Scalar fields - use most recent
+        let scalarKeys = ["title", "notes", "servings", "prepTime", "cookTime",
+                          "sourceURL", "sourceType", "imageFileName", "isFavorite"]
+
+        for key in scalarKeys {
+            if clientModified > serverModified {
+                // Client is newer, use client value
+                if let clientValue = clientRecord[key] {
+                    resolvedRecord[key] = clientValue
+                }
+            }
+            // Otherwise keep server value (already in resolvedRecord)
+        }
+
+        // Strategy 2: Array fields - merge unique items
+        let arrayKeys = ["ingredients", "instructions", "comments", "tags"]
+
+        for key in arrayKeys {
+            let clientArray = clientRecord[key] as? [String] ?? []
+            let serverArray = serverRecord[key] as? [String] ?? []
+
+            // Merge arrays: union of both, preserving order from most recent
+            var mergedArray: [String] = []
+
+            if clientModified > serverModified {
+                // Client is newer, prioritize client order
+                mergedArray = clientArray
+                // Add server items not in client
+                for item in serverArray where !clientArray.contains(item) {
+                    mergedArray.append(item)
+                }
+            } else {
+                // Server is newer, prioritize server order
+                mergedArray = serverArray
+                // Add client items not in server
+                for item in clientArray where !serverArray.contains(item) {
+                    mergedArray.append(item)
+                }
+            }
+
+            resolvedRecord[key] = mergedArray
+        }
+
+        // Strategy 3: Special handling for lastModified - always use most recent
+        if clientModified > serverModified {
+            if let clientLastModified = clientRecord["lastModified"] as? Date {
+                resolvedRecord["lastModified"] = clientLastModified
+            }
+        }
+
+        logger.info("✅ Conflict resolved. Client: \(clientModified), Server: \(serverModified), Used: \(clientModified > serverModified ? "Client" : "Server") as base")
+
+        return resolvedRecord
+    }
+
+    // MARK: - Error Tracking
+
+    /// Record a sync error for debugging and user display
+    private func recordError(_ error: CloudKitSyncError, context: String = "") {
+        lastSyncError = error
+        lastErrorTime = Date()
+
+        // Log detailed error information
+        logger.error("❌ Sync Error [\(context)]: \(error.localizedDescription)")
+
+        // Log additional context for specific error types
+        switch error {
+        case .networkUnavailable:
+            logger.error("   Context: Network connection lost during sync")
+        case .notAuthenticated:
+            logger.error("   Context: User not signed into iCloud")
+        case .quotaExceeded:
+            logger.error("   Context: iCloud storage quota exceeded")
+        case .conflictDetected:
+            logger.error("   Context: Record conflict detected, attempting merge")
+        case .recordNotFound:
+            logger.error("   Context: Requested record does not exist")
+        case .permissionDenied:
+            logger.error("   Context: Permission denied to access CloudKit data")
+        case .serviceUnavailable:
+            logger.error("   Context: CloudKit service temporarily unavailable")
+        case .rateLimited:
+            logger.error("   Context: Too many CloudKit requests, rate limited")
+        case .badRequest:
+            logger.error("   Context: Invalid CloudKit request")
+        case .internalError:
+            logger.error("   Context: CloudKit internal error")
+        case .zoneBusy:
+            logger.error("   Context: CloudKit zone is busy, will retry")
+        case .unknownError(let error):
+            logger.error("   Context: Underlying error: \(error.localizedDescription)")
+        }
+    }
+
+    /// Clear the last error (called after successful sync)
+    func clearLastError() {
+        lastSyncError = nil
+        lastErrorTime = nil
+    }
+
+    /// Retry an operation with exponential backoff and conflict resolution
+    private func retryOperation<T>(_ operation: @escaping () async throws -> T, context: String = "operation") async throws -> T {
         var lastError: Error?
-        
+
         for attempt in 0..<maxRetryAttempts {
             do {
-                return try await operation()
+                let result = try await operation()
+                // Clear error on success
+                if attempt > 0 {
+                    logger.info("✅ Operation succeeded after \(attempt) retries")
+                    await MainActor.run {
+                        clearLastError()
+                    }
+                }
+                return result
             } catch {
                 lastError = error
-                
+
                 // Check if we should retry
                 let ckError = CloudKitSyncError.from(error)
+
+                // Record the error
+                await MainActor.run {
+                    recordError(ckError, context: context)
+                }
+
+                // Special handling for conflicts
+                if case .conflictDetected = ckError {
+                    // Extract CKError to get server record
+                    if let ckError = error as? CKError,
+                       ckError.code == .serverRecordChanged,
+                       let clientRecord = ckError.userInfo[CKRecordChangedErrorClientRecordKey] as? CKRecord,
+                       let serverRecord = ckError.userInfo[CKRecordChangedErrorServerRecordKey] as? CKRecord {
+
+                        // Resolve conflict
+                        let resolvedRecord = handleConflict(clientRecord: clientRecord, serverRecord: serverRecord)
+
+                        // Try to save resolved record
+                        do {
+                            // Cast the save operation and try again
+                            // This is safe because we know operation() returns a CKRecord
+                            let saved = try await publicDatabase.save(resolvedRecord)
+                            return saved as! T
+                        } catch {
+                            logger.error("Failed to save resolved record: \(error.localizedDescription)")
+                            throw error
+                        }
+                    }
+                }
+
                 switch ckError {
                 case .networkUnavailable, .conflictDetected:
                     // Retryable errors
@@ -361,7 +576,7 @@ final class CloudKitSyncCoordinator: ObservableObject {
                 }
             }
         }
-        
+
         // All retries failed
         throw lastError ?? CloudKitSyncError.unknownError(NSError(domain: "CloudKit", code: -1))
     }
@@ -392,4 +607,5 @@ extension Array {
         }
     }
 }
+
 

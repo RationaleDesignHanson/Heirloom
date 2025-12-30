@@ -262,21 +262,6 @@ struct RecipeAnnotationEditorView: View {
                                 }
                             }
                     }
-
-                    HStack(spacing: HeirloomSpacing.xs) {
-                        ForEach([12, 14, 16, 18, 20], id: \.self) { size in
-                            Button("\(size)pt") {
-                                withAnimation {
-                                    fontSize = Double(size)
-                                }
-                            }
-                            .font(HeirloomFonts.caption2)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(4)
-                        }
-                    }
                 }
 
                 // Rotation
@@ -288,50 +273,12 @@ struct RecipeAnnotationEditorView: View {
                         Spacer()
 
                         Text("\(Int(rotation))°")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-
-                    HStack(spacing: HeirloomSpacing.sm) {
-                        Image(systemName: "rotate.left.fill")
-                            .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
-                            .onTapGesture {
-                                withAnimation {
-                                    rotation = (rotation - 5).truncatingRemainder(dividingBy: 360)
-                                    if rotation < 0 { rotation += 360 }
-                                }
-                            }
-
-                        Slider(value: $rotation, in: -15...15)
-                            .tint(HeirloomColors.tomato)
-
-                        Image(systemName: "rotate.right.fill")
+                            .font(HeirloomFonts.body)
                             .foregroundStyle(HeirloomColors.tomato)
-                            .onTapGesture {
-                                withAnimation {
-                                    rotation = (rotation + 5).truncatingRemainder(dividingBy: 360)
-                                }
-                            }
                     }
 
-                    HStack(spacing: HeirloomSpacing.xs) {
-                        ForEach([-10, -5, 0, 5, 10], id: \.self) { angle in
-                            Button("\(angle)°") {
-                                withAnimation {
-                                    rotation = Double(angle)
-                                }
-                            }
-                            .font(HeirloomFonts.caption2)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(4)
-                        }
-                    }
-
-                    Text("Adds a handwritten feel with slight tilt")
-                        .font(HeirloomFonts.caption2)
-                        .foregroundStyle(HeirloomColors.secondaryText)
+                    Slider(value: $rotation, in: 0...360)
+                        .tint(HeirloomColors.tomato)
                 }
 
                 // Delete Button (if editing)

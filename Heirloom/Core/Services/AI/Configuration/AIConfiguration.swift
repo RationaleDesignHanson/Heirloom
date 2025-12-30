@@ -169,12 +169,12 @@ class AIConfiguration: ObservableObject {
         switch (selectedProvider, task) {
         case (.anthropic, .parsing), (.anthropic, .categorization):
             return "claude-3-haiku-20240307" // Fast, cheap for simple tasks
-        case (.anthropic, .enhancement):
-            return "claude-3-5-sonnet-20241022" // Smarter for complex tasks
+        case (.anthropic, .enhancement), (.anthropic, .vision):
+            return "claude-sonnet-4-20250514" // Latest model with vision capabilities
         case (.openai, .parsing), (.openai, .categorization):
             return "gpt-4o-mini" // Fast, cheap
-        case (.openai, .enhancement):
-            return "gpt-4o" // Smarter
+        case (.openai, .enhancement), (.openai, .vision):
+            return "gpt-4o" // Smarter with vision
         }
     }
 
@@ -232,7 +232,8 @@ enum AIProvider: String, CaseIterable, Identifiable {
 enum AITask {
     case parsing       // Ingredient parsing
     case categorization // Recipe categorization
-    case enhancement   // Full recipe enhancement
+    case enhancement   // Full recipe enhancement (text-based)
+    case vision        // Vision API tasks (image analysis, OCR, recipe extraction)
 }
 
 // MARK: - Keychain Helper (Adapted from Zero's secure storage pattern)

@@ -4,6 +4,7 @@ import SwiftData
 struct DinnerPartyShoppingListView: View {
     @Bindable var party: DinnerParty
     @State private var groupedIngredients: [String: [ScaledIngredient]] = [:]
+    @Environment(\.modelContext) private var modelContext
 
     struct ScaledIngredient: Identifiable {
         let id = UUID()
@@ -15,6 +16,7 @@ struct DinnerPartyShoppingListView: View {
     var body: some View {
         List {
             headerSection
+            addToMainShoppingButton
             categoryList
         }
         .navigationTitle("Shopping List")
@@ -40,6 +42,35 @@ struct DinnerPartyShoppingListView: View {
                 Spacer()
             }
             .foregroundStyle(HeirloomColors.secondaryText)
+        }
+    }
+
+    private var addToMainShoppingButton: some View {
+        Section {
+            Button {
+                addToMainShoppingList()
+            } label: {
+                HStack {
+                    Image(systemName: "cart.fill.badge.plus")
+                        .font(.title3)
+                        .foregroundStyle(HeirloomColors.tomato)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Add All to Main Shopping List")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+
+                        Text("Adds scaled recipes to your main shopping tab")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "arrow.right")
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
         }
     }
 
@@ -170,6 +201,72 @@ struct DinnerPartyShoppingListView: View {
         }
 
         return text
+    }
+
+    private func addToMainShoppingList() {
+        guard let partyRecipes = party.recipes else {
+            ToastManager.shared.error(title: "No recipes found", message: "This party has no recipes.")
+            return
+        }
+
+        var addedCount = 0
+        var skippedCount = 0
+
+        for partyRecipe in partyRecipes {
+            guard let recipe = partyRecipe.recipe else { continue }
+
+            // Check if recipe is already in shopping list
+            if recipe.isInShoppingCart(context: modelContext) {
+                skippedCount += 1
+                continue
+            }
+
+            // Calculate target servings from scaling factor
+            let originalServings = recipe.parsedServingCount
+            let targetServings = Int(Double(originalServings) * partyRecipe.scalingFactor)
+
+            // Create ShoppingCartRecipe entry
+            let cartRecipe = ShoppingCartRecipe(recipe: recipe, targetServings: targetServings)
+            modelContext.insert(cartRecipe)
+
+            // Mark recipe as in shopping list
+            recipe.isInShoppingList = true
+
+            addedCount += 1
+        }
+
+        // Save changes
+        do {
+            try modelContext.save()
+
+            // Show success message
+            if addedCount > 0 {
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+
+                if skippedCount > 0 {
+                    ToastManager.shared.success(
+                        title: "Added \(addedCount) recipe\(addedCount == 1 ? "" : "s")",
+                        message: "\(skippedCount) already in shopping list"
+                    )
+                } else {
+                    ToastManager.shared.success(
+                        title: "Added to Shopping List!",
+                        message: "\(addedCount) recipe\(addedCount == 1 ? "" : "s") added"
+                    )
+                }
+            } else if skippedCount > 0 {
+                ToastManager.shared.info(
+                    title: "Already Added",
+                    message: "All recipes are already in your shopping list"
+                )
+            }
+        } catch {
+            ToastManager.shared.error(
+                title: "Failed to add",
+                message: error.localizedDescription
+            )
+        }
     }
 }
 

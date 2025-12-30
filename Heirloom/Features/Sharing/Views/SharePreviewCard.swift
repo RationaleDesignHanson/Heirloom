@@ -17,7 +17,7 @@ struct SharePreviewCard: View {
                     .font(.caption)
                     .fontWeight(.semibold)
             }
-            .foregroundStyle(.secondary)
+            .foregroundStyle(HeirloomColors.secondaryText)
             .padding(.bottom, 8)
 
             // Recipe card
@@ -50,7 +50,7 @@ struct SharePreviewCard: View {
                             Text("Shared by \(sharerName)")
                                 .font(.subheadline)
                         }
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(HeirloomColors.secondaryText)
                     }
 
                     // Personal message
@@ -63,7 +63,7 @@ struct SharePreviewCard: View {
                                     .font(.caption)
                                     .fontWeight(.semibold)
                             }
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(HeirloomColors.secondaryText)
 
                             Text("\"\(message)\"")
                                 .font(.subheadline)
@@ -86,7 +86,7 @@ struct SharePreviewCard: View {
                             }
                             Text(String(format: "%.1f", rating))
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(HeirloomColors.secondaryText)
                         }
                     }
 
@@ -142,7 +142,7 @@ private struct InfoPill: View {
         .padding(.vertical, 4)
         .background(HeirloomColors.warmGray.opacity(0.1))
         .clipShape(Capsule())
-        .foregroundStyle(.secondary)
+        .foregroundStyle(HeirloomColors.secondaryText)
     }
 }
 

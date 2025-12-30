@@ -9,10 +9,16 @@ struct RecipeListView: View {
     @State private var searchText = ""
     @State private var showAddRecipe = false
     @State private var showImportRecipe = false
+    @State private var showJSONImport = false
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
     @State private var showFilters = false
     @State private var filters = RecipeFilters()
+    @State private var recipeToDelete: Recipe?
+    @State private var showDeleteConfirmation = false
+    @StateObject private var undoService = UndoService.shared
+    @State private var isSyncing = false
+    @StateObject private var syncCoordinator = CloudKitSyncCoordinator.shared
 
     var body: some View {
         NavigationStack {
@@ -29,25 +35,41 @@ struct RecipeListView: View {
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, prompt: "Search recipes")
             .toolbar {
+                // Sync status indicator (Quick Win #7)
                 ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        showFilters = true
-                    } label: {
-                        ZStack(alignment: .topTrailing) {
-                            Image(systemName: filters.isActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                                .font(.title3)
-                                .foregroundStyle(filters.isActive ? HeirloomColors.tomato : HeirloomColors.primaryText)
-
-                            if filters.activeFilterCount > 0 {
-                                Text("\(filters.activeFilterCount)")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .frame(width: 16, height: 16)
-                                    .background(HeirloomColors.tomato)
-                                    .clipShape(Circle())
-                                    .offset(x: 8, y: -8)
-                            }
+                    HStack(spacing: 8) {
+                        if isSyncing {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .accessibilityLabel("Syncing recipes")
                         }
+
+                        Button {
+                            showFilters = true
+                        } label: {
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: filters.isActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                                    .font(.title3)
+                                    .foregroundStyle(filters.isActive ? HeirloomColors.tomato : HeirloomColors.primaryText)
+
+                                if filters.activeFilterCount > 0 {
+                                    Text("\(filters.activeFilterCount)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundStyle(.white)
+                                        .frame(width: 18, height: 18)
+                                        .background(HeirloomColors.tomato)
+                                        .clipShape(Circle())
+                                        .overlay(
+                                            Circle()
+                                                .strokeBorder(.white, lineWidth: 1.5)
+                                        )
+                                        .offset(x: 6, y: -6)
+                                }
+                            }
+                            .padding(4) // Add padding to prevent clipping
+                        }
+                        .accessibilityLabel(filters.isActive ? "Filters, \(filters.activeFilterCount) active" : "Filters")
+                        .accessibilityHint("Opens filter options for recipes")
                     }
                 }
 
@@ -58,24 +80,40 @@ struct RecipeListView: View {
                         } label: {
                             Label("New Recipe", systemImage: "square.and.pencil")
                         }
+                        .accessibilityLabel("New Recipe")
+                        .accessibilityHint("Create a new recipe manually")
 
                         Button {
                             showImportRecipe = true
                         } label: {
                             Label("Import from URL", systemImage: "link")
                         }
+                        .accessibilityLabel("Import from URL")
+                        .accessibilityHint("Import a recipe from a website URL")
+
+                        Button {
+                            showJSONImport = true
+                        } label: {
+                            Label("Import from JSON", systemImage: "doc.badge.arrow.up")
+                        }
+                        .accessibilityLabel("Import from JSON")
+                        .accessibilityHint("Import a recipe from a JSON file")
 
                         Button {
                             showBulkImport = true
                         } label: {
                             Label("Bulk Import", systemImage: "square.stack.3d.down.forward")
                         }
+                        .accessibilityLabel("Bulk Import")
+                        .accessibilityHint("Import multiple recipes from photos")
 
                         Button {
                             showCookbookScanner = true
                         } label: {
                             Label("Scan Cookbook", systemImage: "book.pages")
                         }
+                        .accessibilityLabel("Scan Cookbook")
+                        .accessibilityHint("Scan a recipe from a cookbook page")
 
                         Divider()
 
@@ -84,6 +122,8 @@ struct RecipeListView: View {
                         } label: {
                             Label("Add Sample Recipe", systemImage: "sparkles")
                         }
+                        .accessibilityLabel("Add Sample Recipe")
+                        .accessibilityHint("Add a sample recipe for testing")
 
                         Divider()
 
@@ -92,9 +132,13 @@ struct RecipeListView: View {
                         } label: {
                             Label("🧪 Test AI API", systemImage: "wand.and.stars")
                         }
+                        .accessibilityLabel("Test AI API")
+                        .accessibilityHint("Test the AI recipe extraction API")
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add Recipe")
+                    .accessibilityHint("Opens menu to add or import recipes")
                 }
             }
             .navigationDestination(for: Recipe.self) { recipe in
@@ -106,6 +150,13 @@ struct RecipeListView: View {
             .sheet(isPresented: $showImportRecipe) {
                 RecipeImportView()
             }
+            .fileImporter(
+                isPresented: $showJSONImport,
+                allowedContentTypes: [.json],
+                allowsMultipleSelection: false
+            ) { result in
+                handleJSONImport(result: result)
+            }
             .sheet(isPresented: $showBulkImport) {
                 BulkImportView()
             }
@@ -114,6 +165,22 @@ struct RecipeListView: View {
             }
             .sheet(isPresented: $showFilters) {
                 RecipeFiltersView(filters: $filters)
+            }
+            .confirmationDialog(
+                "Delete Recipe?",
+                isPresented: $showDeleteConfirmation,
+                presenting: recipeToDelete
+            ) { recipe in
+                Button("Delete", role: .destructive) {
+                    deleteRecipe(recipe)
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { recipe in
+                Text("Are you sure you want to delete \"\(recipe.title)\"? You can undo this action within 5 seconds.")
+            }
+            .onAppear {
+                // Configure UndoService with model context
+                undoService.configure(modelContext: modelContext)
             }
         }
     }
@@ -128,12 +195,34 @@ struct RecipeListView: View {
                 ],
                 spacing: HeirloomSpacing.gridSpacing
             ) {
-                ForEach(filteredRecipes, id: \.id) { recipe in
+                ForEach(Array(filteredRecipes.enumerated()), id: \.element.id) { index, recipe in
                     NavigationLink(value: recipe) {
                         RecipeCardView(recipe: recipe)
                     }
                     .buttonStyle(.plain)
                     .id(recipe.id)
+                    .accessibilityLabel("\(recipe.title), \(recipe.sourceDisplayName)")
+                    .accessibilityHint("Opens recipe details")
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        // Quick Win #5: Swipe to delete
+                        Button(role: .destructive) {
+                            recipeToDelete = recipe
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                        Button {
+                            toggleFavorite(recipe)
+                        } label: {
+                            Label(
+                                recipe.isFavorite ? "Unfavorite" : "Favorite",
+                                systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
+                            )
+                        }
+                        .tint(.yellow)
+                    }
                     .contextMenu {
                         Button {
                             toggleFavorite(recipe)
@@ -143,6 +232,7 @@ struct RecipeListView: View {
                                 systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
                             )
                         }
+                        .accessibilityLabel(recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites")
 
                         Button {
                             toggleShoppingList(recipe)
@@ -152,14 +242,17 @@ struct RecipeListView: View {
                                 systemImage: recipe.isInShoppingList ? "cart.badge.minus" : "cart.badge.plus"
                             )
                         }
+                        .accessibilityLabel(recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List")
 
                         Divider()
 
                         Button(role: .destructive) {
-                            deleteRecipe(recipe)
+                            recipeToDelete = recipe
+                            showDeleteConfirmation = true
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
+                        .accessibilityLabel("Delete \(recipe.title)")
                     }
                 }
             }
@@ -169,6 +262,7 @@ struct RecipeListView: View {
         .refreshable {
             await refreshRecipes()
         }
+        .tint(HeirloomColors.tomato) // Set pull-to-refresh spinner color
         .background(HeirloomColors.appBackground)
     }
 
@@ -245,6 +339,10 @@ struct RecipeListView: View {
                 let date1 = recipe1.lastCooked ?? Date.distantPast
                 let date2 = recipe2.lastCooked ?? Date.distantPast
                 return ascending ? date1 < date2 : date1 > date2
+            case .lastViewed:
+                let date1 = recipe1.lastViewed ?? Date.distantPast
+                let date2 = recipe2.lastViewed ?? Date.distantPast
+                return ascending ? date1 < date2 : date1 > date2
             }
         }
 
@@ -254,42 +352,55 @@ struct RecipeListView: View {
     // MARK: - Actions
 
     private func refreshRecipes() async {
+        // Track analytics
+        await MainActor.run {
+            isSyncing = true
+            AnalyticsService.shared.track(event: .featureUsed, properties: [
+                "feature": "pull_to_refresh",
+                "context": "recipe_list"
+            ])
+        }
+
         // Add haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
 
-        // Simulate refresh (in reality, SwiftData query auto-updates)
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        // Trigger CloudKit sync
+        await syncCoordinator.processPendingOperations()
+
+        // SwiftData query auto-updates, so recipes refresh automatically
+        // Add small delay for better UX (feels more responsive)
+        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
 
         // Success haptic
         let successGenerator = UINotificationFeedbackGenerator()
         successGenerator.notificationOccurred(.success)
+
+        await MainActor.run {
+            isSyncing = false
+        }
     }
 
     private func deleteRecipe(_ recipe: Recipe) {
-        // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.warning)
+        // Haptic feedback for deletion action
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
 
-        // Delete recipe
-        modelContext.delete(recipe)
+        // Use UndoService for soft delete with undo capability
+        undoService.deleteRecipe(recipe, context: modelContext)
 
-        do {
-            try modelContext.save()
+        // Show undo toast
+        ToastManager.shared.showUndoToast(for: undoService.pendingUndos.last!) {
+            // Undo action
+            if let undoItem = undoService.pendingUndos.last {
+                undoService.undoDelete(undoItem)
 
-            // Success haptic
-            let successGenerator = UINotificationFeedbackGenerator()
-            successGenerator.notificationOccurred(.success)
+                // Success haptic for undo
+                let successGenerator = UINotificationFeedbackGenerator()
+                successGenerator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Recipe deleted")
-
-            // Track analytics
-            AnalyticsService.shared.trackRecipeDeleted(recipeTitle: recipe.title)
-        } catch {
-            ToastManager.shared.error(
-                title: "Failed to delete",
-                message: error.localizedDescription
-            )
+                ToastManager.shared.success(title: "Recipe restored")
+            }
         }
     }
 
@@ -330,7 +441,7 @@ struct RecipeListView: View {
                 ToastManager.shared.success(title: "Removed from shopping list")
             } catch {
                 ToastManager.shared.error(
-                    title: "Failed to remove",
+                    title: "Failed to remove from shopping list",
                     message: error.localizedDescription
                 )
             }
@@ -349,6 +460,9 @@ struct RecipeListView: View {
                 generator.impactOccurred()
 
                 ToastManager.shared.success(title: "Added to shopping list")
+
+                // Check shopping list milestone
+                checkShoppingListMilestone()
             } catch {
                 ToastManager.shared.error(
                     title: "Failed to add to shopping list",
@@ -361,11 +475,65 @@ struct RecipeListView: View {
         try? modelContext.save()
     }
 
+    private func handleJSONImport(result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+
+            do {
+                // Import recipe from JSON
+                let recipe = try RecipeExportService.shared.importRecipeFromJSON(url: url)
+
+                // Insert into context
+                modelContext.insert(recipe)
+                try modelContext.save()
+
+                // Success feedback
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+
+                ToastManager.shared.success(
+                    title: "Recipe Imported",
+                    message: recipe.title
+                )
+
+                // Track analytics
+                AnalyticsService.shared.track(event: .featureUsed, properties: [
+                    "feature": "json_import",
+                    "recipe_title": recipe.title
+                ])
+
+                // Check milestones
+                checkRecipeMilestones()
+            } catch {
+                // Error feedback
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
+
+                ToastManager.shared.error(
+                    title: "Import Failed",
+                    message: error.localizedDescription
+                )
+            }
+        case .failure(let error):
+            ToastManager.shared.error(
+                title: "Import Failed",
+                message: error.localizedDescription
+            )
+        }
+    }
+
     private func addSampleRecipe() {
         // Pick a random sample recipe from our library
         let sampleRecipes = SampleRecipeLibrary.all
         guard let sampleRecipe = sampleRecipes.randomElement() else { return }
 
+        Task {
+            await createSampleRecipe(from: sampleRecipe)
+        }
+    }
+
+    private func createSampleRecipe(from sampleRecipe: SampleRecipeData) async {
         let sampleData = sampleRecipe.recipe
 
         // IMPORTANT: Create a NEW Recipe object (don't reuse the sample)
@@ -388,8 +556,26 @@ struct RecipeListView: View {
         recipe.isFavorite = sampleData.isFavorite
         recipe.notes = sampleData.notes
 
+        // Download and save image
+        if let imageURL = URL(string: sampleRecipe.imageURL) {
+            print("📥 Downloading sample recipe image...")
+            do {
+                let (data, _) = try await URLSession.shared.data(from: imageURL)
+                if let image = UIImage(data: data) {
+                    let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
+                    recipe.imageFileName = fileName
+                    print("✅ Sample recipe image downloaded and saved")
+                }
+            } catch {
+                print("⚠️ Failed to download sample recipe image: \(error.localizedDescription)")
+                // Continue without image - not a fatal error
+            }
+        }
+
         // Insert recipe first
-        modelContext.insert(recipe)
+        await MainActor.run {
+            modelContext.insert(recipe)
+        }
 
         // Create and insert ingredients with proper parsing
         var ingredients: [Ingredient] = []
@@ -407,32 +593,97 @@ struct RecipeListView: View {
             )
             ingredient.quantityMax = parsed.quantityMax
             ingredient.recipe = recipe
-            modelContext.insert(ingredient)
+            await MainActor.run {
+                modelContext.insert(ingredient)
+            }
             ingredients.append(ingredient)
         }
 
         recipe.ingredients = ingredients
 
+        // Create card back with sample data
+        let cardBack = RecipeCardBack()
+        cardBack.recipe = recipe
+        cardBack.noteToFriends = sampleRecipe.cardBack.noteToFriends
+        cardBack.personalTips = sampleRecipe.cardBack.personalTips
+        if let rating = sampleRecipe.cardBack.rating {
+            cardBack.userRating = rating
+        }
+        recipe.cardBack = cardBack
+        await MainActor.run {
+            modelContext.insert(cardBack)
+        }
+
+        // Create comments from sample data
+        for (index, commentText) in sampleRecipe.comments.enumerated() {
+            let comment = RecipeComment(
+                text: commentText,
+                authorName: "Sample User"
+            )
+            comment.recipe = recipe
+            comment.isPinned = true  // Make sample comments pinned for visibility
+            comment.createdAt = Date().addingTimeInterval(-Double(index) * 3600)  // Stagger timestamps
+            await MainActor.run {
+                modelContext.insert(comment)
+            }
+        }
+
         do {
-            try modelContext.save()
+            try await MainActor.run {
+                try modelContext.save()
+            }
 
             // Success feedback
-            ToastManager.shared.success(
-                title: "Sample Recipe Added",
-                message: recipe.title
-            )
+            await MainActor.run {
+                ToastManager.shared.success(
+                    title: "Sample Recipe Added",
+                    message: recipe.title
+                )
 
-            // Haptic feedback
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
+                // Haptic feedback
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
 
-            print("✅ Sample recipe '\(recipe.title)' saved with \(ingredients.count) ingredients")
+                print("✅ Sample recipe '\(recipe.title)' saved with \(ingredients.count) ingredients, card back, and \(sampleRecipe.comments.count) comments")
+
+                // Check milestones
+                checkRecipeMilestones()
+            }
         } catch {
-            ToastManager.shared.error(
-                title: "Failed to add sample recipe",
-                message: error.localizedDescription
-            )
-            print("❌ Failed to save sample recipe: \(error)")
+            await MainActor.run {
+                ToastManager.shared.error(
+                    title: "Failed to save recipe",
+                    message: error.localizedDescription
+                )
+                print("❌ Failed to save sample recipe: \(error)")
+            }
+        }
+    }
+
+    private func checkRecipeMilestones() {
+        let recipeCount = recipes.count
+
+        // Check first recipe
+        if recipeCount == 1 {
+            MilestoneManager.shared.checkFirstRecipeAdded()
+        }
+
+        // Check milestone thresholds
+        if recipeCount == 10 {
+            MilestoneManager.shared.checkTenRecipes()
+        } else if recipeCount == 50 {
+            MilestoneManager.shared.checkFiftyRecipes()
+        }
+    }
+
+    private func checkShoppingListMilestone() {
+        // Count total shopping list recipes
+        let descriptor = FetchDescriptor<ShoppingCartRecipe>()
+        if let cartRecipes = try? modelContext.fetch(descriptor) {
+            // Check first shopping list
+            if cartRecipes.count == 1 {
+                MilestoneManager.shared.checkFirstShoppingList()
+            }
         }
     }
 
@@ -549,41 +800,55 @@ struct RecipeCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            // Recipe Image with async loading
-            AsyncRecipeImage(
-                imageFileName: recipe.imageFileName,
-                placeholder: recipe.sourceType?.iconName ?? "fork.knife"
-            )
-            .aspectRatio(4/3, contentMode: .fit)
-            .frame(maxWidth: .infinity)
-            .clipped()
-            .cornerRadius(12)
+            // Recipe Image with async loading and favorite badge overlay
+            ZStack(alignment: .topLeading) {
+                AsyncRecipeImage(
+                    imageFileName: recipe.imageFileName,
+                    placeholder: recipe.sourceType?.iconName ?? "fork.knife"
+                )
+                .aspectRatio(4/3, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .clipped()
+                .cornerRadius(12)
+                .accessibilityHidden(true) // Hide image from VoiceOver, recipe title is more important
 
-            VStack(alignment: .leading, spacing: 4) {
+                // Favorite heart badge (top left overlay)
+                if recipe.isFavorite {
+                    Image(systemName: "heart.fill")
+                        .foregroundStyle(.white)
+                        .font(.title3)
+                        .padding(8)
+                        .background(
+                            Circle()
+                                .fill(HeirloomColors.familyGreen)
+                                .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                        )
+                        .padding(8)
+                        .accessibilityLabel("Favorite")
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
                 Text(recipe.title)
                     .font(HeirloomFonts.subheadline)
                     .foregroundStyle(HeirloomColors.primaryText)
                     .fontWeight(.semibold)
                     .lineLimit(2)
-                    .frame(height: 40, alignment: .topLeading)
+                    .frame(minHeight: 34, alignment: .topLeading)
 
                 Text(recipe.sourceDisplayName)
                     .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
                     .lineLimit(1)
             }
+            .accessibilityElement(children: .combine)
 
             HStack {
-                if recipe.isFavorite {
-                    Image(systemName: "heart.fill")
-                        .foregroundStyle(HeirloomColors.familyGreen)
-                        .font(.caption)
-                }
-
                 if recipe.timesCooked > 0 {
                     Label("\(recipe.timesCooked)", systemImage: "flame.fill")
                         .font(.caption)
                         .foregroundStyle(HeirloomColors.amber)
+                        .accessibilityLabel("Cooked \(recipe.timesCooked) times")
                 }
 
                 Spacer()
@@ -605,13 +870,14 @@ struct RecipeCardView: View {
                         Capsule()
                             .fill(generationColor(for: generation).opacity(0.15))
                     )
+                    .accessibilityLabel("\(generationBadge(for: generation)) recipe")
                 }
             }
             .frame(height: 20)
         }
         .padding(HeirloomSpacing.sm)
         .frame(maxWidth: .infinity)
-        .background(HeirloomColors.cardBackground)
+        .background(HeirloomColors.cream)
         .cornerRadius(HeirloomSpacing.cardCornerRadius)
         .shadow(
             color: HeirloomShadows.card.color,

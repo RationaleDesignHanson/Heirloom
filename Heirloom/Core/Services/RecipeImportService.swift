@@ -174,7 +174,7 @@ class RecipeImportService {
 
         // Title - try multiple selectors
         if let title = try? doc.select("h1.o-AssetTitle__a-HeadlineText").first()?.text() {
-            recipe.title = title
+            recipe.title = title.decodingHTMLEntities()
         }
 
         // Ingredients - Food Network uses specific classes
@@ -200,7 +200,7 @@ class RecipeImportService {
 
         // Title
         if let title = try? doc.select("h1[data-testid=ContentHeaderHed]").first()?.text() {
-            recipe.title = title
+            recipe.title = title.decodingHTMLEntities()
         }
 
         // Ingredients - Bon Appétit uses data-testid
@@ -298,7 +298,7 @@ class RecipeImportService {
         var recipe = ImportedRecipe()
 
         // Title
-        recipe.title = dict["name"] as? String ?? ""
+        recipe.title = (dict["name"] as? String ?? "").decodingHTMLEntities()
 
         // Image
         if let imageData = dict["image"] {
@@ -401,7 +401,7 @@ class RecipeImportService {
 
         // Title
         if let titleElement = try? container.select("[itemprop=name]").first() {
-            recipe.title = try titleElement.text()
+            recipe.title = try titleElement.text().decodingHTMLEntities()
         }
 
         // Image
@@ -465,6 +465,26 @@ struct ImportedRecipe {
 
     var isValid: Bool {
         !title.isEmpty && !ingredients.isEmpty && !instructions.isEmpty
+    }
+}
+
+// MARK: - String Extension for HTML Entity Decoding
+
+extension String {
+    /// Decode HTML entities like &#39; (apostrophe), &quot;, &amp;, etc.
+    func decodingHTMLEntities() -> String {
+        guard let data = self.data(using: .utf8) else { return self }
+
+        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue
+        ]
+
+        guard let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) else {
+            return self
+        }
+
+        return attributedString.string
     }
 }
 

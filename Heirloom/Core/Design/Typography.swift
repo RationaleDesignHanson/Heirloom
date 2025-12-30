@@ -1,37 +1,94 @@
 import SwiftUI
 
 /// Heirloom typography system
+/// All fonts support Dynamic Type and scale with accessibility settings
+///
+/// # Dynamic Type Guidelines
+///
+/// ## Use Scalable Fonts For:
+/// - All user-facing text content (titles, body text, labels)
+/// - Button labels and interactive text
+/// - Any text users need to read
+///
+/// ## Use Fixed Fonts For:
+/// - Decorative SF Symbols/icons (e.g., `.font(.system(size: 24))` for icons)
+/// - Small visual indicators (badges, dots)
+/// - Elements where scaling would break layout (emoji displays)
+///
+/// ## Touch Targets:
+/// - Interactive elements must have MINIMUM 44x44pt hit area
+/// - SwiftUI buttons automatically expand hit areas to 44pt minimum
+/// - Use `.frame(minWidth: 44, minHeight: 44)` for custom interactive elements
+///
+/// ## Testing:
+/// - Test with Settings > Accessibility > Display & Text Size > Larger Text
+/// - Enable "Larger Accessibility Sizes" and test at AX5 (largest)
+/// - Verify text doesn't truncate and remains readable
 enum HeirloomFonts {
-    // MARK: - Title Fonts (Serif)
-    static func title(_ size: CGFloat = 24, weight: Font.Weight = .semibold) -> Font {
-        .system(size: size, weight: weight, design: .serif)
+    // MARK: - Title Fonts (Serif) - Dynamic Type Support
+    /// Use this for custom title sizes that need to scale with Dynamic Type
+    /// - Parameters:
+    ///   - textStyle: The base text style for scaling reference
+    ///   - weight: Font weight
+    /// - Returns: A scalable serif font
+    static func title(_ textStyle: Font.TextStyle = .title, weight: Font.Weight = .semibold) -> Font {
+        .system(textStyle, design: .serif, weight: weight)
     }
 
-    static let largeTitle = Font.system(size: 34, weight: .bold, design: .serif)
-    static let title1 = Font.system(size: 28, weight: .semibold, design: .serif)
-    static let title2 = Font.system(size: 22, weight: .semibold, design: .serif)
-    static let title3 = Font.system(size: 20, weight: .medium, design: .serif)
+    // Scalable title fonts that adapt to accessibility settings
+    static let largeTitle = Font.system(.largeTitle, design: .serif, weight: .bold)
+    static let title1 = Font.system(.title, design: .serif, weight: .semibold)
+    static let title2 = Font.system(.title2, design: .serif, weight: .semibold)
+    static let title3 = Font.system(.title3, design: .serif, weight: .medium)
 
-    // MARK: - Body Fonts (Sans-serif)
-    static let body = Font.system(size: 17, weight: .regular)
-    static let bodyBold = Font.system(size: 17, weight: .semibold)
-    static let callout = Font.system(size: 16, weight: .regular)
-    static let subheadline = Font.system(size: 15, weight: .regular)
-    static let footnote = Font.system(size: 13, weight: .regular)
-    static let caption1 = Font.system(size: 12, weight: .regular)
-    static let caption1Bold = Font.system(size: 12, weight: .semibold)
-    static let caption2 = Font.system(size: 11, weight: .regular)
-    static let caption2Bold = Font.system(size: 11, weight: .semibold)
+    // MARK: - Body Fonts (Sans-serif) - Dynamic Type Support
+    static let body = Font.system(.body, weight: .regular)
+    static let bodyBold = Font.system(.body, weight: .semibold)
+    static let callout = Font.system(.callout, weight: .regular)
+    static let subheadline = Font.system(.subheadline, weight: .regular)
+    static let footnote = Font.system(.footnote, weight: .regular)
+    static let caption1 = Font.system(.caption, weight: .regular)
+    static let caption1Bold = Font.system(.caption, weight: .semibold)
+    static let caption2 = Font.system(.caption2, weight: .regular)
+    static let caption2Bold = Font.system(.caption2, weight: .semibold)
 
-    // MARK: - Special Fonts
-    static func handwritten(_ size: CGFloat = 18) -> Font {
+    // MARK: - Special Fonts - Dynamic Type Support
+    /// Handwritten-style font that scales with accessibility settings
+    static func handwritten(_ textStyle: Font.TextStyle = .body) -> Font {
         // For Phase 2: Will use custom handwritten font
-        // For now: Serif italic approximation
-        .system(size: size, weight: .medium, design: .serif).italic()
+        // For now: Serif italic approximation that scales
+        .system(textStyle, design: .serif, weight: .medium).italic()
     }
 
-    static func typewriter(_ size: CGFloat = 14) -> Font {
-        .system(size: size, weight: .regular, design: .monospaced)
+    /// Typewriter/monospaced font that scales with accessibility settings
+    static func typewriter(_ textStyle: Font.TextStyle = .body) -> Font {
+        .system(textStyle, design: .monospaced, weight: .regular)
+    }
+
+    // MARK: - Fixed Size Fonts (Use Sparingly)
+    /// Fixed-size fonts for decorative elements that should NOT scale
+    /// Only use when Dynamic Type scaling would break the design (e.g., icons, badges)
+    enum Fixed {
+        static func decorative(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
+            .system(size: size, weight: weight)
+        }
+
+        static func icon(_ size: CGFloat) -> Font {
+            .system(size: size)
+        }
+    }
+}
+
+// MARK: - Scaled Metric Helper
+/// Helper for creating scalable custom sizes
+/// Usage: @ScaledMetric(relativeTo: .body) var fontSize: CGFloat = 18
+/// Then use: .font(.system(size: fontSize))
+struct ScalableFont {
+    let baseSize: CGFloat
+    let textStyle: Font.TextStyle
+
+    func font(weight: Font.Weight = .regular, design: Font.Design = .default) -> Font {
+        .system(size: baseSize, weight: weight, design: design)
     }
 }
 

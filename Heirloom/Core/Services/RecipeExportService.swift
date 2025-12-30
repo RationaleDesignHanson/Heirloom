@@ -28,6 +28,7 @@ class RecipeExportService {
     enum ShareFormat {
         case text
         case pdf
+        case json
         case url // For future CloudKit sharing
     }
 
@@ -43,6 +44,13 @@ class RecipeExportService {
             let tempURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("\(recipe.title).pdf")
             try pdfData.write(to: tempURL)
+            return [tempURL]
+
+        case .json:
+            let jsonData = try formatRecipeAsJSON(recipe)
+            let tempURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent("\(recipe.title).json")
+            try jsonData.write(to: tempURL)
             return [tempURL]
 
         case .url:
@@ -113,6 +121,123 @@ class RecipeExportService {
         text += "Shared from Heirloom\n"
 
         return text
+    }
+
+    // MARK: - JSON Formatting
+
+    private func formatRecipeAsJSON(_ recipe: Recipe) throws -> Data {
+        // Create exportable dictionary
+        var recipeDict: [String: Any] = [
+            "id": recipe.id.uuidString,
+            "title": recipe.title,
+            "dateAdded": ISO8601DateFormatter().string(from: recipe.dateAdded),
+            "lastModified": ISO8601DateFormatter().string(from: recipe.lastModified),
+            "instructions": recipe.instructions
+        ]
+
+        // Add optional fields
+        if let sourceType = recipe.sourceType {
+            recipeDict["sourceType"] = sourceType.rawValue
+        }
+        if let sourceURL = recipe.sourceURL {
+            recipeDict["sourceURL"] = sourceURL
+        }
+        if let sourceBookTitle = recipe.sourceBookTitle {
+            recipeDict["sourceBookTitle"] = sourceBookTitle
+        }
+        if let sourceBookAuthor = recipe.sourceBookAuthor {
+            recipeDict["sourceBookAuthor"] = sourceBookAuthor
+        }
+        if let sourceBookPage = recipe.sourceBookPage {
+            recipeDict["sourceBookPage"] = sourceBookPage
+        }
+        if let sourcePerson = recipe.sourcePerson {
+            recipeDict["sourcePerson"] = sourcePerson
+        }
+        if let sourceDate = recipe.sourceDate {
+            recipeDict["sourceDate"] = sourceDate
+        }
+        if let sourceStory = recipe.sourceStory {
+            recipeDict["sourceStory"] = sourceStory
+        }
+        if let servings = recipe.servings {
+            recipeDict["servings"] = servings
+        }
+        if let prepTime = recipe.prepTime {
+            recipeDict["prepTime"] = prepTime
+        }
+        if let cookTime = recipe.cookTime {
+            recipeDict["cookTime"] = cookTime
+        }
+        if let totalTime = recipe.totalTime {
+            recipeDict["totalTime"] = totalTime
+        }
+        if let notes = recipe.notes {
+            recipeDict["notes"] = notes
+        }
+        if let imageFileName = recipe.imageFileName {
+            recipeDict["imageFileName"] = imageFileName
+        }
+
+        // Add metadata
+        recipeDict["timesCooked"] = recipe.timesCooked
+        recipeDict["isFavorite"] = recipe.isFavorite
+        if let lastCooked = recipe.lastCooked {
+            recipeDict["lastCooked"] = ISO8601DateFormatter().string(from: lastCooked)
+        }
+        if let lastViewed = recipe.lastViewed {
+            recipeDict["lastViewed"] = ISO8601DateFormatter().string(from: lastViewed)
+        }
+
+        // Add scaling metadata
+        recipeDict["scalabilityRating"] = recipe.scalabilityRating
+        recipeDict["minimumServings"] = recipe.minimumServings
+        if let maximumServings = recipe.maximumServings {
+            recipeDict["maximumServings"] = maximumServings
+        }
+        if let scalingNote = recipe.scalingNote {
+            recipeDict["scalingNote"] = scalingNote
+        }
+        if let category = recipe.category {
+            recipeDict["recipeCategory"] = category.rawValue
+        }
+
+        // Add ingredients
+        if let ingredients = recipe.ingredients {
+            let ingredientsArray = ingredients.sorted(by: { $0.orderIndex < $1.orderIndex }).map { ingredient -> [String: Any] in
+                var ingredientDict: [String: Any] = [
+                    "name": ingredient.name,
+                    "originalText": ingredient.originalText,
+                    "orderIndex": ingredient.orderIndex
+                ]
+                if let quantity = ingredient.quantity {
+                    ingredientDict["quantity"] = quantity
+                }
+                if let quantityMax = ingredient.quantityMax {
+                    ingredientDict["quantityMax"] = quantityMax
+                }
+                if let unit = ingredient.unit {
+                    ingredientDict["unit"] = unit
+                }
+                if let preparation = ingredient.preparation {
+                    ingredientDict["preparation"] = preparation
+                }
+                if let category = ingredient.category {
+                    ingredientDict["category"] = category.rawValue
+                }
+                return ingredientDict
+            }
+            recipeDict["ingredients"] = ingredientsArray
+        }
+
+        // Add export metadata
+        recipeDict["exportedFrom"] = "Heirloom"
+        recipeDict["exportedAt"] = ISO8601DateFormatter().string(from: Date())
+        recipeDict["formatVersion"] = "1.0"
+
+        // Convert to JSON
+        let jsonData = try JSONSerialization.data(withJSONObject: recipeDict, options: [.prettyPrinted, .sortedKeys])
+        return jsonData
     }
 
     // MARK: - PDF Generation
@@ -359,5 +484,141 @@ class RecipeExportService {
         }
 
         rootViewController.present(activityVC, animated: true)
+    }
+
+    // MARK: - JSON Import
+
+    func importRecipeFromJSON(url: URL) throws -> Recipe {
+        // Read the file
+        let data = try Data(contentsOf: url)
+
+        // Parse JSON
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw ImportError.invalidFormat
+        }
+
+        // Verify format version
+        if let version = json["formatVersion"] as? String, version != "1.0" {
+            throw ImportError.unsupportedVersion(version)
+        }
+
+        // Extract required fields
+        guard let title = json["title"] as? String else {
+            throw ImportError.missingRequiredField("title")
+        }
+
+        guard let instructions = json["instructions"] as? [String] else {
+            throw ImportError.missingRequiredField("instructions")
+        }
+
+        // Parse source type
+        var sourceType: RecipeSourceType = .manual
+        if let sourceTypeRaw = json["sourceType"] as? String,
+           let parsedType = RecipeSourceType(rawValue: sourceTypeRaw) {
+            sourceType = parsedType
+        }
+
+        // Create recipe
+        let recipe = Recipe(
+            title: title,
+            sourceType: sourceType,
+            sourceURL: json["sourceURL"] as? String,
+            instructions: instructions,
+            servings: json["servings"] as? String,
+            prepTime: json["prepTime"] as? String,
+            cookTime: json["cookTime"] as? String
+        )
+
+        // Set optional fields
+        recipe.sourceBookTitle = json["sourceBookTitle"] as? String
+        recipe.sourceBookAuthor = json["sourceBookAuthor"] as? String
+        recipe.sourceBookPage = json["sourceBookPage"] as? Int
+        recipe.sourcePerson = json["sourcePerson"] as? String
+        recipe.sourceDate = json["sourceDate"] as? String
+        recipe.sourceStory = json["sourceStory"] as? String
+        recipe.totalTime = json["totalTime"] as? String
+        recipe.notes = json["notes"] as? String
+
+        // Set metadata (don't import timesCooked, lastCooked, isFavorite - these should be fresh)
+        // Parse dates
+        let dateFormatter = ISO8601DateFormatter()
+        if let dateAddedString = json["dateAdded"] as? String,
+           let dateAdded = dateFormatter.date(from: dateAddedString) {
+            recipe.dateAdded = dateAdded
+        }
+        if let lastModifiedString = json["lastModified"] as? String,
+           let lastModified = dateFormatter.date(from: lastModifiedString) {
+            recipe.lastModified = lastModified
+        }
+
+        // Set scaling metadata
+        if let scalabilityRating = json["scalabilityRating"] as? String {
+            recipe.scalabilityRating = scalabilityRating
+        }
+        if let recipeCategory = json["recipeCategory"] as? String {
+            recipe.recipeCategory = recipeCategory
+        }
+        if let minimumServings = json["minimumServings"] as? Int {
+            recipe.minimumServings = minimumServings
+        }
+        if let maximumServings = json["maximumServings"] as? Int {
+            recipe.maximumServings = maximumServings
+        }
+        if let scalingNote = json["scalingNote"] as? String {
+            recipe.scalingNote = scalingNote
+        }
+
+        // Parse ingredients
+        if let ingredientsArray = json["ingredients"] as? [[String: Any]] {
+            var ingredients: [Ingredient] = []
+            for (index, ingredientDict) in ingredientsArray.enumerated() {
+                guard let name = ingredientDict["name"] as? String,
+                      let originalText = ingredientDict["originalText"] as? String else {
+                    continue
+                }
+
+                // Parse category
+                var category: GroceryCategory = .other
+                if let categoryRaw = ingredientDict["category"] as? String,
+                   let parsedCategory = GroceryCategory(rawValue: categoryRaw) {
+                    category = parsedCategory
+                }
+
+                let ingredient = Ingredient(
+                    originalText: originalText,
+                    name: name,
+                    quantity: ingredientDict["quantity"] as? Double,
+                    unit: ingredientDict["unit"] as? String,
+                    category: category,
+                    orderIndex: ingredientDict["orderIndex"] as? Int ?? index
+                )
+                // Set additional properties not in init
+                ingredient.quantityMax = ingredientDict["quantityMax"] as? Double
+                ingredient.preparation = ingredientDict["preparation"] as? String
+                ingredients.append(ingredient)
+            }
+            recipe.ingredients = ingredients
+        }
+
+        return recipe
+    }
+
+    // MARK: - Import Errors
+
+    enum ImportError: LocalizedError {
+        case invalidFormat
+        case unsupportedVersion(String)
+        case missingRequiredField(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidFormat:
+                return "Invalid JSON format"
+            case .unsupportedVersion(let version):
+                return "Unsupported format version: \(version)"
+            case .missingRequiredField(let field):
+                return "Missing required field: \(field)"
+            }
+        }
     }
 }

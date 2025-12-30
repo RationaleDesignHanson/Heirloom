@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import PhotosUI
 
 /// Enhanced camera scanner for recipe cards with real-time quality feedback
 struct EnhancedScannerView: View {
@@ -9,10 +10,10 @@ struct EnhancedScannerView: View {
     @StateObject private var cameraManager = CameraManager()
     @State private var capturedImage: UIImage?
     @State private var isProcessing = false
-    @State private var showReviewSheet = false
-    @State private var ocrResult: EnhancedOCRService.OCRResult?
-    @State private var parsedRecipe: RecipeStructureParser.ParsedRecipe?
+    @State private var showMultiRecipeSheet = false
+    @State private var multiRecipeResult: AIRecipeExtractor.MultiRecipeExtractionResult?
     @State private var errorMessage: String?
+    @State private var selectedPhotoItem: PhotosPickerItem?
 
     var body: some View {
         NavigationStack {
@@ -42,14 +43,30 @@ struct EnhancedScannerView: View {
                         dismiss()
                     }
                 }
+
+                ToolbarItem(placement: .primaryAction) {
+                    PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                        Label("Choose Photo", systemImage: "photo.on.rectangle")
+                    }
+                }
             }
-            .sheet(isPresented: $showReviewSheet) {
-                if let ocrResult = ocrResult, let parsedRecipe = parsedRecipe {
-                    OCRReviewView(
-                        ocrResult: ocrResult,
-                        parsedRecipe: parsedRecipe,
-                        originalImage: capturedImage
+            .sheet(isPresented: $showMultiRecipeSheet) {
+                if let result = multiRecipeResult {
+                    RecipeSelectionView(
+                        recipes: result.recipes,
+                        sourceImage: result.sourceImage
                     )
+                }
+            }
+            .onChange(of: selectedPhotoItem) { _, newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data) {
+                        await MainActor.run {
+                            capturedImage = image
+                            selectedPhotoItem = nil
+                        }
+                    }
                 }
             }
             .alert("Scan Error", isPresented: .constant(errorMessage != nil)) {
@@ -226,11 +243,11 @@ struct EnhancedScannerView: View {
                     .tint(.white)
                     .scaleEffect(1.5)
 
-                Text("Processing recipe card...")
+                Text("Analyzing recipe card...")
                     .font(HeirloomFonts.title3)
                     .foregroundStyle(.white)
 
-                Text("Enhancing image and recognizing text")
+                Text("Using AI vision to detect and extract recipes")
                     .font(HeirloomFonts.body)
                     .foregroundStyle(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
@@ -256,8 +273,7 @@ struct EnhancedScannerView: View {
 
     private func retakePhoto() {
         capturedImage = nil
-        ocrResult = nil
-        parsedRecipe = nil
+        multiRecipeResult = nil
         cameraManager.startSession()
     }
 
@@ -268,34 +284,50 @@ struct EnhancedScannerView: View {
 
         Task {
             do {
-                // Step 1: Preprocess image
-                print("🎨 Step 1: Preprocessing image...")
-                let preprocessed = try await ImagePreprocessor.shared.preprocess(image)
+                // Step 1: Detect recipes with bounding boxes (vision API)
+                print("🔍 Step 1: Detecting recipes with vision API...")
+                let detected = try await AIRecipeExtractor.shared.detectRecipes(from: image)
 
-                // Step 2: Perform OCR
-                print("🔍 Step 2: Performing OCR...")
-                let ocr = try await EnhancedOCRService.shared.recognizeText(from: preprocessed)
+                print("   Found \(detected.count) recipe(s)")
+                for (index, recipe) in detected.enumerated() {
+                    print("   \(index + 1). \(recipe.title) (\(recipe.confidence.rawValue) confidence)")
+                }
 
-                // Step 3: Parse recipe structure
-                print("📋 Step 3: Parsing recipe structure...")
-                let parsed = await RecipeStructureParser.shared.parse(ocr.recognizedText)
+                // Step 2: Extract each recipe using vision API + bounding box
+                print("🤖 Step 2: Extracting recipes with vision API...")
+                let result = try await AIRecipeExtractor.shared.extractRecipesFromImage(
+                    image: image,
+                    detectedRecipes: detected
+                )
 
                 await MainActor.run {
-                    ocrResult = ocr
-                    parsedRecipe = parsed
                     isProcessing = false
-
-                    // Show review sheet
-                    showReviewSheet = true
 
                     // Success feedback
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
 
                     print("✅ Processing complete!")
-                    print("   OCR Confidence: \(ocr.confidencePercentage)")
-                    print("   Parse Confidence: \(parsed.confidencePercentage)")
-                    print("   Detected: \(parsed.summary)")
+                    print("   Extracted \(result.count) recipe(s)")
+
+                    // Route based on recipe count
+                    if result.count == 0 {
+                        // No recipes detected - show error
+                        errorMessage = "No recipes detected in the image. Please try again with a clearer photo."
+                        print("⚠️ No recipes found")
+
+                    } else {
+                        // 1+ recipes - use RecipeSelectionView (matches web demo behavior)
+                        multiRecipeResult = result
+                        showMultiRecipeSheet = true
+
+                        print("✅ Recipes extracted:")
+                        for (index, recipe) in result.recipes.enumerated() {
+                            print("   \(index + 1). \(recipe.title)")
+                            print("      Ingredients: \(recipe.ingredients.count)")
+                            print("      Instructions: \(recipe.instructions.count)")
+                        }
+                    }
                 }
 
             } catch {
@@ -475,22 +507,50 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
 struct CameraPreviewView: UIViewRepresentable {
     let cameraManager: CameraManager
 
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
+    func makeUIView(context: Context) -> PreviewContainerView {
+        let view = PreviewContainerView()
         view.backgroundColor = .black
 
         if let previewLayer = cameraManager.getPreviewLayer() {
             previewLayer.frame = view.bounds
-            view.layer.addSublayer(previewLayer)
+            view.layer.insertSublayer(previewLayer, at: 0)
+            view.previewLayer = previewLayer
         }
 
         return view
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {
+    func updateUIView(_ uiView: PreviewContainerView, context: Context) {
+        // Update the layer reference if it changed
         if let previewLayer = cameraManager.getPreviewLayer() {
-            previewLayer.frame = uiView.bounds
+            uiView.previewLayer = previewLayer
         }
+
+        // Update frame immediately on main thread
+        DispatchQueue.main.async {
+            if let previewLayer = cameraManager.getPreviewLayer() {
+                CATransaction.begin()
+                CATransaction.setDisableActions(true)
+                previewLayer.frame = uiView.bounds
+                CATransaction.commit()
+            }
+        }
+    }
+}
+
+/// Container view that automatically resizes the preview layer on layout changes
+class PreviewContainerView: UIView {
+    var previewLayer: AVCaptureVideoPreviewLayer?
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        // Update preview layer frame whenever the view's bounds change
+        // This handles rotation, device size changes, and safe area adjustments
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        previewLayer?.frame = bounds
+        CATransaction.commit()
     }
 }
 

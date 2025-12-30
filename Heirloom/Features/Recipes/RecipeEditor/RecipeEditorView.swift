@@ -25,6 +25,9 @@ struct RecipeEditorView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var recipeImage: UIImage?
 
+    // Focus management for auto-focusing new ingredient fields
+    @FocusState private var focusedIngredientIndex: Int?
+
     init(
         recipe: Recipe? = nil,
         initialImage: UIImage? = nil,
@@ -157,6 +160,15 @@ struct RecipeEditorView: View {
                         HStack {
                             TextField("Ingredient", text: $ingredientInputs[index])
                                 .font(HeirloomFonts.body)
+                                .focused($focusedIngredientIndex, equals: index)
+                                .onSubmit {
+                                    // Add new ingredient field when user presses Enter on last field
+                                    if index == ingredientInputs.count - 1 {
+                                        ingredientInputs.append("")
+                                        // Auto-focus the new field
+                                        focusedIngredientIndex = ingredientInputs.count - 1
+                                    }
+                                }
 
                             if ingredientInputs.count > 1 {
                                 Button {
@@ -294,6 +306,33 @@ struct RecipeEditorView: View {
             // Insert new recipe if needed
             if isNewRecipe {
                 recipe.dateAdded = Date()
+
+                // Initialize provenance metadata for new recipes
+                if recipe.provenance == nil {
+                    let provenanceSourceType: ProvenanceMetadata.SourceType
+
+                    // Map RecipeSourceType to ProvenanceMetadata.SourceType
+                    switch sourceType {
+                    case .manual:
+                        provenanceSourceType = .userCreated
+                    case .url:
+                        provenanceSourceType = .imported
+                    case .cookbook:
+                        provenanceSourceType = .userCreated
+                    case .family:
+                        provenanceSourceType = .shared
+                    case .scan:
+                        provenanceSourceType = .scanned
+                    }
+
+                    recipe.provenance = ProvenanceMetadata(
+                        sourceType: provenanceSourceType,
+                        sourceURL: sourceURL.isEmpty ? nil : sourceURL,
+                        sourceAttribution: nil,
+                        generation: 0
+                    )
+                }
+
                 modelContext.insert(recipe)
 
                 // Track analytics

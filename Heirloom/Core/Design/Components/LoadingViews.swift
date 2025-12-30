@@ -173,40 +173,42 @@ struct AsyncRecipeImage: View {
     @State private var hasAttemptedLoad = false
 
     var body: some View {
-        // Fixed container that never changes size
-        Color.clear
-            .overlay(
-                ZStack {
-                    if let image = loadedImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } else if isLoading {
-                        SkeletonView(cornerRadius: 0)
-                    } else {
-                        // Fallback placeholder
-                        Rectangle()
-                            .fill(HeirloomColors.warmGray.opacity(0.2))
-                            .overlay {
-                                Image(systemName: placeholder)
-                                    .font(.system(size: 40))
-                                    .foregroundStyle(HeirloomColors.warmGray)
-                            }
-                    }
+        GeometryReader { geometry in
+            ZStack {
+                if let image = loadedImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                } else if isLoading {
+                    SkeletonView(cornerRadius: 0)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                } else {
+                    // Fallback placeholder
+                    Rectangle()
+                        .fill(HeirloomColors.warmGray.opacity(0.2))
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .overlay {
+                            Image(systemName: placeholder)
+                                .font(.system(size: 40))
+                                .foregroundStyle(HeirloomColors.warmGray)
+                        }
                 }
-            )
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
             .clipped()
-            .onAppear {
-                if !hasAttemptedLoad {
-                    hasAttemptedLoad = true
-                    Task {
-                        await loadImage()
-                    }
+        }
+        .onAppear {
+            if !hasAttemptedLoad {
+                hasAttemptedLoad = true
+                Task {
+                    await loadImage()
                 }
             }
-            .transaction { transaction in
-                transaction.animation = nil  // Disable all animations
-            }
+        }
+        .transaction { transaction in
+            transaction.animation = nil  // Disable all animations
+        }
     }
 
     private func loadImage() async {

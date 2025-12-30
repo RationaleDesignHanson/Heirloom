@@ -12,6 +12,7 @@ struct RecipeCommentListView: View {
     @State private var filterSource: CommentSource?
     @State private var filterSentiment: SentimentFilter?
     @State private var showFilters = false
+    @State private var showAddComment = false
 
     // MARK: - Computed Properties
 
@@ -137,6 +138,14 @@ struct RecipeCommentListView: View {
         .navigationTitle("Comments")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showAddComment = true
+                } label: {
+                    Label("Add Comment", systemImage: "plus.bubble.fill")
+                }
+            }
+
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     sortMenu
@@ -155,6 +164,12 @@ struct RecipeCommentListView: View {
         }
         .sheet(isPresented: $showFilters) {
             filterSheet
+        }
+        .sheet(isPresented: $showAddComment) {
+            AddCommentSheet(recipe: recipe, onSave: { comment in
+                addComment(comment)
+                showAddComment = false
+            })
         }
     }
 
@@ -466,6 +481,91 @@ struct RecipeCommentListView: View {
     private func replyToComment(_ comment: RecipeComment) {
         // TODO: Implement reply sheet
         print("Reply to comment: \(comment.id)")
+    }
+
+    private func addComment(_ comment: RecipeComment) {
+        // Insert comment and save
+        modelContext.insert(comment)
+
+        do {
+            try modelContext.save()
+
+            // Haptic feedback
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+
+            ToastManager.shared.success(title: "Comment added!")
+        } catch {
+            ToastManager.shared.error(
+                title: "Failed to add comment",
+                message: error.localizedDescription
+            )
+        }
+    }
+}
+
+// MARK: - Add Comment Sheet
+
+struct AddCommentSheet: View {
+    let recipe: Recipe
+    let onSave: (RecipeComment) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var commentText = ""
+    @State private var commentType: CommentType = .general
+    @State private var authorName = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Your Comment") {
+                    TextEditor(text: $commentText)
+                        .frame(minHeight: 100)
+                }
+
+                Section("Comment Type") {
+                    Picker("Type", selection: $commentType) {
+                        ForEach(CommentType.allCases, id: \.self) { type in
+                            Text(type.displayName).tag(type)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+
+                Section("Your Name (Optional)") {
+                    TextField("Name", text: $authorName)
+                }
+            }
+            .navigationTitle("Add Comment")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        saveComment()
+                    }
+                    .disabled(commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+    }
+
+    private func saveComment() {
+        let comment = RecipeComment(
+            text: commentText,
+            authorName: authorName.isEmpty ? nil : authorName,
+            source: .user,
+            commentType: commentType,
+            recipe: recipe
+        )
+
+        onSave(comment)
+        dismiss()
     }
 }
 

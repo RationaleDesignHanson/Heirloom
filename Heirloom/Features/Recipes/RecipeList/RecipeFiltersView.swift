@@ -167,6 +167,7 @@ enum RecipeSortOption: String, CaseIterable {
     case title = "Title"
     case timesCooked = "Times Cooked"
     case lastCooked = "Last Cooked"
+    case lastViewed = "Last Viewed"
 
     var displayName: String {
         rawValue

@@ -1,6 +1,7 @@
 import Foundation
 import CloudKit
 import SwiftData
+import UIKit
 
 /// Service for accepting incoming recipe shares and importing to local collection
 /// Handles CKShare acceptance, recipe duplication, and provenance linking
@@ -28,7 +29,25 @@ final class ShareAcceptanceService {
         _ shareMetadata: CKShare.Metadata,
         context: ModelContext
     ) async throws -> Recipe {
-        print("📥 Accepting share: \(shareMetadata.share.recordID.recordName)")
+        let shareID = shareMetadata.share.recordID.recordName
+        print("📥 Accepting share: \(shareID)")
+
+        // DUPLICATE PREVENTION: Check if this share was already accepted
+        print("🔍 Checking for already-accepted share...")
+
+        // Fetch all recipes and filter manually (SwiftData predicates don't support optional chaining)
+        let fetchDescriptor = FetchDescriptor<Recipe>()
+        if let allRecipes = try? context.fetch(fetchDescriptor) {
+            if let existingRecipe = allRecipes.first(where: { $0.provenance?.parentShareID == shareID }) {
+                print("ℹ️ This share was already accepted")
+                DeviceLogger.shared.log("ℹ️ Share already accepted: \(existingRecipe.title)")
+
+                // Return existing recipe (could show "You already have this recipe" UI)
+                return existingRecipe
+            }
+        }
+
+        print("✅ Share not yet accepted, proceeding with import")
 
         // 1. Accept the share in CloudKit
         try await acceptShareInCloudKit(shareMetadata)
@@ -64,6 +83,29 @@ final class ShareAcceptanceService {
         await sendThankYouNotification(to: shareMetadata.ownerIdentity)
 
         return importedRecipe
+    }
+
+    /// Accept a share from URL (with optional pre-fetched metadata)
+    /// - Parameters:
+    ///   - url: The CloudKit share URL
+    ///   - metadata: Optional pre-fetched metadata (fetches if nil)
+    ///   - context: ModelContext for saving imported recipe
+    /// - Returns: The imported Recipe
+    func acceptShare(
+        url: URL,
+        metadata: CKShare.Metadata? = nil,
+        context: ModelContext
+    ) async throws -> Recipe {
+        // Fetch metadata if not provided
+        let shareMetadata: CKShare.Metadata
+        if let metadata = metadata {
+            shareMetadata = metadata
+        } else {
+            shareMetadata = try await fetchShareMetadata(from: url)
+        }
+
+        // Call main acceptance method
+        return try await acceptShare(shareMetadata, context: context)
     }
 
     /// Fetch share metadata from a CloudKit share URL
@@ -114,40 +156,46 @@ final class ShareAcceptanceService {
 
     // MARK: - Private Methods
 
-    /// Accept the share in CloudKit
+    /// Accept the share in CloudKit with automatic retry
     private func acceptShareInCloudKit(_ metadata: CKShare.Metadata) async throws {
         print("✅ Accepting share in CloudKit...")
 
-        return try await withCheckedThrowingContinuation { continuation in
-            container.accept(metadata) { _, error in
-                if let error = error {
-                    print("❌ Error accepting share: \(error)")
-                    continuation.resume(throwing: AcceptanceError.acceptFailed(error))
-                } else {
-                    print("✅ Share accepted in CloudKit")
-                    continuation.resume()
+        return try await CloudKitRetryHelper.withRetry(maxAttempts: 3) {
+            return try await withCheckedThrowingContinuation { continuation in
+                self.container.accept(metadata) { _, error in
+                    if let error = error {
+                        print("❌ Error accepting share: \(error)")
+                        let ckError = CloudKitSyncError.from(error)
+                        print("   Error type: \(ckError.errorDescription ?? "unknown")")
+                        continuation.resume(throwing: AcceptanceError.acceptFailed(error))
+                    } else {
+                        print("✅ Share accepted in CloudKit")
+                        continuation.resume()
+                    }
                 }
             }
         }
     }
 
-    /// Fetch the shared recipe data from CloudKit
+    /// Fetch the shared recipe data from CloudKit with automatic retry
     private func fetchSharedRecipe(from metadata: CKShare.Metadata) async throws -> CKRecord {
         print("📦 Fetching shared recipe data...")
 
-        let database = container.sharedCloudDatabase
-        
-        // For shares, we need to look at the rootRecordID from the share
-        // The record should be in the shared database after accepting
-        guard let rootRecordID = metadata.hierarchicalRootRecordID else {
-            // Fallback: try to find by share record
-            throw AcceptanceError.noMetadata
+        return try await CloudKitRetryHelper.withRetry(maxAttempts: 3) {
+            let database = self.container.sharedCloudDatabase
+
+            // For shares, we need to look at the rootRecordID from the share
+            // The record should be in the shared database after accepting
+            guard let rootRecordID = metadata.hierarchicalRootRecordID else {
+                // Fallback: try to find by share record
+                throw AcceptanceError.noMetadata
+            }
+
+            let record = try await database.record(for: rootRecordID)
+
+            print("✅ Recipe data fetched: \(record["title"] as? String ?? "Unknown")")
+            return record
         }
-
-        let record = try await database.record(for: rootRecordID)
-
-        print("✅ Recipe data fetched: \(record["title"] as? String ?? "Unknown")")
-        return record
     }
 
     /// Create a local copy of the shared recipe with proper provenance
@@ -160,16 +208,28 @@ final class ShareAcceptanceService {
 
         // Extract recipe data from CKRecord
         let title = record["title"] as? String ?? "Untitled Recipe"
-        let instructions = (record["instructions"] as? String)?.components(separatedBy: "\n") ?? []
+
+        // Parse instructions as JSON array (stored as JSON string in CloudKit)
+        var instructions: [String] = []
+        if let instructionsString = record["instructions"] as? String,
+           let instructionsData = instructionsString.data(using: .utf8),
+           let decoded = try? JSONDecoder().decode([String].self, from: instructionsData) {
+            instructions = decoded
+        }
+
         let servings = record["servings"] as? String
         let prepTime = record["prepTime"] as? String
         let cookTime = record["cookTime"] as? String
         let sourceURL = record["sourceURL"] as? String
 
+        // Parse source type from record (not hardcoded)
+        let sourceTypeString = record["sourceType"] as? String
+        let sourceType = sourceTypeString.flatMap { RecipeSourceType(rawValue: $0) } ?? .url
+
         // Create recipe
         let recipe = Recipe(
             title: title,
-            sourceType: .url,
+            sourceType: sourceType,  // Use parsed source type
             sourceURL: sourceURL,
             instructions: instructions,
             servings: servings,
@@ -177,15 +237,35 @@ final class ShareAcceptanceService {
             cookTime: cookTime
         )
 
+        // Download and save image if available
+        if let imageAsset = record["imageAsset"] as? CKAsset,
+           let fileURL = imageAsset.fileURL {
+            print("📷 Downloading recipe image...")
+            do {
+                let imageData = try Data(contentsOf: fileURL)
+                if let image = UIImage(data: imageData) {
+                    let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
+                    recipe.imageFileName = fileName
+                    print("✅ Image downloaded and saved: \(fileName)")
+                }
+            } catch {
+                print("⚠️ Failed to download image: \(error.localizedDescription)")
+            }
+        }
+
         // Set up provenance for shared recipe
         let sharerName = metadata.ownerIdentity.nameComponents?.formatted() ?? "Unknown"
         let parentGeneration = metadata.share["generation"] as? Int ?? 0
         let personalMessage = metadata.share["personalMessage"] as? String
 
+        // IMPORTANT: Read rootProvenanceHash from CKRecord to preserve lineage
+        let rootHash = record["rootProvenanceHash"] as? String ?? metadata.share.recordID.recordName
+
         recipe.provenance = ProvenanceMetadata(
             sourceType: .shared,
             sourceURL: sourceURL,
             sourceAttribution: personalMessage,
+            rootProvenanceHash: rootHash,
             generation: parentGeneration + 1,
             parentShareID: metadata.share.recordID.recordName,
             sharedByName: sharerName,
@@ -213,22 +293,161 @@ final class ShareAcceptanceService {
 
         let includeCardBack = (shareMetadata.share["includeCardBack"] as? Int) == 1
         let includeRating = (shareMetadata.share["includeRating"] as? Int) == 1
+        let includeNotes = (shareMetadata.share["includeNotes"] as? Int) == 1
+        let includeComments = (shareMetadata.share["includePinnedComments"] as? Int) == 1
+
+        // Import ingredients (always - they are part of the recipe)
+        print("🥕 Fetching ingredients...")
+        print("   Recipe recordID: \(record.recordID.recordName)")
+        do {
+            // For shared records, fetch child records directly by querying with parent reference
+            // We need to use the shared database's fetchRecords API with record IDs
+            // First, we'll query for ingredient record IDs using the parent reference
+
+            // Use CKReference-based predicate (always indexed and queryable in CloudKit)
+            let recipeReference = CKRecord.Reference(recordID: record.recordID, action: .none)
+            let predicate = NSPredicate(format: "recipe == %@", recipeReference)
+            let query = CKQuery(recordType: "Ingredient", predicate: predicate)
+            query.sortDescriptors = [NSSortDescriptor(key: "orderIndex", ascending: true)]
+
+            print("   With reference predicate for recipe: \(record.recordID.recordName)")
+
+            // Use desiredKeys to fetch only specific fields initially (more efficient)
+            // Then fetch full records
+            let operation = CKQueryOperation(query: query)
+            operation.zoneID = record.recordID.zoneID
+
+            var fetchedRecords: [CKRecord] = []
+            operation.recordMatchedBlock = { recordID, result in
+                switch result {
+                case .success(let record):
+                    fetchedRecords.append(record)
+                case .failure(let error):
+                    print("  ⚠️ Failed to fetch ingredient: \(error.localizedDescription)")
+                }
+            }
+
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                operation.queryResultBlock = { result in
+                    switch result {
+                    case .success:
+                        continuation.resume()
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
+                }
+                container.sharedCloudDatabase.add(operation)
+            }
+
+            print("   Query returned \(fetchedRecords.count) results")
+
+            var importedIngredients: [Ingredient] = []
+            for ingredientRecord in fetchedRecords {
+                let ingredient = CloudKitSyncService.shared.convertIngredientFromRecord(ingredientRecord)
+                ingredient.recipe = recipe
+                importedIngredients.append(ingredient)
+                context.insert(ingredient)
+            }
+
+            recipe.ingredients = importedIngredients
+            print("✅ Imported \(importedIngredients.count) ingredients")
+        } catch {
+            print("⚠️ Ingredients import error: \(error.localizedDescription)")
+        }
 
         // Import card back if included
-        if includeCardBack {
-            // TODO: Fetch and import card back data
-            print("  - Card back: included")
+        if includeCardBack || includeRating || includeNotes {
+            print("  📄 Fetching card back data...")
+            do {
+                // Use CKReference-based predicate (always indexed and queryable in CloudKit)
+                let recipeReference = CKRecord.Reference(recordID: record.recordID, action: .none)
+                let predicate = NSPredicate(format: "recipe == %@", recipeReference)
+                let query = CKQuery(recordType: "RecipeCardBack", predicate: predicate)
+
+                let operation = CKQueryOperation(query: query)
+                operation.zoneID = record.recordID.zoneID
+
+                var fetchedRecords: [CKRecord] = []
+                operation.recordMatchedBlock = { recordID, result in
+                    if case .success(let record) = result {
+                        fetchedRecords.append(record)
+                    }
+                }
+
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    operation.queryResultBlock = { result in
+                        switch result {
+                        case .success:
+                            continuation.resume()
+                        case .failure(let error):
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                    container.sharedCloudDatabase.add(operation)
+                }
+
+                if let cardBackRecord = fetchedRecords.first {
+                    print("  ✅ Found card back, importing...")
+                    let cardBack = CloudKitSyncService.shared.convertCardBackFromRecord(cardBackRecord)
+                    cardBack.recipe = recipe
+                    recipe.cardBack = cardBack
+                    context.insert(cardBack)
+                    print("  ✅ Card back imported")
+                }
+            } catch {
+                print("  ⚠️ Card back import error: \(error.localizedDescription)")
+            }
         }
 
-        // Import rating if included
-        if includeRating {
-            // TODO: Import rating data
-            print("  - Rating: included")
+        // Import comments if included
+        if includeComments {
+            print("  💬 Fetching comments...")
+            do {
+                // Use CKReference-based predicate (always indexed and queryable in CloudKit)
+                let recipeReference = CKRecord.Reference(recordID: record.recordID, action: .none)
+                let predicate = NSPredicate(format: "recipe == %@ AND isPinned == 1", recipeReference)
+                let query = CKQuery(recordType: "RecipeComment", predicate: predicate)
+
+                let operation = CKQueryOperation(query: query)
+                operation.zoneID = record.recordID.zoneID
+
+                var fetchedRecords: [CKRecord] = []
+                operation.recordMatchedBlock = { recordID, result in
+                    if case .success(let record) = result {
+                        fetchedRecords.append(record)
+                    }
+                }
+
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    operation.queryResultBlock = { result in
+                        switch result {
+                        case .success:
+                            continuation.resume()
+                        case .failure(let error):
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                    container.sharedCloudDatabase.add(operation)
+                }
+
+                var importedComments: [RecipeComment] = []
+                for commentRecord in fetchedRecords {
+                    let comment = CloudKitSyncService.shared.convertCommentFromRecord(commentRecord)
+                    comment.recipe = recipe
+                    importedComments.append(comment)
+                    context.insert(comment)
+                }
+
+                if !importedComments.isEmpty {
+                    recipe.comments = importedComments
+                    print("  ✅ Imported \(importedComments.count) pinned comments")
+                }
+            } catch {
+                print("  ⚠️ Comments import error: \(error.localizedDescription)")
+            }
         }
 
-        // TODO: Import comments, stickers, etc.
-
-        print("✅ Components imported")
+        print("✅ Components imported successfully")
     }
 
     /// Send thank you notification to the sharer

@@ -196,10 +196,17 @@ struct DinnerPartyEditorView: View {
 
             dismiss()
         } catch {
-            ToastManager.shared.error(
-                title: "Failed to save",
-                message: error.localizedDescription
-            )
+            if party == nil {
+                ToastManager.shared.error(
+                    title: "Failed to create party",
+                    message: error.localizedDescription
+                )
+            } else {
+                ToastManager.shared.error(
+                    title: "Failed to update party",
+                    message: error.localizedDescription
+                )
+            }
         }
     }
 

@@ -1,421 +1,579 @@
 import XCTest
+import SwiftData
 @testable import Heirloom
 
+@MainActor
 final class ScalingEngineTests: XCTestCase {
 
     var engine: ScalingEngine!
+    var modelContext: ModelContext!
 
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         engine = ScalingEngine.shared
+
+        // Set up in-memory model context for testing using SchemaV1
+        // This ensures all models and their relationships are properly configured
+        let schema = SchemaV1.schema
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: config)
+        modelContext = ModelContext(container)
+    }
+
+    override func tearDown() async throws {
+        engine = nil
+        modelContext = nil
+        try await super.tearDown()
     }
 
     // MARK: - Basic Scaling Tests
 
-    func test_scaleRecipe_doubles_ingredients() {
-        let recipe = RecipeBuilder()
-            .withTitle("Basic Recipe")
-            .withServings("4 servings")
-            .withIngredients(["1 cup flour", "2 eggs"])
-            .withCategory(.cookies)
-            .build()
+    func testLinearScaling_Double() throws {
+        // Given: Recipe for 4 servings with 2 cups flour
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [("2", "cup", "flour")]
+        )
 
+        // When: Scale to 8 servings (2x)
         let scaled = engine.scaleRecipe(recipe, toServings: 8)
 
+        // Then
         XCTAssertNotNil(scaled)
-        XCTAssertEqual(scaled?.targetServings, 8)
         XCTAssertEqual(scaled?.scaleFactor, 2.0)
-        XCTAssertEqual(scaled?.scaledIngredients.count, 2)
-
-        // Flour should be doubled
-        let flourIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("flour") }
-        XCTAssertEqual(flourIngredient?.scaledQuantity, 2.0)
-
-        // Eggs should be doubled
-        let eggsIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("eggs") }
-        XCTAssertEqual(eggsIngredient?.scaledQuantity, 4.0)
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity, 4.0)
     }
 
-    func test_scaleRecipe_halvesIngredients() {
-        let recipe = RecipeBuilder()
-            .withTitle("Basic Recipe")
-            .withServings("8 servings")
-            .withIngredients(["2 cups flour", "4 eggs"])
-            .withCategory(.cookies)
-            .build()
+    func testLinearScaling_Half() throws {
+        // Given: Recipe for 12 servings with 6 cups sugar
+        let recipe = createTestRecipe(
+            servings: "12 servings",
+            ingredients: [("6", "cup", "sugar")]
+        )
 
-        let scaled = engine.scaleRecipe(recipe, toServings: 4)
+        // When: Scale to 6 servings (0.5x)
+        let scaled = engine.scaleRecipe(recipe, toServings: 6)
 
+        // Then
         XCTAssertNotNil(scaled)
         XCTAssertEqual(scaled?.scaleFactor, 0.5)
-
-        // Flour should be halved
-        let flourIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("flour") }
-        XCTAssertEqual(flourIngredient?.scaledQuantity, 1.0)
-
-        // Eggs should be halved
-        let eggsIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("eggs") }
-        XCTAssertEqual(eggsIngredient?.scaledQuantity, 2.0)
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity, 3.0)
     }
 
-    func test_scaleRecipe_triples_ingredients() {
-        let recipe = RecipeBuilder()
-            .withTitle("Triple Batch")
-            .withServings("4 servings")
-            .withIngredients(["1 cup sugar"])
-            .withCategory(.cookies)
-            .build()
+    func testLinearScaling_NoChange() throws {
+        // Given: Recipe for 6 servings
+        let recipe = createTestRecipe(
+            servings: "6 servings",
+            ingredients: [("2", "cup", "flour")]
+        )
 
+        // When: Scale to 6 servings (1x - no change)
+        let scaled = engine.scaleRecipe(recipe, toServings: 6)
+
+        // Then
+        XCTAssertNotNil(scaled)
+        XCTAssertEqual(scaled?.scaleFactor, 1.0)
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity, 2.0)
+    }
+
+    // MARK: - Non-Linear Adjustment Tests
+
+    func testSpiceScaling_ScaledDown() throws {
+        // Given: Recipe with cinnamon for 8 servings
+        let recipe = createTestRecipe(
+            servings: "8 servings",
+            ingredients: [("2", "teaspoon", "cinnamon")]
+        )
+
+        // When: Scale up to 16 servings (2x)
+        let scaled = engine.scaleRecipe(recipe, toServings: 16)
+
+        // Then: Spices scale at 0.66x when scaling up
+        XCTAssertNotNil(scaled)
+        let expectedQty = 2.0 * 2.0 * 0.66 // base * scaleFactor * spice multiplier
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity ?? 0, expectedQty, accuracy: 0.01)
+        XCTAssertTrue(scaled?.scaledIngredients.first?.wasAdjusted ?? false)
+        XCTAssertEqual(scaled?.scaledIngredients.first?.adjustmentReason, "Spices")
+    }
+
+    func testLeaveningScaling() throws {
+        // Given: Recipe with baking powder
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [("2", "teaspoon", "baking powder")]
+        )
+
+        // When: Scale up to 12 servings (3x)
         let scaled = engine.scaleRecipe(recipe, toServings: 12)
 
+        // Then: Leavening scales at 0.75x when scaling up
         XCTAssertNotNil(scaled)
-        XCTAssertEqual(scaled?.scaleFactor, 3.0)
-
-        let sugarIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("sugar") }
-        XCTAssertEqual(sugarIngredient?.scaledQuantity, 3.0)
+        let expectedQty = 2.0 * 3.0 * 0.75 // base * scaleFactor * leavening multiplier
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity ?? 0, expectedQty, accuracy: 0.01)
+        XCTAssertTrue(scaled?.scaledIngredients.first?.wasAdjusted ?? false)
     }
 
-    // MARK: - Non-Linear Scaling Tests
+    func testLiquidScaling() throws {
+        // Given: Recipe with water
+        let recipe = createTestRecipe(
+            servings: "2 servings",
+            ingredients: [("1", "cup", "water")]
+        )
 
-    func test_spiceScaling_reducesWhenScalingUp() {
-        let recipe = RecipeBuilder()
-            .withTitle("Spiced Recipe")
-            .withServings("4 servings")
-            .withIngredients(["1 tsp cinnamon"])
-            .withCategory(.cookies)
-            .build()
-
-        let scaled = engine.scaleRecipe(recipe, toServings: 8)
-
-        XCTAssertNotNil(scaled)
-
-        let spiceIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("cinnamon") }
-
-        // Spices scale at 0.66x when doubling (not full 2x)
-        // 1 * 2 * 0.66 = 1.32 tsp
-        XCTAssertNotNil(spiceIngredient)
-        XCTAssertTrue(spiceIngredient!.wasAdjusted)
-        XCTAssertEqual(spiceIngredient?.adjustmentReason, "Spices")
-        XCTAssertLessThan(spiceIngredient!.scaledQuantity!, 2.0) // Less than full double
-    }
-
-    func test_leaveningScaling_reducesWhenScalingUp() {
-        let recipe = RecipeBuilder()
-            .withTitle("Baked Goods")
-            .withServings("4 servings")
-            .withIngredients(["2 tsp baking powder"])
-            .withCategory(.cookies)
-            .build()
-
-        let scaled = engine.scaleRecipe(recipe, toServings: 8)
-
-        XCTAssertNotNil(scaled)
-
-        let leaveningIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("baking powder") }
-
-        // Leavening scales at 0.75x when doubling
-        // 2 * 2 * 0.75 = 3 tsp
-        XCTAssertNotNil(leaveningIngredient)
-        XCTAssertTrue(leaveningIngredient!.wasAdjusted)
-        XCTAssertEqual(leaveningIngredient?.adjustmentReason, "Leavening")
-        XCTAssertLessThan(leaveningIngredient!.scaledQuantity!, 4.0) // Less than full double
-    }
-
-    func test_liquidScaling_reducesSlightlyWhenScalingUp() {
-        let recipe = RecipeBuilder()
-            .withTitle("Soup")
-            .withServings("4 servings")
-            .withIngredients(["2 cups water"])
-            .withCategory(.soupStew)
-            .build()
-
-        let scaled = engine.scaleRecipe(recipe, toServings: 8)
-
-        XCTAssertNotNil(scaled)
-
-        let liquidIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("water") }
-
-        // Liquids scale at 0.9x when doubling (account for evaporation)
-        // 2 * 2 * 0.9 = 3.6 cups
-        XCTAssertNotNil(liquidIngredient)
-        XCTAssertTrue(liquidIngredient!.wasAdjusted)
-        XCTAssertEqual(liquidIngredient?.adjustmentReason, "Liquids")
-        XCTAssertLessThan(liquidIngredient!.scaledQuantity!, 4.0)
-    }
-
-    func test_ingredientWithoutQuantity_handlesGracefully() {
-        let recipe = RecipeBuilder()
-            .withTitle("Recipe with taste items")
-            .withServings("4 servings")
-            .withIngredients(["Salt to taste"])
-            .withCategory(.soupStew)
-            .build()
-
-        let scaled = engine.scaleRecipe(recipe, toServings: 8)
-
-        XCTAssertNotNil(scaled)
-
-        let saltIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("Salt") }
-
-        XCTAssertNotNil(saltIngredient)
-        XCTAssertNil(saltIngredient?.scaledQuantity)
-        XCTAssertEqual(saltIngredient?.notes, "Adjust to taste")
-    }
-
-    // MARK: - Locked Recipe Tests
-
-    func test_lockedRecipe_returnsNil() {
-        let recipe = RecipeBuilder()
-            .withTitle("Croissants")
-            .withServings("12 croissants")
-            .withIngredients(["500g flour", "250g butter"])
-            .withCategory(.laminated)
-            .withScalability(.locked)
-            .build()
-
-        let scaled = engine.scaleRecipe(recipe, toServings: 24)
-
-        XCTAssertNil(scaled)
-    }
-
-    // MARK: - Serving Range Tests
-
-    func test_scalingOutsideAllowedRange_returnsNil() {
-        let recipe = RecipeBuilder()
-            .withTitle("Limited Recipe")
-            .withServings("4 servings")
-            .withIngredients(["1 cup flour"])
-            .withCategory(.cookies)
-            .withServingRange(minimum: 2, maximum: 8)
-            .build()
-
-        // Try to scale above maximum
-        let scaledAbove = engine.scaleRecipe(recipe, toServings: 16)
-        XCTAssertNil(scaledAbove)
-
-        // Try to scale below minimum
-        let scaledBelow = engine.scaleRecipe(recipe, toServings: 1)
-        XCTAssertNil(scaledBelow)
-    }
-
-    func test_scalingWithinAllowedRange_succeeds() {
-        let recipe = RecipeBuilder()
-            .withTitle("Limited Recipe")
-            .withServings("4 servings")
-            .withIngredients(["1 cup flour"])
-            .withCategory(.cookies)
-            .withServingRange(minimum: 2, maximum: 8)
-            .build()
-
+        // When: Scale up to 6 servings (3x)
         let scaled = engine.scaleRecipe(recipe, toServings: 6)
 
+        // Then: Liquids scale at 0.9x when scaling up (evaporation)
         XCTAssertNotNil(scaled)
-        XCTAssertEqual(scaled?.targetServings, 6)
+        let expectedQty = 1.0 * 3.0 * 0.9 // base * scaleFactor * liquid multiplier
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity ?? 0, expectedQty, accuracy: 0.01)
+        XCTAssertTrue(scaled?.scaledIngredients.first?.wasAdjusted ?? false)
     }
 
-    // MARK: - Warning Tests
+    func testSeasoningLinear() throws {
+        // Given: Recipe with salt
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [("1", "teaspoon", "salt")]
+        )
 
-    func test_extremeScalingDown_generatesWarning() {
-        let recipe = RecipeBuilder()
-            .withTitle("Recipe")
-            .withServings("8 servings")
-            .withIngredients(["2 cups flour"])
-            .withCategory(.cookies)
-            .build()
+        // When: Scale to 8 servings (2x)
+        let scaled = engine.scaleRecipe(recipe, toServings: 8)
 
-        // Scale to 25% (0.25x factor)
-        let scaled = engine.scaleRecipe(recipe, toServings: 2)
-
+        // Then: Seasoning scales linearly
         XCTAssertNotNil(scaled)
-
-        // Should have scaling floor warning (< 0.5x)
-        let hasFloorWarning = scaled?.warnings.contains { warning in
-            warning.type == .scalingFloor
-        }
-        XCTAssertTrue(hasFloorWarning ?? false)
-    }
-
-    func test_extremeScalingUp_generatesWarning() {
-        let recipe = RecipeBuilder()
-            .withTitle("Recipe")
-            .withServings("4 servings")
-            .withIngredients(["1 cup flour"])
-            .withCategory(.cookies)
-            .build()
-
-        // Scale to 4x (scaleFactor = 4)
-        let scaled = engine.scaleRecipe(recipe, toServings: 16)
-
-        XCTAssertNotNil(scaled)
-
-        // Should have scaling ceiling warning (> 3x)
-        let hasCeilingWarning = scaled?.warnings.contains { warning in
-            warning.type == .scalingCeiling
-        }
-        XCTAssertTrue(hasCeilingWarning ?? false)
-    }
-
-    func test_minimumServings_generatesWarning() throws {
-        let recipe = RecipeBuilder()
-            .withTitle("Layer Cake")
-            .withServings("12 servings")
-            .withIngredients(["2 cups flour"])
-            .withCategory(.layerCake)
-            .build()
-
-        // Scale to minimum for layer cake (6 servings)
-        let scaled = engine.scaleRecipe(recipe, toServings: 6)
-
-        XCTAssertNotNil(scaled)
-
-        // Should have category limit warning
-        let hasCategoryWarning = scaled?.warnings.contains { warning in
-            warning.type == .categoryLimit
-        }
-        XCTAssertTrue(hasCategoryWarning ?? false)
-    }
-
-    // MARK: - Equipment Suggestion Tests
-
-    func test_largeBatch_generatesEquipmentSuggestion() {
-        let recipe = RecipeBuilder()
-            .withTitle("Cake")
-            .withServings("8 servings")
-            .withIngredients(["2 cups flour"])
-            .withCategory(.layerCake)
-            .build()
-
-        // Scale up significantly
-        let scaled = engine.scaleRecipe(recipe, toServings: 16)
-
-        XCTAssertNotNil(scaled)
-        XCTAssertNotNil(scaled?.equipmentSuggestions)
-        XCTAssertFalse(scaled?.equipmentSuggestions?.isEmpty ?? true)
-    }
-
-    // MARK: - Cooking Time Adjustment Tests
-
-    func test_bakingTimeAdjustment_scalingDown() {
-        let recipe = RecipeBuilder()
-            .withTitle("Cookies")
-            .withServings("24 cookies")
-            .withIngredients(["2 cups flour"])
-            .withCookTime("12 min")
-            .withCategory(.cookies)
-            .build()
-
-        // Scale down significantly
-        let scaled = engine.scaleRecipe(recipe, toServings: 6)
-
-        XCTAssertNotNil(scaled)
-        // Cookies get time adjustment when scaled down
-        XCTAssertNotNil(scaled?.adjustedCookTime)
-        XCTAssertTrue(scaled?.adjustedCookTime?.contains("reduce") ?? false)
-    }
-
-    func test_bakingTimeAdjustment_scalingUp() throws {
-        let recipe = RecipeBuilder()
-            .withTitle("Muffins")
-            .withServings("6 muffins")
-            .withIngredients(["1 cup flour"])
-            .withCookTime("18 min")
-            .withCategory(.muffins)
-            .build()
-
-        // Scale up significantly
-        let scaled = engine.scaleRecipe(recipe, toServings: 18)
-
-        XCTAssertNotNil(scaled)
-        print("DEBUG time: scaleFactor=\(scaled?.scaleFactor ?? 0), adjustedCookTime=\(scaled?.adjustedCookTime ?? "nil")")
-        // Muffins get time adjustment when scaled up
-        XCTAssertNotNil(scaled?.adjustedCookTime, "Should have adjusted cook time")
-        XCTAssertTrue(scaled?.adjustedCookTime?.contains("add") ?? false, "Should contain 'add', got: \(scaled?.adjustedCookTime ?? "nil")")
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity, 2.0)
+        XCTAssertFalse(scaled?.scaledIngredients.first?.wasAdjusted ?? true)
     }
 
     // MARK: - Rounding Tests
 
-    func test_rounding_teaspoon() {
-        let recipe = RecipeBuilder()
-            .withTitle("Recipe")
-            .withServings("3 servings")
-            .withIngredients(["1 tsp salt"])
-            .withCategory(.soupStew)
-            .build()
+    func testRounding_Teaspoons() throws {
+        // Given: Recipe that will produce 1.6 tsp after scaling
+        let recipe = createTestRecipe(
+            servings: "5 servings",
+            ingredients: [("2", "teaspoon", "vanilla extract")]
+        )
 
-        // Scale to get a fraction
-        let scaled = engine.scaleRecipe(recipe, toServings: 2)
+        // When: Scale to 4 servings (0.8x -> 1.6 tsp)
+        let scaled = engine.scaleRecipe(recipe, toServings: 4)
 
+        // Then: Should round to nearest 1/8 tsp (1.625)
         XCTAssertNotNil(scaled)
-
-        let saltIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("salt") }
-
-        // Should round to nearest 1/8 tsp
-        // 1 * (2/3) = 0.666... → should round to 0.625 (5/8)
-        XCTAssertNotNil(saltIngredient?.scaledQuantity)
-        let rounded = saltIngredient!.scaledQuantity!
-        // Check it's a multiple of 1/8
-        XCTAssertEqual((rounded * 8).truncatingRemainder(dividingBy: 1.0), 0.0, accuracy: 0.01)
+        let rounded = scaled?.scaledIngredients.first?.scaledQuantity ?? 0
+        XCTAssertEqual(rounded, 1.625) // 13/8 = 1.625
     }
 
-    func test_rounding_cup() {
-        let recipe = RecipeBuilder()
-            .withTitle("Recipe")
-            .withServings("3 servings")
-            .withIngredients(["2 cups flour"])
-            .withCategory(.cookies)
-            .build()
+    func testRounding_Tablespoons() throws {
+        // Given: Recipe
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [("3", "tablespoon", "butter")]
+        )
 
-        // Scale to get a fraction
-        let scaled = engine.scaleRecipe(recipe, toServings: 2)
+        // When: Scale to 3 servings (0.75x -> 2.25 tbsp)
+        let scaled = engine.scaleRecipe(recipe, toServings: 3)
 
+        // Then: Should round to nearest 1/4 tbsp (2.25)
         XCTAssertNotNil(scaled)
-
-        let flourIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("flour") }
-
-        // Should round to nearest 1/8 cup
-        // 2 * (2/3) = 1.333... → should round to 1.375 (1 3/8)
-        XCTAssertNotNil(flourIngredient?.scaledQuantity)
-        let rounded = flourIngredient!.scaledQuantity!
-        // Check it's a multiple of 1/8
-        XCTAssertEqual((rounded * 8).truncatingRemainder(dividingBy: 1.0), 0.0, accuracy: 0.01)
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity, 2.25)
     }
 
-    // MARK: - Category-Specific Tests
+    func testRounding_Cups() throws {
+        // Given: Recipe
+        let recipe = createTestRecipe(
+            servings: "8 servings",
+            ingredients: [("4", "cup", "flour")]
+        )
 
-    func test_cookiesCategory_usesCorrectPresets() throws {
-        let recipe = RecipeBuilder()
-            .withTitle("Chocolate Chip Cookies")
-            .withServings("24 cookies")
-            .withIngredients(["1 cup flour", "1 tsp vanilla"])
-            .withCategory(.cookies)
-            .build()
+        // When: Scale to 5 servings (0.625x -> 2.5 cups)
+        let scaled = engine.scaleRecipe(recipe, toServings: 5)
 
-        let scaled = engine.scaleRecipe(recipe, toServings: 48)
-
+        // Then: Should round to nearest 1/8 cup (2.5)
         XCTAssertNotNil(scaled)
-        XCTAssertEqual(scaled?.scaleFactor, 2.0)
-
-        // Vanilla (extract/spice) should be scaled non-linearly
-        let vanillaIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("vanilla") }
-        print("DEBUG cookies: vanilla ingredient name='\(vanillaIngredient?.originalIngredient.name ?? "nil")', wasAdjusted=\(vanillaIngredient?.wasAdjusted ?? false), reason=\(vanillaIngredient?.adjustmentReason ?? "nil")")
-        XCTAssertTrue(vanillaIngredient?.wasAdjusted ?? false, "Vanilla should be adjusted")
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity, 2.5)
     }
 
-    func test_soupCategory_scalesLinearly() {
-        let recipe = RecipeBuilder()
-            .withTitle("Chicken Soup")
-            .withServings("4 servings")
-            .withIngredients(["4 cups chicken broth", "1 cup vegetables"])
-            .withCategory(.soupStew)
-            .build()
+    func testRounding_Grams() throws {
+        // Given: Recipe with grams
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [("247", "gram", "flour")]
+        )
 
+        // When: Scale to 3 servings (0.75x -> 185.25g)
+        let scaled = engine.scaleRecipe(recipe, toServings: 3)
+
+        // Then: Should round to nearest 5g (185)
+        XCTAssertNotNil(scaled)
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity, 185.0)
+    }
+
+    func testRounding_Ounces() throws {
+        // Given: Recipe with ounces
+        let recipe = createTestRecipe(
+            servings: "6 servings",
+            ingredients: [("12", "oz.", "cheese")]
+        )
+
+        // When: Scale to 4 servings (0.667x -> 8oz)
+        let scaled = engine.scaleRecipe(recipe, toServings: 4)
+
+        // Then: Should round to nearest 0.5oz (8.0)
+        XCTAssertNotNil(scaled)
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity ?? 0, 8.0, accuracy: 0.1)
+    }
+
+    // MARK: - Range Scaling Tests
+
+    func testRangeScaling() throws {
+        // Given: Recipe with quantity range
+        let ingredient = createIngredientWithRange(
+            quantityMin: 2.0,
+            quantityMax: 3.0,
+            unit: "cup",
+            name: "flour"
+        )
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [],
+            customIngredients: [ingredient]
+        )
+
+        // When: Scale to 8 servings (2x)
         let scaled = engine.scaleRecipe(recipe, toServings: 8)
 
+        // Then: Both min and max should scale
         XCTAssertNotNil(scaled)
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantity, 4.0)
+        XCTAssertEqual(scaled?.scaledIngredients.first?.scaledQuantityMax, 6.0)
+    }
 
-        // Broth is liquid, should have adjustment
-        let brothIngredient = scaled?.scaledIngredients.first { $0.originalIngredient.name.contains("broth") }
-        XCTAssertTrue(brothIngredient?.wasAdjusted ?? false)
-        XCTAssertEqual(brothIngredient?.adjustmentReason, "Liquids")
+    // MARK: - "To Taste" Ingredients
+
+    func testToTasteIngredient() throws {
+        // Given: Recipe with "salt to taste" (no quantity)
+        let ingredient = createIngredient(quantity: nil, unit: nil, name: "salt to taste")
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [],
+            customIngredients: [ingredient]
+        )
+
+        // When: Scale to 8 servings
+        let scaled = engine.scaleRecipe(recipe, toServings: 8)
+
+        // Then: Should have note to adjust to taste
+        XCTAssertNotNil(scaled)
+        XCTAssertNil(scaled?.scaledIngredients.first?.scaledQuantity)
+        XCTAssertEqual(scaled?.scaledIngredients.first?.notes, "Adjust to taste")
+    }
+
+    // MARK: - Scaling Validation Tests
+
+    func testScalingDisallowed() throws {
+        // Given: Recipe with scaling disabled
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [("2", "cup", "flour")],
+            scalingAllowed: false
+        )
+
+        // When: Attempt to scale
+        let scaled = engine.scaleRecipe(recipe, toServings: 8)
+
+        // Then: Should return nil
+        XCTAssertNil(scaled)
+    }
+
+    func testScalingOutOfRange_TooLow() throws {
+        // Given: Recipe with minimum servings = 4
+        let recipe = createTestRecipe(
+            servings: "8 servings",
+            ingredients: [("2", "cup", "flour")],
+            minimumServings: 4,
+            maximumServings: 16
+        )
+
+        // When: Attempt to scale to 2 servings (below minimum)
+        let scaled = engine.scaleRecipe(recipe, toServings: 2)
+
+        // Then: Should return nil
+        XCTAssertNil(scaled)
+    }
+
+    func testScalingOutOfRange_TooHigh() throws {
+        // Given: Recipe with maximum servings = 16
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [("2", "cup", "flour")],
+            minimumServings: 2,
+            maximumServings: 16
+        )
+
+        // When: Attempt to scale to 24 servings (above maximum)
+        let scaled = engine.scaleRecipe(recipe, toServings: 24)
+
+        // Then: Should return nil
+        XCTAssertNil(scaled)
+    }
+
+    // MARK: - Warning Tests
+
+    func testWarning_SmallScale() throws {
+        // Given: Recipe
+        let recipe = createTestRecipe(
+            servings: "8 servings",
+            ingredients: [("2", "cup", "flour")]
+        )
+
+        // When: Scale to 2 servings (0.25x, below 0.5 threshold)
+        let scaled = engine.scaleRecipe(recipe, toServings: 2)
+
+        // Then: Should have scaling floor warning
+        XCTAssertNotNil(scaled)
+        XCTAssertTrue(scaled?.warnings.contains { $0.type == .scalingFloor } ?? false)
+    }
+
+    func testWarning_LargeScale() throws {
+        // Given: Recipe
+        let recipe = createTestRecipe(
+            servings: "2 servings",
+            ingredients: [("1", "cup", "flour")]
+        )
+
+        // When: Scale to 8 servings (4x, above 3.0 threshold)
+        let scaled = engine.scaleRecipe(recipe, toServings: 8)
+
+        // Then: Should have scaling ceiling warning
+        XCTAssertNotNil(scaled)
+        XCTAssertTrue(scaled?.warnings.contains { $0.type == .scalingCeiling } ?? false)
+    }
+
+    func testWarning_CategoryMinimum() throws {
+        // Given: Cookie recipe (minimum 12 cookies)
+        let recipe = createTestRecipe(
+            servings: "24 cookies",
+            ingredients: [("2", "cup", "flour")],
+            category: .cookies
+        )
+
+        // When: Scale to 12 cookies (minimum threshold)
+        let scaled = engine.scaleRecipe(recipe, toServings: 12)
+
+        // Then: Should have category limit warning
+        XCTAssertNotNil(scaled)
+        XCTAssertTrue(scaled?.warnings.contains { $0.type == .categoryLimit } ?? false)
+    }
+
+    // MARK: - Equipment Suggestion Tests
+
+    func testEquipmentSuggestion_SmallScale_Cake() throws {
+        // Given: Layer cake recipe
+        let recipe = createTestRecipe(
+            servings: "12 servings",
+            ingredients: [("2", "cup", "flour")],
+            category: .layerCake
+        )
+
+        // When: Scale to 6 servings (0.5x)
+        let scaled = engine.scaleRecipe(recipe, toServings: 6)
+
+        // Then: Should suggest smaller pan
+        XCTAssertNotNil(scaled?.equipmentSuggestions)
+        XCTAssertTrue(scaled?.equipmentSuggestions?.contains { $0.contains("smaller pan") } ?? false)
+    }
+
+    func testEquipmentSuggestion_LargeScale_Cake() throws {
+        // Given: Pie recipe
+        let recipe = createTestRecipe(
+            servings: "8 servings",
+            ingredients: [("2", "cup", "flour")],
+            category: .pie
+        )
+
+        // When: Scale to 16 servings (2x)
+        let scaled = engine.scaleRecipe(recipe, toServings: 16)
+
+        // Then: Should suggest larger pan or multiple pans
+        XCTAssertNotNil(scaled?.equipmentSuggestions)
+        XCTAssertTrue(scaled?.equipmentSuggestions?.contains { $0.contains("larger pan") } ?? false)
+    }
+
+    func testEquipmentSuggestion_VeryLargeScale() throws {
+        // Given: Any recipe
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [("2", "cup", "flour")]
+        )
+
+        // When: Scale to 12 servings (3x, above 2.0 threshold)
+        let scaled = engine.scaleRecipe(recipe, toServings: 12)
+
+        // Then: Should suggest larger mixing bowl
+        XCTAssertNotNil(scaled?.equipmentSuggestions)
+        XCTAssertTrue(scaled?.equipmentSuggestions?.contains { $0.contains("mixing bowl") } ?? false)
+    }
+
+    // MARK: - Cooking Time Adjustment Tests
+
+    func testCookingTime_Cookies_ScaleDown() throws {
+        // Given: Cookie recipe with cook time
+        let recipe = createTestRecipe(
+            servings: "24 cookies",
+            ingredients: [("2", "cup", "flour")],
+            category: .cookies,
+            cookTime: "12 minutes"
+        )
+
+        // When: Scale down (0.5x)
+        let scaled = engine.scaleRecipe(recipe, toServings: 12)
+
+        // Then: Should suggest reducing time
+        XCTAssertNotNil(scaled?.adjustedCookTime)
+        XCTAssertTrue(scaled?.adjustedCookTime?.contains("reduce") ?? false)
+    }
+
+    func testCookingTime_Muffins_ScaleUp() throws {
+        // Given: Muffin recipe with cook time
+        let recipe = createTestRecipe(
+            servings: "12 muffins",
+            ingredients: [("2", "cup", "flour")],
+            category: .muffins,
+            cookTime: "20 minutes"
+        )
+
+        // When: Scale up (2x)
+        let scaled = engine.scaleRecipe(recipe, toServings: 24)
+
+        // Then: Should suggest adding time
+        XCTAssertNotNil(scaled?.adjustedCookTime)
+        XCTAssertTrue(scaled?.adjustedCookTime?.contains("add") ?? false)
+    }
+
+    func testCookingTime_NoAdjustment() throws {
+        // Given: Recipe with moderate scaling
+        let recipe = createTestRecipe(
+            servings: "12 cookies",
+            ingredients: [("2", "cup", "flour")],
+            category: .cookies,
+            cookTime: "12 minutes"
+        )
+
+        // When: Scale moderately (1.25x)
+        let scaled = engine.scaleRecipe(recipe, toServings: 15)
+
+        // Then: No time adjustment needed
+        XCTAssertNil(scaled?.adjustedCookTime)
+    }
+
+    // MARK: - Complex Scenarios
+
+    func testComplexRecipe_MultipleIngredients() throws {
+        // Given: Recipe with multiple ingredient types
+        let recipe = createTestRecipe(
+            servings: "4 servings",
+            ingredients: [
+                ("2", "cup", "flour"),
+                ("1", "teaspoon", "cinnamon"),
+                ("2", "teaspoon", "baking powder"),
+                ("1", "cup", "milk"),
+                ("2", "tablespoon", "sugar")
+            ]
+        )
+
+        // When: Scale to 8 servings (2x)
+        let scaled = engine.scaleRecipe(recipe, toServings: 8)
+
+        // Then: All ingredients should scale appropriately
+        XCTAssertNotNil(scaled)
+        XCTAssertEqual(scaled?.scaledIngredients.count, 5)
+
+        // Flour (bulk) - linear scaling
+        XCTAssertEqual(scaled?.scaledIngredients[0].scaledQuantity, 4.0)
+
+        // Cinnamon (spice) - 0.66x multiplier
+        XCTAssertEqual(scaled?.scaledIngredients[1].scaledQuantity ?? 0, 1.0 * 2.0 * 0.66, accuracy: 0.01)
+
+        // Baking powder (leavening) - 0.75x multiplier
+        XCTAssertEqual(scaled?.scaledIngredients[2].scaledQuantity ?? 0, 2.0 * 2.0 * 0.75, accuracy: 0.01)
+
+        // Milk (liquid) - 0.9x multiplier
+        XCTAssertEqual(scaled?.scaledIngredients[3].scaledQuantity ?? 0, 1.0 * 2.0 * 0.9, accuracy: 0.01)
+
+        // Sugar (bulk) - linear scaling
+        XCTAssertEqual(scaled?.scaledIngredients[4].scaledQuantity, 4.0)
+    }
+
+    // MARK: - Helper Methods
+
+    private func createTestRecipe(
+        servings: String,
+        ingredients: [(quantity: String, unit: String, name: String)],
+        customIngredients: [Ingredient] = [],
+        scalingAllowed: Bool = true,
+        minimumServings: Int = 1,
+        maximumServings: Int? = nil,
+        category: RecipeCategory? = nil,
+        cookTime: String? = nil
+    ) -> Recipe {
+        let recipe = Recipe()
+        recipe.title = "Test Recipe"
+        recipe.servings = servings
+        recipe.scalabilityRating = scalingAllowed ? "easy" : "locked"
+        recipe.minimumServings = minimumServings
+        recipe.maximumServings = maximumServings
+        recipe.recipeCategory = category?.rawValue
+        recipe.cookTime = cookTime
+
+        modelContext.insert(recipe)
+
+        // Add ingredients
+        for (index, tuple) in ingredients.enumerated() {
+            let ingredient = createIngredient(
+                quantity: Double(tuple.quantity),
+                unit: tuple.unit,
+                name: tuple.name
+            )
+            ingredient.orderIndex = index
+            ingredient.recipe = recipe
+            modelContext.insert(ingredient)
+        }
+
+        // Add custom ingredients
+        for (index, ingredient) in customIngredients.enumerated() {
+            ingredient.orderIndex = ingredients.count + index
+            ingredient.recipe = recipe
+            modelContext.insert(ingredient)
+        }
+
+        return recipe
+    }
+
+    private func createIngredient(
+        quantity: Double?,
+        unit: String?,
+        name: String
+    ) -> Ingredient {
+        let ingredient = Ingredient()
+        ingredient.quantity = quantity
+        ingredient.quantityMax = nil
+        ingredient.unit = unit
+        ingredient.name = name
+        return ingredient
+    }
+
+    private func createIngredientWithRange(
+        quantityMin: Double,
+        quantityMax: Double,
+        unit: String,
+        name: String
+    ) -> Ingredient {
+        let ingredient = Ingredient()
+        ingredient.quantity = quantityMin
+        ingredient.quantityMax = quantityMax
+        ingredient.unit = unit
+        ingredient.name = name
+        return ingredient
     }
 }

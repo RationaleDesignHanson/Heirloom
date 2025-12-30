@@ -51,6 +51,7 @@ final class Recipe {
     // MARK: - Metadata
     var timesCooked: Int = 0
     var lastCooked: Date?
+    var lastViewed: Date?
     var isFavorite: Bool = false
     var isInShoppingList: Bool = false
 
@@ -90,6 +91,30 @@ final class Recipe {
 
     @Relationship(deleteRule: .cascade, inverse: \RecipeCardBack.recipe)
     var cardBack: RecipeCardBack?
+
+    // MARK: - Multi-Version Support (Phase 2B - Recipe Sharing)
+    /// All versions of this recipe (base + contributor versions)
+    @Relationship(deleteRule: .cascade, inverse: \RecipeVersion.recipe)
+    var versions: [RecipeVersion]?
+
+    /// Currently selected version ID for cooking/display
+    var selectedVersionID: UUID?
+
+    /// Sharing permission level for this recipe
+    var sharingPermissionRaw: String = SharingPermissionLevel.regular.rawValue
+
+    // MARK: - CloudKit Sync Metadata
+    /// CloudKit record ID for manual sync (hybrid architecture)
+    var cloudKitRecordID: String?
+
+    /// Last time this recipe was successfully synced to CloudKit
+    var lastSyncedAt: Date?
+
+    /// Modified timestamp for conflict resolution
+    var modifiedAt: Date = Date()
+
+    /// Created timestamp
+    var createdAt: Date = Date()
 
     // MARK: - Initialization
     init(
@@ -163,6 +188,8 @@ extension Recipe {
                 return person
             }
             return "Family Recipe"
+        case .scan:
+            return "Scanned Recipe"
         case .manual:
             return "My Recipe"
         }
@@ -229,6 +256,66 @@ extension Recipe {
             timesCooked: timesCooked,
             dateAdded: dateAdded
         )
+    }
+
+    /// Consolidates duplicate ingredients (e.g., "2 cups flour" in step 1 + "1 cup flour" in step 3 = "3 cups flour")
+    /// Groups by normalized name and sums quantities when units match
+    var consolidatedIngredients: [Ingredient] {
+        guard let ingredients = ingredients, !ingredients.isEmpty else {
+            return []
+        }
+
+        // Group ingredients by normalized name (lowercase, trimmed)
+        var consolidated: [String: [Ingredient]] = [:]
+
+        for ingredient in ingredients {
+            let key = ingredient.name.lowercased().trimmingCharacters(in: .whitespaces)
+            if consolidated[key] == nil {
+                consolidated[key] = []
+            }
+            consolidated[key]?.append(ingredient)
+        }
+
+        // Consolidate each group
+        var result: [Ingredient] = []
+
+        for (_, group) in consolidated {
+            if group.count == 1 {
+                // No duplicates, use as-is
+                result.append(group[0])
+            } else {
+                // Multiple ingredients with same name - try to consolidate
+                let firstIngredient = group[0]
+
+                // Group by unit (normalized)
+                let sameUnit = group.allSatisfy { ing in
+                    (ing.normalizedUnit ?? ing.unit)?.lowercased() ==
+                    (firstIngredient.normalizedUnit ?? firstIngredient.unit)?.lowercased()
+                }
+
+                if sameUnit, let unit = firstIngredient.unit {
+                    // Same unit - sum quantities
+                    let totalQuantity = group.compactMap { $0.quantity }.reduce(0.0, +)
+
+                    // Create consolidated ingredient
+                    let consolidatedIng = Ingredient(
+                        originalText: "\(totalQuantity) \(unit) \(firstIngredient.name)",
+                        name: firstIngredient.name,
+                        quantity: totalQuantity,
+                        unit: unit,
+                        category: firstIngredient.category ?? .other,
+                        orderIndex: firstIngredient.orderIndex
+                    )
+                    result.append(consolidatedIng)
+                } else {
+                    // Different units or no quantities - keep separate
+                    result.append(contentsOf: group)
+                }
+            }
+        }
+
+        // Sort by original order index
+        return result.sorted { $0.orderIndex < $1.orderIndex }
     }
 
     // MARK: - Scaling Helpers
@@ -323,6 +410,64 @@ extension Recipe {
 
         // Return sorted array
         return Array(sizes).sorted()
+    }
+}
+
+// MARK: - Multi-Version Support
+extension Recipe {
+    /// Sharing permission level enum
+    enum SharingPermissionLevel: String, Codable {
+        case regular = "regular"       // View-only sharing
+        case heirloom = "heirloom"     // Edit + lineage tracking
+    }
+
+    /// Computed property for sharing permission
+    var sharingPermission: SharingPermissionLevel {
+        get { SharingPermissionLevel(rawValue: sharingPermissionRaw) ?? .regular }
+        set { sharingPermissionRaw = newValue.rawValue }
+    }
+
+    /// The base version (original recipe data)
+    var baseVersion: RecipeVersion? {
+        versions?.first(where: { $0.isBaseVersion })
+    }
+
+    /// Active contributor versions (excluding base)
+    var contributorVersions: [RecipeVersion] {
+        versions?.filter { !$0.isBaseVersion && $0.isActive } ?? []
+    }
+
+    /// Currently selected version, or base if none selected
+    var activeVersion: RecipeVersion? {
+        if let selectedID = selectedVersionID,
+           let selected = versions?.first(where: { $0.id == selectedID }) {
+            return selected
+        }
+        return baseVersion
+    }
+
+    /// Total count of active contributors (excluding base)
+    var contributorCount: Int {
+        contributorVersions.count
+    }
+
+    /// Whether this recipe has multiple versions
+    var hasMultipleVersions: Bool {
+        contributorVersions.count > 0
+    }
+
+    /// Generation label for UI (e.g., "Original", "2 Generations", "3 Generations")
+    var generationLabel: String {
+        let total = (versions?.count ?? 0)
+        if total <= 1 {
+            return "Original"
+        }
+        return "\(total) Generations"
+    }
+
+    /// All versions sorted by creation date
+    var sortedVersions: [RecipeVersion] {
+        versions?.sorted { $0.createdAt < $1.createdAt } ?? []
     }
 }
 

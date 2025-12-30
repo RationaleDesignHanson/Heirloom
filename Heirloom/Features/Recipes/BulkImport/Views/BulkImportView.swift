@@ -85,6 +85,7 @@ struct BulkImportView: View {
                         .font(HeirloomFonts.body)
                         .frame(minHeight: 200)
                         .padding(HeirloomSpacing.md)
+                        .scrollContentBackground(.hidden)
                         .background(Color.white)
                         .cornerRadius(12)
                         .overlay(

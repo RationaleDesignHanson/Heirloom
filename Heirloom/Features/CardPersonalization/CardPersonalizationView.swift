@@ -15,6 +15,10 @@ struct CardPersonalizationView: View {
     @State private var isCardFlipped = false
     @State private var showCardBackEditor = false
 
+    // Session-based editing
+    @State private var editingSession: CardEditingSession?
+    @State private var hasUnsavedChanges = false
+
     enum PersonalizationTab {
         case background
         case stickers
@@ -43,21 +47,22 @@ struct CardPersonalizationView: View {
                     editorContent
                         .padding()
                 }
+
+                // Bottom Action Bar (for Style tabs only)
+                if selectedTab == .background || selectedTab == .loveMarks {
+                    Divider()
+                    actionBar
+                }
             }
             .navigationTitle("Personalize Card")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button("Close") {
                         dismiss()
                     }
-                }
-
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        saveChanges()
-                    }
-                    .fontWeight(.semibold)
+                    .accessibilityLabel("Close")
+                    .accessibilityHint("Close personalization")
                 }
             }
             .sheet(isPresented: $showingRecipeStickerPicker) {
@@ -68,6 +73,12 @@ struct CardPersonalizationView: View {
             }
             .sheet(isPresented: $showCardBackEditor) {
                 CardBackEditorView(recipe: recipe)
+            }
+            .onAppear {
+                // Initialize editing session on first appearance
+                if editingSession == nil {
+                    editingSession = CardEditingSession(from: recipe.cardStyle)
+                }
             }
         }
     }
@@ -135,8 +146,8 @@ struct CardPersonalizationView: View {
             }
 
             // Love Marks
-            if let cardStyle = recipe.cardStyle {
-                loveMarksOverlay(cardStyle)
+            if let session = editingSession {
+                loveMarksOverlay(session)
             }
         }
         .background(Color.white)
@@ -257,21 +268,21 @@ struct CardPersonalizationView: View {
 
     private var cardBackground: some View {
         Group {
-            if let cardStyle = recipe.cardStyle {
-                switch cardStyle.backgroundType {
+            if let session = editingSession {
+                switch session.backgroundType {
                 case .default, .solid:
-                    Color(hex: cardStyle.backgroundColorHex ?? RecipeCardStyle.predefinedBackgroundColors[0])
+                    Color(hex: session.backgroundColorHex ?? RecipeCardStyle.predefinedBackgroundColors[0])
                 case .gradient:
                     LinearGradient(
                         colors: [
-                            Color(hex: cardStyle.backgroundColorHex ?? "#FFF9E6"),
-                            Color(hex: cardStyle.backgroundColorHex ?? "#FFE5D9").opacity(0.8)
+                            Color(hex: session.backgroundColorHex ?? "#FFF9E6"),
+                            Color(hex: session.backgroundColorHex ?? "#FFE5D9").opacity(0.8)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 case .pattern, .texture:
-                    Color(hex: cardStyle.backgroundColorHex ?? "#FEFDFB")
+                    Color(hex: session.backgroundColorHex ?? "#FEFDFB")
                 }
             } else {
                 HeirloomColors.cream
@@ -311,10 +322,10 @@ struct CardPersonalizationView: View {
             )
     }
 
-    private func loveMarksOverlay(_ cardStyle: RecipeCardStyle) -> some View {
+    private func loveMarksOverlay(_ session: CardEditingSession) -> some View {
         ZStack {
             // Coffee Stain
-            if cardStyle.coffeeStainEnabled, let position = cardStyle.coffeeStainPosition {
+            if session.coffeeStainEnabled, let position = session.coffeeStainPosition {
                 Circle()
                     .fill(Color.brown.opacity(0.2))
                     .frame(width: 60, height: 60)
@@ -322,10 +333,10 @@ struct CardPersonalizationView: View {
             }
 
             // Worn Edges
-            if cardStyle.wornEdgesIntensity > 0 {
+            if session.wornEdgesIntensity > 0 {
                 RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(
-                        Color.brown.opacity(cardStyle.wornEdgesIntensity * 0.3),
+                        Color.brown.opacity(session.wornEdgesIntensity * 0.3),
                         lineWidth: 2
                     )
             }
@@ -348,6 +359,53 @@ struct CardPersonalizationView: View {
         case .center:
             return CGPoint(x: width * 0.5, y: height * 0.5)
         }
+    }
+
+    // MARK: - Action Bar
+
+    private var actionBar: some View {
+        HStack(spacing: HeirloomSpacing.md) {
+            // Reset Button
+            Button {
+                resetChanges()
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.counterclockwise")
+                    Text("Reset")
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, HeirloomSpacing.md)
+                .background(HeirloomColors.secondaryText.opacity(0.1))
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .cornerRadius(12)
+            }
+            .disabled(editingSession?.hasChanges == false)
+            .opacity((editingSession?.hasChanges ?? false) ? 1.0 : 0.5)
+            .accessibilityLabel("Reset Changes")
+            .accessibilityHint("Revert to original card style")
+
+            // Save Changes Button
+            Button {
+                saveChanges()
+            } label: {
+                HStack {
+                    Image(systemName: "checkmark")
+                    Text("Update Card")
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, HeirloomSpacing.md)
+                .background(HeirloomColors.tomato)
+                .foregroundStyle(.white)
+                .cornerRadius(12)
+            }
+            .disabled(editingSession?.hasChanges == false)
+            .opacity((editingSession?.hasChanges ?? false) ? 1.0 : 0.5)
+            .accessibilityLabel("Update Card")
+            .accessibilityHint("Save changes to card style")
+        }
+        .padding(.horizontal)
+        .padding(.vertical, HeirloomSpacing.sm)
+        .background(Color(.systemBackground))
     }
 
     // MARK: - Tab Selector
@@ -383,6 +441,9 @@ struct CardPersonalizationView: View {
             .foregroundStyle(selectedTab == tab ? HeirloomColors.tomato : HeirloomColors.secondaryText)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityHint("Opens \(title.lowercased()) customization options")
+        .accessibilityAddTraits(selectedTab == tab ? .isSelected : [])
     }
 
     // MARK: - Editor Content
@@ -420,7 +481,7 @@ struct CardPersonalizationView: View {
     }
 
     private func colorSwatch(_ colorHex: String) -> some View {
-        let isSelected = recipe.cardStyle?.backgroundColorHex == colorHex
+        let isSelected = editingSession?.backgroundColorHex == colorHex
 
         return Button {
             selectBackgroundColor(colorHex)
@@ -438,6 +499,9 @@ struct CardPersonalizationView: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Background color \(colorHex)\(isSelected ? ", Selected" : "")")
+        .accessibilityHint("Sets card background to this color")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private var stickersEditor: some View {
@@ -452,6 +516,8 @@ struct CardPersonalizationView: View {
                     .foregroundStyle(.white)
                     .cornerRadius(12)
             }
+            .accessibilityLabel("Add Sticker")
+            .accessibilityHint("Opens sticker picker to add decorations to your card")
 
             if let stickers = recipe.stickers, !stickers.isEmpty {
                 VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
@@ -475,10 +541,13 @@ struct CardPersonalizationView: View {
                                 Image(systemName: "trash")
                                     .foregroundStyle(.red)
                             }
+                            .accessibilityLabel("Delete \(sticker.stickerType.rawValue) sticker")
+                            .accessibilityHint("Removes this sticker from the card")
                         }
                         .padding()
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
+                        .accessibilityElement(children: .contain)
                     }
                 }
             } else {
@@ -504,6 +573,8 @@ struct CardPersonalizationView: View {
                     .foregroundStyle(.white)
                     .cornerRadius(12)
             }
+            .accessibilityLabel("Add Note")
+            .accessibilityHint("Opens editor to add a handwritten note to your card")
 
             if let annotations = recipe.annotations, !annotations.isEmpty {
                 VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
@@ -525,6 +596,8 @@ struct CardPersonalizationView: View {
                                 Image(systemName: "pencil")
                                     .foregroundStyle(HeirloomColors.tomato)
                             }
+                            .accessibilityLabel("Edit note")
+                            .accessibilityHint("Opens editor to modify this note")
 
                             Button {
                                 removeRecipeAnnotation(annotation)
@@ -532,10 +605,13 @@ struct CardPersonalizationView: View {
                                 Image(systemName: "trash")
                                     .foregroundStyle(.red)
                             }
+                            .accessibilityLabel("Delete note")
+                            .accessibilityHint("Removes this note from the card")
                         }
                         .padding()
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
+                        .accessibilityElement(children: .contain)
                     }
                 }
             } else {
@@ -553,21 +629,22 @@ struct CardPersonalizationView: View {
             // Coffee Stain
             VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                 Toggle("Coffee Stain", isOn: Binding(
-                    get: { recipe.cardStyle?.coffeeStainEnabled ?? false },
+                    get: { editingSession?.coffeeStainEnabled ?? false },
                     set: { enabled in
-                        ensureRecipeCardStyle()
-                        recipe.cardStyle?.coffeeStainEnabled = enabled
-                        if enabled && recipe.cardStyle?.coffeeStainPosition == nil {
-                            recipe.cardStyle?.coffeeStainPosition = .topRight
+                        editingSession?.coffeeStainEnabled = enabled
+                        if enabled && editingSession?.coffeeStainPosition == nil {
+                            editingSession?.coffeeStainPosition = .topRight
                         }
                     }
                 ))
                 .font(.body.bold())
+                .accessibilityLabel("Coffee Stain")
+                .accessibilityHint("Adds a decorative coffee stain mark to your card")
 
-                if recipe.cardStyle?.coffeeStainEnabled == true {
+                if editingSession?.coffeeStainEnabled == true {
                     Picker("Position", selection: Binding(
-                        get: { recipe.cardStyle?.coffeeStainPosition ?? .topRight },
-                        set: { recipe.cardStyle?.coffeeStainPosition = $0 }
+                        get: { editingSession?.coffeeStainPosition ?? .topRight },
+                        set: { editingSession?.coffeeStainPosition = $0 }
                     )) {
                         Text("Top Left").tag(RecipeCardStyle.CoffeeStainPosition.topLeft)
                         Text("Top Right").tag(RecipeCardStyle.CoffeeStainPosition.topRight)
@@ -576,6 +653,8 @@ struct CardPersonalizationView: View {
                         Text("Center").tag(RecipeCardStyle.CoffeeStainPosition.center)
                     }
                     .pickerStyle(.menu)
+                    .accessibilityLabel("Coffee Stain Position")
+                    .accessibilityHint("Select where the coffee stain appears on the card")
                 }
             }
 
@@ -586,30 +665,33 @@ struct CardPersonalizationView: View {
 
                 Slider(
                     value: Binding(
-                        get: { recipe.cardStyle?.wornEdgesIntensity ?? 0.0 },
+                        get: { editingSession?.wornEdgesIntensity ?? 0.0 },
                         set: { value in
-                            ensureRecipeCardStyle()
-                            recipe.cardStyle?.wornEdgesIntensity = value
+                            editingSession?.wornEdgesIntensity = value
                         }
                     ),
                     in: 0...1
                 )
                 .tint(HeirloomColors.tomato)
+                .accessibilityLabel("Worn Edges Intensity")
+                .accessibilityValue("\(Int((editingSession?.wornEdgesIntensity ?? 0.0) * 100)) percent")
+                .accessibilityHint("Adjust how worn and aged the card edges appear")
 
-                Text("Intensity: \(Int((recipe.cardStyle?.wornEdgesIntensity ?? 0.0) * 100))%")
+                Text("Intensity: \(Int((editingSession?.wornEdgesIntensity ?? 0.0) * 100))%")
                     .font(.caption)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
 
             // Auto Love Marks
             Toggle("Auto Love Marks", isOn: Binding(
-                get: { recipe.cardStyle?.autoLoveMarks ?? false },
+                get: { editingSession?.autoLoveMarks ?? false },
                 set: { enabled in
-                    ensureRecipeCardStyle()
-                    recipe.cardStyle?.autoLoveMarks = enabled
+                    editingSession?.autoLoveMarks = enabled
                 }
             ))
             .font(.body.bold())
+            .accessibilityLabel("Auto Love Marks")
+            .accessibilityHint("Automatically add wear and tear based on how many times you've cooked this recipe")
 
             Text("Automatically add wear based on how many times you've cooked this recipe")
                 .font(.caption)
@@ -636,6 +718,8 @@ struct CardPersonalizationView: View {
                 .foregroundStyle(.white)
                 .cornerRadius(12)
             }
+            .accessibilityLabel(isCardFlipped ? "Show Front" : "Show Back")
+            .accessibilityHint("Flips the card to view the \(isCardFlipped ? "front" : "back") side")
 
             Divider()
 
@@ -706,6 +790,8 @@ struct CardPersonalizationView: View {
                 .foregroundStyle(HeirloomColors.tomato)
                 .cornerRadius(12)
             }
+            .accessibilityLabel("Customize Card Back")
+            .accessibilityHint("Opens editor to add notes, tips, ratings, and comments to share")
 
             // Info text
             Text("The card back displays personal notes, tips, and selected comments for friends and family.")
@@ -727,14 +813,22 @@ struct CardPersonalizationView: View {
     }
 
     private func selectBackgroundColor(_ colorHex: String) {
-        ensureRecipeCardStyle()
-        recipe.cardStyle?.backgroundColorHex = colorHex
-        recipe.cardStyle?.backgroundType = .solid
-        recipe.cardStyle?.lastModified = Date()
+        editingSession?.backgroundColorHex = colorHex
+        editingSession?.backgroundType = .solid
 
         // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
+    }
+
+    private func resetChanges() {
+        editingSession?.reset()
+
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+
+        ToastManager.shared.info(title: "Changes reset")
     }
 
     private func removeRecipeSticker(_ sticker: RecipeSticker) {
@@ -754,6 +848,16 @@ struct CardPersonalizationView: View {
     }
 
     private func saveChanges() {
+        guard let session = editingSession else { return }
+
+        // Ensure cardStyle exists
+        ensureRecipeCardStyle()
+
+        // Apply editing session changes to the recipe's cardStyle
+        if let cardStyle = recipe.cardStyle {
+            session.applyToCardStyle(cardStyle)
+        }
+
         do {
             try modelContext.save()
 
@@ -761,15 +865,85 @@ struct CardPersonalizationView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Card personalized!")
+            ToastManager.shared.success(title: "Card updated!")
+
+            // Check card personalization milestone
+            MilestoneManager.shared.checkFirstCardPersonalization()
 
             dismiss()
         } catch {
             ToastManager.shared.error(
-                title: "Failed to save",
+                title: "Failed to save changes",
                 message: error.localizedDescription
             )
         }
+    }
+}
+
+// MARK: - Card Editing Session
+
+/// Session-based editing model that captures original state and tracks changes
+struct CardEditingSession {
+    // Original snapshot (for Reset functionality)
+    let originalBackgroundColorHex: String?
+    let originalBackgroundType: RecipeCardStyle.BackgroundType
+    let originalCoffeeStainEnabled: Bool
+    let originalCoffeeStainPosition: RecipeCardStyle.CoffeeStainPosition?
+    let originalWornEdgesIntensity: Double
+    let originalAutoLoveMarks: Bool
+
+    // Working copy (current edits)
+    var backgroundColorHex: String?
+    var backgroundType: RecipeCardStyle.BackgroundType
+    var coffeeStainEnabled: Bool
+    var coffeeStainPosition: RecipeCardStyle.CoffeeStainPosition?
+    var wornEdgesIntensity: Double
+    var autoLoveMarks: Bool
+
+    init(from cardStyle: RecipeCardStyle?) {
+        // Capture original state
+        self.originalBackgroundColorHex = cardStyle?.backgroundColorHex ?? RecipeCardStyle.predefinedBackgroundColors[0]
+        self.originalBackgroundType = cardStyle?.backgroundType ?? .solid
+        self.originalCoffeeStainEnabled = cardStyle?.coffeeStainEnabled ?? false
+        self.originalCoffeeStainPosition = cardStyle?.coffeeStainPosition
+        self.originalWornEdgesIntensity = cardStyle?.wornEdgesIntensity ?? 0.0
+        self.originalAutoLoveMarks = cardStyle?.autoLoveMarks ?? false
+
+        // Initialize working copy with original values
+        self.backgroundColorHex = originalBackgroundColorHex
+        self.backgroundType = originalBackgroundType
+        self.coffeeStainEnabled = originalCoffeeStainEnabled
+        self.coffeeStainPosition = originalCoffeeStainPosition
+        self.wornEdgesIntensity = originalWornEdgesIntensity
+        self.autoLoveMarks = originalAutoLoveMarks
+    }
+
+    var hasChanges: Bool {
+        return backgroundColorHex != originalBackgroundColorHex ||
+               backgroundType != originalBackgroundType ||
+               coffeeStainEnabled != originalCoffeeStainEnabled ||
+               coffeeStainPosition != originalCoffeeStainPosition ||
+               wornEdgesIntensity != originalWornEdgesIntensity ||
+               autoLoveMarks != originalAutoLoveMarks
+    }
+
+    mutating func reset() {
+        backgroundColorHex = originalBackgroundColorHex
+        backgroundType = originalBackgroundType
+        coffeeStainEnabled = originalCoffeeStainEnabled
+        coffeeStainPosition = originalCoffeeStainPosition
+        wornEdgesIntensity = originalWornEdgesIntensity
+        autoLoveMarks = originalAutoLoveMarks
+    }
+
+    func applyToCardStyle(_ cardStyle: RecipeCardStyle) {
+        cardStyle.backgroundColorHex = backgroundColorHex
+        cardStyle.backgroundType = backgroundType
+        cardStyle.coffeeStainEnabled = coffeeStainEnabled
+        cardStyle.coffeeStainPosition = coffeeStainPosition
+        cardStyle.wornEdgesIntensity = wornEdgesIntensity
+        cardStyle.autoLoveMarks = autoLoveMarks
+        cardStyle.lastModified = Date()
     }
 }
 

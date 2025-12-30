@@ -9,10 +9,15 @@ struct SettingsView: View {
     @State private var showClearDataConfirmation = false
     @State private var iCloudStatus: String = "Checking..."
     @State private var storageSize: String = "Calculating..."
-    
+
+    // Network monitoring
+    private let networkMonitor = NetworkMonitor.shared
+    private let syncCoordinator = CloudKitSyncCoordinator.shared
+
     // Developer testing states
     @State private var cloudKitTestResult: String = ""
     @State private var isTestingCloudKit = false
+    @State private var manualOfflineMode = false
 
     var body: some View {
         NavigationStack {
@@ -23,6 +28,12 @@ struct SettingsView: View {
                 // iCloud Section
                 iCloudSection
 
+                // Network & Sync Section
+                networkSyncSection
+
+                // User Experience Section
+                userExperienceSection
+
                 // Data Management Section
                 dataManagementSection
 
@@ -31,7 +42,7 @@ struct SettingsView: View {
 
                 // Developer Section (for testing)
                 developerSection
-                
+
                 // Support Section
                 supportSection
             }
@@ -146,6 +157,114 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    // MARK: - Network & Sync Section
+
+    private var networkSyncSection: some View {
+        Section {
+            // Network Status
+            HStack {
+                Image(systemName: networkMonitor.isConnected ? "wifi" : "wifi.slash")
+                    .foregroundStyle(networkMonitor.isConnected ? HeirloomColors.success : HeirloomColors.warmGray)
+                Text("Network Status")
+                Spacer()
+                Text(networkMonitor.isConnected ? "Online" : "Offline")
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .font(HeirloomFonts.caption1)
+            }
+
+            // Sync Status
+            HStack {
+                Image(systemName: syncCoordinator.isSyncing ? "arrow.triangle.2.circlepath" : "checkmark.circle.fill")
+                    .foregroundStyle(syncCoordinator.isSyncing ? HeirloomColors.amber : HeirloomColors.success)
+                Text("Sync Status")
+                Spacer()
+                Text(syncCoordinator.isSyncing ? "Syncing..." : "Up to Date")
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .font(HeirloomFonts.caption1)
+            }
+
+            // Pending Operations
+            HStack {
+                Image(systemName: "clock.badge.exclamationmark")
+                    .foregroundStyle(syncCoordinator.pendingOperations.isEmpty ? HeirloomColors.warmGray : HeirloomColors.tomato)
+                Text("Pending Operations")
+                Spacer()
+                Text("\(syncCoordinator.pendingOperations.count)")
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .font(HeirloomFonts.caption1)
+                    .padding(.horizontal, HeirloomSpacing.sm)
+                    .padding(.vertical, 2)
+                    .background(syncCoordinator.pendingOperations.isEmpty ? Color.clear : HeirloomColors.tomato.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+
+            // Sync Issues Button (show if there's a recent error)
+            if syncCoordinator.lastSyncError != nil {
+                NavigationLink {
+                    SyncIssuesView()
+                } label: {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundStyle(HeirloomColors.tomato)
+                        Text("View Sync Issues")
+                            .foregroundStyle(HeirloomColors.primaryText)
+                        Spacer()
+                        if let errorTime = syncCoordinator.lastErrorTime {
+                            Text(timeAgo(from: errorTime))
+                                .font(HeirloomFonts.caption2)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                        }
+                    }
+                }
+            }
+
+            // Retry Button (only show if there are pending operations and we're online)
+            if !syncCoordinator.pendingOperations.isEmpty && networkMonitor.isConnected {
+                Button {
+                    Task {
+                        await syncCoordinator.processPendingOperations()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundStyle(HeirloomColors.tomato)
+                        Text("Retry Sync Now")
+                            .foregroundStyle(HeirloomColors.primaryText)
+                    }
+                }
+                .disabled(syncCoordinator.isSyncing)
+            }
+
+            // Manual Offline Mode Toggle (for testing)
+            #if DEBUG
+            Toggle(isOn: $manualOfflineMode) {
+                HStack {
+                    Image(systemName: "airplane")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Manual Offline Mode")
+                }
+            }
+            .onChange(of: manualOfflineMode) { _, newValue in
+                if newValue {
+                    networkMonitor.simulateOffline()
+                } else {
+                    networkMonitor.simulateOnline()
+                }
+            }
+            #endif
+        } header: {
+            Text("Network & Sync")
+        } footer: {
+            if !networkMonitor.isConnected {
+                Text("Your device is offline. Changes will sync automatically when connection is restored.")
+            } else if !syncCoordinator.pendingOperations.isEmpty {
+                Text("\(syncCoordinator.pendingOperations.count) operations queued from offline mode. Tap 'Retry Sync Now' to sync immediately.")
+            } else {
+                Text("Your recipes are syncing automatically when changes are made.")
+            }
+        }
+    }
+
     // MARK: - Data Management Section
 
     private var dataManagementSection: some View {
@@ -174,7 +293,25 @@ struct SettingsView: View {
             LabeledContent("Build", value: buildNumber)
 
             NavigationLink {
-                aboutView
+                WhatsNewView()
+            } label: {
+                HStack {
+                    Label("What's New", systemImage: "sparkles")
+                    Spacer()
+                    Text("NEW")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule()
+                                .fill(HeirloomColors.tomato)
+                        )
+                }
+            }
+
+            NavigationLink {
+                AboutView()
             } label: {
                 Label("About Heirloom", systemImage: "info.circle")
             }
@@ -183,81 +320,24 @@ struct SettingsView: View {
         }
     }
 
-    private var aboutView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: HeirloomSpacing.lg) {
-                // App Icon and Name
-                VStack(spacing: HeirloomSpacing.md) {
-                    Image(systemName: "book.closed.fill")
-                        .font(.system(size: 80))
-                        .foregroundStyle(HeirloomColors.tomato)
-
-                    Text("Heirloom")
-                        .font(HeirloomFonts.largeTitle)
-                        .foregroundStyle(HeirloomColors.primaryText)
-
-                    Text("Recipes Worth Passing Down")
-                        .font(HeirloomFonts.subheadline)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-
-                    Text("Version \(appVersion) (\(buildNumber))")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.top, HeirloomSpacing.xl)
-
-                Divider()
-
-                // Mission
-                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                    Text("Our Mission")
-                        .font(HeirloomFonts.title3)
-                        .foregroundStyle(HeirloomColors.primaryText)
-
-                    Text("Heirloom helps you preserve and share family recipes. From Grandma's cookies to your own creations, keep your culinary legacy alive for future generations.")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                }
-
-                Divider()
-
-                // Features
-                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                    Text("Features")
-                        .font(HeirloomFonts.title3)
-                        .foregroundStyle(HeirloomColors.primaryText)
-
-                    FeatureRow(icon: "icloud", title: "iCloud Sync", description: "Access recipes on all devices")
-                    FeatureRow(icon: "cart", title: "Smart Shopping", description: "Organized by store layout")
-                    FeatureRow(icon: "camera", title: "Photo Import", description: "Digitize family recipe cards")
-                    FeatureRow(icon: "square.stack.3d.up", title: "Quantity Math", description: "Auto-combine ingredients")
-                }
-
-                Divider()
-
-                // Credits
-                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                    Text("Made with ❤️")
-                        .font(HeirloomFonts.title3)
-                        .foregroundStyle(HeirloomColors.primaryText)
-
-                    Text("Heirloom is designed to bring families together through food and shared memories.")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                }
-            }
-            .padding(HeirloomSpacing.lg)
-        }
-        .background(HeirloomColors.appBackground)
-        .navigationTitle("About")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
     // MARK: - Developer Section
-    
+
     private var developerSection: some View {
         Section {
+            // Debug Log Viewer - FILE-BASED LOGGING FOR DEVICE VISIBILITY
+            NavigationLink {
+                DebugLogView()
+            } label: {
+                HStack {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("View Debug Log")
+                    Spacer()
+                    Text("📁")
+                        .font(.caption)
+                }
+            }
+
             // Test CloudKit Public Database
             Button {
                 testCloudKitPublicDatabase()
@@ -430,12 +510,113 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - User Experience Section
+
+    private var userExperienceSection: some View {
+        Section {
+            Toggle(isOn: Binding(
+                get: { UserDefaults.standard.bool(forKey: "cardFlipHapticsEnabled") },
+                set: { UserDefaults.standard.set($0, forKey: "cardFlipHapticsEnabled") }
+            )) {
+                HStack {
+                    Image(systemName: "hand.tap")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Card Flip Haptics")
+                }
+            }
+
+            Toggle(isOn: Binding(
+                get: { UserDefaults.standard.bool(forKey: "cardFlipSoundEnabled") },
+                set: { UserDefaults.standard.set($0, forKey: "cardFlipSoundEnabled") }
+            )) {
+                HStack {
+                    Image(systemName: "speaker.wave.2")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Card Flip Sound")
+                }
+            }
+        } header: {
+            Text("User Experience")
+        } footer: {
+            Text("Customize haptic feedback and sounds for card interactions.")
+        }
+    }
+
     // MARK: - Support Section
 
     private var supportSection: some View {
         Section {
-            Link(destination: URL(string: "mailto:support@heirloom.app")!) {
+            NavigationLink {
+                HelpView()
+            } label: {
+                Label("Help Center", systemImage: "questionmark.circle")
+            }
+
+            Button {
+                AnalyticsService.shared.track(event: .contactSupportTapped, properties: nil)
+                if let url = URL(string: "mailto:support@heirloom.app") {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
                 Label("Contact Support", systemImage: "envelope")
+                    .foregroundStyle(HeirloomColors.primaryText)
+            }
+
+            Button {
+                let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+                let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+                let deviceModel = UIDevice.current.model
+                let systemVersion = UIDevice.current.systemVersion
+
+                let subject = "Bug Report - Heirloom v\(appVersion)"
+                let body = """
+
+
+                ---
+                Please describe the bug above this line.
+
+                App Version: \(appVersion) (\(buildNumber))
+                Device: \(deviceModel)
+                iOS Version: \(systemVersion)
+                """
+
+                let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+
+                AnalyticsService.shared.track(event: .bugReportSubmitted, properties: [
+                    "app_version": appVersion,
+                    "device_model": deviceModel,
+                    "ios_version": systemVersion
+                ])
+
+                if let url = URL(string: "mailto:support@heirloom.app?subject=\(encodedSubject)&body=\(encodedBody)") {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                Label("Report a Bug", systemImage: "ladybug")
+                    .foregroundStyle(HeirloomColors.primaryText)
+            }
+
+            Button {
+                let subject = "Feature Request - Heirloom"
+                let body = """
+
+
+                ---
+                Please describe your feature request above this line.
+                """
+
+                let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+
+                AnalyticsService.shared.track(event: .featureRequestSubmitted, properties: nil)
+
+                if let url = URL(string: "mailto:support@heirloom.app?subject=\(encodedSubject)&body=\(encodedBody)") {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                Label("Request a Feature", systemImage: "lightbulb")
+                    .foregroundStyle(HeirloomColors.primaryText)
             }
 
             Link(destination: URL(string: "https://heirloom.app/privacy")!) {
@@ -446,7 +627,9 @@ struct SettingsView: View {
                 Label("Terms of Service", systemImage: "doc.text")
             }
         } header: {
-            Text("Support")
+            Text("Help & Support")
+        } footer: {
+            Text("Need help? Browse our Help Center, report bugs, or suggest new features to make Heirloom better.")
         }
     }
 
@@ -522,35 +705,14 @@ struct SettingsView: View {
     private var buildNumber: String {
         Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
-}
 
-// MARK: - Feature Row Component
-
-struct FeatureRow: View {
-    let icon: String
-    let title: String
-    let description: String
-
-    var body: some View {
-        HStack(spacing: HeirloomSpacing.md) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(HeirloomColors.tomato)
-                .frame(width: 30)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(HeirloomColors.primaryText)
-
-                Text(description)
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-            }
-        }
-        .padding(.vertical, 4)
+    private func timeAgo(from date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
 }
+
 
 #Preview {
     SettingsView()

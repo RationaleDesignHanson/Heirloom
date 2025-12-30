@@ -9,7 +9,8 @@ import {Response} from 'express';
 import * as admin from 'firebase-admin';
 import {RecipeImporter} from './services/recipeImporter';
 import {AnalyticsService} from './services/analyticsService';
-import {ImportRequest, FeedbackRequest} from './types';
+import {URLShortenerService} from './services/urlShortenerService';
+import {ImportRequest, FeedbackRequest, ShortenURLRequest} from './types';
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -17,6 +18,7 @@ admin.initializeApp();
 const db = admin.firestore();
 const analyticsService = new AnalyticsService(db);
 const recipeImporter = new RecipeImporter(analyticsService);
+const urlShortener = new URLShortenerService(db);
 
 /**
  * Main recipe import endpoint
@@ -192,6 +194,150 @@ export const updateSitePatterns = onSchedule(
 );
 
 /**
+ * Shorten URL endpoint
+ * POST /shortenURL
+ * Body: { url: string, customCode?: string, recipeId?: string, userId?: string }
+ */
+export const shortenURL = onRequest(
+    {
+      timeoutSeconds: 30,
+      memory: '256MiB',
+      cors: true,
+    },
+    async (req: Request, res: Response) => {
+      if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+      }
+
+      if (req.method !== 'POST') {
+        res.status(405).json({error: 'Method not allowed'});
+        return;
+      }
+
+      try {
+        const requestBody = req.body as ShortenURLRequest;
+
+        if (!requestBody || !requestBody.url) {
+          res.status(400).json({
+            success: false,
+            error: 'Missing required field: url',
+          });
+          return;
+        }
+
+        console.log(`🔗 Shortening URL for user: ${requestBody.userId || 'anonymous'}`);
+
+        const result = await urlShortener.shortenURL(
+            requestBody.url,
+            requestBody.customCode,
+            requestBody.recipeId,
+            requestBody.userId
+        );
+
+        res.status(200).json({
+          success: true,
+          shortUrl: result.shortUrl,
+          code: result.code,
+          longUrl: requestBody.url,
+        });
+      } catch (error: any) {
+        console.error('❌ Shortening error:', error);
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Failed to shorten URL',
+        });
+      }
+    }
+);
+
+/**
+ * Expand/redirect endpoint
+ * GET /r/:code
+ * Redirects to the original CloudKit URL
+ */
+export const expandURL = onRequest(
+    {
+      timeoutSeconds: 10,
+      memory: '256MiB',
+      cors: true,
+    },
+    async (req: Request, res: Response) => {
+      // Extract code from path: /r/abc123 -> abc123
+      const pathParts = req.path.split('/');
+      const code = pathParts[pathParts.length - 1];
+
+      if (!code) {
+        res.status(400).send('Missing short code');
+        return;
+      }
+
+      try {
+        console.log(`🔍 Expanding code: ${code}`);
+
+        const longUrl = await urlShortener.expandURL(code);
+
+        if (!longUrl) {
+          res.status(404).send('Short URL not found or expired');
+          return;
+        }
+
+        // Track the click
+        const referrer = req.get('referer') || req.get('referrer');
+        const userAgent = req.get('user-agent');
+        await urlShortener.trackClick(code, referrer, userAgent);
+
+        // Redirect to the original URL
+        res.redirect(302, longUrl);
+      } catch (error: any) {
+        console.error('❌ Expansion error:', error);
+        res.status(500).send('Error expanding URL');
+      }
+    }
+);
+
+/**
+ * Get URL analytics endpoint
+ * GET /urlAnalytics/:code
+ * Returns analytics data for a short URL
+ */
+export const urlAnalytics = onRequest(
+    {
+      timeoutSeconds: 10,
+      memory: '256MiB',
+      cors: true,
+    },
+    async (req: Request, res: Response) => {
+      if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+      }
+
+      const pathParts = req.path.split('/');
+      const code = pathParts[pathParts.length - 1];
+
+      if (!code) {
+        res.status(400).json({error: 'Missing short code'});
+        return;
+      }
+
+      try {
+        const analytics = await urlShortener.getAnalytics(code);
+
+        if (!analytics) {
+          res.status(404).json({error: 'Short URL not found'});
+          return;
+        }
+
+        res.status(200).json(analytics);
+      } catch (error: any) {
+        console.error('❌ Analytics error:', error);
+        res.status(500).json({error: 'Failed to retrieve analytics'});
+      }
+    }
+);
+
+/**
  * Scheduled function: Clean old cache
  * Runs daily at 3 AM
  */
@@ -226,6 +372,10 @@ export const cleanCache = onSchedule(
         await batch.commit();
 
         console.log('✅ Cache cleaned successfully');
+
+        // Also clean up expired short URLs
+        const expiredCount = await urlShortener.cleanupExpired();
+        console.log(`🔗 Cleaned up ${expiredCount} expired short URLs`);
       } catch (error) {
         console.error('❌ Error cleaning cache:', error);
         throw error;

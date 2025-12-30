@@ -77,6 +77,19 @@ enum AnalyticsEvent: String {
     case trendingRecipeViewed = "Trending Recipe Viewed"
     case lineageViewed = "Lineage Viewed"
     case featureUsed = "Feature Used"
+
+    // Card Personalization
+    case cardFlipped = "Card Flipped"
+
+    // Help & Support
+    case helpCenterOpened = "Help Center Opened"
+    case helpArticleViewed = "Help Article Viewed"
+    case helpSectionViewed = "Help Section Viewed"
+    case helpSearchPerformed = "Help Search Performed"
+    case faqOpened = "FAQ Opened"
+    case contactSupportTapped = "Contact Support Tapped"
+    case bugReportSubmitted = "Bug Report Submitted"
+    case featureRequestSubmitted = "Feature Request Submitted"
 }
 
 // MARK: - Console-Only Analytics (Fallback)

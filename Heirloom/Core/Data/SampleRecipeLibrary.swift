@@ -4,6 +4,15 @@ import Foundation
 struct SampleRecipeData {
     let recipe: Recipe
     let ingredients: [String]
+    let imageURL: String
+    let cardBack: CardBackData
+    let comments: [String]
+
+    struct CardBackData {
+        let noteToFriends: String?
+        let personalTips: [String]
+        let rating: Int?
+    }
 }
 
 struct SampleRecipeLibrary {
@@ -59,7 +68,29 @@ struct SampleRecipeLibrary {
             "2 cups chocolate chips"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "This is my grandmother's famous recipe! These cookies have been bringing joy to our family for decades. The secret is using real butter and not over-baking them.",
+            personalTips: [
+                "Don't skip the rest time - let dough chill for 30 min for thicker cookies",
+                "Use a cookie scoop for perfectly uniform sizes",
+                "They're done when edges are golden but centers still look slightly underdone"
+            ],
+            rating: 5
+        )
+
+        let comments = [
+            "Pro tip: Add a pinch of sea salt on top before baking for that bakery-style finish!",
+            "I use half dark chocolate, half milk chocolate chips for more complex flavor",
+            "These freeze beautifully - I always make a double batch"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 2: Spaghetti Carbonara
@@ -88,10 +119,34 @@ struct SampleRecipeLibrary {
             "4 large eggs",
             "1 cup grated Parmesan cheese",
             "2 teaspoons black pepper",
-            "1 teaspoon salt"
+            "1 teaspoon salt",
+            "2 cloves garlic, minced",
+            "1/4 cup fresh parsley, chopped"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "Authentic Roman carbonara - creamy without cream! The key is using the pasta water and residual heat to cook the eggs without scrambling them.",
+            personalTips: [
+                "Use the best quality Parmesan you can find - it makes all the difference",
+                "Work quickly when adding eggs - have everything ready before draining pasta",
+                "The pasta must be hot enough to cook the eggs but not scramble them"
+            ],
+            rating: 5
+        )
+
+        let comments = [
+            "If you're nervous about raw eggs, temper them first with a bit of hot pasta water",
+            "Guanciale is traditional, but bacon works great and is easier to find",
+            "Save extra pasta water - you can always add more but can't take it away!"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 3: Chicken Stir-Fry
@@ -121,10 +176,35 @@ struct SampleRecipeLibrary {
             "1/4 cup soy sauce",
             "2 tablespoons vegetable oil",
             "3 cloves garlic, minced",
-            "1 tablespoon fresh ginger, grated"
+            "1 tablespoon fresh ginger, grated",
+            "2 tablespoons cornstarch",
+            "1 tablespoon sesame oil",
+            "2 green onions, sliced"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "My go-to weeknight dinner! This stir-fry comes together in under 30 minutes and is endlessly customizable with whatever vegetables you have on hand.",
+            personalTips: [
+                "Cut everything before you start cooking - stir-frying moves fast!",
+                "Get your wok smoking hot for the best flavor and texture",
+                "Don't overcrowd the pan - cook in batches if needed"
+            ],
+            rating: 4
+        )
+
+        let comments = [
+            "I add a tablespoon of hoisin sauce for extra depth of flavor",
+            "Cashews or peanuts are a great addition for crunch",
+            "Works great with shrimp instead of chicken - just reduce cook time"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 4: Classic Pancakes
@@ -152,12 +232,36 @@ struct SampleRecipeLibrary {
             "2 tablespoons sugar",
             "2 teaspoons baking powder",
             "1 teaspoon salt",
+            "1/2 teaspoon baking soda",
             "2 large eggs",
             "2 cups buttermilk",
-            "1/4 cup butter, melted"
+            "1/4 cup butter, melted",
+            "1 teaspoon vanilla extract"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "The fluffiest pancakes you'll ever make! The secret is in the buttermilk and not overmixing the batter. Perfect for lazy Sunday mornings.",
+            personalTips: [
+                "Don't overmix! Lumpy batter = fluffy pancakes",
+                "Let batter rest 5 minutes before cooking for extra fluffiness",
+                "Keep finished pancakes warm in a 200°F oven while cooking the rest"
+            ],
+            rating: 5
+        )
+
+        let comments = [
+            "Add blueberries or chocolate chips right after pouring batter on griddle",
+            "I substitute half the flour with whole wheat for heartier pancakes",
+            "These freeze great - just pop in the toaster for quick breakfasts!"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 5: Tacos
@@ -188,10 +292,34 @@ struct SampleRecipeLibrary {
             "1 cup shredded cheddar cheese",
             "2 cups shredded lettuce",
             "1 large tomato, diced",
-            "1/2 cup sour cream"
+            "1/2 cup sour cream",
+            "1/2 cup salsa",
+            "1 avocado, sliced"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "Taco Tuesday essential! This is our family's go-to quick dinner. Simple, customizable, and everyone loves building their own tacos.",
+            personalTips: [
+                "Toast shells in the oven for 5 min at 350°F for extra crunch",
+                "Use 85% lean beef for best flavor without too much grease",
+                "Set up a taco bar and let everyone customize their own"
+            ],
+            rating: 4
+        )
+
+        let comments = [
+            "I use ground turkey for a lighter version - works great!",
+            "Add jalapeños for heat or leave them on the side for picky eaters",
+            "Leftover taco meat is perfect for nachos the next day"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 6: Tomato Soup
@@ -218,7 +346,7 @@ struct SampleRecipeLibrary {
             "2 tablespoons butter",
             "1 onion, diced",
             "2 cloves garlic, minced",
-            "2 cans crushed tomatoes",
+            "2 cans (28 oz each) crushed tomatoes",
             "2 cups vegetable broth",
             "1 tablespoon sugar",
             "1/2 cup heavy cream",
@@ -227,7 +355,29 @@ struct SampleRecipeLibrary {
             "Fresh basil for garnish"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "The ultimate comfort food! Perfect with grilled cheese sandwiches. This soup is so much better than anything from a can and comes together in under an hour.",
+            personalTips: [
+                "Use fire-roasted tomatoes for extra depth of flavor",
+                "An immersion blender makes this super easy - no need to transfer to a regular blender",
+                "Add a pinch of red pepper flakes for a little kick"
+            ],
+            rating: 5
+        )
+
+        let comments = [
+            "I make a big batch and freeze in portions for quick lunches",
+            "Swap cream for coconut milk to make it dairy-free",
+            "Fresh tomatoes in summer are amazing - use 3 lbs and roast them first"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 7: Caesar Salad
@@ -257,10 +407,33 @@ struct SampleRecipeLibrary {
             "1/2 cup grated Parmesan cheese",
             "2 cups croutons",
             "1/2 teaspoon salt",
-            "1/4 teaspoon black pepper"
+            "1/4 teaspoon black pepper",
+            "4 anchovy fillets (optional)"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "The classic restaurant favorite made at home! This dressing is so much better than store-bought. Make extra - it keeps for a week in the fridge.",
+            personalTips: [
+                "Dry your lettuce really well - wet lettuce makes watery dressing",
+                "Make your own croutons from day-old bread - toast with olive oil and garlic",
+                "Add grilled chicken to make it a complete meal"
+            ],
+            rating: 4
+        )
+
+        let comments = [
+            "I skip the anchovies and add a splash of Worcestershire sauce instead",
+            "Massage the lettuce for 30 seconds before dressing for a more tender salad",
+            "This dressing is also fantastic on roasted vegetables!"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1546793665-c74683f339c1?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 8: Grilled Cheese
@@ -283,12 +456,39 @@ struct SampleRecipeLibrary {
         recipe.timesCooked = 25
 
         let ingredients = [
-            "2 slices bread",
-            "2 tablespoons butter",
-            "2 slices cheddar cheese"
+            "2 slices sourdough bread",
+            "2 tablespoons butter, softened",
+            "2 slices sharp cheddar cheese",
+            "2 slices Gruyère cheese",
+            "1 tablespoon Dijon mustard (optional)",
+            "2 slices tomato (optional)",
+            "4 slices bacon, cooked (optional)",
+            "1 teaspoon garlic powder"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "The simple comfort food that never gets old! While the classic is perfect, don't be afraid to mix in different cheeses or add-ins for variety.",
+            personalTips: [
+                "Use mayo instead of butter on the outside for extra crispy bread",
+                "Mix cheeses - cheddar + Gruyère is my favorite combo",
+                "Low and slow wins the race - medium heat ensures melted cheese and golden bread"
+            ],
+            rating: 5
+        )
+
+        let comments = [
+            "Add a thin slice of apple for a sweet-savory twist!",
+            "Sourdough bread makes all the difference - try it!",
+            "I always make tomato soup when I make grilled cheese - perfect pairing"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1528736235302-52922df5c122?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 9: Beef Stew
@@ -326,7 +526,29 @@ struct SampleRecipeLibrary {
             "Salt and pepper to taste"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "Mom's famous stew that warms you up on cold winter days. This is true comfort food - it tastes even better the next day after the flavors have had time to meld.",
+            personalTips: [
+                "Don't skip browning the meat - it adds so much flavor!",
+                "Use a Dutch oven if you have one - perfect for this recipe",
+                "Add a splash of red wine with the broth for extra richness"
+            ],
+            rating: 5
+        )
+
+        let comments = [
+            "I add frozen peas in the last 5 minutes for extra color",
+            "Cornstarch slurry at the end if you want thicker gravy",
+            "This freezes beautifully - I always make a double batch"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1608039755401-742074f0548d?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 10: Banana Bread
@@ -357,10 +579,34 @@ struct SampleRecipeLibrary {
             "1 teaspoon vanilla extract",
             "1 teaspoon baking soda",
             "1/4 teaspoon salt",
-            "1 1/2 cups all-purpose flour"
+            "1 1/2 cups all-purpose flour",
+            "1/2 cup chopped walnuts (optional)",
+            "1/2 teaspoon cinnamon"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "The perfect way to use up overripe bananas! This recipe has been in my family for generations. The house smells amazing while it bakes.",
+            personalTips: [
+                "The blacker the bananas, the better - seriously!",
+                "Don't overmix the batter - it should still be slightly lumpy",
+                "A toothpick inserted in center should come out with just a few moist crumbs"
+            ],
+            rating: 5
+        )
+
+        let comments = [
+            "I add chocolate chips for a decadent twist - about 3/4 cup",
+            "Freeze ripe bananas when you have them - perfect for this recipe later",
+            "This keeps for 4-5 days wrapped tightly, or freeze slices for quick snacks"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 11: Lasagna
@@ -390,7 +636,7 @@ struct SampleRecipeLibrary {
             "1 pound ground beef",
             "1 onion, diced",
             "3 cloves garlic, minced",
-            "2 jars marinara sauce",
+            "2 jars (24 oz each) marinara sauce",
             "1 teaspoon dried basil",
             "1 teaspoon dried oregano",
             "16 ounces ricotta cheese",
@@ -401,7 +647,29 @@ struct SampleRecipeLibrary {
             "1/2 cup grated Parmesan cheese"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "Aunt Maria's famous lasagna that she makes for every family gathering! This is the recipe everyone asks for. It feeds a crowd and tastes even better as leftovers.",
+            personalTips: [
+                "Use no-boil noodles to save time - they work perfectly!",
+                "Let it rest 15 minutes after baking for cleaner slices",
+                "Cover with foil for first 20 min, then uncover to brown the cheese"
+            ],
+            rating: 5
+        )
+
+        let comments = [
+            "I add Italian sausage along with the beef for extra flavor",
+            "Make ahead and refrigerate overnight - even better the next day!",
+            "This freezes beautifully - I make two and freeze one for busy weeks"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 
     // MARK: - Recipe 12: Roasted Chicken
@@ -434,9 +702,32 @@ struct SampleRecipeLibrary {
             "2 teaspoons salt",
             "1 teaspoon black pepper",
             "1 lemon, halved",
-            "Fresh rosemary sprigs"
+            "Fresh rosemary sprigs",
+            "1 tablespoon olive oil"
         ]
 
-        return SampleRecipeData(recipe: recipe, ingredients: ingredients)
+        let cardBack = SampleRecipeData.CardBackData(
+            noteToFriends: "A perfectly roasted chicken is a fundamental skill every cook should master. This recipe produces crispy golden skin and juicy, flavorful meat every single time.",
+            personalTips: [
+                "Dry skin = crispy skin! Pat it really well with paper towels",
+                "Use a meat thermometer - breast should hit 165°F, thigh 175°F",
+                "Save the bones for homemade chicken stock!"
+            ],
+            rating: 5
+        )
+
+        let comments = [
+            "I stuff the cavity with onion quarters and fresh herbs for extra flavor",
+            "Roast on a bed of root vegetables for an easy one-pan meal",
+            "Leftover chicken is perfect for sandwiches, salads, or chicken soup"
+        ]
+
+        return SampleRecipeData(
+            recipe: recipe,
+            ingredients: ingredients,
+            imageURL: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=800&q=80",
+            cardBack: cardBack,
+            comments: comments
+        )
     }
 }

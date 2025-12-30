@@ -67,7 +67,7 @@ final class RecipeComment {
 
     // MARK: - Shared Comments (Phase 2C)
     /// Visibility scope for this comment
-    var shareScope: CommentScope = .private
+    var shareScope: CommentScope = CommentScope.private
 
     /// Provenance hash of the recipe version this comment was made on
     /// Used to aggregate comments across shared copies

@@ -1,6 +1,7 @@
 import SwiftUI
 import VisionKit
 import Vision
+import PhotosUI
 
 struct CookbookScannerView: View {
     @Environment(\.dismiss) private var dismiss
@@ -10,6 +11,7 @@ struct CookbookScannerView: View {
     @State private var capturedImage: UIImage?
     @State private var isProcessing = false
     @State private var recognizedText: String = ""
+    @State private var selectedPhotoItem: PhotosPickerItem?
 
     var body: some View {
         NavigationStack {
@@ -41,6 +43,17 @@ struct CookbookScannerView: View {
             }
             .sheet(isPresented: $showCamera) {
                 CameraView(capturedImage: $capturedImage)
+            }
+            .onChange(of: selectedPhotoItem) { _, newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data) {
+                        await MainActor.run {
+                            capturedImage = image
+                            selectedPhotoItem = nil
+                        }
+                    }
+                }
             }
         }
     }
@@ -81,20 +94,41 @@ struct CookbookScannerView: View {
 
             Spacer()
 
-            // Camera Button
-            Button {
-                showCamera = true
-            } label: {
-                HStack {
-                    Image(systemName: "camera.fill")
-                    Text("Open Camera")
+            // Action Buttons
+            VStack(spacing: HeirloomSpacing.md) {
+                // Camera Button
+                Button {
+                    showCamera = true
+                } label: {
+                    HStack {
+                        Image(systemName: "camera.fill")
+                        Text("Open Camera")
+                    }
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(HeirloomColors.tomato)
+                    .cornerRadius(12)
                 }
-                .font(HeirloomFonts.bodyBold)
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(HeirloomColors.tomato)
-                .cornerRadius(12)
+
+                // Photo Library Button
+                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                    HStack {
+                        Image(systemName: "photo.on.rectangle")
+                        Text("Choose from Photos")
+                    }
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(HeirloomColors.tomato)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(HeirloomColors.tomato, lineWidth: 2)
+                    )
+                }
             }
             .padding(.horizontal, HeirloomSpacing.lg)
             .padding(.bottom, HeirloomSpacing.xl)
@@ -135,7 +169,7 @@ struct CookbookScannerView: View {
             if isProcessing {
                 VStack(spacing: HeirloomSpacing.md) {
                     ProgressView()
-                    Text("Extracting text...")
+                    Text("Analyzing recipe with AI...")
                         .font(HeirloomFonts.body)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
@@ -159,7 +193,7 @@ struct CookbookScannerView: View {
         }
     }
 
-    // MARK: - OCR Processing
+    // MARK: - Vision API Processing
 
     private func processImage() {
         guard let image = capturedImage else { return }
@@ -168,12 +202,12 @@ struct CookbookScannerView: View {
 
         Task {
             do {
-                // Step 1: Extract raw text using OCR
-                let text = try await recognizeText(in: image)
-                recognizedText = text
-
-                // Step 2: Use AI to structure the recipe (if enabled)
-                let extractedRecipe = try await AIRecipeExtractor.shared.extractRecipe(from: text)
+                // Use vision API directly for single-recipe extraction (matches web demo)
+                print("🔍 Extracting recipe with vision API...")
+                let extractedRecipe = try await AIRecipeExtractor.shared.extractRecipeFromImage(
+                    image: image,
+                    boundingBox: nil // Full image for cookbook scanner
+                )
 
                 await MainActor.run {
                     isProcessing = false
@@ -188,11 +222,13 @@ struct CookbookScannerView: View {
                     // Track analytics
                     AnalyticsService.shared.track(event: .recipeImported, properties: [
                         "source": "cookbook_scan",
-                        "text_length": text.count,
-                        "used_ai_extraction": AIConfiguration.shared.enableAIEnhancement,
+                        "extraction_method": "vision_api",
+                        "used_ai_extraction": true,
                         "ingredient_count": extractedRecipe.ingredients.count,
                         "instruction_count": extractedRecipe.instructions.count
                     ])
+
+                    print("✅ Recipe extracted: \(extractedRecipe.title)")
                 }
             } catch {
                 await MainActor.run {
@@ -206,6 +242,8 @@ struct CookbookScannerView: View {
                         title: "Processing Failed",
                         message: "Couldn't extract recipe from image. Try a clearer photo."
                     )
+
+                    print("❌ Recipe extraction failed: \(error)")
                 }
             }
         }
@@ -250,6 +288,13 @@ struct CookbookScannerView: View {
         if let notes = extracted.notes {
             recipe.notes = notes
         }
+
+        // Set provenance metadata for scanned recipes
+        recipe.provenance = ProvenanceMetadata(
+            sourceType: .scanned,
+            sourceAttribution: "Scanned from cookbook",
+            generation: 0
+        )
 
         // Insert recipe first
         modelContext.insert(recipe)

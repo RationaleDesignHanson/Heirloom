@@ -93,35 +93,66 @@ extension Ingredient {
             return ""
         }
 
-        // Convert decimals to fractions for better display
-        let fractions: [(Double, String)] = [
-            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
-            (0.375, "⅜"), (0.5, "½"), (0.625, "⅝"),
-            (0.667, "⅔"), (0.75, "¾"), (0.875, "⅞")
+        // Determine if this is a metric unit (use decimals) or imperial (use fractions)
+        let isMetric = isMetricUnit(unit)
+
+        if isMetric {
+            // Metric: use decimals, round to 1 decimal place
+            let rounded = round(value * 10) / 10
+            if rounded == Double(Int(rounded)) {
+                return "\(Int(rounded))"
+            }
+            return String(format: "%.1f", rounded)
+        } else {
+            // Imperial: use practical fractions only (no ridiculous ones like ⅜, ⅝, ⅞)
+            let practicalFractions: [(Double, String)] = [
+                (0.125, "⅛"),  // 1/8
+                (0.25, "¼"),   // 1/4
+                (0.333, "⅓"),  // 1/3
+                (0.5, "½"),    // 1/2
+                (0.667, "⅔"),  // 2/3
+                (0.75, "¾")    // 3/4
+            ]
+
+            let whole = Int(value)
+            let fraction = value - Double(whole)
+
+            // If it's essentially a whole number
+            if fraction < 0.05 {
+                return "\(whole)"
+            }
+
+            // Try to match practical fractions (within 0.05 tolerance)
+            for (threshold, symbol) in practicalFractions {
+                if abs(fraction - threshold) < 0.05 {
+                    return whole > 0 ? "\(whole) \(symbol)" : symbol
+                }
+            }
+
+            // Fallback: use decimal notation if no practical fraction matches
+            let rounded = round(value * 10) / 10
+            if rounded == Double(Int(rounded)) {
+                return "\(Int(rounded))"
+            }
+            return String(format: "%.1f", rounded)
+        }
+    }
+
+    /// Determines if a unit is metric (true) or imperial (false)
+    private func isMetricUnit(_ unit: String?) -> Bool {
+        guard let unit = unit?.lowercased() else { return false }
+
+        // Metric units
+        let metricUnits = [
+            "g", "gram", "grams", "kg", "kilogram", "kilograms",
+            "mg", "milligram", "milligrams",
+            "l", "liter", "liters", "litre", "litres",
+            "ml", "milliliter", "milliliters", "millilitre", "millilitres",
+            "cl", "centiliter", "centiliters",
+            "dl", "deciliter", "deciliters"
         ]
 
-        let whole = Int(value)
-        let fraction = value - Double(whole)
-
-        // If it's essentially a whole number
-        if fraction < 0.05 {
-            return "\(whole)"
-        }
-
-        // Try to match common fractions
-        for (threshold, symbol) in fractions {
-            if abs(fraction - threshold) < 0.05 {
-                return whole > 0 ? "\(whole) \(symbol)" : symbol
-            }
-        }
-
-        // Fallback: use decimal notation for odd values
-        // Round to 1 decimal place
-        let rounded = round(value * 10) / 10
-        if rounded == Double(Int(rounded)) {
-            return "\(Int(rounded))"
-        }
-        return String(format: "%.1f", rounded)
+        return metricUnits.contains(unit)
     }
 }
 

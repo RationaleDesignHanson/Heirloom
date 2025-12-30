@@ -1,8 +1,9 @@
 import Foundation
+import UIKit
 
 /// Anthropic Claude AI service client
 /// Adapted from Zero Inbox's OpenAI integration pattern
-/// Uses Claude API for food/recipe domain expertise
+/// Uses Claude API for food/recipe domain expertise including vision capabilities
 @MainActor
 class AnthropicAIService: AIServiceProtocol {
     static let shared = AnthropicAIService()
@@ -111,6 +112,105 @@ class AnthropicAIService: AIServiceProtocol {
         let inputCost = Decimal(inputTokens) / 1_000_000 * 0.25
         let outputCost = Decimal(outputTokens) / 1_000_000 * 1.25
         return inputCost + outputCost
+    }
+
+    // MARK: - Vision API Methods
+
+    /// Complete with vision (image + text prompt)
+    func completeWithVision(
+        image: UIImage,
+        prompt: String,
+        options: AICompletionOptions? = nil
+    ) async throws -> AICompletionResponse {
+        // Check rate limit
+        let config = AIConfiguration.shared
+        guard config.canMakeRequest() else {
+            throw AIError.quotaExceeded(
+                provider: providerName,
+                limit: 100,
+                resetDate: Calendar.current.startOfDay(for: Date().addingTimeInterval(86400))
+            )
+        }
+
+        // Validate configuration
+        guard let apiKey = config.currentAPIKey else {
+            throw AIError.notConfigured(provider: providerName)
+        }
+
+        // Convert image to base64
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            throw AIError.invalidRequest(reason: "Could not convert image to JPEG")
+        }
+        let base64Image = imageData.base64EncodedString()
+
+        // Build request with vision content
+        let opts = options ?? .default
+        let model = opts.model ?? AIConfiguration.shared.model(for: .vision)
+
+        let requestBody = AnthropicVisionRequest(
+            model: model,
+            maxTokens: opts.maxTokens ?? 1500,
+            messages: [
+                AnthropicVisionMessage(
+                    role: "user",
+                    content: [
+                        .image(source: AnthropicImageSource(
+                            type: "base64",
+                            mediaType: "image/jpeg",
+                            data: base64Image
+                        )),
+                        .text(prompt)
+                    ]
+                )
+            ],
+            temperature: opts.temperature ?? 0.7,
+            system: opts.systemMessage
+        )
+
+        // Create HTTP request
+        var request = try createRequest(endpoint: "/messages")
+        request.addValue(apiKey, forHTTPHeaderField: "x-api-key")
+        request.addValue(apiVersion, forHTTPHeaderField: "anthropic-version")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        request.httpBody = try JSONEncoder().encode(requestBody)
+
+        // Execute request with retry logic
+        let response = try await executeWithRetry(request, maxAttempts: 3)
+
+        return response
+    }
+
+    /// Complete with vision and structured output
+    func completeWithVisionStructured<T: Decodable>(
+        image: UIImage,
+        prompt: String,
+        schema: T.Type,
+        options: AICompletionOptions? = nil
+    ) async throws -> T {
+        // Add JSON formatting instructions
+        let structuredPrompt = """
+        \(prompt)
+
+        IMPORTANT: Respond ONLY with valid JSON. No markdown, no explanations, just raw JSON.
+        """
+
+        let response = try await completeWithVision(
+            image: image,
+            prompt: structuredPrompt,
+            options: options
+        )
+
+        // Parse JSON response
+        guard let data = response.content.data(using: .utf8) else {
+            throw AIError.invalidResponse(reason: "Could not convert response to data")
+        }
+
+        do {
+            return try JSONDecoder().decode(T.self, from: data)
+        } catch {
+            throw AIError.jsonDecodingFailed(underlying: error)
+        }
     }
 
     // MARK: - Private Methods
@@ -271,5 +371,65 @@ private struct AnthropicUsage: Decodable {
     enum CodingKeys: String, CodingKey {
         case inputTokens = "input_tokens"
         case outputTokens = "output_tokens"
+    }
+}
+
+// MARK: - Vision API Types
+
+private struct AnthropicVisionRequest: Encodable {
+    let model: String
+    let maxTokens: Int
+    let messages: [AnthropicVisionMessage]
+    let temperature: Double?
+    let system: String?
+
+    enum CodingKeys: String, CodingKey {
+        case model
+        case maxTokens = "max_tokens"
+        case messages
+        case temperature
+        case system
+    }
+}
+
+private struct AnthropicVisionMessage: Encodable {
+    let role: String
+    let content: [AnthropicContentBlock]
+}
+
+private enum AnthropicContentBlock: Encodable {
+    case text(String)
+    case image(source: AnthropicImageSource)
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        switch self {
+        case .text(let text):
+            try container.encode("text", forKey: .type)
+            try container.encode(text, forKey: .text)
+
+        case .image(let source):
+            try container.encode("image", forKey: .type)
+            try container.encode(source, forKey: .source)
+        }
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case text
+        case source
+    }
+}
+
+private struct AnthropicImageSource: Encodable {
+    let type: String           // "base64"
+    let mediaType: String      // "image/jpeg" or "image/png"
+    let data: String           // base64 encoded image
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case mediaType = "media_type"
+        case data
     }
 }

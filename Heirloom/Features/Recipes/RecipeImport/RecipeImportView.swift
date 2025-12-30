@@ -5,11 +5,24 @@ struct RecipeImportView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    // Optional URL passed from Share Extension
+    let url: URL?
+
     @State private var urlText = ""
     @State private var isImporting = false
     @State private var importedRecipe: ImportedRecipe?
     @State private var importError: String?
     @State private var isSaving = false
+
+    // Init for manual URL entry
+    init() {
+        self.url = nil
+    }
+
+    // Init for Share Extension (with pre-populated URL)
+    init(url: URL) {
+        self.url = url
+    }
 
     var body: some View {
         NavigationStack {
@@ -46,6 +59,15 @@ struct RecipeImportView: View {
                             }
                         }
                         .disabled(isSaving)
+                    }
+                }
+            }
+            .onAppear {
+                // If URL was passed from Share Extension, auto-populate and import
+                if let shareURL = url {
+                    urlText = shareURL.absoluteString
+                    Task {
+                        await importFromURL()
                     }
                 }
             }

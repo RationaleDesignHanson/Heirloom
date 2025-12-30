@@ -206,3 +206,47 @@ export interface FeedbackResponse {
   success: boolean;
   message: string;
 }
+
+// ===== URL Shortening Types =====
+
+// Request to shorten a URL
+export interface ShortenURLRequest {
+  url: string; // CloudKit share URL to shorten
+  customCode?: string; // Optional custom short code
+  recipeId?: string; // For analytics tracking
+  userId?: string; // For ownership tracking
+}
+
+// Response from shortenURL endpoint
+export interface ShortenURLResponse {
+  success: boolean;
+  shortUrl: string; // Full short URL (https://heirloom.app/r/abc123)
+  code: string; // Just the code part (abc123)
+  longUrl: string; // Original URL
+  expiresAt?: Date; // Optional expiration
+  error?: string; // Error message if success = false
+}
+
+// Stored in Firestore: short_urls collection
+export interface ShortURL {
+  code: string; // Primary key / document ID
+  longUrl: string; // Original CloudKit URL
+  recipeId?: string;
+  userId?: string;
+  createdAt: Date;
+  expiresAt?: Date;
+  clicks: number;
+  lastAccessed?: Date;
+  // Analytics
+  clicksByDay?: Record<string, number>; // { "2024-12-26": 5, ... }
+  referrers?: Record<string, number>; // { "twitter.com": 3, ... }
+}
+
+// Click tracking event
+export interface URLClickEvent {
+  code: string;
+  timestamp: Date;
+  userAgent?: string;
+  referrer?: string;
+  ipHash?: string; // Hashed for privacy
+}

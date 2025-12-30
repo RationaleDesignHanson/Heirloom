@@ -276,13 +276,13 @@ final class CommentService {
         comment.endorsementCount += 1
         try context.save()
 
-        // Sync to CloudKit if comment is shared
-        if comment.isVisibleToLineage {
-            try await SharedCommentService.shared.updateEndorsement(
-                for: comment.id,
-                increment: true
-            )
-        }
+        // TODO: Sync to CloudKit if comment is shared
+        // if comment.isVisibleToLineage {
+        //     try await SharedCommentService.shared.updateEndorsement(
+        //         for: comment.id,
+        //         increment: true
+        //     )
+        // }
     }
 
     /// Remove endorsement from comment
@@ -291,13 +291,13 @@ final class CommentService {
         comment.endorsementCount = max(0, comment.endorsementCount - 1)
         try context.save()
 
-        // Sync to CloudKit if comment is shared
-        if comment.isVisibleToLineage {
-            try await SharedCommentService.shared.updateEndorsement(
-                for: comment.id,
-                increment: false
-            )
-        }
+        // TODO: Sync to CloudKit if comment is shared
+        // if comment.isVisibleToLineage {
+        //     try await SharedCommentService.shared.updateEndorsement(
+        //         for: comment.id,
+        //         increment: false
+        //     )
+        // }
     }
 
     /// Update comment scope
@@ -307,7 +307,7 @@ final class CommentService {
         recipe: Recipe,
         context: ModelContext
     ) async throws {
-        let oldScope = comment.shareScope
+        _ = comment.shareScope // Store old scope for potential future use
         comment.shareScope = scope
 
         // Set origin provenance hash if not already set
@@ -317,10 +317,10 @@ final class CommentService {
 
         try context.save()
 
-        // Share to CloudKit if changing from private to shared
-        if oldScope == .private && scope != .private {
-            try await SharedCommentService.shared.shareComment(comment, from: recipe)
-        }
+        // TODO: Share to CloudKit if changing from private to shared
+        // if oldScope == CommentScope.private && scope != CommentScope.private {
+        //     try await SharedCommentService.shared.shareComment(comment, from: recipe)
+        // }
     }
 
     // MARK: - Statistics

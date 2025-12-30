@@ -62,6 +62,11 @@ struct FlipCard<Front: View, Back: View>: View {
                     backOpacity = 0
                 }
             }
+
+            // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
+            // Task { @MainActor in
+            //     AccessibilityAnnouncementService.shared.announceCardFlipped(showingBack: newValue)
+            // }
         }
         .onAppear {
             // Initialize to correct state
@@ -218,26 +223,225 @@ struct RecipeFlipCard: View {
     }
 }
 
-// MARK: - Placeholder Views (to be implemented)
+// MARK: - Recipe Card Front View
 
 private struct RecipeCardFrontView: View {
     let recipe: Recipe
 
     var body: some View {
-        // TODO: Implement proper recipe card front
-        ZStack {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(HeirloomColors.cream)
+        GeometryReader { geometry in
+            ZStack {
+                // Background Layer
+                cardBackground
 
-            VStack {
-                Text(recipe.title)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                Text("Front of card")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                // Content Layer
+                VStack(spacing: 12) {
+                    // Recipe Image or Title
+                    recipeImageSection
+                        .frame(height: geometry.size.height * 0.45)
+
+                    // Recipe Title (if image exists)
+                    if recipe.imageFileName != nil {
+                        Text(recipe.title)
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 16)
+                    }
+
+                    Spacer()
+
+                    // Source Attribution Badge
+                    sourceAttribution
+                        .padding(.bottom, 16)
+                }
+                .padding(.top, 20)
+
+                // Stickers Layer (absolute positioning)
+                if let stickers = recipe.stickers {
+                    ForEach(stickers, id: \.id) { sticker in
+                        stickerView(sticker, in: geometry.size)
+                    }
+                }
+
+                // Annotations Layer (absolute positioning)
+                if let annotations = recipe.annotations {
+                    ForEach(annotations, id: \.id) { annotation in
+                        annotationView(annotation, in: geometry.size)
+                    }
+                }
+
+                // Love Marks Overlay (on top of everything)
+                if let cardStyle = recipe.cardStyle {
+                    loveMarksOverlay(cardStyle, in: geometry.size)
+                }
             }
-            .padding()
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+        }
+    }
+
+    // MARK: - Background
+
+    private var cardBackground: some View {
+        Group {
+            if let cardStyle = recipe.cardStyle {
+                switch cardStyle.backgroundType {
+                case .default, .solid:
+                    Color(hex: cardStyle.backgroundColorHex ?? RecipeCardStyle.predefinedBackgroundColors[0])
+                case .gradient:
+                    LinearGradient(
+                        colors: [
+                            Color(hex: cardStyle.backgroundColorHex ?? "#FEFDFB"),
+                            Color(hex: cardStyle.backgroundColorHex ?? "#FEFDFB").opacity(0.7)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                case .pattern, .texture:
+                    Color(hex: cardStyle.backgroundColorHex ?? RecipeCardStyle.predefinedBackgroundColors[0])
+                        .overlay {
+                            // Pattern/texture overlay (simplified for now)
+                            Color.black.opacity(0.02)
+                        }
+                }
+            } else {
+                // Default cream background
+                HeirloomColors.cream
+            }
+        }
+    }
+
+    // MARK: - Recipe Image
+
+    private var recipeImageSection: some View {
+        Group {
+            if recipe.imageFileName != nil {
+                // Actual recipe image using AsyncRecipeImage component
+                AsyncRecipeImage(
+                    imageFileName: recipe.imageFileName,
+                    placeholder: recipe.sourceType?.iconName ?? "fork.knife"
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                // Placeholder with title
+                imagePlaceholder
+            }
+        }
+        .padding(.horizontal, 16)
+    }
+
+    private var imagePlaceholder: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color.gray.opacity(0.15))
+            .overlay {
+                VStack(spacing: 8) {
+                    Image(systemName: "fork.knife")
+                        .font(.system(size: 32))
+                        .foregroundStyle(HeirloomColors.secondaryText)
+
+                    if recipe.imageFileName == nil {
+                        Text(recipe.title)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+                            .lineLimit(3)
+                    }
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // MARK: - Source Attribution
+
+    private var sourceAttribution: some View {
+        HStack(spacing: 6) {
+            Image(systemName: recipe.sourceType?.iconName ?? "square.and.pencil")
+                .font(.caption)
+            Text(recipe.sourceDisplayName)
+                .font(.caption)
+        }
+        .foregroundStyle(HeirloomColors.secondaryText)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(Color.white.opacity(0.8))
+        )
+    }
+
+    // MARK: - Stickers
+
+    private func stickerView(_ sticker: RecipeSticker, in size: CGSize) -> some View {
+        Image(systemName: sticker.stickerName)
+            .font(.system(size: 40 * sticker.scale))
+            .foregroundStyle(Color(hex: sticker.colorHex ?? "#FF6B6B"))
+            .opacity(sticker.opacity)
+            .rotationEffect(.degrees(sticker.rotation))
+            .position(
+                x: CGFloat(sticker.positionX) * size.width,
+                y: CGFloat(sticker.positionY) * size.height
+            )
+    }
+
+    // MARK: - Annotations
+
+    private func annotationView(_ annotation: RecipeAnnotation, in size: CGSize) -> some View {
+        Text(annotation.text)
+            .font(.system(size: 14))
+            .foregroundStyle(Color(hex: annotation.colorHex))
+            .padding(8)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.yellow.opacity(0.3))
+            )
+            .rotationEffect(.degrees(annotation.rotation))
+            .position(
+                x: CGFloat(annotation.positionX) * size.width,
+                y: CGFloat(annotation.positionY) * size.height
+            )
+    }
+
+    // MARK: - Love Marks
+
+    private func loveMarksOverlay(_ cardStyle: RecipeCardStyle, in size: CGSize) -> some View {
+        ZStack {
+            // Coffee Stain
+            if cardStyle.coffeeStainEnabled, let position = cardStyle.coffeeStainPosition {
+                Circle()
+                    .fill(Color.brown.opacity(0.2))
+                    .frame(width: 60, height: 60)
+                    .blur(radius: 8)
+                    .position(coffeeStainPosition(position, in: size))
+            }
+
+            // Worn Edges
+            if cardStyle.wornEdgesIntensity > 0 {
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(
+                        Color.brown.opacity(cardStyle.wornEdgesIntensity * 0.3),
+                        lineWidth: 2
+                    )
+            }
+        }
+    }
+
+    private func coffeeStainPosition(_ position: RecipeCardStyle.CoffeeStainPosition, in size: CGSize) -> CGPoint {
+        switch position {
+        case .topLeft:
+            return CGPoint(x: size.width * 0.2, y: size.height * 0.15)
+        case .topRight:
+            return CGPoint(x: size.width * 0.8, y: size.height * 0.15)
+        case .bottomLeft:
+            return CGPoint(x: size.width * 0.2, y: size.height * 0.85)
+        case .bottomRight:
+            return CGPoint(x: size.width * 0.8, y: size.height * 0.85)
+        case .center:
+            return CGPoint(x: size.width * 0.5, y: size.height * 0.5)
         }
     }
 }
@@ -246,29 +450,219 @@ private struct RecipeCardBackView: View {
     let recipe: Recipe
 
     var body: some View {
-        // TODO: Implement proper recipe card back
-        ZStack {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(HeirloomColors.amber)
-
-            VStack {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Recipe Title
                 Text(recipe.title)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                Text("Back of card")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(HeirloomColors.charcoal)
 
-                if let cardBack = recipe.cardBack {
-                    if let note = cardBack.noteToFriends {
-                        Text(note)
-                            .font(.subheadline)
-                            .italic()
-                            .padding()
+                // Attribution Section
+                if let cardBack = recipe.cardBack,
+                   cardBack.visibleSections.contains(.attribution),
+                   cardBack.showAttribution {
+                    attributionSection
+                    Divider()
+                }
+
+                // Note to Friends Section
+                if let cardBack = recipe.cardBack,
+                   cardBack.visibleSections.contains(.noteToFriends),
+                   let note = cardBack.noteToFriends, !note.isEmpty {
+                    noteToFriendsSection(note)
+                    Divider()
+                }
+
+                // User Rating Section
+                if let cardBack = recipe.cardBack,
+                   cardBack.visibleSections.contains(.userRating),
+                   let rating = cardBack.userRating {
+                    ratingSection(rating)
+                    Divider()
+                }
+
+                // Personal Tips Section
+                if let cardBack = recipe.cardBack,
+                   cardBack.visibleSections.contains(.userTips),
+                   !cardBack.personalTips.isEmpty {
+                    tipsSection(cardBack.personalTips)
+                    Divider()
+                }
+
+                // Pinned Comments Section
+                if let cardBack = recipe.cardBack,
+                   cardBack.visibleSections.contains(.pinnedComments),
+                   !cardBack.pinnedCommentIDs.isEmpty {
+                    pinnedCommentsSection(cardBack)
+                }
+
+                // Generational Lineage (if passed down)
+                if recipe.passedDownBy != nil {
+                    lineageSection
+                }
+            }
+            .padding(20)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(cardBackBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+    }
+
+    // MARK: - Background
+
+    private var cardBackBackground: Color {
+        if let cardBack = recipe.cardBack {
+            switch cardBack.backgroundStyle {
+            case .cream:
+                return HeirloomColors.cream
+            case .vintage:
+                return HeirloomColors.amber
+            case .lined:
+                return HeirloomColors.cream
+            case .grid:
+                return Color(hex: "#F8F3E8")
+            case .photo:
+                return HeirloomColors.cream.opacity(0.9)
+            case .solid:
+                return Color(hex: cardBack.textColor).opacity(0.05)
+            }
+        }
+        return HeirloomColors.cream
+    }
+
+    // MARK: - Sections
+
+    private var attributionSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: sourceIcon)
+                    .font(.subheadline)
+                Text(sourceText)
+                    .font(.subheadline)
+            }
+            .foregroundStyle(HeirloomColors.secondaryText)
+
+            if let customAttribution = recipe.cardBack?.customAttributionText {
+                Text(customAttribution)
+                    .font(.caption)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .italic()
+            }
+        }
+    }
+
+    private func noteToFriendsSection(_ note: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("A Note from Me")
+                .font(.headline)
+                .foregroundStyle(HeirloomColors.charcoal)
+
+            Text(note)
+                .font(.subheadline)
+                .foregroundStyle(HeirloomColors.primaryText)
+                .italic()
+        }
+    }
+
+    private func ratingSection(_ rating: Int) -> some View {
+        HStack(spacing: 8) {
+            Text("My Rating:")
+                .font(.subheadline)
+                .foregroundStyle(HeirloomColors.secondaryText)
+
+            HStack(spacing: 4) {
+                ForEach(1...5, id: \.self) { star in
+                    Image(systemName: star <= rating ? "star.fill" : "star")
+                        .foregroundStyle(.yellow)
+                        .font(.caption)
+                }
+            }
+        }
+    }
+
+    private func tipsSection(_ tips: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("My Tips")
+                .font(.headline)
+                .foregroundStyle(HeirloomColors.charcoal)
+
+            ForEach(Array(tips.enumerated()), id: \.offset) { _, tip in
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "lightbulb.fill")
+                        .foregroundStyle(.yellow)
+                        .font(.caption)
+                    Text(tip)
+                        .font(.subheadline)
+                        .foregroundStyle(HeirloomColors.primaryText)
+                }
+            }
+        }
+    }
+
+    private func pinnedCommentsSection(_ cardBack: RecipeCardBack) -> some View {
+        let pinnedComments = recipe.comments?
+            .filter { cardBack.pinnedCommentIDs.contains($0.id) }
+            .prefix(cardBack.maxCommentsToDisplay) ?? []
+
+        return Group {
+            if !pinnedComments.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Highlighted Comments")
+                        .font(.headline)
+                        .foregroundStyle(HeirloomColors.charcoal)
+
+                    ForEach(Array(pinnedComments)) { comment in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(comment.text)
+                                .font(.subheadline)
+                                .foregroundStyle(HeirloomColors.primaryText)
+
+                            if let author = comment.authorName {
+                                Text("— \(author)")
+                                    .font(.caption)
+                                    .foregroundStyle(HeirloomColors.secondaryText)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color(.systemGray6))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }
             }
-            .padding()
         }
     }
+
+    private var lineageSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: "heart.fill")
+                    .foregroundStyle(HeirloomColors.tomato)
+                Image(systemName: "arrow.right")
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .font(.caption)
+                Image(systemName: "person.fill")
+                    .foregroundStyle(HeirloomColors.tomato)
+            }
+            .font(.subheadline)
+
+            Text("Passed down with love")
+                .font(.caption)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .italic()
+        }
+        .padding(.top, 8)
+    }
+
+    // MARK: - Helpers
+
+    private var sourceIcon: String {
+        recipe.sourceType?.iconName ?? "square.and.pencil"
+    }
+
+    private var sourceText: String {
+        recipe.sourceDisplayName
+    }
 }
+

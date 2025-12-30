@@ -1,52 +1,49 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
+import os.log
+
+// Device-visible logging
+private let logger = Logger(subsystem: "com.matthanson.heirloom", category: "App")
 
 @main
 struct HeirloomApp: App {
     @State private var modelContainer: ModelContainer?
     @State private var showDataError = false
 
+    // Deep link coordinator for robust URL handling
+    @StateObject private var deepLinkCoordinator = DeepLinkCoordinator.shared
+
     init() {
+        // FILE-BASED LOGGING - guaranteed to work on device
+        DeviceLogger.shared.log("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
+        logger.info("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
+        print("🚀 HeirloomApp.init() called")
+
         do {
+            DeviceLogger.shared.log("🔧 [Heirloom] Configuring SwiftData schema...")
+            logger.info("🔧 [Heirloom] Configuring SwiftData schema...")
+
             // Use versioned schema for future migrations
             let schema = SchemaV1.schema
 
-            // Try CloudKit first, fallback to local-only if it fails
-            var container: ModelContainer?
+            // Configure for LOCAL ONLY storage
+            // CloudKit sync is handled manually by CloudKitSyncService
+            let config = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: false,
+                allowsSave: true,
+                cloudKitDatabase: .none  // Manual sync - no automatic CloudKit
+            )
 
-            // Attempt 1: Try with CloudKit
-            do {
-                let config = ModelConfiguration(
-                    schema: schema,
-                    isStoredInMemoryOnly: false,
-                    allowsSave: true,
-                    cloudKitDatabase: .automatic  // iCloud sync enabled
-                )
+            let container = try ModelContainer(
+                for: schema,
+                configurations: config
+            )
 
-                container = try ModelContainer(
-                    for: schema,
-                    configurations: config
-                )
-                print("✅ SwiftData initialized with CloudKit sync")
-            } catch {
-                print("⚠️ CloudKit init failed: \(error.localizedDescription)")
-                print("🔄 Falling back to local storage only...")
-
-                // Attempt 2: Fallback to local-only storage
-                let localConfig = ModelConfiguration(
-                    schema: schema,
-                    isStoredInMemoryOnly: false,
-                    allowsSave: true,
-                    cloudKitDatabase: .none  // Local only, no sync
-                )
-
-                container = try ModelContainer(
-                    for: schema,
-                    configurations: localConfig
-                )
-                print("✅ SwiftData initialized with local storage only")
-            }
+            DeviceLogger.shared.log("✅ [Heirloom] SwiftData initialized (Local storage, manual CloudKit sync)")
+            logger.info("✅ [Heirloom] SwiftData initialized (Local storage, manual CloudKit sync)")
+            print("✅ SwiftData initialized (Local storage, manual CloudKit sync)")
 
             _modelContainer = State(wrappedValue: container)
 
@@ -54,6 +51,8 @@ struct HeirloomApp: App {
             setupServices()
 
         } catch {
+            DeviceLogger.shared.log("❌ [Heirloom] Failed to configure SwiftData: \(error.localizedDescription)", level: .error)
+            logger.error("❌ [Heirloom] Failed to configure SwiftData: \(error.localizedDescription)")
             print("❌ Failed to configure SwiftData: \(error.localizedDescription)")
             _showDataError = State(wrappedValue: true)
         }
@@ -64,6 +63,17 @@ struct HeirloomApp: App {
             if let modelContainer {
                 ContentView()
                     .modelContainer(modelContainer)
+                    .environmentObject(deepLinkCoordinator)
+                    .onOpenURL { url in
+                        print("📱 WindowGroup received URL: \(url.absoluteString)")
+                        logger.info("📱 WindowGroup received URL: \(url.absoluteString)")
+                        deepLinkCoordinator.handle(url)
+                    }
+                    .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
+                        print("📱 WindowGroup received user activity")
+                        logger.info("📱 WindowGroup received user activity")
+                        deepLinkCoordinator.handle(userActivity)
+                    }
             } else {
                 DataErrorView()
             }
@@ -94,6 +104,20 @@ struct HeirloomApp: App {
             // Create system collections on first launch
             Task { @MainActor in
                 RecipeCollection.createSystemCollections(context: container.mainContext)
+            }
+
+            // PHASE 2: CloudKit enabled with comprehensive logging
+            // Configure and start CloudKit sync (hybrid architecture)
+            Task { @MainActor in
+                DeviceLogger.shared.log("🔄 [Heirloom] Configuring CloudKit sync...")
+                logger.info("🔄 [Heirloom] Configuring CloudKit sync...")
+
+                CloudKitSyncService.shared.configure(modelContext: container.mainContext)
+                CloudKitSyncService.shared.startAutomaticSync()
+
+                DeviceLogger.shared.log("✅ [Heirloom] CloudKit sync initialized successfully")
+                logger.info("✅ [Heirloom] CloudKit sync initialized successfully")
+                print("✅ CloudKit sync initialized")
             }
         }
     }
@@ -133,38 +157,9 @@ struct HeirloomApp: App {
                 try? context.save()
             }
 
-            // Add a fresh sample recipe with proper ingredients using parser
-            let sampleData = SampleRecipeLibrary.chocolateChipCookies
-            let recipe = sampleData.recipe
-            context.insert(recipe)
-
-            var ingredients: [Ingredient] = []
-            for (index, text) in sampleData.ingredients.enumerated() {
-                // Parse the ingredient text
-                let parsed = IngredientParser.parse(text)
-
-                let ingredient = Ingredient(
-                    originalText: text,
-                    name: parsed.name,
-                    quantity: parsed.quantity,
-                    unit: parsed.unit,
-                    orderIndex: index
-                )
-                ingredient.quantityMax = parsed.quantityMax
-                ingredient.recipe = recipe
-                context.insert(ingredient)
-                ingredients.append(ingredient)
-            }
-
-            recipe.ingredients = ingredients
-
-            do {
-                try context.save()
-                print("✅ Fresh sample recipe added with \(ingredients.count) ingredients")
-                UserDefaults.standard.set(true, forKey: hasCleanedKey)
-            } catch {
-                print("❌ Failed to save sample recipe: \(error)")
-            }
+            // Sample recipe auto-population disabled - users can manually add via "Add Sample Recipe" button
+            print("✅ Recipe data cleanup complete - starting with clean slate")
+            UserDefaults.standard.set(true, forKey: hasCleanedKey)
         }
     }
 }
@@ -174,8 +169,11 @@ struct ContentView: View {
     @State private var showAddRecipe = false
     @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
 
-    // Deep link handler for recipe sharing
-    @StateObject private var deepLinkHandler = DeepLinkHandler.shared
+    // Network & Sync monitoring for badges
+    private let syncCoordinator = CloudKitSyncCoordinator.shared
+
+    // Deep link coordinator (injected via environment)
+    @EnvironmentObject private var deepLinkCoordinator: DeepLinkCoordinator
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -184,33 +182,51 @@ struct ContentView: View {
                     Label("Recipes", systemImage: "book.closed.fill")
                 }
                 .tag(0)
+                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.recipesTab)
+                .accessibilityLabel("Recipes")
+                .accessibilityHint("View and manage your recipe collection")
 
             Color.clear
                 .tabItem {
                     Label("Add", systemImage: "plus.circle.fill")
                 }
                 .tag(1)
+                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.addTab)
+                .accessibilityLabel("Add Recipe")
+                .accessibilityHint("Opens sheet to create a new recipe")
 
             ShoppingListView()
                 .tabItem {
                     Label("Shopping", systemImage: "cart.fill")
                 }
                 .tag(2)
+                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.shoppingTab)
+                .accessibilityLabel("Shopping List")
+                .accessibilityHint("View your shopping list with ingredients from recipes")
 
             DinnerPartyListView()
                 .tabItem {
                     Label("Parties", systemImage: "fork.knife")
                 }
                 .tag(3)
+                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.partiesTab)
+                .accessibilityLabel("Dinner Parties")
+                .accessibilityHint("Plan and manage dinner parties")
 
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
                 .tag(4)
+                .badge(syncCoordinator.pendingOperations.count)
+                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.settingsTab)
+                .accessibilityLabel("Settings")
+                .accessibilityHint("App settings and preferences")
         }
+        .preferredColorScheme(.light)
         .tint(HeirloomColors.tomato)
         .toastContainer()
+        .milestonesCelebration()
         .onChange(of: selectedTab) { oldValue, newValue in
             if newValue == 1 {
                 showAddRecipe = true
@@ -220,28 +236,27 @@ struct ContentView: View {
         .sheet(isPresented: $showAddRecipe) {
             RecipeEditorView()
         }
-        .sheet(isPresented: $deepLinkHandler.showReceiveSheet) {
-            if let shareURL = deepLinkHandler.pendingShareURL {
-                SharePreviewView(shareURL: shareURL)
+        .sheet(isPresented: $deepLinkCoordinator.showShareAcceptanceSheet) {
+            if let shareURL = deepLinkCoordinator.pendingShareURL {
+                RecipeReceiveSheet(
+                    shareURL: shareURL,
+                    shareMetadata: deepLinkCoordinator.pendingShareMetadata
+                )
             }
         }
         .fullScreenCover(isPresented: $showOnboarding) {
             OnboardingView()
         }
-        .environment(\.deepLinkHandler, deepLinkHandler)
-        .onOpenURL { url in
-            print("📱 App received URL: \(url.absoluteString)")
-            let handled = deepLinkHandler.handleURL(url)
-            if handled {
-                print("✅ URL handled by deep link handler")
-            } else {
-                print("⚠️ URL not recognized by deep link handler")
-            }
+        .onAppear {
+            // Mark app as ready to process deep links
+            print("✅ ContentView appeared - marking app as ready for deep links")
+            deepLinkCoordinator.markAppReady()
         }
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(DeepLinkCoordinator.shared)
         .modelContainer(for: Recipe.self, inMemory: true)
 }

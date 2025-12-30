@@ -30,7 +30,7 @@ actor ImageStorageService {
     /// Save an image to the file system with compression
     /// Returns the file name (not full path) to store in Recipe model
     func saveImage(_ image: UIImage, recipeId: UUID) async throws -> String {
-        let fileName = "\(recipeId.uuidString).jpg"
+        let fileName = "recipe-\(recipeId.uuidString).jpg"
         let fileURL = imagesDirectory.appendingPathComponent(fileName)
 
         // Compress image to max 1MB
@@ -89,6 +89,72 @@ actor ImageStorageService {
         } catch {
             print("⚠️ Failed to delete image: \(fileName), error: \(error)")
         }
+    }
+
+    // MARK: - Migration
+
+    /// Migrate old image filenames to new "recipe-{uuid}.jpg" format
+    /// Renames files on disk and returns a mapping of old filename → new filename
+    /// to update Recipe.imageFileName properties
+    func migrateImageFilenames() async -> [String: String] {
+        do {
+            let imageFiles = try fileManager.contentsOfDirectory(
+                at: imagesDirectory,
+                includingPropertiesForKeys: nil
+            )
+
+            var migrations: [String: String] = [:]
+            print("🔄 Starting image filename migration. Found \(imageFiles.count) images.")
+
+            for fileURL in imageFiles {
+                let oldFileName = fileURL.lastPathComponent
+
+                // Skip if already in correct format
+                if oldFileName.hasPrefix("recipe-") {
+                    continue
+                }
+
+                // Only migrate .jpg files with UUID format
+                guard oldFileName.hasSuffix(".jpg"),
+                      let uuid = extractUUID(from: oldFileName) else {
+                    print("⏭️ Skipping non-standard file: \(oldFileName)")
+                    continue
+                }
+
+                // Generate new filename with "recipe-" prefix
+                let newFileName = "recipe-\(uuid).jpg"
+                let newFileURL = imagesDirectory.appendingPathComponent(newFileName)
+
+                // Rename file on disk
+                do {
+                    try fileManager.moveItem(at: fileURL, to: newFileURL)
+                    migrations[oldFileName] = newFileName
+                    print("✅ Migrated: \(oldFileName) → \(newFileName)")
+                } catch {
+                    print("⚠️ Failed to migrate \(oldFileName): \(error)")
+                }
+            }
+
+            print("✅ Migration complete. Migrated \(migrations.count) files.")
+            return migrations
+        } catch {
+            print("⚠️ Migration failed: \(error)")
+            return [:]
+        }
+    }
+
+    /// Extract UUID from filename (handles both "uuid.jpg" and "recipe-uuid.jpg")
+    private func extractUUID(from fileName: String) -> String? {
+        let cleanName = fileName
+            .replacingOccurrences(of: "recipe-", with: "")
+            .replacingOccurrences(of: ".jpg", with: "")
+
+        // Validate it's a UUID format
+        guard UUID(uuidString: cleanName) != nil else {
+            return nil
+        }
+
+        return cleanName
     }
 
     // MARK: - Cleanup

@@ -9,6 +9,7 @@ enum SchemaV1: VersionedSchema {
     static var models: [any PersistentModel.Type] {
         [
             Recipe.self,
+            RecipeVersion.self,  // ADDED: Multi-version recipe support with attribution
             Ingredient.self,
             Tag.self,
             RecipeCollection.self,
@@ -20,7 +21,9 @@ enum SchemaV1: VersionedSchema {
             DinnerPartyRecipe.self,
             ShoppingCartRecipe.self,  // ADDED: Required for shopping list functionality
             RecipeComment.self,  // ADDED: Social comments feature with AI sentiment analysis
-            RecipeCardBack.self  // ADDED: Card back customization with personal notes & comments
+            RecipeCardBack.self,  // ADDED: Card back customization with personal notes & comments
+            ImportJob.self,  // ADDED: Bulk import job tracking
+            ImportItem.self  // ADDED: Individual import item tracking
         ]
     }
 

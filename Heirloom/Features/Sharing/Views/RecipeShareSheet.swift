@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import CloudKit
 
 /// Complete sheet for sharing a recipe with customization options
 /// Allows user to configure what's included, add personal message, and choose share method
@@ -15,6 +16,7 @@ struct RecipeShareSheet: View {
     @State private var shareURL: URL?
     @State private var errorMessage: String?
     @State private var showSuccessMessage = false
+    @State private var iCloudAvailable: Bool? = nil  // nil = checking, true/false = result
 
     var body: some View {
         NavigationStack {
@@ -47,18 +49,12 @@ struct RecipeShareSheet: View {
                     }
                 }
             }
-            .alert("Share Created!", isPresented: $showSuccessMessage) {
-                Button("Copy Link") {
-                    if let url = shareURL {
-                        UIPasteboard.general.string = url.absoluteString
+            .sheet(isPresented: $showSuccessMessage) {
+                if let url = shareURL {
+                    ShareSuccessView(shareURL: url, recipeName: recipe.title) {
+                        dismiss()
                     }
                 }
-                Button("Share", action: presentShareSheet)
-                Button("Done") {
-                    dismiss()
-                }
-            } message: {
-                Text("Your recipe is ready to share!")
             }
             .alert("Error", isPresented: .constant(errorMessage != nil)) {
                 Button("OK") {
@@ -72,6 +68,7 @@ struct RecipeShareSheet: View {
         }
         .onAppear {
             setupDefaultOptions()
+            checkiCloudStatus()
         }
     }
 
@@ -163,6 +160,25 @@ struct RecipeShareSheet: View {
             SectionHeader(icon: "gearshape.fill", title: "Share Settings")
 
             VStack(spacing: 12) {
+                // Sharer name text field (Bug #3 fix)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Your Name")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+
+                    TextField("Enter your name", text: Binding(
+                        get: { options.sharerName ?? "" },
+                        set: { options.sharerName = $0.isEmpty ? nil : $0 }
+                    ))
+                    .textFieldStyle(.roundedBorder)
+                    .textContentType(.name)
+                    .autocorrectionDisabled(true)
+
+                    Text("This will appear as the sender's name on the shared recipe")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 // Permission picker
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Permission")
@@ -253,10 +269,20 @@ struct RecipeShareSheet: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(HeirloomColors.accent)
+                .background(iCloudAvailable == false ? Color.gray : HeirloomColors.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .disabled(isSharing)
+            .disabled(isSharing || iCloudAvailable == false)
+
+            // Show warning if iCloud is unavailable
+            if iCloudAvailable == false {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                    Text("iCloud required to share recipes")
+                }
+                .font(.caption)
+                .foregroundStyle(.orange)
+            }
 
             Text(options.inclusionSummary)
                 .font(.caption)
@@ -273,51 +299,83 @@ struct RecipeShareSheet: View {
         options.sharerName = "You"
     }
 
+    private func checkiCloudStatus() {
+        Task {
+            do {
+                let status = try await CKContainer.default().accountStatus()
+                await MainActor.run {
+                    iCloudAvailable = (status == .available)
+
+                    switch status {
+                    case .available:
+                        print("✅ iCloud is available")
+                    case .noAccount:
+                        errorMessage = "iCloud is not available. Please sign in to iCloud in Settings to share recipes."
+                        print("⚠️ iCloud not available: \(status.rawValue)")
+                    case .restricted:
+                        errorMessage = "iCloud is not available. iCloud access is restricted on this device."
+                        print("⚠️ iCloud not available: \(status.rawValue)")
+                    case .couldNotDetermine:
+                        errorMessage = "iCloud is not available. Could not determine iCloud status."
+                        print("⚠️ iCloud not available: \(status.rawValue)")
+                    case .temporarilyUnavailable:
+                        errorMessage = "iCloud is not available. iCloud is temporarily unavailable. Please try again later."
+                        print("⚠️ iCloud not available: \(status.rawValue)")
+                    @unknown default:
+                        errorMessage = "iCloud is not available. Please check your iCloud settings."
+                        print("⚠️ iCloud not available: \(status.rawValue)")
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    iCloudAvailable = false
+                    errorMessage = "Could not check iCloud status: \(error.localizedDescription)"
+                    print("❌ iCloud check failed: \(error)")
+                }
+            }
+        }
+    }
+
     private func createShare() {
         Task {
             isSharing = true
             errorMessage = nil
 
             do {
+                // ALWAYS call createShare() - it handles both new shares and existing shares
+                // and ensures ingredients/images are uploaded to shared zone
+                print("📤 Creating/updating share for recipe: \(recipe.title)")
                 let share = try await RecipeShareService.shared.createShare(
                     for: recipe,
                     options: options,
                     context: modelContext
                 )
 
-                shareURL = RecipeShareService.shared.generateShareURL(from: share)
-                showSuccessMessage = true
+                // Generate share URL and verify it exists
+                if let url = RecipeShareService.shared.generateShareURL(from: share) {
+                    shareURL = url
+                    print("✅ Share URL ready: \(url.absoluteString)")
+                    DeviceLogger.shared.log("✅ Share URL ready for recipe: \(recipe.title)")
+                    showSuccessMessage = true
+                } else {
+                    print("❌ Share exists but URL is nil")
+                    DeviceLogger.shared.log("❌ Share URL nil for recipe: \(recipe.title)", level: .error)
+                    errorMessage = "Share created but link not ready. Please try again in a moment."
+                }
             } catch {
-                errorMessage = "Failed to create share: \(error.localizedDescription)"
+                print("❌ Share creation failed: \(error)")
+                DeviceLogger.shared.log("❌ Share creation failed: \(error.localizedDescription)", level: .error)
+
+                // Convert to CloudKitSyncError for user-friendly messaging
+                let ckError = CloudKitSyncError.from(error)
+                errorMessage = ckError.userMessage
+
+                // Log severity
+                print("   Error severity: \(ckError.severity)")
             }
 
             isSharing = false
         }
-    }
-
-    private func presentShareSheet() {
-        guard let url = shareURL else { return }
-
-        let activityVC = UIActivityViewController(
-            activityItems: [url, createShareMessage()],
-            applicationActivities: nil
-        )
-
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            rootViewController.present(activityVC, animated: true)
-        }
-    }
-
-    private func createShareMessage() -> String {
-        var message = "Check out this recipe I'm sharing with you: \(recipe.title)"
-
-        if let personalMessage = options.personalMessage {
-            message += "\n\n\(personalMessage)"
-        }
-
-        message += "\n\nShared from Heirloom"
-        return message
     }
 }
 
@@ -358,6 +416,94 @@ private struct ToggleLabel: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+// MARK: - Share Success View
+
+private struct ShareSuccessView: View {
+    let shareURL: URL
+    let recipeName: String
+    let onDismiss: () -> Void
+
+    @State private var copied = false
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                // Success icon
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.green)
+                    .padding(.top, 32)
+
+                // Success message
+                VStack(spacing: 8) {
+                    Text("Share Created!")
+                        .font(.title2.bold())
+
+                    Text("Your recipe is ready to share")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                // Action buttons
+                VStack(spacing: 12) {
+                    // Share via iOS share sheet (Bug #4 fix)
+                    ShareLink(item: shareURL, subject: Text("Check out this recipe!"), message: Text(createShareMessage())) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up.fill")
+                            Text("Share Link")
+                        }
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(HeirloomColors.accent)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+
+                    // Copy link button (Bug #6 fix)
+                    Button {
+                        UIPasteboard.general.string = shareURL.absoluteString
+                        copied = true
+
+                        // Reset after 2 seconds
+                        Task {
+                            try? await Task.sleep(nanoseconds: 2_000_000_000)
+                            copied = false
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: copied ? "checkmark" : "doc.on.doc.fill")
+                            Text(copied ? "Copied!" : "Copy Link")
+                        }
+                        .font(.headline)
+                        .foregroundStyle(HeirloomColors.accent)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(HeirloomColors.accent.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+
+                    Button("Done", action: onDismiss)
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 32)
+            }
+            .navigationTitle("Share Created")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private func createShareMessage() -> String {
+        return "Check out this recipe: \(recipeName)\n\nShared from Heirloom"
     }
 }
 
