@@ -4,8 +4,8 @@
 Migrating Heirloom from CloudKit to Firebase Firestore to resolve hierarchical sharing limitations discovered in Build 20.
 
 **Start Date**: December 30, 2025
-**Current Phase**: Phase 1 (Firebase Infrastructure Setup)
-**Status**: In Progress
+**Current Phase**: Phase 2 (FirebaseSyncService Implementation)
+**Status**: Phase 2 Complete - Ready for Phase 3
 
 ## Why Firebase?
 After 4 days debugging CloudKit sharing issues, discovered architectural limitation: "You cannot query all child records using the parent property" in shared database. Participants cannot query child records (ingredients) when accepting recipe shares.
@@ -52,7 +52,7 @@ git checkout pre-firebase-migration-20251230
 ### Pending
 - ⏳ Manual CloudKit data export (optional backup)
 
-## Phase 1: Firebase Infrastructure Setup ⏳ IN PROGRESS
+## Phase 1: Firebase Infrastructure Setup ✅ COMPLETED
 
 ### Completed Steps
 - ✅ Firebase project created: `heirloom-ios-prod`
@@ -88,22 +88,42 @@ git checkout pre-firebase-migration-20251230
 - **Next**: Implement FirebaseSyncService in Phase 2
 
 ### Testing
-Build test in progress to verify Firebase initializes without errors.
+✅ Build succeeded - Firebase initializes without errors
 
-## Phase 2: FirebaseSyncService Implementation (Pending)
+## Phase 2: FirebaseSyncService Implementation ✅ COMPLETED
 
-Estimated: 8 hours
+Completed: ~8 hours
 
-### Planned Implementation
-- Create `FirebaseSyncService.swift` mirroring CloudKitSyncService API
-- Implement CRUD operations for Recipe model
-- Firestore structure:
-  ```
-  users/{userId}/recipes/{recipeId}
-    - metadata fields
-    - subcollection: ingredients/{ingredientId}
-    - subcollection: comments/{commentId}
-  ```
+### Completed Implementation
+- ✅ Created `FirebaseSyncService.swift` with full API parity to CloudKitSyncService
+- ✅ Implemented Recipe CRUD operations (upload/download)
+- ✅ Implemented Ingredient sync (subcollection)
+- ✅ Implemented Comment sync (subcollection)
+- ✅ Implemented Card Back sync (subcollection)
+- ✅ Conflict resolution (last-write-wins based on modifiedAt)
+- ✅ Automatic periodic sync (every 5 minutes + foreground)
+- ✅ Offline support with Firestore persistent cache
+- ✅ Build succeeded with zero warnings
+
+### Firestore Structure Implemented
+```
+users/{userId}/recipes/{recipeId}
+  - metadata fields (title, instructions, timestamps, etc.)
+  - subcollection: ingredients/{ingredientId}
+  - subcollection: comments/{commentId}
+  - subcollection: cardBack/metadata
+```
+
+### Files Created
+- `Heirloom/Core/Services/Firebase/FirebaseSyncService.swift` - Complete sync service
+- `FIRESTORE_SCHEMA.md` - Detailed schema documentation with examples
+
+### Key Features
+- User-scoped data (users/{userId}/recipes)
+- Subcollections for child records (no CloudKit CKReference issues!)
+- Batch operations for efficiency
+- Error handling with detailed logging
+- ObservableObject with @Published state (isSyncing, lastSyncDate, syncError)
 
 ## Phase 3: Authentication Integration (Pending)
 
@@ -119,8 +139,8 @@ Estimated: 4 hours
 | Phase | Name | Status | Est. Hours |
 |-------|------|--------|------------|
 | 0 | Pre-Migration Backup | ✅ Complete | 1 |
-| 1 | Firebase Infrastructure | ⏳ In Progress | 3 |
-| 2 | FirebaseSyncService | Pending | 8 |
+| 1 | Firebase Infrastructure | ✅ Complete | 3 |
+| 2 | FirebaseSyncService | ✅ Complete | 8 |
 | 3 | Authentication | Pending | 4 |
 | 4 | Recipe CRUD | Pending | 6 |
 | 5 | Image Storage | Pending | 4 |
@@ -160,10 +180,11 @@ Estimated: 4 hours
 
 ## Next Steps
 
-1. ✅ Complete Phase 1 build test
-2. Begin Phase 2: FirebaseSyncService implementation
-3. Create Firestore data structure
-4. Implement Recipe CRUD operations
+1. ✅ Complete Phase 1: Firebase Infrastructure
+2. ✅ Complete Phase 2: FirebaseSyncService Implementation
+3. Begin Phase 3: Authentication Integration
+4. Implement Sign in with Apple for Firebase
+5. Test Firebase sync with authenticated user
 
 ---
 

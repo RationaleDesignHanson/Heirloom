@@ -101,6 +101,7 @@
 		C56F3E6F2F04A9E000D19743 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C56F3E6E2F04A9E000D19743 /* FirebaseFirestore */; };
 		C56F3E712F04A9E000D19743 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = C56F3E702F04A9E000D19743 /* FirebaseStorage */; };
 		C56F3E742F04AA3C00D19743 /* BackendConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56F3E722F04AA3C00D19743 /* BackendConfig.swift */; };
+		C56F3E772F04AC9800D19743 /* FirebaseSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56F3E752F04AC9800D19743 /* FirebaseSyncService.swift */; };
 		C5B317602F00C7E40087CF6D /* RecipeVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */; };
 		C5B317622F00C7F30087CF6D /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */; };
 		C5B317642F00C80D0087CF6D /* SyncIssuesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317632F00C80D0087CF6D /* SyncIssuesView.swift */; };
@@ -238,6 +239,7 @@
 		C56F3DCE2F02285600D19743 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 		C56F3E652F04A4B300D19743 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		C56F3E722F04AA3C00D19743 /* BackendConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendConfig.swift; sourceTree = "<group>"; };
+		C56F3E752F04AC9800D19743 /* FirebaseSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseSyncService.swift; sourceTree = "<group>"; };
 		C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersion.swift; sourceTree = "<group>"; };
 		C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		C5B317632F00C80D0087CF6D /* SyncIssuesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncIssuesView.swift; sourceTree = "<group>"; };
@@ -479,6 +481,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C56F3E762F04AC9800D19743 /* Firebase */,
 				C56F3DC62F0187C900D19743 /* DeepLink */,
 				C5B317BC2F00DC010087CF6D /* RecipeMigrationService.swift */,
 				C5B317862F00D8330087CF6D /* RecipeVersionService.swift */,
@@ -677,6 +680,14 @@
 				C56F3E722F04AA3C00D19743 /* BackendConfig.swift */,
 			);
 			path = Config;
+			sourceTree = "<group>";
+		};
+		C56F3E762F04AC9800D19743 /* Firebase */ = {
+			isa = PBXGroup;
+			children = (
+				C56F3E752F04AC9800D19743 /* FirebaseSyncService.swift */,
+			);
+			path = Firebase;
 			sourceTree = "<group>";
 		};
 		C5B3176B2F00C8500087CF6D /* Models */ = {
@@ -1031,6 +1042,7 @@
 				B99A84751B29D8825814A8E8 /* AIAPITest.swift in Sources */,
 				473093936E209050DC5888FE /* AIConfiguration.swift in Sources */,
 				189E866732B2A3EF7F6A0483 /* AIError.swift in Sources */,
+				C56F3E772F04AC9800D19743 /* FirebaseSyncService.swift in Sources */,
 				64D4CE8DD0862C4231AFE553 /* AIIngredientParser.swift in Sources */,
 				B5427115D9C624069E2F954E /* AIRecipeExtractor.swift in Sources */,
 				D8F7E7468B50152E87AC99C8 /* AIServiceProtocol.swift in Sources */,
