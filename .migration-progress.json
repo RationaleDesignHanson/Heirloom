@@ -1,0 +1,153 @@
+{
+  "migrationVersion": "1.0.0",
+  "startDate": "2025-12-30T23:59:00Z",
+  "currentPhase": 0,
+  "phases": {
+    "0": {
+      "name": "Pre-Migration Backup",
+      "status": "in_progress",
+      "estimatedHours": 1,
+      "startDate": "2025-12-30T23:59:00Z",
+      "completedDate": null,
+      "steps": [
+        {
+          "step": "Create full project backup",
+          "completed": true
+        },
+        {
+          "step": "Manual CloudKit data export",
+          "completed": false,
+          "notes": "User action: Export from https://icloud.developer.apple.com/dashboard"
+        },
+        {
+          "step": "Git commit and rollback tag",
+          "completed": true
+        },
+        {
+          "step": "Create feature branch",
+          "completed": true
+        },
+        {
+          "step": "Initialize progress tracker",
+          "completed": true
+        }
+      ],
+      "notes": "Backup created at /Users/matthanson/Heirloom_Backups/20251230_185856_pre_firebase_migration/"
+    },
+    "1": {
+      "name": "Firebase Infrastructure Setup",
+      "status": "completed",
+      "estimatedHours": 3,
+      "startDate": null,
+      "completedDate": "2025-12-31T00:48:38Z",
+      "steps": [
+        {
+          "step": "Create Firebase project in Console",
+          "completed": true
+        },
+        {
+          "step": "Add iOS app to Firebase",
+          "completed": true
+        },
+        {
+          "step": "Download GoogleService-Info.plist",
+          "completed": true
+        },
+        {
+          "step": "Install Firebase SDK via SPM",
+          "completed": true
+        },
+        {
+          "step": "Initialize Firebase in app",
+          "completed": true
+        },
+        {
+          "step": "Create feature flag system",
+          "completed": true
+        }
+      ],
+      "notes": ""
+    },
+    "2": {
+      "name": "FirebaseSyncService Implementation",
+      "status": "pending",
+      "estimatedHours": 8,
+      "startDate": null,
+      "completedDate": null,
+      "steps": [],
+      "notes": ""
+    },
+    "3": {
+      "name": "Authentication Integration",
+      "status": "pending",
+      "estimatedHours": 4,
+      "startDate": null,
+      "completedDate": null,
+      "steps": [],
+      "notes": ""
+    },
+    "4": {
+      "name": "Recipe CRUD Operations",
+      "status": "pending",
+      "estimatedHours": 6,
+      "startDate": null,
+      "completedDate": null,
+      "steps": [],
+      "notes": ""
+    },
+    "5": {
+      "name": "Image Storage Migration",
+      "status": "pending",
+      "estimatedHours": 4,
+      "startDate": null,
+      "completedDate": null,
+      "steps": [],
+      "notes": ""
+    },
+    "6": {
+      "name": "Sharing Implementation",
+      "status": "pending",
+      "estimatedHours": 8,
+      "startDate": null,
+      "completedDate": null,
+      "steps": [],
+      "notes": ""
+    },
+    "7": {
+      "name": "Data Migration Script",
+      "status": "pending",
+      "estimatedHours": 6,
+      "startDate": null,
+      "completedDate": null,
+      "steps": [],
+      "notes": ""
+    },
+    "8": {
+      "name": "Testing & Validation",
+      "status": "pending",
+      "estimatedHours": 8,
+      "startDate": null,
+      "completedDate": null,
+      "steps": [],
+      "notes": ""
+    },
+    "9": {
+      "name": "Dual-Write Period",
+      "status": "pending",
+      "estimatedHours": 16,
+      "startDate": null,
+      "completedDate": null,
+      "steps": [],
+      "notes": "2-4 week monitoring period"
+    },
+    "10": {
+      "name": "CloudKit Deprecation",
+      "status": "pending",
+      "estimatedHours": 4,
+      "startDate": null,
+      "completedDate": null,
+      "steps": [],
+      "notes": ""
+    }
+  }
+}

@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import UserNotifications
 import os.log
+import FirebaseCore
 
 // Device-visible logging
 private let logger = Logger(subsystem: "com.matthanson.heirloom", category: "App")
@@ -19,6 +20,20 @@ struct HeirloomApp: App {
         DeviceLogger.shared.log("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
         logger.info("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
         print("🚀 HeirloomApp.init() called")
+
+        // FIREBASE INITIALIZATION - Phase 1 of migration
+        DeviceLogger.shared.log("🔥 [Heirloom] Initializing Firebase...")
+        logger.info("🔥 [Heirloom] Initializing Firebase...")
+        FirebaseApp.configure()
+        DeviceLogger.shared.log("✅ [Heirloom] Firebase initialized successfully")
+        logger.info("✅ [Heirloom] Firebase initialized successfully")
+        print("✅ Firebase initialized")
+
+        // Log active backend
+        let backend = BackendConfig.shared.activeBackend
+        DeviceLogger.shared.log("🔧 [Heirloom] Active backend: \(backend.rawValue)")
+        logger.info("🔧 [Heirloom] Active backend: \(backend.rawValue)")
+        print("🔧 Active backend: \(backend.rawValue)")
 
         do {
             DeviceLogger.shared.log("🔧 [Heirloom] Configuring SwiftData schema...")
