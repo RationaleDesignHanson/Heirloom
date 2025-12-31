@@ -1069,7 +1069,17 @@ struct RecipeDetailView: View {
                         let db = FirebaseFirestore.Firestore.firestore()
                         guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else { return }
                         try await db.collection("users/\(userId)/recipes").document(recipeId).delete()
-                        print("✅ Recipe deleted from Firebase")
+                        print("✅ Recipe deleted from Firestore")
+
+                        // Delete recipe image from Firebase Storage
+                        if let recipeUUID = UUID(uuidString: recipeId) {
+                            do {
+                                try await FirebaseSyncService.shared.deleteImage(for: recipeUUID)
+                                print("✅ Recipe image deleted from Firebase Storage")
+                            } catch {
+                                print("⚠️ Failed to delete image from Firebase Storage: \(error.localizedDescription)")
+                            }
+                        }
                     } catch {
                         print("⚠️ Failed to delete recipe from Firebase: \(error.localizedDescription)")
                         // Don't fail the deletion - local deletion succeeded

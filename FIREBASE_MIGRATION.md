@@ -202,22 +202,70 @@ Completed: ~2 hours (faster than estimated 6 hours due to existing infrastructur
 **Current Status**: Backend is still CloudKit (default), so Firebase CRUD operations won't execute yet.
 **To test**: Switch to Firebase backend in Phase 9 or manually via settings.
 
+## Phase 5: Image Storage Migration ✅ COMPLETED
+
+Completed: ~2 hours (faster than estimated 4 hours)
+
+### Completed Implementation
+- ✅ Added `firebaseImageURL` field to Recipe model
+- ✅ Added Firebase Storage imports to FirebaseSyncService
+- ✅ Implemented image upload to Firebase Storage (max 1MB compression)
+- ✅ Implemented image download from Firebase Storage with local caching
+- ✅ Implemented image deletion from Firebase Storage
+- ✅ Integrated image upload with recipe save flow
+- ✅ Integrated image deletion with recipe delete flow
+- ✅ Build succeeded with zero errors
+
+### Files Modified
+- `Heirloom/Core/Models/Recipe.swift`:
+  - Added `firebaseImageURL: String?` field for Firebase Storage URL
+- `Heirloom/Core/Services/Firebase/FirebaseSyncService.swift`:
+  - Added `import FirebaseStorage`
+  - Added `firebaseImageURL` to Firestore data conversion methods
+  - Implemented `uploadImage(for:) -> String?` - uploads image and returns download URL
+  - Implemented `downloadImage(for:)` - downloads and caches image locally
+  - Implemented `deleteImage(for:)` - deletes image from Firebase Storage
+  - Integrated image upload in `uploadRecipe()` (Step 5)
+- `Heirloom/Features/Recipes/RecipeDetail/RecipeDetailView.swift`:
+  - Added Firebase Storage image deletion to `deleteRecipe()`
+
+### Firebase Storage Structure
+```
+gs://heirloom-ios-prod.appspot.com/
+  users/{userId}/
+    recipes/{recipeId}/
+      image.jpg (max 1MB, JPEG compressed)
+```
+
+### How It Works
+1. **Upload**: When recipe is saved with image, Firebase Storage uploads image and stores download URL in Firestore
+2. **Download**: When recipe is downloaded, image is fetched from Firebase Storage and cached locally
+3. **Delete**: When recipe is deleted, both Firestore document and Storage image are removed
+4. **Hybrid Storage**: Local cache (ImageStorageService) + Firebase Storage (cloud backup)
+5. **Conditional**: Only syncs when `BackendConfig.shared.isFirebaseActive` is `true`
+
+### Key Features
+- **Compression**: Images compressed to max 1MB (1200px max dimension)
+- **Caching**: Downloaded images cached locally for offline access
+- **Resilient**: Image upload failures don't fail recipe save
+- **Graceful**: Missing images handled gracefully (skipped, not errors)
+
 ## Migration Timeline
 
-| Phase | Name | Status | Est. Hours |
-|-------|------|--------|------------|
-| 0 | Pre-Migration Backup | ✅ Complete | 1 |
-| 1 | Firebase Infrastructure | ✅ Complete | 3 |
-| 2 | FirebaseSyncService | ✅ Complete | 8 |
-| 3 | Authentication | ✅ Complete | 4 |
-| 4 | Recipe CRUD | ✅ Complete | 6 |
-| 5 | Image Storage | Pending | 4 |
-| 6 | Sharing Implementation | Pending | 8 |
-| 7 | Data Migration Script | Pending | 6 |
-| 8 | Testing & Validation | Pending | 8 |
-| 9 | Dual-Write Period | Pending | 16 + 2-4 weeks |
-| 10 | CloudKit Deprecation | Pending | 4 |
-| **Total** | | | **67 hours + monitoring** |
+| Phase | Name | Status | Est. Hours | Actual Hours |
+|-------|------|--------|------------|--------------|
+| 0 | Pre-Migration Backup | ✅ Complete | 1 | 1 |
+| 1 | Firebase Infrastructure | ✅ Complete | 3 | 3 |
+| 2 | FirebaseSyncService | ✅ Complete | 8 | 8 |
+| 3 | Authentication | ✅ Complete | 4 | 4 |
+| 4 | Recipe CRUD | ✅ Complete | 6 | 2 |
+| 5 | Image Storage | ✅ Complete | 4 | 2 |
+| 6 | Sharing Implementation | Pending | 8 | - |
+| 7 | Data Migration Script | Pending | 6 | - |
+| 8 | Testing & Validation | Pending | 8 | - |
+| 9 | Dual-Write Period | Pending | 16 + 2-4 weeks | - |
+| 10 | CloudKit Deprecation | Pending | 4 | - |
+| **Total** | | | **67 hours + monitoring** | **20/67** |
 
 ## Key Architecture Decisions
 

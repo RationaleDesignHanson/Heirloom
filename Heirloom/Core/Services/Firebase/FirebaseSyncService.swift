@@ -13,6 +13,7 @@ import os.log
 import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
+import FirebaseStorage
 
 /// Firebase sync service for hybrid architecture
 /// Mirrors CloudKitSyncService API but uses Firestore backend
@@ -98,6 +99,7 @@ class FirebaseSyncService: ObservableObject {
         // Content
         data["imageFileName"] = recipe.imageFileName as Any
         data["sourceImageURL"] = recipe.sourceImageURL as Any
+        data["firebaseImageURL"] = recipe.firebaseImageURL as Any
         data["instructions"] = recipe.instructions
         data["servings"] = recipe.servings as Any
         data["prepTime"] = recipe.prepTime as Any
@@ -160,6 +162,11 @@ class FirebaseSyncService: ObservableObject {
         recipe.notes = data["notes"] as? String
         recipe.isFavorite = data["isFavorite"] as? Bool ?? false
         recipe.timesCooked = data["timesCooked"] as? Int ?? 0
+
+        // Image fields
+        recipe.imageFileName = data["imageFileName"] as? String
+        recipe.sourceImageURL = data["sourceImageURL"] as? String
+        recipe.firebaseImageURL = data["firebaseImageURL"] as? String
 
         // Timestamps
         if let createdAt = (data["createdAt"] as? Timestamp)?.dateValue() {
@@ -409,6 +416,22 @@ class FirebaseSyncService: ObservableObject {
                 try await cardBackRef.setData(cardBackData)
 
                 print("✅ [Firebase] Uploaded card back")
+            }
+
+            // Step 5: Upload image to Firebase Storage (if exists)
+            if recipe.imageFileName != nil {
+                do {
+                    if let imageURL = try await uploadImage(for: recipe) {
+                        recipe.firebaseImageURL = imageURL
+
+                        // Update Firestore document with image URL
+                        try await recipeRef.updateData(["firebaseImageURL": imageURL])
+                        print("✅ [Firebase] Uploaded image and updated document")
+                    }
+                } catch {
+                    // Log but don't fail the recipe upload if image upload fails
+                    print("⚠️ [Firebase] Image upload failed: \(error.localizedDescription)")
+                }
             }
 
             // Update local sync metadata
@@ -770,6 +793,141 @@ class FirebaseSyncService: ObservableObject {
         DeviceLogger.shared.log("✅ [Firebase] Automatic sync enabled")
         logger.info("✅ [Firebase] Automatic sync enabled")
         print("✅ [Firebase] Automatic sync enabled")
+    }
+
+    // MARK: - Firebase Storage (Images)
+
+    /// Upload recipe image to Firebase Storage
+    /// Returns the download URL
+    func uploadImage(for recipe: Recipe) async throws -> String? {
+        guard let userId = currentUserId else {
+            throw SyncError.notAuthenticated
+        }
+
+        // Check if recipe has a local image
+        guard recipe.imageFileName != nil else {
+            return nil
+        }
+
+        // Load image data from local storage
+        guard let image = await recipe.loadImage() else {
+            print("⚠️ [Firebase Storage] No local image found for recipe: \(recipe.title)")
+            return nil
+        }
+
+        // Compress image (reuse ImageStorageService compression logic - max 1MB)
+        guard let imageData = await compressImage(image, maxBytes: 1_000_000) else {
+            print("⚠️ [Firebase Storage] Failed to compress image for recipe: \(recipe.title)")
+            return nil
+        }
+
+        let recipeId = recipe.id.uuidString
+        let storagePath = "users/\(userId)/recipes/\(recipeId)/image.jpg"
+        let storageRef = Storage.storage().reference().child(storagePath)
+
+        print("📤 [Firebase Storage] Uploading image for recipe: \(recipe.title)")
+
+        // Upload image data
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+
+        _ = try await storageRef.putDataAsync(imageData, metadata: metadata)
+
+        // Get download URL
+        let downloadURL = try await storageRef.downloadURL()
+        let urlString = downloadURL.absoluteString
+
+        print("✅ [Firebase Storage] Image uploaded: \(storagePath)")
+
+        return urlString
+    }
+
+    /// Download recipe image from Firebase Storage and cache locally
+    func downloadImage(for recipe: Recipe) async throws {
+        guard let firebaseImageURL = recipe.firebaseImageURL else {
+            return
+        }
+
+        // Skip if already cached locally
+        if let imageFileName = recipe.imageFileName,
+           await recipe.loadImage() != nil {
+            print("✅ [Firebase Storage] Image already cached locally: \(imageFileName)")
+            return
+        }
+
+        print("📥 [Firebase Storage] Downloading image for recipe: \(recipe.title)")
+
+        // Download from Firebase Storage
+        let storageRef = Storage.storage().reference(forURL: firebaseImageURL)
+        let imageData = try await storageRef.data(maxSize: 10 * 1024 * 1024) // Max 10MB
+
+        guard let image = UIImage(data: imageData) else {
+            print("⚠️ [Firebase Storage] Failed to decode image data")
+            throw SyncError.downloadFailed(NSError(domain: "FirebaseStorage", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid image data"]))
+        }
+
+        // Save to local cache
+        try await recipe.saveImage(image)
+
+        print("✅ [Firebase Storage] Image downloaded and cached: \(recipe.imageFileName ?? "unknown")")
+    }
+
+    /// Delete recipe image from Firebase Storage
+    func deleteImage(for recipeId: UUID) async throws {
+        guard let userId = currentUserId else {
+            throw SyncError.notAuthenticated
+        }
+
+        let storagePath = "users/\(userId)/recipes/\(recipeId.uuidString)/image.jpg"
+        let storageRef = Storage.storage().reference().child(storagePath)
+
+        print("🗑️ [Firebase Storage] Deleting image: \(storagePath)")
+
+        do {
+            try await storageRef.delete()
+            print("✅ [Firebase Storage] Image deleted: \(storagePath)")
+        } catch {
+            // Ignore "not found" errors (image may not exist)
+            if (error as NSError).code == StorageErrorCode.objectNotFound.rawValue {
+                print("ℹ️ [Firebase Storage] Image not found (already deleted): \(storagePath)")
+            } else {
+                throw error
+            }
+        }
+    }
+
+    // MARK: - Image Compression
+
+    /// Compress UIImage to target size (resize first for efficiency, then compress quality)
+    private func compressImage(_ image: UIImage, maxBytes: Int) async -> Data? {
+        var workingImage = image
+
+        // Step 1: Resize first if image is too large (more efficient than quality reduction)
+        let maxDimension: CGFloat = 1200
+        let scale = min(maxDimension / image.size.width, maxDimension / image.size.height, 1.0)
+
+        if scale < 1.0 {
+            let newSize = CGSize(
+                width: image.size.width * scale,
+                height: image.size.height * scale
+            )
+
+            let renderer = UIGraphicsImageRenderer(size: newSize)
+            workingImage = renderer.image { context in
+                image.draw(in: CGRect(origin: .zero, size: newSize))
+            }
+        }
+
+        // Step 2: Iteratively reduce quality until under max size
+        var compression: CGFloat = 0.9
+        var imageData = workingImage.jpegData(compressionQuality: compression)
+
+        while let data = imageData, data.count > maxBytes && compression > 0.1 {
+            compression -= 0.1
+            imageData = workingImage.jpegData(compressionQuality: compression)
+        }
+
+        return imageData
     }
 }
 

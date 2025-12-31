@@ -28,6 +28,9 @@ final class Recipe {
     /// Original image URL for potential re-download
     var sourceImageURL: String?
 
+    /// Firebase Storage URL for synced images
+    var firebaseImageURL: String?
+
     @Relationship(deleteRule: .cascade, inverse: \Ingredient.recipe)
     var ingredients: [Ingredient]?
 
