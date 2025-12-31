@@ -517,6 +517,150 @@ Phase 8 complete when:
 - All testing procedures documented and ready
 - Core infrastructure complete and validated via builds
 
+## Phase 9: Dual-Write Period ✅ READY
+
+Completed: ~1 hour (infrastructure ready - monitoring period is 2-4 weeks)
+
+### Status
+
+**Development**: ✅ Complete
+**Monitoring Period**: ⏳ Ready to begin (2-4 weeks)
+
+All dual-write infrastructure is complete and functional. This phase is primarily operational (monitoring and validation) rather than development.
+
+### Completed Implementation
+
+- ✅ Dual-write mode already functional in BackendConfig
+- ✅ Recipe CRUD operations support dual-write (Phase 4)
+- ✅ Image storage supports dual-write (Phase 5)
+- ✅ Data migration script ready (Phase 7)
+- ✅ Comprehensive dual-write guide created (`DUAL_WRITE_GUIDE.md`)
+- ✅ Monitoring procedures documented
+- ✅ Validation checklists defined
+- ✅ Rollback procedures ready
+
+### Files Created
+
+- `DUAL_WRITE_GUIDE.md` - Comprehensive guide for dual-write period (~500 lines)
+
+### How Dual-Write Works
+
+**Current Implementation (Already Active)**:
+```swift
+// Enable dual-write mode
+BackendConfig.shared.setBackend(.dualWrite)
+
+// Behavior:
+// - isCloudKitActive: true
+// - isFirebaseActive: true
+// - Writes go to BOTH backends
+// - Reads come from CloudKit (source of truth)
+```
+
+**Code Flow** (RecipeEditorView.swift:346-358):
+```swift
+try modelContext.save() // Local save
+
+// Firebase sync (includes dual-write mode)
+if BackendConfig.shared.isFirebaseActive {
+    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+}
+
+// CloudKit sync (automatic via CloudKitSyncService if configured)
+```
+
+### Dual-Write Period Procedures
+
+**Step 1: Enable Dual-Write**
+```swift
+BackendConfig.shared.setBackend(.dualWrite)
+```
+
+**Step 2: Run Data Migration**
+```swift
+try await DataMigrationService.shared.migrateAllData(context: modelContext, dryRun: false)
+```
+
+**Step 3: Monitor (2-4 weeks)**
+- Daily: Error rates, sync success, data counts
+- Weekly: Data parity validation, sample comparisons
+- Metrics: >99% sync success, 100% count parity
+
+**Step 4: Validate**
+- Recipe counts match (Firebase ≥ CloudKit)
+- Sample recipes match across backends
+- Error rate <0.1%
+- Performance acceptable
+
+**Step 5: Switch to Firebase-Only**
+```swift
+BackendConfig.shared.setBackend(.firebase)
+```
+
+### Monitoring Metrics
+
+| Metric | Target | Action if Missed |
+|--------|--------|------------------|
+| Firebase Sync Success | >99% | Investigate errors |
+| Recipe Count Parity | 100% | Re-run migration |
+| Image Upload Success | >95% | Check compression |
+| Auth Success Rate | >99.5% | Review auth flow |
+| Write Latency | <2s | Optimize sync |
+
+### Safety Mechanisms
+
+**1. Graceful Degradation**:
+- Firebase failures don't break CloudKit operations
+- Users unaffected by Firebase issues
+- CloudKit remains functional
+
+**2. Instant Rollback**:
+```swift
+// Disable Firebase immediately
+BackendConfig.shared.setBackend(.cloudKit)
+
+// OR git rollback
+git checkout pre-firebase-migration-20251230
+```
+
+**3. Data Recovery**:
+- CloudKit data never deleted
+- Always available as backup
+- Firebase data exportable
+
+### Success Criteria
+
+Dual-write period complete when:
+
+✅ Ran for minimum 2 weeks
+✅ Firebase recipe count ≥ CloudKit count
+✅ Error rate < 0.1%
+✅ All validations passing
+✅ Zero critical issues
+✅ Team confident to switch
+
+### Timeline
+
+**Week 0**: Enable dual-write, run migration
+**Weeks 1-4**: Monitor daily, validate weekly
+**Week 4+**: Switch to Firebase-only (if validation passes)
+**Week 5**: Proceed to Phase 10 (CloudKit Deprecation)
+
+### Next Steps
+
+1. Enable dual-write mode in production build
+2. Run DataMigrationService for existing users
+3. Monitor Firebase Console daily
+4. Validate data parity weekly
+5. After 2-4 weeks: switch to Firebase-only
+6. Proceed to Phase 10 (CloudKit Deprecation)
+
+### Note
+
+**Development Complete**: All dual-write infrastructure implemented
+**Operational Phase**: 2-4 weeks of monitoring before Firebase-only switch
+**Ready for Production**: Can enable dual-write mode immediately
+
 ## Migration Timeline
 
 | Phase | Name | Status | Est. Hours | Actual Hours |
@@ -530,9 +674,9 @@ Phase 8 complete when:
 | 6 | Sharing Implementation | ✅ Complete | 8 | 2 |
 | 7 | Data Migration Script | ✅ Complete | 6 | 1 |
 | 8 | Testing & Validation | ✅ Complete | 8 | 1 |
-| 9 | Dual-Write Period | Pending | 16 + 2-4 weeks | - |
+| 9 | Dual-Write Period | ✅ Ready (Monitoring) | 16 + 2-4 weeks | 1 + monitoring |
 | 10 | CloudKit Deprecation | Pending | 4 | - |
-| **Total** | | | **67 hours + monitoring** | **24/67** |
+| **Total** | | | **67 hours + monitoring** | **25/67** |
 
 ## Key Architecture Decisions
 
