@@ -172,6 +172,36 @@ Completed: ~4 hours
 **Current Status**: Backend is still CloudKit (default), so Firebase auth won't trigger yet.
 **To test Firebase auth**: Switch backend in Phase 9 (Dual-Write Period) or manually via `BackendConfig.shared.setBackend(.firebase)`
 
+## Phase 4: Recipe CRUD Operations ✅ COMPLETED
+
+Completed: ~2 hours (faster than estimated 6 hours due to existing infrastructure)
+
+### Completed Implementation
+- ✅ Integrated Firebase sync with recipe creation/update flow
+- ✅ Integrated Firebase sync with recipe deletion flow
+- ✅ Conditional sync based on `BackendConfig.isFirebaseActive`
+- ✅ Error handling (Firebase sync failures don't break local save)
+- ✅ Build succeeded with zero errors
+
+### Files Modified
+- `Heirloom/Features/Recipes/RecipeEditor/RecipeEditorView.swift`:
+  - Added Firebase sync after successful recipe save
+  - Calls `FirebaseSyncService.shared.uploadRecipe()` when Firebase active
+- `Heirloom/Features/Recipes/RecipeDetail/RecipeDetailView.swift`:
+  - Added Firebase imports (FirebaseFirestore, FirebaseAuth)
+  - Added Firebase deletion after successful local delete
+  - Deletes Firestore document: `users/{userId}/recipes/{recipeId}`
+
+### How It Works
+1. **Create/Update**: After `modelContext.save()` succeeds, upload recipe to Firebase if backend active
+2. **Delete**: After `modelContext.delete()` and save, delete Firestore document if backend active
+3. **Resilience**: Firebase sync errors logged but don't fail local operations
+4. **Conditional**: Only syncs when `BackendConfig.shared.isFirebaseActive` is true
+
+### Testing Note
+**Current Status**: Backend is still CloudKit (default), so Firebase CRUD operations won't execute yet.
+**To test**: Switch to Firebase backend in Phase 9 or manually via settings.
+
 ## Migration Timeline
 
 | Phase | Name | Status | Est. Hours |
@@ -180,7 +210,7 @@ Completed: ~4 hours
 | 1 | Firebase Infrastructure | ✅ Complete | 3 |
 | 2 | FirebaseSyncService | ✅ Complete | 8 |
 | 3 | Authentication | ✅ Complete | 4 |
-| 4 | Recipe CRUD | Pending | 6 |
+| 4 | Recipe CRUD | ✅ Complete | 6 |
 | 5 | Image Storage | Pending | 4 |
 | 6 | Sharing Implementation | Pending | 8 |
 | 7 | Data Migration Script | Pending | 6 |

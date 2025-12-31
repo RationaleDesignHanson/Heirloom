@@ -1,5 +1,7 @@
 import SwiftUI
 import SwiftData
+import FirebaseFirestore
+import FirebaseAuth
 
 struct RecipeDetailView: View {
     let recipe: Recipe
@@ -1046,8 +1048,9 @@ struct RecipeDetailView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.warning)
 
-        // Store title before deletion
+        // Store title and ID before deletion
         let recipeTitle = recipe.title
+        let recipeId = recipe.id.uuidString
 
         // Track analytics before deletion
         AnalyticsService.shared.trackRecipeDeleted(recipeTitle: recipeTitle)
@@ -1057,6 +1060,22 @@ struct RecipeDetailView: View {
 
         do {
             try modelContext.save()
+
+            // Delete from Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                Task {
+                    do {
+                        // Delete recipe document from Firestore
+                        let db = FirebaseFirestore.Firestore.firestore()
+                        guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else { return }
+                        try await db.collection("users/\(userId)/recipes").document(recipeId).delete()
+                        print("✅ Recipe deleted from Firebase")
+                    } catch {
+                        print("⚠️ Failed to delete recipe from Firebase: \(error.localizedDescription)")
+                        // Don't fail the deletion - local deletion succeeded
+                    }
+                }
+            }
 
             // Success haptic
             let successGenerator = UINotificationFeedbackGenerator()

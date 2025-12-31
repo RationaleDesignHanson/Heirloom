@@ -346,6 +346,17 @@ struct RecipeEditorView: View {
             do {
                 try modelContext.save()
 
+                // Sync to Firebase if active
+                if BackendConfig.shared.isFirebaseActive {
+                    do {
+                        try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                        print("✅ Recipe synced to Firebase")
+                    } catch {
+                        print("⚠️ Failed to sync recipe to Firebase: \(error.localizedDescription)")
+                        // Don't fail the save - local save succeeded
+                    }
+                }
+
                 await MainActor.run {
                     isSaving = false
 
