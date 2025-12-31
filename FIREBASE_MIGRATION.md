@@ -4,8 +4,8 @@
 Migrating Heirloom from CloudKit to Firebase Firestore to resolve hierarchical sharing limitations discovered in Build 20.
 
 **Start Date**: December 30, 2025
-**Current Phase**: Phase 2 (FirebaseSyncService Implementation)
-**Status**: Phase 2 Complete - Ready for Phase 3
+**Current Phase**: Phase 3 (Authentication Integration)
+**Status**: Phase 3 Complete - Ready for Phase 4
 
 ## Why Firebase?
 After 4 days debugging CloudKit sharing issues, discovered architectural limitation: "You cannot query all child records using the parent property" in shared database. Participants cannot query child records (ingredients) when accepting recipe shares.
@@ -125,14 +125,52 @@ users/{userId}/recipes/{recipeId}
 - Error handling with detailed logging
 - ObservableObject with @Published state (isSyncing, lastSyncDate, syncError)
 
-## Phase 3: Authentication Integration (Pending)
+## Phase 3: Authentication Integration ✅ COMPLETED
 
-Estimated: 4 hours
+Completed: ~4 hours
 
-### Planned Implementation
-- Integrate Firebase Auth with Sign in with Apple
-- Map CloudKit user IDs to Firebase UIDs
-- Update security rules for user-scoped data access
+### Completed Implementation
+- ✅ Enabled Sign in with Apple capability in Xcode
+- ✅ Configured Sign in with Apple in Apple Developer Portal
+  - Created Sign in with Apple Key (.p8)
+  - Created Services ID: `com.matthanson.heirloom.firebaseauth`
+  - Configured Firebase callback URLs
+- ✅ Set up Firebase Auth with Apple provider in Firebase Console
+- ✅ Created `FirebaseAuthService.swift` with Sign in with Apple integration
+- ✅ Created `FirebaseSignInView.swift` for authentication UI
+- ✅ Integrated auth gating with app startup (RootView)
+- ✅ Set up Firestore security rules (user-scoped access)
+- ✅ Build succeeded with zero errors
+
+### Files Created
+- `Heirloom/Core/Services/Firebase/FirebaseAuthService.swift` - Auth service with Sign in with Apple
+- `Heirloom/Features/Auth/FirebaseSignInView.swift` - Sign-in UI
+
+### Files Modified
+- `Heirloom/App/HeirloomApp.swift`:
+  - Added RootView for auth gating
+  - Integrated FirebaseSyncService configuration
+  - Auth-gated based on BackendConfig
+- `Heirloom/Heirloom.entitlements`:
+  - Added Sign in with Apple capability
+
+### Key Features
+- Sign in with Apple native integration
+- Secure nonce generation for auth security
+- Firebase Auth state listener for automatic UI updates
+- Conditional auth gating (only when Firebase backend is active)
+- User profile updates on first sign-in
+- Error handling with user-friendly messages
+
+### Firestore Security Rules
+```javascript
+// Users can only access their own data under users/{userId}/
+// All subcollections inherit permissions
+```
+
+### Testing Note
+**Current Status**: Backend is still CloudKit (default), so Firebase auth won't trigger yet.
+**To test Firebase auth**: Switch backend in Phase 9 (Dual-Write Period) or manually via `BackendConfig.shared.setBackend(.firebase)`
 
 ## Migration Timeline
 
@@ -141,7 +179,7 @@ Estimated: 4 hours
 | 0 | Pre-Migration Backup | ✅ Complete | 1 |
 | 1 | Firebase Infrastructure | ✅ Complete | 3 |
 | 2 | FirebaseSyncService | ✅ Complete | 8 |
-| 3 | Authentication | Pending | 4 |
+| 3 | Authentication | ✅ Complete | 4 |
 | 4 | Recipe CRUD | Pending | 6 |
 | 5 | Image Storage | Pending | 4 |
 | 6 | Sharing Implementation | Pending | 8 |

@@ -76,8 +76,7 @@ struct HeirloomApp: App {
     var body: some Scene {
         WindowGroup {
             if let modelContainer {
-                ContentView()
-                    .modelContainer(modelContainer)
+                RootView(modelContainer: modelContainer)
                     .environmentObject(deepLinkCoordinator)
                     .onOpenURL { url in
                         print("📱 WindowGroup received URL: \(url.absoluteString)")
@@ -134,6 +133,20 @@ struct HeirloomApp: App {
                 logger.info("✅ [Heirloom] CloudKit sync initialized successfully")
                 print("✅ CloudKit sync initialized")
             }
+
+            // PHASE 3: Firebase sync configuration (when Firebase backend is active)
+            if BackendConfig.shared.isFirebaseActive {
+                Task { @MainActor in
+                    DeviceLogger.shared.log("🔄 [Heirloom] Configuring Firebase sync...")
+                    logger.info("🔄 [Heirloom] Configuring Firebase sync...")
+
+                    FirebaseSyncService.shared.configure(modelContext: container.mainContext)
+
+                    DeviceLogger.shared.log("✅ [Heirloom] Firebase sync initialized successfully")
+                    logger.info("✅ [Heirloom] Firebase sync initialized successfully")
+                    print("✅ Firebase sync initialized")
+                }
+            }
         }
     }
 
@@ -175,6 +188,24 @@ struct HeirloomApp: App {
             // Sample recipe auto-population disabled - users can manually add via "Add Sample Recipe" button
             print("✅ Recipe data cleanup complete - starting with clean slate")
             UserDefaults.standard.set(true, forKey: hasCleanedKey)
+        }
+    }
+}
+
+/// Root view that handles authentication gating for Firebase
+struct RootView: View {
+    let modelContainer: ModelContainer
+    @StateObject private var authService = FirebaseAuthService.shared
+
+    var body: some View {
+        Group {
+            // Show sign-in if Firebase is active and user not authenticated
+            if BackendConfig.shared.isFirebaseActive && !authService.isAuthenticated {
+                FirebaseSignInView()
+            } else {
+                ContentView()
+                    .modelContainer(modelContainer)
+            }
         }
     }
 }
