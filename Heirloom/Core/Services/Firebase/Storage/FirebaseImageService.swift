@@ -13,7 +13,7 @@ import FirebaseStorage
 /// Handles Firebase Storage operations for recipe images
 /// Responsibilities: Upload, download, delete images with compression
 @MainActor
-class FirebaseImageService {
+class FirebaseImageService: FirebaseImageServiceProtocol {
 
     // MARK: - Singleton
 

@@ -17,7 +17,7 @@ import FirebaseStorage
 /// Centralized Firebase configuration and authentication helpers
 /// Provides access to Firebase instances and user-scoped collection references
 @MainActor
-class FirebaseConfiguration {
+class FirebaseConfiguration: FirebaseConfigurationProtocol {
 
     // MARK: - Singleton
 

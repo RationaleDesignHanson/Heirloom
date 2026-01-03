@@ -1,0 +1,242 @@
+//
+//  FirebaseServiceProtocols.swift
+//  Heirloom
+//
+//  Phase 2 Week 4: Protocol Abstraction Layer
+//  Protocol-based service contracts for dependency injection
+//
+
+import Foundation
+import UIKit
+import SwiftData
+import FirebaseFirestore
+import FirebaseStorage
+import FirebaseAuth
+
+// MARK: - Configuration Protocol
+
+/// Protocol for Firebase configuration and initialization
+@MainActor
+protocol FirebaseConfigurationProtocol {
+    /// Firestore database instance
+    var db: Firestore { get }
+
+    /// Firebase Auth instance
+    var auth: Auth { get }
+
+    /// Firebase Storage instance
+    var storage: Storage { get }
+
+    /// SwiftData model context
+    var modelContext: ModelContext? { get set }
+
+    /// Current authenticated user ID
+    var currentUserId: String? { get }
+
+    /// Whether user is authenticated
+    var isAuthenticated: Bool { get }
+
+    /// Configure Firebase with model context
+    func configure(modelContext: ModelContext)
+
+    // MARK: - Collection References
+
+    /// Get recipes collection reference
+    func recipesCollection() throws -> CollectionReference
+
+    /// Get recipe document reference
+    func recipeDocument(id: String) throws -> DocumentReference
+
+    /// Get ingredients subcollection reference
+    func ingredientsSubcollection(recipeId: String) throws -> CollectionReference
+
+    /// Get comments subcollection reference
+    func commentsSubcollection(recipeId: String) throws -> CollectionReference
+
+    /// Get card back document reference
+    func cardBackDocument(recipeId: String) throws -> DocumentReference
+
+    /// Get collections collection reference
+    func collectionsCollection() throws -> CollectionReference
+
+    /// Get tags collection reference
+    func tagsCollection() throws -> CollectionReference
+
+    /// Get shopping cart collection reference
+    func shoppingCartCollection() throws -> CollectionReference
+
+    /// Get dinner parties collection reference
+    func dinnerPartiesCollection() throws -> CollectionReference
+}
+
+// MARK: - Record Converter Protocol
+
+/// Protocol for data transformation between SwiftData and Firestore
+protocol FirebaseRecordConverterProtocol {
+    /// Convert Recipe to Firestore data
+    static func convertToFirestoreData(_ recipe: Recipe) -> [String: Any]
+
+    /// Convert Firestore data to Recipe
+    static func convertFromFirestoreData(_ data: [String: Any], id: String, context: ModelContext) -> Recipe
+
+    /// Convert Ingredient to Firestore data
+    static func convertIngredientToFirestoreData(_ ingredient: Ingredient) -> [String: Any]
+
+    /// Convert Firestore data to Ingredient
+    static func convertIngredientFromFirestoreData(_ data: [String: Any], id: String) -> Ingredient
+
+    /// Convert RecipeComment to Firestore data
+    static func convertCommentToFirestoreData(_ comment: RecipeComment) -> [String: Any]
+
+    /// Convert Firestore data to RecipeComment
+    static func convertCommentFromFirestoreData(_ data: [String: Any], id: String) -> RecipeComment
+
+    /// Convert RecipeCardBack to Firestore data
+    static func convertCardBackToFirestoreData(_ cardBack: RecipeCardBack) -> [String: Any]
+
+    /// Convert Firestore data to RecipeCardBack
+    static func convertCardBackFromFirestoreData(_ data: [String: Any]) -> RecipeCardBack
+}
+
+// MARK: - Image Service Protocol
+
+/// Protocol for Firebase Storage image operations
+@MainActor
+protocol FirebaseImageServiceProtocol {
+    /// Upload recipe image to Firebase Storage
+    /// - Parameter recipe: Recipe with local image to upload
+    /// - Returns: Download URL string, or nil if no image to upload
+    /// - Throws: FirebaseError if upload fails
+    func uploadImage(for recipe: Recipe) async throws -> String?
+
+    /// Download recipe image from Firebase Storage and cache locally
+    /// - Parameter recipe: Recipe with Firebase image URL to download
+    /// - Throws: FirebaseError if download fails
+    func downloadImage(for recipe: Recipe) async throws
+
+    /// Delete recipe image from Firebase Storage
+    /// - Parameter recipeId: ID of recipe whose image should be deleted
+    /// - Throws: FirebaseError if delete fails
+    func deleteImage(for recipeId: UUID) async throws
+
+    /// Delete image from Firebase Storage by URL
+    /// - Parameter url: Firebase Storage URL of image to delete
+    /// - Throws: FirebaseError if delete fails
+    func deleteImage(at url: String) async throws
+}
+
+// MARK: - Collection Sync Protocol
+
+/// Protocol for syncing related entities and collections
+@MainActor
+protocol FirebaseCollectionSyncProtocol {
+    // MARK: - Ingredients
+
+    /// Upload ingredients for a recipe to Firestore subcollection
+    func uploadIngredients(_ ingredients: [Ingredient], for recipeId: String) async throws
+
+    /// Download ingredients for a recipe from Firestore subcollection
+    func downloadIngredients(for recipeId: String, recipe: Recipe) async throws
+
+    // MARK: - Comments
+
+    /// Upload comments for a recipe to Firestore subcollection
+    func uploadComments(_ comments: [RecipeComment], for recipeId: String) async throws
+
+    /// Download comments for a recipe from Firestore subcollection
+    func downloadComments(for recipeId: String, recipe: Recipe) async throws
+
+    // MARK: - Card Back
+
+    /// Upload card back for a recipe to Firestore
+    func uploadCardBack(_ cardBack: RecipeCardBack, for recipeId: String) async throws
+
+    /// Download card back for a recipe from Firestore
+    func downloadCardBack(for recipeId: String, recipe: Recipe) async throws
+
+    // MARK: - Collections
+
+    /// Upload collection to Firebase
+    func uploadCollection(_ collection: RecipeCollection) async throws
+
+    /// Delete collection from Firebase
+    func deleteCollection(_ collectionId: UUID) async throws
+
+    // MARK: - Tags
+
+    /// Upload tag to Firebase
+    func uploadTag(_ tag: Tag) async throws
+
+    /// Delete tag from Firebase
+    func deleteTag(_ tagId: UUID) async throws
+
+    // MARK: - Shopping Cart
+
+    /// Upload shopping cart recipe to Firebase
+    func uploadShoppingCartRecipe(_ cartRecipe: ShoppingCartRecipe) async throws
+
+    /// Delete shopping cart recipe from Firebase
+    func deleteShoppingCartRecipe(_ cartRecipeId: UUID) async throws
+
+    // MARK: - Dinner Parties
+
+    /// Upload dinner party to Firebase
+    func uploadDinnerParty(_ party: DinnerParty) async throws
+
+    /// Delete dinner party from Firebase
+    func deleteDinnerParty(_ partyId: UUID) async throws
+}
+
+// MARK: - Recipe Sync Protocol
+
+/// Protocol for recipe-level sync orchestration
+@MainActor
+protocol FirebaseRecipeSyncProtocol: ObservableObject {
+    /// Whether sync is in progress
+    var isSyncing: Bool { get }
+
+    /// Last successful sync date
+    var lastSyncDate: Date? { get }
+
+    /// Last sync error if any
+    var syncError: Error? { get }
+
+    /// Upload a single recipe to Firebase
+    /// - Parameter recipe: Recipe to upload
+    /// - Throws: FirebaseError if upload fails
+    func uploadRecipe(_ recipe: Recipe) async throws
+
+    /// Upload multiple recipes to Firebase
+    /// - Parameter recipes: Array of recipes to upload
+    /// - Throws: FirebaseError if any upload fails
+    func uploadRecipes(_ recipes: [Recipe]) async throws
+
+    /// Download a single recipe from Firebase
+    /// - Parameters:
+    ///   - recipeId: ID of recipe to download
+    ///   - context: SwiftData model context
+    /// - Returns: Downloaded recipe
+    /// - Throws: FirebaseError if download fails
+    func downloadRecipe(id recipeId: String, context: ModelContext) async throws -> Recipe
+
+    /// Download all user's recipes from Firebase
+    /// - Parameter context: SwiftData model context
+    /// - Returns: Array of downloaded recipes
+    /// - Throws: FirebaseError if download fails
+    func downloadAllRecipes(context: ModelContext) async throws -> [Recipe]
+
+    /// Sync local changes to Firebase and download remote changes
+    /// - Throws: FirebaseError if sync fails
+    func syncChanges() async throws
+
+    /// Delete recipe from Firebase
+    /// - Parameter recipeId: ID of recipe to delete
+    /// - Throws: FirebaseError if delete fails
+    func deleteRecipe(_ recipeId: UUID) async throws
+
+    /// Start automatic background sync
+    func startAutomaticSync()
+
+    /// Stop automatic background sync
+    func stopAutomaticSync()
+}

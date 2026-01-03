@@ -12,7 +12,7 @@ import FirebaseFirestore
 
 /// Pure data conversion utilities for Firestore serialization
 /// No side effects, no I/O - just data transformations
-struct FirebaseRecordConverter {
+struct FirebaseRecordConverter: FirebaseRecordConverterProtocol {
 
     // MARK: - Recipe Conversion
 

@@ -16,7 +16,7 @@ import Combine
 /// Orchestrates recipe sync between local SwiftData and Firebase Firestore
 /// Responsibilities: Upload, download, full sync, conflict resolution, automatic sync
 @MainActor
-class FirebaseRecipeSync: ObservableObject {
+class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
 
     // MARK: - Singleton
 

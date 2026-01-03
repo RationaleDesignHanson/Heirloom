@@ -13,7 +13,7 @@ import FirebaseFirestore
 /// Handles sync for recipe-related entities and collections
 /// Responsibilities: Ingredients, Comments, Collections, Tags, Shopping Cart, Dinner Parties
 @MainActor
-class FirebaseCollectionSync {
+class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
 
     // MARK: - Singleton
 
