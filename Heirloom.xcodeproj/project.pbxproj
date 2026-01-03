@@ -107,6 +107,13 @@
 		C56F3EC82F0519EC00D19743 /* FirebaseShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56F3EC72F0519EC00D19743 /* FirebaseShareService.swift */; };
 		C56F3EEF2F0528F200D19743 /* FirebaseLineageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56F3EEE2F0528F200D19743 /* FirebaseLineageService.swift */; };
 		C56F3EF12F05294500D19743 /* RecipeLineage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56F3EF02F05294500D19743 /* RecipeLineage.swift */; };
+		C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */; };
+		C583F5A12F099E750096478E /* RecipeDetailHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59C2F099E750096478E /* RecipeDetailHeader.swift */; };
+		C583F5A22F099E750096478E /* RecipeInstructionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */; };
+		C583F5A32F099E750096478E /* RecipeMetadataSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59F2F099E750096478E /* RecipeMetadataSection.swift */; };
+		C583F5A82F09A6B80096478E /* HeirloomLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5A42F09A6B80096478E /* HeirloomLogger.swift */; };
+		C583F5A92F09A6B80096478E /* LoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5A52F09A6B80096478E /* LoggingService.swift */; };
+		C583F5AA2F09A6B80096478E /* LogRedactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5A62F09A6B80096478E /* LogRedactor.swift */; };
 		C5B317602F00C7E40087CF6D /* RecipeVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */; };
 		C5B317622F00C7F30087CF6D /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */; };
 		C5B317662F00C8230087CF6D /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317652F00C8230087CF6D /* AboutView.swift */; };
@@ -273,6 +280,13 @@
 		C56F3EC72F0519EC00D19743 /* FirebaseShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseShareService.swift; sourceTree = "<group>"; };
 		C56F3EEE2F0528F200D19743 /* FirebaseLineageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseLineageService.swift; sourceTree = "<group>"; };
 		C56F3EF02F05294500D19743 /* RecipeLineage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeLineage.swift; sourceTree = "<group>"; };
+		C583F59C2F099E750096478E /* RecipeDetailHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailHeader.swift; sourceTree = "<group>"; };
+		C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeIngredientsSection.swift; sourceTree = "<group>"; };
+		C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeInstructionsSection.swift; sourceTree = "<group>"; };
+		C583F59F2F099E750096478E /* RecipeMetadataSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeMetadataSection.swift; sourceTree = "<group>"; };
+		C583F5A42F09A6B80096478E /* HeirloomLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeirloomLogger.swift; sourceTree = "<group>"; };
+		C583F5A52F09A6B80096478E /* LoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingService.swift; sourceTree = "<group>"; };
+		C583F5A62F09A6B80096478E /* LogRedactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogRedactor.swift; sourceTree = "<group>"; };
 		C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersion.swift; sourceTree = "<group>"; };
 		C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		C5B317652F00C8230087CF6D /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
@@ -520,6 +534,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C583F5A72F09A6B80096478E /* Logging */,
 				C568877A2F06B4AE006EA0B1 /* CRDT */,
 				C56F3E762F04AC9800D19743 /* Firebase */,
 				C56F3DC62F0187C900D19743 /* DeepLink */,
@@ -583,6 +598,10 @@
 		8AB8FD6644DE541C5E0077DC /* RecipeDetail */ = {
 			isa = PBXGroup;
 			children = (
+				C583F59C2F099E750096478E /* RecipeDetailHeader.swift */,
+				C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */,
+				C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */,
+				C583F59F2F099E750096478E /* RecipeMetadataSection.swift */,
 				C5E9552E2F054271006CD3C2 /* RecipeDiffView.swift */,
 				C5E9552F2F054271006CD3C2 /* RecipeVersionSelector.swift */,
 				C5E955302F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift */,
@@ -763,6 +782,16 @@
 				C56F3E7A2F04B67600D19743 /* FirebaseSignInView.swift */,
 			);
 			path = Auth;
+			sourceTree = "<group>";
+		};
+		C583F5A72F09A6B80096478E /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				C583F5A42F09A6B80096478E /* HeirloomLogger.swift */,
+				C583F5A52F09A6B80096478E /* LoggingService.swift */,
+				C583F5A62F09A6B80096478E /* LogRedactor.swift */,
+			);
+			path = Logging;
 			sourceTree = "<group>";
 		};
 		C5B3176B2F00C8500087CF6D /* Models */ = {
@@ -1223,6 +1252,9 @@
 				BA4F19E9FA015B7A3A98A171 /* RecipeFiltersView.swift in Sources */,
 				A7992E0AC9A461294C0A01DB /* RecipeImportService.swift in Sources */,
 				C56F3E792F04B5C800D19743 /* FirebaseAuthService.swift in Sources */,
+				C583F5A82F09A6B80096478E /* HeirloomLogger.swift in Sources */,
+				C583F5A92F09A6B80096478E /* LoggingService.swift in Sources */,
+				C583F5AA2F09A6B80096478E /* LogRedactor.swift in Sources */,
 				C5B317732F00C8500087CF6D /* HelpView.swift in Sources */,
 				C56887812F06B4C8006EA0B1 /* VectorClock.swift in Sources */,
 				C56887822F06B4C8006EA0B1 /* RecipeCRDT.swift in Sources */,
@@ -1231,6 +1263,10 @@
 				C5B317742F00C8500087CF6D /* GestureGuide.swift in Sources */,
 				C5B317752F00C8500087CF6D /* HelpArticle.swift in Sources */,
 				C5B317762F00C8500087CF6D /* GestureGuideView.swift in Sources */,
+				C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */,
+				C583F5A12F099E750096478E /* RecipeDetailHeader.swift in Sources */,
+				C583F5A22F099E750096478E /* RecipeInstructionsSection.swift in Sources */,
+				C583F5A32F099E750096478E /* RecipeMetadataSection.swift in Sources */,
 				C5B317772F00C8500087CF6D /* HelpArticleView.swift in Sources */,
 				C5B317782F00C8500087CF6D /* HelpContent.swift in Sources */,
 				C568877B2F06B4AE006EA0B1 /* CRDTMergeEngine.swift in Sources */,
