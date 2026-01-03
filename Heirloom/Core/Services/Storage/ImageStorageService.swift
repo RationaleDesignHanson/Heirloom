@@ -52,6 +52,33 @@ actor ImageStorageService {
         }
     }
 
+    /// Download image from URL and save to file system
+    /// Returns the file name (not full path) to store in Recipe model
+    func downloadAndSaveImage(from urlString: String, recipeId: UUID) async throws -> String {
+        guard let url = URL(string: urlString) else {
+            throw ImageError.invalidURL
+        }
+
+        print("📥 Downloading image from: \(urlString)")
+
+        // Download image data
+        let (data, response) = try await URLSession.shared.data(from: url)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw ImageError.downloadFailed
+        }
+
+        guard let image = UIImage(data: data) else {
+            throw ImageError.invalidImageData
+        }
+
+        print("✅ Downloaded image: \(data.count / 1024)KB")
+
+        // Save using existing saveImage method
+        return try await saveImage(image, recipeId: recipeId)
+    }
+
     // MARK: - Load Image
 
     /// Load an image from the file system
@@ -260,6 +287,9 @@ enum ImageError: LocalizedError {
     case compressionFailed
     case writeFailed(Error)
     case notFound
+    case invalidURL
+    case downloadFailed
+    case invalidImageData
 
     var errorDescription: String? {
         switch self {
@@ -269,6 +299,12 @@ enum ImageError: LocalizedError {
             return "Failed to save image: \(error.localizedDescription)"
         case .notFound:
             return "Image not found"
+        case .invalidURL:
+            return "Invalid image URL"
+        case .downloadFailed:
+            return "Failed to download image"
+        case .invalidImageData:
+            return "Downloaded data is not a valid image"
         }
     }
 }

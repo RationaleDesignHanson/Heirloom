@@ -1,6 +1,5 @@
 import SwiftUI
 import AVFoundation
-import PhotosUI
 
 /// Enhanced camera scanner for recipe cards with real-time quality feedback
 struct EnhancedScannerView: View {
@@ -13,7 +12,6 @@ struct EnhancedScannerView: View {
     @State private var showMultiRecipeSheet = false
     @State private var multiRecipeResult: AIRecipeExtractor.MultiRecipeExtractionResult?
     @State private var errorMessage: String?
-    @State private var selectedPhotoItem: PhotosPickerItem?
 
     var body: some View {
         NavigationStack {
@@ -43,30 +41,16 @@ struct EnhancedScannerView: View {
                         dismiss()
                     }
                 }
-
-                ToolbarItem(placement: .primaryAction) {
-                    PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                        Label("Choose Photo", systemImage: "photo.on.rectangle")
-                    }
-                }
             }
-            .sheet(isPresented: $showMultiRecipeSheet) {
+            .sheet(isPresented: $showMultiRecipeSheet, onDismiss: {
+                // After user finishes with recipe selection, dismiss the entire scanner
+                dismiss()
+            }) {
                 if let result = multiRecipeResult {
                     RecipeSelectionView(
                         recipes: result.recipes,
                         sourceImage: result.sourceImage
                     )
-                }
-            }
-            .onChange(of: selectedPhotoItem) { _, newItem in
-                Task {
-                    if let data = try? await newItem?.loadTransferable(type: Data.self),
-                       let image = UIImage(data: data) {
-                        await MainActor.run {
-                            capturedImage = image
-                            selectedPhotoItem = nil
-                        }
-                    }
                 }
             }
             .alert("Scan Error", isPresented: .constant(errorMessage != nil)) {

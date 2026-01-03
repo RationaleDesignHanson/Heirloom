@@ -3,6 +3,7 @@ import SwiftData
 import UserNotifications
 import os.log
 import FirebaseCore
+import FirebaseFirestore
 
 // Device-visible logging
 private let logger = Logger(subsystem: "com.matthanson.heirloom", category: "App")
@@ -25,15 +26,21 @@ struct HeirloomApp: App {
         DeviceLogger.shared.log("🔥 [Heirloom] Initializing Firebase...")
         logger.info("🔥 [Heirloom] Initializing Firebase...")
         FirebaseApp.configure()
+
+        // CRITICAL: Configure Firestore settings IMMEDIATELY before any access
+        DeviceLogger.shared.log("⚙️ [Heirloom] Configuring Firestore settings...")
+        let settings = FirestoreSettings()
+        settings.cacheSettings = PersistentCacheSettings()  // Unlimited offline cache
+        Firestore.firestore().settings = settings
+
         DeviceLogger.shared.log("✅ [Heirloom] Firebase initialized successfully")
         logger.info("✅ [Heirloom] Firebase initialized successfully")
         print("✅ Firebase initialized")
 
         // Log active backend
-        let backend = BackendConfig.shared.activeBackend
-        DeviceLogger.shared.log("🔧 [Heirloom] Active backend: \(backend.rawValue)")
-        logger.info("🔧 [Heirloom] Active backend: \(backend.rawValue)")
-        print("🔧 Active backend: \(backend.rawValue)")
+        DeviceLogger.shared.log("🔧 [Heirloom] Active backend: Firebase")
+        logger.info("🔧 [Heirloom] Active backend: Firebase")
+        print("🔧 Active backend: Firebase")
 
         do {
             DeviceLogger.shared.log("🔧 [Heirloom] Configuring SwiftData schema...")
@@ -43,12 +50,12 @@ struct HeirloomApp: App {
             let schema = SchemaV1.schema
 
             // Configure for LOCAL ONLY storage
-            // CloudKit sync is handled manually by CloudKitSyncService
+            // Firebase handles sync separately - no CloudKit integration
             let config = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: false,
                 allowsSave: true,
-                cloudKitDatabase: .none  // Manual sync - no automatic CloudKit
+                cloudKitDatabase: .none  // Firebase-only backend
             )
 
             let container = try ModelContainer(
@@ -56,9 +63,9 @@ struct HeirloomApp: App {
                 configurations: config
             )
 
-            DeviceLogger.shared.log("✅ [Heirloom] SwiftData initialized (Local storage, manual CloudKit sync)")
-            logger.info("✅ [Heirloom] SwiftData initialized (Local storage, manual CloudKit sync)")
-            print("✅ SwiftData initialized (Local storage, manual CloudKit sync)")
+            DeviceLogger.shared.log("✅ [Heirloom] SwiftData initialized (Local storage with Firebase sync)")
+            logger.info("✅ [Heirloom] SwiftData initialized (Local storage with Firebase sync)")
+            print("✅ SwiftData initialized (Local storage with Firebase sync)")
 
             _modelContainer = State(wrappedValue: container)
 
@@ -81,11 +88,13 @@ struct HeirloomApp: App {
                     .onOpenURL { url in
                         print("📱 WindowGroup received URL: \(url.absoluteString)")
                         logger.info("📱 WindowGroup received URL: \(url.absoluteString)")
+                        DeviceLogger.shared.log("📱 [App] WindowGroup received URL: \(url.absoluteString)")
                         deepLinkCoordinator.handle(url)
                     }
                     .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
                         print("📱 WindowGroup received user activity")
                         logger.info("📱 WindowGroup received user activity")
+                        DeviceLogger.shared.log("📱 [App] WindowGroup received user activity: \(userActivity.activityType)")
                         deepLinkCoordinator.handle(userActivity)
                     }
             } else {
@@ -95,6 +104,9 @@ struct HeirloomApp: App {
     }
 
     private func setupServices() {
+        // Check for pending import from share extension
+        checkSharedContainerForPendingImport()
+
         // Initialize image storage (in background task since it's an actor)
         Task {
             await ImageStorageService.shared.performCleanup()
@@ -120,34 +132,46 @@ struct HeirloomApp: App {
                 RecipeCollection.createSystemCollections(context: container.mainContext)
             }
 
-            // PHASE 2: CloudKit enabled with comprehensive logging
-            // Configure and start CloudKit sync (hybrid architecture)
+            // Firebase sync configuration
             Task { @MainActor in
-                DeviceLogger.shared.log("🔄 [Heirloom] Configuring CloudKit sync...")
-                logger.info("🔄 [Heirloom] Configuring CloudKit sync...")
+                DeviceLogger.shared.log("🔄 [Heirloom] Configuring Firebase sync...")
+                logger.info("🔄 [Heirloom] Configuring Firebase sync...")
 
-                CloudKitSyncService.shared.configure(modelContext: container.mainContext)
-                CloudKitSyncService.shared.startAutomaticSync()
+                FirebaseSyncService.shared.configure(modelContext: container.mainContext)
 
-                DeviceLogger.shared.log("✅ [Heirloom] CloudKit sync initialized successfully")
-                logger.info("✅ [Heirloom] CloudKit sync initialized successfully")
-                print("✅ CloudKit sync initialized")
-            }
-
-            // PHASE 3: Firebase sync configuration (when Firebase backend is active)
-            if BackendConfig.shared.isFirebaseActive {
-                Task { @MainActor in
-                    DeviceLogger.shared.log("🔄 [Heirloom] Configuring Firebase sync...")
-                    logger.info("🔄 [Heirloom] Configuring Firebase sync...")
-
-                    FirebaseSyncService.shared.configure(modelContext: container.mainContext)
-
-                    DeviceLogger.shared.log("✅ [Heirloom] Firebase sync initialized successfully")
-                    logger.info("✅ [Heirloom] Firebase sync initialized successfully")
-                    print("✅ Firebase sync initialized")
-                }
+                DeviceLogger.shared.log("✅ [Heirloom] Firebase sync initialized")
+                logger.info("✅ [Heirloom] Firebase sync initialized")
+                print("✅ Firebase sync initialized")
             }
         }
+    }
+
+    private func checkSharedContainerForPendingImport() {
+        // Check if share extension left a pending URL import
+        guard let groupDefaults = UserDefaults(suiteName: "group.com.matthanson.heirloom.shared") else {
+            print("⚠️ Cannot access shared container")
+            return
+        }
+
+        guard let pendingURLString = groupDefaults.string(forKey: "pendingImportURL"),
+              URL(string: pendingURLString) != nil else {
+            // No pending import
+            return
+        }
+
+        print("✅ Found pending import URL from share extension: \(pendingURLString)")
+        DeviceLogger.shared.log("✅ [ShareExtension] Found pending import URL: \(pendingURLString)")
+
+        // Clear it immediately to prevent re-processing
+        groupDefaults.removeObject(forKey: "pendingImportURL")
+        groupDefaults.removeObject(forKey: "pendingImportTimestamp")
+
+        // Process via deep link handler (will trigger when app is ready)
+        let importDeepLink = URL(string: "heirloom://import?url=\(pendingURLString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!
+        DeepLinkHandler.shared.handle(importDeepLink)
+
+        print("✅ Triggered deep link handler for import")
+        DeviceLogger.shared.log("✅ [ShareExtension] Triggered deep link handler for import")
     }
 
     private func requestNotificationPermission() async {
@@ -214,23 +238,36 @@ struct ContentView: View {
     @State private var selectedTab = 0
     @State private var showAddRecipe = false
     @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-
-    // Network & Sync monitoring for badges
-    private let syncCoordinator = CloudKitSyncCoordinator.shared
+    @State private var hasViewedRecipesList = false
 
     // Deep link coordinator (injected via environment)
     @EnvironmentObject private var deepLinkCoordinator: DeepLinkCoordinator
 
+    // Notification service
+    @StateObject private var notificationService = FirebaseNotificationService.shared
+
     var body: some View {
         TabView(selection: $selectedTab) {
-            RecipeListView()
-                .tabItem {
-                    Label("Recipes", systemImage: "book.closed.fill")
+            Group {
+                RecipeListView()
+                    .environmentObject(notificationService)
+            }
+            .tabItem {
+                Label("Recipes", systemImage: "book.closed.fill")
+            }
+            .if(!hasViewedRecipesList && notificationService.unreadCount > 0) { view in
+                view.badge(notificationService.unreadCount)
+            }
+            .tag(0)
+            .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.recipesTab)
+            .accessibilityLabel("Recipes")
+            .accessibilityHint("View and manage your recipe collection")
+            .onAppear {
+                // Clear tab badge on first view of recipes list
+                if !hasViewedRecipesList {
+                    hasViewedRecipesList = true
                 }
-                .tag(0)
-                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.recipesTab)
-                .accessibilityLabel("Recipes")
-                .accessibilityHint("View and manage your recipe collection")
+            }
 
             Color.clear
                 .tabItem {
@@ -264,7 +301,6 @@ struct ContentView: View {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
                 .tag(4)
-                .badge(syncCoordinator.pendingOperations.count)
                 .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.settingsTab)
                 .accessibilityLabel("Settings")
                 .accessibilityHint("App settings and preferences")
@@ -290,12 +326,21 @@ struct ContentView: View {
                 )
             }
         }
+        .sheet(isPresented: $deepLinkCoordinator.showURLImportSheet) {
+            if let importURL = deepLinkCoordinator.pendingImportURL {
+                RecipeImportView(url: importURL)
+                    .onDisappear {
+                        deepLinkCoordinator.clearPendingImport()
+                    }
+            }
+        }
         .fullScreenCover(isPresented: $showOnboarding) {
             OnboardingView()
         }
         .onAppear {
             // Mark app as ready to process deep links
             print("✅ ContentView appeared - marking app as ready for deep links")
+            DeviceLogger.shared.log("✅ [App] ContentView appeared - marking app as ready for deep links")
             deepLinkCoordinator.markAppReady()
         }
     }

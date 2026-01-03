@@ -10,6 +10,7 @@ enum SchemaV1: VersionedSchema {
         [
             Recipe.self,
             RecipeVersion.self,  // ADDED: Multi-version recipe support with attribution
+            RecipeLineage.self,  // ADDED: Heirloom sharing lineage tracking for family recipe trees
             Ingredient.self,
             Tag.self,
             RecipeCollection.self,

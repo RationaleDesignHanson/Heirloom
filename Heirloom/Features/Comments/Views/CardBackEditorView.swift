@@ -487,6 +487,21 @@ struct CardBackEditorView: View {
             }
 
             try modelContext.save()
+
+            // Sync card back to Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                Task {
+                    do {
+                        if let cardBack = recipe.cardBack {
+                            try await FirebaseSyncService.shared.uploadCardBack(cardBack, recipeId: recipe.id)
+                            print("✅ Card back synced to Firebase")
+                        }
+                    } catch {
+                        print("⚠️ Failed to sync card back to Firebase: \(error.localizedDescription)")
+                    }
+                }
+            }
+
             dismiss()
         } catch {
             print("Failed to save card back: \(error)")

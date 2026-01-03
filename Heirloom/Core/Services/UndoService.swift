@@ -90,13 +90,25 @@ class UndoService: ObservableObject {
         context.insert(undoItem.recipe)
         try? context.save()
 
+        // Re-upload to Firebase if active
+        if BackendConfig.shared.isFirebaseActive {
+            Task {
+                do {
+                    try await FirebaseSyncService.shared.uploadRecipe(undoItem.recipe)
+                    print("✅ Recipe restored to Firebase: \(undoItem.recipe.title)")
+                } catch {
+                    print("⚠️ Failed to restore recipe to Firebase: \(error.localizedDescription)")
+                }
+            }
+        }
+
         // Analytics
         AnalyticsService.shared.track(event: .featureUsed, properties: [
             "feature": "undo_delete",
             "recipe_title": undoItem.recipe.title
         ])
 
-        print("✅ Restored recipe: \(undoItem.recipe.title)")
+        print("✅ Restored recipe locally: \(undoItem.recipe.title)")
     }
 
     // MARK: - Expiration

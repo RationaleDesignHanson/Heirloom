@@ -12,6 +12,8 @@ struct RecipeSelectionView: View {
     @State private var selectedRecipes: Set<Int> = []
     @State private var expandedRecipes: Set<Int> = []
     @State private var isSaving = false
+    @State private var importProgress: Double = 0.0
+    @State private var currentImportStep: String = ""
 
     var body: some View {
         NavigationStack {
@@ -65,12 +67,19 @@ struct RecipeSelectionView: View {
     private var headerBanner: some View {
         VStack(spacing: HeirloomSpacing.xs) {
             HStack {
-                Image(systemName: "checkmark.circle.badge.questionmark")
-                    .font(.title3)
-                    .foregroundColor(HeirloomColors.primaryText)
+                // Success icon for multiple recipes
+                ZStack {
+                    Circle()
+                        .fill(HeirloomColors.familyGreen.opacity(0.15))
+                        .frame(width: 40, height: 40)
+
+                    Image(systemName: "doc.on.doc.fill")
+                        .font(.title3)
+                        .foregroundColor(HeirloomColors.familyGreen)
+                }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Found \(recipes.count) Recipes")
+                    Text("Detected \(recipes.count) Recipes!")
                         .font(HeirloomFonts.bodyBold)
                         .foregroundColor(HeirloomColors.primaryText)
 
@@ -128,20 +137,35 @@ struct RecipeSelectionView: View {
 
                 Spacer()
 
-                Button {
-                    importSelected()
-                } label: {
-                    if isSaving {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                    } else {
+                if isSaving {
+                    // Show progress during import
+                    VStack(alignment: .trailing, spacing: 4) {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(0.8)
+
+                            Text(currentImportStep)
+                                .font(HeirloomFonts.caption1)
+                                .foregroundColor(HeirloomColors.secondaryText)
+                        }
+
+                        ProgressView(value: importProgress)
+                            .progressViewStyle(.linear)
+                            .tint(HeirloomColors.tomato)
+                            .frame(width: 150)
+                    }
+                } else {
+                    Button {
+                        importSelected()
+                    } label: {
                         Text("Import Selected")
                             .font(HeirloomFonts.bodyBold)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(HeirloomColors.tomato)
+                    .disabled(selectedRecipes.isEmpty)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(HeirloomColors.tomato)
-                .disabled(selectedRecipes.isEmpty || isSaving)
             }
             .padding(HeirloomSpacing.md)
         }
@@ -170,12 +194,20 @@ struct RecipeSelectionView: View {
         guard !selectedRecipes.isEmpty else { return }
 
         isSaving = true
+        importProgress = 0.0
 
         Task {
             do {
                 let selectedRecipeObjects = selectedRecipes.sorted().map { recipes[$0] }
+                var createdRecipes: [Recipe] = []
+                let totalRecipes = selectedRecipeObjects.count
 
-                for extractedRecipe in selectedRecipeObjects {
+                for (index, extractedRecipe) in selectedRecipeObjects.enumerated() {
+                    // Update progress
+                    await MainActor.run {
+                        currentImportStep = "Importing \(index + 1)/\(totalRecipes)..."
+                        importProgress = Double(index) / Double(totalRecipes)
+                    }
                     // Create recipe
                     let recipe = Recipe(
                         title: extractedRecipe.title,
@@ -194,8 +226,15 @@ struct RecipeSelectionView: View {
 
                     // Save source image if available (needs recipe.id to be set)
                     if let sourceImage = sourceImage {
-                        let fileName = try await ImageStorageService.shared.saveImage(sourceImage, recipeId: recipe.id)
-                        recipe.imageFileName = fileName
+                        do {
+                            let fileName = try await ImageStorageService.shared.saveImage(sourceImage, recipeId: recipe.id)
+                            await MainActor.run {
+                                recipe.imageFileName = fileName
+                                print("✅ [Multi-Recipe] Saved image for '\(recipe.title)': \(fileName)")
+                            }
+                        } catch {
+                            print("⚠️ [Multi-Recipe] Failed to save image for '\(recipe.title)': \(error)")
+                        }
                     }
 
                     // Create and insert ingredients
@@ -213,10 +252,40 @@ struct RecipeSelectionView: View {
                         ingredient.recipe = recipe
                         modelContext.insert(ingredient)
                     }
+
+                    createdRecipes.append(recipe)
+                }
+
+                // Update progress
+                await MainActor.run {
+                    currentImportStep = "Saving recipes..."
+                    importProgress = 0.9
                 }
 
                 // Save all at once
                 try modelContext.save()
+
+                // Sync to Firebase if active
+                if BackendConfig.shared.isFirebaseActive {
+                    for recipe in createdRecipes {
+                        do {
+                            try await FirebaseSyncService.shared.uploadRecipe(recipe)
+
+                            // Upload scanned image if exists
+                            if recipe.imageFileName != nil {
+                                if let imageURL = try await FirebaseSyncService.shared.uploadImage(for: recipe) {
+                                    recipe.firebaseImageURL = imageURL
+                                    try? modelContext.save()
+                                }
+                            }
+
+                            print("✅ Scanned recipe synced to Firebase: \(recipe.title)")
+                        } catch {
+                            print("⚠️ Failed to sync scanned recipe to Firebase: \(error.localizedDescription)")
+                            // Don't fail - local save succeeded
+                        }
+                    }
+                }
 
                 // Success feedback
                 ToastManager.shared.success(
@@ -294,15 +363,24 @@ struct RecipeSelectionCard: View {
                 }
 
                 Spacer()
-
-                // Expand/collapse button
-                Button(action: onToggleExpansion) {
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption)
-                        .foregroundColor(HeirloomColors.secondaryText)
-                }
-                .buttonStyle(.plain)
             }
+
+            // Expand/Collapse button - full width for easy tapping
+            Button(action: onToggleExpansion) {
+                HStack {
+                    Text(isExpanded ? "Hide Details" : "Show Details")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundColor(HeirloomColors.tomato)
+
+                    Spacer()
+
+                    Image(systemName: isExpanded ? "chevron.up.circle.fill" : "chevron.down.circle")
+                        .font(.title3)
+                        .foregroundColor(HeirloomColors.tomato)
+                }
+                .padding(.top, HeirloomSpacing.xs)
+            }
+            .buttonStyle(.plain)
 
             // Expanded content
             if isExpanded {

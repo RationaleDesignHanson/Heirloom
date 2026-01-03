@@ -99,6 +99,9 @@ struct TagManagementView: View {
     // MARK: - Actions
 
     private func deleteTags(at offsets: IndexSet) {
+        // Capture tag IDs before deleting
+        let tagIdsToDelete = offsets.map { tags[$0].id }
+
         for index in offsets {
             let tag = tags[index]
             modelContext.delete(tag)
@@ -106,6 +109,20 @@ struct TagManagementView: View {
 
         do {
             try modelContext.save()
+
+            // Delete from Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                Task {
+                    for tagId in tagIdsToDelete {
+                        do {
+                            try await FirebaseSyncService.shared.deleteTag(tagId)
+                        } catch {
+                            print("⚠️ Failed to delete tag from Firebase: \(error.localizedDescription)")
+                        }
+                    }
+                    print("✅ Tags deleted from Firebase")
+                }
+            }
 
             // Haptic feedback
             let generator = UINotificationFeedbackGenerator()
@@ -232,18 +249,33 @@ struct TagEditorView: View {
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
         guard !trimmedName.isEmpty else { return }
 
-        if let tag = tag {
+        let tagToSync: Tag
+        if let existingTag = tag {
             // Update existing tag
-            tag.name = trimmedName
-            tag.color = selectedColor
+            existingTag.name = trimmedName
+            existingTag.color = selectedColor
+            tagToSync = existingTag
         } else {
             // Create new tag
             let newTag = Tag(name: trimmedName, color: selectedColor)
             modelContext.insert(newTag)
+            tagToSync = newTag
         }
 
         do {
             try modelContext.save()
+
+            // Sync to Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                Task {
+                    do {
+                        try await FirebaseSyncService.shared.uploadTag(tagToSync)
+                        print("✅ Tag synced to Firebase")
+                    } catch {
+                        print("⚠️ Failed to sync tag to Firebase: \(error.localizedDescription)")
+                    }
+                }
+            }
 
             // Haptic feedback
             let generator = UINotificationFeedbackGenerator()

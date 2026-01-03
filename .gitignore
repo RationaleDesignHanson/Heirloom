@@ -74,3 +74,12 @@ backend/*.log
 backend/npm-debug.log*
 backend/yarn-debug.log*
 backend/yarn-error.log*
+
+# Migration tracking (local only)
+.migration-log.txt
+.migration-progress.json
+
+# Test artifacts
+*.xcresult
+test-results/
+TestResults/

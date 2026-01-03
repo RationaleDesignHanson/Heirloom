@@ -165,7 +165,8 @@ class AIRecipeExtractor {
                 image: image,
                 prompt: prompt,
                 schema: DetectionResponse.self,
-                options: options
+                options: options,
+                useCase: .ocr  // Use high-quality OCR settings
             )
 
             return response.recipes
@@ -291,7 +292,8 @@ class AIRecipeExtractor {
                 temperature: 0.3,
                 maxTokens: 1500,
                 systemMessage: "You are an expert at extracting recipes from images. Extract the recipe with high accuracy."
-            )
+            ),
+            useCase: .ocr  // Use high-quality OCR settings
         )
 
         // Track success

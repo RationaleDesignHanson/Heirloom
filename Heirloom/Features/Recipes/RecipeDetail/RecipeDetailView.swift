@@ -16,13 +16,144 @@ struct RecipeDetailView: View {
     @State private var showTagCollectionPicker = false
     @State private var showCardPersonalization = false
     @State private var showCloudKitShare = false
-    @State private var showPassDown = false
     @State private var showHeirloomExplanation = false
     @State private var servingMultiplier: Double = 1.0
     @State private var targetServings: Int = 0
     @State private var showScalingExplanation = false
     @State private var showComments = false
     @State private var showCardBack = false
+    @State private var selectedCollection: RecipeCollection?
+
+    // Version selector
+    @StateObject private var versionViewModel = RecipeVersionSelectorViewModel()
+    @State private var selectedVersion: RecipeLineageVersion?
+    @State private var isDiffExpanded = false
+
+    // Notification service
+    @EnvironmentObject private var notificationService: FirebaseNotificationService
+
+    // MARK: - Computed Display Properties
+
+    /// The title to display (from selected version or base recipe)
+    private var displayTitle: String {
+        selectedVersion?.title ?? recipe.title
+    }
+
+    /// The ingredients to display (always show current recipe's ingredients)
+    private var displayIngredients: [Ingredient]? {
+        recipe.ingredients
+    }
+
+    /// The instructions to display (always show current recipe's instructions)
+    private var displayInstructions: [String] {
+        recipe.instructions
+    }
+
+    /// The image filename to display (from selected version or base recipe)
+    private var displayImageFileName: String? {
+        if let selected = selectedVersion {
+            // If viewing current version's recipe, use its image
+            if let versionRecipe = selected.recipe {
+                return versionRecipe.imageFileName
+            }
+            // If viewing remote version, try to get image from recipe data
+            if let recipeData = selected.recipeData,
+               let imageFileName = recipeData["imageFileName"] as? String {
+                return imageFileName
+            }
+        }
+        // Fall back to base recipe's image
+        return recipe.imageFileName
+    }
+
+    /// Badge text for version/generation indicator
+    private var versionBadgeText: String? {
+        let versionCount = versionViewModel.versions.count
+
+        // If we have multiple versions, show the count
+        if versionCount > 1 {
+            return "\(versionCount) versions"
+        }
+
+        // Otherwise, fall back to generation-based badge
+        guard let provenance = recipe.provenance else { return nil }
+        if provenance.isOriginal {
+            return "Original"
+        } else if provenance.generation > 0 {
+            return "Gen \(provenance.generation)"
+        }
+
+        return nil
+    }
+
+    /// Summary of what changed (for disclosure header)
+    private var changeSummary: String? {
+        guard let selected = selectedVersion,
+              let original = versionViewModel.versions.first(where: { $0.generation == 0 }),
+              selected.generation > 0 else {
+            return nil
+        }
+
+        var changes: [String] = []
+
+        // Check title
+        if selected.title != original.title {
+            changes.append("Title changed")
+        }
+
+        // Check ingredients
+        if let currentRecipe = selected.recipe,
+           let currentIngredients = currentRecipe.ingredients {
+            let currentTexts = currentIngredients.map { $0.originalText }
+            let originalTexts: [String]
+            if let originalRecipe = original.recipe, let ingredients = originalRecipe.ingredients {
+                originalTexts = ingredients.map { $0.originalText }
+            } else if let data = original.recipeData,
+                      let ingredientsData = data["ingredients"] as? [[String: Any]] {
+                originalTexts = ingredientsData.compactMap { $0["originalText"] as? String }
+            } else {
+                originalTexts = []
+            }
+
+            let addedCount = currentTexts.filter { !originalTexts.contains($0) }.count
+            let removedCount = originalTexts.filter { !currentTexts.contains($0) }.count
+            let modifiedCount = addedCount + removedCount
+
+            if modifiedCount > 0 {
+                changes.append("\(modifiedCount) ingredient\(modifiedCount == 1 ? "" : "s") modified")
+            }
+        }
+
+        // Check instructions
+        if let currentRecipe = selected.recipe {
+            let currentInstructions = currentRecipe.instructions
+            let originalInstructions: [String]
+            if let originalRecipe = original.recipe {
+                originalInstructions = originalRecipe.instructions
+            } else if let data = original.recipeData,
+                      let instructions = data["instructions"] as? [String] {
+                originalInstructions = instructions
+            } else {
+                originalInstructions = []
+            }
+
+            var modifiedCount = 0
+            for (index, instruction) in currentInstructions.enumerated() {
+                if index >= originalInstructions.count || instruction != originalInstructions[index] {
+                    modifiedCount += 1
+                }
+            }
+            if originalInstructions.count > currentInstructions.count {
+                modifiedCount += originalInstructions.count - currentInstructions.count
+            }
+
+            if modifiedCount > 0 {
+                changes.append("\(modifiedCount) instruction\(modifiedCount == 1 ? "" : "s") modified")
+            }
+        }
+
+        return changes.isEmpty ? nil : changes.joined(separator: ", ")
+    }
 
     var body: some View {
         ScrollView {
@@ -34,6 +165,16 @@ struct RecipeDetailView: View {
 
                 // Content
                 VStack(alignment: .leading, spacing: HeirloomSpacing.xl) {
+                    // Unified Version Control Card
+                    RecipeVersionSelector(
+                        viewModel: versionViewModel,
+                        selectedVersion: $selectedVersion,
+                        isDiffExpanded: $isDiffExpanded,
+                        changeSummary: changeSummary,
+                        originalVersion: versionViewModel.versions.first(where: { $0.generation == 0 })
+                    )
+                    .padding(.horizontal, HeirloomSpacing.lg)
+
                     // Header Section
                     headerSection
 
@@ -109,19 +250,7 @@ struct RecipeDetailView: View {
                         Button {
                             showCloudKitShare = true
                         } label: {
-                            Label("Share Recipe", systemImage: "icloud.fill")
-                        }
-
-                        Button {
-                            showPassDown = true
-                        } label: {
-                            Label("Share Recipe as Heirloom", systemImage: "arrow.down.heart.fill")
-                        }
-
-                        Button {
-                            showHeirloomExplanation = true
-                        } label: {
-                            Label("What's an Heirloom Share?", systemImage: "info.circle")
+                            Label("Share Recipe", systemImage: "square.and.arrow.up")
                         }
                     } label: {
                         Label("Share", systemImage: "square.and.arrow.up")
@@ -203,9 +332,6 @@ struct RecipeDetailView: View {
         .sheet(isPresented: $showCloudKitShare) {
             RecipeShareSheet(recipe: recipe)
         }
-        .sheet(isPresented: $showPassDown) {
-            PassDownView(recipe: recipe)
-        }
         .sheet(isPresented: $showComments) {
             NavigationStack {
                 RecipeCommentListView(recipe: recipe)
@@ -220,12 +346,32 @@ struct RecipeDetailView: View {
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe)
         }
+        .task {
+            // Load versions when view appears
+            await versionViewModel.loadVersions(for: recipe, context: modelContext)
+
+            // Mark notifications as read for this recipe
+            do {
+                try await notificationService.markAllAsRead(for: recipe.id)
+                print("✅ [Notifications] Marked all notifications as read for recipe: \(recipe.title)")
+            } catch {
+                print("❌ [Notifications] Failed to mark as read: \(error)")
+            }
+        }
+        .onChange(of: selectedVersion) { oldValue, newValue in
+            // Save the selected version ID to recipe for persistence
+            if let newVersion = newValue, let recipeId = newVersion.recipe?.id {
+                recipe.lastViewedVersionId = recipeId
+                try? modelContext.save()
+                print("✅ [VersionSelector] Saved last viewed version: \(newVersion.displayName)")
+            }
+        }
     }
 
     // MARK: - Image Section
     private var recipeImage: some View {
         AsyncRecipeImage(
-            imageFileName: recipe.imageFileName,
+            imageFileName: displayImageFileName,
             placeholder: recipe.sourceType?.iconName ?? "fork.knife"
         )
     }
@@ -234,7 +380,7 @@ struct RecipeDetailView: View {
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             // Title
-            Text(recipe.title)
+            Text(displayTitle)
                 .font(HeirloomFonts.title1)
                 .foregroundStyle(HeirloomColors.charcoal)
 
@@ -319,18 +465,54 @@ struct RecipeDetailView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: HeirloomSpacing.xs) {
                             ForEach(collections, id: \.id) { collection in
-                                HStack(spacing: 6) {
-                                    Image(systemName: collection.iconName)
-                                        .font(.caption2)
-                                        .foregroundStyle(collection.swiftUIColor)
+                                Button {
+                                    selectedCollection = collection
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: collection.iconName)
+                                            .font(.caption2)
+                                            .foregroundStyle(collection.swiftUIColor)
 
-                                    Text(collection.name)
-                                        .font(HeirloomFonts.caption1)
+                                        Text(collection.name)
+                                            .font(HeirloomFonts.caption1)
+                                            .foregroundStyle(HeirloomColors.primaryText)
+                                    }
+                                    .padding(.horizontal, HeirloomSpacing.sm)
+                                    .padding(.vertical, 6)
+                                    .background(collection.swiftUIColor.opacity(0.15))
+                                    .cornerRadius(12)
                                 }
-                                .padding(.horizontal, HeirloomSpacing.sm)
-                                .padding(.vertical, 6)
-                                .background(collection.swiftUIColor.opacity(0.15))
-                                .cornerRadius(12)
+                                .buttonStyle(.plain)
+                                .popover(item: $selectedCollection) { selectedItem in
+                                    if selectedItem.id == collection.id {
+                                        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+                                            HStack(spacing: HeirloomSpacing.sm) {
+                                                Image(systemName: collection.iconName)
+                                                    .font(.title3)
+                                                    .foregroundStyle(collection.swiftUIColor)
+
+                                                Text(collection.name)
+                                                    .font(HeirloomFonts.bodyBold)
+                                                    .foregroundStyle(HeirloomColors.primaryText)
+                                            }
+
+                                            if let desc = collection.desc, !desc.isEmpty {
+                                                Text(desc)
+                                                    .font(HeirloomFonts.body)
+                                                    .foregroundStyle(HeirloomColors.secondaryText)
+                                                    .fixedSize(horizontal: false, vertical: true)
+                                            } else {
+                                                Text("No description available")
+                                                    .font(HeirloomFonts.caption1)
+                                                    .foregroundStyle(HeirloomColors.secondaryText)
+                                                    .italic()
+                                            }
+                                        }
+                                        .padding(HeirloomSpacing.lg)
+                                        .frame(maxWidth: 280)
+                                        .presentationCompactAdaptation(.popover)
+                                    }
+                                }
                             }
                         }
                     }
@@ -647,12 +829,18 @@ struct RecipeDetailView: View {
             sectionHeader(
                 title: "Instructions",
                 icon: "list.number",
-                count: recipe.instructions.count
+                count: displayInstructions.count
             )
 
             VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-                ForEach(Array(recipe.instructions.enumerated()), id: \.offset) { index, instruction in
-                    instructionRow(number: index + 1, text: instruction)
+                ForEach(Array(displayInstructions.enumerated()), id: \.offset) { index, instruction in
+                    instructionRow(
+                        number: index + 1,
+                        text: instruction,
+                        isModified: selectedVersion?.generation ?? 0 > 0 &&
+                                    index < recipe.instructions.count &&
+                                    instruction != recipe.instructions[index]
+                    )
                 }
             }
             .padding(HeirloomSpacing.md)
@@ -663,11 +851,11 @@ struct RecipeDetailView: View {
         }
     }
 
-    private func instructionRow(number: Int, text: String) -> some View {
+    private func instructionRow(number: Int, text: String, isModified: Bool = false) -> some View {
         HStack(alignment: .top, spacing: HeirloomSpacing.md) {
             ZStack {
                 Circle()
-                    .fill(HeirloomColors.tomato)
+                    .fill(isModified ? HeirloomColors.success : HeirloomColors.tomato)
                     .frame(width: 32, height: 32)
 
                 Text("\(number)")
@@ -713,19 +901,8 @@ struct RecipeDetailView: View {
                         .font(HeirloomFonts.callout)
                         .foregroundStyle(HeirloomColors.charcoal.opacity(0.8))
 
-                    // Generation badge
-                    if provenance.isOriginal {
-                        Text("Original")
-                            .font(HeirloomFonts.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(
-                                Capsule()
-                                    .fill(HeirloomColors.tomato)
-                            )
-                    } else if let badgeText = provenance.generationBadgeText {
+                    // Version/Generation badge
+                    if let badgeText = versionBadgeText {
                         Text(badgeText)
                             .font(HeirloomFonts.caption2)
                             .fontWeight(.semibold)
@@ -734,7 +911,7 @@ struct RecipeDetailView: View {
                             .padding(.vertical, 3)
                             .background(
                                 Capsule()
-                                    .fill(HeirloomColors.familyGreen)
+                                    .fill(versionViewModel.versions.count > 1 ? HeirloomColors.familyGreen : (provenance.isOriginal ? HeirloomColors.tomato : HeirloomColors.familyGreen))
                             )
                     }
                 }
@@ -950,6 +1127,36 @@ struct RecipeDetailView: View {
     private func toggleFavorite() {
         recipe.isFavorite.toggle()
         recipe.lastModified = Date()
+
+        print("❤️ [Favorite] Toggling favorite for '\(recipe.title)' to \(recipe.isFavorite)")
+        print("🔧 [Favorite] Backend: Firebase, isFirebaseActive: \(BackendConfig.shared.isFirebaseActive)")
+
+        do {
+            try modelContext.save()
+            print("💾 [Favorite] Local save successful")
+
+            // Sync favorite status to Firebase
+            if BackendConfig.shared.isFirebaseActive {
+                print("🔄 [Favorite] Firebase is active, starting upload...")
+                Task {
+                    do {
+                        try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                        print("✅ Favorite status synced to Firebase")
+                    } catch {
+                        print("⚠️ Failed to sync favorite status: \(error.localizedDescription)")
+                    }
+                }
+            } else {
+                print("⏭️ [Favorite] Firebase not active, skipping upload")
+            }
+        } catch {
+            print("❌ [Favorite] Local save failed: \(error.localizedDescription)")
+            ToastManager.shared.error(
+                title: "Failed to update favorite",
+                message: error.localizedDescription
+            )
+            return
+        }
 
         // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: recipe.isFavorite ? .medium : .light)

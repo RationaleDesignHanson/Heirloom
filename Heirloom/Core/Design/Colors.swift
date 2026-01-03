@@ -28,17 +28,38 @@ enum HeirloomColors {
     static let warning = Color(hex: "E5A54B")
     static let error = tomato
 
+    // MARK: - Conflict Resolution Colors (v2.0+)
+    /// Color for conflicts requiring user decision
+    static let conflictAlert = tomato
+    /// Color for safe auto-mergeable changes
+    static let conflictSafe = familyGreen
+    /// Color for context/information in conflict UI
+    static let conflictInfo = amber
+    /// Color for unchanged/neutral fields
+    static let conflictNeutral = warmGray
+    /// Background for conflict resolution cards
+    static let conflictCardBackground = Color.white
+    /// Background when a conflict option is selected
+    static let conflictSelectedBackground = tomato.opacity(0.1)
+    /// Background for conflict banner/alert
+    static let conflictBannerBackground = Color(hex: "FFF5F5")
+
     // MARK: - Effects
     static let cardShadow = Color.black.opacity(0.08)
     static let coffeeStain = Color(hex: "8B7355")
     static let flourDust = Color.white.opacity(0.6)
 
     // MARK: - Background Gradients
-    static let appBackground = LinearGradient(
-        colors: [cream, Color.white],
-        startPoint: .top,
-        endPoint: .bottom
-    )
+    static var appBackground: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(light: cream, dark: Color(hex: "1C1C1C")),
+                Color(light: .white, dark: Color(hex: "121212"))
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
 }
 
 // MARK: - Color Extension for Hex

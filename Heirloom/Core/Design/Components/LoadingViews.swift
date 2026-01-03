@@ -206,6 +206,14 @@ struct AsyncRecipeImage: View {
                 }
             }
         }
+        .onChange(of: imageFileName) { oldValue, newValue in
+            // Re-attempt load if imageFileName changes from nil to a value (after async download)
+            if oldValue == nil && newValue != nil {
+                Task {
+                    await loadImage()
+                }
+            }
+        }
         .transaction { transaction in
             transaction.animation = nil  // Disable all animations
         }

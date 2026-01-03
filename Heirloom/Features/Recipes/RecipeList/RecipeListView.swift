@@ -9,7 +9,6 @@ struct RecipeListView: View {
     @State private var searchText = ""
     @State private var showAddRecipe = false
     @State private var showImportRecipe = false
-    @State private var showJSONImport = false
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
     @State private var showFilters = false
@@ -18,22 +17,34 @@ struct RecipeListView: View {
     @State private var showDeleteConfirmation = false
     @StateObject private var undoService = UndoService.shared
     @State private var isSyncing = false
-    @StateObject private var syncCoordinator = CloudKitSyncCoordinator.shared
+
+    // Conflict resolution
+    @State private var showConflictResolution = false
+    @State private var conflictRecipeCRDT: RecipeCRDT?
+    @State private var conflictList: [DetailedConflict] = []
 
     var body: some View {
         NavigationStack {
-            Group {
-                if recipes.isEmpty {
-                    emptyState
-                } else if filteredRecipes.isEmpty {
-                    noResultsState
-                } else {
-                    recipeGrid
+            GeometryReader { geometry in
+                ScrollView {
+                    if recipes.isEmpty {
+                        emptyState
+                            .frame(minHeight: geometry.size.height)
+                    } else if filteredRecipes.isEmpty {
+                        noResultsState
+                            .frame(minHeight: geometry.size.height)
+                    } else {
+                        recipeGridContent
+                    }
                 }
+                .background(HeirloomColors.appBackground)
             }
             .navigationTitle("Recipes")
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, prompt: "Search recipes")
+            .refreshable {
+                await refreshRecipes()
+            }
             .toolbar {
                 // Sync status indicator (Quick Win #7)
                 ToolbarItem(placement: .topBarLeading) {
@@ -92,14 +103,6 @@ struct RecipeListView: View {
                         .accessibilityHint("Import a recipe from a website URL")
 
                         Button {
-                            showJSONImport = true
-                        } label: {
-                            Label("Import from JSON", systemImage: "doc.badge.arrow.up")
-                        }
-                        .accessibilityLabel("Import from JSON")
-                        .accessibilityHint("Import a recipe from a JSON file")
-
-                        Button {
                             showBulkImport = true
                         } label: {
                             Label("Bulk Import", systemImage: "square.stack.3d.down.forward")
@@ -124,16 +127,6 @@ struct RecipeListView: View {
                         }
                         .accessibilityLabel("Add Sample Recipe")
                         .accessibilityHint("Add a sample recipe for testing")
-
-                        Divider()
-
-                        Button {
-                            testAIAPI()
-                        } label: {
-                            Label("🧪 Test AI API", systemImage: "wand.and.stars")
-                        }
-                        .accessibilityLabel("Test AI API")
-                        .accessibilityHint("Test the AI recipe extraction API")
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -149,13 +142,6 @@ struct RecipeListView: View {
             }
             .sheet(isPresented: $showImportRecipe) {
                 RecipeImportView()
-            }
-            .fileImporter(
-                isPresented: $showJSONImport,
-                allowedContentTypes: [.json],
-                allowsMultipleSelection: false
-            ) { result in
-                handleJSONImport(result: result)
             }
             .sheet(isPresented: $showBulkImport) {
                 BulkImportView()
@@ -182,88 +168,78 @@ struct RecipeListView: View {
                 // Configure UndoService with model context
                 undoService.configure(modelContext: modelContext)
             }
+            .onReceive(NotificationCenter.default.publisher(for: .recipeConflictsDetected)) { notification in
+                handleConflictNotification(notification)
+            }
+            .sheet(isPresented: $showConflictResolution) {
+                conflictResolutionSheet
+            }
         }
     }
 
-    // MARK: - Recipe Grid
-    private var recipeGrid: some View {
-        ScrollView {
-            LazyVGrid(
-                columns: [
-                    GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing),
-                    GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
-                ],
-                spacing: HeirloomSpacing.gridSpacing
-            ) {
-                ForEach(Array(filteredRecipes.enumerated()), id: \.element.id) { index, recipe in
-                    NavigationLink(value: recipe) {
-                        RecipeCardView(recipe: recipe)
-                    }
-                    .buttonStyle(.plain)
-                    .id(recipe.id)
-                    .accessibilityLabel("\(recipe.title), \(recipe.sourceDisplayName)")
-                    .accessibilityHint("Opens recipe details")
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        // Quick Win #5: Swipe to delete
-                        Button(role: .destructive) {
-                            recipeToDelete = recipe
-                            showDeleteConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                        Button {
-                            toggleFavorite(recipe)
-                        } label: {
-                            Label(
-                                recipe.isFavorite ? "Unfavorite" : "Favorite",
-                                systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
-                            )
-                        }
-                        .tint(.yellow)
-                    }
-                    .contextMenu {
-                        Button {
-                            toggleFavorite(recipe)
-                        } label: {
-                            Label(
-                                recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-                                systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
-                            )
-                        }
-                        .accessibilityLabel(recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites")
+    // MARK: - Conflict Resolution Sheet
+    @ViewBuilder
+    private var conflictResolutionSheet: some View {
+        if let recipeCRDT = conflictRecipeCRDT, !conflictList.isEmpty {
+            ConflictResolutionWrapper(
+                conflicts: conflictList,
+                recipeCRDT: recipeCRDT
+            )
+        }
+    }
 
-                        Button {
-                            toggleShoppingList(recipe)
-                        } label: {
-                            Label(
-                                recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List",
-                                systemImage: recipe.isInShoppingList ? "cart.badge.minus" : "cart.badge.plus"
-                            )
-                        }
-                        .accessibilityLabel(recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List")
-
-                        Divider()
-
-                        Button(role: .destructive) {
-                            recipeToDelete = recipe
-                            showDeleteConfirmation = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                        .accessibilityLabel("Delete \(recipe.title)")
+    // MARK: - Recipe Grid Content
+    private var recipeGridContent: some View {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing),
+                GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
+            ],
+            spacing: HeirloomSpacing.gridSpacing
+        ) {
+            ForEach(Array(filteredRecipes.enumerated()), id: \.element.id) { index, recipe in
+                NavigationLink(value: recipe) {
+                    RecipeCardView(recipe: recipe)
+                }
+                .buttonStyle(.plain)
+                .id(recipe.id)
+                .accessibilityLabel("\(recipe.title), \(recipe.sourceDisplayName)")
+                .accessibilityHint("Opens recipe details")
+                .contextMenu {
+                    Button {
+                        toggleFavorite(recipe)
+                    } label: {
+                        Label(
+                            recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                            systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
+                        )
                     }
+                    .accessibilityLabel(recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites")
+
+                    Button {
+                        toggleShoppingList(recipe)
+                    } label: {
+                        Label(
+                            recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List",
+                            systemImage: recipe.isInShoppingList ? "cart.badge.minus" : "cart.badge.plus"
+                        )
+                    }
+                    .accessibilityLabel(recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List")
+
+                    Divider()
+
+                    Button(role: .destructive) {
+                        recipeToDelete = recipe
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    .accessibilityLabel("Delete \(recipe.title)")
                 }
             }
-            .padding(.horizontal, HeirloomSpacing.md)
-            .padding(.vertical, HeirloomSpacing.sm)
         }
-        .refreshable {
-            await refreshRecipes()
-        }
-        .tint(HeirloomColors.tomato) // Set pull-to-refresh spinner color
-        .background(HeirloomColors.appBackground)
+        .padding(.horizontal, HeirloomSpacing.md)
+        .padding(.vertical, HeirloomSpacing.sm)
     }
 
     // MARK: - Empty State
@@ -365,16 +341,30 @@ struct RecipeListView: View {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
 
-        // Trigger CloudKit sync
-        await syncCoordinator.processPendingOperations()
+        // Trigger Firebase sync to download and merge changes
+        if BackendConfig.shared.isFirebaseActive {
+            do {
+                try await FirebaseSyncService.shared.syncChangesWithCRDT()
+                print("✅ Pull-to-refresh: Firebase sync complete")
 
-        // SwiftData query auto-updates, so recipes refresh automatically
-        // Add small delay for better UX (feels more responsive)
-        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+                // Success haptic
+                let successGenerator = UINotificationFeedbackGenerator()
+                successGenerator.notificationOccurred(.success)
+            } catch {
+                print("⚠️ Pull-to-refresh: Firebase sync failed: \(error)")
 
-        // Success haptic
-        let successGenerator = UINotificationFeedbackGenerator()
-        successGenerator.notificationOccurred(.success)
+                // Error haptic
+                let errorGenerator = UINotificationFeedbackGenerator()
+                errorGenerator.notificationOccurred(.error)
+            }
+        } else {
+            // If Firebase not active, just add small delay for better UX
+            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+            // Success haptic
+            let successGenerator = UINotificationFeedbackGenerator()
+            successGenerator.notificationOccurred(.success)
+        }
 
         await MainActor.run {
             isSyncing = false
@@ -385,6 +375,18 @@ struct RecipeListView: View {
         // Haptic feedback for deletion action
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
+
+        // Delete from Firebase if active
+        if BackendConfig.shared.isFirebaseActive {
+            Task {
+                do {
+                    try await FirebaseSyncService.shared.deleteRecipe(recipe.id)
+                    print("✅ Recipe deleted from Firebase")
+                } catch {
+                    print("⚠️ Failed to delete recipe from Firebase: \(error.localizedDescription)")
+                }
+            }
+        }
 
         // Use UndoService for soft delete with undo capability
         undoService.deleteRecipe(recipe, context: modelContext)
@@ -408,8 +410,27 @@ struct RecipeListView: View {
         recipe.isFavorite.toggle()
         recipe.lastModified = Date()
 
+        print("❤️ [Favorite] Toggling favorite for '\(recipe.title)' to \(recipe.isFavorite)")
+        print("🔧 [Favorite] Backend: Firebase, isFirebaseActive: \(BackendConfig.shared.isFirebaseActive)")
+
         do {
             try modelContext.save()
+            print("💾 [Favorite] Local save successful")
+
+            // Sync favorite status to Firebase
+            if BackendConfig.shared.isFirebaseActive {
+                print("🔄 [Favorite] Firebase is active, starting upload...")
+                Task {
+                    do {
+                        try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                        print("✅ Favorite status synced to Firebase")
+                    } catch {
+                        print("⚠️ Failed to sync favorite status: \(error.localizedDescription)")
+                    }
+                }
+            } else {
+                print("⏭️ [Favorite] Firebase not active, skipping upload")
+            }
 
             // Haptic feedback
             let generator = UIImpactFeedbackGenerator(style: .light)
@@ -434,6 +455,8 @@ struct RecipeListView: View {
             do {
                 try modelContext.save()
 
+                // Shopping cart is local-only (no Firebase sync needed for ephemeral data)
+
                 // Haptic feedback
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
@@ -455,6 +478,8 @@ struct RecipeListView: View {
             do {
                 try modelContext.save()
 
+                // Shopping cart is local-only (no Firebase sync needed for ephemeral data)
+
                 // Haptic feedback
                 let generator = UIImpactFeedbackGenerator(style: .medium)
                 generator.impactOccurred()
@@ -473,54 +498,6 @@ struct RecipeListView: View {
 
         recipe.lastModified = Date()
         try? modelContext.save()
-    }
-
-    private func handleJSONImport(result: Result<[URL], Error>) {
-        switch result {
-        case .success(let urls):
-            guard let url = urls.first else { return }
-
-            do {
-                // Import recipe from JSON
-                let recipe = try RecipeExportService.shared.importRecipeFromJSON(url: url)
-
-                // Insert into context
-                modelContext.insert(recipe)
-                try modelContext.save()
-
-                // Success feedback
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.success)
-
-                ToastManager.shared.success(
-                    title: "Recipe Imported",
-                    message: recipe.title
-                )
-
-                // Track analytics
-                AnalyticsService.shared.track(event: .featureUsed, properties: [
-                    "feature": "json_import",
-                    "recipe_title": recipe.title
-                ])
-
-                // Check milestones
-                checkRecipeMilestones()
-            } catch {
-                // Error feedback
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.error)
-
-                ToastManager.shared.error(
-                    title: "Import Failed",
-                    message: error.localizedDescription
-                )
-            }
-        case .failure(let error):
-            ToastManager.shared.error(
-                title: "Import Failed",
-                message: error.localizedDescription
-            )
-        }
     }
 
     private func addSampleRecipe() {
@@ -633,6 +610,28 @@ struct RecipeListView: View {
                 try modelContext.save()
             }
 
+            // Sync to Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                do {
+                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                    print("✅ Sample recipe synced to Firebase")
+
+                    // Create root lineage for sample recipe
+                    do {
+                        try await FirebaseLineageService.shared.createRootLineage(
+                            recipeId: recipe.id,
+                            context: modelContext
+                        )
+                        print("✅ Sample recipe lineage created")
+                    } catch {
+                        print("⚠️ Failed to create sample recipe lineage: \(error.localizedDescription)")
+                    }
+                } catch {
+                    print("⚠️ Failed to sync sample recipe to Firebase: \(error.localizedDescription)")
+                    // Don't fail the save - local save succeeded
+                }
+            }
+
             // Success feedback
             await MainActor.run {
                 ToastManager.shared.success(
@@ -687,109 +686,231 @@ struct RecipeListView: View {
         }
     }
 
-    // MARK: - AI API Test
+    private func handleConflictNotification(_ notification: Notification) {
+        guard let conflictsDetected = notification.object as? [(crdt: RecipeCRDT, conflicts: [DetailedConflict])] else {
+            print("⚠️ [RecipeListView] Failed to parse conflict notification")
+            return
+        }
 
-    private func testAIAPI() {
-        Task {
-            print("\n🧪 Starting AI API Test...")
-            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("🔔 [RecipeListView] Received conflict notification for \(conflictsDetected.count) recipe(s)")
 
-            // Enable AI features (API key should be configured via Settings)
-            // For testing: Read API key from file at /Users/matthanson/Desktop/heriloom.txt
-            if let apiKey = try? String(contentsOfFile: "/Users/matthanson/Desktop/heriloom.txt", encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines), !apiKey.isEmpty {
-                AIConfiguration.shared.setAPIKey(apiKey, for: .anthropic)
-                AIConfiguration.shared.enableAIParsing = true
-                print("✅ AI parsing enabled for recipe imports")
-            } else {
-                print("⚠️ No API key found. Please add key to /Users/matthanson/Desktop/heriloom.txt")
-                print("   Or configure via Settings once AI Settings UI is built")
-            }
+        // For now, show the first conflict
+        // TODO: In the future, show a list of all conflicting recipes
+        if let first = conflictsDetected.first {
+            conflictRecipeCRDT = first.crdt
+            conflictList = first.conflicts
+            showConflictResolution = true
 
-            // Step 1: Check configuration
-            print("\n1️⃣ Checking configuration...")
-            let config = AIConfiguration.shared
+            print("✅ [RecipeListView] Showing conflict resolution UI for: \(first.crdt.recipe.title)")
+        }
+    }
+}
 
-            if config.isConfigured(provider: .anthropic) {
-                print("✅ Anthropic API key is configured")
-            } else {
-                print("❌ Anthropic API key NOT configured")
-                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-                return
-            }
+// MARK: - Conflict Resolution Wrapper
+struct ConflictResolutionWrapper: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
 
-            // Step 2: Test simple completion
-            print("\n2️⃣ Testing simple completion...")
-            do {
-                let service = AnthropicAIService.shared
-                let response = try await service.complete(
-                    prompt: "Say 'Hello from Heirloom!' in exactly 3 words.",
-                    options: AICompletionOptions(
-                        model: "claude-3-haiku-20240307",
-                        temperature: 0.7,
-                        maxTokens: 50,
-                        systemMessage: "You are a helpful assistant.",
-                        stopSequences: nil
-                    )
-                )
+    let conflicts: [DetailedConflict]
+    let recipeCRDT: RecipeCRDT
 
-                print("✅ API call successful!")
-                print("   Response: \(response.content)")
-                print("   Model: \(response.model)")
-                print("   Tokens used: \(response.usage.totalTokens)")
-                print("   Cost: $\(response.usage.totalCost)")
+    @State private var resolutions: [String: ConflictResolution.ResolutionChoice] = [:]
 
-            } catch let error as AIError {
-                print("❌ API call failed: \(error.errorDescription ?? "Unknown error")")
-                print("   Context: \(error.context)")
-            } catch {
-                print("❌ Unexpected error: \(error)")
-            }
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("⚠️ Conflict Detected")
+                        .font(.title)
+                    Text("Recipe: \(recipeCRDT.recipe.title)")
+                        .font(.headline)
+                    Text("\(conflicts.count) field(s) need resolution")
+                        .font(.subheadline)
 
-            // Step 3: Test structured completion (JSON response)
-            print("\n3️⃣ Testing structured completion (JSON)...")
+                    ForEach(Array(conflicts.enumerated()), id: \.offset) { index, conflict in
+                        VStack(alignment: .leading) {
+                            Text("Field: \(conflict.fieldPath)")
+                                .font(.caption)
+                                .bold()
+                            Text("Local: \(conflict.localValue?.stringValue ?? "N/A")")
+                                .font(.caption2)
+                            Text("Remote: \(conflict.remoteValue?.stringValue ?? "N/A")")
+                                .font(.caption2)
 
-            struct IngredientTest: Codable {
-                let quantity: Double?
-                let unit: String?
-                let name: String
-            }
+                            HStack {
+                                Button("Keep Local") {
+                                    resolutions[conflict.fieldPath] = .keepLocal
+                                }
+                                .buttonStyle(.bordered)
 
-            do {
-                let service = AnthropicAIService.shared
-                let ingredient = try await service.completeStructured(
-                    prompt: """
-                    Parse this ingredient: "2 cups flour"
+                                Button("Keep Remote") {
+                                    resolutions[conflict.fieldPath] = .keepRemote
+                                }
+                                .buttonStyle(.bordered)
+                            }
 
-                    Return JSON:
-                    {
-                      "quantity": 2.0,
-                      "unit": "cups",
-                      "name": "flour"
+                            if let choice = resolutions[conflict.fieldPath] {
+                                Text("✓ Choice: \(choiceDescription(choice))")
+                                    .font(.caption2)
+                                    .foregroundColor(.green)
+                            }
+                        }
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
                     }
-                    """,
-                    schema: IngredientTest.self
-                )
 
-                print("✅ Structured completion successful!")
-                print("   Quantity: \(ingredient.quantity ?? 0)")
-                print("   Unit: \(ingredient.unit ?? "none")")
-                print("   Name: \(ingredient.name)")
+                    if allResolved {
+                        Button("Save Resolution") {
+                            Task {
+                                await saveResolution()
+                            }
+                        }
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                    }
 
-            } catch let error as AIError {
-                print("❌ Structured completion failed: \(error.errorDescription ?? "Unknown error")")
-            } catch {
-                print("❌ Unexpected error: \(error)")
+                    Button("Close for Now") {
+                        dismiss()
+                    }
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                .padding()
+            }
+            .navigationTitle("Resolve Conflict")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private var allResolved: Bool {
+        resolutions.count == conflicts.count
+    }
+
+    private func choiceDescription(_ choice: ConflictResolution.ResolutionChoice) -> String {
+        switch choice {
+        case .keepLocal: return "Keep Local"
+        case .keepRemote: return "Keep Remote"
+        case .keepBoth: return "Keep Both"
+        case .custom: return "Custom"
+        }
+    }
+
+    private func applyValueToRecipe(_ value: OperationValue, forField fieldPath: String) {
+        print("🔧 [ConflictResolution] Applying value to field: \(fieldPath)")
+        switch fieldPath {
+        case "title":
+            if let stringValue = value.stringValue {
+                recipeCRDT.recipe.title = stringValue
+                print("🔧 [ConflictResolution] Set title to: \(stringValue)")
+            }
+        case "notes":
+            if let stringValue = value.stringValue {
+                recipeCRDT.recipe.notes = stringValue
+            } else if case .null = value {
+                recipeCRDT.recipe.notes = nil
+            }
+        case "prepTime":
+            if let stringValue = value.stringValue {
+                recipeCRDT.recipe.prepTime = stringValue
+            } else if case .null = value {
+                recipeCRDT.recipe.prepTime = nil
+            }
+        case "cookTime":
+            if let stringValue = value.stringValue {
+                recipeCRDT.recipe.cookTime = stringValue
+            } else if case .null = value {
+                recipeCRDT.recipe.cookTime = nil
+            }
+        case "servings":
+            if let stringValue = value.stringValue {
+                recipeCRDT.recipe.servings = stringValue
+            } else if case .null = value {
+                recipeCRDT.recipe.servings = nil
+            }
+        default:
+            print("⚠️ [ConflictResolution] Unknown field path: \(fieldPath)")
+        }
+    }
+
+    @MainActor
+    private func saveResolution() async {
+        print("🔧 [ConflictResolution] Starting save resolution...")
+        print("🔧 [ConflictResolution] Recipe title before resolution: \(recipeCRDT.recipe.title)")
+
+        // Build resolutions list and apply values directly
+        let resolutionsList = conflicts.compactMap { conflict -> ConflictResolution? in
+            guard let choice = resolutions[conflict.fieldPath] else { return nil }
+
+            // Apply the chosen value directly to the recipe
+            print("🔧 [ConflictResolution] Applying choice \(choice) for field: \(conflict.fieldPath)")
+            switch choice {
+            case .keepLocal:
+                if let localValue = conflict.localValue {
+                    applyValueToRecipe(localValue, forField: conflict.fieldPath)
+                }
+            case .keepRemote:
+                if let remoteValue = conflict.remoteValue {
+                    applyValueToRecipe(remoteValue, forField: conflict.fieldPath)
+                }
+            default:
+                break
             }
 
-            // Step 4: Show usage statistics
-            print("\n4️⃣ Usage statistics...")
-            let tracker = AIUsageTracker.shared
-            print("   Total tokens used: \(tracker.totalTokensUsed)")
-            print("   Total cost: $\(tracker.totalCost)")
-            print("   Request count: \(tracker.requestCount)")
+            return ConflictResolution(
+                fieldPath: conflict.fieldPath,
+                localOperationId: conflict.operation1.id,
+                remoteOperationId: conflict.operation2.id,
+                choice: choice
+            )
+        }
 
-            print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            print("✅ Test complete!")
+        print("🔧 [ConflictResolution] Recipe title after applying values: \(recipeCRDT.recipe.title)")
+        print("🔧 [ConflictResolution] Applying \(resolutionsList.count) resolutions to CRDT...")
+
+        // Apply resolutions to CRDT operation log
+        CRDTMergeEngine.shared.applyUserResolution(resolutionsList, to: recipeCRDT)
+
+        print("🔧 [ConflictResolution] Recipe title after CRDT resolution: \(recipeCRDT.recipe.title)")
+
+        // Clear conflict flags on the recipe
+        print("🔧 [ConflictResolution] Clearing conflict flags")
+        recipeCRDT.recipe.hasPendingConflicts = false
+        recipeCRDT.recipe.showConflictBadge = false
+        recipeCRDT.recipe.lastModified = Date()
+
+        // Save to database
+        do {
+            print("🔧 [ConflictResolution] Saving to database...")
+            try modelContext.save()
+            print("✅ [ConflictResolution] Database save successful")
+
+            // Sync to Firebase
+            if BackendConfig.shared.isFirebaseActive {
+                print("🔧 [ConflictResolution] Uploading to Firebase...")
+                try await FirebaseSyncService.shared.uploadRecipe(recipeCRDT.recipe)
+                print("✅ [ConflictResolution] Firebase upload successful")
+            }
+
+            // Show success
+            ToastManager.shared.success(
+                title: "Recipe Merged",
+                message: "All conflicts resolved successfully"
+            )
+
+            print("✅ [ConflictResolution] Resolution complete!")
+            dismiss()
+        } catch {
+            print("❌ [ConflictResolution] Save failed: \(error.localizedDescription)")
+            // Show error
+            ToastManager.shared.error(
+                title: "Failed to Save",
+                message: error.localizedDescription
+            )
         }
     }
 }
@@ -797,11 +918,16 @@ struct RecipeListView: View {
 // MARK: - Recipe Card View
 struct RecipeCardView: View {
     let recipe: Recipe
+    @EnvironmentObject private var notificationService: FirebaseNotificationService
+
+    private var unreadCount: Int {
+        notificationService.unreadCount(for: recipe.id)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             // Recipe Image with async loading and favorite badge overlay
-            ZStack(alignment: .topLeading) {
+            ZStack {
                 AsyncRecipeImage(
                     imageFileName: recipe.imageFileName,
                     placeholder: recipe.sourceType?.iconName ?? "fork.knife"
@@ -825,6 +951,40 @@ struct RecipeCardView: View {
                         )
                         .padding(8)
                         .accessibilityLabel("Favorite")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                }
+
+                // Notification badge (top right overlay)
+                if unreadCount > 0 {
+                    ZStack {
+                        Circle()
+                            .fill(HeirloomColors.tomato)
+                            .frame(width: 24, height: 24)
+                            .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+
+                        Text("\(unreadCount)")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .padding(8)
+                    .accessibilityLabel("\(unreadCount) unread notification\(unreadCount == 1 ? "" : "s")")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                }
+
+                // Conflict warning badge (bottom left overlay)
+                if recipe.showConflictBadge || recipe.hasPendingConflicts {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.white)
+                        .font(.title3)
+                        .padding(8)
+                        .background(
+                            Circle()
+                                .fill(HeirloomColors.conflictAlert)
+                                .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                        )
+                        .padding(8)
+                        .accessibilityLabel("Has unresolved conflicts")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 }
             }
 

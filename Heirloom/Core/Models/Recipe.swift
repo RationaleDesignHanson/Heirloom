@@ -103,6 +103,9 @@ final class Recipe {
     /// Currently selected version ID for cooking/display
     var selectedVersionID: UUID?
 
+    /// Last viewed version ID (for tracking which version user last saw)
+    var lastViewedVersionId: UUID?
+
     /// Sharing permission level for this recipe
     var sharingPermissionRaw: String = SharingPermissionLevel.regular.rawValue
 
@@ -118,6 +121,26 @@ final class Recipe {
 
     /// Created timestamp
     var createdAt: Date = Date()
+
+    // MARK: - CRDT Support (v2.0+)
+    /// Whether this recipe uses CRDT conflict resolution
+    var usesCRDT: Bool = true  // Default true for new recipes
+
+    /// Device ID that last modified this recipe
+    var lastModifiedByDevice: String?
+
+    /// Vector clock state (serialized as JSON)
+    /// Tracks causal relationships for conflict-free merge
+    var vectorClockData: Data?
+
+    /// Pending CRDT operations waiting to be uploaded (temporary storage)
+    var pendingOperationsData: Data?
+
+    /// Has pending conflicts that need user resolution
+    var hasPendingConflicts: Bool = false
+
+    /// Conflict badge should be shown on recipe card
+    var showConflictBadge: Bool = false
 
     // MARK: - Initialization
     init(

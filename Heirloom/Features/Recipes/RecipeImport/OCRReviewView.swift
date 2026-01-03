@@ -369,6 +369,25 @@ struct OCRReviewView: View {
         do {
             try modelContext.save()
 
+            // Sync to Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                do {
+                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+
+                    // Upload scanned image if exists
+                    if recipe.imageFileName != nil {
+                        if let imageURL = try await FirebaseSyncService.shared.uploadImage(for: recipe) {
+                            recipe.firebaseImageURL = imageURL
+                            try? modelContext.save()
+                        }
+                    }
+
+                    print("✅ Scanned recipe synced to Firebase")
+                } catch {
+                    print("⚠️ Failed to sync scanned recipe to Firebase: \(error.localizedDescription)")
+                }
+            }
+
             await MainActor.run {
                 ToastManager.shared.success(
                     title: "Recipe saved!",

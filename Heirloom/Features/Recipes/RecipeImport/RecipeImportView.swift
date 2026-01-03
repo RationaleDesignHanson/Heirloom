@@ -408,6 +408,26 @@ struct RecipeImportView: View {
         do {
             try modelContext.save()
 
+            // Sync to Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                do {
+                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+
+                    // Upload image if it was downloaded
+                    if recipe.imageFileName != nil {
+                        if let imageURL = try await FirebaseSyncService.shared.uploadImage(for: recipe) {
+                            recipe.firebaseImageURL = imageURL
+                            try? modelContext.save()
+                        }
+                    }
+
+                    print("✅ Imported recipe synced to Firebase")
+                } catch {
+                    print("⚠️ Failed to sync imported recipe to Firebase: \(error.localizedDescription)")
+                    // Don't fail - local save succeeded
+                }
+            }
+
             ToastManager.shared.success(
                 title: "Recipe imported!",
                 message: "Added '\(recipe.title)' to your collection"

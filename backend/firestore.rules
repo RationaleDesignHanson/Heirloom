@@ -3,6 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Helper functions
+    // Updated: 2026-01-02 - Added operations subcollection for CRDT support
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -51,6 +52,132 @@ service cloud.firestore {
     // URL clicks - server-only tracking
     match /url_clicks/{clickId} {
       allow read, write: if false; // Server-only analytics data
+    }
+
+    // ========================================
+    // USER RECIPES (User-Scoped)
+    // ========================================
+    match /users/{userId}/recipes/{recipeId} {
+      // Any authenticated user can read recipes (for accepting shares)
+      // Shares are access-controlled via share IDs
+      allow read: if isAuthenticated();
+
+      // Users can create their own recipes
+      allow create: if isOwner(userId);
+
+      // Users can update their own recipes
+      allow update: if isOwner(userId);
+
+      // Users can delete their own recipes
+      allow delete: if isOwner(userId);
+
+      // Ingredients subcollection
+      match /ingredients/{ingredientId} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+
+      // Card back subcollection
+      match /cardBack/{document=**} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+
+      // Operations subcollection (for CRDT)
+      match /operations/{operationId} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // ========================================
+    // RECIPE VERSIONS (User-Scoped)
+    // ========================================
+    match /users/{userId}/recipeVersions/{versionId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
+    // SHARES (Top-Level)
+    // ========================================
+    match /shares/{shareId} {
+      // Anyone with link can read (for accepting shares)
+      allow read: if isAuthenticated();
+
+      // Only owner can create shares
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == request.resource.data.ownerId;
+
+      // ANY authenticated user can update shares (for accepting)
+      // This allows recipients to add themselves to acceptedBy array
+      allow update: if isAuthenticated();
+
+      // Only owner can delete
+      allow delete: if isAuthenticated() &&
+                       request.auth.uid == resource.data.ownerId;
+    }
+
+    // ========================================
+    // USER LINEAGES (User-Scoped)
+    // ========================================
+    match /users/{userId}/lineages/{lineageId} {
+      // Users can read their own lineages
+      allow read: if isOwner(userId);
+
+      // Users can write their own lineages
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
+    // LINEAGES INDEX (Top-Level - for querying across users)
+    // ========================================
+    match /lineages/{lineageId} {
+      // Any authenticated user can read (for querying family trees)
+      allow read: if isAuthenticated();
+
+      // Only owner can create lineages
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == request.resource.data.ownerId;
+
+      // Only owner can update lineages
+      allow update: if isAuthenticated() &&
+                       request.auth.uid == resource.data.ownerId;
+
+      // Only owner can delete lineages
+      allow delete: if isAuthenticated() &&
+                       request.auth.uid == resource.data.ownerId;
+    }
+
+    // ========================================
+    // USER NOTIFICATIONS
+    // ========================================
+    match /users/{userId}/notifications/{notificationId} {
+      // Users can only read their own notifications
+      allow read: if isOwner(userId);
+
+      // Any authenticated user can create notifications (for lineage tracking)
+      // This allows descendants to notify ancestors of modifications
+      allow create: if isAuthenticated();
+
+      // Users can update their own (mark as read)
+      allow update: if isOwner(userId);
+
+      // Users can delete their own notifications
+      allow delete: if isOwner(userId);
+    }
+
+    // ========================================
+    // FALLBACK: Deny all other access
+    // ========================================
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

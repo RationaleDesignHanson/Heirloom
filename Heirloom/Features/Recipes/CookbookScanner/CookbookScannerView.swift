@@ -12,6 +12,52 @@ struct CookbookScannerView: View {
     @State private var isProcessing = false
     @State private var recognizedText: String = ""
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showMultiRecipeSheet = false
+    @State private var multiRecipeResult: AIRecipeExtractor.MultiRecipeExtractionResult?
+    @State private var errorMessage: String?
+    @State private var imageSource: ImageSource = .camera
+
+    // Progress tracking
+    @State private var processingStep: ProcessingStep = .preparing
+
+    enum ImageSource {
+        case camera
+        case photoLibrary
+    }
+
+    enum ProcessingStep {
+        case preparing
+        case optimizing
+        case detecting
+        case extracting
+        case complete
+
+        var stepNumber: Int {
+            switch self {
+            case .preparing: return 0
+            case .optimizing: return 1
+            case .detecting: return 2
+            case .extracting: return 3
+            case .complete: return 4
+            }
+        }
+
+        var totalSteps: Int { 3 }
+
+        var description: String {
+            switch self {
+            case .preparing: return "Preparing..."
+            case .optimizing: return "Optimizing image quality..."
+            case .detecting: return "Detecting recipes..."
+            case .extracting: return "Extracting recipe details..."
+            case .complete: return "Complete!"
+            }
+        }
+
+        var progress: Double {
+            return Double(stepNumber) / Double(totalSteps + 1)
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -43,6 +89,28 @@ struct CookbookScannerView: View {
             }
             .sheet(isPresented: $showCamera) {
                 CameraView(capturedImage: $capturedImage)
+                    .onDisappear {
+                        if capturedImage != nil {
+                            imageSource = .camera
+                        }
+                    }
+            }
+            .sheet(isPresented: $showMultiRecipeSheet) {
+                if let result = multiRecipeResult {
+                    RecipeSelectionView(
+                        recipes: result.recipes,
+                        sourceImage: result.sourceImage
+                    )
+                }
+            }
+            .alert("Scan Error", isPresented: .constant(errorMessage != nil)) {
+                Button("OK") {
+                    errorMessage = nil
+                }
+            } message: {
+                if let error = errorMessage {
+                    Text(error)
+                }
             }
             .onChange(of: selectedPhotoItem) { _, newItem in
                 Task {
@@ -50,6 +118,7 @@ struct CookbookScannerView: View {
                        let image = UIImage(data: data) {
                         await MainActor.run {
                             capturedImage = image
+                            imageSource = .photoLibrary
                             selectedPhotoItem = nil
                         }
                     }
@@ -156,22 +225,48 @@ struct CookbookScannerView: View {
 
     private func previewSection(image: UIImage) -> some View {
         VStack(spacing: 0) {
-            // Image preview
-            ScrollView {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: .infinity)
+            // Image preview with better rendering
+            GeometryReader { geometry in
+                ScrollView([.horizontal, .vertical], showsIndicators: true) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: geometry.size.width)
+                        .clipped()
+                }
             }
             .frame(maxHeight: .infinity)
+            .background(Color.black.opacity(0.05))
 
-            // Processing overlay
+            // Processing overlay with deterministic progress
             if isProcessing {
                 VStack(spacing: HeirloomSpacing.md) {
-                    ProgressView()
-                    Text("Analyzing recipe with AI...")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.secondaryText)
+                    // Progress bar
+                    ProgressView(value: processingStep.progress)
+                        .progressViewStyle(.linear)
+                        .tint(HeirloomColors.tomato)
+
+                    // Step indicator
+                    HStack(spacing: HeirloomSpacing.xs) {
+                        Text("Step \(processingStep.stepNumber)/\(processingStep.totalSteps)")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.tomato)
+                            .fontWeight(.semibold)
+
+                        Spacer()
+                    }
+
+                    // Current step description
+                    HStack {
+                        ProgressView()
+                            .scaleEffect(0.8)
+
+                        Text(processingStep.description)
+                            .font(HeirloomFonts.body)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+
+                        Spacer()
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
@@ -179,8 +274,10 @@ struct CookbookScannerView: View {
             } else {
                 // Actions
                 VStack(spacing: HeirloomSpacing.sm) {
-                    Button("Retake Photo") {
+                    Button(imageSource == .camera ? "Retake Photo" : "Replace Photo") {
                         capturedImage = nil
+                        processingStep = .preparing
+                        errorMessage = nil
                         showCamera = true
                     }
                     .font(HeirloomFonts.body)
@@ -199,51 +296,102 @@ struct CookbookScannerView: View {
         guard let image = capturedImage else { return }
 
         isProcessing = true
+        processingStep = .optimizing
 
         Task {
             do {
-                // Use vision API directly for single-recipe extraction (matches web demo)
-                print("🔍 Extracting recipe with vision API...")
-                let extractedRecipe = try await AIRecipeExtractor.shared.extractRecipeFromImage(
+                // Step 1: Optimizing image (happens in AnthropicAIService)
+                await MainActor.run {
+                    processingStep = .detecting
+                }
+
+                // Step 2: Detect recipes with bounding boxes (vision API)
+                print("🔍 Step 2: Detecting recipes with vision API...")
+                let detected = try await AIRecipeExtractor.shared.detectRecipes(from: image)
+
+                print("   Found \(detected.count) recipe(s)")
+                for (index, recipe) in detected.enumerated() {
+                    print("   \(index + 1). \(recipe.title) (\(recipe.confidence.rawValue) confidence)")
+                }
+
+                // Step 3: Extract each recipe using vision API + bounding box
+                await MainActor.run {
+                    processingStep = .extracting
+                }
+
+                print("🤖 Step 3: Extracting recipes with vision API...")
+                let result = try await AIRecipeExtractor.shared.extractRecipesFromImage(
                     image: image,
-                    boundingBox: nil // Full image for cookbook scanner
+                    detectedRecipes: detected
                 )
 
                 await MainActor.run {
+                    processingStep = .complete
                     isProcessing = false
 
-                    // Haptic feedback
+                    // Success feedback
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
 
-                    // Create recipe from AI-extracted data
-                    createRecipeFromExtraction(extractedRecipe, image: image)
+                    print("✅ Processing complete!")
+                    print("   Extracted \(result.count) recipe(s)")
 
-                    // Track analytics
-                    AnalyticsService.shared.track(event: .recipeImported, properties: [
-                        "source": "cookbook_scan",
-                        "extraction_method": "vision_api",
-                        "used_ai_extraction": true,
-                        "ingredient_count": extractedRecipe.ingredients.count,
-                        "instruction_count": extractedRecipe.instructions.count
-                    ])
+                    // Route based on recipe count
+                    if result.count == 0 {
+                        // No recipes detected - show error
+                        errorMessage = "No recipes detected in the image. Please try again with a clearer photo."
+                        print("⚠️ No recipes found")
 
-                    print("✅ Recipe extracted: \(extractedRecipe.title)")
+                    } else if result.count == 1 {
+                        // Single recipe - auto-import directly (faster UX)
+                        let recipe = result.recipes[0]
+                        createRecipeFromExtraction(recipe, image: image)
+
+                        // Track analytics
+                        AnalyticsService.shared.track(event: .recipeImported, properties: [
+                            "source": "cookbook_scan",
+                            "extraction_method": "vision_api",
+                            "used_ai_extraction": true,
+                            "recipe_count": 1,
+                            "ingredient_count": recipe.ingredients.count,
+                            "instruction_count": recipe.instructions.count
+                        ])
+
+                        print("✅ Single recipe auto-imported: \(recipe.title)")
+
+                    } else {
+                        // Multiple recipes - show RecipeSelectionView (matches web demo behavior)
+                        multiRecipeResult = result
+                        showMultiRecipeSheet = true
+
+                        // Track analytics
+                        AnalyticsService.shared.track(event: .recipeScanned, properties: [
+                            "source": "cookbook_scan",
+                            "recipe_count": result.count,
+                            "multi_recipe": true
+                        ])
+
+                        print("✅ Recipes extracted:")
+                        for (index, recipe) in result.recipes.enumerated() {
+                            print("   \(index + 1). \(recipe.title)")
+                            print("      Ingredients: \(recipe.ingredients.count)")
+                            print("      Instructions: \(recipe.instructions.count)")
+                        }
+                    }
                 }
+
             } catch {
                 await MainActor.run {
+                    processingStep = .preparing
                     isProcessing = false
 
-                    // Haptic feedback
+                    // Error feedback
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.error)
 
-                    ToastManager.shared.error(
-                        title: "Processing Failed",
-                        message: "Couldn't extract recipe from image. Try a clearer photo."
-                    )
+                    errorMessage = error.localizedDescription
 
-                    print("❌ Recipe extraction failed: \(error)")
+                    print("❌ Processing failed: \(error)")
                 }
             }
         }
@@ -310,6 +458,26 @@ struct CookbookScannerView: View {
             do {
                 try modelContext.save()
 
+                // Sync to Firebase if active
+                if BackendConfig.shared.isFirebaseActive {
+                    do {
+                        try await FirebaseSyncService.shared.uploadRecipe(recipe)
+
+                        // Upload scanned image if exists
+                        if recipe.imageFileName != nil {
+                            if let imageURL = try await FirebaseSyncService.shared.uploadImage(for: recipe) {
+                                recipe.firebaseImageURL = imageURL
+                                try? modelContext.save()
+                            }
+                        }
+
+                        print("✅ Scanned recipe synced to Firebase: \(recipe.title)")
+                    } catch {
+                        print("⚠️ Failed to sync scanned recipe to Firebase: \(error.localizedDescription)")
+                        // Don't fail - local save succeeded
+                    }
+                }
+
                 ToastManager.shared.success(
                     title: "Recipe Added!",
                     message: "'\(recipe.title)' has been added to your collection"
@@ -359,8 +527,10 @@ struct CookbookScannerView: View {
     private func saveRecipeImage(_ image: UIImage, for recipe: Recipe) async {
         do {
             let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
-            recipe.imageFileName = fileName
-            print("✅ Saved recipe image: \(fileName)")
+            await MainActor.run {
+                recipe.imageFileName = fileName
+                print("✅ Saved recipe image: \(fileName)")
+            }
         } catch {
             print("⚠️ Failed to save recipe image: \(error.localizedDescription)")
         }

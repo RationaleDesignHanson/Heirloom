@@ -106,9 +106,9 @@ extension EmptyStateView {
 
     static func emptyShoppingList(action: @escaping () -> Void) -> EmptyStateView {
         EmptyStateView(
-            icon: "cart",
-            title: "Shopping List is Empty",
-            message: "Add recipes to your shopping list to see their ingredients here. We'll automatically combine duplicate items.",
+            icon: "cart.fill.badge.plus",
+            title: "Ready to Shop?",
+            message: "Your shopping list is empty. Browse your recipes and tap the cart icon on any recipe to add its ingredients here.\n\nWe'll automatically combine duplicate items and organize everything for you.",
             actionTitle: "Browse Recipes",
             action: action
         )

@@ -1,23 +1,15 @@
 import SwiftUI
 import SwiftData
-import CloudKit
+import FirebaseFirestore
+import FirebaseStorage
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var recipes: [Recipe]
 
     @State private var showClearDataConfirmation = false
-    @State private var iCloudStatus: String = "Checking..."
+    @State private var showSignOutConfirmation = false
     @State private var storageSize: String = "Calculating..."
-
-    // Network monitoring
-    private let networkMonitor = NetworkMonitor.shared
-    private let syncCoordinator = CloudKitSyncCoordinator.shared
-
-    // Developer testing states
-    @State private var cloudKitTestResult: String = ""
-    @State private var isTestingCloudKit = false
-    @State private var manualOfflineMode = false
 
     var body: some View {
         NavigationStack {
@@ -25,17 +17,14 @@ struct SettingsView: View {
                 // AI Features Section
                 aiSection
 
-                // iCloud Section
-                iCloudSection
-
-                // Network & Sync Section
-                networkSyncSection
-
                 // User Experience Section
                 userExperienceSection
 
                 // Data Management Section
                 dataManagementSection
+
+                // Account Section
+                accountSection
 
                 // App Info Section
                 appInfoSection
@@ -49,7 +38,6 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
             .task {
-                await checkiCloudStatus()
                 await calculateStorageSize()
             }
             .confirmationDialog(
@@ -63,6 +51,18 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("This will permanently delete all \(recipes.count) recipes. This cannot be undone.")
+            }
+            .confirmationDialog(
+                "Sign Out",
+                isPresented: $showSignOutConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Sign Out", role: .destructive) {
+                    signOut()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("You'll need to sign in again to access your recipes.")
             }
         }
     }
@@ -92,179 +92,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - iCloud Section
-
-    private var iCloudSection: some View {
-        Section {
-            HStack {
-                Image(systemName: "icloud")
-                    .foregroundStyle(HeirloomColors.tomato)
-                Text("iCloud Sync")
-                Spacer()
-                Text(iCloudStatus)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .font(HeirloomFonts.caption1)
-            }
-
-            NavigationLink {
-                iCloudDetailView
-            } label: {
-                Label("Sync Details", systemImage: "info.circle")
-            }
-
-            NavigationLink {
-                CloudKitDashboardView()
-            } label: {
-                Label("CloudKit Monitor", systemImage: "chart.xyaxis.line")
-            }
-        } header: {
-            Text("Cloud Storage")
-        } footer: {
-            Text("Your recipes automatically sync across all your devices using iCloud.")
-        }
-    }
-
-    private var iCloudDetailView: some View {
-        List {
-            Section {
-                LabeledContent("Status", value: iCloudStatus)
-                LabeledContent("Recipes Synced", value: "\(recipes.count)")
-                LabeledContent("Storage Used", value: storageSize)
-            } header: {
-                Text("Sync Status")
-            }
-
-            Section {
-                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                    Text("How iCloud Sync Works")
-                        .font(HeirloomFonts.bodyBold)
-
-                    Text("Heirloom uses iCloud to keep your recipes in sync across all your Apple devices. Changes made on one device automatically appear on your other devices.")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-
-                    Text("Your recipe images are stored locally on each device to save iCloud storage.")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .padding(.top, HeirloomSpacing.xs)
-                }
-                .padding(.vertical, HeirloomSpacing.xs)
-            } header: {
-                Text("About")
-            }
-        }
-        .navigationTitle("iCloud Sync")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    // MARK: - Network & Sync Section
-
-    private var networkSyncSection: some View {
-        Section {
-            // Network Status
-            HStack {
-                Image(systemName: networkMonitor.isConnected ? "wifi" : "wifi.slash")
-                    .foregroundStyle(networkMonitor.isConnected ? HeirloomColors.success : HeirloomColors.warmGray)
-                Text("Network Status")
-                Spacer()
-                Text(networkMonitor.isConnected ? "Online" : "Offline")
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .font(HeirloomFonts.caption1)
-            }
-
-            // Sync Status
-            HStack {
-                Image(systemName: syncCoordinator.isSyncing ? "arrow.triangle.2.circlepath" : "checkmark.circle.fill")
-                    .foregroundStyle(syncCoordinator.isSyncing ? HeirloomColors.amber : HeirloomColors.success)
-                Text("Sync Status")
-                Spacer()
-                Text(syncCoordinator.isSyncing ? "Syncing..." : "Up to Date")
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .font(HeirloomFonts.caption1)
-            }
-
-            // Pending Operations
-            HStack {
-                Image(systemName: "clock.badge.exclamationmark")
-                    .foregroundStyle(syncCoordinator.pendingOperations.isEmpty ? HeirloomColors.warmGray : HeirloomColors.tomato)
-                Text("Pending Operations")
-                Spacer()
-                Text("\(syncCoordinator.pendingOperations.count)")
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .font(HeirloomFonts.caption1)
-                    .padding(.horizontal, HeirloomSpacing.sm)
-                    .padding(.vertical, 2)
-                    .background(syncCoordinator.pendingOperations.isEmpty ? Color.clear : HeirloomColors.tomato.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-
-            // Sync Issues Button (show if there's a recent error)
-            if syncCoordinator.lastSyncError != nil {
-                NavigationLink {
-                    SyncIssuesView()
-                } label: {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(HeirloomColors.tomato)
-                        Text("View Sync Issues")
-                            .foregroundStyle(HeirloomColors.primaryText)
-                        Spacer()
-                        if let errorTime = syncCoordinator.lastErrorTime {
-                            Text(timeAgo(from: errorTime))
-                                .font(HeirloomFonts.caption2)
-                                .foregroundStyle(HeirloomColors.secondaryText)
-                        }
-                    }
-                }
-            }
-
-            // Retry Button (only show if there are pending operations and we're online)
-            if !syncCoordinator.pendingOperations.isEmpty && networkMonitor.isConnected {
-                Button {
-                    Task {
-                        await syncCoordinator.processPendingOperations()
-                    }
-                } label: {
-                    HStack {
-                        Image(systemName: "arrow.clockwise")
-                            .foregroundStyle(HeirloomColors.tomato)
-                        Text("Retry Sync Now")
-                            .foregroundStyle(HeirloomColors.primaryText)
-                    }
-                }
-                .disabled(syncCoordinator.isSyncing)
-            }
-
-            // Manual Offline Mode Toggle (for testing)
-            #if DEBUG
-            Toggle(isOn: $manualOfflineMode) {
-                HStack {
-                    Image(systemName: "airplane")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("Manual Offline Mode")
-                }
-            }
-            .onChange(of: manualOfflineMode) { _, newValue in
-                if newValue {
-                    networkMonitor.simulateOffline()
-                } else {
-                    networkMonitor.simulateOnline()
-                }
-            }
-            #endif
-        } header: {
-            Text("Network & Sync")
-        } footer: {
-            if !networkMonitor.isConnected {
-                Text("Your device is offline. Changes will sync automatically when connection is restored.")
-            } else if !syncCoordinator.pendingOperations.isEmpty {
-                Text("\(syncCoordinator.pendingOperations.count) operations queued from offline mode. Tap 'Retry Sync Now' to sync immediately.")
-            } else {
-                Text("Your recipes are syncing automatically when changes are made.")
-            }
-        }
-    }
-
     // MARK: - Data Management Section
 
     private var dataManagementSection: some View {
@@ -281,7 +108,35 @@ struct SettingsView: View {
         } header: {
             Text("Data Management")
         } footer: {
-            Text("Clearing data will permanently delete all recipes from this device and iCloud.")
+            Text("Clearing data will permanently delete all recipes from this device and Firebase.")
+        }
+    }
+
+    // MARK: - Account Section
+
+    private var accountSection: some View {
+        Section {
+            if let user = FirebaseAuthService.shared.currentUser {
+                LabeledContent("Signed in as", value: user.email ?? "Unknown")
+                    .font(HeirloomFonts.caption1)
+
+                LabeledContent("User ID", value: String(user.uid.prefix(8)) + "...")
+                    .font(HeirloomFonts.caption1)
+
+                Button(role: .destructive) {
+                    showSignOutConfirmation = true
+                } label: {
+                    Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        .foregroundStyle(.red)
+                }
+            } else {
+                Text("Not signed in")
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+        } header: {
+            Text("Account")
+        } footer: {
+            Text("Signing out will clear local data. Your recipes are safely stored in Firebase and will sync when you sign back in.")
         }
     }
 
@@ -337,176 +192,10 @@ struct SettingsView: View {
                         .font(.caption)
                 }
             }
-
-            // Test CloudKit Public Database
-            Button {
-                testCloudKitPublicDatabase()
-            } label: {
-                HStack {
-                    Image(systemName: "icloud.and.arrow.up")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("Test: Create Public Record")
-                    Spacer()
-                    if isTestingCloudKit {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                    }
-                }
-            }
-            .disabled(isTestingCloudKit)
-            
-            // Test CloudKit Query
-            Button {
-                testCloudKitQuery()
-            } label: {
-                HStack {
-                    Image(systemName: "icloud.and.arrow.down")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("Test: Fetch Public Records")
-                    Spacer()
-                    if isTestingCloudKit {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                    }
-                }
-            }
-            .disabled(isTestingCloudKit)
-            
-            // Test Offline Queue
-            Button {
-                testOfflineQueue()
-            } label: {
-                HStack {
-                    Image(systemName: "airplane")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("Test: Queue Offline Operation")
-                    Spacer()
-                }
-            }
-            
-            // Process Pending Operations
-            Button {
-                processPendingOperations()
-            } label: {
-                HStack {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("Process Pending Operations")
-                    Spacer()
-                    Text("\(CloudKitSyncCoordinator.shared.pendingOperations.count)")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                }
-            }
-            
-            // Result display
-            if !cloudKitTestResult.isEmpty {
-                Text(cloudKitTestResult)
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(cloudKitTestResult.contains("✅") ? .green : (cloudKitTestResult.contains("❌") ? .red : HeirloomColors.secondaryText))
-            }
         } header: {
             Text("Developer Testing")
         } footer: {
-            Text("Test CloudKit sync infrastructure. Records appear in CloudKit Dashboard → Development → Data.")
-        }
-    }
-    
-    private func testCloudKitPublicDatabase() {
-        isTestingCloudKit = true
-        cloudKitTestResult = "Testing..."
-        
-        Task {
-            let coordinator = CloudKitSyncCoordinator.shared
-            
-            // Create a test record
-            let record = CKRecord(recordType: "ProvenanceAggregate")
-            record["rootHash"] = "test-\(UUID().uuidString.prefix(8))"
-            record["totalUsers"] = 1 as CKRecordValue
-            record["totalCooks"] = 0 as CKRecordValue
-            record["averageRating"] = 5.0 as CKRecordValue
-            record["trendingScore"] = 1.0 as CKRecordValue
-            record["lastUpdated"] = Date() as CKRecordValue
-            
-            do {
-                try await coordinator.saveToPublic(record)
-                await MainActor.run {
-                    cloudKitTestResult = "✅ Record saved! Check CloudKit Dashboard."
-                    isTestingCloudKit = false
-                }
-                print("✅ CloudKit Test: Record saved successfully!")
-            } catch {
-                await MainActor.run {
-                    cloudKitTestResult = "❌ Error: \(error.localizedDescription)"
-                    isTestingCloudKit = false
-                }
-                print("❌ CloudKit Test Error: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    private func testCloudKitQuery() {
-        isTestingCloudKit = true
-        cloudKitTestResult = "Fetching..."
-        
-        Task {
-            let coordinator = CloudKitSyncCoordinator.shared
-            
-            do {
-                let records = try await coordinator.queryPublic(recordType: "ProvenanceAggregate")
-                await MainActor.run {
-                    cloudKitTestResult = "✅ Fetched \(records.count) records"
-                    isTestingCloudKit = false
-                }
-                print("✅ CloudKit Test: Fetched \(records.count) records")
-                for record in records {
-                    print("  - rootHash: \(record["rootHash"] as? String ?? "nil")")
-                }
-            } catch {
-                await MainActor.run {
-                    cloudKitTestResult = "❌ Error: \(error.localizedDescription)"
-                    isTestingCloudKit = false
-                }
-                print("❌ CloudKit Test Error: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    private func testOfflineQueue() {
-        let coordinator = CloudKitSyncCoordinator.shared
-        
-        // Create a test record
-        let record = CKRecord(recordType: "ProvenanceAggregate")
-        record["rootHash"] = "queued-\(UUID().uuidString.prefix(8))"
-        record["totalUsers"] = 1 as CKRecordValue
-        record["totalCooks"] = 0 as CKRecordValue
-        record["averageRating"] = 5.0 as CKRecordValue
-        record["trendingScore"] = 1.0 as CKRecordValue
-        record["lastUpdated"] = Date() as CKRecordValue
-        
-        // Queue it (simulating offline behavior)
-        coordinator.queueOperation(type: .create, record: record)
-        
-        cloudKitTestResult = "📋 Queued! Pending: \(coordinator.pendingOperations.count)"
-        print("📋 Queued operation. Pending count: \(coordinator.pendingOperations.count)")
-    }
-    
-    private func processPendingOperations() {
-        cloudKitTestResult = "Processing..."
-        
-        Task {
-            let coordinator = CloudKitSyncCoordinator.shared
-            await coordinator.processPendingOperations()
-            
-            await MainActor.run {
-                let remaining = coordinator.pendingOperations.count
-                if remaining == 0 {
-                    cloudKitTestResult = "✅ All operations processed!"
-                } else {
-                    cloudKitTestResult = "⚠️ \(remaining) operations remaining"
-                }
-            }
-            print("✅ Processed pending operations. Remaining: \(coordinator.pendingOperations.count)")
+            Text("View detailed debug logs for troubleshooting.")
         }
     }
 
@@ -514,8 +203,23 @@ struct SettingsView: View {
 
     private var userExperienceSection: some View {
         Section {
+            Picker(selection: Binding(
+                get: { UserDefaults.standard.string(forKey: "units_preferred_system") ?? "Metric" },
+                set: { UserDefaults.standard.set($0, forKey: "units_preferred_system") }
+            )) {
+                Text("Imperial (US)").tag("Imperial")
+                Text("Metric").tag("Metric")
+            } label: {
+                HStack {
+                    Image(systemName: "ruler")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Measurement System")
+                }
+            }
+            .pickerStyle(.menu)
+
             Toggle(isOn: Binding(
-                get: { UserDefaults.standard.bool(forKey: "cardFlipHapticsEnabled") },
+                get: { UserDefaults.standard.object(forKey: "cardFlipHapticsEnabled") as? Bool ?? true },
                 set: { UserDefaults.standard.set($0, forKey: "cardFlipHapticsEnabled") }
             )) {
                 HStack {
@@ -526,7 +230,7 @@ struct SettingsView: View {
             }
 
             Toggle(isOn: Binding(
-                get: { UserDefaults.standard.bool(forKey: "cardFlipSoundEnabled") },
+                get: { UserDefaults.standard.object(forKey: "cardFlipSoundEnabled") as? Bool ?? true },
                 set: { UserDefaults.standard.set($0, forKey: "cardFlipSoundEnabled") }
             )) {
                 HStack {
@@ -538,7 +242,7 @@ struct SettingsView: View {
         } header: {
             Text("User Experience")
         } footer: {
-            Text("Customize haptic feedback and sounds for card interactions.")
+            Text("Choose your preferred measurement system for recipes. This preference will be used for future recipe imports and conversions.")
         }
     }
 
@@ -635,34 +339,6 @@ struct SettingsView: View {
 
     // MARK: - Actions
 
-    private func checkiCloudStatus() async {
-        let container = CKContainer.default()
-
-        do {
-            let status = try await container.accountStatus()
-            await MainActor.run {
-                switch status {
-                case .available:
-                    iCloudStatus = "Active"
-                case .noAccount:
-                    iCloudStatus = "Not Signed In"
-                case .restricted:
-                    iCloudStatus = "Restricted"
-                case .couldNotDetermine:
-                    iCloudStatus = "Unknown"
-                case .temporarilyUnavailable:
-                    iCloudStatus = "Temporarily Unavailable"
-                @unknown default:
-                    iCloudStatus = "Unknown"
-                }
-            }
-        } catch {
-            await MainActor.run {
-                iCloudStatus = "Error"
-            }
-        }
-    }
-
     private func calculateStorageSize() async {
         // Calculate storage from image files
         let imageService = ImageStorageService.shared
@@ -674,6 +350,8 @@ struct SettingsView: View {
     }
 
     private func clearAllData() {
+        let recipeCount = recipes.count
+
         // Delete all recipes (cascade deletes ingredients)
         for recipe in recipes {
             modelContext.delete(recipe)
@@ -685,14 +363,87 @@ struct SettingsView: View {
             // Clean up images
             Task {
                 await ImageStorageService.shared.performCleanup()
+
+                // Also clear Firebase if active
+                if BackendConfig.shared.isFirebaseActive {
+                    await clearFirebaseData()
+                }
             }
 
             ToastManager.shared.success(title: "Data cleared")
             AnalyticsService.shared.track(event: .dataCleared, properties: [
-                "recipe_count": recipes.count
+                "recipe_count": recipeCount
             ])
         } catch {
             ToastManager.shared.error(title: "Failed to clear data", message: error.localizedDescription)
+        }
+    }
+
+    private func clearFirebaseData() async {
+        guard let userId = FirebaseAuthService.shared.currentUser?.uid else { return }
+
+        do {
+            let db = Firestore.firestore()
+            let recipesRef = db.collection("users/\(userId)/recipes")
+
+            // Fetch all recipe documents
+            let snapshot = try await recipesRef.getDocuments()
+
+            print("🗑️ Clearing \(snapshot.documents.count) recipes from Firebase...")
+
+            // Delete each recipe and its subcollections
+            for document in snapshot.documents {
+                // Delete ingredients subcollection
+                let ingredientsSnapshot = try await recipesRef.document(document.documentID)
+                    .collection("ingredients").getDocuments()
+                for ingredient in ingredientsSnapshot.documents {
+                    try await ingredient.reference.delete()
+                }
+
+                // Delete comments subcollection
+                let commentsSnapshot = try await recipesRef.document(document.documentID)
+                    .collection("comments").getDocuments()
+                for comment in commentsSnapshot.documents {
+                    try await comment.reference.delete()
+                }
+
+                // Delete the recipe document
+                try await document.reference.delete()
+
+                // Delete image from Storage if exists
+                let storage = Storage.storage()
+                let imagePath = "users/\(userId)/recipes/\(document.documentID)/image.jpg"
+                let imageRef = storage.reference().child(imagePath)
+                try? await imageRef.delete() // Don't fail if image doesn't exist
+            }
+
+            print("✅ Firebase data cleared successfully")
+        } catch {
+            print("⚠️ Failed to clear Firebase data: \(error.localizedDescription)")
+        }
+    }
+
+    private func signOut() {
+        do {
+            // Sign out from Firebase
+            try FirebaseAuthService.shared.signOut()
+
+            // Clear local data
+            for recipe in recipes {
+                modelContext.delete(recipe)
+            }
+            try modelContext.save()
+
+            // Clear sync timestamps
+            UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
+
+            // Success feedback
+            ToastManager.shared.success(title: "Signed out successfully")
+        } catch {
+            ToastManager.shared.error(
+                title: "Sign out failed",
+                message: error.localizedDescription
+            )
         }
     }
 

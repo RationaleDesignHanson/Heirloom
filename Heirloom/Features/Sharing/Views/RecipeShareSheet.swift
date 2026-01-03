@@ -1,8 +1,7 @@
 import SwiftUI
 import SwiftData
-import CloudKit
 
-/// Complete sheet for sharing a recipe with customization options
+/// Complete sheet for sharing a recipe with customization options via Firebase
 /// Allows user to configure what's included, add personal message, and choose share method
 struct RecipeShareSheet: View {
     let recipe: Recipe
@@ -16,7 +15,6 @@ struct RecipeShareSheet: View {
     @State private var shareURL: URL?
     @State private var errorMessage: String?
     @State private var showSuccessMessage = false
-    @State private var iCloudAvailable: Bool? = nil  // nil = checking, true/false = result
 
     var body: some View {
         NavigationStack {
@@ -68,7 +66,6 @@ struct RecipeShareSheet: View {
         }
         .onAppear {
             setupDefaultOptions()
-            checkiCloudStatus()
         }
     }
 
@@ -179,26 +176,26 @@ struct RecipeShareSheet: View {
                         .foregroundStyle(.secondary)
                 }
 
-                // Permission picker
+                // Share type picker
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Permission")
+                    Text("Share Type")
                         .font(.subheadline)
                         .fontWeight(.semibold)
 
-                    Picker("Permission", selection: $options.permission) {
-                        ForEach(ShareOptions.SharePermission.allCases, id: \.self) { permission in
+                    Picker("Share Type", selection: $options.shareType) {
+                        ForEach(ShareOptions.ShareType.allCases, id: \.self) { shareType in
                             Label {
                                 VStack(alignment: .leading) {
-                                    Text(permission.displayName)
+                                    Text(shareType.displayName)
                                         .font(.subheadline)
-                                    Text(permission.description)
+                                    Text(shareType.description)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
                             } icon: {
-                                Image(systemName: permission.iconName)
+                                Image(systemName: shareType.iconName)
                             }
-                            .tag(permission)
+                            .tag(shareType)
                         }
                     }
                     .pickerStyle(.menu)
@@ -269,20 +266,10 @@ struct RecipeShareSheet: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(iCloudAvailable == false ? Color.gray : HeirloomColors.accent)
+                .background(HeirloomColors.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .disabled(isSharing || iCloudAvailable == false)
-
-            // Show warning if iCloud is unavailable
-            if iCloudAvailable == false {
-                HStack(spacing: 6) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                    Text("iCloud required to share recipes")
-                }
-                .font(.caption)
-                .foregroundStyle(.orange)
-            }
+            .disabled(isSharing)
 
             Text(options.inclusionSummary)
                 .font(.caption)
@@ -294,46 +281,8 @@ struct RecipeShareSheet: View {
     // MARK: - Actions
 
     private func setupDefaultOptions() {
-        // Pre-fill sharer name from iCloud if available
-        // TODO: Fetch from iCloud user record
+        // Pre-fill sharer name from user defaults or Firebase auth
         options.sharerName = "You"
-    }
-
-    private func checkiCloudStatus() {
-        Task {
-            do {
-                let status = try await CKContainer.default().accountStatus()
-                await MainActor.run {
-                    iCloudAvailable = (status == .available)
-
-                    switch status {
-                    case .available:
-                        print("✅ iCloud is available")
-                    case .noAccount:
-                        errorMessage = "iCloud is not available. Please sign in to iCloud in Settings to share recipes."
-                        print("⚠️ iCloud not available: \(status.rawValue)")
-                    case .restricted:
-                        errorMessage = "iCloud is not available. iCloud access is restricted on this device."
-                        print("⚠️ iCloud not available: \(status.rawValue)")
-                    case .couldNotDetermine:
-                        errorMessage = "iCloud is not available. Could not determine iCloud status."
-                        print("⚠️ iCloud not available: \(status.rawValue)")
-                    case .temporarilyUnavailable:
-                        errorMessage = "iCloud is not available. iCloud is temporarily unavailable. Please try again later."
-                        print("⚠️ iCloud not available: \(status.rawValue)")
-                    @unknown default:
-                        errorMessage = "iCloud is not available. Please check your iCloud settings."
-                        print("⚠️ iCloud not available: \(status.rawValue)")
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    iCloudAvailable = false
-                    errorMessage = "Could not check iCloud status: \(error.localizedDescription)"
-                    print("❌ iCloud check failed: \(error)")
-                }
-            }
-        }
     }
 
     private func createShare() {
@@ -342,36 +291,26 @@ struct RecipeShareSheet: View {
             errorMessage = nil
 
             do {
-                // ALWAYS call createShare() - it handles both new shares and existing shares
-                // and ensures ingredients/images are uploaded to shared zone
-                print("📤 Creating/updating share for recipe: \(recipe.title)")
-                let share = try await RecipeShareService.shared.createShare(
+                // Create share via Firebase
+                print("📤 [Firebase] Creating share for recipe: \(recipe.title)")
+                let (shareId, url) = try await FirebaseShareService.shared.createShare(
                     for: recipe,
                     options: options,
                     context: modelContext
                 )
 
-                // Generate share URL and verify it exists
-                if let url = RecipeShareService.shared.generateShareURL(from: share) {
-                    shareURL = url
-                    print("✅ Share URL ready: \(url.absoluteString)")
-                    DeviceLogger.shared.log("✅ Share URL ready for recipe: \(recipe.title)")
-                    showSuccessMessage = true
-                } else {
-                    print("❌ Share exists but URL is nil")
-                    DeviceLogger.shared.log("❌ Share URL nil for recipe: \(recipe.title)", level: .error)
-                    errorMessage = "Share created but link not ready. Please try again in a moment."
-                }
+                shareURL = url
+                print("✅ [Firebase] Share created: \(shareId)")
+                print("   Share URL: \(url.absoluteString)")
+                DeviceLogger.shared.log("✅ Firebase share created for recipe: \(recipe.title)")
+                showSuccessMessage = true
+
             } catch {
-                print("❌ Share creation failed: \(error)")
-                DeviceLogger.shared.log("❌ Share creation failed: \(error.localizedDescription)", level: .error)
+                print("❌ [Firebase] Share creation failed: \(error)")
+                DeviceLogger.shared.log("❌ Firebase share creation failed: \(error.localizedDescription)", level: .error)
 
-                // Convert to CloudKitSyncError for user-friendly messaging
-                let ckError = CloudKitSyncError.from(error)
-                errorMessage = ckError.userMessage
-
-                // Log severity
-                print("   Error severity: \(ckError.severity)")
+                // User-friendly error message
+                errorMessage = error.localizedDescription
             }
 
             isSharing = false

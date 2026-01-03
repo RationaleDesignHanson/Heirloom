@@ -2,7 +2,6 @@ import SwiftUI
 
 struct DebugLogView: View {
     @State private var logContents: String = "Loading..."
-    @State private var showShareSheet = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -21,10 +20,12 @@ struct DebugLogView: View {
                 .buttonStyle(.bordered)
                 .tint(.red)
 
-                Button("Share") {
-                    showShareSheet = true
+                if let url = DeviceLogger.shared.getLogFileURL() {
+                    ShareLink(item: url) {
+                        Text("Share")
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.bordered)
             }
             .padding()
 
@@ -43,11 +44,6 @@ struct DebugLogView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             loadLog()
-        }
-        .sheet(isPresented: $showShareSheet) {
-            if let url = DeviceLogger.shared.getLogFileURL() {
-                ShareSheet(items: [url])
-            }
         }
     }
 

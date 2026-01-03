@@ -231,13 +231,29 @@ enum GroceryCategory: String, Codable, CaseIterable, Identifiable {
 
         // Beverages (check BEFORE produce since "orange juice" contains "orange" but should be beverage)
         // Note: Exclude "baking soda" - check for "soda" only if not preceded by "baking"
-        if lowercased.contains("juice") || lowercased.contains("coffee") || lowercased.contains("tea") || (lowercased.contains("soda") && !lowercased.contains("baking soda")) || lowercased.contains("water") {
+        // Note: Use word boundaries for "tea" to avoid matching "steak"
+        if lowercased.contains("juice") || lowercased.contains("coffee") || lowercased.contains(" tea") || lowercased.hasPrefix("tea ") || lowercased == "tea" || (lowercased.contains("soda") && !lowercased.contains("baking soda")) || lowercased.contains("water") {
             return .beverages
         }
 
-        // Dairy & Eggs (check eggs BEFORE produce since "egg" might match in "eggplant")
-        if lowercased.contains("milk") || lowercased.contains("cheese") || lowercased.contains("butter") || lowercased.contains("cream") || lowercased.contains("yogurt") || lowercased.contains(" egg") || lowercased.hasPrefix("egg") {
+        // Dairy & Eggs (exclude "eggplant" explicitly)
+        if !lowercased.contains("eggplant") && (lowercased.contains("milk") || lowercased.contains("cheese") || lowercased.contains("butter") || lowercased.contains("cream") || lowercased.contains("yogurt") || lowercased.contains(" egg") || lowercased.hasPrefix("egg")) {
             return .dairy
+        }
+
+        // Condiments & Sauces (check BEFORE produce so "tomato sauce" matches condiments, not produce)
+        if lowercased.contains("sauce") || lowercased.contains("ketchup") || lowercased.contains("mustard") || lowercased.contains("mayonnaise") || lowercased.contains("mayo") || lowercased.contains("dressing") {
+            return .condiments
+        }
+
+        // Bakery (check BEFORE pantry so "flour tortillas" matches bakery, not pantry)
+        if lowercased.contains("bread") || lowercased.contains("roll") || lowercased.contains("bun") || lowercased.contains("tortilla") {
+            return .bakery
+        }
+
+        // Pantry (check vinegar BEFORE produce so "apple cider vinegar" matches pantry, not produce)
+        if lowercased.contains("vinegar") || lowercased.contains("flour") || lowercased.contains("sugar") || lowercased.contains("rice") || lowercased.contains("pasta") || lowercased.contains("baking soda") || lowercased.contains("baking powder") || lowercased.contains("chocolate chip") || lowercased.contains("cocoa") || lowercased.contains("oil") || lowercased.contains("honey") || lowercased.contains("maple syrup") {
+            return .pantry
         }
 
         // Meat & Seafood
@@ -250,24 +266,9 @@ enum GroceryCategory: String, Codable, CaseIterable, Identifiable {
             return .produce
         }
 
-        // Bakery
-        if lowercased.contains("bread") || lowercased.contains("roll") || lowercased.contains("bun") || lowercased.contains("tortilla") {
-            return .bakery
-        }
-
-        // Pantry (includes baking supplies and staples)
-        if lowercased.contains("flour") || lowercased.contains("sugar") || lowercased.contains("rice") || lowercased.contains("pasta") || lowercased.contains("baking soda") || lowercased.contains("baking powder") || lowercased.contains("chocolate chip") || lowercased.contains("cocoa") || lowercased.contains("oil") || lowercased.contains("vinegar") || lowercased.contains("honey") || lowercased.contains("maple syrup") {
-            return .pantry
-        }
-
-        // Spices & Seasonings (includes extracts)
-        if lowercased.contains("salt") || lowercased.contains("pepper") || lowercased.contains("cumin") || lowercased.contains("paprika") || lowercased.contains("vanilla") || lowercased.contains("cinnamon") || lowercased.contains("oregano") || lowercased.contains("basil") || lowercased.contains("thyme") || lowercased.contains("extract") {
+        // Spices & Seasonings (includes extracts and generic "seasoning" keyword)
+        if lowercased.contains("salt") || lowercased.contains("pepper") || lowercased.contains("cumin") || lowercased.contains("paprika") || lowercased.contains("vanilla") || lowercased.contains("cinnamon") || lowercased.contains("oregano") || lowercased.contains("basil") || lowercased.contains("thyme") || lowercased.contains("extract") || lowercased.contains("saffron") || lowercased.contains("turmeric") || lowercased.contains("ginger") || lowercased.contains("nutmeg") || lowercased.contains("cardamom") || lowercased.contains("clove") || lowercased.contains("bay leaf") || lowercased.contains("rosemary") || lowercased.contains("parsley") || lowercased.contains("cilantro") || lowercased.contains("chili powder") || lowercased.contains("cayenne") || lowercased.contains("seasoning") {
             return .spices
-        }
-
-        // Condiments & Sauces
-        if lowercased.contains("sauce") || lowercased.contains("ketchup") || lowercased.contains("mustard") || lowercased.contains("mayonnaise") || lowercased.contains("mayo") || lowercased.contains("dressing") {
-            return .condiments
         }
 
         return .other

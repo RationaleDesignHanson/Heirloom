@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 /// Generic flip card component with smooth 3D rotation animation
 /// Perfect for recipe cards that show content on front and social features on back
@@ -63,6 +64,19 @@ struct FlipCard<Front: View, Back: View>: View {
                 }
             }
 
+            // Haptic feedback (if enabled)
+            let hapticsEnabled = UserDefaults.standard.object(forKey: "cardFlipHapticsEnabled") as? Bool ?? true
+            if hapticsEnabled {
+                let impact = UIImpactFeedbackGenerator(style: .medium)
+                impact.impactOccurred()
+            }
+
+            // Sound effect (if enabled)
+            let soundEnabled = UserDefaults.standard.object(forKey: "cardFlipSoundEnabled") as? Bool ?? true
+            if soundEnabled {
+                playFlipSound()
+            }
+
             // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
             // Task { @MainActor in
             //     AccessibilityAnnouncementService.shared.announceCardFlipped(showingBack: newValue)
@@ -75,6 +89,14 @@ struct FlipCard<Front: View, Back: View>: View {
                 backOpacity = 1
             }
         }
+    }
+
+    // MARK: - Sound Effect
+
+    private func playFlipSound() {
+        // Use a subtle system sound for card flip
+        // SystemSoundID 1104 is a light "pop" sound that works well for card flips
+        AudioServicesPlaySystemSound(1104)
     }
 }
 

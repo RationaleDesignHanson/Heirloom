@@ -166,8 +166,8 @@ struct RecipeCommentListView: View {
             filterSheet
         }
         .sheet(isPresented: $showAddComment) {
-            AddCommentSheet(recipe: recipe, onSave: { comment in
-                addComment(comment)
+            AddCommentSheet(recipe: recipe, onSave: { text, authorName, commentType in
+                addComment(text: text, authorName: authorName, commentType: commentType)
                 showAddComment = false
             })
         }
@@ -483,12 +483,17 @@ struct RecipeCommentListView: View {
         print("Reply to comment: \(comment.id)")
     }
 
-    private func addComment(_ comment: RecipeComment) {
-        // Insert comment and save
-        modelContext.insert(comment)
-
+    private func addComment(text: String, authorName: String?, commentType: CommentType) {
         do {
-            try modelContext.save()
+            // Use CommentService which handles Firebase sync
+            _ = try CommentService.shared.addComment(
+                to: recipe,
+                text: text,
+                authorName: authorName,
+                source: .user,
+                commentType: commentType,
+                context: modelContext
+            )
 
             // Haptic feedback
             let generator = UINotificationFeedbackGenerator()
@@ -508,7 +513,7 @@ struct RecipeCommentListView: View {
 
 struct AddCommentSheet: View {
     let recipe: Recipe
-    let onSave: (RecipeComment) -> Void
+    let onSave: (String, String?, CommentType) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var commentText = ""
@@ -556,15 +561,11 @@ struct AddCommentSheet: View {
     }
 
     private func saveComment() {
-        let comment = RecipeComment(
-            text: commentText,
-            authorName: authorName.isEmpty ? nil : authorName,
-            source: .user,
-            commentType: commentType,
-            recipe: recipe
+        onSave(
+            commentText,
+            authorName.isEmpty ? nil : authorName,
+            commentType
         )
-
-        onSave(comment)
         dismiss()
     }
 }

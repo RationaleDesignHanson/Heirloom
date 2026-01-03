@@ -153,16 +153,18 @@ struct DinnerPartyEditorView: View {
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
         let trimmedDescription = description.trimmingCharacters(in: .whitespaces)
 
-        if let party = party {
+        let partyToSync: DinnerParty
+        if let existingParty = party {
             // Update existing party
-            party.name = trimmedName
-            party.desc = trimmedDescription.isEmpty ? nil : trimmedDescription
-            party.guestCount = guestCount
-            party.mealTime = mealTime
-            party.lastModified = Date()
+            existingParty.name = trimmedName
+            existingParty.desc = trimmedDescription.isEmpty ? nil : trimmedDescription
+            existingParty.guestCount = guestCount
+            existingParty.mealTime = mealTime
+            existingParty.lastModified = Date()
 
             // Update recipes
-            party.recipes?.removeAll()
+            existingParty.recipes?.removeAll()
+            partyToSync = existingParty
 
         } else {
             // Create new party
@@ -176,10 +178,23 @@ struct DinnerPartyEditorView: View {
 
             // Add recipes with calculated start times
             addRecipes(to: newParty)
+            partyToSync = newParty
         }
 
         do {
             try modelContext.save()
+
+            // Sync to Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                Task {
+                    do {
+                        try await FirebaseSyncService.shared.uploadDinnerParty(partyToSync)
+                        print("✅ Dinner party synced to Firebase")
+                    } catch {
+                        print("⚠️ Failed to sync dinner party to Firebase: \(error.localizedDescription)")
+                    }
+                }
+            }
 
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)

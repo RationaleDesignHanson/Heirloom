@@ -45,6 +45,19 @@ final class CommentService {
         }
 
         try context.save()
+
+        // Sync to Firebase if active
+        if BackendConfig.shared.isFirebaseActive {
+            Task {
+                do {
+                    try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipe.id)
+                    print("✅ Comment synced to Firebase")
+                } catch {
+                    print("⚠️ Failed to sync comment to Firebase: \(error.localizedDescription)")
+                }
+            }
+        }
+
         return comment
     }
 
@@ -75,6 +88,21 @@ final class CommentService {
         }
 
         try context.save()
+
+        // Sync imported comments to Firebase if active
+        if BackendConfig.shared.isFirebaseActive {
+            Task {
+                for comment in importedComments {
+                    do {
+                        try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipe.id)
+                    } catch {
+                        print("⚠️ Failed to sync imported comment to Firebase: \(error.localizedDescription)")
+                    }
+                }
+                print("✅ \(importedComments.count) imported comments synced to Firebase")
+            }
+        }
+
         return importedComments
     }
 
@@ -144,17 +172,53 @@ final class CommentService {
         comment.text = text
         comment.modifiedAt = Date()
         try context.save()
+
+        // Sync updated comment to Firebase if active
+        if BackendConfig.shared.isFirebaseActive, let recipeId = comment.recipe?.id {
+            Task {
+                do {
+                    try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipeId)
+                    print("✅ Updated comment synced to Firebase")
+                } catch {
+                    print("⚠️ Failed to sync updated comment to Firebase: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 
     /// Vote on a comment
     func upvoteComment(_ comment: RecipeComment, context: ModelContext) throws {
         comment.upvotes += 1
         try context.save()
+
+        // Sync updated vote count to Firebase if active
+        if BackendConfig.shared.isFirebaseActive, let recipeId = comment.recipe?.id {
+            Task {
+                do {
+                    try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipeId)
+                    print("✅ Upvote synced to Firebase")
+                } catch {
+                    print("⚠️ Failed to sync upvote to Firebase: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 
     func downvoteComment(_ comment: RecipeComment, context: ModelContext) throws {
         comment.downvotes += 1
         try context.save()
+
+        // Sync updated vote count to Firebase if active
+        if BackendConfig.shared.isFirebaseActive, let recipeId = comment.recipe?.id {
+            Task {
+                do {
+                    try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipeId)
+                    print("✅ Downvote synced to Firebase")
+                } catch {
+                    print("⚠️ Failed to sync downvote to Firebase: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 
     /// Toggle pin status
@@ -212,13 +276,31 @@ final class CommentService {
 
     /// Delete a comment (and all replies if top-level)
     func deleteComment(_ comment: RecipeComment, context: ModelContext) throws {
+        let commentId = comment.id
+        let recipeId = comment.recipe?.id
+
         context.delete(comment)
         try context.save()
+
+        // Delete from Firebase if active
+        if BackendConfig.shared.isFirebaseActive, let recipeId = recipeId {
+            Task {
+                do {
+                    try await FirebaseSyncService.shared.deleteComment(commentId, from: recipeId)
+                    print("✅ Comment deleted from Firebase")
+                } catch {
+                    print("⚠️ Failed to delete comment from Firebase: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 
     /// Delete all comments for a recipe
     func deleteAllComments(for recipe: Recipe, context: ModelContext) throws {
         guard let comments = recipe.comments else { return }
+
+        let commentIds = comments.map { $0.id }
+        let recipeId = recipe.id
 
         for comment in comments {
             context.delete(comment)
@@ -226,6 +308,20 @@ final class CommentService {
 
         recipe.comments = []
         try context.save()
+
+        // Delete all comments from Firebase if active
+        if BackendConfig.shared.isFirebaseActive {
+            Task {
+                for commentId in commentIds {
+                    do {
+                        try await FirebaseSyncService.shared.deleteComment(commentId, from: recipeId)
+                    } catch {
+                        print("⚠️ Failed to delete comment from Firebase: \(error.localizedDescription)")
+                    }
+                }
+                print("✅ All comments deleted from Firebase")
+            }
+        }
     }
 
     /// Hide comment (soft delete)

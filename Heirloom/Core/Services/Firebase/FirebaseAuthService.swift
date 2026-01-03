@@ -3,17 +3,18 @@
 //  Heirloom
 //
 //  Created during Firebase Migration - Phase 3
-//  Handles Firebase Authentication with Sign in with Apple
+//  Handles Firebase Authentication with Sign in with Apple and Google
 //
 
 import Foundation
 import SwiftUI
 import AuthenticationServices
 import FirebaseAuth
+import GoogleSignIn
 import CryptoKit
 import os.log
 
-/// Firebase authentication service with Sign in with Apple
+/// Firebase authentication service with Sign in with Apple and Google
 @MainActor
 class FirebaseAuthService: NSObject, ObservableObject {
 
@@ -27,18 +28,36 @@ class FirebaseAuthService: NSObject, ObservableObject {
     private override init() {
         super.init()
 
+        // Check current auth state immediately (before listener fires)
+        if let user = Auth.auth().currentUser {
+            currentUser = user
+            isAuthenticated = true
+            hasCheckedInitialAuthState = true
+            DeviceLogger.shared.log("🔐 [Firebase] Restored session: \(user.uid)")
+            logger.info("🔐 [Firebase] Restored session: \(user.uid)")
+        }
+
         // Listen for auth state changes
-        Auth.auth().addStateDidChangeListener { [weak self] _, user in
+        _ = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             Task { @MainActor in
-                self?.currentUser = user
-                self?.isAuthenticated = user != nil
+                guard let self = self else { return }
+
+                // Prevent redundant updates if auth state hasn't changed
+                if self.hasCheckedInitialAuthState &&
+                   self.currentUser?.uid == user?.uid {
+                    return
+                }
+
+                self.currentUser = user
+                self.isAuthenticated = user != nil
+                self.hasCheckedInitialAuthState = true
 
                 if let user = user {
                     DeviceLogger.shared.log("🔐 [Firebase] User signed in: \(user.uid)")
-                    self?.logger.info("🔐 [Firebase] User signed in: \(user.uid)")
+                    self.logger.info("🔐 [Firebase] User signed in: \(user.uid)")
                 } else {
                     DeviceLogger.shared.log("🔐 [Firebase] User signed out")
-                    self?.logger.info("🔐 [Firebase] User signed out")
+                    self.logger.info("🔐 [Firebase] User signed out")
                 }
             }
         }
@@ -50,6 +69,9 @@ class FirebaseAuthService: NSObject, ObservableObject {
     @Published private(set) var currentUser: User?
     @Published private(set) var authError: Error?
     @Published private(set) var isAuthenticating = false
+
+    // Track if we've checked auth state to prevent multiple checks
+    private var hasCheckedInitialAuthState = false
 
     // MARK: - Sign in with Apple State
 
@@ -67,29 +89,96 @@ class FirebaseAuthService: NSObject, ObservableObject {
         isAuthenticating = true
         defer { isAuthenticating = false }
 
+        // Generate nonce for security
+        let nonce = randomNonceString()
+        currentNonce = nonce
+
+        // Create Apple Sign In request
+        let appleIDProvider = ASAuthorizationAppleIDProvider()
+        let request = appleIDProvider.createRequest()
+        request.requestedScopes = [.fullName, .email]
+        request.nonce = sha256(nonce)
+
+        // Present authorization UI
+        let authorizationController = ASAuthorizationController(authorizationRequests: [request])
+        authorizationController.delegate = self
+        authorizationController.presentationContextProvider = self
+        authorizationController.performRequests()
+
+        // Note: Completion handled in delegate methods
+    }
+
+    /// Sign in with Google
+    func signInWithGoogle() async throws {
+        DeviceLogger.shared.log("🔐 [Firebase] Starting Sign in with Google...")
+        logger.info("🔐 [Firebase] Starting Sign in with Google...")
+        print("🔐 Starting Sign in with Google...")
+
+        isAuthenticating = true
+        defer { isAuthenticating = false }
+
+        // Get the client ID from Firebase
+        guard let clientID = Auth.auth().app?.options.clientID else {
+            let error = AuthError.invalidCredential
+            DeviceLogger.shared.log("❌ [Firebase] Missing Google client ID", level: .error)
+            logger.error("❌ [Firebase] Missing Google client ID")
+            authError = error
+            throw error
+        }
+
+        // Configure Google Sign In
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+
+        // Get the presenting view controller
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootViewController = windowScene.windows.first?.rootViewController else {
+            let error = AuthError.signInFailed(NSError(domain: "FirebaseAuth", code: -1, userInfo: [NSLocalizedDescriptionKey: "No root view controller found"]))
+            DeviceLogger.shared.log("❌ [Firebase] No root view controller found", level: .error)
+            authError = error
+            throw error
+        }
+
         do {
-            // Generate nonce for security
-            let nonce = randomNonceString()
-            currentNonce = nonce
+            // Present Google Sign In
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
 
-            // Create Apple Sign In request
-            let appleIDProvider = ASAuthorizationAppleIDProvider()
-            let request = appleIDProvider.createRequest()
-            request.requestedScopes = [.fullName, .email]
-            request.nonce = sha256(nonce)
+            guard let idToken = result.user.idToken?.tokenString else {
+                let error = AuthError.invalidCredential
+                DeviceLogger.shared.log("❌ [Firebase] Missing Google ID token", level: .error)
+                logger.error("❌ [Firebase] Missing Google ID token")
+                authError = error
+                throw error
+            }
 
-            // Present authorization UI
-            let authorizationController = ASAuthorizationController(authorizationRequests: [request])
-            authorizationController.delegate = self
-            authorizationController.presentationContextProvider = self
-            authorizationController.performRequests()
+            let accessToken = result.user.accessToken.tokenString
 
-            // Note: Completion handled in delegate methods
+            // Create Firebase credential
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+
+            // Sign in to Firebase
+            DeviceLogger.shared.log("🔐 [Firebase] Authenticating with Firebase...")
+            let authResult = try await Auth.auth().signIn(with: credential)
+
+            DeviceLogger.shared.log("✅ [Firebase] Successfully signed in with Google: \(authResult.user.uid)")
+            logger.info("✅ [Firebase] Successfully signed in with Google: \(authResult.user.uid)")
+            print("✅ Successfully signed in with Google: \(authResult.user.uid)")
+
+            authError = nil
 
         } catch {
-            DeviceLogger.shared.log("❌ [Firebase] Sign in failed: \(error.localizedDescription)", level: .error)
-            logger.error("❌ [Firebase] Sign in failed: \(error.localizedDescription)")
-            print("❌ Sign in failed: \(error.localizedDescription)")
+            DeviceLogger.shared.log("❌ [Firebase] Google sign in failed: \(error.localizedDescription)", level: .error)
+            logger.error("❌ [Firebase] Google sign in failed: \(error.localizedDescription)")
+            print("❌ Google sign in failed: \(error.localizedDescription)")
+
+            // Check if user cancelled
+            let nsError = error as NSError
+            if nsError.domain == "com.google.GIDSignIn" && nsError.code == -5 {
+                DeviceLogger.shared.log("ℹ️ [Firebase] User cancelled Sign in with Google")
+                print("ℹ️ User cancelled Sign in with Google")
+                return
+            }
+
             authError = error
             throw error
         }
@@ -103,6 +192,9 @@ class FirebaseAuthService: NSObject, ObservableObject {
 
         do {
             try Auth.auth().signOut()
+
+            // Also sign out from Google
+            GIDSignIn.sharedInstance.signOut()
 
             DeviceLogger.shared.log("✅ [Firebase] Signed out successfully")
             logger.info("✅ [Firebase] Signed out successfully")

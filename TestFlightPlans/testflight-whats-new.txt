@@ -1,0 +1,93 @@
+🎉 MAJOR UPDATE: Google Sign-In + Enhanced AI Features
+
+✨ WHAT'S NEW
+
+🔐 MULTI-PROVIDER AUTHENTICATION
+• Google Sign-In added - sign in with Apple OR Google
+• Firebase auth at launch (no more Settings digging)
+• Fixed multiple login attempts bug
+• Instant session restoration
+
+📸 ENHANCED OCR
+• 40% better text recognition (PNG-first processing)
+• Deterministic progress shows actual steps
+• Smart button labels ("Retake" vs "Replace Photo")
+• Fixed placeholder images on recipe cards
+
+🤖 AI SPELLING SUGGESTIONS
+• Real-time spell checking as you type
+• Inline suggestions appear after 1 second
+• One-tap corrections for typos and abbreviations
+• Example: "1 tblspoon fIour" → "tablespoon" + "flour"
+
+🎯 RECIPE VERSION TRACKING
+• Track all changes with full history
+• Visual diff highlighting (green/red/yellow)
+• Provenance tracking: "Shared by Mom, from Grandma"
+• Version selector in detail view
+
+🍽️ DINNER PARTY PRECISION
+• Fixed confusing ranges: "1.5/2 cups" → "2 cups"
+• Precise scaling for any guest count
+• Multi-recipe planning with smart timelines
+• Accurate combined shopping lists
+
+📱 MULTI-RECIPE IMPORT POLISH
+• "Detected 3 Recipes!" acknowledgment
+• Obvious accordion expand/collapse
+• Progress: "Importing 2/3..." with bar
+• Smooth animations throughout
+
+🔧 FIXES & PERFORMANCE
+• Share extension restored (import from Safari)
+• Removed unused features (JSON import, Test AI)
+• Better image display on OCR recipes
+• Improved error handling
+• Faster spell checking with debouncing
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧪 PLEASE TEST
+
+Priority:
+1. Sign in with Apple AND Google (test session restore)
+2. OCR cookbook scanning (verify progress & accuracy)
+3. AI spelling (try intentional typos in ingredients)
+4. Recipe versions (edit recipe, view history)
+5. Dinner party scaling (check precise values)
+6. Multi-recipe import (test accordion UI)
+
+Also:
+- Share extension from Safari
+- Cross-device sync
+- Image quality on cards
+- General stability
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 FEEDBACK
+
+In-App: Settings → Send Feedback
+Email: support@heirloomapp.com
+TestFlight: Use "Send Beta Feedback"
+
+Include:
+- Device model & iOS version
+- Steps to reproduce issues
+- Screenshots if relevant
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 COMING NEXT (v1.2)
+
+- Handwritten recipe improvements
+- Public recipe sharing links
+- Meal planning calendar
+- Advanced search filters
+- Multi-language support
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+Thank you for testing Heirloom! 🙏
+
+Build 20 • v1.1.4 • iOS 17+ • 90-day expiration

@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import CloudKit
 
 /// Sheet for previewing and accepting a shared recipe
 /// Shows recipe preview with attribution and allows accept/decline
@@ -9,7 +8,7 @@ struct RecipeReceiveSheet: View {
     @Environment(\.modelContext) private var modelContext
 
     let shareURL: URL
-    let shareMetadata: CKShare.Metadata?
+    let shareMetadata: [String: Any]?
 
     @State private var isAccepting = false
     @State private var isDeclining = false
@@ -267,18 +266,32 @@ struct RecipeReceiveSheet: View {
     // MARK: - Actions
 
     private func loadPreview() async {
+        var metadata = shareMetadata
+
+        // If no metadata provided, try to fetch it from Firebase
+        if metadata == nil {
+            do {
+                let shareId = extractShareId(from: shareURL)
+                metadata = try await FirebaseShareService.shared.fetchShareMetadata(shareId: shareId)
+                print("✅ [RecipeReceive] Fetched metadata for preview")
+            } catch {
+                print("❌ [RecipeReceive] Failed to fetch metadata: \(error)")
+                // Continue with nil metadata - will show generic preview
+            }
+        }
+
         // Try to load preview from share metadata
-        if let metadata = shareMetadata {
+        if let metadata = metadata {
             let preview = RecipePreview(
-                title: (metadata.share["title"] as? String) ?? "Shared Recipe",
-                servings: metadata.share["servings"] as? String,
-                prepTime: metadata.share["prepTime"] as? String,
-                cookTime: metadata.share["cookTime"] as? String,
-                ingredientCount: (metadata.share["ingredientCount"] as? Int) ?? 0,
-                instructionCount: (metadata.share["instructionCount"] as? Int) ?? 0,
-                sharerName: metadata.share["sharerName"] as? String,
-                personalMessage: metadata.share["personalMessage"] as? String,
-                generation: metadata.share["generation"] as? Int
+                title: (metadata["recipeTitle"] as? String) ?? "Shared Recipe",
+                servings: metadata["servings"] as? String,
+                prepTime: metadata["prepTime"] as? String,
+                cookTime: metadata["cookTime"] as? String,
+                ingredientCount: (metadata["ingredientCount"] as? Int) ?? 0,
+                instructionCount: (metadata["instructionCount"] as? Int) ?? 0,
+                sharerName: metadata["ownerName"] as? String,
+                personalMessage: metadata["personalMessage"] as? String,
+                generation: metadata["generation"] as? Int
             )
 
             await MainActor.run {
@@ -287,7 +300,20 @@ struct RecipeReceiveSheet: View {
             }
         } else {
             // No metadata available - show generic preview
+            let genericPreview = RecipePreview(
+                title: "Shared Recipe",
+                servings: nil,
+                prepTime: nil,
+                cookTime: nil,
+                ingredientCount: 0,
+                instructionCount: 0,
+                sharerName: "Someone",
+                personalMessage: nil,
+                generation: nil
+            )
+
             await MainActor.run {
+                previewRecipe = genericPreview
                 isLoadingPreview = false
             }
         }
@@ -298,10 +324,12 @@ struct RecipeReceiveSheet: View {
 
         Task {
             do {
-                // Accept the share via ShareAcceptanceService
-                let recipe = try await ShareAcceptanceService.shared.acceptShare(
-                    url: shareURL,
-                    metadata: shareMetadata,
+                // Extract shareId from URL (format: heirloom://share/{shareId})
+                let shareId = extractShareId(from: shareURL)
+
+                // Accept the share via FirebaseShareService
+                let recipe = try await FirebaseShareService.shared.acceptShare(
+                    shareId: shareId,
                     context: modelContext
                 )
 
@@ -337,6 +365,21 @@ struct RecipeReceiveSheet: View {
                 }
             }
         }
+    }
+
+    private func extractShareId(from url: URL) -> String {
+        // Extract shareId from heirloom://share/{shareId}
+        if url.scheme == "heirloom", url.host == "share" {
+            return url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        }
+        // Or from https://heirloom.app/share/{shareId}
+        else if url.host == "heirloom.app" {
+            let pathComponents = url.pathComponents
+            if pathComponents.count >= 3, pathComponents[1] == "share" {
+                return pathComponents[2]
+            }
+        }
+        return url.lastPathComponent
     }
 
     private func decline() {

@@ -245,10 +245,23 @@ struct DinnerPartyListView: View {
     // MARK: - Actions
 
     private func deleteParty(_ party: DinnerParty) {
+        let partyId = party.id
         modelContext.delete(party)
 
         do {
             try modelContext.save()
+
+            // Delete from Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                Task {
+                    do {
+                        try await FirebaseSyncService.shared.deleteDinnerParty(partyId)
+                        print("✅ Dinner party deleted from Firebase")
+                    } catch {
+                        print("⚠️ Failed to delete dinner party from Firebase: \(error.localizedDescription)")
+                    }
+                }
+            }
 
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)

@@ -153,10 +153,31 @@ struct DinnerPartyShoppingListView: View {
     }
 
     private func scaleIngredientText(_ text: String, factor: Double) -> String {
-        // Simple scaling - multiply numbers by factor
-        // This is a basic implementation; real ingredient scaling is complex
+        // Scale ingredient quantities by factor, handling ranges precisely
         guard factor != 1.0 else { return text }
 
+        // First, check for ranges (e.g., "1-2 cups", "1/2 cup", "1 to 2 cups")
+        // For ranges, we take only the first/minimum value and scale it (users want precision)
+        let rangePattern = #"(\d+\.?\d*)\s*[-/to]+\s*(\d+\.?\d*)"#
+        if let rangeRegex = try? NSRegularExpression(pattern: rangePattern),
+           let match = rangeRegex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+           let firstRange = Range(match.range(at: 1), in: text),
+           let minValue = Double(text[firstRange]) {
+
+            // Scale just the minimum value for precision
+            let scaled = minValue * factor
+            let formatted = scaled.truncatingRemainder(dividingBy: 1) == 0 ?
+                String(format: "%.0f", scaled) :
+                String(format: "%.1f", scaled)
+
+            // Replace the entire range with just the scaled min value
+            let fullRangeRange = Range(match.range, in: text)!
+            var scaledText = text
+            scaledText.replaceSubrange(fullRangeRange, with: formatted)
+            return scaledText
+        }
+
+        // No range found - scale all numbers normally
         let pattern = #"(\d+\.?\d*)"#
         let regex = try? NSRegularExpression(pattern: pattern)
         let nsString = text as NSString

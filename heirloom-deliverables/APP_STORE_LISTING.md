@@ -1,8 +1,9 @@
 # Heirloom: App Store Listing Complete Package
 
-**Version:** 1.0
-**Last Updated:** December 8, 2024
+**Version:** 1.1.4
+**Last Updated:** December 31, 2024
 **Target Launch:** Q1 2025
+**Current Status:** TestFlight Beta (Build 20)
 
 ---
 
@@ -103,7 +104,8 @@ WHY FAMILIES LOVE HEIRLOOM
 • Generate one consolidated shopping list for the whole party
 
 📱 WORKS SEAMLESSLY WITH iOS
-• Syncs across iPhone and iPad via iCloud
+• Syncs across iPhone and iPad via Firebase
+• Sign in with Apple OR Google (multi-provider support)
 • Integrates with iOS Reminders (Grocery list type)
 • Native design feels like an Apple app
 • Dark Mode support and Dynamic Type for accessibility

@@ -161,6 +161,14 @@ struct ShoppingListView: View {
                 selectedRecipeIds = Set(cartRecipes.compactMap { $0.recipe?.id })
             }
         }
+        .onChange(of: cartRecipes.count) { oldCount, newCount in
+            // When new recipes are added, automatically select them
+            let currentRecipeIds = Set(cartRecipes.compactMap { $0.recipe?.id })
+            let newRecipeIds = currentRecipeIds.subtracting(selectedRecipeIds)
+
+            // Add any new recipes to selected set (so their items show up)
+            selectedRecipeIds.formUnion(newRecipeIds)
+        }
     }
 
     private func recipeRow(_ cartRecipe: ShoppingCartRecipe) -> some View {
@@ -409,10 +417,10 @@ struct ShoppingListView: View {
             }
         }
 
-        // Combine ingredients with the same name
+        // Combine ingredients with the same name (with normalization)
         var combined: [String: (category: GroceryCategory, scaledIngredients: [ScaledIngredient])] = [:]
         for (scaledIngredient, category) in allIngredients {
-            let key = scaledIngredient.originalIngredient.name.lowercased().trimmingCharacters(in: .whitespaces)
+            let key = normalizeIngredientName(scaledIngredient.originalIngredient.name)
             if combined[key] == nil {
                 combined[key] = (category: category, scaledIngredients: [])
             }
@@ -439,40 +447,250 @@ struct ShoppingListView: View {
         let category: GroceryCategory
 
         var displayText: String {
+            // Single ingredient - just show it as-is
             if scaledIngredients.count == 1 {
                 return scaledIngredients[0].fullDisplayString
             }
 
-            // Try to combine quantities if they have the same unit
-            let firstIngredient = scaledIngredients[0].originalIngredient
-            let allHaveQuantities = scaledIngredients.allSatisfy { $0.scaledQuantity != nil }
-            let allHaveSameUnit = Set(scaledIngredients.compactMap { $0.originalIngredient.unit }).count <= 1
-
-            if allHaveQuantities && allHaveSameUnit {
-                // Calculate total SCALED quantity
-                let totalQty = scaledIngredients.compactMap { $0.scaledQuantity }.reduce(0.0, +)
-                let unit = firstIngredient.unit ?? ""
-                let name = firstIngredient.name
-
-                // Format the quantity
-                let qtyString = formatQuantity(totalQty)
-
-                // Build display string
-                var parts: [String] = [qtyString]
-                if !unit.isEmpty {
-                    parts.append(unit)
+            // Multiple ingredients - check if they have units
+            var hasUnits = true
+            for ingredient in scaledIngredients {
+                if ingredient.originalIngredient.unit?.trimmingCharacters(in: .whitespaces).isEmpty ?? true {
+                    hasUnits = false
+                    break
                 }
-                parts.append(name)
+            }
 
-                if let prep = firstIngredient.preparation {
+            // Handle unitless ingredients (like eggs, cloves, etc.)
+            if !hasUnits {
+                // Sum quantities for unitless ingredients
+                var total = 0.0
+                for ingredient in scaledIngredients {
+                    if let qty = ingredient.scaledQuantity {
+                        total += qty
+                    }
+                }
+
+                // Use the shortest, simplest name
+                let name = scaledIngredients.map { $0.originalIngredient.name }.min(by: { $0.count < $1.count }) ?? scaledIngredients[0].originalIngredient.name
+                let qtyString = formatQuantity(total)
+
+                var parts: [String] = [qtyString, name]
+                if let prep = scaledIngredients[0].originalIngredient.preparation {
                     parts.append("(\(prep))")
                 }
-
                 return parts.joined(separator: " ")
-            } else {
-                // Fallback: show count multiplier
-                return "\(scaledIngredients.count)× \(scaledIngredients[0].fullDisplayString)"
             }
+
+            // Multiple ingredients with units - group by normalized unit first
+            // Step 1: Check all have quantities and units
+            var ingredientsWithUnits: [(quantity: Double, unit: String, normalizedUnit: String)] = []
+            for ingredient in scaledIngredients {
+                guard let qty = ingredient.scaledQuantity,
+                      let unit = ingredient.originalIngredient.unit, !unit.trimmingCharacters(in: .whitespaces).isEmpty else {
+                    // Missing quantity or unit - can't combine
+                    return "\(scaledIngredients.count)× \(scaledIngredients[0].fullDisplayString)"
+                }
+
+                let trimmedUnit = unit.trimmingCharacters(in: .whitespaces)
+                let normalized = normalizeUnit(trimmedUnit)
+                ingredientsWithUnits.append((quantity: qty, unit: trimmedUnit, normalizedUnit: normalized))
+            }
+
+            // Step 2: Group by normalized unit and sum quantities
+            var unitGroups: [String: (total: Double, displayUnit: String)] = [:]
+            for item in ingredientsWithUnits {
+                if let existing = unitGroups[item.normalizedUnit] {
+                    unitGroups[item.normalizedUnit] = (total: existing.total + item.quantity, displayUnit: existing.displayUnit)
+                } else {
+                    unitGroups[item.normalizedUnit] = (total: item.quantity, displayUnit: item.unit)
+                }
+            }
+
+            // Step 3: If only one unit group, return summed total (with smart conversion)
+            if unitGroups.count == 1, let (normalizedUnit, group) = unitGroups.first {
+                // Use the shortest, simplest name (prefer "eggs" over "large eggs")
+                let name = scaledIngredients.map { $0.originalIngredient.name }.min(by: { $0.count < $1.count }) ?? scaledIngredients[0].originalIngredient.name
+
+                // Try to convert to a better unit if appropriate
+                let (convertedQty, convertedUnit) = smartConvertUnit(quantity: group.total, unit: group.displayUnit, normalizedUnit: normalizedUnit)
+
+                let qtyString = formatQuantity(convertedQty)
+                var parts: [String] = [qtyString, convertedUnit, name]
+                if let prep = scaledIngredients[0].originalIngredient.preparation {
+                    parts.append("(\(prep))")
+                }
+                return parts.joined(separator: " ")
+            }
+
+            // Step 4: Multiple unit groups - try to convert and combine intelligently
+            // Use the shortest, simplest name (prefer "eggs" over "large eggs")
+            let name = scaledIngredients.map { $0.originalIngredient.name }.min(by: { $0.count < $1.count }) ?? scaledIngredients[0].originalIngredient.name
+            let prep = scaledIngredients[0].originalIngredient.preparation
+
+            // Try to convert smaller units to larger units
+            var convertedGroups = unitGroups
+            let conversionAttempts: [(from: String, to: String, factor: Double)] = [
+                ("tsp", "tbsp", 3.0),
+                ("teaspoon", "tablespoon", 3.0),
+                ("tbsp", "cup", 16.0),
+                ("tablespoon", "cup", 16.0),
+                ("oz", "lb", 16.0),
+                ("ounce", "pound", 16.0)
+            ]
+
+            // For each conversion rule, check if we have both units
+            for conversion in conversionAttempts {
+                if let smallerGroup = convertedGroups[conversion.from],
+                   let largerGroup = convertedGroups[conversion.to] {
+                    // Convert smaller to larger unit
+                    let convertedQty = smallerGroup.total / conversion.factor
+                    let combinedQty = largerGroup.total + convertedQty
+
+                    // Update the larger unit with combined quantity
+                    convertedGroups[conversion.to] = (total: combinedQty, displayUnit: largerGroup.displayUnit)
+                    // Remove the smaller unit
+                    convertedGroups.removeValue(forKey: conversion.from)
+                }
+            }
+
+            // If we successfully converted to a single unit, format it
+            if convertedGroups.count == 1, let (_, group) = convertedGroups.first {
+                // Round the quantity intelligently before formatting
+                let rounded = roundForCooking(group.total)
+                let qtyString = formatQuantity(rounded)
+                var parts: [String] = [qtyString, group.displayUnit, name]
+                if let prep = prep {
+                    parts.append("(\(prep))")
+                }
+                return parts.joined(separator: " ")
+            }
+
+            // Still multiple units - show as "2 cups + 1 tablespoon butter"
+            // Sort by quantity (largest first) for better readability
+            let sortedGroups = convertedGroups.sorted { $0.value.total > $1.value.total }
+
+            var quantityParts: [String] = []
+            for (_, group) in sortedGroups {
+                let qty = formatQuantity(group.total)
+                quantityParts.append("\(qty) \(group.displayUnit)")
+            }
+
+            var result = quantityParts.joined(separator: " + ") + " " + name
+            if let prep = prep {
+                result += " (\(prep))"
+            }
+            return result
+        }
+
+        /// Normalize unit for comparison (lowercase, singular form)
+        private func normalizeUnit(_ unit: String) -> String {
+            let lowercased = unit.lowercased().trimmingCharacters(in: .whitespaces)
+
+            // Convert plural to singular for common units
+            let singularMappings: [String: String] = [
+                "cups": "cup",
+                "tablespoons": "tablespoon",
+                "tablespoon": "tbsp",
+                "tbsps": "tbsp",
+                "tbs": "tbsp",  // Add this mapping!
+                "teaspoons": "teaspoon",
+                "teaspoon": "tsp",
+                "tsps": "tsp",
+                "ounces": "ounce",
+                "ounce": "oz",
+                "ozs": "oz",
+                "pounds": "pound",
+                "pound": "lb",
+                "lbs": "lb",
+                "grams": "gram",
+                "gram": "g",
+                "g": "g",
+                "kilograms": "kilogram",
+                "kilogram": "kg",
+                "kgs": "kg",
+                "liters": "liter",
+                "liter": "l",
+                "litres": "litre",
+                "litre": "l",
+                "milliliters": "milliliter",
+                "milliliter": "ml",
+                "millilitres": "millilitre",
+                "millilitre": "ml",
+                "mls": "ml",
+                "cloves": "clove",
+                "pieces": "piece",
+                "slices": "slice"
+            ]
+
+            return singularMappings[lowercased] ?? lowercased
+        }
+
+        /// Smart unit conversion - converts to larger units when appropriate
+        /// Example: 5.5 teaspoons → 2 tablespoons (rounded from 1.83)
+        private func smartConvertUnit(quantity: Double, unit: String, normalizedUnit: String) -> (quantity: Double, unit: String) {
+            // Define conversion rules: (fromUnit, toUnit, conversionFactor, minimumQuantity)
+            let conversions: [(from: String, to: String, factor: Double, minQty: Double)] = [
+                // Volume conversions
+                ("tsp", "tbsp", 3.0, 4.0),           // Convert tsp to tbsp if >= 4 tsp
+                ("teaspoon", "tablespoon", 3.0, 4.0),
+                ("tbsp", "cup", 16.0, 8.0),          // Convert tbsp to cups if >= 8 tbsp
+                ("tablespoon", "cup", 16.0, 8.0),
+
+                // Weight conversions
+                ("oz", "lb", 16.0, 12.0),            // Convert oz to lb if >= 12 oz
+                ("ounce", "pound", 16.0, 12.0),
+                ("gram", "kilogram", 1000.0, 500.0), // Convert g to kg if >= 500g
+                ("g", "kg", 1000.0, 500.0)
+            ]
+
+            // Check if this unit can be converted
+            for conversion in conversions {
+                if normalizedUnit == conversion.from && quantity >= conversion.minQty {
+                    let convertedQty = quantity / conversion.factor
+
+                    // Round intelligently for cooking measurements
+                    let rounded = roundForCooking(convertedQty)
+
+                    // Return converted unit
+                    return (quantity: rounded, unit: conversion.to)
+                }
+            }
+
+            // No conversion needed - return original
+            return (quantity: quantity, unit: unit)
+        }
+
+        /// Round quantities intelligently for cooking
+        /// Examples: 1.83 → 2, 1.875 → 2, 1.25 → 1.25, 2.6 → 2.5
+        private func roundForCooking(_ value: Double) -> Double {
+            // Check if it's close to a whole number (within 0.2)
+            // This will round 1.875 (1⅞) and 1.833 up to 2
+            let whole = round(value)
+            if abs(value - whole) < 0.2 {
+                return whole
+            }
+
+            // Check if it's close to a half (within 0.15)
+            let half = round(value * 2) / 2
+            if abs(value - half) < 0.15 {
+                return half
+            }
+
+            // Check if it's close to a quarter (within 0.1)
+            let quarter = round(value * 4) / 4
+            if abs(value - quarter) < 0.1 {
+                return quarter
+            }
+
+            // Check if it's close to an eighth (within 0.06)
+            let eighth = round(value * 8) / 8
+            if abs(value - eighth) < 0.06 {
+                return eighth
+            }
+
+            // Return as-is if no good round exists
+            return value
         }
 
         private func formatQuantity(_ value: Double) -> String {
@@ -519,6 +737,30 @@ struct ShoppingListView: View {
         var recipeCount: Int {
             scaledIngredients.count
         }
+    }
+
+    // MARK: - Helper Functions
+
+    /// Normalize ingredient names for better combining
+    /// Examples: "large eggs" → "eggs", "medium onions" → "onions"
+    private func normalizeIngredientName(_ name: String) -> String {
+        var normalized = name.lowercased().trimmingCharacters(in: .whitespaces)
+
+        // Strip common size/quality modifiers from the beginning
+        let prefixesToRemove = [
+            "large ", "medium ", "small ", "extra large ", "xl ", "jumbo ",
+            "fresh ", "dried ", "frozen ", "canned ", "whole ",
+            "ripe ", "unripe ", "raw ", "cooked "
+        ]
+
+        for prefix in prefixesToRemove {
+            if normalized.hasPrefix(prefix) {
+                normalized = String(normalized.dropFirst(prefix.count))
+                break // Only remove one prefix
+            }
+        }
+
+        return normalized
     }
 
     // MARK: - Actions
@@ -663,6 +905,8 @@ struct ShoppingListView: View {
             modelContext.delete(cartRecipe)
         }
         try? modelContext.save()
+
+        // Shopping cart is local-only (no Firebase sync needed for ephemeral data)
 
         // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
         // AccessibilityAnnouncementService.shared.announceShoppingListCleared()

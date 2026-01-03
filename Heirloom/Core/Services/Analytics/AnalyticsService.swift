@@ -63,6 +63,8 @@ enum AnalyticsEvent: String {
     case aiTokensUsed = "AI Tokens Used"
     case aiIngredientParseSuccess = "AI Ingredient Parse Success"
     case aiIngredientParseFailed = "AI Ingredient Parse Failed"
+    case aiSpellCheckSuccess = "AI Spell Check Success"
+    case aiSpellCheckFailed = "AI Spell Check Failed"
     case aiCategoryDetectionSuccess = "AI Category Detection Success"
     case aiCategoryDetectionFailed = "AI Category Detection Failed"
     case aiEnhancementSuccess = "AI Enhancement Success"

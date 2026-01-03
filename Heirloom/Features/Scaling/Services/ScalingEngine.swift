@@ -197,12 +197,13 @@ class ScalingEngine {
         guard let unit = unit?.lowercased() else { return value }
 
         // Round based on unit type
+        // Use 2 decimal places for small measurements to avoid over-rounding scaled values
         if unit.contains("tsp") || unit.contains("teaspoon") {
-            // Round to nearest 1/8 tsp
-            return round(value * 8) / 8
+            // Round to 2 decimal places
+            return round(value * 100) / 100
         } else if unit.contains("tbsp") || unit.contains("tablespoon") {
-            // Round to nearest 1/4 tbsp
-            return round(value * 4) / 4
+            // Round to 2 decimal places
+            return round(value * 100) / 100
         } else if unit.contains("cup") {
             // Round to nearest 1/8 cup
             return round(value * 8) / 8
@@ -230,17 +231,18 @@ class ScalingEngine {
     ) -> [ScalingWarning] {
         var warnings: [ScalingWarning] = []
 
-        // Check if approaching category minimum
-        if let category = recipe.category,
-           targetServings <= category.minimumServings {
-            if let warningMessage = category.minimumWarning {
-                warnings.append(ScalingWarning(
-                    type: .categoryLimit,
-                    message: warningMessage,
-                    iconName: "exclamationmark.triangle.fill",
-                    severity: .caution
-                ))
-            }
+        // Check if approaching recipe-specific or category minimum
+        let effectiveMinimum = recipe.minimumServings
+        if targetServings <= effectiveMinimum {
+            // Use category warning if available, otherwise generic
+            let warningMessage = recipe.category?.minimumWarning ??
+                "Scaling to \(targetServings) servings may affect recipe quality"
+            warnings.append(ScalingWarning(
+                type: .categoryLimit,
+                message: warningMessage,
+                iconName: "exclamationmark.triangle.fill",
+                severity: .caution
+            ))
         }
 
         // Check if scaling factor is extreme
@@ -269,20 +271,20 @@ class ScalingEngine {
         recipe: Recipe,
         scaleFactor: Double
     ) -> [String]? {
-        guard let category = recipe.category else { return nil }
-
         var suggestions: [String] = []
 
-        // Pan size recommendations
-        if category == .layerCake || category == .pie {
-            if scaleFactor < 0.75 {
-                suggestions.append("Use a smaller pan (6\" recommended)")
-            } else if scaleFactor > 1.5 {
-                suggestions.append("Use a larger pan or divide into multiple pans")
+        // Pan size recommendations (category-specific)
+        if let category = recipe.category {
+            if category == .layerCake || category == .pie {
+                if scaleFactor < 0.75 {
+                    suggestions.append("Use a smaller pan (6\" recommended)")
+                } else if scaleFactor > 1.5 {
+                    suggestions.append("Use a larger pan or divide into multiple pans")
+                }
             }
         }
 
-        // Mixing bowl recommendations
+        // Mixing bowl recommendations (applies to all recipes)
         if scaleFactor > 2.0 {
             suggestions.append("Use a larger mixing bowl for better mixing")
         }
@@ -308,9 +310,9 @@ class ScalingEngine {
         // Only adjust baking times
         if category == .cookies || category == .muffins || category == .quickBread {
             // Baking times change slightly with size
-            if scaleFactor < 0.75 {
+            if scaleFactor <= 0.75 {
                 return "\(originalTime) (reduce by 2-3 minutes)"
-            } else if scaleFactor > 1.5 {
+            } else if scaleFactor >= 1.5 {
                 return "\(originalTime) (add 3-5 minutes)"
             }
         }

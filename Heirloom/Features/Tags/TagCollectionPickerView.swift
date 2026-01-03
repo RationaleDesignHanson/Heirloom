@@ -188,6 +188,21 @@ struct TagCollectionPickerView: View {
         }
 
         try? modelContext.save()
+
+        // Sync to Firebase if active
+        if BackendConfig.shared.isFirebaseActive {
+            Task {
+                do {
+                    // Sync the tag itself
+                    try await FirebaseSyncService.shared.uploadTag(tag)
+                    // Sync the recipe with updated tag IDs
+                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                    print("✅ Tag toggle synced to Firebase")
+                } catch {
+                    print("⚠️ Failed to sync tag toggle to Firebase: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 
     private func isCollectionSelected(_ collection: RecipeCollection) -> Bool {
@@ -211,6 +226,21 @@ struct TagCollectionPickerView: View {
         }
 
         try? modelContext.save()
+
+        // Sync to Firebase if active
+        if BackendConfig.shared.isFirebaseActive {
+            Task {
+                do {
+                    // Sync the collection itself
+                    try await FirebaseSyncService.shared.uploadCollection(collection)
+                    // Sync the recipe with updated collection IDs
+                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                    print("✅ Collection toggle synced to Firebase")
+                } catch {
+                    print("⚠️ Failed to sync collection toggle to Firebase: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 }
 

@@ -46,9 +46,10 @@ class AIConfiguration: ObservableObject {
     // MARK: - Initialization
 
     private init() {
-        self.enableAIParsing = UserDefaults.standard.bool(forKey: Keys.enableAIParsing)
-        self.enableAICategories = UserDefaults.standard.bool(forKey: Keys.enableAICategories)
-        self.enableAIEnhancement = UserDefaults.standard.bool(forKey: Keys.enableAIEnhancement)
+        // Default AI features to enabled if not explicitly set
+        self.enableAIParsing = UserDefaults.standard.object(forKey: Keys.enableAIParsing) as? Bool ?? true
+        self.enableAICategories = UserDefaults.standard.object(forKey: Keys.enableAICategories) as? Bool ?? true
+        self.enableAIEnhancement = UserDefaults.standard.object(forKey: Keys.enableAIEnhancement) as? Bool ?? true
 
         if let providerRaw = UserDefaults.standard.string(forKey: Keys.selectedProvider),
            let provider = AIProvider(rawValue: providerRaw) {
@@ -86,10 +87,19 @@ class AIConfiguration: ObservableObject {
         objectWillChange.send()
     }
 
-    /// Check if a provider is configured
+    /// Check if a provider is configured (checks user key + default key fallback)
     func isConfigured(provider: AIProvider) -> Bool {
-        guard let key = apiKey(for: provider) else { return false }
-        return !key.isEmpty && key.hasPrefix(provider.keyPrefix)
+        // Check user key from Keychain first
+        if let userKey = apiKey(for: provider), !userKey.isEmpty, userKey.hasPrefix(provider.keyPrefix) {
+            return true
+        }
+
+        // Fall back to default key from bundle
+        if let defaultKey = defaultAPIKey(for: provider), !defaultKey.isEmpty, defaultKey.hasPrefix(provider.keyPrefix) {
+            return true
+        }
+
+        return false
     }
 
     /// Get the current active provider's API key

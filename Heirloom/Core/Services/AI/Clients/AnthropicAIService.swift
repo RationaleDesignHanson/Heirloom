@@ -1,6 +1,26 @@
 import Foundation
 import UIKit
 
+/// Image use case for optimized processing
+enum ImageUseCase {
+    case ocr        // High quality for text recognition (2048px, 0.95 compression)
+    case display    // Balanced quality for general use (1600px, 0.85 compression)
+
+    var maxDimension: CGFloat {
+        switch self {
+        case .ocr: return 2048
+        case .display: return 1600
+        }
+    }
+
+    var compressionQuality: CGFloat {
+        switch self {
+        case .ocr: return 0.95
+        case .display: return 0.85
+        }
+    }
+}
+
 /// Anthropic Claude AI service client
 /// Adapted from Zero Inbox's OpenAI integration pattern
 /// Uses Claude API for food/recipe domain expertise including vision capabilities
@@ -120,7 +140,8 @@ class AnthropicAIService: AIServiceProtocol {
     func completeWithVision(
         image: UIImage,
         prompt: String,
-        options: AICompletionOptions? = nil
+        options: AICompletionOptions? = nil,
+        useCase: ImageUseCase = .display
     ) async throws -> AICompletionResponse {
         // Check rate limit
         let config = AIConfiguration.shared
@@ -137,11 +158,13 @@ class AnthropicAIService: AIServiceProtocol {
             throw AIError.notConfigured(provider: providerName)
         }
 
-        // Convert image to base64
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            throw AIError.invalidRequest(reason: "Could not convert image to JPEG")
-        }
+        // Prepare image with quality preservation for OCR
+        let (processedImage, imageData, format) = try prepareImageForVisionAPI(image, useCase: useCase)
         let base64Image = imageData.base64EncodedString()
+
+        print("📸 [OCR] Original: \(Int(image.size.width))x\(Int(image.size.height))")
+        print("📸 [OCR] Processed: \(Int(processedImage.size.width))x\(Int(processedImage.size.height)), \(imageData.count / 1024)KB, format: \(format)")
+        print("📸 [OCR] Scale: \(image.scale)x, Color space: \(image.cgImage?.colorSpace?.name ?? "unknown" as CFString)")
 
         // Build request with vision content
         let opts = options ?? .default
@@ -156,7 +179,7 @@ class AnthropicAIService: AIServiceProtocol {
                     content: [
                         .image(source: AnthropicImageSource(
                             type: "base64",
-                            mediaType: "image/jpeg",
+                            mediaType: format == "png" ? "image/png" : "image/jpeg",
                             data: base64Image
                         )),
                         .text(prompt)
@@ -186,7 +209,8 @@ class AnthropicAIService: AIServiceProtocol {
         image: UIImage,
         prompt: String,
         schema: T.Type,
-        options: AICompletionOptions? = nil
+        options: AICompletionOptions? = nil,
+        useCase: ImageUseCase = .display
     ) async throws -> T {
         // Add JSON formatting instructions
         let structuredPrompt = """
@@ -198,7 +222,8 @@ class AnthropicAIService: AIServiceProtocol {
         let response = try await completeWithVision(
             image: image,
             prompt: structuredPrompt,
-            options: options
+            options: options,
+            useCase: useCase
         )
 
         // Parse JSON response
@@ -316,6 +341,74 @@ class AnthropicAIService: AIServiceProtocol {
             return .apiError(statusCode: statusCode, message: message ?? "Server error")
         default:
             return .apiError(statusCode: statusCode, message: message ?? "Unknown error")
+        }
+    }
+
+    /// Prepare image for Vision API with quality preservation
+    /// Strategy: Only resize/compress if necessary to stay under Claude's 5MB limit
+    /// Returns: (processed image, image data, format string)
+    private func prepareImageForVisionAPI(_ image: UIImage, useCase: ImageUseCase) throws -> (UIImage, Data, String) {
+        let maxFileSize = 4_500_000 // 4.5MB (leave headroom for 5MB limit)
+
+        // Try PNG first (lossless) - best for OCR
+        if let pngData = image.pngData(), pngData.count <= maxFileSize {
+            print("📸 [OCR] Using PNG (lossless): \(pngData.count / 1024)KB")
+            return (image, pngData, "png")
+        }
+
+        // PNG too large, try high-quality JPEG without resizing
+        if let jpegData = image.jpegData(compressionQuality: 0.95), jpegData.count <= maxFileSize {
+            print("📸 [OCR] Using JPEG 0.95 (no resize): \(jpegData.count / 1024)KB")
+            return (image, jpegData, "jpeg")
+        }
+
+        // Still too large, need to resize
+        print("📸 [OCR] Image too large (\(image.jpegData(compressionQuality: 0.95)?.count ?? 0 / 1024)KB), resizing...")
+
+        let resizedImage = resizeImagePreservingQuality(image, targetFileSize: maxFileSize)
+
+        // Try PNG on resized image
+        if let pngData = resizedImage.pngData(), pngData.count <= maxFileSize {
+            print("📸 [OCR] Using PNG after resize: \(pngData.count / 1024)KB")
+            return (resizedImage, pngData, "png")
+        }
+
+        // Fall back to JPEG
+        guard let jpegData = resizedImage.jpegData(compressionQuality: 0.92) else {
+            throw AIError.invalidRequest(reason: "Could not convert image to JPEG")
+        }
+
+        print("📸 [OCR] Using JPEG 0.92 after resize: \(jpegData.count / 1024)KB")
+        return (resizedImage, jpegData, "jpeg")
+    }
+
+    /// Resize image while preserving quality and aspect ratio
+    private func resizeImagePreservingQuality(_ image: UIImage, targetFileSize: Int) -> UIImage {
+        let size = image.size
+
+        // Estimate scale factor needed (rough approximation)
+        let currentSize = image.jpegData(compressionQuality: 0.95)?.count ?? Int(size.width * size.height * 4)
+        let scaleFactor = sqrt(Double(targetFileSize) / Double(currentSize))
+
+        // Apply scale factor to dimensions
+        let newSize = CGSize(
+            width: size.width * scaleFactor * 0.9, // 0.9 for safety margin
+            height: size.height * scaleFactor * 0.9
+        )
+
+        print("📸 [OCR] Resizing from \(Int(size.width))x\(Int(size.height)) to \(Int(newSize.width))x\(Int(newSize.height))")
+
+        // Use high-quality rendering
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0 // Don't apply device scale, keep pixels 1:1
+        format.opaque = false // Preserve alpha channel
+        format.preferredRange = .standard // sRGB color space
+
+        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+        return renderer.image { context in
+            // Use high-quality interpolation
+            context.cgContext.interpolationQuality = .high
+            image.draw(in: CGRect(origin: .zero, size: newSize))
         }
     }
 }

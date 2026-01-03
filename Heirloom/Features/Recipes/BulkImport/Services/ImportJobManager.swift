@@ -204,6 +204,17 @@ final class ImportJobManager: ObservableObject {
             context.insert(recipe)
             try context.save()
 
+            // Sync to Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                do {
+                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                    print("✅ Bulk import recipe synced to Firebase: \(recipe.title)")
+                } catch {
+                    print("⚠️ Failed to sync bulk import recipe: \(error.localizedDescription)")
+                    // Continue with next recipe
+                }
+            }
+
             // Mark item as successful
             item.markSuccess(recipeID: recipe.id)
             job.updateProgress(success: true)

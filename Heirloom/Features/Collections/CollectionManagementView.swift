@@ -126,6 +126,9 @@ struct CollectionManagementView: View {
     // MARK: - Actions
 
     private func deleteCollections(at offsets: IndexSet) {
+        // Capture collection IDs before deleting
+        let collectionIdsToDelete = offsets.map { userCollections[$0].id }
+
         for index in offsets {
             let collection = userCollections[index]
             modelContext.delete(collection)
@@ -133,6 +136,20 @@ struct CollectionManagementView: View {
 
         do {
             try modelContext.save()
+
+            // Delete from Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                Task {
+                    for collectionId in collectionIdsToDelete {
+                        do {
+                            try await FirebaseSyncService.shared.deleteCollection(collectionId)
+                        } catch {
+                            print("⚠️ Failed to delete collection from Firebase: \(error.localizedDescription)")
+                        }
+                    }
+                    print("✅ Collections deleted from Firebase")
+                }
+            }
 
             // Haptic feedback
             let generator = UINotificationFeedbackGenerator()
@@ -320,12 +337,14 @@ struct CollectionEditorView: View {
 
         let trimmedDescription = description.trimmingCharacters(in: .whitespaces)
 
-        if let collection = collection {
+        let collectionToSync: RecipeCollection
+        if let existingCollection = collection {
             // Update existing collection
-            collection.name = trimmedName
-            collection.desc = trimmedDescription.isEmpty ? nil : trimmedDescription
-            collection.iconName = selectedIcon
-            collection.color = selectedColor
+            existingCollection.name = trimmedName
+            existingCollection.desc = trimmedDescription.isEmpty ? nil : trimmedDescription
+            existingCollection.iconName = selectedIcon
+            existingCollection.color = selectedColor
+            collectionToSync = existingCollection
         } else {
             // Create new collection
             let newCollection = RecipeCollection(
@@ -335,10 +354,23 @@ struct CollectionEditorView: View {
                 color: selectedColor
             )
             modelContext.insert(newCollection)
+            collectionToSync = newCollection
         }
 
         do {
             try modelContext.save()
+
+            // Sync to Firebase if active
+            if BackendConfig.shared.isFirebaseActive {
+                Task {
+                    do {
+                        try await FirebaseSyncService.shared.uploadCollection(collectionToSync)
+                        print("✅ Collection synced to Firebase")
+                    } catch {
+                        print("⚠️ Failed to sync collection to Firebase: \(error.localizedDescription)")
+                    }
+                }
+            }
 
             // Haptic feedback
             let generator = UINotificationFeedbackGenerator()

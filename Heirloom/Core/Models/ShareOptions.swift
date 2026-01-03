@@ -33,10 +33,10 @@ struct ShareOptions {
     /// Display name of sharer (auto-filled from iCloud)
     var sharerName: String?
 
-    // MARK: - Share Permissions
+    // MARK: - Share Type
 
-    /// Permission level for share
-    var permission: SharePermission = .readOnly
+    /// Type of share (heirloom vs generic)
+    var shareType: ShareType = .heirloom
 
     /// Whether recipient can re-share
     var allowReSharing: Bool = true
@@ -61,7 +61,7 @@ struct ShareOptions {
         includeStickers: Bool = true,
         personalMessage: String? = nil,
         sharerName: String? = nil,
-        permission: SharePermission = .readOnly,
+        shareType: ShareType = .heirloom,
         allowReSharing: Bool = true,
         expirationDuration: ExpirationDuration? = .sevenDays,
         notifyOnAccept: Bool = true
@@ -75,7 +75,7 @@ struct ShareOptions {
         self.includeStickers = includeStickers
         self.personalMessage = personalMessage
         self.sharerName = sharerName
-        self.permission = permission
+        self.shareType = shareType
         self.allowReSharing = allowReSharing
         self.expirationDuration = expirationDuration
         self.notifyOnAccept = notifyOnAccept
@@ -85,30 +85,30 @@ struct ShareOptions {
 // MARK: - Supporting Types
 
 extension ShareOptions {
-    enum SharePermission: String, CaseIterable {
-        case readOnly = "readOnly"
-        case readWrite = "readWrite"
+    enum ShareType: String, CaseIterable {
+        case heirloom = "heirloom"
+        case generic = "generic"
 
         var displayName: String {
             switch self {
-            case .readOnly: return "View Only"
-            case .readWrite: return "Can Edit"
+            case .heirloom: return "Heirloom"
+            case .generic: return "Generic"
             }
         }
 
         var description: String {
             switch self {
-            case .readOnly:
-                return "Recipient can view and copy the recipe, but cannot modify your original"
-            case .readWrite:
-                return "Recipient can edit the recipe, and changes will sync back to you"
+            case .heirloom:
+                return "Recipient can modify the recipe. You'll be able to see their changes and choose which version to use. Perfect for family recipes that evolve."
+            case .generic:
+                return "Recipient gets a one-time copy. No modification tracking or version history."
             }
         }
 
         var iconName: String {
             switch self {
-            case .readOnly: return "eye.fill"
-            case .readWrite: return "pencil.circle.fill"
+            case .heirloom: return "arrow.triangle.branch"
+            case .generic: return "doc.on.doc"
             }
         }
     }
@@ -159,7 +159,7 @@ extension ShareOptions {
 // MARK: - Presets
 
 extension ShareOptions {
-    /// Default share options (safe, privacy-focused)
+    /// Default share options (heirloom with personalization)
     static var `default`: ShareOptions {
         ShareOptions(
             includeCardBack: true,
@@ -168,7 +168,7 @@ extension ShareOptions {
             includePinnedComments: true,
             includeAllComments: false,
             includeCookingHistory: false,
-            permission: .readOnly,
+            shareType: .heirloom,
             expirationDuration: .sevenDays
         )
     }
@@ -183,12 +183,12 @@ extension ShareOptions {
             includeAllComments: false,
             includeCookingHistory: false,
             includeStickers: false,
-            permission: .readOnly,
+            shareType: .generic,
             expirationDuration: .sevenDays
         )
     }
 
-    /// Full share (everything included)
+    /// Full share (everything included as heirloom)
     static var full: ShareOptions {
         ShareOptions(
             includeCardBack: true,
@@ -198,21 +198,21 @@ extension ShareOptions {
             includeAllComments: true,
             includeCookingHistory: true,
             includeStickers: true,
-            permission: .readOnly,
+            shareType: .heirloom,
             allowReSharing: true,
             expirationDuration: .never
         )
     }
 
-    /// Collaborative share (editable by recipient)
+    /// Collaborative heirloom share (everything tracked)
     static var collaborative: ShareOptions {
         ShareOptions(
             includeCardBack: true,
             includeRating: true,
             includeNotes: true,
             includePinnedComments: true,
-            permission: .readWrite,
-            allowReSharing: false,
+            shareType: .heirloom,
+            allowReSharing: true,
             expirationDuration: .never
         )
     }
