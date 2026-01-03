@@ -505,7 +505,7 @@ class FirebaseSyncService: ObservableObject {
         }
 
         DeviceLogger.shared.log("✅ [Firebase] Batch upload complete: \(recipes.count) recipes")
-        print("✅ [Firebase] Batch upload complete: \(recipes.count) recipes")
+        Log.info("Batch upload complete", category: .firebase, metadata: ["count": recipes.count])
     }
 
     // MARK: - Download Operations
@@ -515,7 +515,7 @@ class FirebaseSyncService: ObservableObject {
         // Use January 1, 2020 as the earliest sync date (Firebase can't handle Date.distantPast)
         let syncDate = date ?? Date(timeIntervalSince1970: 1577836800) // 2020-01-01
         DeviceLogger.shared.log("📥 [Firebase] Fetching remote changes since: \(syncDate)")
-        print("📥 [Firebase] Fetching remote changes since: \(syncDate)")
+        Log.info("Fetching remote changes", category: .sync, metadata: ["since": syncDate.description])
 
         do {
             let recipesRef = try recipesCollection()
@@ -524,13 +524,13 @@ class FirebaseSyncService: ObservableObject {
                 .getDocuments()
 
             DeviceLogger.shared.log("✅ [Firebase] Fetched \(snapshot.documents.count) remote changes")
-            print("✅ [Firebase] Fetched \(snapshot.documents.count) remote changes")
+            Log.info("Fetched remote changes", category: .sync, metadata: ["count": snapshot.documents.count])
 
             return snapshot.documents
 
         } catch {
             DeviceLogger.shared.log("❌ [Firebase] Fetch failed: \(error.localizedDescription)", level: .error)
-            print("❌ [Firebase] Fetch failed: \(error.localizedDescription)")
+            Log.error("Failed to fetch remote changes", category: .sync, error: error)
             throw SyncError.downloadFailed(error)
         }
     }
@@ -549,7 +549,7 @@ class FirebaseSyncService: ObservableObject {
 
         guard !isSyncing else {
             DeviceLogger.shared.log("⏸️ [Firebase] Sync already in progress, skipping")
-            print("⏸️ [Firebase] Sync already in progress, skipping")
+            Log.warning("Sync already in progress, skipping", category: .sync)
             return
         }
 
@@ -558,14 +558,14 @@ class FirebaseSyncService: ObservableObject {
 
         DeviceLogger.shared.log("🔄 [Firebase] Starting full sync...")
         logger.info("🔄 [Firebase] Starting full sync...")
-        print("🔄 [Firebase] Starting full sync...")
+        Log.info("Starting full sync", category: .sync)
 
         do {
             // 1. Upload local changes
             let unsyncedRecipes = try fetchUnsyncedRecipes(context: context)
             if !unsyncedRecipes.isEmpty {
                 DeviceLogger.shared.log("📤 [Firebase] Uploading \(unsyncedRecipes.count) local changes")
-                print("📤 [Firebase] Uploading \(unsyncedRecipes.count) local changes")
+                Log.info("Uploading local changes", category: .sync, metadata: ["count": unsyncedRecipes.count])
                 try await uploadRecipes(unsyncedRecipes)
             } else {
                 DeviceLogger.shared.log("ℹ️ [Firebase] No local changes to upload")
@@ -578,7 +578,7 @@ class FirebaseSyncService: ObservableObject {
 
             if !remoteDocuments.isEmpty {
                 DeviceLogger.shared.log("📥 [Firebase] Processing \(remoteDocuments.count) remote changes")
-                print("📥 [Firebase] Processing \(remoteDocuments.count) remote changes")
+                Log.info("Processing remote changes", category: .sync, metadata: ["count": remoteDocuments.count])
                 for document in remoteDocuments {
                     try await mergeRemoteDocument(document, context: context)
                 }
@@ -594,12 +594,12 @@ class FirebaseSyncService: ObservableObject {
 
             DeviceLogger.shared.log("✅ [Firebase] Sync complete")
             logger.info("✅ [Firebase] Sync complete")
-            print("✅ [Firebase] Sync complete")
+            Log.info("Sync complete", category: .sync)
 
         } catch {
             DeviceLogger.shared.log("❌ [Firebase] Sync failed: \(error.localizedDescription)", level: .error)
             logger.error("❌ [Firebase] Sync failed: \(error.localizedDescription)")
-            print("❌ [Firebase] Sync failed: \(error.localizedDescription)")
+            Log.error("Sync failed", category: .sync, error: error)
             syncError = error
             throw error
         }
@@ -651,7 +651,7 @@ class FirebaseSyncService: ObservableObject {
     /// Fetch ingredients from Firestore and restore them to the recipe
     func fetchAndRestoreIngredients(for recipe: Recipe, recipeId: String, context: ModelContext) async throws {
         DeviceLogger.shared.log("📥 [Firebase] Fetching ingredients for: \(recipe.title)")
-        print("📥 [Firebase] Fetching ingredients for: \(recipe.title)")
+        Log.debug("Fetching ingredients", category: .firebase, metadata: ["title": recipe.title])
 
         do {
             let recipeRef = try recipeDocument(id: recipeId)
@@ -661,7 +661,7 @@ class FirebaseSyncService: ObservableObject {
 
             if !ingredientsSnapshot.documents.isEmpty {
                 DeviceLogger.shared.log("✅ [Firebase] Found \(ingredientsSnapshot.documents.count) ingredients")
-                print("✅ [Firebase] Found \(ingredientsSnapshot.documents.count) ingredients")
+                Log.debug("Found ingredients", category: .firebase, metadata: ["count": ingredientsSnapshot.documents.count])
 
                 // Clear existing ingredients to avoid duplicates
                 recipe.ingredients?.removeAll()
@@ -680,11 +680,11 @@ class FirebaseSyncService: ObservableObject {
                 }
             } else {
                 DeviceLogger.shared.log("ℹ️ [Firebase] No ingredients found for: \(recipe.title)")
-                print("ℹ️ [Firebase] No ingredients found for: \(recipe.title)")
+                Log.debug("No ingredients found", category: .firebase, metadata: ["title": recipe.title])
             }
         } catch {
             DeviceLogger.shared.log("❌ [Firebase] Failed to fetch ingredients: \(error.localizedDescription)", level: .error)
-            print("❌ [Firebase] Failed to fetch ingredients: \(error.localizedDescription)")
+            Log.error("Failed to fetch ingredients", category: .firebase, error: error, metadata: ["title": recipe.title])
             // Don't throw - allow recipe sync to succeed even if ingredients fail
         }
     }
@@ -698,7 +698,7 @@ class FirebaseSyncService: ObservableObject {
                 .getDocuments()
 
             if !commentsSnapshot.documents.isEmpty {
-                print("✅ [Firebase] Found \(commentsSnapshot.documents.count) comments")
+                Log.debug("Found comments", category: .firebase, metadata: ["count": commentsSnapshot.documents.count])
 
                 recipe.comments?.removeAll()
 
@@ -715,7 +715,7 @@ class FirebaseSyncService: ObservableObject {
                 }
             }
         } catch {
-            print("❌ [Firebase] Failed to fetch comments: \(error.localizedDescription)")
+            Log.error("Failed to fetch comments", category: .firebase, error: error)
         }
     }
 
@@ -726,27 +726,27 @@ class FirebaseSyncService: ObservableObject {
             let cardBackDoc = try await recipeRef.collection("cardBack").document("metadata").getDocument()
 
             if cardBackDoc.exists, let data = cardBackDoc.data() {
-                print("✅ [Firebase] Found card back")
+                Log.debug("Found card back", category: .firebase)
                 let cardBack = convertCardBackFromFirestoreData(data)
                 cardBack.recipe = recipe
                 context.insert(cardBack)
                 recipe.cardBack = cardBack
             }
         } catch {
-            print("❌ [Firebase] Failed to fetch card back: \(error.localizedDescription)")
+            Log.error("Failed to fetch card back", category: .firebase, error: error)
         }
     }
 
     /// Resolve conflict between local and remote versions
     private func resolveConflict(local: Recipe, remote: Recipe) async throws -> Recipe {
-        print("⚠️ [Firebase] Conflict detected: '\(local.title)'")
+        Log.warning("Conflict detected", category: .crdt, metadata: ["title": local.title])
 
         // Strategy: Last-write-wins based on modifiedAt
         if local.modifiedAt > remote.modifiedAt {
-            print("   → Keeping local version (newer)")
+            Log.info("Keeping local version (newer)", category: .crdt)
             return local
         } else {
-            print("   → Keeping remote version (newer)")
+            Log.info("Keeping remote version (newer)", category: .crdt)
             return remote
         }
     }
@@ -839,7 +839,7 @@ class FirebaseSyncService: ObservableObject {
 
         DeviceLogger.shared.log("✅ [Firebase] Automatic sync enabled")
         logger.info("✅ [Firebase] Automatic sync enabled")
-        print("✅ [Firebase] Automatic sync enabled")
+        Log.info("Automatic sync enabled", category: .sync)
     }
 
     // MARK: - Firebase Storage (Images)
@@ -988,7 +988,7 @@ class FirebaseSyncService: ObservableObject {
         let recipeIdString = recipeId.uuidString
         let recipeRef = try recipeDocument(id: recipeIdString)
 
-        print("🗑️ [Firebase] Deleting recipe: \(recipeIdString)")
+        Log.info("Deleting recipe", category: .firebase, metadata: ["recipeId": recipeIdString])
 
         // Delete subcollections first
         try await deleteSubcollection(recipeRef, named: "ingredients")
@@ -1001,7 +1001,7 @@ class FirebaseSyncService: ObservableObject {
         // Delete image from Storage
         try? await deleteImage(for: recipeId)
 
-        print("✅ [Firebase] Recipe deleted: \(recipeIdString)")
+        Log.info("Recipe deleted successfully", category: .firebase, metadata: ["recipeId": recipeIdString])
         DeviceLogger.shared.log("✅ [Firebase] Recipe deleted: \(recipeIdString)")
     }
 
@@ -1014,7 +1014,7 @@ class FirebaseSyncService: ObservableObject {
         }
 
         if !snapshot.documents.isEmpty {
-            print("🗑️ [Firebase] Deleted \(snapshot.documents.count) documents from \(subcollection)")
+            Log.debug("Deleted subcollection documents", category: .firebase, metadata: ["count": snapshot.documents.count, "subcollection": subcollection])
         }
     }
 
@@ -1028,7 +1028,7 @@ class FirebaseSyncService: ObservableObject {
             .document(commentIdString)
 
         try await commentRef.delete()
-        print("✅ [Firebase] Comment deleted: \(commentIdString)")
+        Log.info("Comment deleted", category: .firebase, metadata: ["commentId": commentIdString])
     }
 
     /// Upload individual comment (for standalone comment operations)
@@ -1047,7 +1047,7 @@ class FirebaseSyncService: ObservableObject {
         let commentData = convertCommentToFirestoreData(comment)
         try await commentRef.setData(commentData)
 
-        print("✅ [Firebase] Comment uploaded: \(commentIdString)")
+        Log.info("Comment uploaded", category: .firebase, metadata: ["commentId": commentIdString])
     }
 
     /// Update card back (for standalone card back operations)
@@ -1066,7 +1066,7 @@ class FirebaseSyncService: ObservableObject {
         let cardBackData = convertCardBackToFirestoreData(cardBack)
         try await cardBackRef.setData(cardBackData)
 
-        print("✅ [Firebase] Card back uploaded: \(cardBackIdString)")
+        Log.info("Card back uploaded", category: .firebase, metadata: ["cardBackId": cardBackIdString])
     }
 
     // MARK: - Collections & Tags
@@ -1087,7 +1087,7 @@ class FirebaseSyncService: ObservableObject {
         data["recipeIds"] = collection.recipes?.map { $0.id.uuidString } ?? []
 
         try await collectionRef.setData(data)
-        print("✅ [Firebase] Collection uploaded: \(collection.name)")
+        Log.info("Collection uploaded", category: .firebase, metadata: ["name": collection.name])
     }
 
     /// Delete collection from Firebase
@@ -1099,7 +1099,7 @@ class FirebaseSyncService: ObservableObject {
         let collectionRef = db.collection("users/\(userId)/collections").document(collectionId.uuidString)
         try await collectionRef.delete()
 
-        print("✅ [Firebase] Collection deleted: \(collectionId.uuidString)")
+        Log.info("Collection deleted", category: .firebase, metadata: ["collectionId": collectionId.uuidString])
     }
 
     /// Upload tag to Firebase
@@ -1117,7 +1117,7 @@ class FirebaseSyncService: ObservableObject {
         data["recipeIds"] = tag.recipes?.map { $0.id.uuidString } ?? []
 
         try await tagRef.setData(data)
-        print("✅ [Firebase] Tag uploaded: \(tag.name)")
+        Log.info("Tag uploaded", category: .firebase, metadata: ["name": tag.name])
     }
 
     /// Delete tag from Firebase
@@ -1129,7 +1129,7 @@ class FirebaseSyncService: ObservableObject {
         let tagRef = db.collection("users/\(userId)/tags").document(tagId.uuidString)
         try await tagRef.delete()
 
-        print("✅ [Firebase] Tag deleted: \(tagId.uuidString)")
+        Log.info("Tag deleted", category: .firebase, metadata: ["tagId": tagId.uuidString])
     }
 
     // MARK: - Shopping Cart
@@ -1149,7 +1149,7 @@ class FirebaseSyncService: ObservableObject {
         data["dateAdded"] = Timestamp(date: cartRecipe.dateAdded)
 
         try await cartRef.setData(data)
-        print("✅ [Firebase] Shopping cart recipe uploaded")
+        Log.info("Shopping cart recipe uploaded", category: .firebase, metadata: ["cartRecipeId": cartRecipe.id.uuidString])
     }
 
     /// Delete shopping cart recipe
@@ -1161,7 +1161,7 @@ class FirebaseSyncService: ObservableObject {
         let cartRef = db.collection("users/\(userId)/shoppingCart").document(cartRecipeId.uuidString)
         try await cartRef.delete()
 
-        print("✅ [Firebase] Shopping cart recipe deleted")
+        Log.info("Shopping cart recipe deleted", category: .firebase, metadata: ["cartRecipeId": cartRecipeId.uuidString])
     }
 
     // MARK: - Dinner Parties
@@ -1184,7 +1184,7 @@ class FirebaseSyncService: ObservableObject {
         data["createdDate"] = Timestamp(date: party.createdDate)
 
         try await partyRef.setData(data)
-        print("✅ [Firebase] Dinner party uploaded: \(party.name)")
+        Log.info("Dinner party uploaded", category: .firebase, metadata: ["name": party.name])
     }
 
     /// Delete dinner party
@@ -1196,7 +1196,7 @@ class FirebaseSyncService: ObservableObject {
         let partyRef = db.collection("users/\(userId)/dinnerParties").document(partyId.uuidString)
         try await partyRef.delete()
 
-        print("✅ [Firebase] Dinner party deleted")
+        Log.info("Dinner party deleted", category: .firebase, metadata: ["partyId": partyId.uuidString])
     }
 }
 
