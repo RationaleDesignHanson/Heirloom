@@ -176,7 +176,13 @@ struct RecipeDetailView: View {
                     .padding(.horizontal, HeirloomSpacing.lg)
 
                     // Header Section
-                    headerSection
+                    RecipeDetailHeader(
+                        recipe: recipe,
+                        displayTitle: displayTitle,
+                        isInShoppingCart: isInShoppingCart,
+                        onToggleFavorite: toggleFavorite,
+                        onAddToShoppingList: addToShoppingList
+                    )
 
                     // Tags and Collections Section
                     if (recipe.tags != nil && !recipe.tags!.isEmpty) || (recipe.collections != nil && !recipe.collections!.isEmpty) {
@@ -184,7 +190,11 @@ struct RecipeDetailView: View {
                     }
 
                     // Metadata Section (includes serving selector dropdown)
-                    metadataSection
+                    RecipeMetadataSection(
+                        recipe: recipe,
+                        targetServings: $targetServings,
+                        showScalingExplanation: $showScalingExplanation
+                    )
 
                     // Start Cooking Button
                     if !recipe.instructions.isEmpty {
@@ -193,26 +203,16 @@ struct RecipeDetailView: View {
 
                     // Ingredients Section
                     if let ingredients = recipe.ingredients, !ingredients.isEmpty {
-                        ingredientsSection(ingredients)
-                    } else {
-                        // Debug: Show why ingredients aren't showing
-                        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-                            sectionHeader(
-                                title: "Ingredients",
-                                icon: "list.bullet",
-                                count: 0
-                            )
-
-                            Text("No ingredients found. Recipe.ingredients is \(recipe.ingredients == nil ? "nil" : "empty array")")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(.red)
-                                .padding(HeirloomSpacing.md)
-                        }
+                        RecipeIngredientsSection(
+                            recipe: recipe,
+                            ingredients: ingredients,
+                            targetServings: targetServings
+                        )
                     }
 
                     // Instructions Section
                     if !recipe.instructions.isEmpty {
-                        instructionsSection
+                        RecipeInstructionsSection(instructions: displayInstructions)
                     }
 
                     // Notes Section
