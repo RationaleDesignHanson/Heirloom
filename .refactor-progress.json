@@ -173,11 +173,19 @@
       "week_8": {
         "focus": "Print Statement Replacement",
         "status": "in_progress",
-        "progress_percent": 0,
-        "prints_replaced": 2,
-        "prints_remaining": 701,
+        "progress_percent": 5,
+        "prints_replaced": 34,
+        "prints_remaining": 669,
         "target": "Replace all 703 print statements with structured logging",
-        "current_file": "FirebaseSyncService.swift (68/70 remaining)"
+        "current_file": "FirebaseSyncService.swift (36/70 remaining - 49% complete)",
+        "sections_completed": [
+          "Configuration & initialization (3 prints)",
+          "Recipe conversion methods (1 print)",
+          "Upload recipe method (15 prints)",
+          "Image storage operations (9 prints)",
+          "Automatic sync start (1 print)",
+          "Batch operations (5 prints)"
+        ]
       }
     },
 
@@ -273,24 +281,26 @@
     "✅ Phase 2 FULLY COMPLETE - Service layer refactored with protocols",
     "✅ Phase 3 FULLY COMPLETE - RecipeDetailView decomposed into 4 components",
     "✅ Phase 4 Week 7 COMPLETE - Logging service infrastructure (805 LOC)",
-    "✅ LoggingService protocol - 5 levels, 11 categories, metadata support",
-    "✅ HeirloomLogger - OSLog integration, redaction, performance measurement",
-    "✅ Comprehensive audit - 703 print statements mapped and categorized",
-    "✅ Global Log instance - Simple API: Log.info(), Log.error(), etc.",
-    "🔄 Phase 4 Week 8 STARTED - Print replacement (2/703 complete)",
-    "✅ BUILD SUCCEEDED - Logging service compiles cleanly"
+    "🔄 Phase 4 Week 8 IN PROGRESS - Print replacement (34/703 complete, 4.8%)",
+    "✅ FirebaseSyncService.swift - 49% complete (34/70 prints replaced)",
+    "✅ Upload/download/delete operations migrated to structured logging",
+    "✅ Image storage operations using Log.info/warning/error",
+    "✅ Metadata-enriched logs (recipeId, title, counts, paths)",
+    "✅ BUILD SUCCEEDED - All replacements compile cleanly"
   ],
 
   "next_steps": [
-    "Continue Phase 4 Week 8 - Print statement replacement (701 remaining)",
-    "Priority 1: FirebaseSyncService.swift (68 prints remaining)",
+    "Continue Phase 4 Week 8 - Print statement replacement (669 remaining)",
+    "Priority 1: Complete FirebaseSyncService.swift (36/70 remaining)",
+    "  - CRDT operations and conflict resolution",
+    "  - Download and sync methods",
+    "  - Remaining delete and error handling",
     "Priority 2: RecipeListView.swift (39 prints)",
     "Priority 3: DeepLinkHandler.swift (38 prints)",
     "Priority 4: FirebaseRecipeSync.swift (34 prints)",
     "Priority 5: RecipeImportService.swift (32 prints)",
     "Add SwiftLint configuration with no-print rule",
-    "Phase 5: Architecture Modernization (Convert 89 singletons to DI)",
-    "Phase 6: Performance Optimization"
+    "Phase 5: Architecture Modernization (Convert 89 singletons to DI)"
   ],
 
   "notes": [
