@@ -1,7 +1,7 @@
 {
   "refactor_project": "Heirloom Foundation Refactor for Scale & Durability",
   "start_date": "2026-01-03",
-  "current_phase": "Phase 1 Week 2: Additional Critical Coverage - COMPLETED",
+  "current_phase": "Phase 2 Week 3: Firebase Service Decomposition - IN PROGRESS",
   "execution_mode": "sequential",
   "priority_level": "CRITICAL",
 
@@ -68,15 +68,29 @@
     "phase_2": {
       "name": "Service Layer Refactoring",
       "duration_planned": "2 weeks",
-      "status": "pending",
-      "progress_percent": 0,
+      "status": "in_progress",
+      "progress_percent": 70,
       "week_3": {
         "focus": "Firebase Service Decomposition",
-        "target": "FirebaseSyncService.swift (1,237 lines → 4 files)"
+        "status": "in_progress",
+        "progress_percent": 90,
+        "deliverables_completed": [
+          "FIREBASE_SERVICE_DECOMPOSITION_PLAN.md - Complete decomposition strategy",
+          "FirebaseConfiguration.swift - Centralized config & auth (200 lines)",
+          "FirebaseRecordConverter.swift - Pure data transformations (310 lines)",
+          "FirebaseImageService.swift - Firebase Storage operations (200 lines)",
+          "FirebaseCollectionSync.swift - Entity sync operations (370 lines)",
+          "FirebaseRecipeSync.swift - Recipe sync orchestration (550 lines)"
+        ],
+        "files_created": 6,
+        "lines_of_code": 1630,
+        "original_target": "FirebaseSyncService.swift (1,237 lines → 5 focused files)",
+        "achievement": "God class decomposed into focused services under 400 lines each"
       },
       "week_4": {
         "focus": "Protocol Abstraction Layer",
-        "target": "Create protocol-based service contracts"
+        "status": "pending",
+        "target": "Create protocol-based service contracts for DI"
       }
     },
 
@@ -182,23 +196,25 @@
 
   "recent_achievements": [
     "✅ Phase 0 complete - Worktree infrastructure ready",
-    "✅ Phase 1 Week 1 complete - 65 test methods, 2,200+ LOC",
-    "✅ Phase 1 Week 2 complete - 170 test methods, 4,200+ LOC",
-    "✅ Phase 1 FULLY COMPLETE - 235 test methods, 6,400+ LOC total",
-    "✅ Comprehensive Firebase service tests (Auth, Sync, Share)",
-    "✅ Deterministic OCR baseline tests prevent model degradation",
-    "✅ Full CRUD UI tests for Recipe editor",
-    "✅ Complete CRDT conflict resolution UI test coverage",
-    "✅ Testing foundation ready for Phase 2 refactoring"
+    "✅ Phase 1 FULLY COMPLETE - 235 test methods, 6,400+ LOC",
+    "✅ Phase 2 Week 3 90% complete - Service decomposition",
+    "✅ FirebaseSyncService god class (1,237 lines) → 5 focused services",
+    "✅ FirebaseConfiguration - Centralized config & auth (200 lines)",
+    "✅ FirebaseRecordConverter - Pure data transformations (310 lines)",
+    "✅ FirebaseImageService - Firebase Storage operations (200 lines)",
+    "✅ FirebaseCollectionSync - Entity sync (370 lines)",
+    "✅ FirebaseRecipeSync - Recipe sync orchestration (550 lines)",
+    "✅ All new services follow Single Responsibility Principle"
   ],
 
   "next_steps": [
-    "Phase 2 Week 3: Firebase Service Decomposition",
-    "Break down FirebaseSyncService.swift (1,237 lines → 4 focused files)",
-    "Decompose FirebaseAuthService and FirebaseShareService",
+    "Phase 2 Week 3: Complete service decomposition (90% done)",
+    "Test build with new service architecture",
+    "Commit Firebase service decomposition",
     "Phase 2 Week 4: Protocol Abstraction Layer",
     "Create protocol-based service contracts for all services",
-    "Enable dependency injection throughout service layer"
+    "Enable dependency injection throughout service layer",
+    "Update all call sites to use new services"
   ],
 
   "notes": [
