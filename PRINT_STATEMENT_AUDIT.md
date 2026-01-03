@@ -142,11 +142,16 @@ Replace prints in view layer (~200 prints)
 ### Completed
 - ✅ Logging service infrastructure created
 - ✅ Comprehensive audit completed (703 prints)
-- ✅ FirebaseSyncService.swift - Started (2/70 replaced)
+- ✅ FirebaseSyncService.swift - 34/70 replaced (36 remaining)
+  - ✅ Configuration & conversion methods
+  - ✅ Upload recipe method (all subcollections)
+  - ✅ Image upload/download/delete methods
+  - ✅ Automatic sync initialization
+  - 🔄 36 prints remaining (CRDT, batch operations, error handling)
 
 ### In Progress
 - 🔄 Phase 1: Top 5 files (213 prints)
-  - FirebaseSyncService.swift: 68/70 remaining
+  - FirebaseSyncService.swift: 36/70 remaining (49% complete)
   - RecipeListView.swift: 39 remaining
   - DeepLinkHandler.swift: 38 remaining
   - FirebaseRecipeSync.swift: 34 remaining
@@ -157,5 +162,6 @@ Replace prints in view layer (~200 prints)
 - [ ] Phase 3: UI/Features (~200 prints)
 - [ ] Phase 4: Cleanup (~140 prints)
 
-**Current Status**: 701/703 prints remaining
+**Current Status**: 669/703 prints remaining (34 replaced)
+**Completion**: 4.8%
 **Target**: 0 print statements in production code (except HeirloomLogger debug output)

@@ -355,7 +355,7 @@ class FirebaseSyncService: ObservableObject {
 
     /// Upload a single recipe to Firebase
     func uploadRecipe(_ recipe: Recipe) async throws {
-        print("🧪 [DEBUG] uploadRecipe() START - Build timestamp: 2025-12-31-11:45")
+        Log.debug("uploadRecipe() START", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
 
         guard modelContext != nil else {
             throw SyncError.notConfigured
@@ -367,7 +367,7 @@ class FirebaseSyncService: ObservableObject {
 
         DeviceLogger.shared.log("📤 [Firebase] Uploading recipe: \(recipe.title)")
         logger.info("📤 [Firebase] Uploading recipe: \(recipe.title)")
-        print("📤 [Firebase] Uploading recipe: \(recipe.title)")
+        Log.info("Uploading recipe", category: .firebase, metadata: ["title": recipe.title, "recipeId": recipe.id.uuidString])
 
         do {
             let recipeId = recipe.id.uuidString
@@ -378,7 +378,7 @@ class FirebaseSyncService: ObservableObject {
             try await recipeRef.setData(recipeData)
 
             DeviceLogger.shared.log("✅ [Firebase] Uploaded recipe: \(recipe.title)")
-            print("✅ [Firebase] Uploaded recipe: \(recipe.title)")
+            Log.info("Recipe uploaded successfully", category: .firebase, metadata: ["recipeId": recipeId])
 
             // Step 2: Delete old ingredients from Firebase subcollection
             let ingredientsRef = recipeRef.collection("ingredients")
@@ -386,7 +386,7 @@ class FirebaseSyncService: ObservableObject {
 
             if !existingIngredients.documents.isEmpty {
                 DeviceLogger.shared.log("🗑️ [Firebase] Deleting \(existingIngredients.documents.count) old ingredients")
-                print("🗑️ [Firebase] Deleting \(existingIngredients.documents.count) old ingredients")
+                Log.debug("Deleting old ingredients", category: .firebase, metadata: ["count": existingIngredients.documents.count])
 
                 let deleteBatch = db.batch()
                 for doc in existingIngredients.documents {
@@ -398,7 +398,7 @@ class FirebaseSyncService: ObservableObject {
             // Step 3: Upload new ingredients to subcollection
             if let ingredients = recipe.ingredients, !ingredients.isEmpty {
                 DeviceLogger.shared.log("📤 [Firebase] Uploading \(ingredients.count) ingredients")
-                print("📤 [Firebase] Uploading \(ingredients.count) ingredients")
+                Log.debug("Uploading ingredients", category: .firebase, metadata: ["count": ingredients.count])
 
                 // Batch write for efficiency
                 let batch = db.batch()
@@ -410,14 +410,14 @@ class FirebaseSyncService: ObservableObject {
                 try await batch.commit()
 
                 DeviceLogger.shared.log("✅ [Firebase] Uploaded \(ingredients.count) ingredients")
-                print("✅ [Firebase] Uploaded \(ingredients.count) ingredients")
+                Log.debug("Ingredients uploaded successfully", category: .firebase, metadata: ["count": ingredients.count])
             }
 
-            print("🧪 [DEBUG] After ingredients upload, before comments - this should ALWAYS print!")
+            Log.debug("After ingredients upload, before comments", category: .firebase)
 
             // Step 4: Upload comments to subcollection
             if let comments = recipe.comments, !comments.isEmpty {
-                print("📤 [Firebase] Uploading \(comments.count) comments")
+                Log.debug("Uploading comments", category: .firebase, metadata: ["count": comments.count])
 
                 let commentsRef = recipeRef.collection("comments")
                 let batch = db.batch()
@@ -428,18 +428,18 @@ class FirebaseSyncService: ObservableObject {
                 }
                 try await batch.commit()
 
-                print("✅ [Firebase] Uploaded \(comments.count) comments")
+                Log.debug("Comments uploaded successfully", category: .firebase, metadata: ["count": comments.count])
             }
 
             // Step 4: Upload card back to subcollection
             if let cardBack = recipe.cardBack {
-                print("📤 [Firebase] Uploading card back")
+                Log.debug("Uploading card back", category: .firebase)
 
                 let cardBackRef = recipeRef.collection("cardBack").document("metadata")
                 let cardBackData = convertCardBackToFirestoreData(cardBack)
                 try await cardBackRef.setData(cardBackData)
 
-                print("✅ [Firebase] Uploaded card back")
+                Log.debug("Card back uploaded successfully", category: .firebase)
             }
 
             // Step 5: Upload image to Firebase Storage (if exists)
@@ -450,18 +450,18 @@ class FirebaseSyncService: ObservableObject {
 
                         // Update Firestore document with image URL
                         try await recipeRef.updateData(["firebaseImageURL": imageURL])
-                        print("✅ [Firebase] Uploaded image and updated document")
+                        Log.info("Image uploaded and document updated", category: .storage, metadata: ["recipeId": recipeId])
                     }
                 } catch {
                     // Log but don't fail the recipe upload if image upload fails
-                    print("⚠️ [Firebase] Image upload failed: \(error.localizedDescription)")
+                    Log.warning("Image upload failed", category: .storage, metadata: ["error": error.localizedDescription])
                 }
             }
 
             // Step 6: Track lineage modification if this is an heirloom recipe being edited
-            print("🔍 [Lineage] Checking if should track modification for: \(recipe.title)")
+            Log.debug("Checking lineage tracking eligibility", category: .firebase, metadata: ["title": recipe.title])
             if let context = modelContext {
-                print("📝 [Lineage] ModelContext available, attempting to record modification...")
+                Log.debug("ModelContext available, recording modification", category: .firebase)
                 do {
                     try await FirebaseLineageService.shared.recordModification(
                         recipeId: recipe.id,
@@ -470,13 +470,13 @@ class FirebaseSyncService: ObservableObject {
                         fieldChanged: nil,
                         context: context
                     )
-                    print("✅ [Lineage] Modification recorded for recipe: \(recipe.title)")
+                    Log.info("Lineage modification recorded", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
                 } catch {
                     // Log but don't fail the upload if lineage tracking fails
-                    print("⚠️ [Lineage] Failed to record modification: \(error.localizedDescription)")
+                    Log.warning("Lineage tracking failed", category: .firebase, metadata: ["error": error.localizedDescription])
                 }
             } else {
-                print("⚠️ [Lineage] ModelContext is nil, cannot track modification")
+                Log.warning("ModelContext is nil, cannot track lineage", category: .firebase)
             }
 
             // Update local sync metadata
@@ -486,7 +486,7 @@ class FirebaseSyncService: ObservableObject {
         } catch {
             DeviceLogger.shared.log("❌ [Firebase] Upload failed: \(error.localizedDescription)", level: .error)
             logger.error("❌ [Firebase] Upload failed: \(error.localizedDescription)")
-            print("❌ [Firebase] Upload failed: \(error.localizedDescription)")
+            Log.error("Recipe upload failed", category: .firebase, error: error, metadata: ["recipeId": recipe.id.uuidString])
             throw SyncError.uploadFailed(error)
         }
     }
@@ -496,7 +496,7 @@ class FirebaseSyncService: ObservableObject {
         guard !recipes.isEmpty else { return }
 
         DeviceLogger.shared.log("📤 [Firebase] Batch uploading \(recipes.count) recipes...")
-        print("📤 [Firebase] Batch uploading \(recipes.count) recipes")
+        Log.info("Batch uploading recipes", category: .firebase, metadata: ["count": recipes.count])
 
         // Upload each recipe (Firestore batches are limited to 500 operations)
         // Subcollections make single batch difficult, so upload serially
@@ -798,7 +798,7 @@ class FirebaseSyncService: ObservableObject {
 
         DeviceLogger.shared.log("🔄 [Firebase] Starting automatic sync...")
         logger.info("🔄 [Firebase] Starting automatic sync...")
-        print("🔄 [Firebase] Starting automatic sync...")
+        Log.info("Starting automatic sync", category: .sync)
 
         // Initial sync on start
         Task {
@@ -858,13 +858,13 @@ class FirebaseSyncService: ObservableObject {
 
         // Load image data from local storage
         guard let image = await recipe.loadImage() else {
-            print("⚠️ [Firebase Storage] No local image found for recipe: \(recipe.title)")
+            Log.warning("No local image found for recipe", category: .storage, metadata: ["title": recipe.title])
             return nil
         }
 
         // Compress image (reuse ImageStorageService compression logic - max 1MB)
         guard let imageData = await compressImage(image, maxBytes: 1_000_000) else {
-            print("⚠️ [Firebase Storage] Failed to compress image for recipe: \(recipe.title)")
+            Log.warning("Failed to compress image", category: .storage, metadata: ["title": recipe.title])
             return nil
         }
 
@@ -872,7 +872,7 @@ class FirebaseSyncService: ObservableObject {
         let storagePath = "users/\(userId)/recipes/\(recipeId)/image.jpg"
         let storageRef = Storage.storage().reference().child(storagePath)
 
-        print("📤 [Firebase Storage] Uploading image for recipe: \(recipe.title)")
+        Log.info("Uploading image to Firebase Storage", category: .storage, metadata: ["title": recipe.title, "path": storagePath])
 
         // Upload image data
         let metadata = StorageMetadata()
@@ -884,7 +884,7 @@ class FirebaseSyncService: ObservableObject {
         let downloadURL = try await storageRef.downloadURL()
         let urlString = downloadURL.absoluteString
 
-        print("✅ [Firebase Storage] Image uploaded: \(storagePath)")
+        Log.info("Image uploaded successfully", category: .storage, metadata: ["path": storagePath])
 
         return urlString
     }
@@ -898,25 +898,25 @@ class FirebaseSyncService: ObservableObject {
         // Skip if already cached locally
         if let imageFileName = recipe.imageFileName,
            await recipe.loadImage() != nil {
-            print("✅ [Firebase Storage] Image already cached locally: \(imageFileName)")
+            Log.debug("Image already cached locally", category: .storage, metadata: ["fileName": imageFileName])
             return
         }
 
-        print("📥 [Firebase Storage] Downloading image for recipe: \(recipe.title)")
+        Log.info("Downloading image from Firebase Storage", category: .storage, metadata: ["title": recipe.title])
 
         // Download from Firebase Storage
         let storageRef = Storage.storage().reference(forURL: firebaseImageURL)
         let imageData = try await storageRef.data(maxSize: 10 * 1024 * 1024) // Max 10MB
 
         guard let image = UIImage(data: imageData) else {
-            print("⚠️ [Firebase Storage] Failed to decode image data")
+            Log.error("Failed to decode image data", category: .storage)
             throw SyncError.downloadFailed(NSError(domain: "FirebaseStorage", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid image data"]))
         }
 
         // Save to local cache
         try await recipe.saveImage(image)
 
-        print("✅ [Firebase Storage] Image downloaded and cached: \(recipe.imageFileName ?? "unknown")")
+        Log.info("Image downloaded and cached", category: .storage, metadata: ["fileName": recipe.imageFileName ?? "unknown"])
     }
 
     /// Delete recipe image from Firebase Storage
@@ -928,15 +928,15 @@ class FirebaseSyncService: ObservableObject {
         let storagePath = "users/\(userId)/recipes/\(recipeId.uuidString)/image.jpg"
         let storageRef = Storage.storage().reference().child(storagePath)
 
-        print("🗑️ [Firebase Storage] Deleting image: \(storagePath)")
+        Log.info("Deleting image from Storage", category: .storage, metadata: ["path": storagePath])
 
         do {
             try await storageRef.delete()
-            print("✅ [Firebase Storage] Image deleted: \(storagePath)")
+            Log.info("Image deleted successfully", category: .storage, metadata: ["path": storagePath])
         } catch {
             // Ignore "not found" errors (image may not exist)
             if (error as NSError).code == StorageErrorCode.objectNotFound.rawValue {
-                print("ℹ️ [Firebase Storage] Image not found (already deleted): \(storagePath)")
+                Log.debug("Image not found (already deleted)", category: .storage, metadata: ["path": storagePath])
             } else {
                 throw error
             }
