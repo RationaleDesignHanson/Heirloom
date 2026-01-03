@@ -59,7 +59,7 @@ class FirebaseSyncService: ObservableObject {
 
         DeviceLogger.shared.log("🔥 [Firebase] FirebaseSyncService configured")
         logger.info("🔥 [Firebase] FirebaseSyncService configured")
-        print("🔥 FirebaseSyncService configured")
+        Log.info("FirebaseSyncService configured", category: .firebase)
     }
 
     // MARK: - User Authentication
@@ -112,7 +112,7 @@ class FirebaseSyncService: ObservableObject {
         data["timesCooked"] = recipe.timesCooked
         data["lastCooked"] = recipe.lastCooked as Any
         data["isFavorite"] = recipe.isFavorite
-        print("🔍 [Firebase] Converting recipe '\(recipe.title)' - isFavorite=\(recipe.isFavorite)")
+        Log.debug("Converting recipe to Firestore", category: .firebase, metadata: ["title": recipe.title, "isFavorite": recipe.isFavorite])
 
         // Timestamps
         data["createdAt"] = Timestamp(date: recipe.createdAt)
