@@ -159,13 +159,11 @@ struct RecipeIngredientsSection: View {
         cookTime: "12 min"
     )
 
-    let ingredients = [
-        Ingredient(originalText: "2 cups flour", name: "flour", quantity: 2, unit: "cups", category: .grains, orderIndex: 0),
+    let ingredients: [Ingredient] = [
+        Ingredient(originalText: "2 cups flour", name: "flour", quantity: 2, unit: "cups", category: .pantry, orderIndex: 0),
         Ingredient(originalText: "1 cup butter", name: "butter", quantity: 1, unit: "cup", category: .dairy, orderIndex: 1),
-        Ingredient(originalText: "2 cups chocolate chips", name: "chocolate chips", quantity: 2, unit: "cups", category: .baking, orderIndex: 2)
+        Ingredient(originalText: "2 cups chocolate chips", name: "chocolate chips", quantity: 2, unit: "cups", category: .bakery, orderIndex: 2)
     ]
-
-    recipe.ingredients = ingredients
 
     return RecipeIngredientsSection(
         recipe: recipe,

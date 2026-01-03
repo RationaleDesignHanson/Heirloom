@@ -154,6 +154,9 @@ struct RecipeMetadataSection: View {
 // MARK: - Preview
 
 #Preview {
+    @Previewable @State var targetServings = 24
+    @Previewable @State var showScalingExplanation = false
+
     let recipe = Recipe(
         title: "Classic Chocolate Chip Cookies",
         sourceType: .manual,
@@ -164,10 +167,7 @@ struct RecipeMetadataSection: View {
         cookTime: "12 min"
     )
 
-    @Previewable @State var targetServings = 24
-    @Previewable @State var showScalingExplanation = false
-
-    return RecipeMetadataSection(
+    RecipeMetadataSection(
         recipe: recipe,
         targetServings: $targetServings,
         showScalingExplanation: $showScalingExplanation
