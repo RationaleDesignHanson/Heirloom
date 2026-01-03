@@ -1,0 +1,172 @@
+{
+  "refactor_project": "Heirloom Foundation Refactor for Scale & Durability",
+  "start_date": "2026-01-03",
+  "current_phase": "Phase 0: Setup & Infrastructure",
+  "execution_mode": "sequential",
+  "priority_level": "CRITICAL",
+
+  "phases": {
+    "phase_0": {
+      "name": "Setup & Infrastructure",
+      "duration_planned": "1 day",
+      "status": "in_progress",
+      "progress_percent": 80,
+      "tasks": {
+        "create_worktrees_folder": { "status": "completed", "completed_at": "2026-01-03T10:15:00Z" },
+        "setup_git_worktrees": { "status": "completed", "completed_at": "2026-01-03T10:16:00Z" },
+        "create_worktree_documentation": { "status": "completed", "completed_at": "2026-01-03T10:18:00Z" },
+        "create_worktree_config": { "status": "completed", "completed_at": "2026-01-03T10:20:00Z" },
+        "create_progress_tracker": { "status": "in_progress" }
+      },
+      "deliverables": [
+        "/Users/matthanson/Heirloom-worktrees/ (directory structure)",
+        "WORKTREE_WORKFLOW.md (documentation)",
+        ".worktree-config (coordination rules)",
+        ".refactor-progress.json (this file)"
+      ]
+    },
+
+    "phase_1": {
+      "name": "Testing Foundation",
+      "duration_planned": "2 weeks",
+      "status": "pending",
+      "progress_percent": 0,
+      "week_1": {
+        "focus": "Critical Firebase & Sync Tests",
+        "deliverables": [
+          "MockFirestore infrastructure",
+          "FirebaseSyncServiceTests.swift (40+ tests)",
+          "MultiDeviceSimulator.swift",
+          "MultiDeviceSyncTests.swift"
+        ]
+      },
+      "week_2": {
+        "focus": "Additional Critical Coverage",
+        "deliverables": [
+          "FirebaseAuthServiceTests.swift",
+          "FirebaseShareServiceTests.swift",
+          "OCR baseline tests",
+          "Recipe editor UI tests"
+        ]
+      }
+    },
+
+    "phase_2": {
+      "name": "Service Layer Refactoring",
+      "duration_planned": "2 weeks",
+      "status": "pending",
+      "progress_percent": 0,
+      "week_3": {
+        "focus": "Firebase Service Decomposition",
+        "target": "FirebaseSyncService.swift (1,237 lines → 4 files)"
+      },
+      "week_4": {
+        "focus": "Protocol Abstraction Layer",
+        "target": "Create protocol-based service contracts"
+      }
+    },
+
+    "phase_3": {
+      "name": "View Layer Decomposition",
+      "duration_planned": "2 weeks",
+      "status": "pending",
+      "progress_percent": 0
+    },
+
+    "phase_4": {
+      "name": "Code Quality & Cleanup",
+      "duration_planned": "2 weeks",
+      "status": "pending",
+      "progress_percent": 0
+    },
+
+    "phase_5": {
+      "name": "Architecture Modernization",
+      "duration_planned": "2 weeks",
+      "status": "pending",
+      "progress_percent": 0
+    },
+
+    "phase_6": {
+      "name": "Performance Optimization",
+      "duration_planned": "2 weeks",
+      "status": "pending",
+      "progress_percent": 0
+    },
+
+    "phase_7": {
+      "name": "Quality Gates & CI/CD",
+      "duration_planned": "1 week",
+      "status": "pending",
+      "progress_percent": 0
+    },
+
+    "phase_8": {
+      "name": "Documentation & Handoff",
+      "duration_planned": "1 week",
+      "status": "pending",
+      "progress_percent": 0
+    }
+  },
+
+  "metrics": {
+    "test_coverage": {
+      "current": "unknown",
+      "target": "70% overall, 85% critical paths"
+    },
+    "largest_file": {
+      "current": "1,544 lines (RecipeDetailView.swift)",
+      "target": "<400 lines for all files"
+    },
+    "print_statements": {
+      "current": 634,
+      "target": 0
+    },
+    "singletons_with_di": {
+      "current": 0,
+      "target": 89
+    }
+  },
+
+  "worktrees": {
+    "main": {
+      "path": "/Users/matthanson/Heirloom",
+      "branch": "main",
+      "purpose": "Integration and production testing",
+      "active": true
+    },
+    "testing": {
+      "path": "/Users/matthanson/Heirloom-worktrees/testing",
+      "branch": "feature/testing-infrastructure",
+      "purpose": "Testing framework development",
+      "active": false
+    },
+    "services": {
+      "path": "/Users/matthanson/Heirloom-worktrees/services",
+      "branch": "feature/firebase-refactor",
+      "purpose": "Service layer refactoring",
+      "active": false
+    },
+    "views": {
+      "path": "/Users/matthanson/Heirloom-worktrees/views",
+      "branch": "feature/view-decomposition",
+      "purpose": "View layer decomposition",
+      "active": false
+    }
+  },
+
+  "coordination": {
+    "last_sync": "2026-01-03T10:16:00Z",
+    "conflicts_detected": 0,
+    "merges_to_main": 0,
+    "total_commits": 1
+  },
+
+  "notes": [
+    "Execution mode: SEQUENTIAL (conservative, test-first approach)",
+    "All work prioritized as CRITICAL - no deprioritization allowed",
+    "Test-first strategy: Build comprehensive test suite before refactoring",
+    "Worktree infrastructure ready for future parallel development",
+    "Each phase must complete 100% before moving to next phase"
+  ]
+}

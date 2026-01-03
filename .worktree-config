@@ -1,0 +1,183 @@
+# Worktree Coordination Configuration
+# This file defines rules for parallel development across multiple worktrees
+# Read by Claude Code sessions to ensure coordination
+
+# CRITICAL: These rules prevent conflicts between parallel sessions
+
+[worktree.testing]
+path = "/Users/matthanson/Heirloom-worktrees/testing"
+branch = "feature/testing-infrastructure"
+allowed_paths = [
+    "HeirloomTests/**",
+    "HeirloomUITests/**",
+    "HeirloomPerformanceTests/**",
+    "HeirloomTests/Helpers/**",
+    "HeirloomTests/Mocks/**"
+]
+forbidden_paths = [
+    "Heirloom/Core/Services/**",
+    "Heirloom/Features/**/Views/**",
+    "Heirloom/Core/Models/**"
+]
+description = "Testing infrastructure only - create test files, mocks, fixtures"
+
+[worktree.services]
+path = "/Users/matthanson/Heirloom-worktrees/services"
+branch = "feature/firebase-refactor"
+allowed_paths = [
+    "Heirloom/Core/Services/**",
+    "Heirloom/Core/Services/Protocols/**",
+    "Heirloom/Core/Services/Firebase/**",
+    "Heirloom/Core/Services/CRDT/**",
+    "Heirloom/Core/Utilities/Logger.swift"
+]
+forbidden_paths = [
+    "Heirloom/Features/**/Views/**",
+    "HeirloomTests/**",
+    "Heirloom/Core/Models/**"
+]
+description = "Service layer refactoring - decompose services, add protocols"
+
+[worktree.views]
+path = "/Users/matthanson/Heirloom-worktrees/views"
+branch = "feature/view-decomposition"
+allowed_paths = [
+    "Heirloom/Features/**/Views/**",
+    "Heirloom/Features/Recipes/RecipeDetail/**",
+    "Heirloom/Features/Shopping/ShoppingListView.swift",
+    "Heirloom/Features/CardPersonalization/**",
+    "Heirloom/Core/Design/Components/**"
+]
+forbidden_paths = [
+    "Heirloom/Core/Services/**",
+    "HeirloomTests/**",
+    "Heirloom/Core/Models/**"
+]
+description = "View layer decomposition - extract components, improve composition"
+
+[worktree.main]
+path = "/Users/matthanson/Heirloom"
+branch = "main"
+allowed_paths = ["**"]
+description = "Main worktree - integration, merging, production testing"
+
+# Coordination Rules
+[coordination]
+# How often to sync with main (in hours)
+sync_frequency = 24
+
+# Require build validation before push
+require_build_before_push = true
+
+# Require tests pass before push
+require_tests_before_push = true
+
+# Auto-rebase on main when pulling
+auto_rebase = true
+
+# Conflict resolution strategy
+conflict_strategy = "manual"  # Options: manual, main-wins, feature-wins
+
+# Git Commit Prefixes
+[commit_prefixes]
+testing = "[Testing]"
+services = "[Services]"
+views = "[Views]"
+main = "[Main]"
+
+# Example: "[Testing] Add Firebase sync integration tests"
+# Example: "[Services] Extract FirebaseRecordConverter"
+# Example: "[Views] Decompose RecipeDetailView"
+
+# Build Configuration
+[build]
+# Command to run before pushing from any worktree
+validate_command = "xcodebuild -project Heirloom.xcodeproj -scheme Heirloom -sdk iphonesimulator build"
+
+# Command to run tests
+test_command = "xcodebuild -project Heirloom.xcodeproj -scheme Heirloom -sdk iphonesimulator test"
+
+# Maximum build time before warning (seconds)
+max_build_time = 300
+
+# Test Coverage
+[coverage]
+# Minimum coverage percentage required
+minimum_overall = 60
+minimum_new_code = 70
+minimum_critical_paths = 85
+
+# Critical paths requiring higher coverage
+critical_paths = [
+    "Heirloom/Core/Services/Firebase/**",
+    "Heirloom/Core/Services/CRDT/**",
+    "Heirloom/Core/Models/CRDT/**"
+]
+
+# Priority Levels
+[priority]
+# All work is CRITICAL priority - do not deprioritize
+global_priority = "CRITICAL"
+
+# Phase priorities (all must complete before moving to next)
+phase_order = [
+    "testing-infrastructure",
+    "firebase-refactor",
+    "view-decomposition",
+    "code-quality",
+    "architecture-modernization",
+    "performance-optimization"
+]
+
+# Validation Rules
+[validation]
+# Must pass before merging to main
+pre_merge_checks = [
+    "build_passes",
+    "tests_pass",
+    "coverage_threshold_met",
+    "no_swiftlint_errors",
+    "no_force_unwraps_added",
+    "no_print_statements_added"
+]
+
+# Merge Strategy
+[merge]
+# Merge order when multiple features ready
+merge_order = ["testing", "services", "views"]
+
+# Require PR review even if solo dev (documentation purpose)
+require_pr = false
+
+# Squash commits when merging to main
+squash_commits = false
+
+# Delete branch after merge
+delete_branch_after_merge = false
+
+# Communication
+[communication]
+# Notification methods when conflicts detected
+notify_on_conflict = false
+
+# Log file for coordination events
+coordination_log = ".worktree-coordination.log"
+
+# Status Tracking
+[status]
+# File to track current phase and progress
+progress_file = ".refactor-progress.json"
+
+# Track time spent per phase
+time_tracking = true
+
+# Current execution mode
+mode = "sequential"  # Options: sequential, parallel
+
+# Notes
+# - Sequential mode: Execute phases in order, one at a time (CURRENT)
+# - Parallel mode: Use multiple worktrees simultaneously (FUTURE)
+# - When switching to parallel mode, update mode = "parallel"
+
+# Last Updated
+last_updated = "2026-01-03"
