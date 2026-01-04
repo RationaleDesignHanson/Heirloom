@@ -15,20 +15,18 @@ import FirebaseFirestore
 @MainActor
 class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
 
-    // MARK: - Singleton
-
-    static let shared = FirebaseCollectionSync()
-
-    private init() {}
-
     // MARK: - Dependencies
 
-    private var config: FirebaseConfiguration {
-        FirebaseConfiguration.shared
-    }
+    private let configuration: FirebaseConfigurationProtocol
+    private let converter: FirebaseRecordConverterProtocol
+    private let logger: LoggingService
 
-    private var converter: FirebaseRecordConverter.Type {
-        FirebaseRecordConverter.self
+    // MARK: - Initialization
+
+    init(configuration: FirebaseConfigurationProtocol, converter: FirebaseRecordConverterProtocol, logger: LoggingService) {
+        self.configuration = configuration
+        self.converter = converter
+        self.logger = logger
     }
 
     // MARK: - Ingredients Sync
@@ -39,19 +37,19 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
     ///   - recipeId: Recipe ID for subcollection
     /// - Throws: FirebaseError if upload fails
     func uploadIngredients(_ ingredients: [Ingredient], for recipeId: String) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let ingredientsRef = try config.ingredientsSubcollection(recipeId: recipeId)
+        let ingredientsRef = try configuration.ingredientsSubcollection(recipeId: recipeId)
 
         // Delete old ingredients first
         let existingIngredients = try await ingredientsRef.getDocuments()
 
         if !existingIngredients.documents.isEmpty {
-            Log.debug("Deleting old ingredients", category: .firebase, metadata: ["count": existingIngredients.documents.count])
+            logger.log("Deleting old ingredients", category: .sync, level: .debug)
 
-            let deleteBatch = config.db.batch()
+            let deleteBatch = configuration.db.batch()
             for doc in existingIngredients.documents {
                 deleteBatch.deleteDocument(doc.reference)
             }
@@ -60,9 +58,9 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
 
         // Upload new ingredients
         if !ingredients.isEmpty {
-            Log.info("Uploading ingredients", category: .firebase, metadata: ["count": ingredients.count, "recipeId": recipeId])
+            logger.log("Uploading ingredients", category: .sync, level: .info)
 
-            let uploadBatch = config.db.batch()
+            let uploadBatch = configuration.db.batch()
             for ingredient in ingredients {
                 let ingredientRef = ingredientsRef.document(ingredient.id.uuidString)
                 let ingredientData = converter.convertIngredientToFirestoreData(ingredient)
@@ -70,7 +68,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             }
             try await uploadBatch.commit()
 
-            Log.info("Ingredients uploaded successfully", category: .firebase, metadata: ["count": ingredients.count])
+            logger.log("Ingredients uploaded successfully", category: .sync, level: .info)
         }
     }
 
@@ -80,14 +78,14 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
     ///   - recipe: Recipe to attach ingredients to
     /// - Throws: FirebaseError if download fails
     func downloadIngredients(for recipeId: String, recipe: Recipe) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let ingredientsRef = try config.ingredientsSubcollection(recipeId: recipeId)
+        let ingredientsRef = try configuration.ingredientsSubcollection(recipeId: recipeId)
         let snapshot = try await ingredientsRef.getDocuments()
 
-        Log.info("Downloaded ingredients", category: .firebase, metadata: ["count": snapshot.documents.count, "recipeId": recipeId])
+        logger.log("Downloaded ingredients", category: .sync, level: .info)
 
         let ingredients = snapshot.documents.map { doc in
             converter.convertIngredientFromFirestoreData(doc.data(), id: doc.documentID)
@@ -105,17 +103,17 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
     ///   - recipeId: Recipe ID for subcollection
     /// - Throws: FirebaseError if upload fails
     func uploadComments(_ comments: [RecipeComment], for recipeId: String) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let commentsRef = try config.commentsSubcollection(recipeId: recipeId)
+        let commentsRef = try configuration.commentsSubcollection(recipeId: recipeId)
 
         // Delete old comments first
         let existingComments = try await commentsRef.getDocuments()
 
         if !existingComments.documents.isEmpty {
-            let deleteBatch = config.db.batch()
+            let deleteBatch = configuration.db.batch()
             for doc in existingComments.documents {
                 deleteBatch.deleteDocument(doc.reference)
             }
@@ -124,7 +122,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
 
         // Upload new comments
         if !comments.isEmpty {
-            let uploadBatch = config.db.batch()
+            let uploadBatch = configuration.db.batch()
             for comment in comments {
                 let commentRef = commentsRef.document(comment.id.uuidString)
                 let commentData = converter.convertCommentToFirestoreData(comment)
@@ -132,7 +130,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             }
             try await uploadBatch.commit()
 
-            Log.info("Comments uploaded successfully", category: .firebase, metadata: ["count": comments.count, "recipeId": recipeId])
+            logger.log("Comments uploaded successfully", category: .sync, level: .info)
         }
     }
 
@@ -142,11 +140,11 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
     ///   - recipe: Recipe to attach comments to
     /// - Throws: FirebaseError if download fails
     func downloadComments(for recipeId: String, recipe: Recipe) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let commentsRef = try config.commentsSubcollection(recipeId: recipeId)
+        let commentsRef = try configuration.commentsSubcollection(recipeId: recipeId)
         let snapshot = try await commentsRef.getDocuments()
 
         let comments = snapshot.documents.map { doc in
@@ -154,7 +152,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         }
 
         recipe.comments = comments
-        Log.info("Comments downloaded successfully", category: .firebase, metadata: ["count": comments.count, "recipeId": recipeId])
+        logger.log("Comments downloaded successfully", category: .sync, level: .info)
     }
 
     // MARK: - Card Back Sync
@@ -165,15 +163,15 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
     ///   - recipeId: Recipe ID
     /// - Throws: FirebaseError if upload fails
     func uploadCardBack(_ cardBack: RecipeCardBack, for recipeId: String) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let cardBackRef = try config.cardBackDocument(recipeId: recipeId)
+        let cardBackRef = try configuration.cardBackDocument(recipeId: recipeId)
         let cardBackData = converter.convertCardBackToFirestoreData(cardBack)
 
         try await cardBackRef.setData(cardBackData)
-        Log.info("Card back uploaded successfully", category: .firebase, metadata: ["recipeId": recipeId])
+        logger.log("Card back uploaded successfully", category: .sync, level: .info)
     }
 
     /// Download card back for a recipe from Firestore
@@ -182,16 +180,16 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
     ///   - recipe: Recipe to attach card back to
     /// - Throws: FirebaseError if download fails
     func downloadCardBack(for recipeId: String, recipe: Recipe) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let cardBackRef = try config.cardBackDocument(recipeId: recipeId)
+        let cardBackRef = try configuration.cardBackDocument(recipeId: recipeId)
         let snapshot = try await cardBackRef.getDocument()
 
         if snapshot.exists, let data = snapshot.data() {
             recipe.cardBack = converter.convertCardBackFromFirestoreData(data)
-            Log.info("Card back downloaded successfully", category: .firebase, metadata: ["recipeId": recipeId])
+            logger.log("Card back downloaded successfully", category: .sync, level: .info)
         }
     }
 
@@ -201,11 +199,11 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
     /// - Parameter collection: RecipeCollection to upload
     /// - Throws: FirebaseError if upload fails
     func uploadCollection(_ collection: RecipeCollection) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let collectionRef = try config.collectionsCollection().document(collection.id.uuidString)
+        let collectionRef = try configuration.collectionsCollection().document(collection.id.uuidString)
 
         var data: [String: Any] = [:]
         data["id"] = collection.id.uuidString
@@ -215,21 +213,21 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         data["recipeIds"] = collection.recipes?.map { $0.id.uuidString } ?? []
 
         try await collectionRef.setData(data)
-        Log.info("Collection uploaded successfully", category: .firebase, metadata: ["name": collection.name, "collectionId": collection.id.uuidString])
+        logger.log("Collection uploaded successfully", category: .sync, level: .info)
     }
 
     /// Delete collection from Firebase
     /// - Parameter collectionId: ID of collection to delete
     /// - Throws: FirebaseError if delete fails
     func deleteCollection(_ collectionId: UUID) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let collectionRef = try config.collectionsCollection().document(collectionId.uuidString)
+        let collectionRef = try configuration.collectionsCollection().document(collectionId.uuidString)
         try await collectionRef.delete()
 
-        Log.info("Collection deleted successfully", category: .firebase, metadata: ["collectionId": collectionId.uuidString])
+        logger.log("Collection deleted successfully", category: .sync, level: .info)
     }
 
     // MARK: - Tags Sync
@@ -238,11 +236,11 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
     /// - Parameter tag: Tag to upload
     /// - Throws: FirebaseError if upload fails
     func uploadTag(_ tag: Tag) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let tagRef = try config.tagsCollection().document(tag.id.uuidString)
+        let tagRef = try configuration.tagsCollection().document(tag.id.uuidString)
 
         var data: [String: Any] = [:]
         data["id"] = tag.id.uuidString
@@ -251,21 +249,21 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         data["recipeIds"] = tag.recipes?.map { $0.id.uuidString } ?? []
 
         try await tagRef.setData(data)
-        Log.info("Tag uploaded successfully", category: .firebase, metadata: ["name": tag.name, "tagId": tag.id.uuidString])
+        logger.log("Tag uploaded successfully", category: .sync, level: .info)
     }
 
     /// Delete tag from Firebase
     /// - Parameter tagId: ID of tag to delete
     /// - Throws: FirebaseError if delete fails
     func deleteTag(_ tagId: UUID) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let tagRef = try config.tagsCollection().document(tagId.uuidString)
+        let tagRef = try configuration.tagsCollection().document(tagId.uuidString)
         try await tagRef.delete()
 
-        Log.info("Tag deleted successfully", category: .firebase, metadata: ["tagId": tagId.uuidString])
+        logger.log("Tag deleted successfully", category: .sync, level: .info)
     }
 
     // MARK: - Shopping Cart Sync
@@ -274,11 +272,11 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
     /// - Parameter cartRecipe: ShoppingCartRecipe to upload
     /// - Throws: FirebaseError if upload fails
     func uploadShoppingCartRecipe(_ cartRecipe: ShoppingCartRecipe) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let cartRef = try config.shoppingCartCollection().document(cartRecipe.id.uuidString)
+        let cartRef = try configuration.shoppingCartCollection().document(cartRecipe.id.uuidString)
 
         var data: [String: Any] = [:]
         data["id"] = cartRecipe.id.uuidString
@@ -287,21 +285,21 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         data["dateAdded"] = Timestamp(date: cartRecipe.dateAdded)
 
         try await cartRef.setData(data)
-        Log.info("Shopping cart recipe uploaded successfully", category: .firebase, metadata: ["cartRecipeId": cartRecipe.id.uuidString])
+        logger.log("Shopping cart recipe uploaded successfully", category: .sync, level: .info)
     }
 
     /// Delete shopping cart recipe from Firebase
     /// - Parameter cartRecipeId: ID of cart recipe to delete
     /// - Throws: FirebaseError if delete fails
     func deleteShoppingCartRecipe(_ cartRecipeId: UUID) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let cartRef = try config.shoppingCartCollection().document(cartRecipeId.uuidString)
+        let cartRef = try configuration.shoppingCartCollection().document(cartRecipeId.uuidString)
         try await cartRef.delete()
 
-        Log.info("Shopping cart recipe deleted successfully", category: .firebase, metadata: ["cartRecipeId": cartRecipeId.uuidString])
+        logger.log("Shopping cart recipe deleted successfully", category: .sync, level: .info)
     }
 
     // MARK: - Dinner Parties Sync
@@ -310,11 +308,11 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
     /// - Parameter party: DinnerParty to upload
     /// - Throws: FirebaseError if upload fails
     func uploadDinnerParty(_ party: DinnerParty) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let partyRef = try config.dinnerPartiesCollection().document(party.id.uuidString)
+        let partyRef = try configuration.dinnerPartiesCollection().document(party.id.uuidString)
 
         var data: [String: Any] = [:]
         data["id"] = party.id.uuidString
@@ -326,20 +324,20 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         data["createdDate"] = Timestamp(date: party.createdDate)
 
         try await partyRef.setData(data)
-        Log.info("Dinner party uploaded successfully", category: .firebase, metadata: ["name": party.name, "partyId": party.id.uuidString])
+        logger.log("Dinner party uploaded successfully", category: .sync, level: .info)
     }
 
     /// Delete dinner party from Firebase
     /// - Parameter partyId: ID of dinner party to delete
     /// - Throws: FirebaseError if delete fails
     func deleteDinnerParty(_ partyId: UUID) async throws {
-        guard config.isAuthenticated else {
+        guard configuration.isAuthenticated else {
             throw FirebaseError.notAuthenticated
         }
 
-        let partyRef = try config.dinnerPartiesCollection().document(partyId.uuidString)
+        let partyRef = try configuration.dinnerPartiesCollection().document(partyId.uuidString)
         try await partyRef.delete()
 
-        Log.info("Dinner party deleted successfully", category: .firebase, metadata: ["partyId": partyId.uuidString])
+        logger.log("Dinner party deleted successfully", category: .sync, level: .info)
     }
 }
