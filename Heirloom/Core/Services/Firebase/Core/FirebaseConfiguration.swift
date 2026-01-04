@@ -19,15 +19,15 @@ import FirebaseStorage
 @MainActor
 class FirebaseConfiguration: FirebaseConfigurationProtocol {
 
-    // MARK: - Singleton
+    // MARK: - Dependencies
 
-    static let shared = FirebaseConfiguration()
+    private let logger: LoggingService
 
-    private init() {}
+    // MARK: - Initialization
 
-    // MARK: - Logging
-
-    private let logger = Logger(subsystem: "com.matthanson.heirloom", category: "FirebaseConfig")
+    init(logger: LoggingService = HeirloomLogger.shared) {
+        self.logger = logger
+    }
 
     // MARK: - Dependencies
 
@@ -59,9 +59,7 @@ class FirebaseConfiguration: FirebaseConfigurationProtocol {
         // Trigger lazy initialization of Firestore
         _ = db
 
-        DeviceLogger.shared.log("🔥 [Firebase] FirebaseConfiguration configured")
-        logger.info("🔥 [Firebase] FirebaseConfiguration configured")
-        Log.info("FirebaseConfiguration configured", category: .firebase)
+        logger.log("FirebaseConfiguration configured with model context", category: .firebase, level: .info)
     }
 
     // MARK: - User Authentication
