@@ -269,16 +269,16 @@ struct EnhancedScannerView: View {
         Task {
             do {
                 // Step 1: Detect recipes with bounding boxes (vision API)
-                print("🔍 Step 1: Detecting recipes with vision API...")
+                Log.info("Detecting recipes with vision API", category: .ocr)
                 let detected = try await AIRecipeExtractor.shared.detectRecipes(from: image)
 
-                print("   Found \(detected.count) recipe(s)")
+                Log.info("Found recipes in image", category: .ocr, metadata: ["count": detected.count])
                 for (index, recipe) in detected.enumerated() {
-                    print("   \(index + 1). \(recipe.title) (\(recipe.confidence.rawValue) confidence)")
+                    Log.debug("Detected recipe", category: .ocr, metadata: ["index": index + 1, "title": recipe.title, "confidence": recipe.confidence.rawValue])
                 }
 
                 // Step 2: Extract each recipe using vision API + bounding box
-                print("🤖 Step 2: Extracting recipes with vision API...")
+                Log.info("Extracting recipes with vision API", category: .ocr)
                 let result = try await AIRecipeExtractor.shared.extractRecipesFromImage(
                     image: image,
                     detectedRecipes: detected
@@ -291,25 +291,27 @@ struct EnhancedScannerView: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
 
-                    print("✅ Processing complete!")
-                    print("   Extracted \(result.count) recipe(s)")
+                    Log.info("Recipe extraction complete", category: .ocr, metadata: ["extractedCount": result.count])
 
                     // Route based on recipe count
                     if result.count == 0 {
                         // No recipes detected - show error
                         errorMessage = "No recipes detected in the image. Please try again with a clearer photo."
-                        print("⚠️ No recipes found")
+                        Log.warning("No recipes found in image", category: .ocr)
 
                     } else {
                         // 1+ recipes - use RecipeSelectionView (matches web demo behavior)
                         multiRecipeResult = result
                         showMultiRecipeSheet = true
 
-                        print("✅ Recipes extracted:")
+                        Log.info("Recipes extracted successfully", category: .ocr, metadata: ["count": result.recipes.count])
                         for (index, recipe) in result.recipes.enumerated() {
-                            print("   \(index + 1). \(recipe.title)")
-                            print("      Ingredients: \(recipe.ingredients.count)")
-                            print("      Instructions: \(recipe.instructions.count)")
+                            Log.debug("Extracted recipe details", category: .ocr, metadata: [
+                                "index": index + 1,
+                                "title": recipe.title,
+                                "ingredientCount": recipe.ingredients.count,
+                                "instructionCount": recipe.instructions.count
+                            ])
                         }
                     }
                 }
@@ -323,7 +325,7 @@ struct EnhancedScannerView: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.error)
 
-                    print("❌ Processing failed: \(error)")
+                    Log.error("Recipe processing failed", category: .ocr, metadata: ["error": error.localizedDescription])
                 }
             }
         }

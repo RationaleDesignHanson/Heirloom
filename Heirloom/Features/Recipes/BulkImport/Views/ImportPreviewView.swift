@@ -201,10 +201,10 @@ struct EditableURL: Identifiable, Equatable {
             "invalid url"
         ],
         onConfirm: { urls in
-            print("Confirmed: \(urls.count) URLs")
+            Log.debug("Preview: Bulk import confirmed", category: .ui, metadata: ["urlCount": urls.count])
         },
         onCancel: {
-            print("Cancelled")
+            Log.debug("Preview: Bulk import cancelled", category: .ui)
         }
     )
 }

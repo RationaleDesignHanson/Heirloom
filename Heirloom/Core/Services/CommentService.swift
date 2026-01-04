@@ -51,9 +51,9 @@ final class CommentService {
             Task {
                 do {
                     try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipe.id)
-                    print("✅ Comment synced to Firebase")
+                    Log.info("Comment synced to Firebase", category: .firebase)
                 } catch {
-                    print("⚠️ Failed to sync comment to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to sync comment to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                 }
             }
         }
@@ -96,10 +96,10 @@ final class CommentService {
                     do {
                         try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipe.id)
                     } catch {
-                        print("⚠️ Failed to sync imported comment to Firebase: \(error.localizedDescription)")
+                        Log.warning("Failed to sync imported comment to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                     }
                 }
-                print("✅ \(importedComments.count) imported comments synced to Firebase")
+                Log.info("Imported comments synced to Firebase", category: .firebase, metadata: ["count": importedComments.count])
             }
         }
 
@@ -178,9 +178,9 @@ final class CommentService {
             Task {
                 do {
                     try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipeId)
-                    print("✅ Updated comment synced to Firebase")
+                    Log.info("Updated comment synced to Firebase", category: .firebase)
                 } catch {
-                    print("⚠️ Failed to sync updated comment to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to sync updated comment to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                 }
             }
         }
@@ -196,9 +196,9 @@ final class CommentService {
             Task {
                 do {
                     try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipeId)
-                    print("✅ Upvote synced to Firebase")
+                    Log.info("Comment upvote synced to Firebase", category: .firebase)
                 } catch {
-                    print("⚠️ Failed to sync upvote to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to sync upvote to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                 }
             }
         }
@@ -213,9 +213,9 @@ final class CommentService {
             Task {
                 do {
                     try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipeId)
-                    print("✅ Downvote synced to Firebase")
+                    Log.info("Comment downvote synced to Firebase", category: .firebase)
                 } catch {
-                    print("⚠️ Failed to sync downvote to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to sync downvote to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                 }
             }
         }
@@ -287,9 +287,9 @@ final class CommentService {
             Task {
                 do {
                     try await FirebaseSyncService.shared.deleteComment(commentId, from: recipeId)
-                    print("✅ Comment deleted from Firebase")
+                    Log.info("Comment deleted from Firebase", category: .firebase)
                 } catch {
-                    print("⚠️ Failed to delete comment from Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to delete comment from Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                 }
             }
         }
@@ -316,10 +316,10 @@ final class CommentService {
                     do {
                         try await FirebaseSyncService.shared.deleteComment(commentId, from: recipeId)
                     } catch {
-                        print("⚠️ Failed to delete comment from Firebase: \(error.localizedDescription)")
+                        Log.warning("Failed to delete comment from Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                     }
                 }
-                print("✅ All comments deleted from Firebase")
+                Log.info("All comments deleted from Firebase", category: .firebase, metadata: ["count": commentIds.count])
             }
         }
     }

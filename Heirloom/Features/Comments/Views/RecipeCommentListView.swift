@@ -458,7 +458,7 @@ struct RecipeCommentListView: View {
         do {
             try CommentService.shared.upvoteComment(comment, context: modelContext)
         } catch {
-            print("Failed to upvote: \(error)")
+            Log.error("Failed to upvote comment", category: .database, metadata: ["error": error.localizedDescription])
         }
     }
 
@@ -466,7 +466,7 @@ struct RecipeCommentListView: View {
         do {
             try CommentService.shared.downvoteComment(comment, context: modelContext)
         } catch {
-            print("Failed to downvote: \(error)")
+            Log.error("Failed to downvote comment", category: .database, metadata: ["error": error.localizedDescription])
         }
     }
 
@@ -474,13 +474,13 @@ struct RecipeCommentListView: View {
         do {
             try CommentService.shared.togglePin(comment, context: modelContext)
         } catch {
-            print("Failed to toggle pin: \(error)")
+            Log.error("Failed to toggle comment pin", category: .database, metadata: ["error": error.localizedDescription])
         }
     }
 
     private func replyToComment(_ comment: RecipeComment) {
         // TODO: Implement reply sheet
-        print("Reply to comment: \(comment.id)")
+        Log.debug("Reply to comment requested", category: .ui, metadata: ["commentId": comment.id.uuidString])
     }
 
     private func addComment(text: String, authorName: String?, commentType: CommentType) {

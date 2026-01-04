@@ -6,26 +6,24 @@ import Foundation
 @MainActor
 class AIAPITest {
     static func run() async {
-        print("🧪 Testing Anthropic AI Service...")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        Log.info("Testing Anthropic AI Service", category: .general)
+        Log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", category: .general)
 
         // Step 1: Check configuration
-        print("\n1️⃣ Checking configuration...")
+        Log.info("Step 1: Checking configuration", category: .general)
         let config = AIConfiguration.shared
 
         if config.isConfigured(provider: .anthropic) {
-            print("✅ Anthropic API key is configured")
+            Log.info("Anthropic API key is configured", category: .general)
         } else {
-            print("❌ Anthropic API key NOT configured")
-            print("👉 To configure:")
-            print("   1. Get API key from: https://console.anthropic.com/")
-            print("   2. Run this code in app:")
-            print("      AIConfiguration.shared.setAPIKey(\"sk-ant-...\", for: .anthropic)")
+            Log.warning("Anthropic API key NOT configured", category: .general)
+            Log.info("To configure: 1. Get API key from: https://console.anthropic.com/", category: .general)
+            Log.info("2. Run this code in app: AIConfiguration.shared.setAPIKey(\"sk-ant-...\", for: .anthropic)", category: .general)
             return
         }
 
         // Step 2: Test simple completion
-        print("\n2️⃣ Testing simple completion...")
+        Log.info("Step 2: Testing simple completion", category: .general)
         do {
             let service = AnthropicAIService.shared
             let response = try await service.complete(
@@ -39,21 +37,21 @@ class AIAPITest {
                 )
             )
 
-            print("✅ API call successful!")
-            print("   Response: \(response.content)")
-            print("   Model: \(response.model)")
-            print("   Tokens used: \(response.usage.totalTokens)")
-            print("   Cost: $\(response.usage.totalCost)")
+            Log.info("API call successful", category: .general, metadata: [
+                "response": response.content,
+                "model": response.model,
+                "tokensUsed": response.usage.totalTokens,
+                "cost": response.usage.totalCost
+            ])
 
         } catch let error as AIError {
-            print("❌ API call failed: \(error.errorDescription ?? "Unknown error")")
-            print("   Context: \(error.context)")
+            Log.error("API call failed", category: .general, metadata: ["error": error.errorDescription ?? "Unknown error", "context": error.context])
         } catch {
-            print("❌ Unexpected error: \(error)")
+            Log.error("Unexpected error", category: .general, metadata: ["error": error.localizedDescription])
         }
 
         // Step 3: Test structured completion (JSON response)
-        print("\n3️⃣ Testing structured completion (JSON)...")
+        Log.info("Step 3: Testing structured completion (JSON)", category: .general)
 
         struct IngredientTest: Codable {
             let quantity: Double?
@@ -77,26 +75,29 @@ class AIAPITest {
                 schema: IngredientTest.self
             )
 
-            print("✅ Structured completion successful!")
-            print("   Quantity: \(ingredient.quantity ?? 0)")
-            print("   Unit: \(ingredient.unit ?? "none")")
-            print("   Name: \(ingredient.name)")
+            Log.info("Structured completion successful", category: .general, metadata: [
+                "quantity": ingredient.quantity ?? 0,
+                "unit": ingredient.unit ?? "none",
+                "name": ingredient.name
+            ])
 
         } catch let error as AIError {
-            print("❌ Structured completion failed: \(error.errorDescription ?? "Unknown error")")
+            Log.error("Structured completion failed", category: .general, metadata: ["error": error.errorDescription ?? "Unknown error"])
         } catch {
-            print("❌ Unexpected error: \(error)")
+            Log.error("Unexpected error", category: .general, metadata: ["error": error.localizedDescription])
         }
 
         // Step 4: Show usage statistics
-        print("\n4️⃣ Usage statistics...")
+        Log.info("Step 4: Usage statistics", category: .general)
         let tracker = AIUsageTracker.shared
-        print("   Total tokens used: \(tracker.totalTokensUsed)")
-        print("   Total cost: $\(tracker.totalCost)")
-        print("   Request count: \(tracker.requestCount)")
+        Log.info("Usage statistics", category: .general, metadata: [
+            "totalTokensUsed": tracker.totalTokensUsed,
+            "totalCost": tracker.totalCost,
+            "requestCount": tracker.requestCount
+        ])
 
-        print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print("✅ Test complete!")
+        Log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", category: .general)
+        Log.info("Test complete", category: .general)
     }
 }
 

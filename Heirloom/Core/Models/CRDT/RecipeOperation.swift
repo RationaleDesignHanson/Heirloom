@@ -312,34 +312,34 @@ extension RecipeOperation {
 
     /// Create from Firestore dictionary
     static func from(firestoreData: [String: Any]) -> RecipeOperation? {
-        print("🔍 [CRDT] Parsing operation from Firestore: \(firestoreData.keys)")
+        Log.debug("Parsing CRDT operation from Firestore", category: .crdt, metadata: ["keys": Array(firestoreData.keys).joined(separator: ", ")])
 
         guard let idString = firestoreData["id"] as? String else {
-            print("❌ [CRDT] Missing 'id'")
+            Log.warning("Failed to parse CRDT operation: missing 'id'", category: .crdt)
             return nil
         }
         guard let id = UUID(uuidString: idString) else {
-            print("❌ [CRDT] Invalid UUID for 'id': \(idString)")
+            Log.warning("Failed to parse CRDT operation: invalid UUID for 'id'", category: .crdt, metadata: ["id": idString])
             return nil
         }
         guard let recipeIdString = firestoreData["recipeId"] as? String else {
-            print("❌ [CRDT] Missing 'recipeId'")
+            Log.warning("Failed to parse CRDT operation: missing 'recipeId'", category: .crdt)
             return nil
         }
         guard let recipeId = UUID(uuidString: recipeIdString) else {
-            print("❌ [CRDT] Invalid UUID for 'recipeId': \(recipeIdString)")
+            Log.warning("Failed to parse CRDT operation: invalid UUID for 'recipeId'", category: .crdt, metadata: ["recipeId": recipeIdString])
             return nil
         }
         guard let deviceId = firestoreData["deviceId"] as? String else {
-            print("❌ [CRDT] Missing 'deviceId'")
+            Log.warning("Failed to parse CRDT operation: missing 'deviceId'", category: .crdt)
             return nil
         }
         guard let vectorClockData = firestoreData["vectorClock"] as? [String: Any] else {
-            print("❌ [CRDT] Missing 'vectorClock'")
+            Log.warning("Failed to parse CRDT operation: missing 'vectorClock'", category: .crdt)
             return nil
         }
         guard let vectorClock = VectorClock.from(firestoreData: vectorClockData) else {
-            print("❌ [CRDT] Failed to parse vectorClock")
+            Log.warning("Failed to parse CRDT operation: invalid vectorClock", category: .crdt)
             return nil
         }
         // Handle both Date and Timestamp types
@@ -349,19 +349,19 @@ extension RecipeOperation {
         } else if let firestoreTimestamp = firestoreData["timestamp"] as? Timestamp {
             timestamp = firestoreTimestamp.dateValue()
         } else {
-            print("❌ [CRDT] Missing 'timestamp' or wrong type")
+            Log.warning("Failed to parse CRDT operation: missing or invalid 'timestamp'", category: .crdt)
             return nil
         }
         guard let operationTypeRaw = firestoreData["operationType"] as? String else {
-            print("❌ [CRDT] Missing 'operationType'")
+            Log.warning("Failed to parse CRDT operation: missing 'operationType'", category: .crdt)
             return nil
         }
         guard let operationType = OperationType(rawValue: operationTypeRaw) else {
-            print("❌ [CRDT] Invalid operationType: \(operationTypeRaw)")
+            Log.warning("Failed to parse CRDT operation: invalid operationType", category: .crdt, metadata: ["operationType": operationTypeRaw])
             return nil
         }
         guard let fieldPath = firestoreData["fieldPath"] as? String else {
-            print("❌ [CRDT] Missing 'fieldPath'")
+            Log.warning("Failed to parse CRDT operation: missing 'fieldPath'", category: .crdt)
             return nil
         }
 
@@ -369,7 +369,7 @@ extension RecipeOperation {
         let oldValue = OperationValue.from(firestoreValue: firestoreData["oldValue"])
         let newValue = OperationValue.from(firestoreValue: firestoreData["newValue"])
 
-        print("✅ [CRDT] Successfully parsed operation: \(fieldPath)")
+        Log.debug("Successfully parsed CRDT operation", category: .crdt, metadata: ["fieldPath": fieldPath])
         return RecipeOperation(
             id: id,
             recipeId: recipeId,

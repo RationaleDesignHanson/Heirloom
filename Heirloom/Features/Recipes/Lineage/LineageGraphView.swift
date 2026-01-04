@@ -329,7 +329,7 @@ struct LineageGraphView: View {
 
     return NavigationStack {
         LineageGraphView(tree: tree) { recipe in
-            print("Tapped: \(recipe.title)")
+            Log.debug("Preview: Lineage graph recipe tapped", category: .ui, metadata: ["title": recipe.title])
         }
         .navigationTitle("Recipe Lineage")
         .navigationBarTitleDisplayMode(.inline)

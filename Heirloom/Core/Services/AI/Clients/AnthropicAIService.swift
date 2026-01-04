@@ -162,9 +162,15 @@ class AnthropicAIService: AIServiceProtocol {
         let (processedImage, imageData, format) = try prepareImageForVisionAPI(image, useCase: useCase)
         let base64Image = imageData.base64EncodedString()
 
-        print("📸 [OCR] Original: \(Int(image.size.width))x\(Int(image.size.height))")
-        print("📸 [OCR] Processed: \(Int(processedImage.size.width))x\(Int(processedImage.size.height)), \(imageData.count / 1024)KB, format: \(format)")
-        print("📸 [OCR] Scale: \(image.scale)x, Color space: \(image.cgImage?.colorSpace?.name ?? "unknown" as CFString)")
+        Log.debug("Preparing image for vision API", category: .ocr, metadata: [
+            "originalWidth": Int(image.size.width),
+            "originalHeight": Int(image.size.height),
+            "processedWidth": Int(processedImage.size.width),
+            "processedHeight": Int(processedImage.size.height),
+            "sizeKB": imageData.count / 1024,
+            "format": format,
+            "scale": image.scale
+        ])
 
         // Build request with vision content
         let opts = options ?? .default
@@ -276,7 +282,7 @@ class AnthropicAIService: AIServiceProtocol {
                 let delay = error.retryDelay(attempt: attempt)
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
 
-                print("⚠️ Retrying Anthropic request (attempt \(attempt + 2)/\(maxAttempts))...")
+                Log.warning("Retrying Anthropic API request", category: .network, metadata: ["attempt": attempt + 2, "maxAttempts": maxAttempts])
             }
         }
 
@@ -352,24 +358,24 @@ class AnthropicAIService: AIServiceProtocol {
 
         // Try PNG first (lossless) - best for OCR
         if let pngData = image.pngData(), pngData.count <= maxFileSize {
-            print("📸 [OCR] Using PNG (lossless): \(pngData.count / 1024)KB")
+            Log.debug("Using PNG lossless format for OCR", category: .ocr, metadata: ["sizeKB": pngData.count / 1024])
             return (image, pngData, "png")
         }
 
         // PNG too large, try high-quality JPEG without resizing
         if let jpegData = image.jpegData(compressionQuality: 0.95), jpegData.count <= maxFileSize {
-            print("📸 [OCR] Using JPEG 0.95 (no resize): \(jpegData.count / 1024)KB")
+            Log.debug("Using JPEG with high quality, no resize", category: .ocr, metadata: ["sizeKB": jpegData.count / 1024, "quality": 0.95])
             return (image, jpegData, "jpeg")
         }
 
         // Still too large, need to resize
-        print("📸 [OCR] Image too large (\(image.jpegData(compressionQuality: 0.95)?.count ?? 0 / 1024)KB), resizing...")
+        Log.debug("Image too large for OCR, resizing required", category: .ocr, metadata: ["originalSizeKB": (image.jpegData(compressionQuality: 0.95)?.count ?? 0) / 1024])
 
         let resizedImage = resizeImagePreservingQuality(image, targetFileSize: maxFileSize)
 
         // Try PNG on resized image
         if let pngData = resizedImage.pngData(), pngData.count <= maxFileSize {
-            print("📸 [OCR] Using PNG after resize: \(pngData.count / 1024)KB")
+            Log.debug("Using PNG after resizing for OCR", category: .ocr, metadata: ["sizeKB": pngData.count / 1024])
             return (resizedImage, pngData, "png")
         }
 
@@ -378,7 +384,7 @@ class AnthropicAIService: AIServiceProtocol {
             throw AIError.invalidRequest(reason: "Could not convert image to JPEG")
         }
 
-        print("📸 [OCR] Using JPEG 0.92 after resize: \(jpegData.count / 1024)KB")
+        Log.debug("Using JPEG after resizing for OCR", category: .ocr, metadata: ["sizeKB": jpegData.count / 1024, "quality": 0.92])
         return (resizedImage, jpegData, "jpeg")
     }
 
@@ -396,7 +402,12 @@ class AnthropicAIService: AIServiceProtocol {
             height: size.height * scaleFactor * 0.9
         )
 
-        print("📸 [OCR] Resizing from \(Int(size.width))x\(Int(size.height)) to \(Int(newSize.width))x\(Int(newSize.height))")
+        Log.debug("Resizing image for OCR", category: .ocr, metadata: [
+            "fromWidth": Int(size.width),
+            "fromHeight": Int(size.height),
+            "toWidth": Int(newSize.width),
+            "toHeight": Int(newSize.height)
+        ])
 
         // Use high-quality rendering
         let format = UIGraphicsImageRendererFormat()

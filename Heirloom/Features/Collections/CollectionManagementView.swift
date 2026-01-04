@@ -144,10 +144,10 @@ struct CollectionManagementView: View {
                         do {
                             try await FirebaseSyncService.shared.deleteCollection(collectionId)
                         } catch {
-                            print("⚠️ Failed to delete collection from Firebase: \(error.localizedDescription)")
+                            Log.warning("Failed to delete collection from Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "collectionId": collectionId])
                         }
                     }
-                    print("✅ Collections deleted from Firebase")
+                    Log.info("Collections deleted from Firebase", category: .firebase, metadata: ["count": collectionIdsToDelete.count])
                 }
             }
 
@@ -365,9 +365,9 @@ struct CollectionEditorView: View {
                 Task {
                     do {
                         try await FirebaseSyncService.shared.uploadCollection(collectionToSync)
-                        print("✅ Collection synced to Firebase")
+                        Log.info("Collection synced to Firebase", category: .firebase, metadata: ["collectionId": collectionToSync.id])
                     } catch {
-                        print("⚠️ Failed to sync collection to Firebase: \(error.localizedDescription)")
+                        Log.warning("Failed to sync collection to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "collectionId": collectionToSync.id])
                     }
                 }
             }

@@ -61,7 +61,7 @@ class FirebaseConfiguration: FirebaseConfigurationProtocol {
 
         DeviceLogger.shared.log("🔥 [Firebase] FirebaseConfiguration configured")
         logger.info("🔥 [Firebase] FirebaseConfiguration configured")
-        print("🔥 FirebaseConfiguration configured")
+        Log.info("FirebaseConfiguration configured", category: .firebase)
     }
 
     // MARK: - User Authentication

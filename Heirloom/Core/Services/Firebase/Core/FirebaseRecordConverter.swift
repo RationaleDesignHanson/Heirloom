@@ -44,7 +44,7 @@ struct FirebaseRecordConverter: FirebaseRecordConverterProtocol {
         data["timesCooked"] = recipe.timesCooked
         data["lastCooked"] = recipe.lastCooked as Any
         data["isFavorite"] = recipe.isFavorite
-        print("🔍 [Converter] Converting recipe '\(recipe.title)' - isFavorite=\(recipe.isFavorite)")
+        Log.debug("Converting recipe to Firebase document", category: .firebase, metadata: ["title": recipe.title, "isFavorite": recipe.isFavorite])
 
         // Timestamps
         data["createdAt"] = Timestamp(date: recipe.createdAt)

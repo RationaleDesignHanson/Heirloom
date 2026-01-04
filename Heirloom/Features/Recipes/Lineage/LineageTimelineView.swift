@@ -394,7 +394,7 @@ struct LineageContainerView: View {
                 isLoading = false
             }
 
-            print("❌ Failed to load lineage tree: \(error)")
+            Log.error("Failed to load lineage tree", category: .general, metadata: ["error": error.localizedDescription, "recipeId": recipe.id.uuidString])
         }
     }
 }
@@ -488,7 +488,7 @@ enum LineageViewMode: String, CaseIterable {
 
     return NavigationStack {
         LineageTimelineView(tree: tree) { recipe in
-            print("Tapped: \(recipe.title)")
+            Log.debug("Preview: Lineage recipe tapped", category: .ui, metadata: ["title": recipe.title])
         }
     }
 }

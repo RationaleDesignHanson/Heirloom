@@ -313,16 +313,18 @@ struct RecipeImportView: View {
                     importedRecipe = recipe
 
                     // Log confidence and parser used
-                    print("✅ Imported with \(String(format: "%.1f%%", response.confidence * 100)) confidence")
-                    print("   Parser: \(response.metadata.parserUsed.rawValue)")
-                    print("   Domain: \(response.metadata.domain)")
+                    Log.info("Recipe imported", category: .network, metadata: [
+                        "confidence": response.confidence * 100,
+                        "parser": response.metadata.parserUsed.rawValue,
+                        "domain": response.metadata.domain
+                    ])
                     if let author = recipe.author {
-                        print("   Author: \(author)")
+                        Log.debug("Recipe author found", category: .network, metadata: ["author": author])
                     }
                     if let imageURL = recipe.imageURL {
-                        print("   Image URL: \(imageURL)")
+                        Log.debug("Recipe image URL found", category: .network, metadata: ["imageURL": imageURL])
                     } else {
-                        print("   ⚠️ No image URL")
+                        Log.debug("No image URL found", category: .network)
                     }
                 } else {
                     importError = "The recipe is incomplete. Please try a different URL."
@@ -371,7 +373,7 @@ struct RecipeImportView: View {
             parsedIngredients = try await AIIngredientParser.shared.parseBatch(ingredientTexts)
         } catch {
             // Fallback to regex parsing on error (already handled in AIIngredientParser)
-            print("⚠️ Batch parsing encountered an error: \(error.localizedDescription)")
+            Log.warning("Batch parsing encountered an error", category: .general, metadata: ["error": error.localizedDescription])
             parsedIngredients = ingredientTexts.map { IngredientParser.parse($0) }
         }
 
@@ -421,9 +423,9 @@ struct RecipeImportView: View {
                         }
                     }
 
-                    print("✅ Imported recipe synced to Firebase")
+                    Log.info("Imported recipe synced to Firebase", category: .firebase)
                 } catch {
-                    print("⚠️ Failed to sync imported recipe to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to sync imported recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                     // Don't fail - local save succeeded
                 }
             }
@@ -450,26 +452,26 @@ struct RecipeImportView: View {
     }
 
     private func downloadAndSaveImage(from url: URL, for recipe: Recipe) async {
-        print("🖼️ Downloading image from: \(url.absoluteString)")
+        Log.info("Downloading recipe image", category: .network, metadata: ["url": url.absoluteString])
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            print("✅ Downloaded image data: \(data.count) bytes")
+            Log.debug("Downloaded image data", category: .network, metadata: ["bytes": data.count])
 
             if let image = UIImage(data: data) {
-                print("✅ Created UIImage from data")
+                Log.debug("Created UIImage from data", category: .storage)
                 let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
-                print("✅ Saved image as: \(fileName)")
+                Log.info("Saved image", category: .storage, metadata: ["fileName": fileName])
                 await MainActor.run {
                     recipe.imageFileName = fileName
-                    print("✅ Set recipe.imageFileName = \(fileName)")
+                    Log.debug("Set recipe image filename", category: .database, metadata: ["fileName": fileName])
                     try? modelContext.save()
-                    print("✅ Saved modelContext")
+                    Log.debug("Saved model context", category: .database)
                 }
             } else {
-                print("⚠️ Failed to create UIImage from downloaded data")
+                Log.warning("Failed to create UIImage from downloaded data", category: .storage)
             }
         } catch {
-            print("⚠️ Failed to download recipe image: \(error)")
+            Log.warning("Failed to download recipe image", category: .network, metadata: ["error": error.localizedDescription])
         }
     }
 }

@@ -15,30 +15,30 @@ class RecipeImportService {
             .replacingOccurrences(of: "\u{200B}", with: "") // Zero-width space
             .replacingOccurrences(of: "\u{FEFF}", with: "") // Byte order mark
 
-        print("🔍 Starting import from: \(cleanedURL)")
+        Log.info("Starting recipe import", category: .network, metadata: ["url": cleanedURL])
 
         // Validate URL
         guard let url = URL(string: cleanedURL) else {
-            print("❌ Invalid URL: \(cleanedURL)")
+            Log.error("Invalid URL for import", category: .network, metadata: ["url": cleanedURL])
             throw ImportError.invalidURL
         }
 
         // Detect site
         let site = detectSite(from: url)
-        print("🌐 Detected site: \(site.rawValue)")
+        Log.info("Detected recipe site", category: .network, metadata: ["site": site.rawValue])
 
         // Fetch HTML
-        print("📥 Fetching HTML...")
+        Log.debug("Fetching HTML from URL", category: .network)
         let html = try await fetchHTML(from: url)
-        print("✅ Fetched \(html.count) characters")
+        Log.debug("Fetched HTML content", category: .network, metadata: ["sizeBytes": html.count])
 
         // Check for site-specific issues
         try checkSiteSpecificIssues(html: html, site: site)
 
         // Parse recipe data
-        print("🔍 Parsing recipe data...")
+        Log.debug("Parsing recipe data", category: .network)
         let recipe = try parseRecipe(from: html, sourceURL: urlString, site: site)
-        print("✅ Successfully parsed recipe: \(recipe.title)")
+        Log.info("Successfully parsed recipe", category: .network, metadata: ["title": recipe.title])
         return recipe
     }
 
@@ -78,7 +78,7 @@ class RecipeImportService {
         case .nytCooking:
             // Check for NYT paywall
             if html.contains("nytcooking-paywall") || html.contains("paywall-bar") {
-                print("⚠️ NYT paywall detected")
+                Log.warning("NYT paywall detected", category: .network)
                 throw ImportError.paywallDetected
             }
         default:
@@ -99,19 +99,19 @@ class RecipeImportService {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            print("❌ Invalid response type")
+            Log.error("Invalid HTTP response type", category: .network)
             throw ImportError.networkError
         }
 
-        print("📡 HTTP Status: \(httpResponse.statusCode)")
+        Log.debug("Received HTTP response", category: .network, metadata: ["statusCode": httpResponse.statusCode])
 
         guard (200...299).contains(httpResponse.statusCode) else {
-            print("❌ HTTP error: \(httpResponse.statusCode)")
+            Log.error("HTTP error", category: .network, metadata: ["statusCode": httpResponse.statusCode])
             throw ImportError.networkError
         }
 
         guard let html = String(data: data, encoding: .utf8) else {
-            print("❌ Failed to decode HTML")
+            Log.error("Failed to decode HTML response", category: .network)
             throw ImportError.invalidHTML
         }
 
@@ -122,34 +122,34 @@ class RecipeImportService {
         let doc = try SwiftSoup.parse(html)
 
         // Try schema.org JSON-LD first (most reliable)
-        print("🔍 Looking for JSON-LD recipe data...")
+        Log.debug("Looking for JSON-LD recipe data", category: .network)
         if let recipe = try? parseJSONLD(from: doc) {
-            print("✅ Found JSON-LD recipe data")
+            Log.info("Found JSON-LD recipe data", category: .network)
             var result = recipe
             result.sourceURL = sourceURL
             return result
         }
-        print("⚠️ No JSON-LD recipe data found")
+        Log.debug("No JSON-LD recipe data found", category: .network)
 
         // Try site-specific parsers
-        print("🔍 Trying site-specific parser for \(site.rawValue)...")
+        Log.debug("Trying site-specific parser", category: .network, metadata: ["site": site.rawValue])
         if let recipe = try? parseSiteSpecific(from: doc, site: site) {
-            print("✅ Site-specific parser succeeded")
+            Log.info("Site-specific parser succeeded", category: .network)
             var result = recipe
             result.sourceURL = sourceURL
             return result
         }
-        print("⚠️ Site-specific parser failed")
+        Log.debug("Site-specific parser failed", category: .network)
 
         // Fallback to microdata/HTML parsing
-        print("🔍 Trying microdata fallback...")
+        Log.debug("Trying microdata fallback", category: .network)
         if let recipe = try? parseMicrodata(from: doc) {
-            print("✅ Found microdata recipe data")
+            Log.info("Found microdata recipe data", category: .network)
             var result = recipe
             result.sourceURL = sourceURL
             return result
         }
-        print("⚠️ No microdata recipe data found")
+        Log.warning("No microdata recipe data found", category: .network)
 
         throw ImportError.noRecipeFound
     }
@@ -224,21 +224,21 @@ class RecipeImportService {
         // Find script tags with type="application/ld+json"
         let scripts = try doc.select("script[type=application/ld+json]")
 
-        print("📋 Found \(scripts.count) JSON-LD script tags")
+        Log.debug("Found JSON-LD script tags", category: .network, metadata: ["count": scripts.count])
 
         for (index, script) in scripts.enumerated() {
             let jsonText = try script.html()
             guard let jsonData = jsonText.data(using: .utf8) else {
-                print("⚠️ Script \(index): Failed to get data")
+                Log.debug("Failed to get data from script tag", category: .network, metadata: ["scriptIndex": index])
                 continue
             }
 
-            print("🔍 Script \(index): Parsing JSON...")
+            Log.debug("Parsing JSON-LD script", category: .network, metadata: ["scriptIndex": index])
             if let recipe = try? parseRecipeJSON(from: jsonData) {
-                print("✅ Script \(index): Found recipe!")
+                Log.info("Found recipe in JSON-LD script", category: .network, metadata: ["scriptIndex": index])
                 return recipe
             } else {
-                print("⚠️ Script \(index): No recipe data")
+                Log.debug("No recipe data in script", category: .network, metadata: ["scriptIndex": index])
             }
         }
 
@@ -250,10 +250,10 @@ class RecipeImportService {
 
         // Handle array of JSON-LD objects (e.g., [Recipe, BreadcrumbList, Organization])
         if let jsonArray = jsonObject as? [[String: Any]] {
-            print("🔍 Found JSON array with \(jsonArray.count) items")
+            Log.debug("Found JSON array in JSON-LD", category: .network, metadata: ["itemCount": jsonArray.count])
             for item in jsonArray {
                 if isRecipeType(item) {
-                    print("✅ Found Recipe in array")
+                    Log.info("Found Recipe in JSON array", category: .network)
                     return parseRecipeDict(item)
                 }
             }
@@ -263,10 +263,10 @@ class RecipeImportService {
         if let json = jsonObject as? [String: Any] {
             // Handle @graph array (some sites use this)
             if let graph = json["@graph"] as? [[String: Any]] {
-                print("🔍 Found @graph with \(graph.count) items")
+                Log.debug("Found @graph in JSON-LD", category: .network, metadata: ["itemCount": graph.count])
                 for item in graph {
                     if isRecipeType(item) {
-                        print("✅ Found Recipe in @graph")
+                        Log.info("Found Recipe in @graph", category: .network)
                         return parseRecipeDict(item)
                     }
                 }
@@ -274,12 +274,12 @@ class RecipeImportService {
 
             // Handle direct Recipe object
             if isRecipeType(json) {
-                print("✅ Found direct Recipe object")
+                Log.info("Found direct Recipe object", category: .network)
                 return parseRecipeDict(json)
             }
         }
 
-        print("⚠️ JSON structure doesn't contain Recipe")
+        Log.debug("JSON structure doesn't contain Recipe", category: .network)
         throw ImportError.noRecipeFound
     }
 

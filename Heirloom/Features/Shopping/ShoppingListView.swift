@@ -294,7 +294,7 @@ struct ShoppingListView: View {
 
                             // Only show sheet if we successfully extracted data
                             guard !recipeData.isEmpty else {
-                                print("⚠️ Failed to extract recipe data - relationships may not be loaded yet")
+                                Log.warning("Failed to extract recipe data for shopping list", category: .database, metadata: ["reason": "relationships may not be loaded yet"])
 
                                 // Ensure sheet is not shown
                                 selectedIngredientData = nil

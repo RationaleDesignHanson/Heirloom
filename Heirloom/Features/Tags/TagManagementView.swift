@@ -117,10 +117,10 @@ struct TagManagementView: View {
                         do {
                             try await FirebaseSyncService.shared.deleteTag(tagId)
                         } catch {
-                            print("⚠️ Failed to delete tag from Firebase: \(error.localizedDescription)")
+                            Log.warning("Failed to delete tag from Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "tagId": tagId])
                         }
                     }
-                    print("✅ Tags deleted from Firebase")
+                    Log.info("Tags deleted from Firebase", category: .firebase, metadata: ["count": tagIdsToDelete.count])
                 }
             }
 
@@ -270,9 +270,9 @@ struct TagEditorView: View {
                 Task {
                     do {
                         try await FirebaseSyncService.shared.uploadTag(tagToSync)
-                        print("✅ Tag synced to Firebase")
+                        Log.info("Tag synced to Firebase", category: .firebase, metadata: ["tagId": tagToSync.id])
                     } catch {
-                        print("⚠️ Failed to sync tag to Firebase: \(error.localizedDescription)")
+                        Log.warning("Failed to sync tag to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "tagId": tagToSync.id])
                     }
                 }
             }

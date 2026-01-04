@@ -17,7 +17,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
 
     /// Load all versions of a recipe (original + all descendant modifications)
     func loadVersions(for recipe: Recipe, context: ModelContext) async {
-        print("🔍 [VersionSelector] loadVersions() called for: \(recipe.title)")
+        Log.debug("Loading recipe versions", category: .firebase, metadata: ["title": recipe.title])
         isLoading = true
         error = nil
 
@@ -25,7 +25,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             // 1. Check if this recipe has lineage tracking
             guard let lineage = try? await fetchLineage(for: recipe.id) else {
                 // No lineage tracking - this is a standalone recipe
-                print("⚠️ [VersionSelector] No lineage found - standalone recipe")
+                Log.debug("No lineage found, treating as standalone recipe", category: .firebase)
                 let currentVersion = RecipeLineageVersion(
                     recipe: recipe,
                     generation: 0,
@@ -70,15 +70,15 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             if let lastViewedId = recipe.lastViewedVersionId,
                let lastViewed = allVersions.first(where: { $0.recipe?.id == lastViewedId }) {
                 selectedVersion = lastViewed
-                print("✅ [VersionSelector] Restored last viewed version: \(lastViewed.displayName)")
+                Log.debug("Restored last viewed version", category: .firebase, metadata: ["version": lastViewed.displayName])
             } else {
                 selectedVersion = currentVersion
-                print("✅ [VersionSelector] Defaulting to current version")
+                Log.debug("Defaulting to current version", category: .firebase)
             }
 
         } catch {
             self.error = "Failed to load versions: \(error.localizedDescription)"
-            print("❌ [Versions] Error loading versions: \(error)")
+            Log.error("Error loading recipe versions", category: .firebase, metadata: ["error": error.localizedDescription])
         }
 
         isLoading = false
@@ -89,7 +89,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
     private func fetchLineage(for recipeId: UUID) async throws -> RecipeLineage? {
         guard Auth.auth().currentUser?.uid != nil else { return nil }
 
-        print("🔍 [VersionSelector] Fetching lineage for recipe: \(recipeId)")
+        Log.debug("Fetching lineage for recipe", category: .firebase, metadata: ["recipeId": recipeId.uuidString])
 
         // Query Firebase for lineage
         let snapshot = try await db.collection("lineages")
@@ -98,12 +98,12 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             .getDocuments()
 
         guard let doc = snapshot.documents.first else {
-            print("⚠️ [VersionSelector] No lineage document found in Firebase")
+            Log.debug("No lineage document found in Firebase", category: .firebase)
             return nil
         }
 
         let data = doc.data()
-        print("✅ [VersionSelector] Found lineage: generation \(data["generation"] ?? 0)")
+        Log.debug("Found lineage for recipe", category: .firebase, metadata: ["generation": data["generation"] as? Int ?? 0])
 
         // Create RecipeLineage from Firebase data
         let lineage = RecipeLineage(
@@ -125,7 +125,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
     ) async throws -> [RecipeLineageVersion] {
         guard Auth.auth().currentUser?.uid != nil else { return [] }
 
-        print("🔍 [Versions] Fetching versions for root: \(rootRecipeId)")
+        Log.debug("Fetching versions for root recipe", category: .firebase, metadata: ["rootRecipeId": rootRecipeId.uuidString])
 
         // Query all lineages with this root
         let snapshot = try await db.collection("lineages")
@@ -161,7 +161,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             }
         }
 
-        print("✅ [Versions] Found \(versions.count) other versions")
+        Log.debug("Found other recipe versions", category: .firebase, metadata: ["count": versions.count])
         return versions
     }
 
@@ -188,7 +188,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         let ingredients = ingredientsSnapshot.documents.map { $0.data() }
         if !ingredients.isEmpty {
             data["ingredients"] = ingredients
-            print("✅ [Versions] Fetched \(ingredients.count) ingredients for recipe")
+            Log.debug("Fetched ingredients for recipe version", category: .firebase, metadata: ["count": ingredients.count])
         }
 
         return data

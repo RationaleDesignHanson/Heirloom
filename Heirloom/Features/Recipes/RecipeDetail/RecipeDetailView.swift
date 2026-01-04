@@ -353,9 +353,9 @@ struct RecipeDetailView: View {
             // Mark notifications as read for this recipe
             do {
                 try await notificationService.markAllAsRead(for: recipe.id)
-                print("✅ [Notifications] Marked all notifications as read for recipe: \(recipe.title)")
+                Log.info("Marked all notifications as read for recipe", category: .ui, metadata: ["title": recipe.title])
             } catch {
-                print("❌ [Notifications] Failed to mark as read: \(error)")
+                Log.error("Failed to mark notifications as read", category: .firebase, metadata: ["error": error.localizedDescription])
             }
         }
         .onChange(of: selectedVersion) { oldValue, newValue in
@@ -363,7 +363,7 @@ struct RecipeDetailView: View {
             if let newVersion = newValue, let recipeId = newVersion.recipe?.id {
                 recipe.lastViewedVersionId = recipeId
                 try? modelContext.save()
-                print("✅ [VersionSelector] Saved last viewed version: \(newVersion.displayName)")
+                Log.debug("Saved last viewed version", category: .database, metadata: ["versionDisplayName": newVersion.displayName])
             }
         }
     }
@@ -1128,29 +1128,29 @@ struct RecipeDetailView: View {
         recipe.isFavorite.toggle()
         recipe.lastModified = Date()
 
-        print("❤️ [Favorite] Toggling favorite for '\(recipe.title)' to \(recipe.isFavorite)")
-        print("🔧 [Favorite] Backend: Firebase, isFirebaseActive: \(BackendConfig.shared.isFirebaseActive)")
+        Log.info("Toggling favorite status", category: .ui, metadata: ["title": recipe.title, "isFavorite": recipe.isFavorite])
+        Log.debug("Firebase backend configuration", category: .firebase, metadata: ["isFirebaseActive": BackendConfig.shared.isFirebaseActive])
 
         do {
             try modelContext.save()
-            print("💾 [Favorite] Local save successful")
+            Log.info("Favorite status saved locally", category: .database)
 
             // Sync favorite status to Firebase
             if BackendConfig.shared.isFirebaseActive {
-                print("🔄 [Favorite] Firebase is active, starting upload...")
+                Log.debug("Firebase active, uploading recipe", category: .firebase)
                 Task {
                     do {
                         try await FirebaseSyncService.shared.uploadRecipe(recipe)
-                        print("✅ Favorite status synced to Firebase")
+                        Log.info("Favorite status synced to Firebase", category: .firebase)
                     } catch {
-                        print("⚠️ Failed to sync favorite status: \(error.localizedDescription)")
+                        Log.warning("Failed to sync favorite status to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                     }
                 }
             } else {
-                print("⏭️ [Favorite] Firebase not active, skipping upload")
+                Log.debug("Firebase not active, skipping upload", category: .firebase)
             }
         } catch {
-            print("❌ [Favorite] Local save failed: \(error.localizedDescription)")
+            Log.error("Failed to save favorite status locally", category: .database, metadata: ["error": error.localizedDescription])
             ToastManager.shared.error(
                 title: "Failed to update favorite",
                 message: error.localizedDescription
@@ -1276,19 +1276,19 @@ struct RecipeDetailView: View {
                         let db = FirebaseFirestore.Firestore.firestore()
                         guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else { return }
                         try await db.collection("users/\(userId)/recipes").document(recipeId).delete()
-                        print("✅ Recipe deleted from Firestore")
+                        Log.info("Recipe deleted from Firestore", category: .firebase, metadata: ["recipeId": recipeId])
 
                         // Delete recipe image from Firebase Storage
                         if let recipeUUID = UUID(uuidString: recipeId) {
                             do {
                                 try await FirebaseSyncService.shared.deleteImage(for: recipeUUID)
-                                print("✅ Recipe image deleted from Firebase Storage")
+                                Log.info("Recipe image deleted from Firebase Storage", category: .firebase, metadata: ["recipeId": recipeId])
                             } catch {
-                                print("⚠️ Failed to delete image from Firebase Storage: \(error.localizedDescription)")
+                                Log.warning("Failed to delete image from Firebase Storage", category: .firebase, metadata: ["error": error.localizedDescription])
                             }
                         }
                     } catch {
-                        print("⚠️ Failed to delete recipe from Firebase: \(error.localizedDescription)")
+                        Log.warning("Failed to delete recipe from Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                         // Don't fail the deletion - local deletion succeeded
                     }
                 }

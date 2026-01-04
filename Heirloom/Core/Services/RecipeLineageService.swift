@@ -25,7 +25,7 @@ final class RecipeLineageService {
         context: ModelContext,
         maxDepth: Int = 3
     ) async throws -> LineageTree {
-        print("📊 Fetching lineage tree for: \(recipe.title)")
+        Log.debug("Fetching lineage tree", category: .general, metadata: ["title": recipe.title, "maxDepth": maxDepth])
 
         var allRecipes: [Recipe] = [recipe]
         var edges: [LineageEdge] = []
@@ -56,7 +56,7 @@ final class RecipeLineageService {
 
         let tree = LineageTree(root: root, nodes: nodes, edges: edges)
 
-        print("✅ Built lineage tree: \(nodes.count) nodes, \(edges.count) edges")
+        Log.info("Built lineage tree", category: .general, metadata: ["nodeCount": nodes.count, "edgeCount": edges.count, "rootTitle": root.title])
         return tree
     }
 

@@ -43,7 +43,7 @@ class FirebaseLineageService: ObservableObject {
             throw LineageError.notAuthenticated
         }
 
-        print("📍 [Lineage] Creating root lineage for recipe: \(recipeId)")
+        Log.info("Creating root lineage for recipe", category: .firebase, metadata: ["recipeId": recipeId.uuidString])
 
         // Create local lineage record
         let lineage = RecipeLineage.createRoot(
@@ -57,7 +57,7 @@ class FirebaseLineageService: ObservableObject {
         // Sync to Firebase
         try await syncLineageToFirebase(lineage)
 
-        print("✅ [Lineage] Root lineage created")
+        Log.info("Root lineage created successfully", category: .firebase)
     }
 
     /// Create a descendant lineage record when accepting a heirloom share
@@ -75,7 +75,7 @@ class FirebaseLineageService: ObservableObject {
             throw LineageError.notAuthenticated
         }
 
-        print("📍 [Lineage] Creating descendant lineage (gen \(generation))")
+        Log.info("Creating descendant lineage", category: .firebase, metadata: ["generation": generation])
 
         // Create local lineage record
         let lineage = RecipeLineage.createDescendant(
@@ -94,7 +94,7 @@ class FirebaseLineageService: ObservableObject {
         // Sync to Firebase
         try await syncLineageToFirebase(lineage)
 
-        print("✅ [Lineage] Descendant lineage created")
+        Log.info("Descendant lineage created successfully", category: .firebase)
     }
 
     // MARK: - Modification Tracking
@@ -112,7 +112,7 @@ class FirebaseLineageService: ObservableObject {
             throw LineageError.notAuthenticated
         }
 
-        print("📝 [Lineage] Recording modification: \(changeType.rawValue)")
+        Log.info("Recording lineage modification", category: .firebase, metadata: ["changeType": changeType.rawValue])
 
         // Find lineage record for this recipe
         let descriptor = FetchDescriptor<RecipeLineage>(
@@ -120,13 +120,13 @@ class FirebaseLineageService: ObservableObject {
         )
 
         guard let lineage = try context.fetch(descriptor).first else {
-            print("⚠️ [Lineage] No lineage found for recipe: \(recipeId)")
+            Log.warning("No lineage found for recipe", category: .firebase, metadata: ["recipeId": recipeId.uuidString])
             return
         }
 
         // Only track modifications for heirloom recipes
         guard lineage.isHeirloom else {
-            print("ℹ️ [Lineage] Skipping modification tracking (not heirloom)")
+            Log.debug("Skipping modification tracking for non-heirloom recipe", category: .firebase)
             return
         }
 
@@ -150,7 +150,7 @@ class FirebaseLineageService: ObservableObject {
         // Notify ancestors in the family tree
         try await notifyAncestors(lineage: lineage, modification: modification)
 
-        print("✅ [Lineage] Modification recorded and synced")
+        Log.info("Lineage modification recorded and synced", category: .firebase)
     }
 
     // MARK: - Fetching Lineage
@@ -176,7 +176,7 @@ class FirebaseLineageService: ObservableObject {
             throw LineageError.notAuthenticated
         }
 
-        print("🔍 [Lineage] Fetching descendant modifications for root: \(rootRecipeId)")
+        Log.info("Fetching descendant modifications", category: .firebase, metadata: ["rootRecipeId": rootRecipeId.uuidString])
 
         // Query Firebase for all lineage records with this root
         let snapshot = try await db.collection("lineages")
@@ -209,7 +209,7 @@ class FirebaseLineageService: ObservableObject {
         // Sort by timestamp (most recent first)
         allModifications.sort { $0.modification.timestamp > $1.modification.timestamp }
 
-        print("✅ [Lineage] Found \(allModifications.count) descendant modifications")
+        Log.info("Descendant modifications fetched", category: .firebase, metadata: ["count": allModifications.count])
 
         return allModifications
     }
@@ -286,7 +286,7 @@ class FirebaseLineageService: ObservableObject {
         // Only notify if this is a descendant (not root)
         guard lineage.generation > 0 else { return }
 
-        print("📢 [Lineage] Notifying ancestors of modification")
+        Log.info("Notifying ancestors of lineage modification", category: .firebase)
 
         // Query for all ancestors (lineage records with same root but lower generation)
         let snapshot = try await db.collection("lineages")
@@ -315,7 +315,7 @@ class FirebaseLineageService: ObservableObject {
             try await db.collection("users/\(ancestorOwnerId)/notifications")
                 .addDocument(data: notificationData)
 
-            print("📬 [Lineage] Notification sent to ancestor: \(ancestorOwnerId)")
+            Log.debug("Notification sent to ancestor", category: .firebase, metadata: ["ancestorOwnerId": ancestorOwnerId])
         }
     }
 

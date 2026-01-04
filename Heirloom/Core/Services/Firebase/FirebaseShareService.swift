@@ -49,7 +49,7 @@ class FirebaseShareService: ObservableObject {
             throw ShareError.notAuthenticated
         }
 
-        print("📤 [Firebase Share] Creating share for recipe: \(recipe.title)")
+        Log.info("Creating Firebase share for recipe", category: .firebase, metadata: ["title": recipe.title])
 
         // 1. Ensure recipe is uploaded to Firebase (including image)
         try await FirebaseSyncService.shared.uploadRecipe(recipe)
@@ -122,7 +122,7 @@ class FirebaseShareService: ObservableObject {
         // 3. Save to Firestore shares collection (top-level, not user-scoped)
         try await db.collection("shares").document(shareId).setData(shareData)
 
-        print("✅ [Firebase Share] Share created: \(shareId)")
+        Log.info("Firebase share created successfully", category: .firebase, metadata: ["shareId": shareId])
 
         // 4. Generate shareable URL
         let shareURL = generateShareURL(shareId: shareId)
@@ -173,7 +173,7 @@ class FirebaseShareService: ObservableObject {
             throw ShareError.notAuthenticated
         }
 
-        print("📥 [Firebase Share] Accepting share: \(shareId)")
+        Log.info("Accepting Firebase share", category: .firebase, metadata: ["shareId": shareId])
 
         // 1. Fetch share document
         let shareDoc = try await db.collection("shares").document(shareId).getDocument()
@@ -205,7 +205,7 @@ class FirebaseShareService: ObservableObject {
         // Check if already accepted
         let acceptedBy = shareData["acceptedBy"] as? [String] ?? []
         if acceptedBy.contains(userId) {
-            print("ℹ️ [Firebase Share] Already accepted this share")
+            Log.info("Share already accepted by user", category: .firebase, metadata: ["shareId": shareId])
             // Try to fetch the already-imported recipe
             if let existingRecipe = try? await fetchAcceptedRecipe(recipeId: recipeId, context: context) {
                 return existingRecipe
@@ -297,7 +297,7 @@ class FirebaseShareService: ObservableObject {
         // Original: sharedRecipe.id = UUID() // This broke lineage tracking
         // New: Keep original ID so recipe maintains identity across shares
         let originalRecipeId = sharedRecipe.id
-        print("📝 [Share] Using immutable recipe ID: \(originalRecipeId)")
+        Log.info("Using immutable recipe ID for share", category: .firebase, metadata: ["recipeId": originalRecipeId.uuidString])
 
         // Check if recipe with this ID already exists locally
         let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate<Recipe> { $0.id == originalRecipeId })
@@ -305,7 +305,7 @@ class FirebaseShareService: ObservableObject {
 
         if let existingRecipe = existingRecipes.first {
             // Recipe already exists - merge/update instead of insert
-            print("⚠️ [Share] Recipe already exists locally, updating")
+            Log.info("Recipe already exists locally, updating instead of inserting", category: .firebase, metadata: ["recipeId": originalRecipeId.uuidString])
             existingRecipe.title = sharedRecipe.title
             existingRecipe.instructions = sharedRecipe.instructions
             existingRecipe.ingredients = sharedRecipe.ingredients
@@ -323,7 +323,7 @@ class FirebaseShareService: ObservableObject {
             // 12. Insert new recipe into local database (keeps original ID)
             sharedRecipe.dateAdded = Date()
             context.insert(sharedRecipe)
-            print("✅ [Share] Inserted new recipe with original ID")
+            Log.info("Inserted new recipe with original ID", category: .firebase, metadata: ["recipeId": originalRecipeId.uuidString])
         }
 
         try context.save()
@@ -348,13 +348,13 @@ class FirebaseShareService: ObservableObject {
                         sharedByName: ownerName,
                         context: context
                     )
-                    print("✅ [Firebase Share] Lineage record created (gen \(generation))")
+                    Log.info("Lineage record created for shared recipe", category: .firebase, metadata: ["generation": generation])
                 } catch {
-                    print("⚠️ [Firebase Share] Failed to create lineage: \(error)")
+                    Log.warning("Failed to create lineage for shared recipe", category: .firebase, metadata: ["error": error.localizedDescription])
                     // Continue without lineage tracking
                 }
             } else {
-                print("⚠️ [Firebase Share] Invalid lineage IDs, skipping lineage tracking")
+                Log.warning("Invalid lineage IDs, skipping lineage tracking", category: .firebase)
             }
         }
 
@@ -370,7 +370,7 @@ class FirebaseShareService: ObservableObject {
             "lastAcceptedAt": Timestamp(date: Date())
         ])
 
-        print("✅ [Firebase Share] Share accepted successfully")
+        Log.info("Firebase share accepted successfully", category: .firebase, metadata: ["shareId": shareId])
 
         // 15. Track analytics
         AnalyticsService.shared.track(event: .recipeImported, properties: [
@@ -424,7 +424,7 @@ class FirebaseShareService: ObservableObject {
         // Delete share
         try await db.collection("shares").document(shareId).delete()
 
-        print("✅ [Firebase Share] Share revoked: \(shareId)")
+        Log.info("Firebase share revoked", category: .firebase, metadata: ["shareId": shareId])
     }
 
     /// List all shares created by current user for a recipe

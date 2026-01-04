@@ -290,9 +290,9 @@ struct RecipeEditorView: View {
                 if !isNewRecipe, let imageFileName = recipe.imageFileName {
                     if let loadedImage = await ImageStorageService.shared.loadImage(fileName: imageFileName) {
                         recipeImage = loadedImage
-                        print("✅ [RecipeEditor] Loaded existing recipe image: \(imageFileName)")
+                        Log.info("Loaded existing recipe image", category: .storage, metadata: ["fileName": imageFileName])
                     } else {
-                        print("⚠️ [RecipeEditor] Failed to load recipe image: \(imageFileName)")
+                        Log.warning("Failed to load recipe image", category: .storage, metadata: ["fileName": imageFileName])
                     }
                 }
             }
@@ -399,7 +399,7 @@ struct RecipeEditorView: View {
 
                     // Add operations to recipe (they'll be uploaded with the recipe)
                     if !operations.isEmpty {
-                        print("📝 [CRDT] Created \(operations.count) operations for recipe edit")
+                        Log.info("Created CRDT operations for recipe edit", category: .crdt, metadata: ["operationCount": operations.count])
 
                         // Store operations data on recipe for upload
                         if let operationsData = try? JSONEncoder().encode(operations) {
@@ -451,7 +451,7 @@ struct RecipeEditorView: View {
                 do {
                     try await recipe.saveImage(image)
                 } catch {
-                    print("⚠️ Failed to save recipe image: \(error)")
+                    Log.warning("Failed to save recipe image", category: .storage, metadata: ["error": error.localizedDescription])
                 }
             }
 
@@ -500,12 +500,12 @@ struct RecipeEditorView: View {
                 do {
                     // Use transactional upload (uploads to Firebase, THEN marks as synced locally)
                     try await FirebaseSyncService.shared.uploadRecipeTransactional(recipe)
-                    print("✅ Recipe synced to Firebase with transaction")
+                    Log.info("Recipe synced to Firebase with transaction", category: .firebase, metadata: ["title": recipe.title])
 
                     // Track modification in lineage if this is an edit of a heirloom recipe
-                    print("🔍 [Lineage] Checking if should record modification - isNewRecipe: \(isNewRecipe)")
+                    Log.debug("Checking if should record lineage modification", category: .firebase, metadata: ["isNewRecipe": isNewRecipe])
                     if !isNewRecipe {
-                        print("📝 [Lineage] This is an edit, attempting to record modification...")
+                        Log.debug("Attempting to record lineage modification", category: .firebase)
                         do {
                             try await FirebaseLineageService.shared.recordModification(
                                 recipeId: recipe.id,
@@ -514,20 +514,20 @@ struct RecipeEditorView: View {
                                 fieldChanged: nil,
                                 context: modelContext
                             )
-                            print("✅ Lineage modification recorded")
+                            Log.info("Lineage modification recorded", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
                         } catch {
-                            print("⚠️ Failed to record lineage modification: \(error.localizedDescription)")
+                            Log.warning("Failed to record lineage modification", category: .firebase, metadata: ["error": error.localizedDescription])
                             // Don't fail the save - this is non-critical
                         }
                     } else {
-                        print("ℹ️ [Lineage] Skipping lineage tracking - this is a new recipe")
+                        Log.debug("Skipping lineage tracking for new recipe", category: .firebase)
                     }
                 } catch {
-                    print("⚠️ Failed to sync recipe to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to sync recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                     // Fall back to local-only save
                     do {
                         try modelContext.save()
-                        print("✅ Saved locally (Firebase sync failed)")
+                        Log.info("Recipe saved locally after Firebase sync failed", category: .database)
                     } catch {
                         throw error
                     }
@@ -536,7 +536,7 @@ struct RecipeEditorView: View {
                 // Phase 2: If Firebase not active, just save locally
                 do {
                     try modelContext.save()
-                    print("✅ Saved locally (Firebase not active)")
+                    Log.info("Recipe saved locally (Firebase not active)", category: .database)
                 } catch {
                     throw error
                 }
@@ -601,7 +601,7 @@ struct RecipeEditorView: View {
                     spellCheckResults.removeValue(forKey: index)
                 }
             } catch {
-                print("⚠️ Spell check failed: \(error.localizedDescription)")
+                Log.warning("Spell check failed", category: .general, metadata: ["error": error.localizedDescription])
             }
         }
     }

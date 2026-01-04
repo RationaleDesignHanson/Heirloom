@@ -34,11 +34,11 @@ class FirebaseNotificationService: ObservableObject {
     /// Start listening for notifications from Firebase
     func startListening() {
         guard let userId = auth.currentUser?.uid else {
-            print("⚠️ [Notifications] Cannot start listening - not authenticated")
+            Log.warning("Cannot start notification listener - not authenticated", category: .firebase)
             return
         }
 
-        print("👂 [Notifications] Starting listener for user: \(userId)")
+        Log.info("Starting notification listener", category: .firebase, metadata: ["userId": userId])
 
         // Listen to notifications collection
         listener = db.collection("users/\(userId)/notifications")
@@ -47,16 +47,16 @@ class FirebaseNotificationService: ObservableObject {
                 guard let self = self else { return }
 
                 if let error = error {
-                    print("❌ [Notifications] Error listening: \(error)")
+                    Log.error("Error listening to notifications", category: .firebase, metadata: ["error": error.localizedDescription])
                     return
                 }
 
                 guard let documents = snapshot?.documents else {
-                    print("⚠️ [Notifications] No documents in snapshot")
+                    Log.warning("No documents in notification snapshot", category: .firebase)
                     return
                 }
 
-                print("📬 [Notifications] Received \(documents.count) notifications")
+                Log.info("Received notifications", category: .firebase, metadata: ["count": documents.count])
 
                 Task { @MainActor in
                     self.notifications = documents.compactMap { doc in
@@ -64,7 +64,7 @@ class FirebaseNotificationService: ObservableObject {
                     }
 
                     self.unreadCount = self.notifications.filter { !$0.read }.count
-                    print("✅ [Notifications] \(self.unreadCount) unread notifications")
+                    Log.debug("Unread notifications count updated", category: .firebase, metadata: ["unreadCount": self.unreadCount])
                 }
             }
     }
@@ -73,7 +73,7 @@ class FirebaseNotificationService: ObservableObject {
     func stopListening() {
         listener?.remove()
         listener = nil
-        print("🛑 [Notifications] Stopped listening")
+        Log.info("Stopped notification listener", category: .firebase)
     }
 
     // MARK: - Notification Queries
@@ -100,29 +100,29 @@ class FirebaseNotificationService: ObservableObject {
     /// Mark a notification as read
     func markAsRead(_ notification: LineageNotification) async throws {
         guard let userId = auth.currentUser?.uid else {
-            print("⚠️ [Notifications] Cannot mark as read - not authenticated")
+            Log.warning("Cannot mark notification as read - not authenticated", category: .firebase)
             return
         }
 
-        print("✓ [Notifications] Marking notification as read: \(notification.id)")
+        Log.info("Marking notification as read", category: .firebase, metadata: ["notificationId": notification.id])
 
         try await db.collection("users/\(userId)/notifications")
             .document(notification.id)
             .updateData(["read": true])
 
-        print("✅ [Notifications] Marked as read")
+        Log.info("Notification marked as read", category: .firebase, metadata: ["notificationId": notification.id])
     }
 
     /// Mark all notifications for a recipe as read
     func markAllAsRead(for recipeId: UUID) async throws {
         guard let userId = auth.currentUser?.uid else {
-            print("⚠️ [Notifications] Cannot mark as read - not authenticated")
+            Log.warning("Cannot mark notifications as read - not authenticated", category: .firebase)
             return
         }
 
         let notificationsToMark = unreadNotifications(for: recipeId)
 
-        print("✓ [Notifications] Marking \(notificationsToMark.count) notifications as read for recipe: \(recipeId)")
+        Log.info("Marking recipe notifications as read", category: .firebase, metadata: ["count": notificationsToMark.count, "recipeId": recipeId.uuidString])
 
         // Update in batches
         let batch = db.batch()
@@ -135,19 +135,19 @@ class FirebaseNotificationService: ObservableObject {
 
         try await batch.commit()
 
-        print("✅ [Notifications] All notifications marked as read")
+        Log.info("All recipe notifications marked as read", category: .firebase, metadata: ["recipeId": recipeId.uuidString])
     }
 
     /// Mark all notifications as read (for tab badge clear)
     func markAllAsRead() async throws {
         guard let userId = auth.currentUser?.uid else {
-            print("⚠️ [Notifications] Cannot mark as read - not authenticated")
+            Log.warning("Cannot mark all notifications as read - not authenticated", category: .firebase)
             return
         }
 
         let unreadNotifications = notifications.filter { !$0.read }
 
-        print("✓ [Notifications] Marking \(unreadNotifications.count) notifications as read")
+        Log.info("Marking all notifications as read", category: .firebase, metadata: ["count": unreadNotifications.count])
 
         // Update in batches
         let batch = db.batch()
@@ -160,7 +160,7 @@ class FirebaseNotificationService: ObservableObject {
 
         try await batch.commit()
 
-        print("✅ [Notifications] All notifications marked as read")
+        Log.info("All notifications marked as read", category: .firebase)
     }
 
     // MARK: - Parsing
@@ -181,7 +181,7 @@ class FirebaseNotificationService: ObservableObject {
             let changeDescription = data["changeDescription"] as? String,
             let timestamp = (data["timestamp"] as? Timestamp)?.dateValue()
         else {
-            print("⚠️ [Notifications] Failed to parse notification: \(doc.documentID)")
+            Log.warning("Failed to parse notification document", category: .firebase, metadata: ["documentId": doc.documentID])
             return nil
         }
 

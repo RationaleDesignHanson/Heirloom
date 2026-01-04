@@ -275,31 +275,31 @@ extension RecipeMigrationService {
 
         // Check migration needed
         let needsMigration = try needsMigration(context: context)
-        print("Needs migration: \(needsMigration)")
+        Log.debug("Migration check complete", category: .database, metadata: ["needsMigration": needsMigration])
 
         // Get stats before
         let statsBefore = try getMigrationStats(context: context)
-        print("Before migration: \(statsBefore.recipesNeedingMigration) recipes need migration")
+        Log.debug("Pre-migration stats", category: .database, metadata: ["recipesNeedingMigration": statsBefore.recipesNeedingMigration])
 
         // Run migration
         let migratedCount = try migrateRecipesToVersions(context: context)
-        print("Migrated \(migratedCount) recipes")
+        Log.info("Recipe migration complete", category: .database, metadata: ["migratedCount": migratedCount])
 
         // Migrate permissions
         let permissionsMigrated = try migrateSharingPermissions(context: context)
-        print("Updated \(permissionsMigrated) sharing permissions")
+        Log.info("Sharing permissions migration complete", category: .database, metadata: ["permissionsMigrated": permissionsMigrated])
 
         // Get stats after
         let statsAfter = try getMigrationStats(context: context)
-        print("After migration: \(statsAfter.recipesNeedingMigration) recipes need migration")
+        Log.debug("Post-migration stats", category: .database, metadata: ["recipesNeedingMigration": statsAfter.recipesNeedingMigration])
 
         // Validate
         let validation = try validateMigration(context: context)
-        print(validation.summary)
+        Log.info("Migration validation result", category: .database, metadata: ["summary": validation.summary])
 
         if !validation.isValid {
             for issue in validation.issues {
-                print("  - \(issue)")
+                Log.warning("Migration validation issue", category: .database, metadata: ["issue": issue])
             }
         }
     }

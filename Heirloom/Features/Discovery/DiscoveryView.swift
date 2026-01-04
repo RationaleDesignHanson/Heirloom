@@ -248,7 +248,7 @@ struct DiscoveryView: View {
                 isLoading = false
             }
 
-            print("❌ Failed to load \(selectedTab.rawValue) recipes: \(error)")
+            Log.error("Failed to load discovery recipes", category: .general, metadata: ["tab": selectedTab.rawValue, "error": error.localizedDescription])
         }
     }
 
@@ -260,7 +260,7 @@ struct DiscoveryView: View {
 
     private func navigateToRecipe(_ recipe: Recipe) {
         // TODO: Implement navigation to recipe detail
-        print("Navigate to recipe: \(recipe.title)")
+        Log.debug("Navigate to recipe requested", category: .ui, metadata: ["title": recipe.title, "recipeId": recipe.id.uuidString])
 
         // Track analytics
         AnalyticsService.shared.track(event: .trendingRecipeViewed, properties: [

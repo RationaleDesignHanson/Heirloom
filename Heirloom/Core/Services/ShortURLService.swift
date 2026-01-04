@@ -43,7 +43,7 @@ final class ShortURLService {
     ///   - customCode: Optional custom code (e.g., "grandmas-cookies"). If nil, generates random code
     /// - Returns: Shortened URL (e.g., https://heirloom.app/r/abc123)
     func generateShortURL(from longURL: URL, customCode: String? = nil) async throws -> URL {
-        print("🔗 Generating short URL for: \(longURL.absoluteString)")
+        Log.info("Generating short URL", category: .network, metadata: ["url": longURL.absoluteString])
 
         // Try to call the backend API
         do {
@@ -55,11 +55,11 @@ final class ShortURLService {
             // Track analytics
             trackShortURLGenerated(code: result.code, longURL: longURL)
 
-            print("✅ Short URL generated via backend: \(result.shortURL)")
+            Log.info("Short URL generated via backend", category: .network, metadata: ["shortURL": result.shortURL.absoluteString])
             return result.shortURL
 
         } catch {
-            print("⚠️ Backend API failed, falling back to local generation: \(error)")
+            Log.warning("Backend API failed, falling back to local URL generation", category: .network, metadata: ["error": error.localizedDescription])
 
             // Fallback to local generation
             let code = try validateAndGenerateCode(customCode: customCode)
@@ -74,7 +74,7 @@ final class ShortURLService {
             // Track analytics
             trackShortURLGenerated(code: code, longURL: longURL)
 
-            print("✅ Short URL generated locally (offline): \(shortURLString)")
+            Log.info("Short URL generated locally", category: .network, metadata: ["shortURL": shortURLString])
             return shortURL
         }
     }
@@ -141,12 +141,12 @@ final class ShortURLService {
         foregroundColor: UIColor = .black,
         backgroundColor: UIColor = .white
     ) -> UIImage? {
-        print("📱 Generating QR code for: \(url.absoluteString)")
+        Log.debug("Generating QR code", category: .general, metadata: ["url": url.absoluteString])
 
         let data = url.absoluteString.data(using: .utf8)
 
         guard let filter = CIFilter(name: "CIQRCodeGenerator") else {
-            print("❌ QR code generator not available")
+            Log.error("QR code generator not available", category: .general)
             return nil
         }
 
@@ -154,7 +154,7 @@ final class ShortURLService {
         filter.setValue("H", forKey: "inputCorrectionLevel") // High error correction
 
         guard let ciImage = filter.outputImage else {
-            print("❌ Failed to generate QR code")
+            Log.error("Failed to generate QR code output", category: .general)
             return nil
         }
 
@@ -172,7 +172,7 @@ final class ShortURLService {
         // Convert to UIImage
         let context = CIContext()
         guard let cgImage = context.createCGImage(scaledImage, from: scaledImage.extent) else {
-            print("❌ Failed to create CGImage")
+            Log.error("Failed to create CGImage from QR code", category: .general)
             return nil
         }
 
@@ -181,7 +181,7 @@ final class ShortURLService {
         // Track analytics
         trackQRCodeGenerated(url: url)
 
-        print("✅ QR code generated successfully")
+        Log.debug("QR code generated successfully", category: .general)
 
         return image
     }

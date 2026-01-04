@@ -30,7 +30,7 @@ final class ImagePreprocessor {
         _ image: UIImage,
         options: PreprocessingOptions = .default
     ) async throws -> UIImage {
-        print("🎨 Preprocessing image...")
+        Log.debug("Starting image preprocessing for OCR", category: .ocr)
 
         guard let ciImage = CIImage(image: image) else {
             throw PreprocessorError.invalidImage
@@ -42,26 +42,26 @@ final class ImagePreprocessor {
         if options.correctPerspective {
             if let corrected = await detectAndCorrectPerspective(processedImage) {
                 processedImage = corrected
-                print("✅ Perspective corrected")
+                Log.debug("Applied perspective correction", category: .ocr)
             }
         }
 
         // Step 2: Enhance contrast
         if options.enhanceContrast {
             processedImage = enhanceContrast(processedImage)
-            print("✅ Contrast enhanced")
+            Log.debug("Applied contrast enhancement", category: .ocr)
         }
 
         // Step 3: Reduce noise
         if options.reduceNoise {
             processedImage = reduceNoise(processedImage)
-            print("✅ Noise reduced")
+            Log.debug("Applied noise reduction", category: .ocr)
         }
 
         // Step 4: Sharpen text
         if options.sharpenText {
             processedImage = sharpenText(processedImage)
-            print("✅ Text sharpened")
+            Log.debug("Applied text sharpening", category: .ocr)
         }
 
         // Convert back to UIImage
@@ -71,7 +71,7 @@ final class ImagePreprocessor {
 
         let resultImage = UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
 
-        print("✅ Preprocessing complete")
+        Log.debug("Image preprocessing complete", category: .ocr)
         return resultImage
     }
 

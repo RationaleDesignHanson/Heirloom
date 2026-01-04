@@ -16,7 +16,7 @@ final class RecipeStructureParser {
     /// - Parameter text: Raw text from OCR
     /// - Returns: Structured recipe data
     func parse(_ text: String) async -> ParsedRecipe {
-        print("📋 Parsing recipe structure...")
+        Log.debug("Parsing recipe structure from OCR text", category: .ocr, metadata: ["textLength": text.count])
 
         let lines = text.components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespaces) }
@@ -66,7 +66,12 @@ final class RecipeStructureParser {
             confidence: confidence
         )
 
-        print("✅ Parsed: title=\(title != nil), ingredients=\(ingredients.count), instructions=\(instructions.count)")
+        Log.info("Recipe structure parsed", category: .ocr, metadata: [
+            "hasTitle": title != nil,
+            "ingredientCount": ingredients.count,
+            "instructionCount": instructions.count,
+            "confidence": confidence
+        ])
 
         return result
     }

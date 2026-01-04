@@ -133,10 +133,12 @@ final class NetworkMonitor {
 
     /// Log network status changes
     private func logNetworkChange() {
-        print("📡 Network Status: \(statusDescription)")
-        print("   Connection Type: \(connectionType.displayName)")
-        print("   Expensive: \(isExpensive)")
-        print("   Constrained: \(isConstrained)")
+        Log.info("Network status changed", category: .network, metadata: [
+            "status": statusDescription,
+            "connectionType": connectionType.displayName,
+            "isExpensive": isExpensive,
+            "isConstrained": isConstrained
+        ])
     }
 
     // MARK: - Manual Testing Helpers
@@ -146,7 +148,7 @@ final class NetworkMonitor {
     func simulateOffline() {
         isConnected = false
         connectionType = .unknown
-        print("⚠️ Simulating offline mode (DEBUG)")
+        Log.debug("Simulating offline mode", category: .network)
     }
 
     /// Simulate online mode for testing (DEBUG only)
@@ -155,7 +157,7 @@ final class NetworkMonitor {
         connectionType = .wifi
         isExpensive = false
         isConstrained = false
-        print("✅ Simulating online mode (DEBUG)")
+        Log.debug("Simulating online mode", category: .network)
     }
     #endif
 }

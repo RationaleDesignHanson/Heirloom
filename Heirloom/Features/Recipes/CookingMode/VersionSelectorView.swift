@@ -93,7 +93,7 @@ struct VersionSelectorView: View {
                     context: modelContext
                 )
             } catch {
-                print("Failed to select version: \(error)")
+                Log.error("Failed to select recipe version", category: .database, metadata: ["error": error.localizedDescription, "versionId": version.id.uuidString])
             }
         }
     }
@@ -230,7 +230,7 @@ struct CompactVersionSelector: View {
                 context: modelContext
             )
         } catch {
-            print("Failed to select version: \(error)")
+            Log.error("Failed to select recipe version", category: .database, metadata: ["error": error.localizedDescription, "versionId": version.id.uuidString])
         }
     }
 }

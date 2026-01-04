@@ -209,19 +209,19 @@ extension EmptyStateView {
 
 #Preview("No Recipes") {
     EmptyStateView.noRecipes {
-        print("Add recipe tapped")
+        Log.debug("Preview: Add recipe tapped", category: .ui)
     }
 }
 
 #Preview("No Search Results") {
     EmptyStateView.noSearchResults(query: "chocolate cake") {
-        print("Clear search tapped")
+        Log.debug("Preview: Clear search tapped", category: .ui)
     }
 }
 
 #Preview("Empty Shopping List") {
     EmptyStateView.emptyShoppingList {
-        print("Browse recipes tapped")
+        Log.debug("Preview: Browse recipes tapped", category: .ui)
     }
 }
 

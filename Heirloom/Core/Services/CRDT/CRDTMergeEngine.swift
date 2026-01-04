@@ -24,13 +24,15 @@ class CRDTMergeEngine {
     ///   - remote: The remote CRDT (from Firebase/other device)
     /// - Returns: Merged CRDT and resolution status
     func merge(local: RecipeCRDT, remote: RecipeCRDT) -> MergeOperationResult {
-        print("🔄 [CRDT] Merging recipes: \(local.recipe.title)")
-        print("   Local vector clock: \(local.operationLog.vectorClock)")
-        print("   Remote vector clock: \(remote.operationLog.vectorClock)")
+        Log.info("Starting CRDT merge", category: .crdt, metadata: ["title": local.recipe.title])
+        Log.debug("Vector clocks for merge", category: .crdt, metadata: [
+            "localVectorClock": String(describing: local.operationLog.vectorClock),
+            "remoteVectorClock": String(describing: remote.operationLog.vectorClock)
+        ])
 
         // Check if already in sync
         if local.isSynced(with: remote) {
-            print("✅ [CRDT] Recipes already in sync")
+            Log.info("Recipes already in sync", category: .crdt)
             return .alreadyInSync
         }
 
@@ -42,21 +44,21 @@ class CRDTMergeEngine {
         let conflicts = mergedCRDT.currentConflicts()
 
         if conflicts.isEmpty {
-            print("✅ [CRDT] Merge completed without conflicts")
+            Log.info("CRDT merge completed without conflicts", category: .crdt)
 
             // Apply all operations to recipe
             applyOperationsToRecipe(mergedCRDT)
 
             return .autoMerged(result: mergedCRDT)
         } else {
-            print("⚠️ [CRDT] Merge detected \(conflicts.count) conflict(s)")
+            Log.warning("CRDT merge detected conflicts", category: .crdt, metadata: ["conflictCount": conflicts.count])
 
             // Try auto-merge strategy
             let autoMergeableConflicts = conflicts.filter { canAutoMerge($0) }
             let userResolutionNeeded = conflicts.filter { !canAutoMerge($0) }
 
             if userResolutionNeeded.isEmpty {
-                print("✅ [CRDT] All conflicts auto-mergeable")
+                Log.info("All CRDT conflicts auto-mergeable", category: .crdt, metadata: ["autoMergedCount": autoMergeableConflicts.count])
 
                 // Auto-resolve conflicts
                 for conflict in autoMergeableConflicts {
@@ -67,7 +69,7 @@ class CRDTMergeEngine {
 
                 return .autoMerged(result: mergedCRDT, resolvedConflicts: autoMergeableConflicts.count)
             } else {
-                print("⚠️ [CRDT] \(userResolutionNeeded.count) conflict(s) require user resolution")
+                Log.warning("CRDT conflicts require user resolution", category: .crdt, metadata: ["userResolutionNeeded": userResolutionNeeded.count, "autoResolved": autoMergeableConflicts.count])
 
                 // Build detailed conflict info for UI
                 let detailedConflicts = userResolutionNeeded.map { conflict in
@@ -131,24 +133,24 @@ class CRDTMergeEngine {
         let op1 = conflict.operation1
         let op2 = conflict.operation2
 
-        print("🔧 [CRDT] Auto-resolving conflict on: \(conflict.fieldPath)")
+        Log.info("Auto-resolving CRDT conflict", category: .crdt, metadata: ["fieldPath": conflict.fieldPath])
 
         // Apply resolution based on type
         if op1.operationType == .addIngredient && op2.operationType == .addIngredient {
             // Both added ingredients - keep both
-            print("   → Keeping both added ingredients")
+            Log.debug("Keeping both added ingredients", category: .crdt)
             // Operations already in log, will be applied together
         } else if op1.operationType == .addInstruction && op2.operationType == .addInstruction {
             // Both added instructions - keep both
-            print("   → Keeping both added instructions")
+            Log.debug("Keeping both added instructions", category: .crdt)
         } else if op1.operationType == .delete || op2.operationType == .delete || op1.newValue == .null || op2.newValue == .null {
             // Delete wins (either explicit delete operation or null value)
-            print("   → Delete operation wins")
+            Log.debug("Delete operation wins conflict", category: .crdt)
             // Apply delete operation (the one with .null or .delete)
         } else if op1.newValue == op2.newValue {
             // Same value - use latest timestamp
             let winner = op1.timestamp > op2.timestamp ? op1 : op2
-            print("   → Using operation with latest timestamp: \(winner.timestamp)")
+            Log.debug("Using operation with latest timestamp", category: .crdt, metadata: ["timestamp": winner.timestamp.timeIntervalSince1970])
         }
     }
 
@@ -182,7 +184,7 @@ class CRDTMergeEngine {
 
     /// Apply all operations in the log to the recipe object
     private func applyOperationsToRecipe(_ crdt: RecipeCRDT) {
-        print("📝 [CRDT] Applying \(crdt.operationLog.operations.count) operations to recipe")
+        Log.info("Applying CRDT operations to recipe", category: .crdt, metadata: ["operationCount": crdt.operationLog.operations.count])
 
         let recipe = crdt.recipe
 
@@ -248,7 +250,7 @@ class CRDTMergeEngine {
                 recipe.servings = nil
             }
         default:
-            print("⚠️ [CRDT] Unknown field path for update: \(operation.fieldPath)")
+            Log.warning("Unknown field path for CRDT update", category: .crdt, metadata: ["fieldPath": operation.fieldPath])
         }
     }
 
@@ -305,7 +307,7 @@ class CRDTMergeEngine {
         _ resolutions: [ConflictResolution],
         to crdt: RecipeCRDT
     ) {
-        print("👤 [CRDT] Applying user conflict resolutions: \(resolutions.count)")
+        Log.info("Applying user conflict resolutions", category: .crdt, metadata: ["resolutionCount": resolutions.count])
 
         for resolution in resolutions {
             switch resolution.choice {

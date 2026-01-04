@@ -292,7 +292,7 @@ struct RecipeShareSheet: View {
 
             do {
                 // Create share via Firebase
-                print("📤 [Firebase] Creating share for recipe: \(recipe.title)")
+                Log.info("Creating Firebase share for recipe", category: .firebase, metadata: ["title": recipe.title])
                 let (shareId, url) = try await FirebaseShareService.shared.createShare(
                     for: recipe,
                     options: options,
@@ -300,13 +300,12 @@ struct RecipeShareSheet: View {
                 )
 
                 shareURL = url
-                print("✅ [Firebase] Share created: \(shareId)")
-                print("   Share URL: \(url.absoluteString)")
+                Log.info("Firebase share created successfully", category: .firebase, metadata: ["shareId": shareId, "shareURL": url.absoluteString])
                 DeviceLogger.shared.log("✅ Firebase share created for recipe: \(recipe.title)")
                 showSuccessMessage = true
 
             } catch {
-                print("❌ [Firebase] Share creation failed: \(error)")
+                Log.error("Firebase share creation failed", category: .firebase, metadata: ["error": error.localizedDescription])
                 DeviceLogger.shared.log("❌ Firebase share creation failed: \(error.localizedDescription)", level: .error)
 
                 // User-friendly error message

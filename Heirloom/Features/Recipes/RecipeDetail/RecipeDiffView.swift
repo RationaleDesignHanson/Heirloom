@@ -163,18 +163,18 @@ struct RecipeDiffView: View {
         let comparedIngredients: [String]
         if let recipe = compared.recipe, let ingredients = recipe.ingredients {
             comparedIngredients = ingredients.map { $0.originalText }
-            print("🔍 [Diff] Using compared.recipe ingredients: \(comparedIngredients.count)")
+            Log.debug("Using compared recipe ingredients for diff", category: .ui, metadata: ["count": comparedIngredients.count, "source": "recipe"])
         } else if let data = compared.recipeData,
                   let ingredientsData = data["ingredients"] as? [[String: Any]] {
             comparedIngredients = ingredientsData.compactMap { $0["originalText"] as? String }
-            print("🔍 [Diff] Using compared.recipeData ingredients: \(comparedIngredients.count)")
+            Log.debug("Using compared recipe data ingredients for diff", category: .ui, metadata: ["count": comparedIngredients.count, "source": "recipeData"])
         } else {
             comparedIngredients = []
-            print("⚠️ [Diff] No ingredient data found in compared version - will show all as added!")
+            Log.warning("No ingredient data found in compared version, showing all as added", category: .ui)
         }
 
         let currentTexts = current.map { $0.originalText }
-        print("🔍 [Diff] Current has \(currentTexts.count) ingredients, compared has \(comparedIngredients.count)")
+        Log.debug("Comparing recipe ingredients", category: .ui, metadata: ["currentCount": currentTexts.count, "comparedCount": comparedIngredients.count])
 
         // Find added ingredients
         for text in currentTexts where !comparedIngredients.contains(text) {

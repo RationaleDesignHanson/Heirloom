@@ -21,7 +21,7 @@ class CloudRecipeImportService {
     /// - Parameter url: Recipe URL to import
     /// - Returns: ImportResponse with parsed recipe data
     func importRecipe(from url: String, userId: String? = nil) async throws -> ImportResponse {
-        print("☁️ Cloud import from: \(url)")
+        Log.info("Starting cloud recipe import", category: .network, metadata: ["url": url])
 
         // Create request
         var request = URLRequest(url: importURL)
@@ -45,7 +45,7 @@ class CloudRecipeImportService {
 
         guard httpResponse.statusCode == 200 else {
             let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            print("❌ Cloud import failed: \(errorMessage)")
+            Log.error("Cloud import request failed", category: .network, metadata: ["statusCode": httpResponse.statusCode, "error": errorMessage])
             throw CloudImportError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
         }
 
@@ -78,9 +78,12 @@ class CloudRecipeImportService {
 
         let importResponse = try decoder.decode(ImportResponse.self, from: data)
 
-        print("✅ Cloud import \(importResponse.status.rawValue): \(importResponse.importId)")
-        print("   Confidence: \(String(format: "%.1f%%", importResponse.confidence * 100))")
-        print("   Parser: \(importResponse.metadata.parserUsed.rawValue)")
+        Log.info("Cloud import completed", category: .network, metadata: [
+            "status": importResponse.status.rawValue,
+            "importId": importResponse.importId,
+            "confidence": importResponse.confidence * 100,
+            "parser": importResponse.metadata.parserUsed.rawValue
+        ])
 
         return importResponse
     }
@@ -93,8 +96,7 @@ class CloudRecipeImportService {
             // Try cloud import first
             return try await importRecipe(from: url, userId: userId)
         } catch {
-            print("⚠️ Cloud import failed, falling back to local parser...")
-            print("   Error: \(error.localizedDescription)")
+            Log.warning("Cloud import failed, falling back to local parser", category: .network, metadata: ["error": error.localizedDescription])
 
             // Fall back to local parser
             do {
@@ -135,7 +137,7 @@ class CloudRecipeImportService {
                     )
                 )
             } catch {
-                print("❌ Local parser also failed")
+                Log.error("Local parser also failed after cloud import failure", category: .network, metadata: ["error": error.localizedDescription])
                 throw error
             }
         }
@@ -156,7 +158,7 @@ class CloudRecipeImportService {
         rating: Int? = nil,
         comment: String? = nil
     ) async throws {
-        print("📝 Submitting feedback for \(importId)")
+        Log.info("Submitting import feedback", category: .network, metadata: ["importId": importId])
 
         var request = URLRequest(url: feedbackURL)
         request.httpMethod = "POST"
@@ -186,7 +188,7 @@ class CloudRecipeImportService {
             throw CloudImportError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
         }
 
-        print("✅ Feedback submitted successfully")
+        Log.info("Import feedback submitted successfully", category: .network)
     }
 
     /// Convert ExtractedRecipe to Recipe model

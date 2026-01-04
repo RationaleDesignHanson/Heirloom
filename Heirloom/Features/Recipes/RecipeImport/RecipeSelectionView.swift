@@ -230,10 +230,10 @@ struct RecipeSelectionView: View {
                             let fileName = try await ImageStorageService.shared.saveImage(sourceImage, recipeId: recipe.id)
                             await MainActor.run {
                                 recipe.imageFileName = fileName
-                                print("✅ [Multi-Recipe] Saved image for '\(recipe.title)': \(fileName)")
+                                Log.info("Saved recipe image from multi-recipe scan", category: .storage, metadata: ["title": recipe.title, "fileName": fileName])
                             }
                         } catch {
-                            print("⚠️ [Multi-Recipe] Failed to save image for '\(recipe.title)': \(error)")
+                            Log.warning("Failed to save image for multi-recipe scan", category: .storage, metadata: ["title": recipe.title, "error": error.localizedDescription])
                         }
                     }
 
@@ -279,9 +279,9 @@ struct RecipeSelectionView: View {
                                 }
                             }
 
-                            print("✅ Scanned recipe synced to Firebase: \(recipe.title)")
+                            Log.info("Scanned recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title])
                         } catch {
-                            print("⚠️ Failed to sync scanned recipe to Firebase: \(error.localizedDescription)")
+                            Log.warning("Failed to sync scanned recipe to Firebase", category: .firebase, metadata: ["title": recipe.title, "error": error.localizedDescription])
                             // Don't fail - local save succeeded
                         }
                     }
@@ -315,7 +315,7 @@ struct RecipeSelectionView: View {
                     message: error.localizedDescription
                 )
 
-                print("❌ Failed to import recipes: \(error)")
+                Log.error("Failed to import recipes from scan", category: .database, metadata: ["error": error.localizedDescription])
             }
         }
     }

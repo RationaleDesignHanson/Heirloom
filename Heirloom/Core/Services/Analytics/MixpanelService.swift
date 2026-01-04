@@ -38,7 +38,7 @@ class MixpanelService: AnalyticsServiceProtocol {
             "iOS Version": getIOSVersion()
         ])
 
-        print("📊 Mixpanel initialized (\(isProduction ? "Production" : "Development"))")
+        Log.info("Mixpanel analytics initialized", category: .general, metadata: ["environment": isProduction ? "Production" : "Development"])
     }
 
     // MARK: - Event Tracking
@@ -60,9 +60,9 @@ class MixpanelService: AnalyticsServiceProtocol {
         mixpanel?.track(event: event.rawValue, properties: allProperties)
 
         #if DEBUG
-        print("📊 Analytics: \(event.rawValue)")
+        Log.debug("Mixpanel analytics event tracked", category: .general, metadata: ["event": event.rawValue])
         if let props = properties {
-            print("   Properties: \(props)")
+            Log.debug("Mixpanel event properties", category: .general, metadata: props)
         }
         #endif
     }

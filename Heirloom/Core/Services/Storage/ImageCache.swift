@@ -46,7 +46,7 @@ final class ImageCache {
 
     func clearCache() {
         cache.removeAllObjects()
-        print("🧹 Cleared image cache due to memory warning")
+        Log.info("Cleared image cache due to memory warning", category: .storage)
     }
 
     // MARK: - Helpers

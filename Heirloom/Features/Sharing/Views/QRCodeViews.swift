@@ -388,7 +388,7 @@ class QRCodeScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutpu
 
     private func setupCaptureSession() async {
         guard let device = AVCaptureDevice.default(for: .video) else {
-            print("❌ No camera available")
+            Log.error("No camera available for QR scanning", category: .general)
             return
         }
 
@@ -403,7 +403,7 @@ class QRCodeScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutpu
             output.metadataObjectTypes = [.qr]
 
         } catch {
-            print("❌ Failed to setup camera: \(error)")
+            Log.error("Failed to setup camera for QR scanning", category: .general, metadata: ["error": error.localizedDescription])
         }
     }
 
@@ -438,6 +438,6 @@ class QRCodeScannerViewModel: NSObject, ObservableObject, AVCaptureMetadataOutpu
 
 #Preview("QR Scanner") {
     QRCodeScannerView { url in
-        print("Scanned: \(url)")
+        Log.debug("QR code scanned in preview", category: .general, metadata: ["url": url.absoluteString])
     }
 }

@@ -389,7 +389,7 @@ struct SettingsView: View {
             // Fetch all recipe documents
             let snapshot = try await recipesRef.getDocuments()
 
-            print("🗑️ Clearing \(snapshot.documents.count) recipes from Firebase...")
+            Log.info("Clearing recipes from Firebase", category: .firebase, metadata: ["count": snapshot.documents.count, "userId": userId])
 
             // Delete each recipe and its subcollections
             for document in snapshot.documents {
@@ -417,9 +417,9 @@ struct SettingsView: View {
                 try? await imageRef.delete() // Don't fail if image doesn't exist
             }
 
-            print("✅ Firebase data cleared successfully")
+            Log.info("Firebase data cleared successfully", category: .firebase, metadata: ["userId": userId])
         } catch {
-            print("⚠️ Failed to clear Firebase data: \(error.localizedDescription)")
+            Log.error("Failed to clear Firebase data", category: .firebase, metadata: ["error": error.localizedDescription, "userId": userId])
         }
     }
 

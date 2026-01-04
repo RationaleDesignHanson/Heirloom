@@ -27,7 +27,7 @@ class RemindersService {
                 }
             }
         } catch {
-            print("❌ Failed to request Reminders access: \(error)")
+            Log.error("Failed to request Reminders access", category: .general, metadata: ["error": error.localizedDescription])
             return false
         }
     }
@@ -60,14 +60,14 @@ class RemindersService {
                 try eventStore.save(reminder, commit: false)
                 successCount += 1
             } catch {
-                print("⚠️ Failed to save reminder for '\(item.displayText)': \(error)")
+                Log.warning("Failed to save individual reminder", category: .general, metadata: ["itemText": item.displayText, "error": error.localizedDescription])
             }
         }
 
         // Commit all changes at once
         try eventStore.commit()
 
-        print("✅ Exported \(successCount)/\(items.count) items to Reminders")
+        Log.info("Exported shopping list items to Reminders", category: .general, metadata: ["successCount": successCount, "totalCount": items.count])
     }
 
     /// Find existing "Heirloom Shopping" list or create a new one

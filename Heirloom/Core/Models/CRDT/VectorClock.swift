@@ -139,11 +139,11 @@ extension VectorClock {
 
     /// Create from Firestore dictionary
     static func from(firestoreData: [String: Any]) -> VectorClock? {
-        print("🔍 [VectorClock] Parsing from Firestore: \(firestoreData)")
+        Log.debug("Parsing VectorClock from Firestore", category: .crdt)
 
         // Firestore returns numbers as Int, not Int64, so we need to convert
         guard let clocksDataAny = firestoreData["clocks"] as? [String: Any] else {
-            print("❌ [VectorClock] Missing 'clocks' or wrong type")
+            Log.warning("Failed to parse VectorClock: missing or invalid 'clocks' field", category: .crdt)
             return nil
         }
 
@@ -155,7 +155,7 @@ extension VectorClock {
             } else if let int64Value = value as? Int64 {
                 clocksData[key] = int64Value
             } else {
-                print("❌ [VectorClock] Invalid value type for key '\(key)': \(type(of: value))")
+                Log.warning("Invalid value type in VectorClock", category: .crdt, metadata: ["key": key])
                 return nil
             }
         }
@@ -167,13 +167,13 @@ extension VectorClock {
         } else if let timestamp = firestoreData["lastUpdated"] as? Timestamp {
             lastUpdated = timestamp.dateValue()
         } else {
-            print("❌ [VectorClock] Missing 'lastUpdated' or wrong type: \(type(of: firestoreData["lastUpdated"]))")
+            Log.warning("Failed to parse VectorClock: missing or invalid 'lastUpdated' field", category: .crdt)
             return nil
         }
 
         let clock = VectorClock(clocks: clocksData)
         clock.lastUpdated = lastUpdated
-        print("✅ [VectorClock] Successfully parsed with \(clocksData.count) entries")
+        Log.debug("Successfully parsed VectorClock", category: .crdt, metadata: ["entryCount": clocksData.count])
         return clock
     }
 }

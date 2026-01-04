@@ -306,9 +306,9 @@ struct DinnerPartyDetailView: View {
                 Task {
                     do {
                         try await FirebaseSyncService.shared.deleteDinnerParty(partyId)
-                        print("✅ Dinner party deleted from Firebase")
+                        Log.info("Dinner party deleted from Firebase", category: .firebase, metadata: ["partyId": partyId])
                     } catch {
-                        print("⚠️ Failed to delete dinner party from Firebase: \(error.localizedDescription)")
+                        Log.warning("Failed to delete dinner party from Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "partyId": partyId])
                     }
                 }
             }

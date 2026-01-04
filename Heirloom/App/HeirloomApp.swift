@@ -20,7 +20,7 @@ struct HeirloomApp: App {
         // FILE-BASED LOGGING - guaranteed to work on device
         DeviceLogger.shared.log("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
         logger.info("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
-        print("🚀 HeirloomApp.init() called")
+        Log.info("HeirloomApp initialization started", category: .general)
 
         // FIREBASE INITIALIZATION - Phase 1 of migration
         DeviceLogger.shared.log("🔥 [Heirloom] Initializing Firebase...")
@@ -35,12 +35,12 @@ struct HeirloomApp: App {
 
         DeviceLogger.shared.log("✅ [Heirloom] Firebase initialized successfully")
         logger.info("✅ [Heirloom] Firebase initialized successfully")
-        print("✅ Firebase initialized")
+        Log.info("Firebase initialized successfully", category: .firebase)
 
         // Log active backend
         DeviceLogger.shared.log("🔧 [Heirloom] Active backend: Firebase")
         logger.info("🔧 [Heirloom] Active backend: Firebase")
-        print("🔧 Active backend: Firebase")
+        Log.info("Active backend configured", category: .firebase, metadata: ["backend": "Firebase"])
 
         do {
             DeviceLogger.shared.log("🔧 [Heirloom] Configuring SwiftData schema...")
@@ -65,7 +65,7 @@ struct HeirloomApp: App {
 
             DeviceLogger.shared.log("✅ [Heirloom] SwiftData initialized (Local storage with Firebase sync)")
             logger.info("✅ [Heirloom] SwiftData initialized (Local storage with Firebase sync)")
-            print("✅ SwiftData initialized (Local storage with Firebase sync)")
+            Log.info("SwiftData initialized with local storage and Firebase sync", category: .database)
 
             _modelContainer = State(wrappedValue: container)
 
@@ -75,7 +75,7 @@ struct HeirloomApp: App {
         } catch {
             DeviceLogger.shared.log("❌ [Heirloom] Failed to configure SwiftData: \(error.localizedDescription)", level: .error)
             logger.error("❌ [Heirloom] Failed to configure SwiftData: \(error.localizedDescription)")
-            print("❌ Failed to configure SwiftData: \(error.localizedDescription)")
+            Log.error("Failed to configure SwiftData", category: .database, metadata: ["error": error.localizedDescription])
             _showDataError = State(wrappedValue: true)
         }
     }
@@ -86,13 +86,13 @@ struct HeirloomApp: App {
                 RootView(modelContainer: modelContainer)
                     .environmentObject(deepLinkCoordinator)
                     .onOpenURL { url in
-                        print("📱 WindowGroup received URL: \(url.absoluteString)")
+                        Log.info("WindowGroup received URL", category: .general, metadata: ["url": url.absoluteString])
                         logger.info("📱 WindowGroup received URL: \(url.absoluteString)")
                         DeviceLogger.shared.log("📱 [App] WindowGroup received URL: \(url.absoluteString)")
                         deepLinkCoordinator.handle(url)
                     }
                     .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
-                        print("📱 WindowGroup received user activity")
+                        Log.info("WindowGroup received user activity", category: .general, metadata: ["activityType": userActivity.activityType])
                         logger.info("📱 WindowGroup received user activity")
                         DeviceLogger.shared.log("📱 [App] WindowGroup received user activity: \(userActivity.activityType)")
                         deepLinkCoordinator.handle(userActivity)
@@ -141,7 +141,7 @@ struct HeirloomApp: App {
 
                 DeviceLogger.shared.log("✅ [Heirloom] Firebase sync initialized")
                 logger.info("✅ [Heirloom] Firebase sync initialized")
-                print("✅ Firebase sync initialized")
+                Log.info("Firebase sync service configured", category: .firebase)
             }
         }
     }
@@ -149,7 +149,7 @@ struct HeirloomApp: App {
     private func checkSharedContainerForPendingImport() {
         // Check if share extension left a pending URL import
         guard let groupDefaults = UserDefaults(suiteName: "group.com.matthanson.heirloom.shared") else {
-            print("⚠️ Cannot access shared container")
+            Log.warning("Cannot access shared container for pending import", category: .general)
             return
         }
 
@@ -159,7 +159,7 @@ struct HeirloomApp: App {
             return
         }
 
-        print("✅ Found pending import URL from share extension: \(pendingURLString)")
+        Log.info("Found pending import URL from share extension", category: .general, metadata: ["url": pendingURLString])
         DeviceLogger.shared.log("✅ [ShareExtension] Found pending import URL: \(pendingURLString)")
 
         // Clear it immediately to prevent re-processing
@@ -170,7 +170,7 @@ struct HeirloomApp: App {
         let importDeepLink = URL(string: "heirloom://import?url=\(pendingURLString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!
         DeepLinkHandler.shared.handle(importDeepLink)
 
-        print("✅ Triggered deep link handler for import")
+        Log.info("Triggered deep link handler for share extension import", category: .general)
         DeviceLogger.shared.log("✅ [ShareExtension] Triggered deep link handler for import")
     }
 
@@ -179,12 +179,12 @@ struct HeirloomApp: App {
         do {
             let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
             if granted {
-                print("✅ Notification permission granted")
+                Log.info("Notification permission granted", category: .general)
             } else {
-                print("⚠️ Notification permission denied")
+                Log.warning("Notification permission denied", category: .general)
             }
         } catch {
-            print("❌ Failed to request notification permission: \(error)")
+            Log.error("Failed to request notification permission", category: .general, metadata: ["error": error.localizedDescription])
         }
     }
 
@@ -202,7 +202,7 @@ struct HeirloomApp: App {
             // Delete all existing recipes (they don't have proper ingredients)
             let fetchDescriptor = FetchDescriptor<Recipe>()
             if let oldRecipes = try? context.fetch(fetchDescriptor) {
-                print("🧹 Cleaning up \(oldRecipes.count) old recipe(s) with broken data...")
+                Log.info("Cleaning up old recipes with broken data", category: .database, metadata: ["count": oldRecipes.count])
                 for recipe in oldRecipes {
                     context.delete(recipe)
                 }
@@ -210,7 +210,7 @@ struct HeirloomApp: App {
             }
 
             // Sample recipe auto-population disabled - users can manually add via "Add Sample Recipe" button
-            print("✅ Recipe data cleanup complete - starting with clean slate")
+            Log.info("Recipe data cleanup complete - starting with clean slate", category: .database)
             UserDefaults.standard.set(true, forKey: hasCleanedKey)
         }
     }
@@ -339,7 +339,7 @@ struct ContentView: View {
         }
         .onAppear {
             // Mark app as ready to process deep links
-            print("✅ ContentView appeared - marking app as ready for deep links")
+            Log.info("ContentView appeared - marking app ready for deep links", category: .ui)
             DeviceLogger.shared.log("✅ [App] ContentView appeared - marking app as ready for deep links")
             deepLinkCoordinator.markAppReady()
         }

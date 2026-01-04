@@ -306,12 +306,12 @@ struct CookbookScannerView: View {
                 }
 
                 // Step 2: Detect recipes with bounding boxes (vision API)
-                print("🔍 Step 2: Detecting recipes with vision API...")
+                Log.info("Detecting recipes with vision API", category: .ocr)
                 let detected = try await AIRecipeExtractor.shared.detectRecipes(from: image)
 
-                print("   Found \(detected.count) recipe(s)")
+                Log.info("Found recipes in image", category: .ocr, metadata: ["count": detected.count])
                 for (index, recipe) in detected.enumerated() {
-                    print("   \(index + 1). \(recipe.title) (\(recipe.confidence.rawValue) confidence)")
+                    Log.debug("Detected recipe", category: .ocr, metadata: ["index": index + 1, "title": recipe.title, "confidence": recipe.confidence.rawValue])
                 }
 
                 // Step 3: Extract each recipe using vision API + bounding box
@@ -319,7 +319,7 @@ struct CookbookScannerView: View {
                     processingStep = .extracting
                 }
 
-                print("🤖 Step 3: Extracting recipes with vision API...")
+                Log.info("Extracting recipes with vision API", category: .ocr)
                 let result = try await AIRecipeExtractor.shared.extractRecipesFromImage(
                     image: image,
                     detectedRecipes: detected
@@ -333,14 +333,13 @@ struct CookbookScannerView: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
 
-                    print("✅ Processing complete!")
-                    print("   Extracted \(result.count) recipe(s)")
+                    Log.info("Processing complete", category: .ocr, metadata: ["count": result.count])
 
                     // Route based on recipe count
                     if result.count == 0 {
                         // No recipes detected - show error
                         errorMessage = "No recipes detected in the image. Please try again with a clearer photo."
-                        print("⚠️ No recipes found")
+                        Log.warning("No recipes found in image", category: .ocr)
 
                     } else if result.count == 1 {
                         // Single recipe - auto-import directly (faster UX)
@@ -357,7 +356,7 @@ struct CookbookScannerView: View {
                             "instruction_count": recipe.instructions.count
                         ])
 
-                        print("✅ Single recipe auto-imported: \(recipe.title)")
+                        Log.info("Single recipe auto-imported", category: .ocr, metadata: ["title": recipe.title])
 
                     } else {
                         // Multiple recipes - show RecipeSelectionView (matches web demo behavior)
@@ -371,11 +370,14 @@ struct CookbookScannerView: View {
                             "multi_recipe": true
                         ])
 
-                        print("✅ Recipes extracted:")
+                        Log.info("Multiple recipes extracted", category: .ocr)
                         for (index, recipe) in result.recipes.enumerated() {
-                            print("   \(index + 1). \(recipe.title)")
-                            print("      Ingredients: \(recipe.ingredients.count)")
-                            print("      Instructions: \(recipe.instructions.count)")
+                            Log.debug("Extracted recipe details", category: .ocr, metadata: [
+                                "index": index + 1,
+                                "title": recipe.title,
+                                "ingredientCount": recipe.ingredients.count,
+                                "instructionCount": recipe.instructions.count
+                            ])
                         }
                     }
                 }
@@ -391,7 +393,7 @@ struct CookbookScannerView: View {
 
                     errorMessage = error.localizedDescription
 
-                    print("❌ Processing failed: \(error)")
+                    Log.error("Processing failed", category: .ocr, error: error)
                 }
             }
         }
@@ -471,9 +473,9 @@ struct CookbookScannerView: View {
                             }
                         }
 
-                        print("✅ Scanned recipe synced to Firebase: \(recipe.title)")
+                        Log.info("Scanned recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title])
                     } catch {
-                        print("⚠️ Failed to sync scanned recipe to Firebase: \(error.localizedDescription)")
+                        Log.warning("Failed to sync scanned recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                         // Don't fail - local save succeeded
                     }
                 }
@@ -502,7 +504,7 @@ struct CookbookScannerView: View {
         do {
             parsedIngredients = try await AIIngredientParser.shared.parseBatch(ingredientTexts)
         } catch {
-            print("⚠️ AI ingredient parsing failed, using fallback: \(error.localizedDescription)")
+            Log.warning("AI ingredient parsing failed, using fallback", category: .general, metadata: ["error": error.localizedDescription])
             parsedIngredients = ingredientTexts.map { IngredientParser.parse($0) }
         }
 
@@ -529,10 +531,10 @@ struct CookbookScannerView: View {
             let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
             await MainActor.run {
                 recipe.imageFileName = fileName
-                print("✅ Saved recipe image: \(fileName)")
+                Log.info("Saved recipe image", category: .storage, metadata: ["fileName": fileName])
             }
         } catch {
-            print("⚠️ Failed to save recipe image: \(error.localizedDescription)")
+            Log.warning("Failed to save recipe image", category: .storage, metadata: ["error": error.localizedDescription])
         }
     }
 

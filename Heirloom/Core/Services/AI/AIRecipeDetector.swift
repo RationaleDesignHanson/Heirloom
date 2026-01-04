@@ -67,7 +67,7 @@ class AIRecipeDetector {
 
             return response.recipes
         } catch {
-            print("⚠️ Recipe detection failed: \(error)")
+            Log.warning("Recipe detection failed, assuming single recipe", category: .ocr, metadata: ["error": error.localizedDescription])
             // If detection fails, assume single recipe covering whole image
             return [DetectedRecipe.fullImage()]
         }

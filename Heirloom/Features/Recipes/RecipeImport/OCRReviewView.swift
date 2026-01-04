@@ -382,9 +382,9 @@ struct OCRReviewView: View {
                         }
                     }
 
-                    print("✅ Scanned recipe synced to Firebase")
+                    Log.info("Scanned recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title, "recipeId": recipe.id])
                 } catch {
-                    print("⚠️ Failed to sync scanned recipe to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to sync scanned recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "title": recipe.title])
                 }
             }
 
@@ -427,7 +427,7 @@ struct OCRReviewView: View {
         do {
             parsedIngredients = try await AIIngredientParser.shared.parseBatch(ingredientTexts)
         } catch {
-            print("⚠️ Batch parsing encountered an error: \(error.localizedDescription)")
+            Log.warning("Batch ingredient parsing failed, falling back to local parser", category: .ocr, metadata: ["error": error.localizedDescription, "ingredientCount": ingredientTexts.count])
             parsedIngredients = ingredientTexts.map { IngredientParser.parse($0) }
         }
 
@@ -459,7 +459,7 @@ struct OCRReviewView: View {
                 recipe.imageFileName = fileName
             }
         } catch {
-            print("⚠️ Failed to save scanned image: \(error)")
+            Log.error("Failed to save scanned image", category: .storage, metadata: ["error": error.localizedDescription, "recipeId": recipe.id.uuidString])
         }
     }
 

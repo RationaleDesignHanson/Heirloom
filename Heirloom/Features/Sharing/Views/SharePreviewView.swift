@@ -428,14 +428,14 @@ struct SharePreviewView: View {
     private func loadSharePreview() async {
         isLoading = true
         errorMessage = nil
-        
-        print("📥 SharePreviewView: Loading share from URL: \(shareURL.absoluteString)")
-        
+
+        Log.debug("Loading share preview from URL", category: .firebase, metadata: ["shareURL": shareURL.absoluteString])
+
         do {
             sharedData = try await shareService.previewShare(from: shareURL)
-            print("✅ SharePreviewView: Successfully loaded share")
+            Log.info("Successfully loaded share preview", category: .firebase, metadata: ["shareURL": shareURL.absoluteString])
         } catch {
-            print("❌ SharePreviewView: Failed to load - \(error)")
+            Log.error("Failed to load share preview", category: .firebase, metadata: ["error": error.localizedDescription, "shareURL": shareURL.absoluteString])
             // Show more detailed error
             if let shareError = error as? ShareError {
                 switch shareError {

@@ -197,9 +197,9 @@ struct TagCollectionPickerView: View {
                     try await FirebaseSyncService.shared.uploadTag(tag)
                     // Sync the recipe with updated tag IDs
                     try await FirebaseSyncService.shared.uploadRecipe(recipe)
-                    print("✅ Tag toggle synced to Firebase")
+                    Log.info("Tag toggle synced to Firebase", category: .firebase, metadata: ["tagId": tag.id, "recipeId": recipe.id])
                 } catch {
-                    print("⚠️ Failed to sync tag toggle to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to sync tag toggle to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "tagId": tag.id, "recipeId": recipe.id])
                 }
             }
         }
@@ -235,9 +235,9 @@ struct TagCollectionPickerView: View {
                     try await FirebaseSyncService.shared.uploadCollection(collection)
                     // Sync the recipe with updated collection IDs
                     try await FirebaseSyncService.shared.uploadRecipe(recipe)
-                    print("✅ Collection toggle synced to Firebase")
+                    Log.info("Collection toggle synced to Firebase", category: .firebase, metadata: ["collectionId": collection.id, "recipeId": recipe.id])
                 } catch {
-                    print("⚠️ Failed to sync collection toggle to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to sync collection toggle to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "collectionId": collection.id, "recipeId": recipe.id])
                 }
             }
         }

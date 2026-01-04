@@ -273,9 +273,9 @@ struct RecipeReceiveSheet: View {
             do {
                 let shareId = extractShareId(from: shareURL)
                 metadata = try await FirebaseShareService.shared.fetchShareMetadata(shareId: shareId)
-                print("✅ [RecipeReceive] Fetched metadata for preview")
+                Log.info("Fetched share metadata for preview", category: .firebase, metadata: ["shareId": shareId])
             } catch {
-                print("❌ [RecipeReceive] Failed to fetch metadata: \(error)")
+                Log.warning("Failed to fetch share metadata, using generic preview", category: .firebase, metadata: ["error": error.localizedDescription])
                 // Continue with nil metadata - will show generic preview
             }
         }
@@ -361,7 +361,7 @@ struct RecipeReceiveSheet: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.error)
 
-                    print("❌ Failed to accept share: \(error)")
+                    Log.error("Failed to accept shared recipe", category: .firebase, metadata: ["error": error.localizedDescription])
                 }
             }
         }

@@ -45,13 +45,13 @@ class FirebaseImageService: FirebaseImageServiceProtocol {
 
         // Load image data from local storage
         guard let image = await recipe.loadImage() else {
-            print("⚠️ [Firebase Storage] No local image found for recipe: \(recipe.title)")
+            Log.warning("No local image found for recipe upload", category: .firebase, metadata: ["title": recipe.title])
             return nil
         }
 
         // Compress image (max 1MB for efficient upload)
         guard let imageData = await compressImage(image, maxBytes: 1_000_000) else {
-            print("⚠️ [Firebase Storage] Failed to compress image for recipe: \(recipe.title)")
+            Log.warning("Failed to compress image for upload", category: .firebase, metadata: ["title": recipe.title])
             return nil
         }
 
@@ -59,7 +59,7 @@ class FirebaseImageService: FirebaseImageServiceProtocol {
         let storagePath = "users/\(userId)/recipes/\(recipeId)/image.jpg"
         let storageRef = config.storage.reference().child(storagePath)
 
-        print("📤 [Firebase Storage] Uploading image for recipe: \(recipe.title)")
+        Log.info("Uploading recipe image to Firebase Storage", category: .firebase, metadata: ["title": recipe.title, "storagePath": storagePath])
 
         // Upload image data
         let metadata = StorageMetadata()
@@ -71,7 +71,7 @@ class FirebaseImageService: FirebaseImageServiceProtocol {
         let downloadURL = try await storageRef.downloadURL()
         let urlString = downloadURL.absoluteString
 
-        print("✅ [Firebase Storage] Image uploaded: \(storagePath)")
+        Log.info("Recipe image uploaded to Firebase Storage", category: .firebase, metadata: ["storagePath": storagePath])
 
         return urlString
     }
@@ -89,18 +89,18 @@ class FirebaseImageService: FirebaseImageServiceProtocol {
         // Skip if already cached locally
         if let imageFileName = recipe.imageFileName,
            await recipe.loadImage() != nil {
-            print("✅ [Firebase Storage] Image already cached locally: \(imageFileName)")
+            Log.debug("Image already cached locally", category: .firebase, metadata: ["fileName": imageFileName])
             return
         }
 
-        print("📥 [Firebase Storage] Downloading image for recipe: \(recipe.title)")
+        Log.info("Downloading recipe image from Firebase Storage", category: .firebase, metadata: ["title": recipe.title])
 
         // Download from Firebase Storage
         let storageRef = config.storage.reference(forURL: firebaseImageURL)
         let imageData = try await storageRef.data(maxSize: 10 * 1024 * 1024) // Max 10MB
 
         guard let image = UIImage(data: imageData) else {
-            print("⚠️ [Firebase Storage] Failed to decode image data")
+            Log.warning("Failed to decode image data from Firebase Storage", category: .firebase)
             throw FirebaseError.downloadFailed(
                 NSError(domain: "FirebaseStorage", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid image data"])
             )
@@ -109,7 +109,7 @@ class FirebaseImageService: FirebaseImageServiceProtocol {
         // Save to local cache
         try await recipe.saveImage(image)
 
-        print("✅ [Firebase Storage] Image downloaded and cached: \(recipe.imageFileName ?? "unknown")")
+        Log.info("Recipe image downloaded and cached", category: .firebase, metadata: ["fileName": recipe.imageFileName ?? "unknown"])
     }
 
     // MARK: - Delete Operations
@@ -125,15 +125,15 @@ class FirebaseImageService: FirebaseImageServiceProtocol {
         let storagePath = "users/\(userId)/recipes/\(recipeId.uuidString)/image.jpg"
         let storageRef = config.storage.reference().child(storagePath)
 
-        print("🗑️ [Firebase Storage] Deleting image: \(storagePath)")
+        Log.info("Deleting recipe image from Firebase Storage", category: .firebase, metadata: ["storagePath": storagePath])
 
         do {
             try await storageRef.delete()
-            print("✅ [Firebase Storage] Image deleted: \(storagePath)")
+            Log.info("Recipe image deleted from Firebase Storage", category: .firebase, metadata: ["storagePath": storagePath])
         } catch {
             // Ignore "not found" errors (image may not exist)
             if (error as NSError).code == StorageErrorCode.objectNotFound.rawValue {
-                print("ℹ️ [Firebase Storage] Image not found (already deleted): \(storagePath)")
+                Log.debug("Image not found in Firebase Storage (already deleted)", category: .firebase, metadata: ["storagePath": storagePath])
             } else {
                 throw error
             }
@@ -146,15 +146,15 @@ class FirebaseImageService: FirebaseImageServiceProtocol {
     func deleteImage(at url: String) async throws {
         let storageRef = config.storage.reference(forURL: url)
 
-        print("🗑️ [Firebase Storage] Deleting image at URL: \(url)")
+        Log.info("Deleting recipe image from Firebase Storage by URL", category: .firebase, metadata: ["url": url])
 
         do {
             try await storageRef.delete()
-            print("✅ [Firebase Storage] Image deleted")
+            Log.info("Recipe image deleted from Firebase Storage", category: .firebase)
         } catch {
             // Ignore "not found" errors
             if (error as NSError).code == StorageErrorCode.objectNotFound.rawValue {
-                print("ℹ️ [Firebase Storage] Image not found (already deleted)")
+                Log.debug("Image not found in Firebase Storage (already deleted)", category: .firebase)
             } else {
                 throw error
             }

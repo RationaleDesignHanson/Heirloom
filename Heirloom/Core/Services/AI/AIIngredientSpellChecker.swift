@@ -71,7 +71,7 @@ class AIIngredientSpellChecker {
                 "error": error.localizedDescription
             ])
 
-            print("⚠️ AI spell check failed: \(error.localizedDescription)")
+            Log.warning("AI spell check failed", category: .ocr, metadata: ["ingredientText": text, "error": error.localizedDescription])
 
             // Return empty result on error
             return SpellingResult(hasIssues: false, suggestions: [])
@@ -117,7 +117,7 @@ class AIIngredientSpellChecker {
             return batchResults
 
         } catch {
-            print("⚠️ Batch AI spell check failed: \(error.localizedDescription)")
+            Log.warning("Batch AI spell check failed, falling back to individual checking", category: .ocr, metadata: ["error": error.localizedDescription, "batchSize": filteredIngredients.count])
 
             // Fall back to individual checking
             var results: [SpellingResult] = []

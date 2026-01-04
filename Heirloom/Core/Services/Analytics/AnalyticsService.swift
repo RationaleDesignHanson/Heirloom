@@ -101,13 +101,13 @@ class ConsoleAnalyticsService: AnalyticsServiceProtocol {
     private init() {}
 
     func initialize() {
-        print("📊 Console Analytics initialized (Mixpanel not configured)")
+        Log.info("Console Analytics initialized (Mixpanel not configured)", category: .general)
     }
 
     func track(event: AnalyticsEvent, properties: [String: Any]?) {
-        print("📊 Analytics: \(event.rawValue)")
+        Log.debug("Analytics event tracked", category: .general, metadata: ["event": event.rawValue])
         if let props = properties {
-            print("   Properties: \(props)")
+            Log.debug("Analytics event properties", category: .general, metadata: props)
         }
     }
 
@@ -157,7 +157,10 @@ class ConsoleAnalyticsService: AnalyticsServiceProtocol {
     }
 
     func updateUserProperties(totalRecipes: Int, favoriteRecipes: Int) {
-        print("📊 User Properties Updated: \(totalRecipes) recipes, \(favoriteRecipes) favorites")
+        Log.debug("User properties updated", category: .general, metadata: [
+            "totalRecipes": totalRecipes,
+            "favoriteRecipes": favoriteRecipes
+        ])
     }
 }
 

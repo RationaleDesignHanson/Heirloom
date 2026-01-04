@@ -494,17 +494,17 @@ struct CardBackEditorView: View {
                     do {
                         if let cardBack = recipe.cardBack {
                             try await FirebaseSyncService.shared.uploadCardBack(cardBack, recipeId: recipe.id)
-                            print("✅ Card back synced to Firebase")
+                            Log.info("Card back synced to Firebase", category: .firebase, metadata: ["recipeId": recipe.id])
                         }
                     } catch {
-                        print("⚠️ Failed to sync card back to Firebase: \(error.localizedDescription)")
+                        Log.warning("Failed to sync card back to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "recipeId": recipe.id])
                     }
                 }
             }
 
             dismiss()
         } catch {
-            print("Failed to save card back: \(error)")
+            Log.error("Failed to save card back", category: .database, metadata: ["error": error.localizedDescription])
         }
     }
 

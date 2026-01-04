@@ -41,7 +41,7 @@ actor ImageStorageService {
         // Write to disk
         do {
             try compressedData.write(to: fileURL, options: .atomic)
-            print("✅ Saved image: \(fileName) (\(compressedData.count / 1024)KB)")
+            Log.info("Saved image", category: .storage, metadata: ["fileName": fileName, "sizeKB": compressedData.count / 1024])
 
             // Update cache
             ImageCache.shared.setImage(image, for: fileURL)
@@ -59,7 +59,7 @@ actor ImageStorageService {
             throw ImageError.invalidURL
         }
 
-        print("📥 Downloading image from: \(urlString)")
+        Log.info("Downloading recipe image", category: .storage, metadata: ["url": urlString])
 
         // Download image data
         let (data, response) = try await URLSession.shared.data(from: url)
@@ -73,7 +73,7 @@ actor ImageStorageService {
             throw ImageError.invalidImageData
         }
 
-        print("✅ Downloaded image: \(data.count / 1024)KB")
+        Log.info("Downloaded recipe image", category: .storage, metadata: ["sizeKB": data.count / 1024])
 
         // Save using existing saveImage method
         return try await saveImage(image, recipeId: recipeId)
@@ -93,7 +93,7 @@ actor ImageStorageService {
         // Load from disk
         guard let data = try? Data(contentsOf: fileURL),
               let image = UIImage(data: data) else {
-            print("⚠️ Failed to load image: \(fileName)")
+            Log.warning("Failed to load image from disk", category: .storage, metadata: ["fileName": fileName])
             return nil
         }
 
@@ -112,9 +112,9 @@ actor ImageStorageService {
         do {
             try fileManager.removeItem(at: fileURL)
             ImageCache.shared.removeImage(for: fileURL)
-            print("🗑️ Deleted image: \(fileName)")
+            Log.info("Deleted image", category: .storage, metadata: ["fileName": fileName])
         } catch {
-            print("⚠️ Failed to delete image: \(fileName), error: \(error)")
+            Log.warning("Failed to delete image", category: .storage, metadata: ["fileName": fileName, "error": error.localizedDescription])
         }
     }
 
@@ -131,7 +131,7 @@ actor ImageStorageService {
             )
 
             var migrations: [String: String] = [:]
-            print("🔄 Starting image filename migration. Found \(imageFiles.count) images.")
+            Log.info("Starting image filename migration", category: .storage, metadata: ["imageCount": imageFiles.count])
 
             for fileURL in imageFiles {
                 let oldFileName = fileURL.lastPathComponent
@@ -144,7 +144,7 @@ actor ImageStorageService {
                 // Only migrate .jpg files with UUID format
                 guard oldFileName.hasSuffix(".jpg"),
                       let uuid = extractUUID(from: oldFileName) else {
-                    print("⏭️ Skipping non-standard file: \(oldFileName)")
+                    Log.debug("Skipping non-standard file", category: .storage, metadata: ["fileName": oldFileName])
                     continue
                 }
 
@@ -156,16 +156,16 @@ actor ImageStorageService {
                 do {
                     try fileManager.moveItem(at: fileURL, to: newFileURL)
                     migrations[oldFileName] = newFileName
-                    print("✅ Migrated: \(oldFileName) → \(newFileName)")
+                    Log.info("Migrated image filename", category: .storage, metadata: ["oldName": oldFileName, "newName": newFileName])
                 } catch {
-                    print("⚠️ Failed to migrate \(oldFileName): \(error)")
+                    Log.warning("Failed to migrate image filename", category: .storage, metadata: ["fileName": oldFileName, "error": error.localizedDescription])
                 }
             }
 
-            print("✅ Migration complete. Migrated \(migrations.count) files.")
+            Log.info("Image filename migration complete", category: .storage, metadata: ["migratedCount": migrations.count])
             return migrations
         } catch {
-            print("⚠️ Migration failed: \(error)")
+            Log.error("Image filename migration failed", category: .storage, metadata: ["error": error.localizedDescription])
             return [:]
         }
     }
@@ -197,7 +197,7 @@ actor ImageStorageService {
 
             guard let imageFiles = imageFiles else { return }
 
-            print("🧹 Starting image cleanup. Found \(imageFiles.count) images.")
+            Log.info("Starting image cleanup", category: .storage, metadata: ["imageCount": imageFiles.count])
 
             // TODO: In Day 2, query SwiftData for all Recipe.imageFileName
             // and delete any files not in that list
@@ -223,7 +223,7 @@ actor ImageStorageService {
 
             return totalSize
         } catch {
-            print("⚠️ Failed to calculate storage size: \(error)")
+            Log.warning("Failed to calculate storage size", category: .storage, metadata: ["error": error.localizedDescription])
             return 0
         }
     }

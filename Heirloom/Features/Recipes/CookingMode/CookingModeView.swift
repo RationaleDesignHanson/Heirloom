@@ -515,7 +515,7 @@ struct CookingModeView: View {
 
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                print("Failed to schedule notification: \(error)")
+                Log.error("Failed to schedule cooking timer notification", category: .general, metadata: ["error": error.localizedDescription])
             }
         }
     }
@@ -553,7 +553,7 @@ struct CookingModeView: View {
                 do {
                     try RecipeVersionService.shared.markAsCooked(activeVersion, context: modelContext)
                 } catch {
-                    print("Failed to mark version as cooked: \(error)")
+                    Log.error("Failed to mark version as cooked", category: .database, metadata: ["error": error.localizedDescription, "versionId": activeVersion.id.uuidString])
                 }
             }
 

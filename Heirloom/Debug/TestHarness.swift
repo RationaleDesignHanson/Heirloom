@@ -18,7 +18,7 @@ class TestHarness {
     func runAllTests() -> TestResults {
         var results = TestResults()
 
-        print("🧪 Starting Test Harness...")
+        Log.info("Starting Test Harness", category: .general)
 
         // Recipe Migration Tests
         results.add(testMigrationCreatesBaseVersion())
@@ -33,8 +33,7 @@ class TestHarness {
         // Multi-Recipe Import Tests
         results.add(testMultiRecipeImport())
 
-        print("\n📊 Test Results:")
-        print(results.summary)
+        Log.info("Test Results", category: .general, metadata: ["summary": results.summary])
 
         return results
     }
@@ -562,13 +561,13 @@ struct TestResult {
     mutating func pass(_ message: String = "") {
         self.passed = true
         self.message = message
-        print("✅ \(name): \(message)")
+        Log.info("Test passed", category: .general, metadata: ["test": name, "message": message])
     }
 
     mutating func fail(_ message: String) {
         self.passed = false
         self.message = message
-        print("❌ \(name): \(message)")
+        Log.error("Test failed", category: .general, metadata: ["test": name, "message": message])
     }
 }
 

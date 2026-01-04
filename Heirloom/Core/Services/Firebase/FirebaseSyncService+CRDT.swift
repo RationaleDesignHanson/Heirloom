@@ -21,14 +21,14 @@ extension FirebaseSyncService {
             throw SyncError.notAuthenticated
         }
 
-        print("📤 [CRDT] Uploading recipe with operation log: \(recipe.title)")
+        Log.info("Uploading recipe with CRDT operation log", category: .crdt, metadata: ["title": recipe.title])
 
         // Check if there are pending operations (indicates this is an edit with changes)
         let hasPendingOperations = recipe.pendingOperationsData != nil
 
         // If no pending operations and recipe is already synced, check if we need to upload
         if !hasPendingOperations && recipe.lastSyncedAt != nil {
-            print("⚠️ [CRDT] No pending operations and already synced, checking if upload needed...")
+            Log.debug("No pending operations, checking if upload needed", category: .crdt)
 
             // Download remote to compare
             let recipeRef = try recipeDocument(id: recipe.id.uuidString)
@@ -39,7 +39,7 @@ extension FirebaseSyncService {
 
                 // If remote is newer or same, skip upload to avoid overwriting
                 if let remoteModified = remoteModifiedAt, remoteModified >= recipe.modifiedAt {
-                    print("⚠️ [CRDT] Remote is up-to-date or newer, skipping upload to avoid overwrite")
+                    Log.info("Remote is up-to-date, skipping upload", category: .crdt)
                     recipe.lastSyncedAt = Date()
                     try? modelContext?.save()
                     return
@@ -62,7 +62,7 @@ extension FirebaseSyncService {
         // Add pending operations from edit (if any)
         if let pendingData = recipe.pendingOperationsData,
            let pendingOps = try? JSONDecoder().decode([RecipeOperation].self, from: pendingData) {
-            print("📝 [CRDT] Found \(pendingOps.count) pending operations from edit")
+            Log.info("Found pending operations from edit", category: .crdt, metadata: ["count": pendingOps.count])
 
             // Add operations to CRDT log and update their vector clocks
             for op in pendingOps {
@@ -77,7 +77,7 @@ extension FirebaseSyncService {
                 // Now add the operation with the correct vector clock
                 crdt.operationLog.operations.append(op)
 
-                print("📝 [CRDT] Operation '\(op.fieldPath)' vector clock: \(op.vectorClock)")
+                Log.debug("Operation vector clock set", category: .crdt, metadata: ["fieldPath": op.fieldPath])
             }
 
             // Clear pending operations now that they're in the log
@@ -103,15 +103,15 @@ extension FirebaseSyncService {
         let operationsRef = recipeRef.collection("operations")
 
         // Upload all operations
-        print("📤 [CRDT] Uploading \(crdt.operationLog.operations.count) operations to subcollection")
+        Log.info("Uploading operations to subcollection", category: .crdt, metadata: ["count": crdt.operationLog.operations.count])
         for operation in crdt.operationLog.operations {
             let opDoc = operationsRef.document(operation.id.uuidString)
             let opData = operation.toFirestoreData()
-            print("📤 [CRDT] Uploading operation \(operation.id.uuidString): \(operation.fieldPath)")
+            Log.debug("Uploading operation", category: .crdt, metadata: ["operationId": operation.id.uuidString, "fieldPath": operation.fieldPath])
             try await opDoc.setData(opData)
         }
 
-        print("✅ [CRDT] Uploaded recipe with \(crdt.operationLog.operations.count) operations")
+        Log.info("Recipe uploaded with operations", category: .crdt, metadata: ["operationCount": crdt.operationLog.operations.count])
 
         // Upload other subcollections (ingredients, comments, etc.) using existing methods
         // Note: These are uploaded separately for backwards compatibility
@@ -127,7 +127,7 @@ extension FirebaseSyncService {
 
     /// Download recipe with CRDT from Firestore and merge with local
     func downloadAndMergeRecipeWithCRDT(recipeId: String, context: ModelContext) async throws -> MergeOperationResult {
-        print("📥 [CRDT] Downloading and merging recipe: \(recipeId)")
+        Log.info("Downloading and merging recipe with CRDT", category: .crdt, metadata: ["recipeId": recipeId])
 
         let deviceId = getCurrentDeviceId()
 
@@ -147,7 +147,7 @@ extension FirebaseSyncService {
 
         if !usesCRDT {
             // Fallback to traditional sync for legacy recipes (no CRDT merge needed)
-            print("⚠️ [CRDT] Remote recipe doesn't use CRDT, falling back to traditional sync")
+            Log.warning("Remote recipe doesn't use CRDT, falling back to traditional sync", category: .crdt)
 
             // Check if local recipe exists
             guard let recipeUUID = UUID(uuidString: recipeId) else {
@@ -158,7 +158,7 @@ extension FirebaseSyncService {
 
             if localRecipes.isEmpty {
                 // New recipe - insert it
-                print("✅ [CRDT] New legacy recipe from remote, inserting")
+                Log.info("New legacy recipe from remote, inserting", category: .crdt)
                 context.insert(remoteRecipe)
 
                 // Mark as synced to prevent re-upload on next sync
@@ -175,10 +175,10 @@ extension FirebaseSyncService {
                 if remoteRecipe.firebaseImageURL != nil {
                     do {
                         try await downloadImage(for: remoteRecipe)
-                        print("✅ [CRDT] Image downloaded successfully for: \(remoteRecipe.title)")
+                        Log.info("Image downloaded successfully", category: .storage, metadata: ["title": remoteRecipe.title])
                         try? context.save()
                     } catch {
-                        print("⚠️ [CRDT] Failed to download image for \(remoteRecipe.title): \(error.localizedDescription)")
+                        Log.warning("Failed to download image", category: .storage, metadata: ["title": remoteRecipe.title, "error": error.localizedDescription])
                     }
                 }
             }
@@ -188,10 +188,10 @@ extension FirebaseSyncService {
 
         // Download operation log
         let operationsSnapshot = try await recipeRef.collection("operations").getDocuments()
-        print("📥 [CRDT] Found \(operationsSnapshot.documents.count) operation documents in Firestore")
+        Log.info("Found operation documents in Firestore", category: .crdt, metadata: ["count": operationsSnapshot.documents.count])
 
         let operations = operationsSnapshot.documents.compactMap { RecipeOperation.from(firestoreData: $0.data()) }
-        print("📥 [CRDT] Successfully parsed \(operations.count) operations")
+        Log.info("Successfully parsed operations", category: .crdt, metadata: ["count": operations.count])
 
         let remoteOperationLog = OperationLog(recipeId: UUID(uuidString: recipeId)!, operations: operations)
 
@@ -208,7 +208,7 @@ extension FirebaseSyncService {
 
         if let localRecipe = localRecipes.first {
             // Recipe exists locally - merge
-            print("🔀 [CRDT] Merging with existing local recipe")
+            Log.info("Merging with existing local recipe", category: .crdt)
 
             // Create local CRDT
             let localCRDT = RecipeCRDT(recipe: localRecipe, deviceId: deviceId)
@@ -226,7 +226,7 @@ extension FirebaseSyncService {
             if case .autoMerged(let mergedCRDT, _) = mergeResult {
                 if let vectorClockData = try? JSONEncoder().encode(mergedCRDT.operationLog.vectorClock) {
                     localRecipe.vectorClockData = vectorClockData
-                    print("✅ [CRDT] Saved merged vector clock to recipe")
+                    Log.info("Saved merged vector clock to recipe", category: .crdt)
                 }
                 // Mark as synced to prevent re-upload on next sync
                 localRecipe.lastSyncedAt = Date()
@@ -236,13 +236,13 @@ extension FirebaseSyncService {
             return mergeResult
         } else {
             // New recipe - just insert
-            print("✅ [CRDT] New recipe from remote, inserting")
+            Log.info("New recipe from remote, inserting", category: .crdt)
             context.insert(remoteRecipe)
 
             // Save remote vector clock to recipe
             if let vectorClockData = try? JSONEncoder().encode(remoteCRDT.operationLog.vectorClock) {
                 remoteRecipe.vectorClockData = vectorClockData
-                print("✅ [CRDT] Saved remote vector clock to new recipe")
+                Log.info("Saved remote vector clock to new recipe", category: .crdt)
             }
 
             // Mark as synced to prevent re-upload on next sync
@@ -260,10 +260,10 @@ extension FirebaseSyncService {
             if remoteRecipe.firebaseImageURL != nil {
                 do {
                     try await downloadImage(for: remoteRecipe)
-                    print("✅ [CRDT] Image downloaded successfully for: \(remoteRecipe.title)")
+                    Log.info("Image downloaded successfully", category: .storage, metadata: ["title": remoteRecipe.title])
                     try? context.save() // Save again to persist imageFileName
                 } catch {
-                    print("⚠️ [CRDT] Failed to download image for \(remoteRecipe.title): \(error.localizedDescription)")
+                    Log.warning("Failed to download image", category: .storage, metadata: ["title": remoteRecipe.title, "error": error.localizedDescription])
                     // Recipe is still saved, just without the image
                 }
             }
@@ -276,7 +276,7 @@ extension FirebaseSyncService {
 
     /// Replace old resolveConflict with CRDT merge
     func resolveConflictWithCRDT(local: Recipe, remote: Recipe, deviceId: String) async throws -> MergeOperationResult {
-        print("🔀 [CRDT] Resolving conflict using CRDT merge")
+        Log.info("Resolving conflict using CRDT merge", category: .crdt)
 
         // Create CRDTs for both versions
         let localCRDT = RecipeCRDT(recipe: local, deviceId: deviceId)
@@ -366,7 +366,7 @@ extension FirebaseSyncService {
     func uploadRecipeTransactional(_ recipe: Recipe) async throws {
         let deviceId = getCurrentDeviceId()
 
-        print("🔒 [Transaction] Starting transactional upload: \(recipe.title)")
+        Log.info("Starting transactional upload", category: .sync, metadata: ["title": recipe.title])
 
         // Phase 1: Upload to Firebase
         if recipe.usesCRDT {
@@ -379,7 +379,7 @@ extension FirebaseSyncService {
         recipe.lastSyncedAt = Date()
         try? modelContext?.save()
 
-        print("✅ [Transaction] Transaction complete: \(recipe.title)")
+        Log.info("Transaction complete", category: .sync, metadata: ["title": recipe.title])
     }
 
     // MARK: - Sync Flow with CRDT
@@ -387,7 +387,7 @@ extension FirebaseSyncService {
     /// Enhanced sync flow that uses CRDT merge
     func syncChangesWithCRDT() async throws {
         guard !isSyncing else {
-            print("⚠️ [CRDT] Sync already in progress")
+            Log.warning("Sync already in progress", category: .crdt)
             return
         }
 
@@ -398,11 +398,11 @@ extension FirebaseSyncService {
         isSyncing = true
         defer { isSyncing = false }
 
-        print("🔄 [CRDT] Starting CRDT-aware sync...")
+        Log.info("Starting CRDT-aware sync", category: .crdt)
 
         // Step 1: Upload local changes
         let unsyncedRecipes = try fetchUnsyncedRecipes(context: context)
-        print("📤 [CRDT] Uploading \(unsyncedRecipes.count) local changes")
+        Log.info("Uploading local changes", category: .crdt, metadata: ["count": unsyncedRecipes.count])
 
         for recipe in unsyncedRecipes {
             try await uploadRecipeTransactional(recipe)
@@ -410,7 +410,7 @@ extension FirebaseSyncService {
 
         // Step 2: Download and merge remote changes
         let remoteChanges = try await fetchRemoteChanges(since: lastSyncDate)
-        print("📥 [CRDT] Processing \(remoteChanges.count) remote changes")
+        Log.info("Processing remote changes", category: .crdt, metadata: ["count": remoteChanges.count])
 
         var conflictsDetected: [(crdt: RecipeCRDT, conflicts: [DetailedConflict])] = []
 
@@ -421,7 +421,7 @@ extension FirebaseSyncService {
             if result.requiresUI {
                 // Conflict needs user resolution
                 if case .needsUserResolution(let conflicts, let partialCRDT, _) = result {
-                    print("⚠️ [CRDT] Conflict detected for: \(partialCRDT.recipe.title)")
+                    Log.warning("Conflict detected for recipe", category: .crdt, metadata: ["title": partialCRDT.recipe.title])
 
                     // Mark recipe as having conflicts
                     partialCRDT.recipe.hasPendingConflicts = true
@@ -435,7 +435,7 @@ extension FirebaseSyncService {
 
         // Step 3: If conflicts detected, user needs to resolve them
         if !conflictsDetected.isEmpty {
-            print("⚠️ [CRDT] \(conflictsDetected.count) recipes have conflicts requiring resolution")
+            Log.warning("Recipes have conflicts requiring resolution", category: .crdt, metadata: ["count": conflictsDetected.count])
 
             // Post notification to show conflict UI
             NotificationCenter.default.post(
@@ -445,7 +445,7 @@ extension FirebaseSyncService {
         }
 
         lastSyncDate = Date()
-        print("✅ [CRDT] Sync complete")
+        Log.info("CRDT sync complete", category: .crdt)
     }
 }
 

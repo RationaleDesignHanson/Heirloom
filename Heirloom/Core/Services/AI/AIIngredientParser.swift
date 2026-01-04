@@ -57,7 +57,7 @@ class AIIngredientParser {
                 "error": error.localizedDescription
             ])
 
-            print("⚠️ AI parsing failed, falling back to regex parser: \(error.localizedDescription)")
+            Log.warning("AI ingredient parsing failed, falling back to regex parser", category: .ocr, metadata: ["ingredientText": text, "error": error.localizedDescription])
 
             // Graceful fallback to regex parser
             return IngredientParser.parse(text)
@@ -175,7 +175,7 @@ class AIIngredientParser {
             return batchResult.map { ($0.quantity, $0.quantityMax, $0.unit, $0.name) }
 
         } catch {
-            print("⚠️ Batch AI parsing failed, falling back to individual parsing: \(error.localizedDescription)")
+            Log.warning("Batch AI ingredient parsing failed, falling back to individual parsing", category: .ocr, metadata: ["batchSize": ingredients.count, "error": error.localizedDescription])
 
             AnalyticsService.shared.track(event: .aiIngredientParseFailed, properties: [
                 "batch_size": ingredients.count,

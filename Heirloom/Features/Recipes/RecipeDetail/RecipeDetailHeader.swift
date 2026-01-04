@@ -84,8 +84,8 @@ struct RecipeDetailHeader: View {
         recipe: recipe,
         displayTitle: "Classic Chocolate Chip Cookies",
         isInShoppingCart: false,
-        onToggleFavorite: { print("Toggle favorite") },
-        onAddToShoppingList: { print("Add to shopping list") }
+        onToggleFavorite: { Log.debug("Preview: Toggle favorite", category: .ui) },
+        onAddToShoppingList: { Log.debug("Preview: Add to shopping list", category: .ui) }
     )
     .padding()
     .background(HeirloomColors.cream)

@@ -412,7 +412,7 @@ struct MergedRecipePreview: View {
     return MergedRecipePreview(
         recipe: recipe,
         resolutions: resolutions,
-        onConfirm: { print("Confirmed") },
-        onCancel: { print("Cancelled") }
+        onConfirm: { Log.debug("Preview: Conflict resolution confirmed", category: .sync) },
+        onCancel: { Log.debug("Preview: Conflict resolution cancelled", category: .sync) }
     )
 }

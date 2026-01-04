@@ -289,7 +289,7 @@ class MilestoneManager: ObservableObject {
         currentMilestone = milestone
         showCelebration = true
 
-        print("🎉 Milestone achieved: \(milestone.title)")
+        Log.info("Milestone achieved", category: .general, metadata: ["title": milestone.title, "key": milestone.key])
     }
 }
 

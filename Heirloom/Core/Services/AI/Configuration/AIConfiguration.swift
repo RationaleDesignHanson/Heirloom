@@ -268,7 +268,7 @@ class Keychain {
 
         let status = SecItemAdd(query as CFDictionary, nil)
         if status != errSecSuccess {
-            print("⚠️ Keychain: Failed to save \(key): \(status)")
+            Log.warning("Keychain: Failed to save key", category: .general, metadata: ["key": key, "status": Int(status)])
         }
     }
 

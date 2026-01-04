@@ -32,7 +32,7 @@ final class CommentAnalysisService {
                 let analysis = try await analyzeComment(comment)
                 results.append(analysis)
             } catch {
-                print("Failed to analyze comment \(comment.id): \(error)")
+                Log.warning("Failed to analyze comment", category: .general, metadata: ["commentId": comment.id.uuidString, "error": error.localizedDescription])
                 // Continue with other comments
             }
         }

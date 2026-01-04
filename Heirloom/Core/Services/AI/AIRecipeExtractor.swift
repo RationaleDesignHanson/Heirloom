@@ -171,7 +171,7 @@ class AIRecipeExtractor {
 
             return response.recipes
         } catch {
-            print("⚠️ Recipe detection failed: \(error)")
+            Log.warning("Recipe detection failed, assuming single recipe", category: .ocr, metadata: ["error": error.localizedDescription])
             // If detection fails, assume single recipe covering whole image
             return [DetectedRecipe.fullImage()]
         }
@@ -214,7 +214,7 @@ class AIRecipeExtractor {
                 "error": error.localizedDescription
             ])
 
-            print("⚠️ AI recipe extraction failed, using basic extraction: \(error.localizedDescription)")
+            Log.warning("AI recipe extraction failed, falling back to basic extraction", category: .ocr, metadata: ["error": error.localizedDescription])
 
             // Fallback to basic extraction
             return extractRecipeBasic(from: ocrText)
@@ -254,7 +254,7 @@ class AIRecipeExtractor {
                 "error": error.localizedDescription
             ])
 
-            print("⚠️ AI multi-recipe extraction failed, using basic extraction: \(error.localizedDescription)")
+            Log.warning("AI multi-recipe extraction failed, falling back to basic extraction", category: .ocr, metadata: ["error": error.localizedDescription])
 
             // Fallback to basic single recipe extraction
             let recipe = extractRecipeBasic(from: ocrText)
@@ -339,7 +339,7 @@ class AIRecipeExtractor {
 
                 extractedRecipes.append(recipeWithConfidence)
             } catch {
-                print("⚠️ Failed to extract recipe '\(detected.title)': \(error)")
+                Log.warning("Failed to extract individual recipe from multi-recipe image", category: .ocr, metadata: ["title": detected.title, "error": error.localizedDescription])
                 // Continue with other recipes even if one fails
                 continue
             }

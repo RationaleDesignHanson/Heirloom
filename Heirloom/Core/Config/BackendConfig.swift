@@ -13,7 +13,7 @@ class BackendConfig {
     static let shared = BackendConfig()
 
     private init() {
-        print("🔧 [BackendConfig] Active backend: Firebase")
+        Log.info("BackendConfig initialized", category: .firebase, metadata: ["backend": "Firebase"])
     }
 
     // MARK: - Backend Checks

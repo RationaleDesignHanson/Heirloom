@@ -345,13 +345,13 @@ struct RecipeListView: View {
         if BackendConfig.shared.isFirebaseActive {
             do {
                 try await FirebaseSyncService.shared.syncChangesWithCRDT()
-                print("✅ Pull-to-refresh: Firebase sync complete")
+                Log.info("Pull-to-refresh sync complete", category: .sync)
 
                 // Success haptic
                 let successGenerator = UINotificationFeedbackGenerator()
                 successGenerator.notificationOccurred(.success)
             } catch {
-                print("⚠️ Pull-to-refresh: Firebase sync failed: \(error)")
+                Log.error("Pull-to-refresh sync failed", category: .sync, error: error)
 
                 // Error haptic
                 let errorGenerator = UINotificationFeedbackGenerator()
@@ -381,9 +381,9 @@ struct RecipeListView: View {
             Task {
                 do {
                     try await FirebaseSyncService.shared.deleteRecipe(recipe.id)
-                    print("✅ Recipe deleted from Firebase")
+                    Log.info("Recipe deleted from Firebase", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
                 } catch {
-                    print("⚠️ Failed to delete recipe from Firebase: \(error.localizedDescription)")
+                    Log.error("Failed to delete recipe from Firebase", category: .firebase, error: error, metadata: ["recipeId": recipe.id.uuidString])
                 }
             }
         }
@@ -410,26 +410,26 @@ struct RecipeListView: View {
         recipe.isFavorite.toggle()
         recipe.lastModified = Date()
 
-        print("❤️ [Favorite] Toggling favorite for '\(recipe.title)' to \(recipe.isFavorite)")
-        print("🔧 [Favorite] Backend: Firebase, isFirebaseActive: \(BackendConfig.shared.isFirebaseActive)")
+        Log.info("Toggling favorite", category: .ui, metadata: ["title": recipe.title, "isFavorite": recipe.isFavorite])
+        Log.debug("Firebase backend active", category: .ui, metadata: ["isActive": BackendConfig.shared.isFirebaseActive])
 
         do {
             try modelContext.save()
-            print("💾 [Favorite] Local save successful")
+            Log.debug("Local save successful", category: .database)
 
             // Sync favorite status to Firebase
             if BackendConfig.shared.isFirebaseActive {
-                print("🔄 [Favorite] Firebase is active, starting upload...")
+                Log.debug("Firebase active, starting upload", category: .sync)
                 Task {
                     do {
                         try await FirebaseSyncService.shared.uploadRecipe(recipe)
-                        print("✅ Favorite status synced to Firebase")
+                        Log.info("Favorite status synced to Firebase", category: .sync, metadata: ["recipeId": recipe.id.uuidString])
                     } catch {
-                        print("⚠️ Failed to sync favorite status: \(error.localizedDescription)")
+                        Log.error("Failed to sync favorite status", category: .sync, error: error)
                     }
                 }
             } else {
-                print("⏭️ [Favorite] Firebase not active, skipping upload")
+                Log.debug("Firebase not active, skipping upload", category: .sync)
             }
 
             // Haptic feedback
@@ -535,16 +535,16 @@ struct RecipeListView: View {
 
         // Download and save image
         if let imageURL = URL(string: sampleRecipe.imageURL) {
-            print("📥 Downloading sample recipe image...")
+            Log.info("Downloading sample recipe image", category: .network, metadata: ["url": sampleRecipe.imageURL])
             do {
                 let (data, _) = try await URLSession.shared.data(from: imageURL)
                 if let image = UIImage(data: data) {
                     let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
                     recipe.imageFileName = fileName
-                    print("✅ Sample recipe image downloaded and saved")
+                    Log.info("Sample recipe image downloaded and saved", category: .storage, metadata: ["fileName": fileName])
                 }
             } catch {
-                print("⚠️ Failed to download sample recipe image: \(error.localizedDescription)")
+                Log.warning("Failed to download sample recipe image", category: .network, metadata: ["error": error.localizedDescription])
                 // Continue without image - not a fatal error
             }
         }
@@ -614,7 +614,7 @@ struct RecipeListView: View {
             if BackendConfig.shared.isFirebaseActive {
                 do {
                     try await FirebaseSyncService.shared.uploadRecipe(recipe)
-                    print("✅ Sample recipe synced to Firebase")
+                    Log.info("Sample recipe synced to Firebase", category: .sync, metadata: ["recipeId": recipe.id.uuidString])
 
                     // Create root lineage for sample recipe
                     do {
@@ -622,12 +622,12 @@ struct RecipeListView: View {
                             recipeId: recipe.id,
                             context: modelContext
                         )
-                        print("✅ Sample recipe lineage created")
+                        Log.info("Sample recipe lineage created", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
                     } catch {
-                        print("⚠️ Failed to create sample recipe lineage: \(error.localizedDescription)")
+                        Log.warning("Failed to create sample recipe lineage", category: .firebase, metadata: ["error": error.localizedDescription])
                     }
                 } catch {
-                    print("⚠️ Failed to sync sample recipe to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to sync sample recipe to Firebase", category: .sync, metadata: ["error": error.localizedDescription])
                     // Don't fail the save - local save succeeded
                 }
             }
@@ -643,7 +643,7 @@ struct RecipeListView: View {
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
 
-                print("✅ Sample recipe '\(recipe.title)' saved with \(ingredients.count) ingredients, card back, and \(sampleRecipe.comments.count) comments")
+                Log.info("Sample recipe saved", category: .ui, metadata: ["title": recipe.title, "ingredientCount": ingredients.count, "commentCount": sampleRecipe.comments.count])
 
                 // Check milestones
                 checkRecipeMilestones()
@@ -654,7 +654,7 @@ struct RecipeListView: View {
                     title: "Failed to save recipe",
                     message: error.localizedDescription
                 )
-                print("❌ Failed to save sample recipe: \(error)")
+                Log.error("Failed to save sample recipe", category: .database, error: error)
             }
         }
     }
@@ -688,11 +688,11 @@ struct RecipeListView: View {
 
     private func handleConflictNotification(_ notification: Notification) {
         guard let conflictsDetected = notification.object as? [(crdt: RecipeCRDT, conflicts: [DetailedConflict])] else {
-            print("⚠️ [RecipeListView] Failed to parse conflict notification")
+            Log.warning("Failed to parse conflict notification", category: .crdt)
             return
         }
 
-        print("🔔 [RecipeListView] Received conflict notification for \(conflictsDetected.count) recipe(s)")
+        Log.info("Received conflict notification", category: .crdt, metadata: ["count": conflictsDetected.count])
 
         // For now, show the first conflict
         // TODO: In the future, show a list of all conflicting recipes
@@ -701,7 +701,7 @@ struct RecipeListView: View {
             conflictList = first.conflicts
             showConflictResolution = true
 
-            print("✅ [RecipeListView] Showing conflict resolution UI for: \(first.crdt.recipe.title)")
+            Log.info("Showing conflict resolution UI", category: .ui, metadata: ["title": first.crdt.recipe.title])
         }
     }
 }
@@ -801,12 +801,12 @@ struct ConflictResolutionWrapper: View {
     }
 
     private func applyValueToRecipe(_ value: OperationValue, forField fieldPath: String) {
-        print("🔧 [ConflictResolution] Applying value to field: \(fieldPath)")
+        Log.debug("Applying value to field", category: .crdt, metadata: ["fieldPath": fieldPath])
         switch fieldPath {
         case "title":
             if let stringValue = value.stringValue {
                 recipeCRDT.recipe.title = stringValue
-                print("🔧 [ConflictResolution] Set title to: \(stringValue)")
+                Log.debug("Set title", category: .crdt, metadata: ["value": stringValue])
             }
         case "notes":
             if let stringValue = value.stringValue {
@@ -833,21 +833,21 @@ struct ConflictResolutionWrapper: View {
                 recipeCRDT.recipe.servings = nil
             }
         default:
-            print("⚠️ [ConflictResolution] Unknown field path: \(fieldPath)")
+            Log.warning("Unknown field path in conflict resolution", category: .crdt, metadata: ["fieldPath": fieldPath])
         }
     }
 
     @MainActor
     private func saveResolution() async {
-        print("🔧 [ConflictResolution] Starting save resolution...")
-        print("🔧 [ConflictResolution] Recipe title before resolution: \(recipeCRDT.recipe.title)")
+        Log.info("Starting conflict resolution save", category: .crdt)
+        Log.debug("Recipe title before resolution", category: .crdt, metadata: ["title": recipeCRDT.recipe.title])
 
         // Build resolutions list and apply values directly
         let resolutionsList = conflicts.compactMap { conflict -> ConflictResolution? in
             guard let choice = resolutions[conflict.fieldPath] else { return nil }
 
             // Apply the chosen value directly to the recipe
-            print("🔧 [ConflictResolution] Applying choice \(choice) for field: \(conflict.fieldPath)")
+            Log.debug("Applying conflict resolution choice", category: .crdt, metadata: ["choice": String(describing: choice), "fieldPath": conflict.fieldPath])
             switch choice {
             case .keepLocal:
                 if let localValue = conflict.localValue {
@@ -869,31 +869,31 @@ struct ConflictResolutionWrapper: View {
             )
         }
 
-        print("🔧 [ConflictResolution] Recipe title after applying values: \(recipeCRDT.recipe.title)")
-        print("🔧 [ConflictResolution] Applying \(resolutionsList.count) resolutions to CRDT...")
+        Log.debug("Recipe title after applying values", category: .crdt, metadata: ["title": recipeCRDT.recipe.title])
+        Log.info("Applying resolutions to CRDT", category: .crdt, metadata: ["count": resolutionsList.count])
 
         // Apply resolutions to CRDT operation log
         CRDTMergeEngine.shared.applyUserResolution(resolutionsList, to: recipeCRDT)
 
-        print("🔧 [ConflictResolution] Recipe title after CRDT resolution: \(recipeCRDT.recipe.title)")
+        Log.debug("Recipe title after CRDT resolution", category: .crdt, metadata: ["title": recipeCRDT.recipe.title])
 
         // Clear conflict flags on the recipe
-        print("🔧 [ConflictResolution] Clearing conflict flags")
+        Log.debug("Clearing conflict flags", category: .crdt)
         recipeCRDT.recipe.hasPendingConflicts = false
         recipeCRDT.recipe.showConflictBadge = false
         recipeCRDT.recipe.lastModified = Date()
 
         // Save to database
         do {
-            print("🔧 [ConflictResolution] Saving to database...")
+            Log.debug("Saving conflict resolution to database", category: .database)
             try modelContext.save()
-            print("✅ [ConflictResolution] Database save successful")
+            Log.info("Conflict resolution saved to database", category: .database)
 
             // Sync to Firebase
             if BackendConfig.shared.isFirebaseActive {
-                print("🔧 [ConflictResolution] Uploading to Firebase...")
+                Log.debug("Uploading resolved recipe to Firebase", category: .sync)
                 try await FirebaseSyncService.shared.uploadRecipe(recipeCRDT.recipe)
-                print("✅ [ConflictResolution] Firebase upload successful")
+                Log.info("Resolved recipe synced to Firebase", category: .sync)
             }
 
             // Show success
@@ -902,10 +902,10 @@ struct ConflictResolutionWrapper: View {
                 message: "All conflicts resolved successfully"
             )
 
-            print("✅ [ConflictResolution] Resolution complete!")
+            Log.info("Conflict resolution complete", category: .crdt)
             dismiss()
         } catch {
-            print("❌ [ConflictResolution] Save failed: \(error.localizedDescription)")
+            Log.error("Failed to save conflict resolution", category: .database, error: error)
             // Show error
             ToastManager.shared.error(
                 title: "Failed to Save",

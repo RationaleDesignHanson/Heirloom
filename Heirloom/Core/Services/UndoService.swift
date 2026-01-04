@@ -79,7 +79,7 @@ class UndoService: ObservableObject {
     /// - Parameter undoItem: The undo item to restore
     func undoDelete(_ undoItem: UndoItem) {
         guard let context = modelContext else {
-            print("⚠️ UndoService: No model context configured")
+            Log.warning("UndoService: No model context configured", category: .database)
             return
         }
 
@@ -95,9 +95,9 @@ class UndoService: ObservableObject {
             Task {
                 do {
                     try await FirebaseSyncService.shared.uploadRecipe(undoItem.recipe)
-                    print("✅ Recipe restored to Firebase: \(undoItem.recipe.title)")
+                    Log.info("Recipe restored to Firebase", category: .firebase, metadata: ["title": undoItem.recipe.title])
                 } catch {
-                    print("⚠️ Failed to restore recipe to Firebase: \(error.localizedDescription)")
+                    Log.warning("Failed to restore recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                 }
             }
         }
@@ -108,7 +108,7 @@ class UndoService: ObservableObject {
             "recipe_title": undoItem.recipe.title
         ])
 
-        print("✅ Restored recipe locally: \(undoItem.recipe.title)")
+        Log.info("Recipe restored locally", category: .database, metadata: ["title": undoItem.recipe.title])
     }
 
     // MARK: - Expiration
@@ -118,7 +118,7 @@ class UndoService: ObservableObject {
         if let index = pendingUndos.firstIndex(where: { $0.id == undoItem.id }),
            pendingUndos[index].isExpired {
             pendingUndos.remove(at: index)
-            print("🗑️ Permanently deleted recipe: \(undoItem.description)")
+            Log.info("Permanently deleted expired recipe", category: .database, metadata: ["description": undoItem.description])
         }
     }
 

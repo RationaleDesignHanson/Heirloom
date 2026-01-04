@@ -18,7 +18,7 @@ final class EnhancedOCRService {
     /// - Parameter image: The UIImage to process
     /// - Returns: OCRResult containing recognized text, regions, and metadata
     func recognizeText(from image: UIImage) async throws -> OCRResult {
-        print("🔍 Starting OCR recognition...")
+        Log.debug("Starting OCR recognition", category: .ocr)
 
         guard let cgImage = image.cgImage else {
             throw OCRError.invalidImage
@@ -26,7 +26,7 @@ final class EnhancedOCRService {
 
         // Detect text type (printed vs handwritten)
         let textType = detectTextType(image)
-        print("📝 Detected text type: \(textType.displayName)")
+        Log.debug("Detected text type for OCR", category: .ocr, metadata: ["textType": textType.displayName])
 
         // Create appropriate Vision request
         let request = createVisionRequest(for: textType)
@@ -37,7 +37,11 @@ final class EnhancedOCRService {
         // Process observations into structured result
         let result = processObservations(observations, imageSize: image.size, textType: textType)
 
-        print("✅ OCR complete: \(result.recognizedText.count) characters, confidence: \(String(format: "%.1f%%", result.overallConfidence * 100))")
+        Log.info("OCR recognition complete", category: .ocr, metadata: [
+            "characterCount": result.recognizedText.count,
+            "confidence": result.overallConfidence,
+            "textType": textType.displayName
+        ])
 
         return result
     }

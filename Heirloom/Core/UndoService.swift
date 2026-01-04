@@ -79,7 +79,7 @@ class UndoService: ObservableObject {
     /// - Parameter undoItem: The undo item to restore
     func undoDelete(_ undoItem: UndoItem) {
         guard let context = modelContext else {
-            print("⚠️ UndoService: No model context configured")
+            Log.warning("UndoService: No model context configured", category: .database)
             return
         }
 
@@ -96,7 +96,7 @@ class UndoService: ObservableObject {
             "recipe_title": undoItem.recipe.title
         ])
 
-        print("✅ Restored recipe: \(undoItem.recipe.title)")
+        Log.info("Recipe restored via undo", category: .database, metadata: ["title": undoItem.recipe.title])
     }
 
     // MARK: - Expiration
@@ -106,7 +106,7 @@ class UndoService: ObservableObject {
         if let index = pendingUndos.firstIndex(where: { $0.id == undoItem.id }),
            pendingUndos[index].isExpired {
             pendingUndos.remove(at: index)
-            print("🗑️ Permanently deleted recipe: \(undoItem.description)")
+            Log.info("Permanently deleted expired recipe", category: .database, metadata: ["description": undoItem.description])
         }
     }
 

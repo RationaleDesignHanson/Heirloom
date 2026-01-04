@@ -221,23 +221,23 @@ struct AsyncRecipeImage: View {
 
     private func loadImage() async {
         guard let fileName = imageFileName else {
-            print("🖼️ AsyncRecipeImage: No imageFileName provided")
+            Log.debug("AsyncRecipeImage: No imageFileName provided", category: .ui)
             await MainActor.run {
                 isLoading = false
             }
             return
         }
 
-        print("🖼️ AsyncRecipeImage: Loading image: \(fileName)")
+        Log.debug("AsyncRecipeImage: Loading image", category: .storage, metadata: ["fileName": fileName])
 
         if let image = await ImageStorageService.shared.loadImage(fileName: fileName) {
-            print("✅ AsyncRecipeImage: Successfully loaded image: \(fileName)")
+            Log.debug("AsyncRecipeImage: Successfully loaded image", category: .storage, metadata: ["fileName": fileName])
             await MainActor.run {
                 loadedImage = image
                 isLoading = false
             }
         } else {
-            print("⚠️ AsyncRecipeImage: Failed to load image: \(fileName)")
+            Log.warning("AsyncRecipeImage: Failed to load image", category: .storage, metadata: ["fileName": fileName])
             await MainActor.run {
                 isLoading = false
             }
