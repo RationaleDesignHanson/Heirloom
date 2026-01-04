@@ -47,7 +47,7 @@ class FirebaseLineageService: ObservableObject {
             throw LineageError.notAuthenticated
         }
 
-        logger.log("Creating root lineage for recipe", category: .firebase, level: .info)
+        logger.log("Creating root lineage for recipe", category: .firebase, level: .info, metadata: nil)
 
         // Create local lineage record
         let lineage = RecipeLineage.createRoot(
@@ -79,7 +79,7 @@ class FirebaseLineageService: ObservableObject {
             throw LineageError.notAuthenticated
         }
 
-        logger.log("Creating descendant lineage", category: .firebase, level: .info)
+        logger.log("Creating descendant lineage", category: .firebase, level: .info, metadata: nil)
 
         // Create local lineage record
         let lineage = RecipeLineage.createDescendant(
@@ -116,7 +116,7 @@ class FirebaseLineageService: ObservableObject {
             throw LineageError.notAuthenticated
         }
 
-        logger.log("Recording lineage modification", category: .firebase, level: .info)
+        logger.log("Recording lineage modification", category: .firebase, level: .info, metadata: nil)
 
         // Find lineage record for this recipe
         let descriptor = FetchDescriptor<RecipeLineage>(
@@ -124,7 +124,7 @@ class FirebaseLineageService: ObservableObject {
         )
 
         guard let lineage = try context.fetch(descriptor).first else {
-            logger.log("No lineage found for recipe", category: .firebase, level: .warning)
+            logger.log("No lineage found for recipe", category: .firebase, level: .warning, metadata: nil)
             return
         }
 
@@ -180,7 +180,7 @@ class FirebaseLineageService: ObservableObject {
             throw LineageError.notAuthenticated
         }
 
-        logger.log("Fetching descendant modifications", category: .firebase, level: .info)
+        logger.log("Fetching descendant modifications", category: .firebase, level: .info, metadata: nil)
 
         // Query Firebase for all lineage records with this root
         let snapshot = try await db.collection("lineages")
@@ -213,7 +213,7 @@ class FirebaseLineageService: ObservableObject {
         // Sort by timestamp (most recent first)
         allModifications.sort { $0.modification.timestamp > $1.modification.timestamp }
 
-        logger.log("Descendant modifications fetched", category: .firebase, level: .info)
+        logger.log("Descendant modifications fetched", category: .firebase, level: .info, metadata: nil)
 
         return allModifications
     }
@@ -319,7 +319,7 @@ class FirebaseLineageService: ObservableObject {
             try await db.collection("users/\(ancestorOwnerId)/notifications")
                 .addDocument(data: notificationData)
 
-            logger.log("Notification sent to ancestor", category: .firebase, level: .debug)
+            logger.log("Notification sent to ancestor", category: .firebase, level: .debug, metadata: nil)
         }
     }
 

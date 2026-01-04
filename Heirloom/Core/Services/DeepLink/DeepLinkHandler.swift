@@ -41,14 +41,14 @@ class DeepLinkHandler: ObservableObject {
         // For singleton compatibility (to be removed later)
         self.firebaseShare = ServiceContainer.shared.resolve(FirebaseShareServiceProtocol.self)
         self.logger = ServiceContainer.shared.resolve(LoggingService.self)
-        logger.log("DeepLinkHandler initialized", category: .general, level: .info)
+        logger.log("DeepLinkHandler initialized", category: .general, level: .info, metadata: nil)
         DeviceLogger.shared.log("🔗 [DeepLink] DeepLinkHandler initialized")
     }
 
     init(firebaseShare: FirebaseShareServiceProtocol, logger: LoggingService) {
         self.firebaseShare = firebaseShare
         self.logger = logger
-        logger.log("DeepLinkHandler initialized", category: .general, level: .info)
+        logger.log("DeepLinkHandler initialized", category: .general, level: .info, metadata: nil)
         DeviceLogger.shared.log("🔗 [DeepLink] DeepLinkHandler initialized")
     }
 

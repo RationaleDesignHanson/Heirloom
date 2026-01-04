@@ -145,6 +145,14 @@ protocol LoggingService {
         line: Int
     )
 
+    /// Convenience method to log with a specific level (with defaults)
+    func log(
+        _ message: String,
+        category: LogCategory,
+        level: LogLevel,
+        metadata: LogMetadata?
+    )
+
     /// Log a critical failure
     func critical(
         _ message: String,

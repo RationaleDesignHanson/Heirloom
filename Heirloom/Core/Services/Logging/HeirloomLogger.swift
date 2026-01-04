@@ -145,6 +145,25 @@ final class HeirloomLogger: LoggingService {
         )
     }
 
+    /// Simplified log method without file/function/line (for protocol conformance)
+    func log(
+        _ message: String,
+        category: LogCategory,
+        level: LogLevel,
+        metadata: LogMetadata?
+    ) {
+        log(
+            level: level,
+            message: message,
+            category: category,
+            error: nil,
+            metadata: metadata,
+            file: #fileID,
+            function: #function,
+            line: #line
+        )
+    }
+
     private func log(
         level: LogLevel,
         message: String,

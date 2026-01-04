@@ -163,15 +163,4 @@ final class NetworkMonitor {
 }
 
 // MARK: - SwiftUI Environment
-
-/// Environment key for NetworkMonitor
-struct NetworkMonitorKey: EnvironmentKey {
-    static let defaultValue = NetworkMonitor.shared
-}
-
-extension EnvironmentValues {
-    var networkMonitor: NetworkMonitor {
-        get { self[NetworkMonitorKey.self] }
-        set { self[NetworkMonitorKey.self] = newValue }
-    }
-}
+// Environment extension moved to ServiceEnvironment.swift for DI integration
