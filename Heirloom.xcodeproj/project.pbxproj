@@ -114,6 +114,10 @@
 		C583F5A82F09A6B80096478E /* HeirloomLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5A42F09A6B80096478E /* HeirloomLogger.swift */; };
 		C583F5A92F09A6B80096478E /* LoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5A52F09A6B80096478E /* LoggingService.swift */; };
 		C583F5AA2F09A6B80096478E /* LogRedactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5A62F09A6B80096478E /* LogRedactor.swift */; };
+		C583F5CE2F09FCAC0096478E /* ServiceRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5CC2F09FCAC0096478E /* ServiceRegistration.swift */; };
+		C583F5CF2F09FCAC0096478E /* ServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5CB2F09FCAC0096478E /* ServiceProtocols.swift */; };
+		C583F5D02F09FCAC0096478E /* ServiceEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5CA2F09FCAC0096478E /* ServiceEnvironment.swift */; };
+		C583F5D12F09FCAC0096478E /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5C92F09FCAC0096478E /* ServiceContainer.swift */; };
 		C5B317602F00C7E40087CF6D /* RecipeVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */; };
 		C5B317622F00C7F30087CF6D /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */; };
 		C5B317662F00C8230087CF6D /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317652F00C8230087CF6D /* AboutView.swift */; };
@@ -287,6 +291,10 @@
 		C583F5A42F09A6B80096478E /* HeirloomLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeirloomLogger.swift; sourceTree = "<group>"; };
 		C583F5A52F09A6B80096478E /* LoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingService.swift; sourceTree = "<group>"; };
 		C583F5A62F09A6B80096478E /* LogRedactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogRedactor.swift; sourceTree = "<group>"; };
+		C583F5C92F09FCAC0096478E /* ServiceContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceContainer.swift; sourceTree = "<group>"; };
+		C583F5CA2F09FCAC0096478E /* ServiceEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceEnvironment.swift; sourceTree = "<group>"; };
+		C583F5CB2F09FCAC0096478E /* ServiceProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceProtocols.swift; sourceTree = "<group>"; };
+		C583F5CC2F09FCAC0096478E /* ServiceRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRegistration.swift; sourceTree = "<group>"; };
 		C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersion.swift; sourceTree = "<group>"; };
 		C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		C5B317652F00C8230087CF6D /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
@@ -794,6 +802,17 @@
 			path = Logging;
 			sourceTree = "<group>";
 		};
+		C583F5CD2F09FCAC0096478E /* DI */ = {
+			isa = PBXGroup;
+			children = (
+				C583F5C92F09FCAC0096478E /* ServiceContainer.swift */,
+				C583F5CA2F09FCAC0096478E /* ServiceEnvironment.swift */,
+				C583F5CB2F09FCAC0096478E /* ServiceProtocols.swift */,
+				C583F5CC2F09FCAC0096478E /* ServiceRegistration.swift */,
+			);
+			path = DI;
+			sourceTree = "<group>";
+		};
 		C5B3176B2F00C8500087CF6D /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -892,6 +911,7 @@
 		CE482F3082BC4015FE64856D /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				C583F5CD2F09FCAC0096478E /* DI */,
 				C56F3E732F04AA3C00D19743 /* Config */,
 				C5B3177F2F00D70B0087CF6D /* Utilities */,
 				C5B317792F00CA040087CF6D /* UndoService.swift */,
@@ -1182,6 +1202,10 @@
 				31A0E785FAC399245DB9A76A /* AnnotationEditorView.swift in Sources */,
 				C56F3E7C2F04B67600D19743 /* FirebaseSignInView.swift in Sources */,
 				5DB20729E76D3DFBC0706134 /* AnthropicAIService.swift in Sources */,
+				C583F5CE2F09FCAC0096478E /* ServiceRegistration.swift in Sources */,
+				C583F5CF2F09FCAC0096478E /* ServiceProtocols.swift in Sources */,
+				C583F5D02F09FCAC0096478E /* ServiceEnvironment.swift in Sources */,
+				C583F5D12F09FCAC0096478E /* ServiceContainer.swift in Sources */,
 				52615A916BAFD2C901496ECA /* AttributionBadge.swift in Sources */,
 				C56F3DC92F0187EA00D19743 /* RecipeReceiveSheet.swift in Sources */,
 				ED52F1487AEF53834790D891 /* BulkImportView.swift in Sources */,

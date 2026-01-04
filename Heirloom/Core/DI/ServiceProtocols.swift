@@ -171,9 +171,4 @@ struct UndoAction {
     let undo: () async throws -> Void
 }
 
-enum ToastType {
-    case success
-    case error
-    case warning
-    case info
-}
+// Note: ToastType is defined in ToastView.swift

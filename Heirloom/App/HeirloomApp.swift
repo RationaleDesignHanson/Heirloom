@@ -358,10 +358,13 @@ struct ContentView: View {
 }
 
 #Preview {
-    let container = ServiceContainer()
-    container.registerProductionServices()
+    @Previewable @State var container = {
+        let c = ServiceContainer()
+        c.registerProductionServices()
+        return c
+    }()
 
-    return ContentView(
+    ContentView(
         notificationService: container.resolve(FirebaseNotificationService.self)
     )
     .environmentObject(DeepLinkCoordinator.shared)

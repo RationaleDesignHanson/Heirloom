@@ -78,7 +78,14 @@ extension ServiceContainer {
         register(FirebaseShareServiceProtocol.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
             let config = container.resolve(FirebaseConfigurationProtocol.self)
-            return FirebaseShareService(configuration: config, logger: logger)
+            let firebaseSync = container.resolve(FirebaseSyncServiceProtocol.self)
+            let lineageService = container.resolve(FirebaseLineageServiceProtocol.self)
+            return FirebaseShareService(
+                configuration: config,
+                logger: logger,
+                firebaseSync: firebaseSync,
+                lineageService: lineageService
+            )
         }
 
         // FirebaseSyncService (concrete type)

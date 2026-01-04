@@ -8,6 +8,11 @@ import SwiftUI
 class DeepLinkHandler: ObservableObject {
     static let shared = DeepLinkHandler()
 
+    // MARK: - Dependencies
+
+    private let firebaseShare: FirebaseShareServiceProtocol
+    private let logger: LoggingService
+
     // MARK: - Published State
 
     @Published var pendingShareURL: URL?
@@ -33,7 +38,17 @@ class DeepLinkHandler: ObservableObject {
     // MARK: - Initialization
 
     private init() {
-        Log.info("DeepLinkHandler initialized", category: .general)
+        // For singleton compatibility (to be removed later)
+        self.firebaseShare = ServiceContainer.shared.resolve(FirebaseShareServiceProtocol.self)
+        self.logger = ServiceContainer.shared.resolve(LoggingService.self)
+        logger.log("DeepLinkHandler initialized", category: .general, level: .info)
+        DeviceLogger.shared.log("🔗 [DeepLink] DeepLinkHandler initialized")
+    }
+
+    init(firebaseShare: FirebaseShareServiceProtocol, logger: LoggingService) {
+        self.firebaseShare = firebaseShare
+        self.logger = logger
+        logger.log("DeepLinkHandler initialized", category: .general, level: .info)
         DeviceLogger.shared.log("🔗 [DeepLink] DeepLinkHandler initialized")
     }
 
@@ -214,7 +229,7 @@ class DeepLinkHandler: ObservableObject {
             do {
                 Log.debug("Fetching share metadata from Firebase", category: .firebase)
                 DeviceLogger.shared.log("🔍 [DeepLink] Fetching share metadata from Firebase...")
-                let metadata = try await FirebaseShareService.shared.fetchShareMetadata(shareId: shareID)
+                let metadata = try await firebaseShare.fetchShareMetadata(shareId: shareID)
 
                 await MainActor.run {
                     Log.info("Share metadata fetched successfully", category: .firebase)

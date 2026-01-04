@@ -22,12 +22,21 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
 
     private let configuration: FirebaseConfigurationProtocol
     private let logger: LoggingService
+    private let firebaseSync: FirebaseSyncServiceProtocol
+    private let lineageService: FirebaseLineageServiceProtocol
 
     // MARK: - Initialization
 
-    init(configuration: FirebaseConfigurationProtocol, logger: LoggingService) {
+    init(
+        configuration: FirebaseConfigurationProtocol,
+        logger: LoggingService,
+        firebaseSync: FirebaseSyncServiceProtocol,
+        lineageService: FirebaseLineageServiceProtocol
+    ) {
         self.configuration = configuration
         self.logger = logger
+        self.firebaseSync = firebaseSync
+        self.lineageService = lineageService
     }
 
     private var db: Firestore { configuration.db }
@@ -53,7 +62,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         logger.log("Creating Firebase share for recipe", category: .firebase, level: .info)
 
         // 1. Ensure recipe is uploaded to Firebase (including image)
-        try await FirebaseSyncService.shared.uploadRecipe(recipe)
+        try await firebaseSync.uploadRecipe(recipe)
 
         // Wait briefly for image URL to be set (uploadRecipe updates it asynchronously)
         if recipe.imageFileName != nil && recipe.firebaseImageURL == nil {
@@ -64,15 +73,15 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         // 1.5. Fetch lineage information if this is a heirloom share
         var lineage: RecipeLineage?
         if options.shareType == .heirloom {
-            lineage = try? FirebaseLineageService.shared.fetchLineage(for: recipe.id, context: context)
+            lineage = try? lineageService.fetchLineage(for: recipe.id, context: context)
 
             // If no lineage exists and this is a heirloom share, create root lineage
             if lineage == nil {
-                try await FirebaseLineageService.shared.createRootLineage(
+                try await lineageService.createRootLineage(
                     recipeId: recipe.id,
                     context: context
                 )
-                lineage = try? FirebaseLineageService.shared.fetchLineage(for: recipe.id, context: context)
+                lineage = try? lineageService.fetchLineage(for: recipe.id, context: context)
             }
         }
 
@@ -221,7 +230,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         }
 
         // 5. Convert to Recipe model
-        var sharedRecipe = FirebaseSyncService.shared.convertFromFirestoreData(recipeData, id: recipeId, context: context)
+        var sharedRecipe = firebaseSync.convertFromFirestoreData(recipeData, id: recipeId, context: context)
 
         // 6. Download ingredients
         let ingredientsSnapshot = try await db.collection("users/\(ownerId)/recipes/\(recipeId)/ingredients").getDocuments()
@@ -229,7 +238,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
 
         for ingredientDoc in ingredientsSnapshot.documents {
             let ingredientData = ingredientDoc.data()
-            let ingredient = FirebaseSyncService.shared.convertIngredientFromFirestoreData(
+            let ingredient = firebaseSync.convertIngredientFromFirestoreData(
                 ingredientData,
                 id: ingredientDoc.documentID
             )
@@ -247,7 +256,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
 
             for commentDoc in commentsSnapshot.documents {
                 let commentData = commentDoc.data()
-                let comment = FirebaseSyncService.shared.convertCommentFromFirestoreData(
+                let comment = firebaseSync.convertCommentFromFirestoreData(
                     commentData,
                     id: commentDoc.documentID
                 )
@@ -264,7 +273,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             let cardBackDoc = try await db.collection("users/\(ownerId)/recipes/\(recipeId)/cardBack").document("metadata").getDocument()
 
             if cardBackDoc.exists, let cardBackData = cardBackDoc.data() {
-                let cardBack = FirebaseSyncService.shared.convertCardBackFromFirestoreData(cardBackData)
+                let cardBack = firebaseSync.convertCardBackFromFirestoreData(cardBackData)
                 cardBack.recipe = sharedRecipe
                 sharedRecipe.cardBack = cardBack
                 context.insert(cardBack)
@@ -274,7 +283,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         // 9. Download image if available
         if let firebaseImageURL = shareData["firebaseImageURL"] as? String {
             sharedRecipe.firebaseImageURL = firebaseImageURL
-            try await FirebaseSyncService.shared.downloadImage(for: sharedRecipe)
+            try await firebaseSync.downloadImage(for: sharedRecipe)
         }
 
         // 10. Update provenance
@@ -330,7 +339,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         try context.save()
 
         // 13. Upload to recipient's Firebase collection (with original ID)
-        try await FirebaseSyncService.shared.uploadRecipe(sharedRecipe)
+        try await firebaseSync.uploadRecipe(sharedRecipe)
 
         // 13.5. Create lineage record if this is a heirloom share
         if shareType == .heirloom {
@@ -340,7 +349,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             if let rootRecipeId = UUID(uuidString: rootRecipeIdString),
                let parentRecipeId = UUID(uuidString: recipeId) {
                 do {
-                    try await FirebaseLineageService.shared.createDescendantLineage(
+                    try await lineageService.createDescendantLineage(
                         rootRecipeId: rootRecipeId,
                         parentRecipeId: parentRecipeId,
                         currentRecipeId: sharedRecipe.id,

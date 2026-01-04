@@ -123,6 +123,28 @@ final class HeirloomLogger: LoggingService {
 
     // MARK: - Core Logging
 
+    /// Public convenience method for logging with a specific level
+    func log(
+        _ message: String,
+        category: LogCategory = .general,
+        level: LogLevel,
+        metadata: LogMetadata? = nil,
+        file: String = #fileID,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        log(
+            level: level,
+            message: message,
+            category: category,
+            error: nil,
+            metadata: metadata,
+            file: file,
+            function: function,
+            line: line
+        )
+    }
+
     private func log(
         level: LogLevel,
         message: String,
