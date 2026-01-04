@@ -32,7 +32,7 @@ class FirebaseLineageService: ObservableObject {
     private var db: Firestore {
         // Access through firebase sync configuration
         Firestore.firestore()
-    }()
+    }
     private var auth: Auth { Auth.auth() }
 
     // MARK: - Lineage Creation

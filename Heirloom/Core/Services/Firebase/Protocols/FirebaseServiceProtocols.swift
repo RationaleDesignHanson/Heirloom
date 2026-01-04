@@ -240,3 +240,188 @@ protocol FirebaseRecipeSyncProtocol: ObservableObject {
     /// Stop automatic background sync
     func stopAutomaticSync()
 }
+
+// MARK: - Sync Service Protocol
+
+/// Protocol for main Firebase sync orchestration
+@MainActor
+protocol FirebaseSyncServiceProtocol: ObservableObject {
+    /// Configure sync with model context
+    func configure(modelContext: ModelContext)
+
+    /// Upload recipe to Firebase
+    func uploadRecipe(_ recipe: Recipe) async throws
+
+    /// Download recipe from Firebase
+    func downloadRecipe(id: String, context: ModelContext) async throws -> Recipe
+
+    /// Download all recipes from Firebase
+    func downloadAllRecipes(context: ModelContext) async throws -> [Recipe]
+
+    /// Sync all local changes to Firebase
+    func syncChanges() async throws
+
+    /// Delete recipe from Firebase
+    func deleteRecipe(_ recipeId: UUID) async throws
+
+    /// Start automatic background sync
+    func startAutomaticSync()
+
+    /// Stop automatic background sync
+    func stopAutomaticSync()
+
+    /// Convert Firestore data to Recipe
+    func convertFromFirestoreData(_ data: [String: Any], id: String, context: ModelContext) -> Recipe
+
+    /// Convert Ingredient from Firestore data
+    func convertIngredientFromFirestoreData(_ data: [String: Any], id: String) -> Ingredient
+
+    /// Convert Comment from Firestore data
+    func convertCommentFromFirestoreData(_ data: [String: Any], id: String) -> RecipeComment
+
+    /// Convert CardBack from Firestore data
+    func convertCardBackFromFirestoreData(_ data: [String: Any]) -> RecipeCardBack
+
+    /// Download image for recipe
+    func downloadImage(for recipe: Recipe) async throws
+}
+
+// MARK: - Share Service Protocol
+
+/// Protocol for Firebase recipe sharing
+@MainActor
+protocol FirebaseShareServiceProtocol {
+    /// Create a share for a recipe
+    func createShare(
+        for recipe: Recipe,
+        options: ShareOptions,
+        context: ModelContext
+    ) async throws -> (shareId: String, shareURL: URL)
+
+    /// Accept a shared recipe
+    func acceptShare(
+        shareId: String,
+        context: ModelContext
+    ) async throws -> Recipe
+
+    /// Fetch share metadata without accepting
+    func fetchShareMetadata(shareId: String) async throws -> [String: Any]
+
+    /// Revoke a share
+    func revokeShare(shareId: String) async throws
+
+    /// List all shares for a recipe
+    func listShares(for recipe: Recipe) async throws -> [[String: Any]]
+
+    /// Generate shareable URL
+    func generateShareURL(shareId: String) -> URL
+
+    /// Generate web-friendly shareable URL
+    func generateWebShareURL(shareId: String) -> URL
+}
+
+// MARK: - Lineage Service Protocol
+
+/// Protocol for recipe lineage tracking
+@MainActor
+protocol FirebaseLineageServiceProtocol: ObservableObject {
+    /// Create root lineage for a new recipe
+    func createRootLineage(
+        recipeId: UUID,
+        context: ModelContext
+    ) async throws
+
+    /// Create descendant lineage when accepting shared recipe
+    func createDescendantLineage(
+        rootRecipeId: UUID,
+        parentRecipeId: UUID,
+        currentRecipeId: UUID,
+        rootOwnerId: String,
+        generation: Int,
+        sharedByName: String?,
+        context: ModelContext
+    ) async throws
+
+    /// Record a modification to a recipe
+    func recordModification(
+        recipeId: UUID,
+        changeType: ModificationRecord.ChangeType,
+        changeDescription: String,
+        fieldChanged: String?,
+        context: ModelContext
+    ) async throws
+
+    /// Fetch lineage for a recipe
+    func fetchLineage(
+        for recipeId: UUID,
+        context: ModelContext
+    ) throws -> RecipeLineage?
+
+    /// Fetch descendant modifications
+    func fetchDescendantModifications(
+        for rootRecipeId: UUID
+    ) async throws -> [DescendantModification]
+}
+
+// MARK: - Notification Service Protocol
+
+/// Protocol for Firebase notification service
+@MainActor
+protocol FirebaseNotificationServiceProtocol: ObservableObject {
+    /// Published notifications array
+    var notifications: [LineageNotification] { get }
+
+    /// Published unread count
+    var unreadCount: Int { get }
+
+    /// Start listening for notifications
+    func startListening()
+
+    /// Stop listening for notifications
+    func stopListening()
+
+    /// Get unread notifications for a specific recipe
+    func unreadNotifications(for recipeId: UUID) -> [LineageNotification]
+
+    /// Get unread count for a specific recipe
+    func unreadCount(for recipeId: UUID) -> Int
+
+    /// Check if there are any unread notifications
+    var hasUnreadNotifications: Bool { get }
+
+    /// Mark a notification as read
+    func markAsRead(_ notification: LineageNotification) async throws
+
+    /// Mark all notifications for a recipe as read
+    func markAllAsRead(for recipeId: UUID) async throws
+
+    /// Mark all notifications as read
+    func markAllAsRead() async throws
+}
+
+// MARK: - Auth Service Protocol
+
+/// Protocol for Firebase authentication
+@MainActor
+protocol FirebaseAuthServiceProtocol: ObservableObject {
+    /// Whether user is authenticated
+    var isAuthenticated: Bool { get }
+
+    /// Current user ID
+    var currentUserId: String? { get }
+
+    /// Current user email
+    var currentUserEmail: String? { get }
+
+    /// Sign in with Apple
+    func signInWithApple() async throws
+
+    /// Sign in with Google
+    func signInWithGoogle() async throws
+
+    /// Sign out
+    func signOut() throws
+
+    /// Delete account
+    func deleteAccount() async throws
+}

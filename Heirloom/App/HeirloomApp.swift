@@ -16,7 +16,12 @@ struct HeirloomApp: App {
     // Deep link coordinator for robust URL handling
     @StateObject private var deepLinkCoordinator = DeepLinkCoordinator.shared
 
+    // Dependency Injection Container
+    private let serviceContainer = ServiceContainer.shared
+
     init() {
+        // Initialize DI container with production services
+        serviceContainer.registerProductionServices()
         // FILE-BASED LOGGING - guaranteed to work on device
         DeviceLogger.shared.log("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
         logger.info("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
@@ -83,7 +88,11 @@ struct HeirloomApp: App {
     var body: some Scene {
         WindowGroup {
             if let modelContainer {
-                RootView(modelContainer: modelContainer)
+                RootView(
+                    modelContainer: modelContainer,
+                    authService: serviceContainer.resolve(FirebaseAuthService.self),
+                    notificationService: serviceContainer.resolve(FirebaseNotificationService.self)
+                )
                     .environmentObject(deepLinkCoordinator)
                     .onOpenURL { url in
                         Log.info("WindowGroup received URL", category: .general, metadata: ["url": url.absoluteString])
@@ -137,7 +146,8 @@ struct HeirloomApp: App {
                 DeviceLogger.shared.log("🔄 [Heirloom] Configuring Firebase sync...")
                 logger.info("🔄 [Heirloom] Configuring Firebase sync...")
 
-                FirebaseSyncService.shared.configure(modelContext: container.mainContext)
+                let syncService = serviceContainer.resolve(FirebaseSyncService.self)
+                syncService.configure(modelContext: container.mainContext)
 
                 DeviceLogger.shared.log("✅ [Heirloom] Firebase sync initialized")
                 logger.info("✅ [Heirloom] Firebase sync initialized")
@@ -219,7 +229,8 @@ struct HeirloomApp: App {
 /// Root view that handles authentication gating for Firebase
 struct RootView: View {
     let modelContainer: ModelContainer
-    @StateObject private var authService = FirebaseAuthService.shared
+    @ObservedObject var authService: FirebaseAuthService
+    let notificationService: FirebaseNotificationService
 
     var body: some View {
         Group {
@@ -227,7 +238,7 @@ struct RootView: View {
             if BackendConfig.shared.isFirebaseActive && !authService.isAuthenticated {
                 FirebaseSignInView()
             } else {
-                ContentView()
+                ContentView(notificationService: notificationService)
                     .modelContainer(modelContainer)
             }
         }
@@ -243,8 +254,8 @@ struct ContentView: View {
     // Deep link coordinator (injected via environment)
     @EnvironmentObject private var deepLinkCoordinator: DeepLinkCoordinator
 
-    // Notification service
-    @StateObject private var notificationService = FirebaseNotificationService.shared
+    // Notification service (injected from DI container)
+    @ObservedObject var notificationService: FirebaseNotificationService
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -347,7 +358,12 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
-        .environmentObject(DeepLinkCoordinator.shared)
-        .modelContainer(for: Recipe.self, inMemory: true)
+    let container = ServiceContainer()
+    container.registerProductionServices()
+
+    return ContentView(
+        notificationService: container.resolve(FirebaseNotificationService.self)
+    )
+    .environmentObject(DeepLinkCoordinator.shared)
+    .modelContainer(for: Recipe.self, inMemory: true)
 }

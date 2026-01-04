@@ -32,10 +32,17 @@ extension ServiceContainer {
         }
 
         // MARK: - Firebase Services
-        register(FirebaseAuthServiceProtocol.self, lifecycle: .singleton) { container in
+
+        // FirebaseAuthService (concrete type for ObservableObject)
+        register(FirebaseAuthService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
             let config = container.resolve(FirebaseConfigurationProtocol.self)
             return FirebaseAuthService(configuration: config, logger: logger)
+        }
+
+        // FirebaseAuthService protocol (resolves to same instance)
+        register(FirebaseAuthServiceProtocol.self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseAuthService.self)
         }
 
         register(FirebaseImageServiceProtocol.self, lifecycle: .singleton) { container in
@@ -74,7 +81,8 @@ extension ServiceContainer {
             return FirebaseShareService(configuration: config, logger: logger)
         }
 
-        register(FirebaseSyncServiceProtocol.self, lifecycle: .singleton) { container in
+        // FirebaseSyncService (concrete type)
+        register(FirebaseSyncService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
             let config = container.resolve(FirebaseConfigurationProtocol.self)
             let recipeSync = container.resolve(FirebaseRecipeSyncProtocol.self)
@@ -87,6 +95,30 @@ extension ServiceContainer {
                 imageService: imageService,
                 logger: logger
             )
+        }
+
+        // FirebaseSyncService protocol (resolves to same instance)
+        register(FirebaseSyncServiceProtocol.self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseSyncService.self)
+        }
+
+        // FirebaseNotificationService (concrete type for ObservableObject)
+        register(FirebaseNotificationService.self, lifecycle: .singleton) { container in
+            let logger = container.resolve(LoggingService.self)
+            let config = container.resolve(FirebaseConfigurationProtocol.self)
+            return FirebaseNotificationService(configuration: config, logger: logger)
+        }
+
+        // FirebaseNotificationService protocol (resolves to same instance)
+        register(FirebaseNotificationServiceProtocol.self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseNotificationService.self)
+        }
+
+        // FirebaseLineageService
+        register(FirebaseLineageServiceProtocol.self, lifecycle: .singleton) { container in
+            let logger = container.resolve(LoggingService.self)
+            let firebaseSync = container.resolve(FirebaseSyncServiceProtocol.self)
+            return FirebaseLineageService(firebaseSync: firebaseSync, logger: logger)
         }
 
         // MARK: - Network
