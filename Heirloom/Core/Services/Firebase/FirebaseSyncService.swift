@@ -20,6 +20,12 @@ import FirebaseStorage
 @MainActor
 class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
+    // MARK: - Singleton (temporary, for backward compatibility during DI migration)
+
+    static var shared: FirebaseSyncService {
+        ServiceContainer.shared.resolve(FirebaseSyncService.self)
+    }
+
     // MARK: - Dependencies
 
     private let configuration: FirebaseConfigurationProtocol

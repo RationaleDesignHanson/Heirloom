@@ -35,6 +35,11 @@ final class ServiceContainer {
         logger.log("ServiceContainer initialized", category: .general, level: .info)
     }
 
+    /// Public initializer for testing and previews
+    convenience init(forTesting: Bool) {
+        self.init()
+    }
+
     // MARK: - Registration
 
     /// Register a service with the container

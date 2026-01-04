@@ -359,7 +359,7 @@ struct ContentView: View {
 
 #Preview {
     @Previewable @State var container = {
-        let c = ServiceContainer()
+        let c = ServiceContainer(forTesting: true)
         c.registerProductionServices()
         return c
     }()
