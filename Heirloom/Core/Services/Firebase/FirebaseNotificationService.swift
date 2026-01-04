@@ -7,38 +7,41 @@ import Combine
 @MainActor
 class FirebaseNotificationService: ObservableObject {
 
-    // MARK: - Singleton
+    // MARK: - Dependencies
 
-    static let shared = FirebaseNotificationService()
-
-    private init() {
-        startListening()
-    }
+    private let configuration: FirebaseConfigurationProtocol
+    private let logger: LoggingService
 
     // MARK: - Published State
 
     @Published var notifications: [LineageNotification] = []
     @Published var unreadCount: Int = 0
 
-    // MARK: - Dependencies
+    // MARK: - State
 
-    private lazy var db: Firestore = {
-        // Use shared Firestore instance (configured by FirebaseSyncService)
-        Firestore.firestore()
-    }()
-    private var auth: Auth { Auth.auth() }
     private var listener: ListenerRegistration?
+
+    // MARK: - Initialization
+
+    init(configuration: FirebaseConfigurationProtocol, logger: LoggingService) {
+        self.configuration = configuration
+        self.logger = logger
+        startListening()
+    }
+
+    private var db: Firestore { configuration.db }
+    private var auth: Auth { configuration.auth }
 
     // MARK: - Notification Listening
 
     /// Start listening for notifications from Firebase
     func startListening() {
         guard let userId = auth.currentUser?.uid else {
-            Log.warning("Cannot start notification listener - not authenticated", category: .firebase)
+            logger.log("Cannot start notification listener - not authenticated", category: .firebase, level: .warning)
             return
         }
 
-        Log.info("Starting notification listener", category: .firebase, metadata: ["userId": userId])
+        logger.log("Starting notification listener", category: .firebase, level: .info)
 
         // Listen to notifications collection
         listener = db.collection("users/\(userId)/notifications")
@@ -52,11 +55,11 @@ class FirebaseNotificationService: ObservableObject {
                 }
 
                 guard let documents = snapshot?.documents else {
-                    Log.warning("No documents in notification snapshot", category: .firebase)
+                    logger.log("No documents in notification snapshot", category: .firebase, level: .warning)
                     return
                 }
 
-                Log.info("Received notifications", category: .firebase, metadata: ["count": documents.count])
+                logger.log("Received notifications", category: .firebase, level: .info)
 
                 Task { @MainActor in
                     self.notifications = documents.compactMap { doc in
@@ -64,7 +67,7 @@ class FirebaseNotificationService: ObservableObject {
                     }
 
                     self.unreadCount = self.notifications.filter { !$0.read }.count
-                    Log.debug("Unread notifications count updated", category: .firebase, metadata: ["unreadCount": self.unreadCount])
+                    logger.log("Unread notifications count updated", category: .firebase, level: .debug)
                 }
             }
     }
@@ -100,29 +103,29 @@ class FirebaseNotificationService: ObservableObject {
     /// Mark a notification as read
     func markAsRead(_ notification: LineageNotification) async throws {
         guard let userId = auth.currentUser?.uid else {
-            Log.warning("Cannot mark notification as read - not authenticated", category: .firebase)
+            logger.log("Cannot mark notification as read - not authenticated", category: .firebase, level: .warning)
             return
         }
 
-        Log.info("Marking notification as read", category: .firebase, metadata: ["notificationId": notification.id])
+        logger.log("Marking notification as read", category: .firebase, level: .info)
 
         try await db.collection("users/\(userId)/notifications")
             .document(notification.id)
             .updateData(["read": true])
 
-        Log.info("Notification marked as read", category: .firebase, metadata: ["notificationId": notification.id])
+        logger.log("Notification marked as read", category: .firebase, level: .info)
     }
 
     /// Mark all notifications for a recipe as read
     func markAllAsRead(for recipeId: UUID) async throws {
         guard let userId = auth.currentUser?.uid else {
-            Log.warning("Cannot mark notifications as read - not authenticated", category: .firebase)
+            logger.log("Cannot mark notifications as read - not authenticated", category: .firebase, level: .warning)
             return
         }
 
         let notificationsToMark = unreadNotifications(for: recipeId)
 
-        Log.info("Marking recipe notifications as read", category: .firebase, metadata: ["count": notificationsToMark.count, "recipeId": recipeId.uuidString])
+        logger.log("Marking recipe notifications as read", category: .firebase, level: .info)
 
         // Update in batches
         let batch = db.batch()
@@ -135,19 +138,19 @@ class FirebaseNotificationService: ObservableObject {
 
         try await batch.commit()
 
-        Log.info("All recipe notifications marked as read", category: .firebase, metadata: ["recipeId": recipeId.uuidString])
+        logger.log("All recipe notifications marked as read", category: .firebase, level: .info)
     }
 
     /// Mark all notifications as read (for tab badge clear)
     func markAllAsRead() async throws {
         guard let userId = auth.currentUser?.uid else {
-            Log.warning("Cannot mark all notifications as read - not authenticated", category: .firebase)
+            logger.log("Cannot mark all notifications as read - not authenticated", category: .firebase, level: .warning)
             return
         }
 
         let unreadNotifications = notifications.filter { !$0.read }
 
-        Log.info("Marking all notifications as read", category: .firebase, metadata: ["count": unreadNotifications.count])
+        logger.log("Marking all notifications as read", category: .firebase, level: .info)
 
         // Update in batches
         let batch = db.batch()
