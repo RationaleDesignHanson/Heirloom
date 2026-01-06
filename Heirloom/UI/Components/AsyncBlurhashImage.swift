@@ -73,7 +73,7 @@ struct AsyncBlurhashImage: View {
         }
 
         // Get image from storage
-        let imageService = ServiceContainer.shared.resolve(ImageStorageServiceProtocol.self)
+        let imageService = ServiceContainer.shared.resolve(ImageStorageService.self)
         if let image = await imageService.loadImageVariant(fileName: fileName, variant: variant) {
             loadedImage = image
             isLoading = false
