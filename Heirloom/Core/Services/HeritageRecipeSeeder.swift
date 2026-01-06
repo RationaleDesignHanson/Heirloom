@@ -172,6 +172,18 @@ class HeritageRecipeSeeder {
                 }
             }
 
+            // Create card back with heritage information
+            let cardBack = RecipeCardBack(recipe: recipe)
+            cardBack.configureForHeritageRecipe()
+            cardBack.isComplete = true
+            recipe.cardBack = cardBack
+            modelContext.insert(cardBack)
+
+            Log.debug("Created heritage card back", category: .storage, metadata: [
+                "title": recipe.title,
+                "hasHistoricalText": recipe.historicalText != nil
+            ])
+
             // Insert into context
             modelContext.insert(recipe)
             seededCount += 1
