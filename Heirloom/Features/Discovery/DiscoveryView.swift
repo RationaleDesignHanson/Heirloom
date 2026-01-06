@@ -5,6 +5,8 @@ import SwiftData
 struct DiscoveryView: View {
     @Environment(\.modelContext) private var modelContext
 
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     @State private var selectedTab: DiscoveryTab = .trending
     @State private var trendingRecipes: [TrendingRecipe] = []
     @State private var newRecipes: [Recipe] = []
@@ -202,7 +204,7 @@ struct DiscoveryView: View {
                 }
 
                 // Track analytics
-                AnalyticsService.shared.track(event: .discoveryFeedViewed, properties: [
+                analytics.track(event: .discoveryFeedViewed, properties: [
                     "tab": "trending",
                     "count": trending.count
                 ])
@@ -217,7 +219,7 @@ struct DiscoveryView: View {
                     newRecipes = recipes
                 }
 
-                AnalyticsService.shared.track(event: .discoveryFeedViewed, properties: [
+                analytics.track(event: .discoveryFeedViewed, properties: [
                     "tab": "new",
                     "count": recipes.count
                 ])
@@ -232,7 +234,7 @@ struct DiscoveryView: View {
                     popularRecipes = popular
                 }
 
-                AnalyticsService.shared.track(event: .discoveryFeedViewed, properties: [
+                analytics.track(event: .discoveryFeedViewed, properties: [
                     "tab": "popular",
                     "count": popular.count
                 ])
@@ -263,7 +265,7 @@ struct DiscoveryView: View {
         Log.debug("Navigate to recipe requested", category: .ui, metadata: ["title": recipe.title, "recipeId": recipe.id.uuidString])
 
         // Track analytics
-        AnalyticsService.shared.track(event: .trendingRecipeViewed, properties: [
+        analytics.track(event: .trendingRecipeViewed, properties: [
             "recipe_id": recipe.id.uuidString,
             "recipe_title": recipe.title,
             "discovery_tab": selectedTab.rawValue

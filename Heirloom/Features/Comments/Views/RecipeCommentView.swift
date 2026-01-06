@@ -11,6 +11,8 @@ struct RecipeCommentView: View {
 
     @Environment(\.modelContext) private var modelContext
 
+    private var commentService: CommentService { ServiceContainer.shared.resolve(CommentService.self) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             headerView
@@ -271,7 +273,7 @@ struct RecipeCommentView: View {
 
     private func upvoteComment(_ comment: RecipeComment) {
         do {
-            try CommentService.shared.upvoteComment(comment, context: modelContext)
+            try commentService.upvoteComment(comment, context: modelContext)
         } catch {
             Log.error("Failed to upvote comment", category: .database, metadata: ["error": error.localizedDescription])
         }
@@ -279,7 +281,7 @@ struct RecipeCommentView: View {
 
     private func downvoteComment(_ comment: RecipeComment) {
         do {
-            try CommentService.shared.downvoteComment(comment, context: modelContext)
+            try commentService.downvoteComment(comment, context: modelContext)
         } catch {
             Log.error("Failed to downvote comment", category: .database, metadata: ["error": error.localizedDescription])
         }
@@ -287,7 +289,7 @@ struct RecipeCommentView: View {
 
     private func togglePin(_ comment: RecipeComment) {
         do {
-            try CommentService.shared.togglePin(comment, context: modelContext)
+            try commentService.togglePin(comment, context: modelContext)
         } catch {
             Log.error("Failed to toggle comment pin", category: .database, metadata: ["error": error.localizedDescription])
         }
@@ -295,7 +297,7 @@ struct RecipeCommentView: View {
 
     private func toggleCardBackVisibility() {
         do {
-            try CommentService.shared.toggleCardBackVisibility(comment, context: modelContext)
+            try commentService.toggleCardBackVisibility(comment, context: modelContext)
         } catch {
             Log.error("Failed to toggle comment card back visibility", category: .database, metadata: ["error": error.localizedDescription])
         }

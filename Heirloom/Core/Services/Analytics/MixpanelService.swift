@@ -5,12 +5,11 @@ import Mixpanel
 // MARK: - Mixpanel Service
 @MainActor
 class MixpanelService: AnalyticsServiceProtocol {
-    static let shared = MixpanelService()
 
     private var mixpanel: MixpanelInstance?
     private let isProduction: Bool
 
-    private init() {
+    init() {
         #if DEBUG
         self.isProduction = false
         #else

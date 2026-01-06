@@ -4,9 +4,24 @@ import Foundation
 /// Provides significantly better accuracy than regex-based parsing
 /// Gracefully falls back to IngredientParser on errors
 @MainActor
-class AIIngredientParser {
-    static let shared = AIIngredientParser()
-    private init() {}
+class AIIngredientParser: AIIngredientParserProtocol {
+    // MARK: - Dependencies
+
+    private let aiService: AIServiceProtocol
+    private let configuration: AIConfigurationProtocol
+    private let analytics: AnalyticsServiceProtocol
+
+    // MARK: - Initialization
+
+    init(
+        aiService: AIServiceProtocol,
+        configuration: AIConfigurationProtocol,
+        analytics: AnalyticsServiceProtocol
+    ) {
+        self.aiService = aiService
+        self.configuration = configuration
+        self.analytics = analytics
+    }
 
     // MARK: - Parsed Result
 
@@ -27,13 +42,45 @@ class AIIngredientParser {
 
     // MARK: - Public API
 
+    // MARK: - Protocol Conformance
+
+    /// Parse ingredient text using AI with fallback to regex parser (Protocol)
+    /// - Parameter text: Raw ingredient text (e.g., "2 cups all-purpose flour")
+    /// - Returns: Ingredient object
+    func parse(_ text: String) async throws -> Ingredient {
+        let tuple = try await parseToTuple(text)
+        return Ingredient(
+            originalText: text,
+            name: tuple.name,
+            quantity: tuple.quantity,
+            unit: tuple.unit
+        )
+    }
+
+    /// Parse multiple ingredients in batch (Protocol)
+    /// - Parameter texts: Array of ingredient texts
+    /// - Returns: Array of Ingredient objects
+    func parseBatch(_ texts: [String]) async throws -> [Ingredient] {
+        let tuples = try await parseBatchToTuple(texts)
+        return zip(texts, tuples).map { text, tuple in
+            Ingredient(
+                originalText: text,
+                name: tuple.name,
+                quantity: tuple.quantity,
+                unit: tuple.unit
+            )
+        }
+    }
+
+    // MARK: - Tuple API (Legacy compatibility)
+
     /// Parse ingredient text using AI with fallback to regex parser
     /// - Parameter text: Raw ingredient text (e.g., "2 cups all-purpose flour")
     /// - Returns: Tuple matching IngredientParser output format
-    func parse(_ text: String) async throws -> (quantity: Double?, quantityMax: Double?, unit: String?, name: String) {
+    func parseToTuple(_ text: String) async throws -> (quantity: Double?, quantityMax: Double?, unit: String?, name: String) {
         // Check if AI parsing is enabled
-        guard AIConfiguration.shared.enableAIParsing,
-              AIConfiguration.shared.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIParsing,
+              configuration.isConfigured(provider: .anthropic) else {
             // Fall back to regex parser
             return IngredientParser.parse(text)
         }
@@ -42,7 +89,7 @@ class AIIngredientParser {
             let result = try await parseWithAI(text)
 
             // Track success
-            AnalyticsService.shared.track(event: .aiIngredientParseSuccess, properties: [
+            analytics.track(event: .aiIngredientParseSuccess, properties: [
                 "ingredient_text": text,
                 "has_quantity": result.quantity != nil,
                 "has_unit": result.unit != nil
@@ -52,7 +99,7 @@ class AIIngredientParser {
 
         } catch {
             // Track failure
-            AnalyticsService.shared.track(event: .aiIngredientParseFailed, properties: [
+            analytics.track(event: .aiIngredientParseFailed, properties: [
                 "ingredient_text": text,
                 "error": error.localizedDescription
             ])
@@ -67,12 +114,11 @@ class AIIngredientParser {
     // MARK: - AI Parsing
 
     private func parseWithAI(_ text: String) async throws -> ParsedIngredient {
-        let service = AnthropicAIService.shared
-        let model = AIConfiguration.shared.model(for: .parsing)
+        let model = configuration.model(for: .parsing)
 
         let prompt = buildPrompt(for: text)
 
-        let result = try await service.completeStructured(
+        let result = try await aiService.completeStructured(
             prompt: prompt,
             schema: ParsedIngredient.self,
             options: AICompletionOptions(
@@ -140,15 +186,15 @@ class AIIngredientParser {
         """
     }
 
-    // MARK: - Batch Parsing
+    // MARK: - Batch Parsing (Legacy compatibility)
 
     /// Parse multiple ingredients in a single AI call (more efficient)
     /// - Parameter ingredients: Array of ingredient text strings
     /// - Returns: Array of parsed ingredient tuples
-    func parseBatch(_ ingredients: [String]) async throws -> [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)] {
+    func parseBatchToTuple(_ ingredients: [String]) async throws -> [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)] {
         // Check if AI parsing is enabled
-        guard AIConfiguration.shared.enableAIParsing,
-              AIConfiguration.shared.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIParsing,
+              configuration.isConfigured(provider: .anthropic) else {
             // Fall back to regex parser for all
             return ingredients.map { IngredientParser.parse($0) }
         }
@@ -157,7 +203,7 @@ class AIIngredientParser {
         if ingredients.count <= 3 {
             var results: [(Double?, Double?, String?, String)] = []
             for ingredient in ingredients {
-                let result = try await parse(ingredient)
+                let result = try await parseToTuple(ingredient)
                 results.append(result)
             }
             return results
@@ -167,7 +213,7 @@ class AIIngredientParser {
         do {
             let batchResult = try await parseBatchWithAI(ingredients)
 
-            AnalyticsService.shared.track(event: .aiIngredientParseSuccess, properties: [
+            analytics.track(event: .aiIngredientParseSuccess, properties: [
                 "batch_size": ingredients.count,
                 "mode": "batch"
             ])
@@ -177,7 +223,7 @@ class AIIngredientParser {
         } catch {
             Log.warning("Batch AI ingredient parsing failed, falling back to individual parsing", category: .ocr, metadata: ["batchSize": ingredients.count, "error": error.localizedDescription])
 
-            AnalyticsService.shared.track(event: .aiIngredientParseFailed, properties: [
+            analytics.track(event: .aiIngredientParseFailed, properties: [
                 "batch_size": ingredients.count,
                 "error": error.localizedDescription
             ])
@@ -185,7 +231,7 @@ class AIIngredientParser {
             // Fall back to individual parsing
             var results: [(Double?, Double?, String?, String)] = []
             for ingredient in ingredients {
-                let result = try await parse(ingredient)
+                let result = try await parseToTuple(ingredient)
                 results.append(result)
             }
             return results
@@ -193,12 +239,11 @@ class AIIngredientParser {
     }
 
     private func parseBatchWithAI(_ ingredients: [String]) async throws -> [ParsedIngredient] {
-        let service = AnthropicAIService.shared
-        let model = AIConfiguration.shared.model(for: .parsing)
+        let model = configuration.model(for: .parsing)
 
         let prompt = buildBatchPrompt(for: ingredients)
 
-        let result = try await service.completeStructured(
+        let result = try await aiService.completeStructured(
             prompt: prompt,
             schema: [ParsedIngredient].self,
             options: AICompletionOptions(

@@ -3,10 +3,6 @@ import Foundation
 /// Central repository for all help articles and FAQ content
 /// Content will be expanded in tasks 4.2-4.6
 final class HelpContent {
-    static let shared = HelpContent()
-
-    private init() {}
-
     // MARK: - All Articles
 
     /// All help articles organized by section

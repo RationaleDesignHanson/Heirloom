@@ -3,14 +3,12 @@ import UIKit
 
 /// Memory cache for recipe images
 /// Reduces disk I/O when scrolling through recipe lists
-final class ImageCache {
-    static let shared = ImageCache()
-
+final class ImageCache: ImageCacheProtocol {
     private let cache = NSCache<NSURL, UIImage>()
     private let maxMemoryCacheSize: Int = 50_000_000  // 50MB
     private var memoryWarningObserver: NSObjectProtocol?
 
-    private init() {
+    init() {
         cache.totalCostLimit = maxMemoryCacheSize
 
         // Clear cache on memory warning (properly stored to avoid retain cycle)
@@ -29,7 +27,26 @@ final class ImageCache {
         }
     }
 
-    // MARK: - Cache Operations
+    // MARK: - Protocol Conformance (String-based keys)
+
+    /// Cache an image with a string key (for protocol conformance)
+    func cache(_ image: UIImage, for key: String) {
+        guard let url = URL(string: key) else { return }
+        setImage(image, for: url)
+    }
+
+    /// Retrieve an image with a string key (for protocol conformance)
+    func retrieve(for key: String) -> UIImage? {
+        guard let url = URL(string: key) else { return nil }
+        return image(for: url)
+    }
+
+    /// Clear all cached images (for protocol conformance)
+    func clear() {
+        clearCache()
+    }
+
+    // MARK: - Cache Operations (URL-based keys)
 
     func image(for url: URL) -> UIImage? {
         return cache.object(forKey: url as NSURL)

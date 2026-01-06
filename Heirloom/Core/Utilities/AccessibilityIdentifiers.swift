@@ -195,10 +195,14 @@ enum AccessibilityIdentifiers {
     enum TabBar {
         static let view = "tabBarView"
         static let recipesTab = "tabBarRecipesTab"
-        static let addTab = "tabBarAddTab"
+        static let collectionsTab = "tabBarCollectionsTab"
         static let shoppingTab = "tabBarShoppingTab"
-        static let partiesTab = "tabBarPartiesTab"
+        static let mealPlanningTab = "tabBarMealPlanningTab"
         static let settingsTab = "tabBarSettingsTab"
+
+        // Legacy (kept for backwards compatibility)
+        static let addTab = "tabBarAddTab"
+        static let partiesTab = "tabBarPartiesTab"
     }
 
     // MARK: - Onboarding

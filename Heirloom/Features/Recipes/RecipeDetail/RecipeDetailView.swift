@@ -8,7 +8,10 @@ struct RecipeDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseSync) private var firebaseSync
+    @Environment(\.firebaseAuth) private var firebaseAuth
     @State private var showDeleteConfirmation = false
+    @State private var showSignInPrompt = false
     @State private var isDeleting = false
     @State private var showEditSheet = false
     @State private var showCookingMode = false
@@ -17,20 +20,35 @@ struct RecipeDetailView: View {
     @State private var showCardPersonalization = false
     @State private var showCloudKitShare = false
     @State private var showHeirloomExplanation = false
+    @State private var showHeritageEditConfirmation = false
+    @State private var recipeToEdit: Recipe?
     @State private var servingMultiplier: Double = 1.0
     @State private var targetServings: Int = 0
     @State private var showScalingExplanation = false
     @State private var showComments = false
-    @State private var showCardBack = false
+    @State private var isCardFlipped = false
+    @State private var showCardBackEditor = false
     @State private var selectedCollection: RecipeCollection?
 
     // Version selector
     @StateObject private var versionViewModel = RecipeVersionSelectorViewModel()
     @State private var selectedVersion: RecipeLineageVersion?
+
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     @State private var isDiffExpanded = false
 
     // Notification service
     @EnvironmentObject private var notificationService: FirebaseNotificationService
+
+    // Using concrete type for export functionality
+    private var exportService: RecipeExportService { ServiceContainer.shared.resolve(RecipeExportService.self) }
+
+    // Using concrete type for toast notifications
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
+    private var commentService: CommentService { ServiceContainer.shared.resolve(CommentService.self) }
 
     // MARK: - Computed Display Properties
 
@@ -241,23 +259,24 @@ struct RecipeDetailView: View {
             recipe.lastViewed = Date()
             try? modelContext.save()
 
-            AnalyticsService.shared.trackRecipeViewed(recipe: recipe)
+            analytics.trackRecipeViewed(recipe: recipe)
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Menu {
-                        Button {
+                    Button {
+                        // Check if user is authenticated before sharing
+                        if firebaseAuth.isAuthenticated {
                             showCloudKitShare = true
-                        } label: {
-                            Label("Share Recipe", systemImage: "square.and.arrow.up")
+                        } else {
+                            showSignInPrompt = true
                         }
                     } label: {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }
 
                     Button {
-                        showEditSheet = true
+                        handleEditTapped()
                     } label: {
                         Label("Edit", systemImage: "pencil")
                     }
@@ -290,9 +309,11 @@ struct RecipeDetailView: View {
                     }
 
                     Button {
-                        showCardBack = true
+                        withAnimation {
+                            isCardFlipped.toggle()
+                        }
                     } label: {
-                        Label("Customize Card Back", systemImage: "rectangle.portrait.on.rectangle.portrait")
+                        Label(isCardFlipped ? "Show Front" : "Flip to Back", systemImage: "rectangle.portrait.on.rectangle.portrait.angled")
                     }
 
                     Divider()
@@ -321,7 +342,21 @@ struct RecipeDetailView: View {
             Text("This action cannot be undone.")
         }
         .sheet(isPresented: $showEditSheet) {
-            RecipeEditorView(recipe: recipe)
+            if let recipeToEdit = recipeToEdit {
+                RecipeEditorView(recipe: recipeToEdit)
+            }
+        }
+        .confirmationDialog(
+            "Edit Heritage Recipe",
+            isPresented: $showHeritageEditConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Create My Copy") {
+                createUserCopyAndEdit()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This is a heritage recipe from our founding collections. Editing will create your personal copy that you can modify. The original will remain unchanged.")
         }
         .sheet(isPresented: $showTagCollectionPicker) {
             TagCollectionPickerView(recipe: recipe)
@@ -337,11 +372,82 @@ struct RecipeDetailView: View {
                 RecipeCommentListView(recipe: recipe)
             }
         }
-        .sheet(isPresented: $showCardBack) {
+        .sheet(isPresented: $showCardBackEditor) {
             CardBackEditorView(recipe: recipe)
         }
         .sheet(isPresented: $showHeirloomExplanation) {
             HeirloomShareExplanationView()
+        }
+        .sheet(isPresented: $showSignInPrompt) {
+            NavigationStack {
+                VStack(spacing: 32) {
+                    Spacer()
+
+                    // Icon
+                    ZStack {
+                        Circle()
+                            .fill(HeirloomColors.tomato.opacity(0.15))
+                            .frame(width: 100, height: 100)
+
+                        Image(systemName: "square.and.arrow.up.circle.fill")
+                            .font(.system(size: 50))
+                            .foregroundColor(HeirloomColors.tomato)
+                    }
+
+                    // Message
+                    VStack(spacing: 12) {
+                        Text("Sign in to share")
+                            .font(HeirloomFonts.title2)
+                            .foregroundColor(HeirloomColors.primaryText)
+
+                        Text("Create an account to share recipes with family and friends")
+                            .font(HeirloomFonts.body)
+                            .foregroundColor(HeirloomColors.secondaryText)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+                    }
+
+                    Spacer()
+
+                    // Sign in button
+                    Button {
+                        showSignInPrompt = false
+                        // Small delay so sheets don't conflict
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            // Navigate to Settings where sign-in is available
+                            // Or present sign-in directly - for now, just dismiss
+                        }
+                    } label: {
+                        Text("Continue to Sign In")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(HeirloomColors.tomato)
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal, 40)
+
+                    // Maybe later button
+                    Button {
+                        showSignInPrompt = false
+                    } label: {
+                        Text("Maybe Later")
+                            .font(HeirloomFonts.body)
+                            .foregroundColor(HeirloomColors.secondaryText)
+                    }
+                    .padding(.bottom, 40)
+                }
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            showSignInPrompt = false
+                        }
+                    }
+                }
+            }
+            .presentationDetents([.medium])
         }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe)
@@ -370,10 +476,97 @@ struct RecipeDetailView: View {
 
     // MARK: - Image Section
     private var recipeImage: some View {
-        AsyncRecipeImage(
-            imageFileName: displayImageFileName,
-            placeholder: recipe.sourceType?.iconName ?? "fork.knife"
+        FlipCard(
+            isFlipped: $isCardFlipped,
+            front: {
+                AsyncRecipeImage(
+                    imageFileName: displayImageFileName,
+                    placeholder: recipe.sourceType?.iconName ?? "fork.knife"
+                )
+            },
+            back: {
+                // Safely check if card back exists with optional binding
+                if recipe.cardBack != nil {
+                    // Card back exists - show preview with edit button
+                    ZStack(alignment: .topTrailing) {
+                        // TODO: Re-enable once RecipeCardBackPreview is added to Xcode project
+                        // RecipeCardBackPreview(cardBack: recipe.cardBack!, recipe: recipe)
+                        Text("Card Back Preview")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color(.systemBackground))
+
+                        // Edit affordance
+                        Button {
+                            showCardBackEditor = true
+                        } label: {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.system(size: 32))
+                                .foregroundStyle(.white)
+                                .background(
+                                    Circle()
+                                        .fill(HeirloomColors.tomato)
+                                        .frame(width: 36, height: 36)
+                                )
+                        }
+                        .padding(16)
+                    }
+                } else {
+                    // Show empty card back state
+                    ZStack {
+                        Rectangle()
+                            .fill(Color(.systemBackground))
+
+                        VStack(spacing: 16) {
+                            Image(systemName: "rectangle.portrait.on.rectangle.portrait")
+                                .font(.system(size: 48))
+                                .foregroundStyle(HeirloomColors.secondaryText)
+
+                            Text("No card back yet")
+                                .font(HeirloomFonts.body)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+
+                            Button {
+                                isCardFlipped = false
+                                // Show the editor
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    showCardBackEditor = true
+                                }
+                            } label: {
+                                Text("Add Card Back")
+                                    .font(HeirloomFonts.bodyBold)
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 10)
+                                    .background(
+                                        Capsule()
+                                            .fill(HeirloomColors.tomato)
+                                    )
+                            }
+                        }
+                        .padding()
+                    }
+                }
+            }
         )
+        // TODO: Re-enable once FlipAffordanceBadge is added to Xcode project
+        // .overlay(alignment: .bottomTrailing) {
+        //     // Show flip affordance badge on first time
+        //     if !FlipAffordanceBadge.hasSeenFlip {
+        //         FlipAffordanceBadge()
+        //             .padding(12)
+        //     }
+        // }
+        .onTapGesture {
+            withAnimation {
+                isCardFlipped.toggle()
+            }
+
+            // TODO: Re-enable once FlipAffordanceBadge is added to Xcode project
+            // Mark flip affordance as seen after first flip
+            // if !FlipAffordanceBadge.hasSeenFlip {
+            //     FlipAffordanceBadge.markAsSeen()
+            // }
+        }
     }
 
     // MARK: - Header Section
@@ -567,7 +760,7 @@ struct RecipeDetailView: View {
 
                             // Track scaling event
                             if size != originalServings {
-                                AnalyticsService.shared.track(event: .recipeScaled, properties: [
+                                analytics.track(event: .recipeScaled, properties: [
                                     "recipe_title": recipe.title,
                                     "category": recipe.category?.rawValue ?? "unknown",
                                     "original_servings": originalServings,
@@ -590,7 +783,7 @@ struct RecipeDetailView: View {
                         showScalingExplanation = true
 
                         // Track explanation view
-                        AnalyticsService.shared.track(event: .scalingExplanationViewed, properties: [
+                        analytics.track(event: .scalingExplanationViewed, properties: [
                             "recipe_title": recipe.title,
                             "category": recipe.category?.rawValue ?? "unknown"
                         ])
@@ -654,7 +847,7 @@ struct RecipeDetailView: View {
     private var startCookingButton: some View {
         Button {
             showCookingMode = true
-            AnalyticsService.shared.track(event: .cookingStarted, properties: [
+            analytics.track(event: .cookingStarted, properties: [
                 "recipe_id": recipe.id.uuidString,
                 "recipe_title": recipe.title
             ])
@@ -944,7 +1137,7 @@ struct RecipeDetailView: View {
     private var commentsSection: some View {
         let comments = recipe.comments ?? []
         let commentCount = comments.count
-        let topComments = CommentService.shared.getTopComments(for: recipe, limit: 3)
+        let topComments = commentService.getTopComments(for: recipe, limit: 3)
 
         return VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             // Section header
@@ -1114,10 +1307,10 @@ struct RecipeDetailView: View {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
 
-        RecipeExportService.shared.shareRecipe(recipe, as: format, from: window)
+        exportService.shareRecipe(recipe, as: format, from: window)
 
         // Track analytics
-        AnalyticsService.shared.track(event: .recipeShared, properties: [
+        analytics.track(event: .recipeShared, properties: [
             "recipe_id": recipe.id.uuidString,
             "recipe_title": recipe.title,
             "share_format": String(describing: format)
@@ -1129,18 +1322,18 @@ struct RecipeDetailView: View {
         recipe.lastModified = Date()
 
         Log.info("Toggling favorite status", category: .ui, metadata: ["title": recipe.title, "isFavorite": recipe.isFavorite])
-        Log.debug("Firebase backend configuration", category: .firebase, metadata: ["isFirebaseActive": BackendConfig.shared.isFirebaseActive])
+        Log.debug("Firebase backend configuration", category: .firebase, metadata: ["isFirebaseActive": backendConfig.isFirebaseActive])
 
         do {
             try modelContext.save()
             Log.info("Favorite status saved locally", category: .database)
 
             // Sync favorite status to Firebase
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Log.debug("Firebase active, uploading recipe", category: .firebase)
                 Task {
                     do {
-                        try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                        try await firebaseSync.uploadRecipe(recipe)
                         Log.info("Favorite status synced to Firebase", category: .firebase)
                     } catch {
                         Log.warning("Failed to sync favorite status to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
@@ -1151,7 +1344,7 @@ struct RecipeDetailView: View {
             }
         } catch {
             Log.error("Failed to save favorite status locally", category: .database, metadata: ["error": error.localizedDescription])
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to update favorite",
                 message: error.localizedDescription
             )
@@ -1163,7 +1356,7 @@ struct RecipeDetailView: View {
         generator.impactOccurred()
 
         let message = recipe.isFavorite ? "Added to favorites" : "Removed from favorites"
-        ToastManager.shared.success(title: message)
+        toastManager.success(title: message)
 
         // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
         // if recipe.isFavorite {
@@ -1173,7 +1366,7 @@ struct RecipeDetailView: View {
         // }
 
         // Track analytics
-        AnalyticsService.shared.trackRecipeFavorited(recipe: recipe, isFavorite: recipe.isFavorite)
+        analytics.trackRecipeFavorited(recipe: recipe, isFavorite: recipe.isFavorite)
     }
 
     private var isInShoppingCart: Bool {
@@ -1194,12 +1387,12 @@ struct RecipeDetailView: View {
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
 
-                ToastManager.shared.success(title: "Removed from shopping list")
+                toastManager.success(title: "Removed from shopping list")
 
                 // Track analytics
-                AnalyticsService.shared.trackShoppingListToggle(recipe: recipe, isInList: false)
+                analytics.trackShoppingListToggle(recipe: recipe, isInList: false)
             } catch {
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Failed to remove from shopping list",
                     message: error.localizedDescription
                 )
@@ -1221,14 +1414,14 @@ struct RecipeDetailView: View {
                 let servingText = targetServings == recipe.parsedServingCount
                     ? ""
                     : " (for \(targetServings))"
-                ToastManager.shared.success(title: "Added to shopping list\(servingText)")
+                toastManager.success(title: "Added to shopping list\(servingText)")
 
                 // Track analytics
-                AnalyticsService.shared.trackShoppingListToggle(recipe: recipe, isInList: true)
+                analytics.trackShoppingListToggle(recipe: recipe, isInList: true)
 
                 // Track scaled recipe added to cart
                 if targetServings != recipe.parsedServingCount {
-                    AnalyticsService.shared.track(event: .scaledRecipeAddedToCart, properties: [
+                    analytics.track(event: .scaledRecipeAddedToCart, properties: [
                         "recipe_title": recipe.title,
                         "category": recipe.category?.rawValue ?? "unknown",
                         "original_servings": recipe.parsedServingCount,
@@ -1237,7 +1430,7 @@ struct RecipeDetailView: View {
                     ])
                 }
             } catch {
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Failed to add to shopping list",
                     message: error.localizedDescription
                 )
@@ -1260,7 +1453,7 @@ struct RecipeDetailView: View {
         let recipeId = recipe.id.uuidString
 
         // Track analytics before deletion
-        AnalyticsService.shared.trackRecipeDeleted(recipeTitle: recipeTitle)
+        analytics.trackRecipeDeleted(recipeTitle: recipeTitle)
 
         // Delete from context
         modelContext.delete(recipe)
@@ -1269,7 +1462,7 @@ struct RecipeDetailView: View {
             try modelContext.save()
 
             // Delete from Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Task {
                     do {
                         // Delete recipe document from Firestore
@@ -1281,7 +1474,7 @@ struct RecipeDetailView: View {
                         // Delete recipe image from Firebase Storage
                         if let recipeUUID = UUID(uuidString: recipeId) {
                             do {
-                                try await FirebaseSyncService.shared.deleteImage(for: recipeUUID)
+                                try await firebaseSync.deleteImage(for: recipeUUID)
                                 Log.info("Recipe image deleted from Firebase Storage", category: .firebase, metadata: ["recipeId": recipeId])
                             } catch {
                                 Log.warning("Failed to delete image from Firebase Storage", category: .firebase, metadata: ["error": error.localizedDescription])
@@ -1298,7 +1491,7 @@ struct RecipeDetailView: View {
             let successGenerator = UINotificationFeedbackGenerator()
             successGenerator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Recipe deleted")
+            toastManager.success(title: "Recipe deleted")
 
             // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
             // AccessibilityAnnouncementService.shared.announceRecipeDeleted(title: recipeTitle)
@@ -1306,7 +1499,7 @@ struct RecipeDetailView: View {
             dismiss()
         } catch {
             isDeleting = false
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to delete recipe",
                 message: error.localizedDescription
             )
@@ -1383,10 +1576,10 @@ struct RecipeDetailView: View {
             let successGenerator = UINotificationFeedbackGenerator()
             successGenerator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Recipe duplicated")
+            toastManager.success(title: "Recipe duplicated")
 
             // Track analytics
-            AnalyticsService.shared.track(event: .featureUsed, properties: [
+            analytics.track(event: .featureUsed, properties: [
                 "feature": "recipe_duplicated",
                 "original_title": recipe.title,
                 "has_ingredients": recipe.ingredients?.isEmpty == false,
@@ -1396,10 +1589,49 @@ struct RecipeDetailView: View {
             // Navigate to the duplicate
             dismiss()
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to duplicate recipe",
                 message: error.localizedDescription
             )
+        }
+    }
+
+    // MARK: - Heritage Recipe Lifecycle
+
+    private func handleEditTapped() {
+        if recipe.isHeritageRecipe {
+            // Show confirmation dialog for heritage recipes
+            showHeritageEditConfirmation = true
+        } else {
+            // Directly edit non-heritage recipes
+            recipeToEdit = recipe
+            showEditSheet = true
+        }
+    }
+
+    private func createUserCopyAndEdit() {
+        // Create user's personal copy of the heritage recipe
+        let userCopy = recipe.createUserCopy(context: modelContext)
+
+        // Save context to persist the copy
+        do {
+            try modelContext.save()
+
+            // Track that user created a copy
+            UserDefaults.standard.set(true, forKey: "HeritageRecipeCopied_\(recipe.id.uuidString)")
+
+            // Open editor with the new copy
+            recipeToEdit = userCopy
+            showEditSheet = true
+
+            Log.info("User created copy of heritage recipe for editing", category: .database, metadata: [
+                "original": recipe.title,
+                "copy": userCopy.title
+            ])
+        } catch {
+            Log.error("Failed to create user copy of heritage recipe", category: .database, metadata: [
+                "error": error.localizedDescription
+            ])
         }
     }
 }

@@ -7,6 +7,8 @@ struct PersonalStatsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Recipe.timesCooked, order: .reverse) private var recipes: [Recipe]
 
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     @State private var stats: PersonalStats?
     @State private var isLoading = true
 
@@ -313,7 +315,7 @@ struct PersonalStatsView: View {
             }
 
             // Track analytics
-            AnalyticsService.shared.track(event: .featureUsed, properties: [
+            analytics.track(event: .featureUsed, properties: [
                 "feature": "personal_stats",
                 "total_recipes": totalRecipes,
                 "total_cooks": totalCooks

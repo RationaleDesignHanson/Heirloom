@@ -9,6 +9,9 @@ struct QRCodeShareSheet: View {
     let recipeTitle: String
     @Environment(\.dismiss) private var dismiss
 
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     @State private var qrImage: UIImage?
     @State private var showingSaveConfirmation = false
 
@@ -161,7 +164,7 @@ struct QRCodeShareSheet: View {
         }
 
         // Track analytics
-        AnalyticsService.shared.track(event: .recipeShared, properties: [
+        analytics.track(event: .recipeShared, properties: [
             "method": "qr_code",
             "recipe_title": recipeTitle
         ])
@@ -174,12 +177,12 @@ struct QRCodeShareSheet: View {
             try await QRCodeService.shared.saveQRCodeToPhotos(image)
             showingSaveConfirmation = true
 
-            ToastManager.shared.success(
+            toastManager.success(
                 title: "Saved",
                 message: "QR code saved to Photos"
             )
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to Save",
                 message: error.localizedDescription
             )
@@ -193,6 +196,8 @@ struct QRCodeShareSheet: View {
 struct QRCodeScannerView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var scanner = QRCodeScannerViewModel()
+
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
     let onScanSuccess: (URL) -> Void
 
@@ -322,7 +327,7 @@ struct QRCodeScannerView: View {
         onScanSuccess(url)
 
         // Track analytics
-        AnalyticsService.shared.track(event: .recipeShared, properties: [
+        analytics.track(event: .recipeShared, properties: [
             "method": "qr_scan_received",
             "url": url.absoluteString
         ])

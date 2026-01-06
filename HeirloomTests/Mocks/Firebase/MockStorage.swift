@@ -10,7 +10,7 @@ import FirebaseStorage
 @testable import Heirloom
 
 /// Mock Firebase Storage for testing
-@MainActor
+
 class MockStorage: StorageProtocol {
     var storedData: [String: Data] = [:]
     var shouldFailOperations = false
@@ -28,7 +28,7 @@ class MockStorage: StorageProtocol {
 }
 
 /// Mock storage reference
-@MainActor
+
 class MockStorageReference: StorageReferenceProtocol {
     let path: String
     weak var storage: MockStorage?
@@ -54,7 +54,7 @@ class MockStorageReference: StorageReferenceProtocol {
         storage?.storedData[path] = uploadData
 
         let meta = StorageMetadata()
-        meta.size = Int64(uploadData.count)
+        // meta.size = Int64(uploadData.count) // REMOVED: size is read-only
         meta.contentType = metadata?.contentType ?? "application/octet-stream"
         return meta
     }

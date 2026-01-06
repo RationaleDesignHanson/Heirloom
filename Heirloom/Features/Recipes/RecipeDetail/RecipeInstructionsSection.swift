@@ -93,7 +93,7 @@ struct RecipeInstructionsSection: View {
         "Cool on baking sheet for 2 minutes before removing to a wire rack."
     ]
 
-    return RecipeInstructionsSection(instructions: instructions)
+    RecipeInstructionsSection(instructions: instructions)
         .padding()
         .background(HeirloomColors.cream)
 }

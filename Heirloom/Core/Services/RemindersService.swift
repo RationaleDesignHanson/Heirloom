@@ -4,11 +4,9 @@ import EventKit
 /// Service for exporting shopping lists to iOS Reminders app
 @MainActor
 class RemindersService {
-    static let shared = RemindersService()
-
     private let eventStore = EKEventStore()
 
-    private init() {}
+    init() {}
 
     /// Request permission to access Reminders
     func requestAccess() async -> Bool {

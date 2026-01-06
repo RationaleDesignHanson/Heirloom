@@ -20,12 +20,12 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
 
     // MARK: - Dependencies
 
-    private let configuration: FirebaseConfigurationProtocol
+    private let configuration: FirebaseConfiguration
     private let logger: LoggingService
 
     // MARK: - Initialization
 
-    init(configuration: FirebaseConfigurationProtocol, logger: LoggingService) {
+    init(configuration: FirebaseConfiguration, logger: LoggingService) {
         self.configuration = configuration
         self.logger = logger
         super.init()
@@ -35,7 +35,7 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
             currentUser = user
             isAuthenticated = true
             hasCheckedInitialAuthState = true
-            logger.log("Restored auth session: \(user.uid)", category: .auth, level: .info)
+            logger.log("Restored auth session: \(user.uid)", category: .auth, level: .info, metadata: nil)
         }
 
         // Listen for auth state changes
@@ -54,9 +54,9 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
                 self.hasCheckedInitialAuthState = true
 
                 if let user = user {
-                    self.logger.log("User signed in: \(user.uid)", category: .auth, level: .info)
+                    self.logger.log("User signed in: \(user.uid)", category: .auth, level: .info, metadata: nil)
                 } else {
-                    self.logger.log("User signed out", category: .auth, level: .info)
+                    self.logger.log("User signed out", category: .auth, level: .info, metadata: nil)
                 }
             }
         }
@@ -72,6 +72,16 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
     // Track if we've checked auth state to prevent multiple checks
     private var hasCheckedInitialAuthState = false
 
+    // MARK: - Protocol Properties
+
+    var currentUserId: String? {
+        currentUser?.uid
+    }
+
+    var currentUserEmail: String? {
+        currentUser?.email
+    }
+
     // MARK: - Sign in with Apple State
 
     // Unhashed nonce for Sign in with Apple
@@ -81,7 +91,7 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
 
     /// Sign in with Apple
     func signInWithApple() async throws {
-        logger.log("Starting Sign in with Apple", category: .auth, level: .info)
+        logger.log("Starting Sign in with Apple", category: .auth, level: .info, metadata: nil)
 
         isAuthenticating = true
         defer { isAuthenticating = false }
@@ -107,7 +117,7 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
 
     /// Sign in with Google
     func signInWithGoogle() async throws {
-        logger.log("Starting Sign in with Google", category: .auth, level: .info)
+        logger.log("Starting Sign in with Google", category: .auth, level: .info, metadata: nil)
 
         isAuthenticating = true
         defer { isAuthenticating = false }
@@ -115,7 +125,7 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         // Get the client ID from Firebase
         guard let clientID = configuration.auth.app?.options.clientID else {
             let error = AuthError.invalidCredential
-            logger.log("Missing Google client ID", category: .auth, level: .error)
+            logger.log("Missing Google client ID", category: .auth, level: .error, metadata: nil)
             authError = error
             throw error
         }
@@ -128,7 +138,7 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController else {
             let error = AuthError.signInFailed(NSError(domain: "FirebaseAuth", code: -1, userInfo: [NSLocalizedDescriptionKey: "No root view controller found"]))
-            logger.log("No root view controller found for Google sign in", category: .auth, level: .error)
+            logger.log("No root view controller found for Google sign in", category: .auth, level: .error, metadata: nil)
             authError = error
             throw error
         }
@@ -139,7 +149,7 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
 
             guard let idToken = result.user.idToken?.tokenString else {
                 let error = AuthError.invalidCredential
-                logger.log("Missing Google ID token", category: .auth, level: .error)
+                logger.log("Missing Google ID token", category: .auth, level: .error, metadata: nil)
                 authError = error
                 throw error
             }
@@ -150,20 +160,20 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
             let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
 
             // Sign in to Firebase
-            logger.log("Authenticating with Firebase using Google credential", category: .auth, level: .info)
+            logger.log("Authenticating with Firebase using Google credential", category: .auth, level: .info, metadata: nil)
             let authResult = try await configuration.auth.signIn(with: credential)
 
-            logger.log("Successfully signed in with Google: \(authResult.user.uid)", category: .auth, level: .info)
+            logger.log("Successfully signed in with Google: \(authResult.user.uid)", category: .auth, level: .info, metadata: nil)
 
             authError = nil
 
         } catch {
-            logger.log("Google sign in failed: \(error.localizedDescription)", category: .auth, level: .error)
+            logger.log("Google sign in failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
 
             // Check if user cancelled
             let nsError = error as NSError
             if nsError.domain == "com.google.GIDSignIn" && nsError.code == -5 {
-                logger.log("User cancelled Google sign in", category: .auth, level: .info)
+                logger.log("User cancelled Google sign in", category: .auth, level: .info, metadata: nil)
                 return
             }
 
@@ -172,9 +182,58 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         }
     }
 
+    /// Sign in with email and password
+    func signInWithEmail(email: String, password: String) async throws {
+        logger.log("Starting email/password sign in", category: .auth, level: .info, metadata: nil)
+
+        isAuthenticating = true
+        defer { isAuthenticating = false }
+
+        do {
+            let authResult = try await configuration.auth.signIn(withEmail: email, password: password)
+            logger.log("Successfully signed in with email: \(authResult.user.uid)", category: .auth, level: .info, metadata: nil)
+            authError = nil
+        } catch {
+            logger.log("Email sign in failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
+            authError = error
+            throw error
+        }
+    }
+
+    /// Create account with email and password
+    func createAccountWithEmail(email: String, password: String) async throws {
+        logger.log("Creating account with email", category: .auth, level: .info, metadata: nil)
+
+        isAuthenticating = true
+        defer { isAuthenticating = false }
+
+        do {
+            let authResult = try await configuration.auth.createUser(withEmail: email, password: password)
+            logger.log("Successfully created account: \(authResult.user.uid)", category: .auth, level: .info, metadata: nil)
+            authError = nil
+        } catch {
+            logger.log("Account creation failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
+            authError = error
+            throw error
+        }
+    }
+
+    /// Send password reset email
+    func sendPasswordReset(email: String) async throws {
+        logger.log("Sending password reset email", category: .auth, level: .info, metadata: nil)
+
+        do {
+            try await configuration.auth.sendPasswordReset(withEmail: email)
+            logger.log("Password reset email sent successfully", category: .auth, level: .info, metadata: nil)
+        } catch {
+            logger.log("Password reset failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
+            throw error
+        }
+    }
+
     /// Sign out
     func signOut() throws {
-        logger.log("Signing out user", category: .auth, level: .info)
+        logger.log("Signing out user", category: .auth, level: .info, metadata: nil)
 
         do {
             try configuration.auth.signOut()
@@ -182,10 +241,34 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
             // Also sign out from Google
             GIDSignIn.sharedInstance.signOut()
 
-            logger.log("Signed out successfully", category: .auth, level: .info)
+            logger.log("Signed out successfully", category: .auth, level: .info, metadata: nil)
 
         } catch {
-            logger.log("Sign out failed: \(error.localizedDescription)", category: .auth, level: .error)
+            logger.log("Sign out failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
+            throw error
+        }
+    }
+
+    /// Delete user account
+    func deleteAccount() async throws {
+        logger.log("Attempting to delete user account", category: .auth, level: .info, metadata: nil)
+
+        guard let user = currentUser else {
+            let error = AuthError.notAuthenticated
+            logger.log("Cannot delete account: user not authenticated", category: .auth, level: .error, metadata: nil)
+            throw error
+        }
+
+        do {
+            try await user.delete()
+
+            // Also sign out from Google
+            GIDSignIn.sharedInstance.signOut()
+
+            logger.log("Account deleted successfully", category: .auth, level: .info, metadata: nil)
+
+        } catch {
+            logger.log("Account deletion failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
             throw error
         }
     }
@@ -229,22 +312,22 @@ extension FirebaseAuthService: ASAuthorizationControllerDelegate {
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         Task { @MainActor in
             guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
-                logger.log("Invalid credential type for Apple sign in", category: .auth, level: .error)
+                logger.log("Invalid credential type for Apple sign in", category: .auth, level: .error, metadata: nil)
                 return
             }
 
             guard let nonce = currentNonce else {
-                logger.log("Invalid state: login callback received but no login request was sent", category: .auth, level: .error)
+                logger.log("Invalid state: login callback received but no login request was sent", category: .auth, level: .error, metadata: nil)
                 return
             }
 
             guard let appleIDToken = appleIDCredential.identityToken else {
-                logger.log("Unable to fetch Apple identity token", category: .auth, level: .error)
+                logger.log("Unable to fetch Apple identity token", category: .auth, level: .error, metadata: nil)
                 return
             }
 
             guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                logger.log("Unable to serialize Apple token string", category: .auth, level: .error)
+                logger.log("Unable to serialize Apple token string", category: .auth, level: .error, metadata: nil)
                 return
             }
 
@@ -257,10 +340,10 @@ extension FirebaseAuthService: ASAuthorizationControllerDelegate {
 
             do {
                 // Sign in to Firebase
-                logger.log("Authenticating with Firebase using Apple credential", category: .auth, level: .info)
+                logger.log("Authenticating with Firebase using Apple credential", category: .auth, level: .info, metadata: nil)
                 let authResult = try await configuration.auth.signIn(with: credential)
 
-                logger.log("Successfully signed in with Apple: \(authResult.user.uid)", category: .auth, level: .info)
+                logger.log("Successfully signed in with Apple: \(authResult.user.uid)", category: .auth, level: .info, metadata: nil)
 
                 // Update user profile if this is first sign in
                 if let fullName = appleIDCredential.fullName {
@@ -273,14 +356,14 @@ extension FirebaseAuthService: ASAuthorizationControllerDelegate {
                         changeRequest.displayName = displayName
                         try await changeRequest.commitChanges()
 
-                        logger.log("Updated user profile: \(displayName)", category: .auth, level: .info)
+                        logger.log("Updated user profile: \(displayName)", category: .auth, level: .info, metadata: nil)
                     }
                 }
 
                 authError = nil
 
             } catch {
-                logger.log("Apple authentication failed: \(error.localizedDescription)", category: .auth, level: .error)
+                logger.log("Apple authentication failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
                 authError = error
             }
         }
@@ -288,12 +371,12 @@ extension FirebaseAuthService: ASAuthorizationControllerDelegate {
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         Task { @MainActor in
-            logger.log("Sign in with Apple failed: \(error.localizedDescription)", category: .auth, level: .error)
+            logger.log("Sign in with Apple failed: \(error.localizedDescription)", category: .auth, level: .error, metadata: nil)
 
             // Check if user cancelled
             if let authError = error as? ASAuthorizationError {
                 if authError.code == .canceled {
-                    logger.log("User cancelled Sign in with Apple", category: .auth, level: .info)
+                    logger.log("User cancelled Sign in with Apple", category: .auth, level: .info, metadata: nil)
                     return
                 }
             }
@@ -337,6 +420,19 @@ extension FirebaseAuthService {
             case .signOutFailed(let error):
                 return "Sign out failed: \(error.localizedDescription)"
             }
+        }
+    }
+}
+
+// MARK: - Global Convenience
+
+extension FirebaseAuthService {
+    /// Global accessor that resolves from ServiceContainer for proper DI
+    /// Maintains backward compatibility with existing .shared usage
+    /// Note: Safe to use from any context - ServiceContainer is thread-safe
+    nonisolated(unsafe) static var shared: FirebaseAuthService {
+        MainActor.assumeIsolated {
+            ServiceContainer.shared.resolve(FirebaseAuthService.self)
         }
     }
 }

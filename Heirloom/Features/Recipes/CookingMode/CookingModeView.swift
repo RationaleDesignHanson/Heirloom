@@ -7,6 +7,11 @@ struct CookingModeView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
+    // Using concrete type for version management
+    private var versionService: RecipeVersionService { ServiceContainer.shared.resolve(RecipeVersionService.self) }
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     @State private var currentStep = 0
     @State private var completedSteps: Set<Int> = []
     @State private var showFinishConfirmation = false
@@ -450,7 +455,7 @@ struct CookingModeView: View {
         // Schedule notification
         scheduleTimerNotification(for: totalSeconds)
 
-        AnalyticsService.shared.track(event: .timerStarted, properties: [
+        analytics.track(event: .timerStarted, properties: [
             "recipe_id": recipe.id.uuidString,
             "duration_seconds": totalSeconds,
             "step_number": currentStep + 1
@@ -493,12 +498,12 @@ struct CookingModeView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
 
-        ToastManager.shared.success(
+        toastManager.success(
             title: "Timer Complete!",
             message: "Step \(currentStep + 1) timer finished"
         )
 
-        AnalyticsService.shared.track(event: .timerCompleted, properties: [
+        analytics.track(event: .timerCompleted, properties: [
             "recipe_id": recipe.id.uuidString,
             "step_number": currentStep + 1
         ])
@@ -543,7 +548,7 @@ struct CookingModeView: View {
         do {
             try modelContext.save()
 
-            ToastManager.shared.success(
+            toastManager.success(
                 title: "Recipe Complete!",
                 message: "You've cooked this \(recipe.timesCooked) \(recipe.timesCooked == 1 ? "time" : "times")"
             )
@@ -551,13 +556,13 @@ struct CookingModeView: View {
             // Mark active version as cooked
             if let activeVersion = recipe.activeVersion {
                 do {
-                    try RecipeVersionService.shared.markAsCooked(activeVersion, context: modelContext)
+                    try versionService.markAsCooked(activeVersion, context: modelContext)
                 } catch {
                     Log.error("Failed to mark version as cooked", category: .database, metadata: ["error": error.localizedDescription, "versionId": activeVersion.id.uuidString])
                 }
             }
 
-            AnalyticsService.shared.track(event: .cookingCompleted, properties: [
+            analytics.track(event: .cookingCompleted, properties: [
                 "recipe_id": recipe.id.uuidString,
                 "recipe_title": recipe.title,
                 "times_cooked": recipe.timesCooked,
@@ -568,7 +573,7 @@ struct CookingModeView: View {
 
             dismiss()
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to save",
                 message: error.localizedDescription
             )

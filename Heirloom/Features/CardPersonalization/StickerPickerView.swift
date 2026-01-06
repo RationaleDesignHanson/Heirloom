@@ -5,6 +5,9 @@ struct RecipeStickerPickerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     @Bindable var recipe: Recipe
 
     @State private var selectedCategory: RecipeSticker.StickerType = .food
@@ -415,17 +418,17 @@ struct RecipeStickerPickerView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "RecipeSticker added!")
+            toastManager.success(title: "RecipeSticker added!")
 
             // Track analytics
-            AnalyticsService.shared.track(event: .recipeEdited, properties: [
+            analytics.track(event: .recipeEdited, properties: [
                 "action": "sticker_added",
                 "category": selectedCategory.rawValue
             ])
 
             dismiss()
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to add sticker",
                 message: error.localizedDescription
             )

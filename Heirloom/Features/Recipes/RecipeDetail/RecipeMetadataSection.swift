@@ -16,6 +16,8 @@ struct RecipeMetadataSection: View {
     @Binding var targetServings: Int
     @Binding var showScalingExplanation: Bool
 
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     // MARK: - Body
 
     var body: some View {
@@ -65,7 +67,7 @@ struct RecipeMetadataSection: View {
 
                             // Track scaling event
                             if size != originalServings {
-                                AnalyticsService.shared.track(event: .recipeScaled, properties: [
+                                analytics.track(event: .recipeScaled, properties: [
                                     "recipe_title": recipe.title,
                                     "category": recipe.category?.rawValue ?? "unknown",
                                     "original_servings": originalServings,
@@ -88,7 +90,7 @@ struct RecipeMetadataSection: View {
                         showScalingExplanation = true
 
                         // Track explanation view
-                        AnalyticsService.shared.track(event: .scalingExplanationViewed, properties: [
+                        analytics.track(event: .scalingExplanationViewed, properties: [
                             "recipe_title": recipe.title,
                             "category": recipe.category?.rawValue ?? "unknown"
                         ])

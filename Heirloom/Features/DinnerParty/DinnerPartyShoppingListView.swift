@@ -6,6 +6,8 @@ struct DinnerPartyShoppingListView: View {
     @State private var groupedIngredients: [String: [ScaledIngredient]] = [:]
     @Environment(\.modelContext) private var modelContext
 
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+
     struct ScaledIngredient: Identifiable {
         let id = UUID()
         let text: String
@@ -226,7 +228,7 @@ struct DinnerPartyShoppingListView: View {
 
     private func addToMainShoppingList() {
         guard let partyRecipes = party.recipes else {
-            ToastManager.shared.error(title: "No recipes found", message: "This party has no recipes.")
+            toastManager.error(title: "No recipes found", message: "This party has no recipes.")
             return
         }
 
@@ -266,24 +268,24 @@ struct DinnerPartyShoppingListView: View {
                 generator.notificationOccurred(.success)
 
                 if skippedCount > 0 {
-                    ToastManager.shared.success(
+                    toastManager.success(
                         title: "Added \(addedCount) recipe\(addedCount == 1 ? "" : "s")",
                         message: "\(skippedCount) already in shopping list"
                     )
                 } else {
-                    ToastManager.shared.success(
+                    toastManager.success(
                         title: "Added to Shopping List!",
                         message: "\(addedCount) recipe\(addedCount == 1 ? "" : "s") added"
                     )
                 }
             } else if skippedCount > 0 {
-                ToastManager.shared.info(
+                toastManager.info(
                     title: "Already Added",
                     message: "All recipes are already in your shopping list"
                 )
             }
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to add",
                 message: error.localizedDescription
             )

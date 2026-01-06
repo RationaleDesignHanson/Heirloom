@@ -4,6 +4,18 @@ import SwiftData
 struct RecipeImportView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
+
+    // Using concrete type for now since view calls implementation-specific methods
+    private var aiIngredientParser: AIIngredientParser { ServiceContainer.shared.resolve(AIIngredientParser.self) }
+    private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
+
+    // Using concrete type for toast notifications
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    private var cloudImportService: CloudRecipeImportService { ServiceContainer.shared.resolve(CloudRecipeImportService.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+    private var aiConfig: AIConfiguration { ServiceContainer.shared.resolve(AIConfiguration.self) }
 
     // Optional URL passed from Share Extension
     let url: URL?
@@ -306,7 +318,7 @@ struct RecipeImportView: View {
 
         do {
             // Try cloud import with automatic fallback to local parser
-            let response = try await CloudRecipeImportService.shared.importWithFallback(from: urlText)
+            let response = try await cloudImportService.importWithFallback(from: urlText)
 
             await MainActor.run {
                 if let recipe = response.toImportedRecipe() {
@@ -370,7 +382,7 @@ struct RecipeImportView: View {
         let parsedIngredients: [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)]
 
         do {
-            parsedIngredients = try await AIIngredientParser.shared.parseBatch(ingredientTexts)
+            parsedIngredients = try await aiIngredientParser.parseBatchToTuple(ingredientTexts)
         } catch {
             // Fallback to regex parsing on error (already handled in AIIngredientParser)
             Log.warning("Batch parsing encountered an error", category: .general, metadata: ["error": error.localizedDescription])
@@ -398,7 +410,7 @@ struct RecipeImportView: View {
         recipe.ingredients = ingredients
 
         // Auto-detect recipe category for smart serving presets
-        CategoryDetectionService.shared.detectAndApply(to: recipe)
+        recipe.detectAndApplyCategory()
 
         // Download and save image if available
         if let imageURLString = importedRecipe?.imageURL,
@@ -411,13 +423,13 @@ struct RecipeImportView: View {
             try modelContext.save()
 
             // Sync to Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 do {
-                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                    try await firebaseSync.uploadRecipe(recipe)
 
                     // Upload image if it was downloaded
                     if recipe.imageFileName != nil {
-                        if let imageURL = try await FirebaseSyncService.shared.uploadImage(for: recipe) {
+                        if let imageURL = try await firebaseSync.uploadImage(for: recipe) {
                             recipe.firebaseImageURL = imageURL
                             try? modelContext.save()
                         }
@@ -430,21 +442,21 @@ struct RecipeImportView: View {
                 }
             }
 
-            ToastManager.shared.success(
+            toastManager.success(
                 title: "Recipe imported!",
                 message: "Added '\(recipe.title)' to your collection"
             )
 
-            AnalyticsService.shared.track(event: .recipeImported, properties: [
+            analytics.track(event: .recipeImported, properties: [
                 "source": "url",
                 "ingredient_count": ingredients.count,
                 "has_image": importedRecipe?.imageURL != nil,
-                "used_ai_parsing": AIConfiguration.shared.enableAIParsing
+                "used_ai_parsing": aiConfig.enableAIParsing
             ])
 
             dismiss()
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to save recipe",
                 message: error.localizedDescription
             )
@@ -459,7 +471,7 @@ struct RecipeImportView: View {
 
             if let image = UIImage(data: data) {
                 Log.debug("Created UIImage from data", category: .storage)
-                let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
+                let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
                 Log.info("Saved image", category: .storage, metadata: ["fileName": fileName])
                 await MainActor.run {
                     recipe.imageFileName = fileName

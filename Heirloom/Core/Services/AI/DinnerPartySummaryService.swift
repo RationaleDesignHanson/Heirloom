@@ -4,9 +4,20 @@ import SwiftData
 /// AI-powered dinner party summary and planning service
 /// Generates intelligent summaries, timeline recommendations, and coordination tips
 @MainActor
-class DinnerPartySummaryService {
-    static let shared = DinnerPartySummaryService()
-    private init() {}
+class DinnerPartySummaryService: DinnerPartySummaryServiceProtocol {
+    // MARK: - Dependencies
+
+    private let aiService: AIServiceProtocol
+    private let configuration: AIConfigurationProtocol
+    private let analytics: AnalyticsService
+
+    // MARK: - Initialization
+
+    init(aiService: AIServiceProtocol, configuration: AIConfigurationProtocol, analytics: AnalyticsService) {
+        self.aiService = aiService
+        self.configuration = configuration
+        self.analytics = analytics
+    }
 
     // MARK: - Summary Models
 
@@ -38,9 +49,13 @@ class DinnerPartySummaryService {
     // MARK: - Public API
 
     /// Generate comprehensive AI summary for a dinner party
-    func generateSummary(for dinnerParty: DinnerParty) async throws -> DinnerPartySummary {
-        guard AIConfiguration.shared.enableAIEnhancement,
-              AIConfiguration.shared.isConfigured(provider: .anthropic) else {
+    nonisolated func generateSummary(for party: DinnerParty, recipes: [Recipe]) async throws -> Any {
+        return try await generateDinnerPartySummary(for: party, recipes: recipes)
+    }
+
+    private func generateDinnerPartySummary(for dinnerParty: DinnerParty, recipes: [Recipe]) async throws -> DinnerPartySummary {
+        guard configuration.enableAIEnhancement,
+              configuration.isConfigured(provider: .anthropic) else {
             // Return basic summary without AI
             return generateBasicSummary(for: dinnerParty)
         }
@@ -92,10 +107,9 @@ class DinnerPartySummaryService {
         Be specific, practical, and considerate of timing constraints.
         """
 
-        let service = AnthropicAIService.shared
-        let model = AIConfiguration.shared.model(for: .enhancement)
+        let model = configuration.model(for: .enhancement)
 
-        let summary = try await service.completeStructured(
+        let summary = try await aiService.completeStructured(
             prompt: prompt,
             schema: DinnerPartySummary.self,
             options: AICompletionOptions(
@@ -107,7 +121,7 @@ class DinnerPartySummaryService {
         )
 
         // Track success
-        AnalyticsService.shared.track(event: .aiEnhancementSuccess, properties: [
+        analytics.track(event: .aiEnhancementSuccess, properties: [
             "source": "dinner_party_summary",
             "recipe_count": dinnerParty.recipeCount,
             "guest_count": dinnerParty.guestCount

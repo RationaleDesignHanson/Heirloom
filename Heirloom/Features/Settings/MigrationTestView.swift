@@ -10,7 +10,8 @@ import SwiftData
 
 struct MigrationTestView: View {
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var authService = FirebaseAuthService.shared
+    @Environment(\.firebaseAuth) private var authService
+    @Environment(\.firebaseSync) private var firebaseSync
     @Query private var recipes: [Recipe]
 
     @State private var showingSignIn = false
@@ -108,7 +109,7 @@ struct MigrationTestView: View {
             do {
                 // Test by syncing first recipe if available
                 if let firstRecipe = recipes.first {
-                    try await FirebaseSyncService.shared.uploadRecipe(firstRecipe)
+                    try await firebaseSync.uploadRecipe(firstRecipe)
                     testResult = "✅ Successfully synced recipe to Firebase"
                 } else {
                     testResult = "⚠️ No recipes to test sync"

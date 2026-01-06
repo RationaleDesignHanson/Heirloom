@@ -220,7 +220,7 @@ extension FirebaseSyncService {
             }
 
             // Perform CRDT merge
-            let mergeResult = CRDTMergeEngine.shared.merge(local: localCRDT, remote: remoteCRDT)
+            let mergeResult = crdtMergeEngine.merge(local: localCRDT, remote: remoteCRDT)
 
             // Save merged vector clock back to recipe
             if case .autoMerged(let mergedCRDT, _) = mergeResult {
@@ -294,7 +294,7 @@ extension FirebaseSyncService {
         }
 
         // Perform merge
-        let mergeResult = CRDTMergeEngine.shared.merge(local: localCRDT, remote: remoteCRDT)
+        let mergeResult = crdtMergeEngine.merge(local: localCRDT, remote: remoteCRDT)
 
         return mergeResult
     }

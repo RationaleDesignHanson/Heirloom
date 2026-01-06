@@ -6,6 +6,20 @@ struct RecipeListView: View {
     private var recipes: [Recipe]
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseSync) private var firebaseSync
+    @Environment(\.firebaseLineage) private var firebaseLineage
+
+    // Using concrete type for image storage
+    private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
+
+    // Using concrete type for toast notifications
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var milestoneManager: MilestoneManager { ServiceContainer.shared.resolve(MilestoneManager.self) }
+
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    private var crdtMergeEngine: CRDTMergeEngine { ServiceContainer.shared.resolve(CRDTMergeEngine.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+
     @State private var searchText = ""
     @State private var showAddRecipe = false
     @State private var showImportRecipe = false
@@ -15,8 +29,14 @@ struct RecipeListView: View {
     @State private var filters = RecipeFilters()
     @State private var recipeToDelete: Recipe?
     @State private var showDeleteConfirmation = false
-    @StateObject private var undoService = UndoService.shared
+    @StateObject private var undoService = ServiceContainer.shared.resolve(UndoService.self)
     @State private var isSyncing = false
+
+    // Multi-select mode
+    @State private var isSelectionMode = false
+    @State private var selectedRecipeIds: Set<UUID> = []
+    @State private var showBatchDeleteConfirmation = false
+    @State private var showCollectionPicker = false
 
     // Conflict resolution
     @State private var showConflictResolution = false
@@ -25,156 +45,119 @@ struct RecipeListView: View {
 
     var body: some View {
         NavigationStack {
-            GeometryReader { geometry in
-                ScrollView {
-                    if recipes.isEmpty {
-                        emptyState
-                            .frame(minHeight: geometry.size.height)
-                    } else if filteredRecipes.isEmpty {
-                        noResultsState
-                            .frame(minHeight: geometry.size.height)
-                    } else {
-                        recipeGridContent
-                    }
+            mainContent
+                .toolbar {
+                    toolbarLeading
+                    toolbarActions
                 }
-                .background(HeirloomColors.appBackground)
-            }
-            .navigationTitle("Recipes")
-            .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchText, prompt: "Search recipes")
-            .refreshable {
-                await refreshRecipes()
-            }
-            .toolbar {
-                // Sync status indicator (Quick Win #7)
-                ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 8) {
-                        if isSyncing {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                                .accessibilityLabel("Syncing recipes")
-                        }
-
-                        Button {
-                            showFilters = true
-                        } label: {
-                            ZStack(alignment: .topTrailing) {
-                                Image(systemName: filters.isActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                                    .font(.title3)
-                                    .foregroundStyle(filters.isActive ? HeirloomColors.tomato : HeirloomColors.primaryText)
-
-                                if filters.activeFilterCount > 0 {
-                                    Text("\(filters.activeFilterCount)")
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundStyle(.white)
-                                        .frame(width: 18, height: 18)
-                                        .background(HeirloomColors.tomato)
-                                        .clipShape(Circle())
-                                        .overlay(
-                                            Circle()
-                                                .strokeBorder(.white, lineWidth: 1.5)
-                                        )
-                                        .offset(x: 6, y: -6)
-                                }
-                            }
-                            .padding(4) // Add padding to prevent clipping
-                        }
-                        .accessibilityLabel(filters.isActive ? "Filters, \(filters.activeFilterCount) active" : "Filters")
-                        .accessibilityHint("Opens filter options for recipes")
-                    }
+                .navigationDestination(for: Recipe.self) { recipe in
+                    RecipeDetailView(recipe: recipe)
                 }
-
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button {
-                            showAddRecipe = true
-                        } label: {
-                            Label("New Recipe", systemImage: "square.and.pencil")
-                        }
-                        .accessibilityLabel("New Recipe")
-                        .accessibilityHint("Create a new recipe manually")
-
-                        Button {
-                            showImportRecipe = true
-                        } label: {
-                            Label("Import from URL", systemImage: "link")
-                        }
-                        .accessibilityLabel("Import from URL")
-                        .accessibilityHint("Import a recipe from a website URL")
-
-                        Button {
-                            showBulkImport = true
-                        } label: {
-                            Label("Bulk Import", systemImage: "square.stack.3d.down.forward")
-                        }
-                        .accessibilityLabel("Bulk Import")
-                        .accessibilityHint("Import multiple recipes from photos")
-
-                        Button {
-                            showCookbookScanner = true
-                        } label: {
-                            Label("Scan Cookbook", systemImage: "book.pages")
-                        }
-                        .accessibilityLabel("Scan Cookbook")
-                        .accessibilityHint("Scan a recipe from a cookbook page")
-
-                        Divider()
-
-                        Button {
-                            addSampleRecipe()
-                        } label: {
-                            Label("Add Sample Recipe", systemImage: "sparkles")
-                        }
-                        .accessibilityLabel("Add Sample Recipe")
-                        .accessibilityHint("Add a sample recipe for testing")
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .accessibilityLabel("Add Recipe")
-                    .accessibilityHint("Opens menu to add or import recipes")
+                .modifier(sheetModifiers)
+                .onAppear(perform: configureUndoService)
+                .onReceive(NotificationCenter.default.publisher(for: .recipeConflictsDetected), perform: handleConflictNotification)
+                .overlay(alignment: .bottom) {
+                    selectionOverlay
                 }
-            }
-            .navigationDestination(for: Recipe.self) { recipe in
-                RecipeDetailView(recipe: recipe)
-            }
-            .sheet(isPresented: $showAddRecipe) {
-                RecipeEditorView()
-            }
-            .sheet(isPresented: $showImportRecipe) {
-                RecipeImportView()
-            }
-            .sheet(isPresented: $showBulkImport) {
-                BulkImportView()
-            }
-            .sheet(isPresented: $showCookbookScanner) {
-                CookbookScannerView()
-            }
-            .sheet(isPresented: $showFilters) {
-                RecipeFiltersView(filters: $filters)
-            }
-            .confirmationDialog(
-                "Delete Recipe?",
-                isPresented: $showDeleteConfirmation,
-                presenting: recipeToDelete
-            ) { recipe in
-                Button("Delete", role: .destructive) {
-                    deleteRecipe(recipe)
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: { recipe in
-                Text("Are you sure you want to delete \"\(recipe.title)\"? You can undo this action within 5 seconds.")
-            }
-            .onAppear {
-                // Configure UndoService with model context
-                undoService.configure(modelContext: modelContext)
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .recipeConflictsDetected)) { notification in
-                handleConflictNotification(notification)
-            }
-            .sheet(isPresented: $showConflictResolution) {
-                conflictResolutionSheet
-            }
         }
+    }
+
+    // MARK: - View Builders
+
+    @ViewBuilder
+    private var mainContent: some View {
+        GeometryReader { geometry in
+            ScrollView {
+                contentSwitcher(geometry: geometry)
+            }
+            .background(HeirloomColors.appBackground)
+        }
+        .navigationTitle("Recipes")
+        .navigationBarTitleDisplayMode(.large)
+        .searchable(text: $searchText, prompt: "Search recipes")
+        .refreshable {
+            await refreshRecipes()
+        }
+    }
+
+    @ViewBuilder
+    private func contentSwitcher(geometry: GeometryProxy) -> some View {
+        if recipes.isEmpty {
+            emptyState
+                .frame(minHeight: geometry.size.height)
+        } else if filteredRecipes.isEmpty {
+            noResultsState
+                .frame(minHeight: geometry.size.height)
+        } else {
+            recipeGridContent
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarLeading: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            RecipeListToolbarLeading(
+                isSelectionMode: isSelectionMode,
+                isSyncing: isSyncing,
+                showFilters: $showFilters,
+                filters: filters,
+                onCancelSelection: exitSelectionMode
+            )
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarActions: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            RecipeListToolbarActions(
+                isSelectionMode: isSelectionMode,
+                selectedCount: selectedRecipeIds.count,
+                filteredCount: filteredRecipes.count,
+                onSelectAllToggle: selectAllToggle,
+                onAddRecipe: { showAddRecipe = true },
+                onImportRecipe: { showImportRecipe = true },
+                onBulkImport: { showBulkImport = true },
+                onCookbookScanner: { showCookbookScanner = true },
+                onAddSample: addSampleRecipe
+            )
+        }
+    }
+
+    private var sheetModifiers: RecipeSheetModifiers {
+        RecipeSheetModifiers(
+            showAddRecipe: $showAddRecipe,
+            showImportRecipe: $showImportRecipe,
+            showBulkImport: $showBulkImport,
+            showCookbookScanner: $showCookbookScanner,
+            showFilters: $showFilters,
+            filters: $filters,
+            showDeleteConfirmation: $showDeleteConfirmation,
+            recipeToDelete: recipeToDelete,
+            onDeleteRecipe: deleteRecipe,
+            showBatchDeleteConfirmation: $showBatchDeleteConfirmation,
+            selectedRecipeIds: selectedRecipeIds,
+            onBatchDelete: batchDeleteRecipes,
+            showCollectionPicker: $showCollectionPicker,
+            onExitSelection: exitSelectionMode,
+            showConflictResolution: $showConflictResolution,
+            conflictResolutionSheet: AnyView(conflictResolutionSheet)
+        )
+    }
+
+    @ViewBuilder
+    private var selectionOverlay: some View {
+        if isSelectionMode && !selectedRecipeIds.isEmpty {
+            SelectionActionBar(
+                selectedCount: selectedRecipeIds.count,
+                onDelete: { showBatchDeleteConfirmation = true },
+                onAddToCollection: { showCollectionPicker = true }
+            )
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelectionMode)
+        }
+    }
+
+    private func configureUndoService() {
+        undoService.configure(modelContext: modelContext)
     }
 
     // MARK: - Conflict Resolution Sheet
@@ -198,13 +181,29 @@ struct RecipeListView: View {
             spacing: HeirloomSpacing.gridSpacing
         ) {
             ForEach(Array(filteredRecipes.enumerated()), id: \.element.id) { index, recipe in
-                NavigationLink(value: recipe) {
-                    RecipeCardView(recipe: recipe)
+                Group {
+                    if isSelectionMode {
+                        RecipeCardView(
+                            recipe: recipe,
+                            isSelectionMode: true,
+                            isSelected: selectedRecipeIds.contains(recipe.id)
+                        )
+                        .onTapGesture {
+                            toggleSelection(for: recipe.id)
+                        }
+                    } else {
+                        NavigationLink(value: recipe) {
+                            RecipeCardView(recipe: recipe)
+                        }
+                        .buttonStyle(.plain)
+                        .onLongPressGesture(minimumDuration: 0.5) {
+                            enterSelectionMode(with: recipe.id)
+                        }
+                    }
                 }
-                .buttonStyle(.plain)
                 .id(recipe.id)
                 .accessibilityLabel("\(recipe.title), \(recipe.sourceDisplayName)")
-                .accessibilityHint("Opens recipe details")
+                .accessibilityHint(isSelectionMode ? (selectedRecipeIds.contains(recipe.id) ? "Deselect recipe" : "Select recipe") : "Opens recipe details")
                 .contextMenu {
                     Button {
                         toggleFavorite(recipe)
@@ -325,13 +324,53 @@ struct RecipeListView: View {
         return result
     }
 
+    // MARK: - Selection Action Toolbar
+    private var selectionActionToolbar: some View {
+        HStack(spacing: 16) {
+            Button {
+                showBatchDeleteConfirmation = true
+            } label: {
+                Label("Delete (\(selectedRecipeIds.count))", systemImage: "trash")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.red)
+                    .cornerRadius(10)
+            }
+            .accessibilityLabel("Delete \(selectedRecipeIds.count) selected recipes")
+
+            Button {
+                showCollectionPicker = true
+            } label: {
+                Label("Add to Collection", systemImage: "folder.badge.plus")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(HeirloomColors.tomato)
+                    .cornerRadius(10)
+            }
+            .accessibilityLabel("Add \(selectedRecipeIds.count) recipes to collection")
+        }
+        .padding(.horizontal, HeirloomSpacing.md)
+        .padding(.vertical, HeirloomSpacing.sm)
+        .background(
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: -2)
+        )
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelectionMode)
+    }
+
     // MARK: - Actions
 
     private func refreshRecipes() async {
         // Track analytics
         await MainActor.run {
             isSyncing = true
-            AnalyticsService.shared.track(event: .featureUsed, properties: [
+            analytics.track(event: .featureUsed, properties: [
                 "feature": "pull_to_refresh",
                 "context": "recipe_list"
             ])
@@ -342,9 +381,9 @@ struct RecipeListView: View {
         generator.impactOccurred()
 
         // Trigger Firebase sync to download and merge changes
-        if BackendConfig.shared.isFirebaseActive {
+        if backendConfig.isFirebaseActive {
             do {
-                try await FirebaseSyncService.shared.syncChangesWithCRDT()
+                try await firebaseSync.syncChangesWithCRDT()
                 Log.info("Pull-to-refresh sync complete", category: .sync)
 
                 // Success haptic
@@ -377,10 +416,10 @@ struct RecipeListView: View {
         generator.impactOccurred()
 
         // Delete from Firebase if active
-        if BackendConfig.shared.isFirebaseActive {
+        if backendConfig.isFirebaseActive {
             Task {
                 do {
-                    try await FirebaseSyncService.shared.deleteRecipe(recipe.id)
+                    try await firebaseSync.deleteRecipe(recipe.id)
                     Log.info("Recipe deleted from Firebase", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
                 } catch {
                     Log.error("Failed to delete recipe from Firebase", category: .firebase, error: error, metadata: ["recipeId": recipe.id.uuidString])
@@ -392,7 +431,7 @@ struct RecipeListView: View {
         undoService.deleteRecipe(recipe, context: modelContext)
 
         // Show undo toast
-        ToastManager.shared.showUndoToast(for: undoService.pendingUndos.last!) {
+        toastManager.showUndoToast(for: undoService.pendingUndos.last!) {
             // Undo action
             if let undoItem = undoService.pendingUndos.last {
                 undoService.undoDelete(undoItem)
@@ -401,9 +440,119 @@ struct RecipeListView: View {
                 let successGenerator = UINotificationFeedbackGenerator()
                 successGenerator.notificationOccurred(.success)
 
-                ToastManager.shared.success(title: "Recipe restored")
+                toastManager.success(title: "Recipe restored")
             }
         }
+    }
+
+    // MARK: - Selection Management
+
+    private func enterSelectionMode(with recipeId: UUID) {
+        withAnimation {
+            isSelectionMode = true
+            selectedRecipeIds.insert(recipeId)
+        }
+
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+    }
+
+    private func exitSelectionMode() {
+        withAnimation {
+            isSelectionMode = false
+            selectedRecipeIds.removeAll()
+        }
+    }
+
+    private func toggleSelection(for recipeId: UUID) {
+        withAnimation {
+            if selectedRecipeIds.contains(recipeId) {
+                selectedRecipeIds.remove(recipeId)
+            } else {
+                // Enforce 50 recipe limit
+                if selectedRecipeIds.count >= 50 {
+                    toastManager.error(title: "Selection limit reached", message: "You can select up to 50 recipes at once")
+                    return
+                }
+                selectedRecipeIds.insert(recipeId)
+            }
+        }
+
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+    }
+
+    private func selectAllToggle() {
+        withAnimation {
+            if selectedRecipeIds.count == filteredRecipes.count {
+                // Deselect all
+                selectedRecipeIds.removeAll()
+            } else {
+                // Select all (up to 50)
+                let recipesToSelect = filteredRecipes.prefix(50)
+                selectedRecipeIds = Set(recipesToSelect.map { $0.id })
+
+                if filteredRecipes.count > 50 {
+                    toastManager.info(title: "Selected first 50 recipes", message: "Maximum selection limit is 50 recipes")
+                }
+            }
+        }
+
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+    }
+
+    private func batchDeleteRecipes() {
+        // Get recipes to delete
+        let recipesToDelete = recipes.filter { selectedRecipeIds.contains($0.id) }
+        let count = recipesToDelete.count
+
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.impactOccurred()
+
+        // Delete from Firebase if active
+        if backendConfig.isFirebaseActive {
+            Task {
+                for recipe in recipesToDelete {
+                    do {
+                        try await firebaseSync.deleteRecipe(recipe.id)
+                        Log.info("Recipe deleted from Firebase", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
+                    } catch {
+                        Log.error("Failed to delete recipe from Firebase", category: .firebase, error: error, metadata: ["recipeId": recipe.id.uuidString])
+                    }
+                }
+            }
+        }
+
+        // Delete each recipe using UndoService
+        for recipe in recipesToDelete {
+            undoService.deleteRecipe(recipe, context: modelContext)
+        }
+
+        // Show undo toast for batch delete
+        if let lastUndo = undoService.pendingUndos.last {
+            toastManager.showUndoToast(for: lastUndo) {
+                // Undo all deletions
+                if let undoItem = undoService.pendingUndos.last {
+                    undoService.undoDelete(undoItem)
+
+                    // Success haptic for undo
+                    let successGenerator = UINotificationFeedbackGenerator()
+                    successGenerator.notificationOccurred(.success)
+
+                    toastManager.success(title: "Recipes restored")
+                }
+            }
+        }
+
+        // Exit selection mode
+        exitSelectionMode()
+
+        Log.info("Batch deleted \(count) recipes", category: .ui)
     }
 
     private func toggleFavorite(_ recipe: Recipe) {
@@ -411,18 +560,18 @@ struct RecipeListView: View {
         recipe.lastModified = Date()
 
         Log.info("Toggling favorite", category: .ui, metadata: ["title": recipe.title, "isFavorite": recipe.isFavorite])
-        Log.debug("Firebase backend active", category: .ui, metadata: ["isActive": BackendConfig.shared.isFirebaseActive])
+        Log.debug("Firebase backend active", category: .ui, metadata: ["isActive": backendConfig.isFirebaseActive])
 
         do {
             try modelContext.save()
             Log.debug("Local save successful", category: .database)
 
             // Sync favorite status to Firebase
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Log.debug("Firebase active, starting upload", category: .sync)
                 Task {
                     do {
-                        try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                        try await firebaseSync.uploadRecipe(recipe)
                         Log.info("Favorite status synced to Firebase", category: .sync, metadata: ["recipeId": recipe.id.uuidString])
                     } catch {
                         Log.error("Failed to sync favorite status", category: .sync, error: error)
@@ -437,9 +586,9 @@ struct RecipeListView: View {
             generator.impactOccurred()
 
             let message = recipe.isFavorite ? "Added to favorites" : "Removed from favorites"
-            ToastManager.shared.success(title: message)
+            toastManager.success(title: message)
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to update favorite",
                 message: error.localizedDescription
             )
@@ -461,9 +610,9 @@ struct RecipeListView: View {
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
 
-                ToastManager.shared.success(title: "Removed from shopping list")
+                toastManager.success(title: "Removed from shopping list")
             } catch {
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Failed to remove from shopping list",
                     message: error.localizedDescription
                 )
@@ -484,12 +633,12 @@ struct RecipeListView: View {
                 let generator = UIImpactFeedbackGenerator(style: .medium)
                 generator.impactOccurred()
 
-                ToastManager.shared.success(title: "Added to shopping list")
+                toastManager.success(title: "Added to shopping list")
 
                 // Check shopping list milestone
                 checkShoppingListMilestone()
             } catch {
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Failed to add to shopping list",
                     message: error.localizedDescription
                 )
@@ -539,7 +688,7 @@ struct RecipeListView: View {
             do {
                 let (data, _) = try await URLSession.shared.data(from: imageURL)
                 if let image = UIImage(data: data) {
-                    let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
+                    let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
                     recipe.imageFileName = fileName
                     Log.info("Sample recipe image downloaded and saved", category: .storage, metadata: ["fileName": fileName])
                 }
@@ -611,14 +760,14 @@ struct RecipeListView: View {
             }
 
             // Sync to Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 do {
-                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                    try await firebaseSync.uploadRecipe(recipe)
                     Log.info("Sample recipe synced to Firebase", category: .sync, metadata: ["recipeId": recipe.id.uuidString])
 
                     // Create root lineage for sample recipe
                     do {
-                        try await FirebaseLineageService.shared.createRootLineage(
+                        try await firebaseLineage.createRootLineage(
                             recipeId: recipe.id,
                             context: modelContext
                         )
@@ -634,7 +783,7 @@ struct RecipeListView: View {
 
             // Success feedback
             await MainActor.run {
-                ToastManager.shared.success(
+                toastManager.success(
                     title: "Sample Recipe Added",
                     message: recipe.title
                 )
@@ -650,7 +799,7 @@ struct RecipeListView: View {
             }
         } catch {
             await MainActor.run {
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Failed to save recipe",
                     message: error.localizedDescription
                 )
@@ -664,14 +813,14 @@ struct RecipeListView: View {
 
         // Check first recipe
         if recipeCount == 1 {
-            MilestoneManager.shared.checkFirstRecipeAdded()
+            milestoneManager.checkFirstRecipeAdded()
         }
 
         // Check milestone thresholds
         if recipeCount == 10 {
-            MilestoneManager.shared.checkTenRecipes()
+            milestoneManager.checkTenRecipes()
         } else if recipeCount == 50 {
-            MilestoneManager.shared.checkFiftyRecipes()
+            milestoneManager.checkFiftyRecipes()
         }
     }
 
@@ -681,7 +830,7 @@ struct RecipeListView: View {
         if let cartRecipes = try? modelContext.fetch(descriptor) {
             // Check first shopping list
             if cartRecipes.count == 1 {
-                MilestoneManager.shared.checkFirstShoppingList()
+                milestoneManager.checkFirstShoppingList()
             }
         }
     }
@@ -710,6 +859,11 @@ struct RecipeListView: View {
 struct ConflictResolutionWrapper: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var crdtMergeEngine: CRDTMergeEngine { ServiceContainer.shared.resolve(CRDTMergeEngine.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     let conflicts: [DetailedConflict]
     let recipeCRDT: RecipeCRDT
@@ -873,7 +1027,7 @@ struct ConflictResolutionWrapper: View {
         Log.info("Applying resolutions to CRDT", category: .crdt, metadata: ["count": resolutionsList.count])
 
         // Apply resolutions to CRDT operation log
-        CRDTMergeEngine.shared.applyUserResolution(resolutionsList, to: recipeCRDT)
+        crdtMergeEngine.applyUserResolution(resolutionsList, to: recipeCRDT)
 
         Log.debug("Recipe title after CRDT resolution", category: .crdt, metadata: ["title": recipeCRDT.recipe.title])
 
@@ -890,14 +1044,14 @@ struct ConflictResolutionWrapper: View {
             Log.info("Conflict resolution saved to database", category: .database)
 
             // Sync to Firebase
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Log.debug("Uploading resolved recipe to Firebase", category: .sync)
-                try await FirebaseSyncService.shared.uploadRecipe(recipeCRDT.recipe)
+                try await firebaseSync.uploadRecipe(recipeCRDT.recipe)
                 Log.info("Resolved recipe synced to Firebase", category: .sync)
             }
 
             // Show success
-            ToastManager.shared.success(
+            toastManager.success(
                 title: "Recipe Merged",
                 message: "All conflicts resolved successfully"
             )
@@ -907,7 +1061,7 @@ struct ConflictResolutionWrapper: View {
         } catch {
             Log.error("Failed to save conflict resolution", category: .database, error: error)
             // Show error
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to Save",
                 message: error.localizedDescription
             )
@@ -918,6 +1072,8 @@ struct ConflictResolutionWrapper: View {
 // MARK: - Recipe Card View
 struct RecipeCardView: View {
     let recipe: Recipe
+    var isSelectionMode: Bool = false
+    var isSelected: Bool = false
     @EnvironmentObject private var notificationService: FirebaseNotificationService
 
     private var unreadCount: Int {
@@ -986,6 +1142,22 @@ struct RecipeCardView: View {
                         .accessibilityLabel("Has unresolved conflicts")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 }
+
+                // Selection checkbox (top right overlay)
+                if isSelectionMode {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.warmGray)
+                        .font(.title2)
+                        .padding(8)
+                        .background(
+                            Circle()
+                                .fill(.white)
+                                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                        )
+                        .padding(8)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .transition(.scale.combined(with: .opacity))
+                }
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -1044,6 +1216,12 @@ struct RecipeCardView: View {
             radius: HeirloomShadows.card.radius,
             x: HeirloomShadows.card.x,
             y: HeirloomShadows.card.y
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                .stroke(HeirloomColors.tomato, lineWidth: 2)
+                .opacity(isSelected ? 1 : 0)
+                .animation(.easeInOut(duration: 0.2), value: isSelected)
         )
     }
 

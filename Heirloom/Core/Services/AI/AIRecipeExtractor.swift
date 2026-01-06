@@ -4,9 +4,24 @@ import UIKit
 /// AI-powered recipe extraction from OCR text or cookbook images
 /// Handles messy OCR output and structures it into proper recipe format
 @MainActor
-class AIRecipeExtractor {
-    static let shared = AIRecipeExtractor()
-    private init() {}
+class AIRecipeExtractor: AIRecipeExtractorProtocol {
+    // MARK: - Dependencies
+
+    private let aiService: AIServiceProtocol
+    private let configuration: AIConfigurationProtocol
+    private let analytics: AnalyticsService
+
+    // MARK: - Initialization
+
+    init(
+        aiService: AIServiceProtocol,
+        configuration: AIConfigurationProtocol,
+        analytics: AnalyticsService
+    ) {
+        self.aiService = aiService
+        self.configuration = configuration
+        self.analytics = analytics
+    }
 
     // MARK: - Detection Models (from AIRecipeDetector)
 
@@ -155,13 +170,13 @@ class AIRecipeExtractor {
         """
 
         let options = AICompletionOptions(
-            model: AIConfiguration.shared.model(for: .vision),
+            model: configuration.model(for: .vision),
             temperature: 0.3, // Lower temperature for more consistent detection
             maxTokens: 1000
         )
 
         do {
-            let response: DetectionResponse = try await AnthropicAIService.shared.completeWithVisionStructured(
+            let response: DetectionResponse = try await aiService.completeWithVisionStructured(
                 image: image,
                 prompt: prompt,
                 schema: DetectionResponse.self,
@@ -181,6 +196,54 @@ class AIRecipeExtractor {
         let recipes: [DetectedRecipe]
     }
 
+    // MARK: - Protocol Conformance
+
+    /// Extract recipe from text (Protocol)
+    /// - Parameter text: Raw recipe text
+    /// - Returns: Recipe object
+    func extract(from text: String) async throws -> Recipe {
+        let extracted = try await extractRecipe(from: text)
+        return convertToRecipe(extracted, sourceText: text)
+    }
+
+    /// Extract recipe from image (Protocol)
+    /// - Parameter image: Image containing recipe
+    /// - Returns: Recipe object
+    func extract(from image: UIImage) async throws -> Recipe {
+        let extracted = try await extractRecipeFromImage(image: image, boundingBox: nil)
+        return convertToRecipe(extracted, sourceImage: image)
+    }
+
+    /// Convert ExtractedRecipe to Recipe model
+    private func convertToRecipe(_ extracted: ExtractedRecipe, sourceText: String? = nil, sourceImage: UIImage? = nil) -> Recipe {
+        let recipe = Recipe(
+            title: extracted.title,
+            sourceType: sourceImage != nil ? .scan : .manual,
+            sourceURL: nil,
+            instructions: extracted.instructions,
+            servings: extracted.servings,
+            prepTime: extracted.prepTime,
+            cookTime: extracted.cookTime
+        )
+
+        // Add ingredients
+        for ingredientText in extracted.ingredients {
+            let ingredient = Ingredient(
+                originalText: ingredientText,
+                name: ingredientText
+            )
+            ingredient.recipe = recipe
+            recipe.ingredients?.append(ingredient)
+        }
+
+        // Add notes if present
+        if let notes = extracted.notes, !notes.isEmpty {
+            recipe.notes = notes
+        }
+
+        return recipe
+    }
+
     // MARK: - Public API
 
     /// Extract structured recipe from OCR text using AI
@@ -188,8 +251,8 @@ class AIRecipeExtractor {
     /// - Returns: Structured recipe with cleaned data
     func extractRecipe(from ocrText: String) async throws -> ExtractedRecipe {
         // Check if AI enhancement is enabled
-        guard AIConfiguration.shared.enableAIEnhancement,
-              AIConfiguration.shared.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIEnhancement,
+              configuration.isConfigured(provider: .anthropic) else {
             // Fall back to basic text extraction
             return extractRecipeBasic(from: ocrText)
         }
@@ -198,7 +261,7 @@ class AIRecipeExtractor {
             let recipe = try await extractWithAI(ocrText)
 
             // Track success
-            AnalyticsService.shared.track(event: .aiEnhancementSuccess, properties: [
+            analytics.track(event: .aiEnhancementSuccess, properties: [
                 "source": "ocr",
                 "text_length": ocrText.count,
                 "ingredient_count": recipe.ingredients.count,
@@ -209,7 +272,7 @@ class AIRecipeExtractor {
 
         } catch {
             // Track failure
-            AnalyticsService.shared.track(event: .aiEnhancementFailed, properties: [
+            analytics.track(event: .aiEnhancementFailed, properties: [
                 "source": "ocr",
                 "error": error.localizedDescription
             ])
@@ -228,8 +291,8 @@ class AIRecipeExtractor {
     /// - Returns: Result containing array of detected recipes
     func extractMultipleRecipes(from ocrText: String, sourceImage: UIImage? = nil) async throws -> MultiRecipeExtractionResult {
         // Check if AI enhancement is enabled
-        guard AIConfiguration.shared.enableAIEnhancement,
-              AIConfiguration.shared.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIEnhancement,
+              configuration.isConfigured(provider: .anthropic) else {
             // Fall back to basic extraction (assumes single recipe)
             let recipe = extractRecipeBasic(from: ocrText)
             return MultiRecipeExtractionResult(recipes: [recipe], sourceImage: sourceImage)
@@ -239,7 +302,7 @@ class AIRecipeExtractor {
             let recipes = try await extractMultipleRecipesWithAI(ocrText)
 
             // Track success
-            AnalyticsService.shared.track(event: .aiEnhancementSuccess, properties: [
+            analytics.track(event: .aiEnhancementSuccess, properties: [
                 "source": "ocr_multi",
                 "text_length": ocrText.count,
                 "recipe_count": recipes.count
@@ -249,7 +312,7 @@ class AIRecipeExtractor {
 
         } catch {
             // Track failure
-            AnalyticsService.shared.track(event: .aiEnhancementFailed, properties: [
+            analytics.track(event: .aiEnhancementFailed, properties: [
                 "source": "ocr_multi",
                 "error": error.localizedDescription
             ])
@@ -274,16 +337,15 @@ class AIRecipeExtractor {
         boundingBox: BoundingBox? = nil
     ) async throws -> ExtractedRecipe {
         // Check if AI is configured
-        guard AIConfiguration.shared.enableAIEnhancement,
-              AIConfiguration.shared.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIEnhancement,
+              configuration.isConfigured(provider: .anthropic) else {
             throw AIError.notConfigured(provider: "Anthropic")
         }
 
         let prompt = buildVisionExtractionPrompt(boundingBox: boundingBox)
-        let service = AnthropicAIService.shared
-        let model = AIConfiguration.shared.model(for: .vision)
+        let model = configuration.model(for: .vision)
 
-        let recipe = try await service.completeWithVisionStructured(
+        let recipe = try await aiService.completeWithVisionStructured(
             image: image,
             prompt: prompt,
             schema: ExtractedRecipe.self,
@@ -297,7 +359,7 @@ class AIRecipeExtractor {
         )
 
         // Track success
-        AnalyticsService.shared.track(event: .aiEnhancementSuccess, properties: [
+        analytics.track(event: .aiEnhancementSuccess, properties: [
             "source": "vision_api",
             "ingredient_count": recipe.ingredients.count,
             "instruction_count": recipe.instructions.count,
@@ -392,12 +454,11 @@ class AIRecipeExtractor {
     // MARK: - AI Extraction (Text-Based - Legacy)
 
     private func extractWithAI(_ ocrText: String) async throws -> ExtractedRecipe {
-        let service = AnthropicAIService.shared
-        let model = AIConfiguration.shared.model(for: .enhancement)
+        let model = configuration.model(for: .enhancement)
 
         let prompt = buildExtractionPrompt(for: ocrText)
 
-        let result = try await service.completeStructured(
+        let result = try await aiService.completeStructured(
             prompt: prompt,
             schema: ExtractedRecipe.self,
             options: AICompletionOptions(
@@ -525,13 +586,12 @@ class AIRecipeExtractor {
     }
 
     private func extractMultipleRecipesWithAI(_ ocrText: String) async throws -> [ExtractedRecipe] {
-        let service = AnthropicAIService.shared
-        let model = AIConfiguration.shared.model(for: .enhancement)
+        let model = configuration.model(for: .enhancement)
 
         let prompt = buildMultiRecipeExtractionPrompt(for: ocrText)
 
         // We need to handle array response differently
-        let result = try await service.completeStructured(
+        let result = try await aiService.completeStructured(
             prompt: prompt,
             schema: [ExtractedRecipe].self,
             options: AICompletionOptions(
@@ -765,5 +825,18 @@ class AIRecipeExtractor {
         case unknown
         case ingredients
         case instructions
+    }
+}
+
+// MARK: - Global Convenience
+
+extension AIRecipeExtractor {
+    /// Global accessor that resolves from ServiceContainer for proper DI
+    /// Maintains backward compatibility with existing .shared usage
+    /// Note: Safe to use from any context - ServiceContainer is thread-safe
+    nonisolated(unsafe) static var shared: AIRecipeExtractor {
+        MainActor.assumeIsolated {
+            ServiceContainer.shared.resolve(AIRecipeExtractor.self)
+        }
     }
 }

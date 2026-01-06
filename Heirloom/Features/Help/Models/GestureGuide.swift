@@ -3,10 +3,6 @@ import SwiftUI
 // MARK: - Gesture Guide
 /// Comprehensive guide to all gestures available in Heirloom
 struct GestureGuide {
-    static let shared = GestureGuide()
-
-    private init() {}
-
     // MARK: - Gesture Categories
     let categories: [GestureCategory] = [
         .recipeList,

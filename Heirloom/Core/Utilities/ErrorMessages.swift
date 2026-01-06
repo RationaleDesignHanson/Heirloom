@@ -388,7 +388,8 @@ enum HeirloomError {
     @MainActor
     func show() {
         let message = errorMessage
-        ToastManager.shared.error(title: message.title, message: message.message)
+        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+        toastManager.error(title: message.title, message: message.message)
     }
 }
 

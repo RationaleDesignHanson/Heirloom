@@ -8,6 +8,7 @@ struct RecipeShareSheet: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseShare) private var firebaseShare
 
     // State
     @State private var options = ShareOptions.default
@@ -293,7 +294,7 @@ struct RecipeShareSheet: View {
             do {
                 // Create share via Firebase
                 Log.info("Creating Firebase share for recipe", category: .firebase, metadata: ["title": recipe.title])
-                let (shareId, url) = try await FirebaseShareService.shared.createShare(
+                let (shareId, url) = try await firebaseShare.createShare(
                     for: recipe,
                     options: options,
                     context: modelContext

@@ -4,7 +4,6 @@ import Foundation
 /// Stores user's preferred unit system for future conversion/import features
 @MainActor
 class UnitsConfiguration: ObservableObject {
-    static let shared = UnitsConfiguration()
 
     @Published var preferredSystem: UnitSystem {
         didSet {
@@ -12,7 +11,7 @@ class UnitsConfiguration: ObservableObject {
         }
     }
 
-    private init() {
+    init() {
         // Default to user's locale
         let savedValue = UserDefaults.standard.string(forKey: Keys.preferredSystem)
 

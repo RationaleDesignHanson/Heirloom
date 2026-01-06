@@ -10,7 +10,7 @@ import FirebaseFirestore
 @testable import Heirloom
 
 /// Mock Firestore database for testing
-@MainActor
+
 class MockFirestore: FirestoreProtocol {
     var collections: [String: MockCollectionReference] = [:]
     var shouldFailOperations = false
@@ -31,7 +31,7 @@ class MockFirestore: FirestoreProtocol {
 }
 
 /// Mock collection reference
-@MainActor
+
 class MockCollectionReference: CollectionReferenceProtocol {
     let path: String
     weak var firestore: MockFirestore?
@@ -120,7 +120,7 @@ class MockCollectionReference: CollectionReferenceProtocol {
 }
 
 /// Mock document reference
-@MainActor
+
 class MockDocumentReference: DocumentReferenceProtocol {
     let collectionPath: String
     let documentID: String
@@ -214,21 +214,32 @@ struct MockQuerySnapshot: QuerySnapshotProtocol {
 /// Mock query document snapshot
 struct MockQueryDocumentSnapshot: QueryDocumentSnapshotProtocol {
     let documentID: String
-    let data: [String: Any]
+    private let storedData: [String: Any]
 
     func data() -> [String: Any] {
-        return data
+        return storedData
+    }
+
+    init(documentID: String, data: [String: Any]) {
+        self.documentID = documentID
+        self.storedData = data
     }
 }
 
 /// Mock document snapshot
 struct MockDocumentSnapshot: DocumentSnapshotProtocol {
     let documentID: String
-    let data: [String: Any]?
+    private let storedData: [String: Any]?
     let exists: Bool
 
     func data() -> [String: Any]? {
-        return data
+        return storedData
+    }
+
+    init(documentID: String, data: [String: Any]?, exists: Bool = true) {
+        self.documentID = documentID
+        self.storedData = data
+        self.exists = exists
     }
 }
 
@@ -239,7 +250,7 @@ struct MockDocumentChange: DocumentChangeProtocol {
 }
 
 /// Mock listener registration
-class MockListenerRegistration: ListenerRegistration {
+class MockListenerRegistration: NSObject, ListenerRegistration {
     private let removeHandler: () -> Void
 
     init(removeHandler: @escaping () -> Void) {

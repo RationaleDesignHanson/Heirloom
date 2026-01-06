@@ -5,6 +5,13 @@ import SwiftData
 struct RecipeSelectionView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseSync) private var firebaseSync
+
+    // Using concrete type for image storage
+    private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     let recipes: [AIRecipeExtractor.ExtractedRecipe]
     let sourceImage: UIImage?
@@ -227,7 +234,7 @@ struct RecipeSelectionView: View {
                     // Save source image if available (needs recipe.id to be set)
                     if let sourceImage = sourceImage {
                         do {
-                            let fileName = try await ImageStorageService.shared.saveImage(sourceImage, recipeId: recipe.id)
+                            let fileName = try await imageStorageService.saveImage(sourceImage, recipeId: recipe.id)
                             await MainActor.run {
                                 recipe.imageFileName = fileName
                                 Log.info("Saved recipe image from multi-recipe scan", category: .storage, metadata: ["title": recipe.title, "fileName": fileName])
@@ -266,14 +273,14 @@ struct RecipeSelectionView: View {
                 try modelContext.save()
 
                 // Sync to Firebase if active
-                if BackendConfig.shared.isFirebaseActive {
+                if backendConfig.isFirebaseActive {
                     for recipe in createdRecipes {
                         do {
-                            try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                            try await firebaseSync.uploadRecipe(recipe)
 
                             // Upload scanned image if exists
                             if recipe.imageFileName != nil {
-                                if let imageURL = try await FirebaseSyncService.shared.uploadImage(for: recipe) {
+                                if let imageURL = try await firebaseSync.uploadImage(for: recipe) {
                                     recipe.firebaseImageURL = imageURL
                                     try? modelContext.save()
                                 }
@@ -288,13 +295,13 @@ struct RecipeSelectionView: View {
                 }
 
                 // Success feedback
-                ToastManager.shared.success(
+                toastManager.success(
                     title: "Recipes Imported",
                     message: "Successfully imported \(selectedRecipes.count) recipe\(selectedRecipes.count == 1 ? "" : "s")"
                 )
 
                 // Track analytics
-                AnalyticsService.shared.track(event: .recipeCreated, properties: [
+                analytics.track(event: .recipeCreated, properties: [
                     "source": "ocr_multi",
                     "recipe_count": selectedRecipes.count,
                     "total_detected": recipes.count
@@ -310,7 +317,7 @@ struct RecipeSelectionView: View {
             } catch {
                 isSaving = false
 
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Import Failed",
                     message: error.localizedDescription
                 )

@@ -245,7 +245,8 @@ struct DataExportView: View {
         }
 
         // Get privacy consent status
-        let consentStatus = PrivacyConsentService.shared.getConsentStatus()
+        let consentService: PrivacyConsentService = ServiceContainer.shared.resolve(PrivacyConsentService.self)
+        let consentStatus = consentService.getConsentStatus()
 
         return ExportData(
             exportDate: Date(),

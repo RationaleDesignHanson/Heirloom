@@ -26,6 +26,8 @@ struct WhatsNewEntry: Identifiable {
 struct WhatsNewView: View {
     @Environment(\.dismiss) private var dismiss
 
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     private let releases: [WhatsNewEntry] = [
         WhatsNewEntry(
             version: "1.0.0",
@@ -112,7 +114,7 @@ struct WhatsNewView: View {
         .navigationTitle("What's New")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
-            AnalyticsService.shared.track(event: .featureUsed, properties: [
+            analytics.track(event: .featureUsed, properties: [
                 "feature": "whats_new_view"
             ])
         }

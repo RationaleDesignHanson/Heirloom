@@ -302,13 +302,16 @@ struct ScalingExplanationSheet: View {
 // MARK: - Preview
 
 #Preview("Scalable Recipe") {
-    let recipe = Recipe.example
-    recipe.category = .cookies
-    recipe.scalability = .easy
-    recipe.minimumServings = 4
-    recipe.maximumServings = 96
+    @Previewable @State var recipe: Recipe = {
+        let recipe = Recipe.example
+        recipe.category = .cookies
+        recipe.scalability = .easy
+        recipe.minimumServings = 4
+        recipe.maximumServings = 96
+        return recipe
+    }()
 
-    return VStack {
+    VStack {
         ServingSelector(
             recipe: recipe,
             targetServings: .constant(48)
@@ -319,11 +322,14 @@ struct ScalingExplanationSheet: View {
 }
 
 #Preview("Locked Recipe") {
-    let recipe = Recipe.example
-    recipe.category = .laminated
-    recipe.scalability = .locked
+    @Previewable @State var recipe: Recipe = {
+        let recipe = Recipe.example
+        recipe.category = .laminated
+        recipe.scalability = .locked
+        return recipe
+    }()
 
-    return VStack {
+    VStack {
         ServingSelector(
             recipe: recipe,
             targetServings: .constant(12)

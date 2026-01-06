@@ -3,6 +3,11 @@ import SwiftData
 
 struct DinnerPartyListView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseSync) private var firebaseSync
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+
     @Query(sort: \DinnerParty.mealTime, order: .forward) private var dinnerParties: [DinnerParty]
 
     @State private var showCreateParty = false
@@ -252,10 +257,10 @@ struct DinnerPartyListView: View {
             try modelContext.save()
 
             // Delete from Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Task {
                     do {
-                        try await FirebaseSyncService.shared.deleteDinnerParty(partyId)
+                        try await firebaseSync.deleteDinnerParty(partyId)
                         Log.info("Dinner party deleted from Firebase", category: .firebase, metadata: ["partyId": partyId])
                     } catch {
                         Log.warning("Failed to delete dinner party from Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "partyId": partyId])
@@ -266,9 +271,9 @@ struct DinnerPartyListView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Dinner party deleted")
+            toastManager.success(title: "Dinner party deleted")
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to delete",
                 message: error.localizedDescription
             )

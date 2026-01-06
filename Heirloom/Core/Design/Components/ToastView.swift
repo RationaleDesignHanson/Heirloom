@@ -129,11 +129,9 @@ struct ToastView: View {
 @MainActor
 @Observable
 class ToastManager {
-    static let shared = ToastManager()
-
     private(set) var currentToast: Toast?
 
-    private init() {}
+    init() {}
 
     func show(_ toast: Toast) {
         currentToast = toast
@@ -167,7 +165,7 @@ class ToastManager {
 
 // MARK: - Toast Modifier
 struct ToastModifier: ViewModifier {
-    @State private var toastManager = ToastManager.shared
+    @State private var toastManager = ServiceContainer.shared.resolve(ToastManager.self)
 
     func body(content: Content) -> some View {
         ZStack(alignment: .top) {
@@ -194,9 +192,10 @@ extension View {
 
 // MARK: - Preview
 #Preview {
-    VStack(spacing: HeirloomSpacing.lg) {
+    let toastManager = ToastManager()
+    return VStack(spacing: HeirloomSpacing.lg) {
         Button("Show Success") {
-            ToastManager.shared.success(
+            toastManager.success(
                 title: "Recipe Saved!",
                 message: "Your recipe has been added to your collection."
             )
@@ -204,7 +203,7 @@ extension View {
         .buttonStyle(.primary)
 
         Button("Show Error") {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Import Failed",
                 message: "Could not import recipe from URL."
             )
@@ -212,7 +211,7 @@ extension View {
         .buttonStyle(.primary)
 
         Button("Show Info") {
-            ToastManager.shared.info(
+            toastManager.info(
                 title: "Sync Complete",
                 message: "Your recipes are up to date."
             )
@@ -220,7 +219,7 @@ extension View {
         .buttonStyle(.primary)
 
         Button("Show Warning") {
-            ToastManager.shared.warning(
+            toastManager.warning(
                 title: "Network Unavailable",
                 message: "Changes will sync when connection is restored."
             )

@@ -97,8 +97,7 @@ enum AnalyticsEvent: String {
 // MARK: - Console-Only Analytics (Fallback)
 @MainActor
 class ConsoleAnalyticsService: AnalyticsServiceProtocol {
-    static let shared = ConsoleAnalyticsService()
-    private init() {}
+    init() {}
 
     func initialize() {
         Log.info("Console Analytics initialized (Mixpanel not configured)", category: .general)
@@ -166,16 +165,15 @@ class ConsoleAnalyticsService: AnalyticsServiceProtocol {
 
 // MARK: - Analytics Facade
 @MainActor
-class AnalyticsService {
-    static let shared = AnalyticsService()
+class AnalyticsService: AnalyticsServiceProtocol {
     private var service: AnalyticsServiceProtocol
 
-    private init() {
+    init() {
         // Try to use Mixpanel if available, otherwise fall back to console logging
         #if canImport(Mixpanel)
-        self.service = MixpanelService.shared
+        self.service = MixpanelService()
         #else
-        self.service = ConsoleAnalyticsService.shared
+        self.service = ConsoleAnalyticsService()
         #endif
     }
 

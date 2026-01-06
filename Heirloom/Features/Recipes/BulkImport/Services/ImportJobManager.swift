@@ -5,12 +5,6 @@ import SwiftData
 /// Handles rate limiting, concurrency control, and state persistence
 @MainActor
 final class ImportJobManager: ObservableObject {
-    // MARK: - Singleton
-    static let shared = ImportJobManager()
-
-    private init() {
-        setupRateLimiter()
-    }
 
     // MARK: - Configuration
     private let maxConcurrentImports = 3
@@ -24,7 +18,16 @@ final class ImportJobManager: ObservableObject {
     private var currentTasks: [UUID: Task<Void, Never>] = [:]
 
     // MARK: - Dependencies
-    private let importService = RecipeImportService.shared
+    private let importService: RecipeImportService
+    private let firebaseSync: FirebaseSyncService
+    private let backendConfig: BackendConfig
+
+    init(importService: RecipeImportService, firebaseSync: FirebaseSyncService, backendConfig: BackendConfig) {
+        self.importService = importService
+        self.firebaseSync = firebaseSync
+        self.backendConfig = backendConfig
+        setupRateLimiter()
+    }
 
     // MARK: - Job Creation
 
@@ -205,9 +208,9 @@ final class ImportJobManager: ObservableObject {
             try context.save()
 
             // Sync to Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 do {
-                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                    try await firebaseSync.uploadRecipe(recipe)
                     Log.info("Bulk import recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title])
                 } catch {
                     Log.warning("Failed to sync bulk import recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "title": recipe.title])

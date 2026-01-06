@@ -184,12 +184,12 @@ final class MultiDeviceSyncTests: XCTestCase {
 
         // When: Both devices add different ingredients BEFORE syncing
         device1.editRecipe(recipe1) { recipe in
-            let ingredient = Ingredient(originalText: "1 cup lettuce", quantity: 1.0, unit: "cup", name: "lettuce")
+            let ingredient = Ingredient(originalText: "1 cup lettuce", name: "lettuce", quantity: 1.0, unit: "cup") // FIXED: Parameter order
             recipe.ingredients = [ingredient]
         }
 
         device2.editRecipe(recipe2) { recipe in
-            let ingredient = Ingredient(originalText: "2 tomatoes", quantity: 2.0, name: "tomatoes")
+            let ingredient = Ingredient(originalText: "2 tomatoes", name: "tomatoes", quantity: 2.0) // FIXED: Parameter order
             recipe.ingredients = [ingredient]
         }
 

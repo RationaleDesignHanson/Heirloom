@@ -6,11 +6,9 @@ import SwiftUI
 /// Handles all app states: cold launch, background, foreground
 @MainActor
 class DeepLinkHandler: ObservableObject {
-    static let shared = DeepLinkHandler()
-
     // MARK: - Dependencies
 
-    private let firebaseShare: FirebaseShareServiceProtocol
+    private let firebaseShare: FirebaseShareService
     private let logger: LoggingService
 
     // MARK: - Published State
@@ -37,15 +35,7 @@ class DeepLinkHandler: ObservableObject {
 
     // MARK: - Initialization
 
-    private init() {
-        // For singleton compatibility (to be removed later)
-        self.firebaseShare = ServiceContainer.shared.resolve(FirebaseShareServiceProtocol.self)
-        self.logger = ServiceContainer.shared.resolve(LoggingService.self)
-        logger.log("DeepLinkHandler initialized", category: .general, level: .info, metadata: nil)
-        DeviceLogger.shared.log("🔗 [DeepLink] DeepLinkHandler initialized")
-    }
-
-    init(firebaseShare: FirebaseShareServiceProtocol, logger: LoggingService) {
+    init(firebaseShare: FirebaseShareService, logger: LoggingService) {
         self.firebaseShare = firebaseShare
         self.logger = logger
         logger.log("DeepLinkHandler initialized", category: .general, level: .info, metadata: nil)

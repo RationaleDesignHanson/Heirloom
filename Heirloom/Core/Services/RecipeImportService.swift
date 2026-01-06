@@ -3,9 +3,7 @@ import SwiftSoup
 
 /// Service for importing recipes from URLs
 class RecipeImportService {
-    static let shared = RecipeImportService()
-
-    private init() {}
+    init() {}
 
     /// Import a recipe from a URL
     func importRecipe(from urlString: String) async throws -> ImportedRecipe {

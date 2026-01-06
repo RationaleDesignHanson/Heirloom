@@ -6,55 +6,80 @@
 //
 
 import Foundation
+import SwiftData
+import FirebaseCore
+import FirebaseFirestore
+import FirebaseAuth
+import FirebaseStorage
 
 extension ServiceContainer {
 
     /// Register all production services
     func registerProductionServices() {
-        let logger = HeirloomLogger.shared
+        let logger = HeirloomLogger()
         logger.log("Registering production services...", category: .general, level: .info)
 
-        // MARK: - Logging (singleton instance, already created)
-        register(LoggingService.self, instance: HeirloomLogger.shared)
+        // MARK: - Logging
+        register(LoggingService.self, lifecycle: .singleton) { _ in
+            HeirloomLogger()
+        }
+
+        register(DeviceLogger.self, lifecycle: .singleton) { _ in
+            DeviceLogger()
+        }
 
         // MARK: - Configuration
-        register(BackendConfigProtocol.self, lifecycle: .singleton) { _ in
-            BackendConfig.shared
+        register(BackendConfig.self, lifecycle: .singleton) { _ in
+            BackendConfig()
         }
 
         // MARK: - Firebase Core
-        register(FirebaseConfigurationProtocol.self, lifecycle: .singleton) { _ in
-            FirebaseConfiguration.shared
+        register(FirebaseConfiguration.self, lifecycle: .singleton) { container in
+            let logger = container.resolve(LoggingService.self)
+            return FirebaseConfiguration(logger: logger)
         }
 
-        register(FirebaseRecordConverterProtocol.self, lifecycle: .singleton) { _ in
+        // TODO: Register protocol once service fully implements it
+        // register(FirebaseConfigurationProtocol.self, lifecycle: .singleton) { _ in
+        //     FirebaseConfiguration.shared
+        // }
+
+        register(FirebaseRecordConverter.self, lifecycle: .singleton) { _ in
             FirebaseRecordConverter()
         }
+
+        // TODO: Register protocol once service fully implements it
+        // register(FirebaseRecordConverterProtocol.self, lifecycle: .singleton) { container in
+        //     container.resolve(FirebaseRecordConverter.self)
+        // }
 
         // MARK: - Firebase Services
 
         // FirebaseAuthService (concrete type for ObservableObject)
         register(FirebaseAuthService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
-            let config = container.resolve(FirebaseConfigurationProtocol.self)
+            let config = container.resolve(FirebaseConfiguration.self)
             return FirebaseAuthService(configuration: config, logger: logger)
         }
 
-        // FirebaseAuthService protocol (resolves to same instance)
-        register(FirebaseAuthServiceProtocol.self, lifecycle: .singleton) { container in
-            container.resolve(FirebaseAuthService.self)
+        register((any FirebaseAuthServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseAuthService.self) as any FirebaseAuthServiceProtocol
         }
 
-        register(FirebaseImageServiceProtocol.self, lifecycle: .singleton) { container in
+        register(FirebaseImageService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
-            let config = container.resolve(FirebaseConfigurationProtocol.self)
+            let config = container.resolve(FirebaseConfiguration.self)
             return FirebaseImageService(configuration: config, logger: logger)
         }
 
-        register(FirebaseCollectionSyncProtocol.self, lifecycle: .singleton) { container in
+        register((any FirebaseImageServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseImageService.self) as any FirebaseImageServiceProtocol
+        }
+
+        register(FirebaseCollectionSync.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
-            let config = container.resolve(FirebaseConfigurationProtocol.self)
-            let converter = container.resolve(FirebaseRecordConverterProtocol.self)
+            let config = container.resolve(FirebaseConfiguration.self)
+            let converter = container.resolve(FirebaseRecordConverter.self)
             return FirebaseCollectionSync(
                 configuration: config,
                 converter: converter,
@@ -62,168 +87,342 @@ extension ServiceContainer {
             )
         }
 
-        register(FirebaseRecipeSyncProtocol.self, lifecycle: .singleton) { container in
+        register((any FirebaseCollectionSyncProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseCollectionSync.self) as any FirebaseCollectionSyncProtocol
+        }
+
+        register(FirebaseRecipeSync.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
-            let config = container.resolve(FirebaseConfigurationProtocol.self)
-            let converter = container.resolve(FirebaseRecordConverterProtocol.self)
-            let imageService = container.resolve(FirebaseImageServiceProtocol.self)
+            let config = container.resolve(FirebaseConfiguration.self)
+            let converter = container.resolve(FirebaseRecordConverter.self)
+            let imageService = container.resolve(FirebaseImageService.self)
+            let collectionSync = container.resolve(FirebaseCollectionSync.self)
+            let lineageService = container.resolve(FirebaseLineageService.self)
             return FirebaseRecipeSync(
                 configuration: config,
                 converter: converter,
                 imageService: imageService,
+                collectionSync: collectionSync,
+                lineageService: lineageService,
                 logger: logger
             )
         }
 
-        register(FirebaseShareServiceProtocol.self, lifecycle: .singleton) { container in
+        register((any FirebaseRecipeSyncProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseRecipeSync.self) as any FirebaseRecipeSyncProtocol
+        }
+
+        // FirebaseShareService (concrete type)
+        register(FirebaseShareService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
-            let config = container.resolve(FirebaseConfigurationProtocol.self)
-            let firebaseSync = container.resolve(FirebaseSyncServiceProtocol.self)
-            let lineageService = container.resolve(FirebaseLineageServiceProtocol.self)
+            let config = container.resolve(FirebaseConfiguration.self)
+            let firebaseSync = container.resolve(FirebaseSyncService.self)
+            let lineageService = container.resolve(FirebaseLineageService.self)
+            let analytics = container.resolve(AnalyticsService.self)
             return FirebaseShareService(
                 configuration: config,
                 logger: logger,
                 firebaseSync: firebaseSync,
-                lineageService: lineageService
+                lineageService: lineageService,
+                analytics: analytics
             )
+        }
+
+        register((any FirebaseShareServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseShareService.self) as any FirebaseShareServiceProtocol
         }
 
         // FirebaseSyncService (concrete type)
         register(FirebaseSyncService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
-            let config = container.resolve(FirebaseConfigurationProtocol.self)
-            let recipeSync = container.resolve(FirebaseRecipeSyncProtocol.self)
-            let collectionSync = container.resolve(FirebaseCollectionSyncProtocol.self)
-            let imageService = container.resolve(FirebaseImageServiceProtocol.self)
+            let config = container.resolve(FirebaseConfiguration.self)
+            let recipeSync = container.resolve(FirebaseRecipeSync.self)
+            let collectionSync = container.resolve(FirebaseCollectionSync.self)
+            let imageService = container.resolve(FirebaseImageService.self)
+            let lineageService = container.resolve(FirebaseLineageService.self)
+            let crdtMergeEngine = container.resolve(CRDTMergeEngine.self)
             return FirebaseSyncService(
                 configuration: config,
                 recipeSync: recipeSync,
                 collectionSync: collectionSync,
                 imageService: imageService,
-                logger: logger
+                lineageService: lineageService,
+                logger: logger,
+                crdtMergeEngine: crdtMergeEngine
             )
         }
 
-        // FirebaseSyncService protocol (resolves to same instance)
-        register(FirebaseSyncServiceProtocol.self, lifecycle: .singleton) { container in
-            container.resolve(FirebaseSyncService.self)
+        register((any FirebaseSyncServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseSyncService.self) as any FirebaseSyncServiceProtocol
         }
 
         // FirebaseNotificationService (concrete type for ObservableObject)
         register(FirebaseNotificationService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
-            let config = container.resolve(FirebaseConfigurationProtocol.self)
+            let config = container.resolve(FirebaseConfiguration.self)
             return FirebaseNotificationService(configuration: config, logger: logger)
         }
 
-        // FirebaseNotificationService protocol (resolves to same instance)
-        register(FirebaseNotificationServiceProtocol.self, lifecycle: .singleton) { container in
-            container.resolve(FirebaseNotificationService.self)
+        register((any FirebaseNotificationServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseNotificationService.self) as any FirebaseNotificationServiceProtocol
         }
 
         // FirebaseLineageService
-        register(FirebaseLineageServiceProtocol.self, lifecycle: .singleton) { container in
+        register(FirebaseLineageService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
-            let firebaseSync = container.resolve(FirebaseSyncServiceProtocol.self)
-            return FirebaseLineageService(firebaseSync: firebaseSync, logger: logger)
+            return FirebaseLineageService(logger: logger)
+        }
+
+        register((any FirebaseLineageServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseLineageService.self) as any FirebaseLineageServiceProtocol
         }
 
         // MARK: - Network
-        register(NetworkMonitorProtocol.self, lifecycle: .singleton) { _ in
-            NetworkMonitor.shared
+        register(NetworkMonitor.self, lifecycle: .singleton) { _ in
+            NetworkMonitor()
+        }
+
+        register((any NetworkMonitorProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(NetworkMonitor.self) as any NetworkMonitorProtocol
         }
 
         // MARK: - Analytics
-        register(AnalyticsServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            return AnalyticsService(logger: logger)
+        register(AnalyticsService.self, lifecycle: .singleton) { _ in
+            AnalyticsService()
+        }
+
+        register((any AnalyticsServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(AnalyticsService.self) as any AnalyticsServiceProtocol
         }
 
         // MARK: - Storage
-        register(ImageStorageServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            let firebaseImage = container.resolve(FirebaseImageServiceProtocol.self)
-            return ImageStorageService(
-                firebaseImageService: firebaseImage,
-                logger: logger
-            )
+        register(ImageCache.self, lifecycle: .singleton) { _ in
+            ImageCache()
         }
 
-        register(ImageCacheProtocol.self, lifecycle: .singleton) { _ in
-            ImageCache.shared
+        register((any ImageCacheProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(ImageCache.self) as any ImageCacheProtocol
+        }
+
+        register(ImageStorageService.self, lifecycle: .singleton) { container in
+            let imageCache = container.resolve(ImageCache.self)
+            return ImageStorageService(imageCache: imageCache)
         }
 
         // MARK: - Recipe Services
-        register(RecipeImportServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            let networkMonitor = container.resolve(NetworkMonitorProtocol.self)
-            return RecipeImportService(
-                networkMonitor: networkMonitor,
-                logger: logger
-            )
+        register(RecipeImportService.self, lifecycle: .singleton) { _ in
+            RecipeImportService()
         }
 
-        register(RecipeVersionServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            let firebaseSync = container.resolve(FirebaseSyncServiceProtocol.self)
-            return RecipeVersionService(
-                firebaseSync: firebaseSync,
-                logger: logger
-            )
+        register(CloudRecipeImportService.self, lifecycle: .singleton) { container in
+            let importService = container.resolve(RecipeImportService.self)
+            return CloudRecipeImportService(importService: importService)
         }
 
-        register(RecipeExportServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            return RecipeExportService(logger: logger)
+        register(RecipeVersionService.self, lifecycle: .singleton) { _ in
+            RecipeVersionService()
         }
 
-        register(RecipeMigrationServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            return RecipeMigrationService(logger: logger)
+        register(RecipeExportService.self, lifecycle: .singleton) { container in
+            let toastManager = container.resolve(ToastManager.self)
+            return RecipeExportService(toastManager: toastManager)
         }
 
-        register(RecipeLineageServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            let firebaseSync = container.resolve(FirebaseSyncServiceProtocol.self)
-            return RecipeLineageService(
-                firebaseSync: firebaseSync,
-                logger: logger
-            )
+        register(RecipeMigrationService.self, lifecycle: .singleton) { _ in
+            RecipeMigrationService()
+        }
+
+        // RecipeLineageService
+        register(RecipeLineageService.self, lifecycle: .singleton) { _ in
+            RecipeLineageService()
+        }
+
+        register(RecipeStructureParser.self, lifecycle: .singleton) { _ in
+            RecipeStructureParser()
+        }
+
+        register(CategoryDetectionService.self, lifecycle: .singleton) { _ in
+            CategoryDetectionService()
+        }
+
+        register(ScalingEngine.self, lifecycle: .singleton) { _ in
+            ScalingEngine()
+        }
+
+        register(TrendingService.self, lifecycle: .singleton) { _ in
+            TrendingService()
+        }
+
+        // MARK: - Card Customization Services
+
+        // CardCustomizationService - Manages stickers, drawings, text, photos, shapes on recipe cards
+        register(CardCustomizationService.self, lifecycle: .singleton) { _ in
+            CardCustomizationService()
+        }
+
+        // StickerLibraryService - Manages sticker library with 70+ stickers across 7 categories
+        register(StickerLibraryService.self, lifecycle: .singleton) { _ in
+            StickerLibraryService()
+        }
+
+        // HeritageRecipeCleanupService - Manages cleanup of unmodified heritage recipes after 30 days
+        register(HeritageRecipeCleanupService.self, lifecycle: .singleton) { _ in
+            HeritageRecipeCleanupService()
         }
 
         // MARK: - AI Services
-        register(AIConfigurationProtocol.self, lifecycle: .singleton) { _ in
-            AIConfiguration.shared
+
+        // Keychain
+        register(Keychain.self, lifecycle: .singleton) { _ in
+            Keychain()
         }
 
-        register(AIRecipeExtractorProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            let config = container.resolve(AIConfigurationProtocol.self)
-            return AIRecipeExtractor(configuration: config, logger: logger)
+        // AIConfiguration
+        register(AIConfiguration.self, lifecycle: .singleton) { container in
+            let analytics = container.resolve(AnalyticsService.self)
+            let keychain = container.resolve(Keychain.self)
+            return AIConfiguration(analytics: analytics, keychain: keychain)
         }
 
-        register(AIIngredientParserProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            let config = container.resolve(AIConfigurationProtocol.self)
-            return AIIngredientParser(configuration: config, logger: logger)
+        // UnitsConfiguration
+        register(UnitsConfiguration.self, lifecycle: .singleton) { _ in
+            UnitsConfiguration()
         }
 
-        register(AIRecipeDetectorProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            let config = container.resolve(AIConfigurationProtocol.self)
-            return AIRecipeDetector(configuration: config, logger: logger)
+        // AIUsageTracker
+        register(AIUsageTracker.self, lifecycle: .singleton) { container in
+            let analytics = container.resolve(AnalyticsService.self)
+            let aiConfig = container.resolve(AIConfiguration.self)
+            return AIUsageTracker(analytics: analytics, aiConfiguration: aiConfig)
+        }
+
+        register((any AIConfigurationProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(AIConfiguration.self) as any AIConfigurationProtocol
+        }
+
+        // AnthropicAIService (Core AI provider)
+        register(AnthropicAIService.self, lifecycle: .singleton) { container in
+            let configuration = container.resolve((any AIConfigurationProtocol).self)
+            let usageTracker = container.resolve(AIUsageTracker.self)
+            return AnthropicAIService(configuration: configuration, usageTracker: usageTracker)
+        }
+
+        register((any AIServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(AnthropicAIService.self) as any AIServiceProtocol
+        }
+
+        // AIRecipeExtractor (Recipe extraction from OCR/images)
+        register(AIRecipeExtractor.self, lifecycle: .singleton) { container in
+            let aiService = container.resolve((any AIServiceProtocol).self)
+            let configuration = container.resolve((any AIConfigurationProtocol).self)
+            let analytics = container.resolve(AnalyticsService.self)
+            return AIRecipeExtractor(
+                aiService: aiService,
+                configuration: configuration,
+                analytics: analytics
+            )
+        }
+
+        register((any AIRecipeExtractorProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(AIRecipeExtractor.self) as any AIRecipeExtractorProtocol
+        }
+
+        // AIIngredientParser (Ingredient parsing)
+        register(AIIngredientParser.self, lifecycle: .singleton) { container in
+            let aiService = container.resolve((any AIServiceProtocol).self)
+            let configuration = container.resolve((any AIConfigurationProtocol).self)
+            let analytics = container.resolve((any AnalyticsServiceProtocol).self)
+            return AIIngredientParser(
+                aiService: aiService,
+                configuration: configuration,
+                analytics: analytics
+            )
+        }
+
+        register((any AIIngredientParserProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(AIIngredientParser.self) as any AIIngredientParserProtocol
+        }
+
+        // AIIngredientSpellChecker (Spell checking)
+        register(AIIngredientSpellChecker.self, lifecycle: .singleton) { container in
+            let aiService = container.resolve((any AIServiceProtocol).self)
+            let configuration = container.resolve((any AIConfigurationProtocol).self)
+            let analytics = container.resolve(AnalyticsService.self)
+            return AIIngredientSpellChecker(
+                aiService: aiService,
+                configuration: configuration,
+                analytics: analytics
+            )
+        }
+
+        // DinnerPartySummaryService (Dinner party planning)
+        register(DinnerPartySummaryService.self, lifecycle: .singleton) { container in
+            let aiService = container.resolve((any AIServiceProtocol).self)
+            let configuration = container.resolve((any AIConfigurationProtocol).self)
+            let analytics = container.resolve(AnalyticsService.self)
+            return DinnerPartySummaryService(
+                aiService: aiService,
+                configuration: configuration,
+                analytics: analytics
+            )
+        }
+
+        register((any DinnerPartySummaryServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(DinnerPartySummaryService.self) as any DinnerPartySummaryServiceProtocol
+        }
+
+        // ShoppingListSummaryService (Shopping list optimization)
+        register(ShoppingListSummaryService.self, lifecycle: .singleton) { container in
+            let aiService = container.resolve((any AIServiceProtocol).self)
+            let configuration = container.resolve((any AIConfigurationProtocol).self)
+            let analytics = container.resolve(AnalyticsService.self)
+            return ShoppingListSummaryService(
+                aiService: aiService,
+                configuration: configuration,
+                analytics: analytics
+            )
+        }
+
+        register((any ShoppingListSummaryServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(ShoppingListSummaryService.self) as any ShoppingListSummaryServiceProtocol
+        }
+
+        // RecipeTimelineCalculator (Timeline calculation)
+        register(RecipeTimelineCalculator.self, lifecycle: .singleton) { container in
+            let aiService = container.resolve((any AIServiceProtocol).self)
+            let configuration = container.resolve((any AIConfigurationProtocol).self)
+            let analytics = container.resolve(AnalyticsService.self)
+            return RecipeTimelineCalculator(
+                aiService: aiService,
+                configuration: configuration,
+                analytics: analytics
+            )
+        }
+
+        register((any RecipeTimelineCalculatorProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(RecipeTimelineCalculator.self) as any RecipeTimelineCalculatorProtocol
+        }
+
+        // AIRecipeDetector
+        register(AIRecipeDetector.self, lifecycle: .singleton) { container in
+            let aiConfig = container.resolve(AIConfiguration.self)
+            let aiService = container.resolve(AnthropicAIService.self)
+            return AIRecipeDetector(aiConfig: aiConfig, aiService: aiService)
         }
 
         // MARK: - OCR
-        register(OCRServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            return EnhancedOCRService(logger: logger)
+        // Note: EnhancedOCRService doesn't fully implement OCRServiceProtocol yet
+        // Registering concrete type only for now
+        register(EnhancedOCRService.self, lifecycle: .singleton) { _ in
+            EnhancedOCRService()
         }
 
         // MARK: - Deep Linking
-        register(DeepLinkHandlerProtocol.self, lifecycle: .singleton) { container in
+        // Note: DeepLinkHandler doesn't fully implement DeepLinkHandlerProtocol yet
+        // Registering concrete type only for now
+        register(DeepLinkHandler.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
-            let firebaseShare = container.resolve(FirebaseShareServiceProtocol.self)
+            let firebaseShare = container.resolve(FirebaseShareService.self)
             return DeepLinkHandler(
                 firebaseShare: firebaseShare,
                 logger: logger
@@ -231,37 +430,94 @@ extension ServiceContainer {
         }
 
         // MARK: - Comments
-        register(CommentServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            let firebaseSync = container.resolve(FirebaseSyncServiceProtocol.self)
-            return CommentService(
-                firebaseSync: firebaseSync,
-                logger: logger
-            )
+        // Note: CommentService doesn't fully implement CommentServiceProtocol yet
+        // Registering concrete type only for now
+        register(CommentService.self, lifecycle: .singleton) { container in
+            let firebaseSync = container.resolve(FirebaseSyncService.self)
+            return CommentService(firebaseSync: firebaseSync)
         }
 
         // MARK: - CRDT
-        register(CRDTMergeEngineProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            return CRDTMergeEngine(logger: logger)
+        // Note: CRDTMergeEngine doesn't fully implement CRDTMergeEngineProtocol yet
+        // Registering concrete type only for now
+        register(CRDTMergeEngine.self, lifecycle: .singleton) { _ in
+            CRDTMergeEngine()
         }
 
         // MARK: - Reminders
-        register(RemindersServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            return RemindersService(logger: logger)
+        // Note: RemindersService doesn't fully implement RemindersServiceProtocol yet
+        // Registering concrete type only for now
+        register(RemindersService.self, lifecycle: .singleton) { _ in
+            RemindersService()
         }
 
         // MARK: - Undo
-        register(UndoServiceProtocol.self, lifecycle: .singleton) { container in
-            let logger = container.resolve(LoggingService.self)
-            return UndoService(logger: logger)
+        // Note: UndoService doesn't fully implement UndoServiceProtocol yet
+        // Registering concrete type only for now
+        register(UndoService.self, lifecycle: .singleton) { container in
+            let analytics = container.resolve(AnalyticsService.self)
+            let backendConfig = container.resolve(BackendConfig.self)
+            let firebaseSync = container.resolve(FirebaseSyncService.self)
+            return UndoService(analytics: analytics, backendConfig: backendConfig, firebaseSync: firebaseSync)
+        }
+
+        // TODO: CardStyleUndoManager needs to be updated to match current RecipeCardStyle model
+        // Missing properties: backgroundColor, backgroundStyle, stickers, annotations, hasCoffeeStain, etc.
+        // register(CardStyleUndoManager.self, lifecycle: .singleton) { _ in
+        //     CardStyleUndoManager()
+        // }
+
+        // MilestoneManager
+        register(MilestoneManager.self, lifecycle: .singleton) { _ in
+            MilestoneManager()
+        }
+
+        // MARK: - Help & Gestures
+        register(GestureGuide.self, lifecycle: .singleton) { _ in
+            GestureGuide()
+        }
+
+        register(HelpContent.self, lifecycle: .singleton) { _ in
+            HelpContent()
         }
 
         // MARK: - Toast
-        register(ToastManagerProtocol.self, lifecycle: .singleton) { _ in
-            ToastManager.shared
+        // Note: ToastManager doesn't fully implement ToastManagerProtocol yet
+        // Registering concrete type only for now
+        register(ToastManager.self, lifecycle: .singleton) { _ in
+            ToastManager()
         }
+
+        // MARK: - Privacy
+        register(PrivacyConsentService.self, lifecycle: .singleton) { container in
+            let analytics = container.resolve(AnalyticsService.self)
+            return PrivacyConsentService(analytics: analytics)
+        }
+
+        // MARK: - Short URL
+        register(ShortURLService.self, lifecycle: .singleton) { container in
+            let analytics = container.resolve(AnalyticsService.self)
+            return ShortURLService(analytics: analytics)
+        }
+
+        // MARK: - Bulk Import
+        register(ImportJobManager.self, lifecycle: .singleton) { container in
+            let importService = container.resolve(RecipeImportService.self)
+            let firebaseSync = container.resolve(FirebaseSyncService.self)
+            let backendConfig = container.resolve(BackendConfig.self)
+            return ImportJobManager(
+                importService: importService,
+                firebaseSync: firebaseSync,
+                backendConfig: backendConfig
+            )
+        }
+
+        // MARK: - Mixpanel (Optional)
+        #if canImport(Mixpanel)
+        register(MixpanelService.self, lifecycle: .singleton) { _ in
+            MixpanelService()
+        }
+        #endif
 
         logger.log(
             "Service registration complete: \(registeredServices.count) services",
@@ -272,7 +528,7 @@ extension ServiceContainer {
 
     /// Register mock services for testing
     func registerMockServices() {
-        let logger = HeirloomLogger.shared
+        let logger = HeirloomLogger()
         logger.log("Registering mock services for testing...", category: .general, level: .info)
 
         // Mock services will be registered here as we create them
@@ -285,7 +541,7 @@ extension ServiceContainer {
 
     /// Register preview services for SwiftUI previews
     func registerPreviewServices() {
-        let logger = HeirloomLogger.shared
+        let logger = HeirloomLogger()
         logger.log("Registering preview services...", category: .general, level: .debug)
 
         // Preview services will use mocks when available

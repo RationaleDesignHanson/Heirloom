@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import XCTest
 @testable import Heirloom
 
 /// Simulates multiple devices for testing multi-device sync scenarios
@@ -170,7 +171,7 @@ class SimulatedDevice {
     func editRecipe(_ recipe: Recipe, changes: (Recipe) -> Void) {
         changes(recipe)
         recipe.lastModified = Date()
-        recipe.needsSync = true
+        // recipe.needsSync = true // REMOVED: Property no longer exists
         try? modelContext.save()
     }
 
@@ -203,10 +204,12 @@ class SimulatedDevice {
 
     /// Fetch recipes that need syncing
     private func fetchUnsyncedRecipes() throws -> [Recipe] {
-        let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate { $0.needsSync == true }
-        )
-        return try modelContext.fetch(descriptor)
+        let descriptor = FetchDescriptor<Recipe>()
+        let all = try modelContext.fetch(descriptor)
+        // Filter recipes that haven't been synced or have been modified since last sync
+        return all.filter { recipe in
+            recipe.lastSyncedAt == nil || recipe.lastModified > (recipe.lastSyncedAt ?? Date.distantPast)
+        }
     }
 
     /// Upload a recipe to Firebase
@@ -226,7 +229,7 @@ class SimulatedDevice {
         try await docRef.setData(data)
 
         // Mark as synced
-        recipe.needsSync = false
+        recipe.lastSyncedAt = Date() // CHANGED: needsSync -> lastSyncedAt
         try? modelContext.save()
     }
 

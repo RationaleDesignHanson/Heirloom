@@ -10,7 +10,7 @@ final class ScalingEngineTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        engine = ScalingEngine.shared
+        engine = ScalingEngine()
 
         // Set up in-memory model context for testing using SchemaV1
         // This ensures all models and their relationships are properly configured

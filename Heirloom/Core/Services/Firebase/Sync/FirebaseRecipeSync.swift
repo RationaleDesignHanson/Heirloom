@@ -20,9 +20,11 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
 
     // MARK: - Dependencies
 
-    private let configuration: FirebaseConfigurationProtocol
-    private let converter: FirebaseRecordConverterProtocol
-    private let imageService: FirebaseImageServiceProtocol
+    private let configuration: FirebaseConfiguration
+    private let converter: FirebaseRecordConverter
+    private let imageService: FirebaseImageService
+    private let collectionSync: FirebaseCollectionSync
+    private let lineageService: FirebaseLineageService
     private let logger: LoggingService
 
     // MARK: - Published State
@@ -34,19 +36,19 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
     // MARK: - Initialization
 
     init(
-        configuration: FirebaseConfigurationProtocol,
-        converter: FirebaseRecordConverterProtocol,
-        imageService: FirebaseImageServiceProtocol,
+        configuration: FirebaseConfiguration,
+        converter: FirebaseRecordConverter,
+        imageService: FirebaseImageService,
+        collectionSync: FirebaseCollectionSync,
+        lineageService: FirebaseLineageService,
         logger: LoggingService
     ) {
         self.configuration = configuration
         self.converter = converter
         self.imageService = imageService
+        self.collectionSync = collectionSync
+        self.lineageService = lineageService
         self.logger = logger
-    }
-
-    private var collectionSync: FirebaseCollectionSync {
-        FirebaseCollectionSync.shared
     }
 
     // MARK: - State
@@ -60,7 +62,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
     /// - Parameter recipe: Recipe to upload
     /// - Throws: FirebaseError if upload fails
     func uploadRecipe(_ recipe: Recipe) async throws {
-        logger.log("Starting recipe upload", category: .sync, level: .debug)
+        logger.log("Starting recipe upload", category: .sync, level: .debug, metadata: nil)
 
         guard let context = configuration.modelContext else {
             throw FirebaseError.notConfigured
@@ -72,18 +74,18 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
 
         DeviceLogger.shared.log("📤 [Firebase] Uploading recipe: \(recipe.title)")
         logger.info("📤 [Firebase] Uploading recipe: \(recipe.title)")
-        logger.log("Uploading recipe", category: .sync, level: .info)
+        logger.log("Uploading recipe", category: .sync, level: .info, metadata: nil)
 
         do {
             let recipeId = recipe.id.uuidString
             let recipeRef = try configuration.recipeDocument(id: recipeId)
 
             // Step 1: Upload recipe document
-            let recipeData = converter.convertToFirestoreData(recipe)
+            let recipeData = FirebaseRecordConverter.convertToFirestoreData(recipe)
             try await recipeRef.setData(recipeData)
 
             DeviceLogger.shared.log("✅ [Firebase] Uploaded recipe: \(recipe.title)")
-            logger.log("Recipe uploaded successfully", category: .sync, level: .info)
+            logger.log("Recipe uploaded successfully", category: .sync, level: .info, metadata: nil)
 
             // Step 2: Upload ingredients subcollection
             if let ingredients = recipe.ingredients, !ingredients.isEmpty {
@@ -118,19 +120,19 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
             }
 
             // Step 6: Track lineage modification if this is an heirloom recipe being edited
-            logger.log("Checking lineage tracking", category: .sync, level: .debug)
+            logger.log("Checking lineage tracking", category: .sync, level: .debug, metadata: nil)
             do {
-                try await FirebaseLineageService.shared.recordModification(
+                try await lineageService.recordModification(
                     recipeId: recipe.id,
                     changeType: .modified,
                     changeDescription: "Recipe '\(recipe.title)' was edited",
                     fieldChanged: nil,
                     context: context
                 )
-                logger.log("Lineage modification recorded", category: .sync, level: .info)
+                logger.log("Lineage modification recorded", category: .sync, level: .info, metadata: nil)
             } catch {
                 // Log but don't fail the upload if lineage tracking fails
-                logger.log("Failed to record lineage modification", category: .sync, level: .warning)
+                logger.log("Failed to record lineage modification", category: .sync, level: .warning, metadata: nil)
             }
 
             // Update local sync metadata
@@ -152,7 +154,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         guard !recipes.isEmpty else { return }
 
         DeviceLogger.shared.log("📤 [Firebase] Batch uploading \(recipes.count) recipes...")
-        logger.log("Starting batch recipe upload", category: .sync, level: .info)
+        logger.log("Starting batch recipe upload", category: .sync, level: .info, metadata: nil)
 
         // Upload each recipe (Firestore batches are limited to 500 operations)
         // Subcollections make single batch difficult, so upload serially
@@ -161,7 +163,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         }
 
         DeviceLogger.shared.log("✅ [Firebase] Batch upload complete: \(recipes.count) recipes")
-        logger.log("Batch upload complete", category: .sync, level: .info)
+        logger.log("Batch upload complete", category: .sync, level: .info, metadata: nil)
     }
 
     // MARK: - Download Operations
@@ -174,7 +176,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         // Use January 1, 2020 as the earliest sync date (Firebase can't handle Date.distantPast)
         let syncDate = date ?? Date(timeIntervalSince1970: 1577836800) // 2020-01-01
         DeviceLogger.shared.log("📥 [Firebase] Fetching remote changes since: \(syncDate)")
-        logger.log("Fetching remote changes", category: .sync, level: .info)
+        logger.log("Fetching remote changes", category: .sync, level: .info, metadata: nil)
 
         do {
             let recipesRef = try configuration.recipesCollection()
@@ -183,13 +185,99 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
                 .getDocuments()
 
             DeviceLogger.shared.log("✅ [Firebase] Fetched \(snapshot.documents.count) remote changes")
-            logger.log("Fetched remote changes", category: .sync, level: .info)
+            logger.log("Fetched remote changes", category: .sync, level: .info, metadata: nil)
 
             return snapshot.documents
 
         } catch {
             DeviceLogger.shared.log("❌ [Firebase] Fetch failed: \(error.localizedDescription)", level: .error)
             Log.error("Failed to fetch remote changes", category: .firebase, error: error)
+            throw FirebaseError.downloadFailed(error)
+        }
+    }
+
+    /// Download a single recipe from Firebase
+    /// - Parameters:
+    ///   - recipeId: ID of recipe to download
+    ///   - context: SwiftData model context
+    /// - Returns: Downloaded recipe
+    /// - Throws: FirebaseError if download fails
+    func downloadRecipe(id recipeId: String, context: ModelContext) async throws -> Recipe {
+        logger.log("Downloading recipe: \(recipeId)", category: .sync, level: .info, metadata: nil)
+
+        guard configuration.isAuthenticated else {
+            throw FirebaseError.notAuthenticated
+        }
+
+        do {
+            let recipeRef = try configuration.recipeDocument(id: recipeId)
+            let document = try await recipeRef.getDocument()
+
+            guard document.exists, let data = document.data() else {
+                throw FirebaseError.downloadFailed(NSError(domain: "FirebaseRecipeSync", code: -1, userInfo: [NSLocalizedDescriptionKey: "Recipe not found"]))
+            }
+
+            // Convert from Firestore data to Recipe
+            let recipe = FirebaseRecordConverter.convertFromFirestoreData(data, id: recipeId, context: context)
+
+            // Download related data
+            try await collectionSync.downloadIngredients(for: recipeId, recipe: recipe)
+            try await collectionSync.downloadComments(for: recipeId, recipe: recipe)
+            try await collectionSync.downloadCardBack(for: recipeId, recipe: recipe)
+
+            // Download image if available
+            if let _ = recipe.firebaseImageURL {
+                try? await imageService.downloadImage(for: recipe)
+            }
+
+            logger.log("Recipe downloaded successfully", category: .sync, level: .info, metadata: nil)
+            return recipe
+
+        } catch {
+            logger.log("Recipe download failed", category: .sync, level: .error, metadata: nil)
+            throw FirebaseError.downloadFailed(error)
+        }
+    }
+
+    /// Download all user's recipes from Firebase
+    /// - Parameter context: SwiftData model context
+    /// - Returns: Array of downloaded recipes
+    /// - Throws: FirebaseError if download fails
+    func downloadAllRecipes(context: ModelContext) async throws -> [Recipe] {
+        logger.log("Downloading all recipes", category: .sync, level: .info, metadata: nil)
+
+        guard configuration.isAuthenticated else {
+            throw FirebaseError.notAuthenticated
+        }
+
+        do {
+            let recipesRef = try configuration.recipesCollection()
+            let snapshot = try await recipesRef.getDocuments()
+
+            var recipes: [Recipe] = []
+
+            for document in snapshot.documents {
+                let data = document.data()
+                let recipe = FirebaseRecordConverter.convertFromFirestoreData(data, id: document.documentID, context: context)
+
+                // Download related data
+                try await collectionSync.downloadIngredients(for: document.documentID, recipe: recipe)
+                try await collectionSync.downloadComments(for: document.documentID, recipe: recipe)
+                try await collectionSync.downloadCardBack(for: document.documentID, recipe: recipe)
+
+                // Download image if available
+                if let _ = recipe.firebaseImageURL {
+                    try? await imageService.downloadImage(for: recipe)
+                }
+
+                recipes.append(recipe)
+            }
+
+            logger.log("Downloaded \(recipes.count) recipes", category: .sync, level: .info, metadata: nil)
+            return recipes
+
+        } catch {
+            logger.log("Failed to download recipes", category: .sync, level: .error, metadata: nil)
             throw FirebaseError.downloadFailed(error)
         }
     }
@@ -287,7 +375,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         let targetRecipe: Recipe
         if let existingRecipe = try context.fetch(descriptor).first {
             // Conflict: Recipe exists locally and remotely
-            let remoteRecipe = converter.convertFromFirestoreData(data, id: documentId, context: context)
+            let remoteRecipe = FirebaseRecordConverter.convertFromFirestoreData(data, id: documentId, context: context)
             let resolved = try await resolveConflict(
                 local: existingRecipe,
                 remote: remoteRecipe
@@ -299,7 +387,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
 
         } else {
             // No conflict: New recipe from remote
-            let newRecipe = converter.convertFromFirestoreData(data, id: documentId, context: context)
+            let newRecipe = FirebaseRecordConverter.convertFromFirestoreData(data, id: documentId, context: context)
             context.insert(newRecipe)
             targetRecipe = newRecipe
         }
@@ -353,7 +441,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
     /// Fetch ingredients from Firestore and restore them to the recipe
     private func fetchAndRestoreIngredients(for recipe: Recipe, recipeId: String, context: ModelContext) async throws {
         DeviceLogger.shared.log("📥 [Firebase] Fetching ingredients for: \(recipe.title)")
-        logger.log("Fetching ingredients", category: .sync, level: .debug)
+        logger.log("Fetching ingredients", category: .sync, level: .debug, metadata: nil)
 
         do {
             try await collectionSync.downloadIngredients(for: recipeId, recipe: recipe)
@@ -444,7 +532,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         let recipeIdString = recipeId.uuidString
         let recipeRef = try configuration.recipeDocument(id: recipeIdString)
 
-        logger.log("Deleting recipe from Firebase", category: .sync, level: .info)
+        logger.log("Deleting recipe from Firebase", category: .sync, level: .info, metadata: nil)
 
         // Delete subcollections first
         try await deleteSubcollection(recipeRef, named: "ingredients")
@@ -457,7 +545,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         // Delete image from Storage
         try? await imageService.deleteImage(for: recipeId)
 
-        logger.log("Recipe deleted from Firebase", category: .sync, level: .info)
+        logger.log("Recipe deleted from Firebase", category: .sync, level: .info, metadata: nil)
         DeviceLogger.shared.log("✅ [Firebase] Recipe deleted: \(recipeIdString)")
     }
 
@@ -474,7 +562,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         }
 
         if !snapshot.documents.isEmpty {
-            logger.log("Deleted subcollection documents", category: .sync, level: .debug)
+            logger.log("Deleted subcollection documents", category: .sync, level: .debug, metadata: nil)
         }
     }
 

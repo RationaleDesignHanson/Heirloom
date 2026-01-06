@@ -1,0 +1,1215 @@
+{
+  "stickers": [
+    {
+      "id": "sticker_tomato",
+      "name": "Tomato",
+      "category": "botanical",
+      "assetName": "sticker_tomato",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "food",
+        "produce",
+        "vegetable",
+        "red",
+        "tomato"
+      ],
+      "isPremium": false,
+      "sortOrder": 0
+    },
+    {
+      "id": "sticker_garlic_bulb",
+      "name": "Garlic Bulb",
+      "category": "botanical",
+      "assetName": "sticker_garlic_bulb",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "seasoning",
+        "food",
+        "bulb",
+        "vegetable",
+        "garlic bulb"
+      ],
+      "isPremium": false,
+      "sortOrder": 1
+    },
+    {
+      "id": "sticker_lemon_slice",
+      "name": "Lemon Slice",
+      "category": "botanical",
+      "assetName": "sticker_lemon_slice",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "fruit",
+        "food",
+        "citrus",
+        "yellow",
+        "lemon slice"
+      ],
+      "isPremium": false,
+      "sortOrder": 2
+    },
+    {
+      "id": "sticker_carrot",
+      "name": "Carrot",
+      "category": "botanical",
+      "assetName": "sticker_carrot",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "carrot",
+        "food"
+      ],
+      "isPremium": false,
+      "sortOrder": 3
+    },
+    {
+      "id": "sticker_mushroom",
+      "name": "Mushroom",
+      "category": "botanical",
+      "assetName": "sticker_mushroom",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "mushroom",
+        "food"
+      ],
+      "isPremium": false,
+      "sortOrder": 4
+    },
+    {
+      "id": "sticker_egg",
+      "name": "Egg",
+      "category": "botanical",
+      "assetName": "sticker_egg",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "food",
+        "egg"
+      ],
+      "isPremium": false,
+      "sortOrder": 5
+    },
+    {
+      "id": "sticker_butter",
+      "name": "Butter",
+      "category": "botanical",
+      "assetName": "sticker_butter",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "food",
+        "butter"
+      ],
+      "isPremium": false,
+      "sortOrder": 6
+    },
+    {
+      "id": "sticker_cheese_wedge",
+      "name": "Cheese Wedge",
+      "category": "botanical",
+      "assetName": "sticker_cheese_wedge",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "cheese wedge",
+        "food"
+      ],
+      "isPremium": false,
+      "sortOrder": 7
+    },
+    {
+      "id": "sticker_flour_sack",
+      "name": "Flour Sack",
+      "category": "botanical",
+      "assetName": "sticker_flour_sack",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "food",
+        "flour sack"
+      ],
+      "isPremium": false,
+      "sortOrder": 8
+    },
+    {
+      "id": "sticker_sugar_bowl",
+      "name": "Sugar Bowl",
+      "category": "botanical",
+      "assetName": "sticker_sugar_bowl",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "sugar bowl",
+        "food"
+      ],
+      "isPremium": false,
+      "sortOrder": 9
+    },
+    {
+      "id": "sticker_chocolate_bar",
+      "name": "Chocolate Bar",
+      "category": "botanical",
+      "assetName": "sticker_chocolate_bar",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "food",
+        "chocolate bar"
+      ],
+      "isPremium": false,
+      "sortOrder": 10
+    },
+    {
+      "id": "sticker_pie_slice",
+      "name": "Pie Slice",
+      "category": "botanical",
+      "assetName": "sticker_pie_slice",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "pie slice",
+        "food"
+      ],
+      "isPremium": false,
+      "sortOrder": 11
+    },
+    {
+      "id": "sticker_bread_loaf",
+      "name": "Bread Loaf",
+      "category": "botanical",
+      "assetName": "sticker_bread_loaf",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "food",
+        "bread loaf"
+      ],
+      "isPremium": false,
+      "sortOrder": 12
+    },
+    {
+      "id": "sticker_cookie",
+      "name": "Cookie",
+      "category": "botanical",
+      "assetName": "sticker_cookie",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "cookie",
+        "food"
+      ],
+      "isPremium": false,
+      "sortOrder": 13
+    },
+    {
+      "id": "sticker_herb_sprig",
+      "name": "Herb Sprig",
+      "category": "botanical",
+      "assetName": "sticker_herb_sprig",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "herb sprig",
+        "food"
+      ],
+      "isPremium": false,
+      "sortOrder": 14
+    },
+    {
+      "id": "sticker_wooden_spoon",
+      "name": "Wooden Spoon",
+      "category": "utensils",
+      "assetName": "sticker_wooden_spoon",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "tools",
+        "wooden spoon"
+      ],
+      "isPremium": false,
+      "sortOrder": 15
+    },
+    {
+      "id": "sticker_whisk",
+      "name": "Whisk",
+      "category": "utensils",
+      "assetName": "sticker_whisk",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "whisk",
+        "tools"
+      ],
+      "isPremium": false,
+      "sortOrder": 16
+    },
+    {
+      "id": "sticker_rolling_pin",
+      "name": "Rolling Pin",
+      "category": "utensils",
+      "assetName": "sticker_rolling_pin",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "tools",
+        "rolling pin"
+      ],
+      "isPremium": false,
+      "sortOrder": 17
+    },
+    {
+      "id": "sticker_chef's_knife",
+      "name": "Chef's Knife",
+      "category": "utensils",
+      "assetName": "sticker_chef's_knife",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "chef's knife",
+        "tools"
+      ],
+      "isPremium": false,
+      "sortOrder": 18
+    },
+    {
+      "id": "sticker_mixing_bowl",
+      "name": "Mixing Bowl",
+      "category": "utensils",
+      "assetName": "sticker_mixing_bowl",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "mixing bowl",
+        "tools"
+      ],
+      "isPremium": false,
+      "sortOrder": 19
+    },
+    {
+      "id": "sticker_measuring_cups",
+      "name": "Measuring Cups",
+      "category": "utensils",
+      "assetName": "sticker_measuring_cups",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "tools",
+        "measuring cups"
+      ],
+      "isPremium": false,
+      "sortOrder": 20
+    },
+    {
+      "id": "sticker_cast_iron_skillet",
+      "name": "Cast Iron Skillet",
+      "category": "utensils",
+      "assetName": "sticker_cast_iron_skillet",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "tools",
+        "cast iron skillet"
+      ],
+      "isPremium": false,
+      "sortOrder": 21
+    },
+    {
+      "id": "sticker_dutch_oven",
+      "name": "Dutch Oven",
+      "category": "utensils",
+      "assetName": "sticker_dutch_oven",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "tools",
+        "dutch oven"
+      ],
+      "isPremium": false,
+      "sortOrder": 22
+    },
+    {
+      "id": "sticker_stand_mixer",
+      "name": "Stand Mixer",
+      "category": "utensils",
+      "assetName": "sticker_stand_mixer",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "tools",
+        "stand mixer"
+      ],
+      "isPremium": false,
+      "sortOrder": 23
+    },
+    {
+      "id": "sticker_apron",
+      "name": "Apron",
+      "category": "utensils",
+      "assetName": "sticker_apron",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "apron",
+        "tools"
+      ],
+      "isPremium": false,
+      "sortOrder": 24
+    },
+    {
+      "id": "sticker_family_recipe",
+      "name": "Family Recipe",
+      "category": "icons",
+      "assetName": "sticker_family_recipe",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "badges",
+        "family recipe"
+      ],
+      "isPremium": false,
+      "sortOrder": 25
+    },
+    {
+      "id": "sticker_grandma's_secret",
+      "name": "Grandma's Secret",
+      "category": "icons",
+      "assetName": "sticker_grandma's_secret",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "badges",
+        "grandma's secret"
+      ],
+      "isPremium": false,
+      "sortOrder": 26
+    },
+    {
+      "id": "sticker_tested_&_approved",
+      "name": "Tested & Approved",
+      "category": "icons",
+      "assetName": "sticker_tested_&_approved",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "badges",
+        "tested & approved"
+      ],
+      "isPremium": false,
+      "sortOrder": 27
+    },
+    {
+      "id": "sticker_sunday_dinner",
+      "name": "Sunday Dinner",
+      "category": "icons",
+      "assetName": "sticker_sunday_dinner",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "badges",
+        "sunday dinner"
+      ],
+      "isPremium": false,
+      "sortOrder": 28
+    },
+    {
+      "id": "sticker_vegetarian",
+      "name": "Vegetarian",
+      "category": "icons",
+      "assetName": "sticker_vegetarian",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "badges",
+        "vegetarian"
+      ],
+      "isPremium": false,
+      "sortOrder": 29
+    },
+    {
+      "id": "sticker_gluten_free",
+      "name": "Gluten-Free",
+      "category": "icons",
+      "assetName": "sticker_gluten_free",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "badges",
+        "gluten-free"
+      ],
+      "isPremium": false,
+      "sortOrder": 30
+    },
+    {
+      "id": "sticker_holiday_favorite",
+      "name": "Holiday Favorite",
+      "category": "icons",
+      "assetName": "sticker_holiday_favorite",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "badges",
+        "holiday favorite"
+      ],
+      "isPremium": false,
+      "sortOrder": 31
+    },
+    {
+      "id": "sticker_quick_&_easy",
+      "name": "Quick & Easy",
+      "category": "icons",
+      "assetName": "sticker_quick_&_easy",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "badges",
+        "quick & easy"
+      ],
+      "isPremium": false,
+      "sortOrder": 32
+    },
+    {
+      "id": "sticker_five_stars",
+      "name": "Five Stars",
+      "category": "icons",
+      "assetName": "sticker_five_stars",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "rating",
+        "five stars",
+        "badges",
+        "favorite"
+      ],
+      "isPremium": false,
+      "sortOrder": 33
+    },
+    {
+      "id": "sticker_award_winner",
+      "name": "Award Winner",
+      "category": "icons",
+      "assetName": "sticker_award_winner",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "badges",
+        "award winner"
+      ],
+      "isPremium": false,
+      "sortOrder": 34
+    },
+    {
+      "id": "sticker_made_with_love",
+      "name": "Made With Love",
+      "category": "icons",
+      "assetName": "sticker_made_with_love",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "made with love",
+        "badges"
+      ],
+      "isPremium": false,
+      "sortOrder": 35
+    },
+    {
+      "id": "sticker_homemade",
+      "name": "Homemade",
+      "category": "icons",
+      "assetName": "sticker_homemade",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "homemade",
+        "badges"
+      ],
+      "isPremium": false,
+      "sortOrder": 36
+    },
+    {
+      "id": "sticker_cherry_blossoms",
+      "name": "Cherry Blossoms",
+      "category": "seasonal",
+      "assetName": "sticker_cherry_blossoms",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "cherry blossoms",
+        "seasonal"
+      ],
+      "isPremium": false,
+      "sortOrder": 37
+    },
+    {
+      "id": "sticker_strawberry",
+      "name": "Strawberry",
+      "category": "seasonal",
+      "assetName": "sticker_strawberry",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "strawberry",
+        "seasonal"
+      ],
+      "isPremium": false,
+      "sortOrder": 38
+    },
+    {
+      "id": "sticker_sunflower",
+      "name": "Sunflower",
+      "category": "seasonal",
+      "assetName": "sticker_sunflower",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "sunflower",
+        "seasonal"
+      ],
+      "isPremium": false,
+      "sortOrder": 39
+    },
+    {
+      "id": "sticker_pumpkin",
+      "name": "Pumpkin",
+      "category": "seasonal",
+      "assetName": "sticker_pumpkin",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "pumpkin",
+        "seasonal"
+      ],
+      "isPremium": false,
+      "sortOrder": 40
+    },
+    {
+      "id": "sticker_autumn_leaves",
+      "name": "Autumn Leaves",
+      "category": "seasonal",
+      "assetName": "sticker_autumn_leaves",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "autumn leaves",
+        "seasonal"
+      ],
+      "isPremium": false,
+      "sortOrder": 41
+    },
+    {
+      "id": "sticker_snowflake",
+      "name": "Snowflake",
+      "category": "seasonal",
+      "assetName": "sticker_snowflake",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "snowflake",
+        "seasonal"
+      ],
+      "isPremium": false,
+      "sortOrder": 42
+    },
+    {
+      "id": "sticker_holly_sprig",
+      "name": "Holly Sprig",
+      "category": "seasonal",
+      "assetName": "sticker_holly_sprig",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "holly sprig",
+        "seasonal"
+      ],
+      "isPremium": false,
+      "sortOrder": 43
+    },
+    {
+      "id": "sticker_pinecone",
+      "name": "Pinecone",
+      "category": "seasonal",
+      "assetName": "sticker_pinecone",
+      "supportsTinting": false,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "pinecone",
+        "seasonal"
+      ],
+      "isPremium": false,
+      "sortOrder": 44
+    },
+    {
+      "id": "sticker_mom's_original",
+      "name": "Mom's Original",
+      "category": "typography",
+      "assetName": "sticker_mom's_original",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "annotations",
+        "mom's original"
+      ],
+      "isPremium": false,
+      "sortOrder": 45
+    },
+    {
+      "id": "sticker_add_more_garlic",
+      "name": "Add More Garlic",
+      "category": "typography",
+      "assetName": "sticker_add_more_garlic",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "seasoning",
+        "annotations",
+        "bulb",
+        "vegetable",
+        "add more garlic"
+      ],
+      "isPremium": false,
+      "sortOrder": 46
+    },
+    {
+      "id": "sticker_best_ever",
+      "name": "Best Ever",
+      "category": "typography",
+      "assetName": "sticker_best_ever",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "best ever",
+        "annotations"
+      ],
+      "isPremium": false,
+      "sortOrder": 47
+    },
+    {
+      "id": "sticker_try_this",
+      "name": "Try This",
+      "category": "typography",
+      "assetName": "sticker_try_this",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "try this",
+        "annotations"
+      ],
+      "isPremium": false,
+      "sortOrder": 48
+    },
+    {
+      "id": "sticker_double_the_recipe",
+      "name": "Double the Recipe",
+      "category": "typography",
+      "assetName": "sticker_double_the_recipe",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "annotations",
+        "double the recipe"
+      ],
+      "isPremium": false,
+      "sortOrder": 49
+    },
+    {
+      "id": "sticker_from_italy_1952",
+      "name": "From Italy 1952",
+      "category": "typography",
+      "assetName": "sticker_from_italy_1952",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "from italy 1952",
+        "annotations"
+      ],
+      "isPremium": false,
+      "sortOrder": 50
+    },
+    {
+      "id": "sticker_corner_flourish",
+      "name": "Corner Flourish",
+      "category": "decorative",
+      "assetName": "sticker_corner_flourish",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "decorative",
+        "corner flourish"
+      ],
+      "isPremium": false,
+      "sortOrder": 51
+    },
+    {
+      "id": "sticker_divider_line",
+      "name": "Divider Line",
+      "category": "decorative",
+      "assetName": "sticker_divider_line",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "divider line",
+        "decorative"
+      ],
+      "isPremium": false,
+      "sortOrder": 52
+    },
+    {
+      "id": "sticker_banner_ribbon",
+      "name": "Banner Ribbon",
+      "category": "decorative",
+      "assetName": "sticker_banner_ribbon",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "banner ribbon",
+        "decorative"
+      ],
+      "isPremium": false,
+      "sortOrder": 53
+    },
+    {
+      "id": "sticker_recipe_box_border",
+      "name": "Recipe Box Border",
+      "category": "decorative",
+      "assetName": "sticker_recipe_box_border",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "recipe box border",
+        "decorative"
+      ],
+      "isPremium": false,
+      "sortOrder": 54
+    },
+    {
+      "id": "sticker_laurel_wreath",
+      "name": "Laurel Wreath",
+      "category": "decorative",
+      "assetName": "sticker_laurel_wreath",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "decorative",
+        "laurel wreath"
+      ],
+      "isPremium": false,
+      "sortOrder": 55
+    },
+    {
+      "id": "sticker_heart",
+      "name": "Heart",
+      "category": "icons",
+      "assetName": "sticker_heart",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "love",
+        "emotion",
+        "emotions",
+        "heart"
+      ],
+      "isPremium": false,
+      "sortOrder": 56
+    },
+    {
+      "id": "sticker_star",
+      "name": "Star",
+      "category": "icons",
+      "assetName": "sticker_star",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "rating",
+        "star",
+        "favorite",
+        "emotions"
+      ],
+      "isPremium": false,
+      "sortOrder": 57
+    },
+    {
+      "id": "sticker_smiling_face",
+      "name": "Smiling Face",
+      "category": "icons",
+      "assetName": "sticker_smiling_face",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "emotions",
+        "smiling face"
+      ],
+      "isPremium": false,
+      "sortOrder": 58
+    },
+    {
+      "id": "sticker_coffee_stain",
+      "name": "Coffee Stain",
+      "category": "icons",
+      "assetName": "sticker_coffee_stain",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "coffee stain",
+        "emotions"
+      ],
+      "isPremium": false,
+      "sortOrder": 59
+    },
+    {
+      "id": "sticker_fingerprint",
+      "name": "Fingerprint",
+      "category": "icons",
+      "assetName": "sticker_fingerprint",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "emotions",
+        "fingerprint"
+      ],
+      "isPremium": false,
+      "sortOrder": 60
+    },
+    {
+      "id": "sticker_lipstick_kiss",
+      "name": "Lipstick Kiss",
+      "category": "icons",
+      "assetName": "sticker_lipstick_kiss",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "lipstick kiss",
+        "emotions"
+      ],
+      "isPremium": false,
+      "sortOrder": 61
+    },
+    {
+      "id": "sticker_clock_15min",
+      "name": "Clock 15min",
+      "category": "icons",
+      "assetName": "sticker_clock_15min",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "clock 15min",
+        "timer",
+        "time"
+      ],
+      "isPremium": false,
+      "sortOrder": 62
+    },
+    {
+      "id": "sticker_clock_30min",
+      "name": "Clock 30min",
+      "category": "icons",
+      "assetName": "sticker_clock_30min",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "clock 30min",
+        "timer",
+        "time"
+      ],
+      "isPremium": false,
+      "sortOrder": 63
+    },
+    {
+      "id": "sticker_clock_1hour",
+      "name": "Clock 1hour",
+      "category": "icons",
+      "assetName": "sticker_clock_1hour",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "clock 1hour",
+        "timer",
+        "time"
+      ],
+      "isPremium": false,
+      "sortOrder": 64
+    },
+    {
+      "id": "sticker_timer",
+      "name": "Timer",
+      "category": "icons",
+      "assetName": "sticker_timer",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "timer",
+        "time"
+      ],
+      "isPremium": false,
+      "sortOrder": 65
+    },
+    {
+      "id": "sticker_serves_4",
+      "name": "Serves 4",
+      "category": "icons",
+      "assetName": "sticker_serves_4",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "serves 4",
+        "time"
+      ],
+      "isPremium": false,
+      "sortOrder": 66
+    },
+    {
+      "id": "sticker_serves_8",
+      "name": "Serves 8",
+      "category": "icons",
+      "assetName": "sticker_serves_8",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "serves 8",
+        "time"
+      ],
+      "isPremium": false,
+      "sortOrder": 67
+    },
+    {
+      "id": "sticker_feeds_a_crowd",
+      "name": "Feeds a Crowd",
+      "category": "icons",
+      "assetName": "sticker_feeds_a_crowd",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "feeds a crowd",
+        "time"
+      ],
+      "isPremium": false,
+      "sortOrder": 68
+    },
+    {
+      "id": "sticker_portion_sizes",
+      "name": "Portion Sizes",
+      "category": "icons",
+      "assetName": "sticker_portion_sizes",
+      "supportsTinting": true,
+      "defaultSize": {
+        "width": 0.15,
+        "height": 0.15
+      },
+      "tags": [
+        "portion sizes",
+        "time"
+      ],
+      "isPremium": false,
+      "sortOrder": 69
+    }
+  ]
+}

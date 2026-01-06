@@ -4,6 +4,10 @@ import SwiftData
 struct TagManagementView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     @Query(sort: \Tag.name) private var tags: [Tag]
 
@@ -111,11 +115,11 @@ struct TagManagementView: View {
             try modelContext.save()
 
             // Delete from Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Task {
                     for tagId in tagIdsToDelete {
                         do {
-                            try await FirebaseSyncService.shared.deleteTag(tagId)
+                            try await firebaseSync.deleteTag(tagId)
                         } catch {
                             Log.warning("Failed to delete tag from Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "tagId": tagId])
                         }
@@ -128,9 +132,9 @@ struct TagManagementView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Tag deleted")
+            toastManager.success(title: "Tag deleted")
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to delete tag",
                 message: error.localizedDescription
             )
@@ -143,6 +147,10 @@ struct TagManagementView: View {
 struct TagEditorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     @State private var tag: Tag?
     @State private var name: String = ""
@@ -266,10 +274,10 @@ struct TagEditorView: View {
             try modelContext.save()
 
             // Sync to Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Task {
                     do {
-                        try await FirebaseSyncService.shared.uploadTag(tagToSync)
+                        try await firebaseSync.uploadTag(tagToSync)
                         Log.info("Tag synced to Firebase", category: .firebase, metadata: ["tagId": tagToSync.id])
                     } catch {
                         Log.warning("Failed to sync tag to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "tagId": tagToSync.id])
@@ -281,13 +289,13 @@ struct TagEditorView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(
+            toastManager.success(
                 title: isEditing ? "Tag updated" : "Tag created"
             )
 
             dismiss()
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to save tag",
                 message: error.localizedDescription
             )

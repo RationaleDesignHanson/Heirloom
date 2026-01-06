@@ -7,11 +7,7 @@ import Vision
 /// Handles contrast enhancement, deskew, noise reduction, and edge detection
 @MainActor
 final class ImagePreprocessor {
-    // MARK: - Singleton
-
-    static let shared = ImagePreprocessor()
-
-    private init() {}
+    init() {}
 
     // MARK: - Core Image Context
 

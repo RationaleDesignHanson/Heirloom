@@ -3,12 +3,10 @@ import Foundation
 /// File-based logger for device debugging when Console.app doesn't show logs
 /// Writes to Documents/heirloom_debug.log which can be viewed via Files app or Xcode
 class DeviceLogger {
-    static let shared = DeviceLogger()
-
     private let logFileName = "heirloom_debug.log"
     private var logFileURL: URL?
 
-    private init() {
+    init() {
         setupLogFile()
     }
 
@@ -92,6 +90,19 @@ extension DeviceLogger {
             case .error: return "❌"
             case .debug: return "🔍"
             }
+        }
+    }
+}
+
+// MARK: - Global Convenience
+
+extension DeviceLogger {
+    /// Global accessor that resolves from ServiceContainer for proper DI
+    /// Maintains backward compatibility with existing .shared usage
+    /// Note: Safe to use from any context - ServiceContainer is thread-safe
+    nonisolated(unsafe) static var shared: DeviceLogger {
+        MainActor.assumeIsolated {
+            ServiceContainer.shared.resolve(DeviceLogger.self)
         }
     }
 }

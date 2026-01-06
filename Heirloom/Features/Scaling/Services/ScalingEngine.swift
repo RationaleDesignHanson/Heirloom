@@ -11,9 +11,8 @@ import Foundation
 
 /// Core engine for scaling recipes
 class ScalingEngine {
-    static let shared = ScalingEngine()
 
-    private init() {}
+    init() {}
 
     // MARK: - Public API
 

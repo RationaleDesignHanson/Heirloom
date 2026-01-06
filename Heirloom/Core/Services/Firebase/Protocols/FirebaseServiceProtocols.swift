@@ -252,6 +252,9 @@ protocol FirebaseSyncServiceProtocol: ObservableObject {
     /// Upload recipe to Firebase
     func uploadRecipe(_ recipe: Recipe) async throws
 
+    /// Upload recipe to Firebase with transactional semantics
+    func uploadRecipeTransactional(_ recipe: Recipe) async throws
+
     /// Download recipe from Firebase
     func downloadRecipe(id: String, context: ModelContext) async throws -> Recipe
 
@@ -260,6 +263,9 @@ protocol FirebaseSyncServiceProtocol: ObservableObject {
 
     /// Sync all local changes to Firebase
     func syncChanges() async throws
+
+    /// Sync changes with CRDT-based conflict resolution
+    func syncChangesWithCRDT() async throws
 
     /// Delete recipe from Firebase
     func deleteRecipe(_ recipeId: UUID) async throws
@@ -282,8 +288,35 @@ protocol FirebaseSyncServiceProtocol: ObservableObject {
     /// Convert CardBack from Firestore data
     func convertCardBackFromFirestoreData(_ data: [String: Any]) -> RecipeCardBack
 
+    /// Upload image for recipe to Firebase Storage
+    func uploadImage(for recipe: Recipe) async throws -> String?
+
+    /// Delete image for recipe from Firebase Storage
+    func deleteImage(for recipeId: UUID) async throws
+
     /// Download image for recipe
     func downloadImage(for recipe: Recipe) async throws
+
+    /// Upload tag to Firebase
+    func uploadTag(_ tag: Tag) async throws
+
+    /// Delete tag from Firebase
+    func deleteTag(_ tagId: UUID) async throws
+
+    /// Upload collection to Firebase
+    func uploadCollection(_ collection: RecipeCollection) async throws
+
+    /// Delete collection from Firebase
+    func deleteCollection(_ collectionId: UUID) async throws
+
+    /// Upload dinner party to Firebase
+    func uploadDinnerParty(_ party: DinnerParty) async throws
+
+    /// Delete dinner party from Firebase
+    func deleteDinnerParty(_ partyId: UUID) async throws
+
+    /// Upload card back for a recipe
+    func uploadCardBack(_ cardBack: RecipeCardBack, recipeId: UUID) async throws
 }
 
 // MARK: - Share Service Protocol
@@ -407,17 +440,35 @@ protocol FirebaseAuthServiceProtocol: ObservableObject {
     /// Whether user is authenticated
     var isAuthenticated: Bool { get }
 
+    /// Current Firebase user
+    var currentUser: User? { get }
+
     /// Current user ID
     var currentUserId: String? { get }
 
     /// Current user email
     var currentUserEmail: String? { get }
 
+    /// Whether authentication is in progress
+    var isAuthenticating: Bool { get }
+
+    /// Authentication error if any
+    var authError: Error? { get }
+
     /// Sign in with Apple
     func signInWithApple() async throws
 
     /// Sign in with Google
     func signInWithGoogle() async throws
+
+    /// Sign in with email and password
+    func signInWithEmail(email: String, password: String) async throws
+
+    /// Create account with email and password
+    func createAccountWithEmail(email: String, password: String) async throws
+
+    /// Send password reset email
+    func sendPasswordReset(email: String) async throws
 
     /// Sign out
     func signOut() throws

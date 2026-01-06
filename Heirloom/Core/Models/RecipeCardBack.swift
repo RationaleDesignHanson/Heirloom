@@ -139,6 +139,11 @@ enum CardBackSection: String, Codable, CaseIterable {
     case userRating = "userRating"
     case userTags = "userTags"
     case cookingHistory = "cookingHistory"
+
+    // MARK: - Heritage Recipe Sections
+    case heritageCollectionBadge = "heritageCollectionBadge"  // Heritage collection name & badge
+    case heritageProvenance = "heritageProvenance"            // Provenance chain display
+    case historicalText = "historicalText"                     // Original historical description
 }
 
 enum CardBackLayout: String, Codable, CaseIterable {
@@ -193,6 +198,45 @@ extension RecipeCardBack {
     var showsSocialElements: Bool {
         visibleSections.contains(.pinnedComments) ||
         visibleSections.contains(.noteToFriends)
+    }
+
+    /// Whether this card back includes heritage sections
+    var showsHeritageContent: Bool {
+        visibleSections.contains(.heritageCollectionBadge) ||
+        visibleSections.contains(.heritageProvenance) ||
+        visibleSections.contains(.historicalText)
+    }
+
+    /// Configure card back for a heritage recipe
+    func configureForHeritageRecipe() {
+        // Add heritage sections if not already present
+        if !visibleSections.contains(.heritageCollectionBadge) {
+            visibleSections.append(.heritageCollectionBadge)
+        }
+        if !visibleSections.contains(.heritageProvenance) {
+            visibleSections.append(.heritageProvenance)
+        }
+        if !visibleSections.contains(.historicalText) {
+            visibleSections.append(.historicalText)
+        }
+
+        // Use vintage styling for heritage recipes
+        backgroundStyle = .vintage
+        layoutStyle = .vintage
+        showBorder = true
+
+        lastModified = Date()
+    }
+
+    /// Remove heritage sections (when recipe is edited and becomes user copy)
+    func removeHeritageSections() {
+        visibleSections.removeAll { section in
+            section == .heritageCollectionBadge ||
+            section == .heritageProvenance ||
+            section == .historicalText
+        }
+
+        lastModified = Date()
     }
 }
 

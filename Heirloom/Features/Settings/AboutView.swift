@@ -4,6 +4,8 @@ import SwiftUI
 struct AboutView: View {
     @Environment(\.dismiss) private var dismiss
 
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     }
@@ -49,7 +51,7 @@ struct AboutView: View {
         .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            AnalyticsService.shared.track(event: .featureUsed, properties: [
+            analytics.track(event: .featureUsed, properties: [
                 "feature": "about_view"
             ])
         }

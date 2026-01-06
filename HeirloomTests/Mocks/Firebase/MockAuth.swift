@@ -10,12 +10,12 @@ import FirebaseAuth
 @testable import Heirloom
 
 /// Mock Firebase Auth for testing
-@MainActor
+
 class MockAuth: AuthProtocol {
-    var currentUser: UserProtocol?
-    var shouldFailAuth = false
-    var registeredUsers: [String: String] = [:] // email: password
-    var authDelay: TimeInterval = 0.0
+    nonisolated(unsafe) var currentUser: UserProtocol?
+    nonisolated(unsafe) var shouldFailAuth = false
+    nonisolated(unsafe) var registeredUsers: [String: String] = [:] // email: password
+    nonisolated(unsafe) var authDelay: TimeInterval = 0.0
 
     func signIn(withEmail email: String, password: String) async throws -> AuthDataResultProtocol {
         if shouldFailAuth {

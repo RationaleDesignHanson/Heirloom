@@ -7,6 +7,7 @@ struct CardBackEditorView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
 
     @State private var noteToFriends: String = ""
     @State private var personalTips: [String] = []
@@ -27,6 +28,8 @@ struct CardBackEditorView: View {
     @State private var newTipText: String = ""
     @State private var showingCommentPicker = false
     @State private var showingPreview = false
+
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     // MARK: - Initialization
 
@@ -489,11 +492,11 @@ struct CardBackEditorView: View {
             try modelContext.save()
 
             // Sync card back to Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Task {
                     do {
                         if let cardBack = recipe.cardBack {
-                            try await FirebaseSyncService.shared.uploadCardBack(cardBack, recipeId: recipe.id)
+                            try await firebaseSync.uploadCardBack(cardBack, recipeId: recipe.id)
                             Log.info("Card back synced to Firebase", category: .firebase, metadata: ["recipeId": recipe.id])
                         }
                     } catch {
@@ -740,6 +743,9 @@ extension CardBackSection {
         case .userRating: return "Rating"
         case .userTags: return "Tags"
         case .cookingHistory: return "Cooking History"
+        case .heritageCollectionBadge: return "Heritage Collection"
+        case .heritageProvenance: return "Provenance"
+        case .historicalText: return "Historical Note"
         }
     }
 
@@ -752,6 +758,9 @@ extension CardBackSection {
         case .userRating: return "star.fill"
         case .userTags: return "tag.fill"
         case .cookingHistory: return "clock.fill"
+        case .heritageCollectionBadge: return "book.closed.fill"
+        case .heritageProvenance: return "arrow.triangle.branch"
+        case .historicalText: return "scroll.fill"
         }
     }
 }

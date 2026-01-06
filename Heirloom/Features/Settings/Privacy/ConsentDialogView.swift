@@ -4,7 +4,13 @@ import SwiftUI
 /// Presents two-tier consent model: Sharing + Analytics
 struct ConsentDialogView: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject private var consentService = PrivacyConsentService.shared
+    @ObservedObject private var consentService: PrivacyConsentService
+    private let analytics: AnalyticsService
+
+    init() {
+        self.consentService = ServiceContainer.shared.resolve(PrivacyConsentService.self)
+        self.analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+    }
 
     @State private var sharingConsent = false
     @State private var analyticsConsent = false
@@ -247,7 +253,7 @@ struct ConsentDialogView: View {
 
         // Track the consent decision (only if analytics was granted)
         if analyticsConsent {
-            AnalyticsService.shared.track(event: .settingChanged, properties: [
+            analytics.track(event: .settingChanged, properties: [
                 "source": "first_launch",
                 "sharing_granted": sharingConsent,
                 "analytics_granted": analyticsConsent

@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 /// Protocol defining AI service capabilities
 /// Adapted from Zero Inbox's service protocol pattern
@@ -38,9 +39,47 @@ protocol AIServiceProtocol {
     ///   - outputTokens: Estimated output token count
     /// - Returns: Estimated cost in USD
     func estimateCost(inputTokens: Int, outputTokens: Int) -> Decimal
+
+    /// Complete with vision and structured output
+    /// - Parameters:
+    ///   - image: The input image
+    ///   - prompt: The prompt text
+    ///   - schema: Expected JSON schema type
+    ///   - options: Optional configuration
+    ///   - useCase: Image use case for processing optimization
+    /// - Returns: Structured AI response
+    func completeWithVisionStructured<T: Decodable>(
+        image: UIImage,
+        prompt: String,
+        schema: T.Type,
+        options: AICompletionOptions?,
+        useCase: ImageUseCase
+    ) async throws -> T
 }
 
 // MARK: - Supporting Types
+
+/// Image use case for optimized processing
+enum ImageUseCase {
+    case ocr        // High quality for text recognition (2048px, 0.95 compression)
+    case display    // Balanced quality for general use (1600px, 0.85 compression)
+
+    var maxDimension: CGFloat {
+        switch self {
+        case .ocr: return 2048
+        case .display: return 1600
+        }
+    }
+
+    var compressionQuality: CGFloat {
+        switch self {
+        case .ocr: return 0.95
+        case .display: return 0.85
+        }
+    }
+}
+
+
 
 /// Options for AI completion requests
 struct AICompletionOptions {

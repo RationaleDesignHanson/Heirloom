@@ -14,6 +14,11 @@ struct RecipeConflictResolutionView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    private var crdtMergeEngine: CRDTMergeEngine { ServiceContainer.shared.resolve(CRDTMergeEngine.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+
     let conflicts: [DetailedConflict]
     let recipeCRDT: RecipeCRDT
 
@@ -282,27 +287,27 @@ struct RecipeConflictResolutionView: View {
         let resolutionsList = buildResolutionsList()
 
         // Apply resolutions to CRDT
-        CRDTMergeEngine.shared.applyUserResolution(resolutionsList, to: recipeCRDT)
+        crdtMergeEngine.applyUserResolution(resolutionsList, to: recipeCRDT)
 
         // Save to database
         do {
             try modelContext.save()
 
             // Sync to Firebase
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 // Note: Firebase sync will be updated in Phase 4 to use CRDT
                 // For now, just upload the resolved recipe
                 try await FirebaseSyncService.shared.uploadRecipe(recipeCRDT.recipe)
             }
 
             // Show success
-            ToastManager.shared.success(
+            toastManager.success(
                 title: "Recipe Merged",
                 message: "All conflicts resolved successfully"
             )
 
             // Track analytics
-            AnalyticsService.shared.track(event: .conflictResolved, properties: [
+            analytics.track(event: .conflictResolved, properties: [
                 "conflict_count": conflicts.count,
                 "resolution_time": Date().timeIntervalSince(recipeCRDT.recipe.modifiedAt)
             ])
@@ -310,7 +315,7 @@ struct RecipeConflictResolutionView: View {
             dismiss()
         } catch {
             // Show error
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to Save",
                 message: error.localizedDescription
             )

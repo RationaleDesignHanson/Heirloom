@@ -4,9 +4,20 @@ import SwiftData
 /// AI-powered shopping list summary and optimization service
 /// Generates intelligent summaries, store routing, and budget estimates
 @MainActor
-class ShoppingListSummaryService {
-    static let shared = ShoppingListSummaryService()
-    private init() {}
+class ShoppingListSummaryService: ShoppingListSummaryServiceProtocol {
+    // MARK: - Dependencies
+
+    private let aiService: AIServiceProtocol
+    private let configuration: AIConfigurationProtocol
+    private let analytics: AnalyticsService
+
+    // MARK: - Initialization
+
+    init(aiService: AIServiceProtocol, configuration: AIConfigurationProtocol, analytics: AnalyticsService) {
+        self.aiService = aiService
+        self.configuration = configuration
+        self.analytics = analytics
+    }
 
     // MARK: - Summary Models
 
@@ -49,14 +60,19 @@ class ShoppingListSummaryService {
     // MARK: - Public API
 
     /// Generate comprehensive AI summary for shopping list
-    func generateSummary(items: [GroceryItem]) async throws -> ShoppingListSummary {
-        guard AIConfiguration.shared.enableAIEnhancement,
-              AIConfiguration.shared.isConfigured(provider: .anthropic) else {
+    nonisolated func generateSummary(for ingredients: [Ingredient], recipes: [Recipe]) async throws -> Any {
+        // Convert to internal format for now
+        return try await generateShoppingListSummary(ingredients: ingredients, recipes: recipes)
+    }
+
+    private func generateShoppingListSummary(ingredients: [Ingredient], recipes: [Recipe]) async throws -> ShoppingListSummary {
+        guard configuration.enableAIEnhancement,
+              configuration.isConfigured(provider: .anthropic) else {
             // Return basic summary without AI
-            return generateBasicSummary(items: items)
+            return generateBasicSummary(ingredients: ingredients, recipes: recipes)
         }
 
-        let context = buildShoppingContext(items)
+        let context = buildShoppingContext(ingredients: ingredients, recipes: recipes)
 
         let prompt = """
         Analyze this shopping list and provide a comprehensive shopping plan.
@@ -118,10 +134,9 @@ class ShoppingListSummaryService {
         Be practical and specific. Consider typical US grocery store layouts and prices.
         """
 
-        let service = AnthropicAIService.shared
-        let model = AIConfiguration.shared.model(for: .enhancement)
+        let model = configuration.model(for: .enhancement)
 
-        let summary = try await service.completeStructured(
+        let summary = try await aiService.completeStructured(
             prompt: prompt,
             schema: ShoppingListSummary.self,
             options: AICompletionOptions(
@@ -133,9 +148,9 @@ class ShoppingListSummaryService {
         )
 
         // Track success
-        AnalyticsService.shared.track(event: .aiEnhancementSuccess, properties: [
+        analytics.track(event: .aiEnhancementSuccess, properties: [
             "source": "shopping_list_summary",
-            "item_count": items.count
+            "item_count": ingredients.count
         ])
 
         return summary
@@ -143,44 +158,31 @@ class ShoppingListSummaryService {
 
     // MARK: - Private Helpers
 
-    private func buildShoppingContext(_ items: [GroceryItem]) -> String {
-        var context = "Total Items: \(items.count)\n\n"
+    private func buildShoppingContext(ingredients: [Ingredient], recipes: [Recipe]) -> String {
+        var context = "Total Items: \(ingredients.count)\n\n"
+        context += "Recipes: \(recipes.map { $0.title }.joined(separator: ", "))\n\n"
 
-        // Group by category
-        let grouped = Dictionary(grouping: items) { $0.category }
-
-        for (category, categoryItems) in grouped.sorted(by: { $0.key.displayName < $1.key.displayName }) {
-            context += "\n\(category.displayName):\n"
-
-            for item in categoryItems.sorted(by: { $0.name < $1.name }) {
-                context += "  - \(item.displayQuantity) \(item.name)"
-
-                if item.isPurchased {
-                    context += " ✓"
-                }
-
-                context += "\n"
-            }
+        context += "Ingredients:\n"
+        for ingredient in ingredients {
+            context += "  - \(ingredient.originalText)\n"
         }
 
         return context
     }
 
-    private func generateBasicSummary(items: [GroceryItem]) -> ShoppingListSummary {
-        let itemCount = items.count
+    private func generateBasicSummary(ingredients: [Ingredient], recipes: [Recipe]) -> ShoppingListSummary {
+        let itemCount = ingredients.count
 
-        // Group by category
-        let grouped = Dictionary(grouping: items) { $0.category }
-
-        let sections = grouped.map { category, items in
+        // Simple placeholder section
+        let sections = [
             StoreSection(
-                name: category.displayName,
-                items: items.map { $0.name },
+                name: "Shopping List",
+                items: ingredients.map { $0.name },
                 tip: nil
             )
-        }.sorted { $0.name < $1.name }
+        ]
 
-        let overview = "A shopping list with \(itemCount) item\(itemCount == 1 ? "" : "s") across \(sections.count) categories"
+        let overview = "A shopping list with \(itemCount) item\(itemCount == 1 ? "" : "s") for \(recipes.count) recipe\(recipes.count == 1 ? "" : "s")"
 
         let estimatedTime = itemCount < 10 ? "15-20 minutes" : itemCount < 25 ? "25-35 minutes" : "40-50 minutes"
 

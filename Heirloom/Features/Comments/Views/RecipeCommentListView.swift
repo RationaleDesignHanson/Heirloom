@@ -6,6 +6,12 @@ struct RecipeCommentListView: View {
     let recipe: Recipe
 
     @Environment(\.modelContext) private var modelContext
+
+    // Using concrete type for toast notifications
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+
+    private var commentService: CommentService { ServiceContainer.shared.resolve(CommentService.self) }
+
     @State private var searchText = ""
     @State private var sortOption: CommentSortOption = .topRated
     @State private var filterType: CommentType?
@@ -25,7 +31,7 @@ struct RecipeCommentListView: View {
 
         // Apply search filter
         if !searchText.isEmpty {
-            comments = CommentService.shared.searchComments(for: recipe, query: searchText)
+            comments = commentService.searchComments(for: recipe, query: searchText)
         }
 
         // Apply type filter
@@ -88,7 +94,7 @@ struct RecipeCommentListView: View {
     }
 
     private var statistics: CommentStatistics {
-        CommentService.shared.getStatistics(for: recipe)
+        commentService.getStatistics(for: recipe)
     }
 
     private var hasActiveFilters: Bool {
@@ -456,7 +462,7 @@ struct RecipeCommentListView: View {
 
     private func upvoteComment(_ comment: RecipeComment) {
         do {
-            try CommentService.shared.upvoteComment(comment, context: modelContext)
+            try commentService.upvoteComment(comment, context: modelContext)
         } catch {
             Log.error("Failed to upvote comment", category: .database, metadata: ["error": error.localizedDescription])
         }
@@ -464,7 +470,7 @@ struct RecipeCommentListView: View {
 
     private func downvoteComment(_ comment: RecipeComment) {
         do {
-            try CommentService.shared.downvoteComment(comment, context: modelContext)
+            try commentService.downvoteComment(comment, context: modelContext)
         } catch {
             Log.error("Failed to downvote comment", category: .database, metadata: ["error": error.localizedDescription])
         }
@@ -472,7 +478,7 @@ struct RecipeCommentListView: View {
 
     private func togglePin(_ comment: RecipeComment) {
         do {
-            try CommentService.shared.togglePin(comment, context: modelContext)
+            try commentService.togglePin(comment, context: modelContext)
         } catch {
             Log.error("Failed to toggle comment pin", category: .database, metadata: ["error": error.localizedDescription])
         }
@@ -486,7 +492,7 @@ struct RecipeCommentListView: View {
     private func addComment(text: String, authorName: String?, commentType: CommentType) {
         do {
             // Use CommentService which handles Firebase sync
-            _ = try CommentService.shared.addComment(
+            _ = try commentService.addComment(
                 to: recipe,
                 text: text,
                 authorName: authorName,
@@ -499,9 +505,9 @@ struct RecipeCommentListView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Comment added!")
+            toastManager.success(title: "Comment added!")
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to add comment",
                 message: error.localizedDescription
             )

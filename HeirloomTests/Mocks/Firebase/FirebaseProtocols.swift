@@ -43,7 +43,6 @@ protocol QuerySnapshotProtocol {
 /// Protocol abstraction for Firestore query document snapshot
 protocol QueryDocumentSnapshotProtocol {
     var documentID: String { get }
-    var data: [String: Any] { get }
     func data() -> [String: Any]
 }
 
@@ -51,7 +50,6 @@ protocol QueryDocumentSnapshotProtocol {
 protocol DocumentSnapshotProtocol {
     var documentID: String { get }
     var exists: Bool { get }
-    var data: [String: Any]? { get }
     func data() -> [String: Any]?
 }
 
@@ -143,15 +141,11 @@ extension QuerySnapshot: QuerySnapshotProtocol {
 }
 
 extension QueryDocumentSnapshot: QueryDocumentSnapshotProtocol {
-    var data: [String: Any] {
-        return self.data()
-    }
+    // Already conforms via data() method
 }
 
 extension DocumentSnapshot: DocumentSnapshotProtocol {
-    var data: [String: Any]? {
-        return self.data()
-    }
+    // Already conforms via data() method and exists property
 }
 
 extension DocumentChange: DocumentChangeProtocol {
@@ -190,6 +184,19 @@ extension Storage: StorageProtocol {
 
 extension StorageReference: StorageReferenceProtocol {
     func putData(_ uploadData: Data, metadata: StorageMetadata?) async throws -> StorageMetadata {
-        return try await self.putData(uploadData, metadata: metadata).0
+        // putData returns StorageMetadata directly, not a tuple
+        return try await self.putData(uploadData, metadata: metadata)
+    }
+
+    func getData(maxSize: Int64) async throws -> Data {
+        return try await self.data(maxSize: maxSize)
+    }
+
+    func delete() async throws {
+        try await self.delete()
+    }
+
+    func downloadURL() async throws -> URL {
+        return try await self.downloadURL()
     }
 }

@@ -6,6 +6,9 @@ import SwiftData
 struct RecipeReceiveSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseShare) private var firebaseShare
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
     let shareURL: URL
     let shareMetadata: [String: Any]?
@@ -272,7 +275,7 @@ struct RecipeReceiveSheet: View {
         if metadata == nil {
             do {
                 let shareId = extractShareId(from: shareURL)
-                metadata = try await FirebaseShareService.shared.fetchShareMetadata(shareId: shareId)
+                metadata = try await firebaseShare.fetchShareMetadata(shareId: shareId)
                 Log.info("Fetched share metadata for preview", category: .firebase, metadata: ["shareId": shareId])
             } catch {
                 Log.warning("Failed to fetch share metadata, using generic preview", category: .firebase, metadata: ["error": error.localizedDescription])
@@ -328,7 +331,7 @@ struct RecipeReceiveSheet: View {
                 let shareId = extractShareId(from: shareURL)
 
                 // Accept the share via FirebaseShareService
-                let recipe = try await FirebaseShareService.shared.acceptShare(
+                let recipe = try await firebaseShare.acceptShare(
                     shareId: shareId,
                     context: modelContext
                 )
@@ -340,13 +343,14 @@ struct RecipeReceiveSheet: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
 
-                    ToastManager.shared.success(
+                    toastManager.success(
                         title: "Recipe Added",
                         message: "'\(recipe.title)' added to your collection"
                     )
 
                     // Clear pending share
-                    DeepLinkHandler.shared.clearPendingShare()
+                    let deepLinkHandler = ServiceContainer.shared.resolve(DeepLinkHandler.self)
+                    deepLinkHandler.clearPendingShare()
 
                     // Dismiss
                     dismiss()
@@ -390,7 +394,8 @@ struct RecipeReceiveSheet: View {
         generator.impactOccurred()
 
         // Clear pending share
-        DeepLinkHandler.shared.clearPendingShare()
+        let deepLinkHandler = ServiceContainer.shared.resolve(DeepLinkHandler.self)
+        deepLinkHandler.clearPendingShare()
 
         // Dismiss
         dismiss()

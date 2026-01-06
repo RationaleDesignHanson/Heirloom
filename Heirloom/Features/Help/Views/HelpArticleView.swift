@@ -6,7 +6,8 @@ struct HelpArticleView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    private let helpContent = HelpContent.shared
+    private var helpContent: HelpContent { ServiceContainer.shared.resolve(HelpContent.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
     var body: some View {
         ScrollView {
@@ -46,7 +47,7 @@ struct HelpArticleView: View {
         .navigationTitle(article.title)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            AnalyticsService.shared.track(event: .helpArticleViewed, properties: [
+            analytics.track(event: .helpArticleViewed, properties: [
                 "article_id": article.id,
                 "article_title": article.title,
                 "section": article.section.rawValue
@@ -121,7 +122,7 @@ struct HelpArticleView: View {
 #Preview("Help Article") {
     NavigationStack {
         HelpArticleView(
-            article: HelpContent.shared.gettingStartedArticles[0]
+            article: ServiceContainer.shared.resolve(HelpContent.self).gettingStartedArticles[0]
         )
     }
 }

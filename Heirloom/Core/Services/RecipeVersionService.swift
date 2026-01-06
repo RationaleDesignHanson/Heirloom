@@ -3,11 +3,9 @@ import SwiftData
 import CloudKit
 
 /// Service for managing recipe versions with change tracking and attribution
-/// Follows the singleton pattern established in Heirloom services
 @MainActor
 final class RecipeVersionService {
-    static let shared = RecipeVersionService()
-    private init() {}
+    init() {}
 
     // MARK: - Version Creation
 
@@ -445,6 +443,19 @@ extension RecipeVersionService {
         recipe.versions?.append(yourVersion)
 
         try context.save()
+    }
+}
+
+// MARK: - Global Convenience
+
+extension RecipeVersionService {
+    /// Global accessor that resolves from ServiceContainer for proper DI
+    /// Maintains backward compatibility with existing .shared usage
+    /// Note: Safe to use from any context - ServiceContainer is thread-safe
+    nonisolated(unsafe) static var shared: RecipeVersionService {
+        MainActor.assumeIsolated {
+            ServiceContainer.shared.resolve(RecipeVersionService.self)
+        }
     }
 }
 #endif

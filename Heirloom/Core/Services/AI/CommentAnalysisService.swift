@@ -4,14 +4,17 @@ import Foundation
 /// Extracts sentiment, topics, and structured data from recipe comments
 @MainActor
 final class CommentAnalysisService {
-    static let shared = CommentAnalysisService()
-    private init() {}
+    // MARK: - Dependencies
 
-    // MARK: - Configuration
+    private let aiService: AIServiceProtocol
+    private let configuration: AIConfigurationProtocol
 
-    private let apiKey: String = ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"] ?? ""
-    private let apiEndpoint = "https://api.anthropic.com/v1/messages"
-    private let model = "claude-3-haiku-20240307" // Fast and affordable
+    // MARK: - Initialization
+
+    init(aiService: AIServiceProtocol, configuration: AIConfigurationProtocol) {
+        self.aiService = aiService
+        self.configuration = configuration
+    }
 
     // MARK: - Comment Analysis
 
@@ -112,48 +115,24 @@ final class CommentAnalysisService {
     // MARK: - API Communication
 
     private func callClaude(with prompt: String) async throws -> String {
-        guard !apiKey.isEmpty else {
+        guard configuration.isConfigured(provider: .anthropic) else {
             throw CommentAnalysisError.missingAPIKey
         }
 
-        let url = URL(string: apiEndpoint)!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
-        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+        let model = configuration.model(for: .enhancement)
 
-        let requestBody: [String: Any] = [
-            "model": model,
-            "max_tokens": 1024,
-            "messages": [
-                [
-                    "role": "user",
-                    "content": prompt
-                ]
-            ]
-        ]
+        let response = try await aiService.complete(
+            prompt: prompt,
+            options: AICompletionOptions(
+                model: model,
+                temperature: 0.3,
+                maxTokens: 1024,
+                systemMessage: "You are an expert at analyzing recipe comments and extracting structured insights.",
+                stopSequences: nil
+            )
+        )
 
-        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw CommentAnalysisError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            throw CommentAnalysisError.apiError(statusCode: httpResponse.statusCode)
-        }
-
-        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let content = json["content"] as? [[String: Any]],
-              let firstContent = content.first,
-              let text = firstContent["text"] as? String else {
-            throw CommentAnalysisError.invalidResponse
-        }
-
-        return text
+        return response.content
     }
 
     // MARK: - Response Parsing

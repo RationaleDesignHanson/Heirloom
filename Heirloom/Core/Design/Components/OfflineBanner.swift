@@ -104,7 +104,7 @@ private struct FeatureItem: View {
 extension View {
     /// Add offline banner to a view
     /// The banner automatically appears/disappears based on network status
-    func offlineBanner(networkMonitor: NetworkMonitor = .shared) -> some View {
+    func offlineBanner(networkMonitor: NetworkMonitor = ServiceContainer.shared.resolve(NetworkMonitor.self)) -> some View {
         VStack(spacing: 0) {
             OfflineBanner(networkMonitor: networkMonitor)
 
@@ -118,7 +118,7 @@ extension View {
 #Preview("Online") {
     VStack {
         OfflineBanner(networkMonitor: {
-            let monitor = NetworkMonitor.shared
+            let monitor = NetworkMonitor()
             #if DEBUG
             monitor.simulateOnline()
             #endif
@@ -132,7 +132,7 @@ extension View {
 #Preview("Offline") {
     VStack {
         OfflineBanner(networkMonitor: {
-            let monitor = NetworkMonitor.shared
+            let monitor = NetworkMonitor()
             #if DEBUG
             monitor.simulateOffline()
             #endif

@@ -4,15 +4,15 @@ import UIKit
 /// Manages recipe image storage in the file system (not database)
 /// Per Systems Architect recommendation: prevents SwiftData/CloudKit bloat
 actor ImageStorageService {
-    static let shared = ImageStorageService()
-
     private let fileManager = FileManager.default
     private let maxImageSizeBytes: Int = 1_000_000  // 1MB max per image
+    private let imageCache: ImageCache
 
     /// Directory where recipe images are stored (initialized once to avoid race conditions)
     private let imagesDirectory: URL
 
-    private init() {
+    init(imageCache: ImageCache) {
+        self.imageCache = imageCache
         // Initialize images directory once
         let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let imagesPath = documentsPath.appendingPathComponent("RecipeImages", isDirectory: true)
@@ -44,7 +44,7 @@ actor ImageStorageService {
             Log.info("Saved image", category: .storage, metadata: ["fileName": fileName, "sizeKB": compressedData.count / 1024])
 
             // Update cache
-            ImageCache.shared.setImage(image, for: fileURL)
+            imageCache.setImage(image, for: fileURL)
 
             return fileName
         } catch {
@@ -86,7 +86,7 @@ actor ImageStorageService {
         let fileURL = imagesDirectory.appendingPathComponent(fileName)
 
         // Check cache first
-        if let cachedImage = ImageCache.shared.image(for: fileURL) {
+        if let cachedImage = imageCache.image(for: fileURL) {
             return cachedImage
         }
 
@@ -98,7 +98,7 @@ actor ImageStorageService {
         }
 
         // Update cache
-        ImageCache.shared.setImage(image, for: fileURL)
+        imageCache.setImage(image, for: fileURL)
 
         return image
     }
@@ -111,7 +111,7 @@ actor ImageStorageService {
 
         do {
             try fileManager.removeItem(at: fileURL)
-            ImageCache.shared.removeImage(for: fileURL)
+            imageCache.removeImage(for: fileURL)
             Log.info("Deleted image", category: .storage, metadata: ["fileName": fileName])
         } catch {
             Log.warning("Failed to delete image", category: .storage, metadata: ["fileName": fileName, "error": error.localizedDescription])
@@ -225,6 +225,121 @@ actor ImageStorageService {
         } catch {
             Log.warning("Failed to calculate storage size", category: .storage, metadata: ["error": error.localizedDescription])
             return 0
+        }
+    }
+
+    // MARK: - Heritage Collections - Image Variants
+
+    /// Image variant types for heritage collections
+    enum ImageVariant: String, CaseIterable {
+        case hero = "hero"              // 1200×900 (4:3)
+        case card = "card"              // 800×600 (4:3)
+        case thumbnail = "thumbnail"    // 400×300 (4:3)
+        case collectionCover = "collection-cover"  // 1600×900 (16:9)
+
+        var targetSize: CGSize {
+            switch self {
+            case .hero: return CGSize(width: 1200, height: 900)
+            case .card: return CGSize(width: 800, height: 600)
+            case .thumbnail: return CGSize(width: 400, height: 300)
+            case .collectionCover: return CGSize(width: 1600, height: 900)
+            }
+        }
+
+        var aspectRatio: CGFloat {
+            targetSize.width / targetSize.height
+        }
+    }
+
+    /// Save heritage image with all variants and generate blurhash
+    /// Returns dictionary of variant names to filenames and blurhash
+    func saveHeritageImage(_ image: UIImage, recipeId: UUID) async throws -> (variants: [String: String], blurhash: String?) {
+        var variantFilenames: [String: String] = [:]
+
+        // Generate and save each variant
+        for variant in ImageVariant.allCases {
+            let resizedImage = await resizeImage(image, to: variant.targetSize, aspectRatio: variant.aspectRatio)
+            let fileName = "recipe-\(recipeId.uuidString)-\(variant.rawValue).jpg"
+            let fileURL = imagesDirectory.appendingPathComponent(fileName)
+
+            guard let imageData = resizedImage.jpegData(compressionQuality: 0.85) else {
+                throw ImageError.compressionFailed
+            }
+
+            try imageData.write(to: fileURL, options: .atomic)
+            variantFilenames[variant.rawValue] = fileName
+
+            Log.info("Saved heritage image variant", category: .storage, metadata: [
+                "variant": variant.rawValue,
+                "fileName": fileName,
+                "sizeKB": imageData.count / 1024
+            ])
+        }
+
+        // Generate blurhash from thumbnail variant (smallest for fast generation)
+        let blurhash: String?
+        if let thumbnailFileName = variantFilenames[ImageVariant.thumbnail.rawValue],
+           let thumbnailImage = await loadImage(fileName: thumbnailFileName) {
+            // Generate blurhash with 4x3 components (good balance of quality and size)
+            blurhash = BlurHashEncoder.encode(thumbnailImage, componentsX: 4, componentsY: 3)
+
+            if let hash = blurhash {
+                Log.info("Generated blurhash", category: .storage, metadata: ["hash": hash])
+            }
+        } else {
+            blurhash = nil
+        }
+
+        return (variants: variantFilenames, blurhash: blurhash)
+    }
+
+    /// Load a specific image variant
+    func loadImageVariant(fileName: String, variant: ImageVariant) async -> UIImage? {
+        // Extract base filename and construct variant filename
+        let baseFileName = fileName.replacingOccurrences(of: ".jpg", with: "")
+        let variantFileName = "\(baseFileName)-\(variant.rawValue).jpg"
+
+        return await loadImage(fileName: variantFileName)
+    }
+
+    /// Resize image to target size with aspect ratio preservation
+    private func resizeImage(_ image: UIImage, to targetSize: CGSize, aspectRatio: CGFloat) async -> UIImage {
+        // Calculate dimensions maintaining aspect ratio
+        let imageAspectRatio = image.size.width / image.size.height
+        let newSize = targetSize
+
+        if imageAspectRatio != aspectRatio {
+            // Crop to match target aspect ratio
+            let cropRect: CGRect
+            if imageAspectRatio > aspectRatio {
+                // Image is wider - crop width
+                let cropWidth = image.size.height * aspectRatio
+                let cropX = (image.size.width - cropWidth) / 2
+                cropRect = CGRect(x: cropX, y: 0, width: cropWidth, height: image.size.height)
+            } else {
+                // Image is taller - crop height
+                let cropHeight = image.size.width / aspectRatio
+                let cropY = (image.size.height - cropHeight) / 2
+                cropRect = CGRect(x: 0, y: cropY, width: image.size.width, height: cropHeight)
+            }
+
+            // Crop and resize
+            guard let cgImage = image.cgImage?.cropping(to: cropRect) else {
+                return resizeImageSimple(image, to: newSize)
+            }
+
+            let croppedImage = UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+            return resizeImageSimple(croppedImage, to: newSize)
+        }
+
+        return resizeImageSimple(image, to: newSize)
+    }
+
+    /// Simple image resize without aspect ratio correction
+    private func resizeImageSimple(_ image: UIImage, to targetSize: CGSize) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        return renderer.image { context in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
         }
     }
 

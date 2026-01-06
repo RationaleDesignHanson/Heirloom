@@ -373,7 +373,7 @@ extension ImportItem {
 #Preview {
     NavigationStack {
         ImportReviewView(
-            manager: ImportJobManager.shared,
+            manager: ServiceContainer.shared.resolve(ImportJobManager.self),
             job: {
                 let job = ImportJob(jobName: "Test Import")
                 job.totalItems = 10

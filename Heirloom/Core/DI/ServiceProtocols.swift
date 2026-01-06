@@ -10,17 +10,9 @@ import Foundation
 import SwiftUI
 import Combine
 
-// MARK: - Analytics
-
-protocol AnalyticsServiceProtocol {
-    func track(_ event: String, properties: [String: Any]?)
-    func identify(userId: String, properties: [String: Any]?)
-    func setUserProperty(_ property: String, value: Any)
-    func reset()
-}
-
 // MARK: - Network
 
+@MainActor
 protocol NetworkMonitorProtocol {
     var isConnected: Bool { get }
     var isExpensive: Bool { get }
@@ -62,6 +54,7 @@ protocol ImageStorageServiceProtocol {
     func store(_ image: UIImage, for id: String) async throws -> URL
     func retrieve(for id: String) async throws -> UIImage?
     func delete(for id: String) async throws
+    func loadImageVariant(fileName: String, variant: ImageStorageService.ImageVariant) async -> UIImage?
 }
 
 protocol ImageCacheProtocol {
@@ -72,11 +65,13 @@ protocol ImageCacheProtocol {
 
 // MARK: - AI Services
 
+@MainActor
 protocol AIRecipeExtractorProtocol {
     func extract(from text: String) async throws -> Recipe
     func extract(from image: UIImage) async throws -> Recipe
 }
 
+@MainActor
 protocol AIIngredientParserProtocol {
     func parse(_ text: String) async throws -> Ingredient
     func parseBatch(_ texts: [String]) async throws -> [Ingredient]
@@ -87,10 +82,47 @@ protocol AIRecipeDetectorProtocol {
     func detect(in image: UIImage) async throws -> Bool
 }
 
+@MainActor
 protocol AIConfigurationProtocol {
     var apiKey: String { get }
     var model: String { get }
     var maxTokens: Int { get }
+    var enableAIParsing: Bool { get }
+    var enableAIEnhancement: Bool { get }
+    var currentAPIKey: String? { get }
+
+    func isConfigured(provider: AIProvider) -> Bool
+    func model(for task: AITask) -> String
+    func incrementRequestCount()
+    func canMakeRequest() -> Bool
+}
+
+protocol CommentAnalysisServiceProtocol {
+    // Using Any as return type for now - can be refined later
+    func analyzeComment(_ comment: RecipeComment) async throws -> Any
+    func analyzeComments(_ comments: [RecipeComment]) async throws -> [Any]
+    func extractInsights(from comments: [RecipeComment]) async throws -> Any
+}
+
+protocol DinnerPartySummaryServiceProtocol {
+    // Using Any as return type for now - can be refined later
+    nonisolated func generateSummary(for party: DinnerParty, recipes: [Recipe]) async throws -> Any
+}
+
+protocol ShoppingListSummaryServiceProtocol {
+    // Using Any as return type for now - can be refined later
+    nonisolated func generateSummary(for ingredients: [Ingredient], recipes: [Recipe]) async throws -> Any
+}
+
+protocol RecipeTimelineCalculatorProtocol {
+    // Using Any as return type for now - can be refined later
+    nonisolated func calculateTimeline(for recipes: [Recipe], servingTime: Date) async throws -> Any
+}
+
+protocol AIIngredientSpellCheckerProtocol {
+    // Using Any as return type for now - can be refined later
+    func check(_ text: String) async throws -> Any
+    func checkBatch(_ texts: [String]) async throws -> [Any]
 }
 
 // MARK: - OCR
@@ -110,8 +142,8 @@ protocol DeepLinkHandlerProtocol {
 // MARK: - Comments
 
 protocol CommentServiceProtocol {
-    func addComment(_ comment: Comment, to recipeId: String) async throws
-    func getComments(for recipeId: String) async throws -> [Comment]
+    func addComment(_ comment: RecipeComment, to recipeId: String) async throws
+    func getComments(for recipeId: String) async throws -> [RecipeComment]
     func deleteComment(_ commentId: String) async throws
 }
 

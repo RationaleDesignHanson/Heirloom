@@ -6,9 +6,9 @@ import SwiftUI
 @MainActor
 final class PrivacyConsentService: ObservableObject {
 
-    // MARK: - Singleton
+    // MARK: - Dependencies
 
-    static let shared = PrivacyConsentService()
+    private let analytics: AnalyticsService
 
     // MARK: - Published State
 
@@ -26,7 +26,7 @@ final class PrivacyConsentService: ObservableObject {
         didSet {
             UserDefaults.standard.set(hasAnalyticsConsent, forKey: Keys.analyticsConsent)
             if hasAnalyticsConsent {
-                AnalyticsService.shared.initialize()
+                analytics.initialize()
             }
         }
     }
@@ -64,7 +64,9 @@ final class PrivacyConsentService: ObservableObject {
 
     // MARK: - Initialization
 
-    private init() {
+    init(analytics: AnalyticsService) {
+        self.analytics = analytics
+
         // Load consent state from UserDefaults
         self.hasSharingConsent = UserDefaults.standard.bool(forKey: Keys.sharingConsent)
         self.hasAnalyticsConsent = UserDefaults.standard.bool(forKey: Keys.analyticsConsent)
@@ -73,7 +75,7 @@ final class PrivacyConsentService: ObservableObject {
 
         // Initialize analytics if consent was previously granted
         if hasAnalyticsConsent {
-            AnalyticsService.shared.initialize()
+            analytics.initialize()
         }
     }
 
@@ -109,7 +111,7 @@ final class PrivacyConsentService: ObservableObject {
 
         // Track analytics event (if analytics consent is also granted)
         if hasAnalyticsConsent {
-            AnalyticsService.shared.track(event: .settingChanged, properties: [
+            analytics.track(event: .settingChanged, properties: [
                 "setting": "sharing_consent",
                 "value": true
             ])
@@ -122,7 +124,7 @@ final class PrivacyConsentService: ObservableObject {
 
         // Track analytics event (if analytics consent is granted)
         if hasAnalyticsConsent {
-            AnalyticsService.shared.track(event: .settingChanged, properties: [
+            analytics.track(event: .settingChanged, properties: [
                 "setting": "sharing_consent",
                 "value": false
             ])
@@ -134,10 +136,10 @@ final class PrivacyConsentService: ObservableObject {
         hasAnalyticsConsent = true
 
         // Initialize analytics
-        AnalyticsService.shared.initialize()
+        analytics.initialize()
 
         // Track the consent grant
-        AnalyticsService.shared.track(event: .settingChanged, properties: [
+        analytics.track(event: .settingChanged, properties: [
             "setting": "analytics_consent",
             "value": true
         ])
@@ -147,7 +149,7 @@ final class PrivacyConsentService: ObservableObject {
     func revokeAnalyticsConsent() {
         // Track before revoking
         if hasAnalyticsConsent {
-            AnalyticsService.shared.track(event: .settingChanged, properties: [
+            analytics.track(event: .settingChanged, properties: [
                 "setting": "analytics_consent",
                 "value": false
             ])
@@ -266,7 +268,11 @@ struct ConsentStatus {
 /// Convenient property wrapper for sharing consent
 @propertyWrapper
 struct SharingConsentRequired: DynamicProperty {
-    @ObservedObject private var service = PrivacyConsentService.shared
+    @ObservedObject private var service: PrivacyConsentService
+
+    init() {
+        self.service = ServiceContainer.shared.resolve(PrivacyConsentService.self)
+    }
 
     var wrappedValue: Bool {
         service.hasSharingConsent
@@ -289,7 +295,11 @@ struct SharingConsentRequired: DynamicProperty {
 /// Convenient property wrapper for analytics consent
 @propertyWrapper
 struct AnalyticsConsentRequired: DynamicProperty {
-    @ObservedObject private var service = PrivacyConsentService.shared
+    @ObservedObject private var service: PrivacyConsentService
+
+    init() {
+        self.service = ServiceContainer.shared.resolve(PrivacyConsentService.self)
+    }
 
     var wrappedValue: Bool {
         service.hasAnalyticsConsent

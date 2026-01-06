@@ -56,12 +56,15 @@ final class ShoppingCartRecipe {
     }
 
     /// Get scaled ingredients using ScalingEngine
-    var scaledIngredients: [ScaledIngredient] {
+    nonisolated var scaledIngredients: [ScaledIngredient] {
         guard let recipe = recipe else { return [] }
 
         // Use ScalingEngine if the recipe supports scaling
+        let scalingEngine = MainActor.assumeIsolated {
+            ServiceContainer.shared.resolve(ScalingEngine.self)
+        }
         if recipe.isScalingAllowed,
-           let scaledRecipe = ScalingEngine.shared.scaleRecipe(recipe, toServings: targetServings) {
+           let scaledRecipe = scalingEngine.scaleRecipe(recipe, toServings: targetServings) {
             return scaledRecipe.scaledIngredients
         }
 

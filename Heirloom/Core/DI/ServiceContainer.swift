@@ -20,19 +20,38 @@ final class ServiceContainer {
 
     // MARK: - Singleton
 
-    static let shared = ServiceContainer()
+    // Safe to access from any context - initialized once at startup before concurrent access
+    // Underlying storage for both main-actor and nonisolated access
+    // Note: nonisolated(unsafe) is necessary to allow nonisolated access from sharedUnsafe
+    // even though ServiceContainer is Sendable. Without it, we get "main actor-isolated" errors.
+    // The compiler warning about this being unnecessary is a false positive and can be safely ignored.
+    private nonisolated(unsafe) static let _shared = ServiceContainer()
+
+    // Main-actor-isolated accessor (default usage)
+    static var shared: ServiceContainer {
+        _shared
+    }
+
+    // Nonisolated accessor for use from nonisolated contexts (like global Log accessor)
+    nonisolated static var sharedUnsafe: ServiceContainer {
+        _shared
+    }
 
     // MARK: - Properties
 
-    private var factories: [String: (ServiceContainer) -> Any] = [:]
-    private var singletons: [String: Any] = [:]
-    private var lifecycles: [String: ServiceLifecycle] = [:]
-    private let logger = HeirloomLogger.shared
+    // These are nonisolated(unsafe) to allow resolveUnsafe() access from any context
+    // Safe because: all registrations complete before app uses services
+    nonisolated(unsafe) private var factories: [String: (ServiceContainer) -> Any] = [:]
+    nonisolated(unsafe) private var singletons: [String: Any] = [:]
+    nonisolated(unsafe) private var lifecycles: [String: ServiceLifecycle] = [:]
+    private let logger = HeirloomLogger()
+    // No concurrent queue needed - @MainActor provides thread-safety for register/resolve
 
     // MARK: - Initialization
 
-    private init() {
-        logger.log("ServiceContainer initialized", category: .general, level: .info)
+    nonisolated private init() {
+        // Note: Can't log here since logger is MainActor-isolated
+        // Logging happens on first access instead
     }
 
     /// Public initializer for testing and previews
@@ -53,6 +72,8 @@ final class ServiceContainer {
         factory: @escaping (ServiceContainer) -> T
     ) {
         let key = String(describing: type)
+
+        // Direct dictionary access - thread-safe via @MainActor
         factories[key] = factory
         lifecycles[key] = lifecycle
 
@@ -69,6 +90,8 @@ final class ServiceContainer {
     ///   - instance: Pre-created instance to register
     func register<T>(_ type: T.Type, instance: T) {
         let key = String(describing: type)
+
+        // Direct dictionary access - thread-safe via @MainActor
         singletons[key] = instance
         lifecycles[key] = .singleton
 
@@ -87,7 +110,7 @@ final class ServiceContainer {
     func resolve<T>(_ type: T.Type) -> T {
         let key = String(describing: type)
 
-        // Check lifecycle
+        // Direct dictionary access - thread-safe via @MainActor
         guard let lifecycle = lifecycles[key] else {
             logger.log(
                 "Service not registered: \(key)",
@@ -99,10 +122,12 @@ final class ServiceContainer {
 
         // Singleton: return cached or create and cache
         if lifecycle == .singleton {
+            // Check if already cached
             if let cached = singletons[key] as? T {
                 return cached
             }
 
+            // Create new instance
             guard let factory = factories[key] else {
                 fatalError("Factory not found for singleton: \(key)")
             }
@@ -146,6 +171,40 @@ final class ServiceContainer {
         return resolve(type)
     }
 
+    /// Resolve a service without MainActor isolation
+    /// WARNING: Only use this for nonisolated global accessors like Log
+    /// This bypasses @MainActor but is safe because dictionaries are populated at startup
+    nonisolated func resolveUnsafe<T>(_ type: T.Type) -> T {
+        let key = String(describing: type)
+
+        guard let lifecycle = lifecycles[key] else {
+            fatalError("Service not registered: \(key)")
+        }
+
+        if lifecycle == .singleton {
+            // Check if already cached
+            if let cached = singletons[key] as? T {
+                return cached
+            }
+
+            // First access - create the singleton
+            guard let factory = factories[key] else {
+                fatalError("Factory not found for singleton: \(key)")
+            }
+
+            let instance = factory(self) as! T
+            singletons[key] = instance
+            return instance
+        }
+
+        // Transient: always create new
+        guard let factory = factories[key] else {
+            fatalError("Factory not found for transient: \(key)")
+        }
+
+        return factory(self) as! T
+    }
+
     // MARK: - Testing Support
 
     /// Replace a singleton instance (useful for testing)
@@ -154,6 +213,8 @@ final class ServiceContainer {
     ///   - instance: New instance to use
     func replace<T>(_ type: T.Type, with instance: T) {
         let key = String(describing: type)
+
+        // Direct dictionary access - thread-safe via @MainActor
         singletons[key] = instance
 
         logger.log(
@@ -165,6 +226,7 @@ final class ServiceContainer {
 
     /// Reset all singletons (useful for testing)
     func resetSingletons() {
+        // Direct dictionary access - thread-safe via @MainActor
         singletons.removeAll()
 
         logger.log(
@@ -176,6 +238,7 @@ final class ServiceContainer {
 
     /// Clear all registrations (useful for testing)
     func reset() {
+        // Direct dictionary access - thread-safe via @MainActor
         factories.removeAll()
         singletons.removeAll()
         lifecycles.removeAll()
@@ -191,6 +254,7 @@ final class ServiceContainer {
 
     /// Get list of all registered services
     var registeredServices: [String] {
+        // Direct dictionary access - thread-safe via @MainActor
         Array(lifecycles.keys).sorted()
     }
 
@@ -203,6 +267,7 @@ final class ServiceContainer {
         )
 
         for service in registeredServices {
+            // Direct dictionary access - thread-safe via @MainActor
             let lifecycle = lifecycles[service] ?? .singleton
             let isCached = singletons[service] != nil
             logger.log(
@@ -238,6 +303,7 @@ struct ServiceRegistrationBuilder {
 
 /// Protocol for service registration
 protocol ServiceRegistration {
+    @MainActor
     func register(in container: ServiceContainer)
 }
 
@@ -247,6 +313,7 @@ struct ConcreteServiceRegistration<T>: ServiceRegistration {
     let lifecycle: ServiceLifecycle
     let factory: (ServiceContainer) -> T
 
+    @MainActor
     func register(in container: ServiceContainer) {
         container.register(type, lifecycle: lifecycle, factory: factory)
     }

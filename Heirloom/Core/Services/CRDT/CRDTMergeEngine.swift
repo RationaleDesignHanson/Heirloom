@@ -10,11 +10,7 @@ import SwiftData
 
 /// Core engine for merging Recipe CRDTs with conflict detection
 class CRDTMergeEngine {
-    // MARK: - Singleton
-
-    static let shared = CRDTMergeEngine()
-
-    private init() {}
+    init() {}
 
     // MARK: - Merge Operations
 
@@ -214,6 +210,9 @@ class CRDTMergeEngine {
         case .create:
             // Create operations don't modify the recipe, just mark creation
             break
+        case .addCustomization, .modifyCustomization, .deleteCustomization, .reorderCustomizations:
+            // Customization operations are handled separately
+            break
         }
     }
 
@@ -405,5 +404,18 @@ struct ConflictResolution {
         case keepRemote
         case keepBoth  // For additive changes
         case custom(OperationValue)  // User typed custom value
+    }
+}
+
+// MARK: - Global Convenience
+
+extension CRDTMergeEngine {
+    /// Global accessor that resolves from ServiceContainer for proper DI
+    /// Maintains backward compatibility with existing .shared usage
+    /// Note: Safe to use from any context - ServiceContainer is thread-safe
+    nonisolated(unsafe) static var shared: CRDTMergeEngine {
+        MainActor.assumeIsolated {
+            ServiceContainer.shared.resolve(CRDTMergeEngine.self)
+        }
     }
 }

@@ -6,6 +6,9 @@ struct EnhancedScannerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
+    // Using concrete type for now since view calls implementation-specific methods
+    private var aiRecipeExtractor: AIRecipeExtractor { ServiceContainer.shared.resolve(AIRecipeExtractor.self) }
+
     @StateObject private var cameraManager = CameraManager()
     @State private var capturedImage: UIImage?
     @State private var isProcessing = false
@@ -270,7 +273,7 @@ struct EnhancedScannerView: View {
             do {
                 // Step 1: Detect recipes with bounding boxes (vision API)
                 Log.info("Detecting recipes with vision API", category: .ocr)
-                let detected = try await AIRecipeExtractor.shared.detectRecipes(from: image)
+                let detected = try await aiRecipeExtractor.detectRecipes(from: image)
 
                 Log.info("Found recipes in image", category: .ocr, metadata: ["count": detected.count])
                 for (index, recipe) in detected.enumerated() {
@@ -279,7 +282,7 @@ struct EnhancedScannerView: View {
 
                 // Step 2: Extract each recipe using vision API + bounding box
                 Log.info("Extracting recipes with vision API", category: .ocr)
-                let result = try await AIRecipeExtractor.shared.extractRecipesFromImage(
+                let result = try await aiRecipeExtractor.extractRecipesFromImage(
                     image: image,
                     detectedRecipes: detected
                 )

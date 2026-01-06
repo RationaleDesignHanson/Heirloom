@@ -4,9 +4,20 @@ import SwiftData
 /// AI-powered recipe timeline calculator for dinner party coordination
 /// Calculates optimal start times and identifies timing conflicts
 @MainActor
-class RecipeTimelineCalculator {
-    static let shared = RecipeTimelineCalculator()
-    private init() {}
+class RecipeTimelineCalculator: RecipeTimelineCalculatorProtocol {
+    // MARK: - Dependencies
+
+    private let aiService: AIServiceProtocol
+    private let configuration: AIConfigurationProtocol
+    private let analytics: AnalyticsService
+
+    // MARK: - Initialization
+
+    init(aiService: AIServiceProtocol, configuration: AIConfigurationProtocol, analytics: AnalyticsService) {
+        self.aiService = aiService
+        self.configuration = configuration
+        self.analytics = analytics
+    }
 
     // MARK: - Timeline Models
 
@@ -41,12 +52,16 @@ class RecipeTimelineCalculator {
     // MARK: - Public API
 
     /// Calculate optimal timeline for dinner party recipes using AI
-    func calculateTimeline(
-        recipes: [DinnerPartyRecipe],
+    nonisolated func calculateTimeline(for recipes: [Recipe], servingTime: Date) async throws -> Any {
+        return try await calculateRecipeTimeline(recipes: recipes, servingTime: servingTime)
+    }
+
+    private func calculateRecipeTimeline(
+        recipes: [Recipe],
         servingTime: Date
     ) async throws -> TimelineAnalysis {
-        guard AIConfiguration.shared.enableAIEnhancement,
-              AIConfiguration.shared.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIEnhancement,
+              configuration.isConfigured(provider: .anthropic) else {
             // Return basic timeline without AI
             return calculateBasicTimeline(recipes: recipes)
         }
@@ -103,10 +118,9 @@ class RecipeTimelineCalculator {
         Be specific and practical. Focus on real-world kitchen constraints.
         """
 
-        let service = AnthropicAIService.shared
-        let model = AIConfiguration.shared.model(for: .enhancement)
+        let model = configuration.model(for: .enhancement)
 
-        let analysis = try await service.completeStructured(
+        let analysis = try await aiService.completeStructured(
             prompt: prompt,
             schema: TimelineAnalysis.self,
             options: AICompletionOptions(
@@ -118,7 +132,7 @@ class RecipeTimelineCalculator {
         )
 
         // Track success
-        AnalyticsService.shared.track(event: .aiEnhancementSuccess, properties: [
+        analytics.track(event: .aiEnhancementSuccess, properties: [
             "source": "recipe_timeline",
             "recipe_count": recipes.count
         ])
@@ -128,12 +142,10 @@ class RecipeTimelineCalculator {
 
     // MARK: - Private Helpers
 
-    private func buildRecipesContext(_ recipes: [DinnerPartyRecipe]) -> String {
+    private func buildRecipesContext(_ recipes: [Recipe]) -> String {
         var context = ""
 
-        for (index, dpRecipe) in recipes.enumerated() {
-            guard let recipe = dpRecipe.recipe else { continue }
-
+        for (index, recipe) in recipes.enumerated() {
             context += "\n\n\(index + 1). \(recipe.title)"
 
             if let servings = recipe.servings {
@@ -149,53 +161,44 @@ class RecipeTimelineCalculator {
             }
 
             // Instructions (abbreviated for context)
-            if let instructions = recipe.instructions, !instructions.isEmpty {
+            if !recipe.instructions.isEmpty {
                 context += "\n   Method: "
-                let firstInstruction = instructions.prefix(2).joined(separator: " ")
+                let firstInstruction = recipe.instructions.prefix(2).joined(separator: " ")
                 let abbreviated = String(firstInstruction.prefix(150))
                 context += abbreviated + (firstInstruction.count > 150 ? "..." : "")
             }
 
             // Equipment hints from instructions
-            if let instructions = recipe.instructions {
-                let fullText = instructions.joined(separator: " ").lowercased()
-                var equipment: [String] = []
+            let fullText = recipe.instructions.joined(separator: " ").lowercased()
+            var equipment: [String] = []
 
-                if fullText.contains("oven") || fullText.contains("bake") || fullText.contains("roast") {
-                    equipment.append("oven")
-                }
-                if fullText.contains("stovetop") || fullText.contains("boil") || fullText.contains("sauté") {
-                    equipment.append("stovetop")
-                }
-                if fullText.contains("grill") {
-                    equipment.append("grill")
-                }
-                if fullText.contains("microwave") {
-                    equipment.append("microwave")
-                }
-
-                if !equipment.isEmpty {
-                    context += "\n   Equipment: \(equipment.joined(separator: ", "))"
-                }
+            if fullText.contains("oven") || fullText.contains("bake") || fullText.contains("roast") {
+                equipment.append("oven")
+            }
+            if fullText.contains("stovetop") || fullText.contains("boil") || fullText.contains("sauté") {
+                equipment.append("stovetop")
+            }
+            if fullText.contains("grill") {
+                equipment.append("grill")
+            }
+            if fullText.contains("microwave") {
+                equipment.append("microwave")
             }
 
-            // Current start time if set
-            if dpRecipe.startTimeOffset > 0 {
-                context += "\n   Current scheduled start: \(dpRecipe.startTimeOffset) minutes before serving"
+            if !equipment.isEmpty {
+                context += "\n   Equipment: \(equipment.joined(separator: ", "))"
             }
         }
 
         return context
     }
 
-    private func calculateBasicTimeline(recipes: [DinnerPartyRecipe]) -> TimelineAnalysis {
+    private func calculateBasicTimeline(recipes: [Recipe]) -> TimelineAnalysis {
         var recommendations: [RecipeStartTime] = []
 
-        for dpRecipe in recipes {
-            guard let recipe = dpRecipe.recipe else { continue }
-
-            let prepTime = recipe.parsedPrepTime ?? 0
-            let cookTime = recipe.parsedCookTime ?? 0
+        for recipe in recipes {
+            let prepTime = recipe.parsedPrepTime
+            let cookTime = recipe.parsedCookTime
             let totalTime = prepTime + cookTime
 
             let startOffset = max(totalTime, 30) // At least 30 minutes

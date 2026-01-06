@@ -11,11 +11,13 @@ import UIKit
 /// - Analytics tracking for sharing metrics
 @MainActor
 final class ShortURLService {
-    // MARK: - Singleton
+    // MARK: - Dependencies
 
-    static let shared = ShortURLService()
+    private let analytics: AnalyticsService
 
-    private init() {}
+    init(analytics: AnalyticsService) {
+        self.analytics = analytics
+    }
 
     // MARK: - Constants
 
@@ -284,7 +286,7 @@ final class ShortURLService {
     // MARK: - Analytics
 
     private func trackShortURLGenerated(code: String, longURL: URL) {
-        AnalyticsService.shared.track(event: .featureUsed, properties: [
+        analytics.track(event: .featureUsed, properties: [
             "feature": "short_url_generated",
             "code_length": code.count,
             "is_custom_code": code.count > codeLength,
@@ -294,7 +296,7 @@ final class ShortURLService {
     }
 
     private func trackQRCodeGenerated(url: URL) {
-        AnalyticsService.shared.track(event: .featureUsed, properties: [
+        analytics.track(event: .featureUsed, properties: [
             "feature": "qr_code_generated",
             "url_length": url.absoluteString.count,
             "is_short_url": url.absoluteString.contains(baseDomain)

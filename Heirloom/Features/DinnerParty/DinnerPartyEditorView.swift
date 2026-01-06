@@ -4,6 +4,11 @@ import SwiftData
 struct DinnerPartyEditorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     @Query private var allRecipes: [Recipe]
 
@@ -185,10 +190,10 @@ struct DinnerPartyEditorView: View {
             try modelContext.save()
 
             // Sync to Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Task {
                     do {
-                        try await FirebaseSyncService.shared.uploadDinnerParty(partyToSync)
+                        try await firebaseSync.uploadDinnerParty(partyToSync)
                         Log.info("Dinner party synced to Firebase", category: .firebase, metadata: ["partyId": partyToSync.id])
                     } catch {
                         Log.warning("Failed to sync dinner party to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "partyId": partyToSync.id])
@@ -199,25 +204,25 @@ struct DinnerPartyEditorView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            AnalyticsService.shared.track(event: .recipeCreated, properties: [
+            analytics.track(event: .recipeCreated, properties: [
                 "type": "dinner_party",
                 "guest_count": guestCount,
                 "recipe_count": selectedRecipes.count
             ])
 
-            ToastManager.shared.success(
+            toastManager.success(
                 title: isEditing ? "Party updated" : "Party created"
             )
 
             dismiss()
         } catch {
             if party == nil {
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Failed to create party",
                     message: error.localizedDescription
                 )
             } else {
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Failed to update party",
                     message: error.localizedDescription
                 )

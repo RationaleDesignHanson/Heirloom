@@ -182,7 +182,7 @@ struct ImportProgressView: View {
 #Preview {
     NavigationStack {
         ImportProgressView(
-            manager: ImportJobManager.shared,
+            manager: ServiceContainer.shared.resolve(ImportJobManager.self),
             job: {
                 let job = ImportJob(jobName: "Test Import")
                 job.totalItems = 10

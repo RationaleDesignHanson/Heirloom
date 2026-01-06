@@ -6,7 +6,8 @@ struct HelpView: View {
     @State private var showingFAQ = false
     @State private var showingGestureGuide = false
 
-    private let helpContent = HelpContent.shared
+    private var helpContent: HelpContent { ServiceContainer.shared.resolve(HelpContent.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
     var body: some View {
         NavigationStack {
@@ -27,7 +28,7 @@ struct HelpView: View {
                 GestureGuideView()
             }
             .onAppear {
-                AnalyticsService.shared.track(event: .helpCenterOpened)
+                analytics.track(event: .helpCenterOpened)
             }
         }
     }
@@ -142,7 +143,7 @@ struct HelpView: View {
     private var gestureGuideButton: some View {
         Button {
             showingGestureGuide = true
-            AnalyticsService.shared.track(event: .helpSectionViewed, properties: [
+            analytics.track(event: .helpSectionViewed, properties: [
                 "section": "gestures_guide"
             ])
         } label: {
@@ -179,7 +180,7 @@ struct HelpView: View {
     private var faqButton: some View {
         Button {
             showingFAQ = true
-            AnalyticsService.shared.track(event: .faqOpened)
+            analytics.track(event: .faqOpened)
         } label: {
             HStack {
                 Image(systemName: "list.bullet.circle.fill")
@@ -239,7 +240,7 @@ struct HelpView: View {
         }
         .background(HeirloomColors.appBackground)
         .onAppear {
-            AnalyticsService.shared.track(event: .helpSearchPerformed, properties: [
+            analytics.track(event: .helpSearchPerformed, properties: [
                 "query": searchText,
                 "results_count": helpContent.search(searchText).count
             ])
@@ -315,7 +316,8 @@ struct HelpView: View {
 private struct SectionDetailView: View {
     let section: HelpSection
 
-    private let helpContent = HelpContent.shared
+    private var helpContent: HelpContent { ServiceContainer.shared.resolve(HelpContent.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
     var body: some View {
         List {
@@ -347,7 +349,7 @@ private struct SectionDetailView: View {
         .navigationTitle(section.rawValue)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            AnalyticsService.shared.track(event: .helpSectionViewed, properties: [
+            analytics.track(event: .helpSectionViewed, properties: [
                 "section": section.rawValue
             ])
         }
@@ -361,7 +363,7 @@ private struct FAQView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
 
-    private let helpContent = HelpContent.shared
+    private var helpContent: HelpContent { ServiceContainer.shared.resolve(HelpContent.self) }
 
     var body: some View {
         NavigationStack {

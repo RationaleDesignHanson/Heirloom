@@ -69,18 +69,21 @@ struct RecipeDetailHeader: View {
 // MARK: - Preview
 
 #Preview {
-    let recipe = Recipe(
-        title: "Classic Chocolate Chip Cookies",
-        sourceType: .manual,
-        sourceURL: nil,
-        instructions: ["Mix ingredients", "Bake at 350°F"],
-        servings: "24 cookies",
-        prepTime: "15 min",
-        cookTime: "12 min"
-    )
-    recipe.isFavorite = true
+    @Previewable @State var recipe: Recipe = {
+        let recipe = Recipe(
+            title: "Classic Chocolate Chip Cookies",
+            sourceType: .manual,
+            sourceURL: nil,
+            instructions: ["Mix ingredients", "Bake at 350°F"],
+            servings: "24 cookies",
+            prepTime: "15 min",
+            cookTime: "12 min"
+        )
+        recipe.isFavorite = true
+        return recipe
+    }()
 
-    return RecipeDetailHeader(
+    RecipeDetailHeader(
         recipe: recipe,
         displayTitle: "Classic Chocolate Chip Cookies",
         isInShoppingCart: false,

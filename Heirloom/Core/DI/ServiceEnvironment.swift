@@ -11,57 +11,105 @@ import SwiftUI
 
 // Firebase Services
 private struct FirebaseSyncServiceKey: EnvironmentKey {
-    static let defaultValue: FirebaseSyncServiceProtocol = ServiceContainer.shared.resolve(FirebaseSyncServiceProtocol.self)
+    static let defaultValue: any FirebaseSyncServiceProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
+    }
 }
 
 private struct FirebaseAuthServiceKey: EnvironmentKey {
-    static let defaultValue: FirebaseAuthServiceProtocol = ServiceContainer.shared.resolve(FirebaseAuthServiceProtocol.self)
+    static let defaultValue: any FirebaseAuthServiceProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any FirebaseAuthServiceProtocol).self)
+    }
 }
 
 private struct FirebaseRecipeSyncKey: EnvironmentKey {
-    static let defaultValue: FirebaseRecipeSyncProtocol = ServiceContainer.shared.resolve(FirebaseRecipeSyncProtocol.self)
+    static let defaultValue: any FirebaseRecipeSyncProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any FirebaseRecipeSyncProtocol).self)
+    }
 }
 
 private struct FirebaseShareServiceKey: EnvironmentKey {
-    static let defaultValue: FirebaseShareServiceProtocol = ServiceContainer.shared.resolve(FirebaseShareServiceProtocol.self)
+    static let defaultValue: any FirebaseShareServiceProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any FirebaseShareServiceProtocol).self)
+    }
 }
 
 private struct FirebaseImageServiceKey: EnvironmentKey {
-    static let defaultValue: FirebaseImageServiceProtocol = ServiceContainer.shared.resolve(FirebaseImageServiceProtocol.self)
+    static let defaultValue: any FirebaseImageServiceProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any FirebaseImageServiceProtocol).self)
+    }
+}
+
+private struct FirebaseLineageServiceKey: EnvironmentKey {
+    static let defaultValue: any FirebaseLineageServiceProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any FirebaseLineageServiceProtocol).self)
+    }
 }
 
 // Logging
 private struct LoggingServiceKey: EnvironmentKey {
-    static let defaultValue: LoggingService = ServiceContainer.shared.resolve(LoggingService.self)
+    static let defaultValue: LoggingService = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve(LoggingService.self)
+    }
 }
 
 // Analytics
 private struct AnalyticsServiceKey: EnvironmentKey {
-    static let defaultValue: AnalyticsServiceProtocol = ServiceContainer.shared.resolve(AnalyticsServiceProtocol.self)
+    static let defaultValue: any AnalyticsServiceProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any AnalyticsServiceProtocol).self)
+    }
 }
 
 // Network
 private struct NetworkMonitorKey: EnvironmentKey {
-    static let defaultValue: NetworkMonitorProtocol = ServiceContainer.shared.resolve(NetworkMonitorProtocol.self)
+    static let defaultValue: any NetworkMonitorProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any NetworkMonitorProtocol).self)
+    }
 }
 
 // Recipe Services
 private struct RecipeImportServiceKey: EnvironmentKey {
-    static let defaultValue: RecipeImportServiceProtocol = ServiceContainer.shared.resolve(RecipeImportServiceProtocol.self)
+    static let defaultValue: any RecipeImportServiceProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any RecipeImportServiceProtocol).self)
+    }
 }
 
 private struct RecipeVersionServiceKey: EnvironmentKey {
-    static let defaultValue: RecipeVersionServiceProtocol = ServiceContainer.shared.resolve(RecipeVersionServiceProtocol.self)
+    static let defaultValue: any RecipeVersionServiceProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any RecipeVersionServiceProtocol).self)
+    }
 }
 
 // Storage
 private struct ImageStorageServiceKey: EnvironmentKey {
-    static let defaultValue: ImageStorageServiceProtocol = ServiceContainer.shared.resolve(ImageStorageServiceProtocol.self)
+    static let defaultValue: any ImageStorageServiceProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any ImageStorageServiceProtocol).self)
+    }
 }
 
 // AI Services
+private struct AIServiceKey: EnvironmentKey {
+    static let defaultValue: any AIServiceProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any AIServiceProtocol).self)
+    }
+}
+
+private struct AIConfigurationKey: EnvironmentKey {
+    static let defaultValue: any AIConfigurationProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any AIConfigurationProtocol).self)
+    }
+}
+
 private struct AIRecipeExtractorKey: EnvironmentKey {
-    static let defaultValue: AIRecipeExtractorProtocol = ServiceContainer.shared.resolve(AIRecipeExtractorProtocol.self)
+    static let defaultValue: any AIRecipeExtractorProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any AIRecipeExtractorProtocol).self)
+    }
+}
+
+private struct AIIngredientParserKey: EnvironmentKey {
+    static let defaultValue: any AIIngredientParserProtocol = MainActor.assumeIsolated {
+        ServiceContainer.shared.resolve((any AIIngredientParserProtocol).self)
+    }
 }
 
 // MARK: - Environment Values Extension
@@ -70,29 +118,34 @@ extension EnvironmentValues {
 
     // MARK: Firebase Services
 
-    var firebaseSync: FirebaseSyncServiceProtocol {
+    var firebaseSync: any FirebaseSyncServiceProtocol {
         get { self[FirebaseSyncServiceKey.self] }
         set { self[FirebaseSyncServiceKey.self] = newValue }
     }
 
-    var firebaseAuth: FirebaseAuthServiceProtocol {
+    var firebaseAuth: any FirebaseAuthServiceProtocol {
         get { self[FirebaseAuthServiceKey.self] }
         set { self[FirebaseAuthServiceKey.self] = newValue }
     }
 
-    var firebaseRecipeSync: FirebaseRecipeSyncProtocol {
+    var firebaseRecipeSync: any FirebaseRecipeSyncProtocol {
         get { self[FirebaseRecipeSyncKey.self] }
         set { self[FirebaseRecipeSyncKey.self] = newValue }
     }
 
-    var firebaseShare: FirebaseShareServiceProtocol {
+    var firebaseShare: any FirebaseShareServiceProtocol {
         get { self[FirebaseShareServiceKey.self] }
         set { self[FirebaseShareServiceKey.self] = newValue }
     }
 
-    var firebaseImageService: FirebaseImageServiceProtocol {
+    var firebaseImageService: any FirebaseImageServiceProtocol {
         get { self[FirebaseImageServiceKey.self] }
         set { self[FirebaseImageServiceKey.self] = newValue }
+    }
+
+    var firebaseLineage: any FirebaseLineageServiceProtocol {
+        get { self[FirebaseLineageServiceKey.self] }
+        set { self[FirebaseLineageServiceKey.self] = newValue }
     }
 
     // MARK: Core Services
@@ -102,40 +155,55 @@ extension EnvironmentValues {
         set { self[LoggingServiceKey.self] = newValue }
     }
 
-    var analytics: AnalyticsServiceProtocol {
+    var analytics: any AnalyticsServiceProtocol {
         get { self[AnalyticsServiceKey.self] }
         set { self[AnalyticsServiceKey.self] = newValue }
     }
 
-    var networkMonitor: NetworkMonitorProtocol {
+    var networkMonitor: any NetworkMonitorProtocol {
         get { self[NetworkMonitorKey.self] }
         set { self[NetworkMonitorKey.self] = newValue }
     }
 
     // MARK: Recipe Services
 
-    var recipeImport: RecipeImportServiceProtocol {
+    var recipeImport: any RecipeImportServiceProtocol {
         get { self[RecipeImportServiceKey.self] }
         set { self[RecipeImportServiceKey.self] = newValue }
     }
 
-    var recipeVersion: RecipeVersionServiceProtocol {
+    var recipeVersion: any RecipeVersionServiceProtocol {
         get { self[RecipeVersionServiceKey.self] }
         set { self[RecipeVersionServiceKey.self] = newValue }
     }
 
     // MARK: Storage Services
 
-    var imageStorage: ImageStorageServiceProtocol {
+    var imageStorage: any ImageStorageServiceProtocol {
         get { self[ImageStorageServiceKey.self] }
         set { self[ImageStorageServiceKey.self] = newValue }
     }
 
     // MARK: AI Services
 
-    var aiRecipeExtractor: AIRecipeExtractorProtocol {
+    var aiService: any AIServiceProtocol {
+        get { self[AIServiceKey.self] }
+        set { self[AIServiceKey.self] = newValue }
+    }
+
+    var aiConfiguration: any AIConfigurationProtocol {
+        get { self[AIConfigurationKey.self] }
+        set { self[AIConfigurationKey.self] = newValue }
+    }
+
+    var aiRecipeExtractor: any AIRecipeExtractorProtocol {
         get { self[AIRecipeExtractorKey.self] }
         set { self[AIRecipeExtractorKey.self] = newValue }
+    }
+
+    var aiIngredientParser: any AIIngredientParserProtocol {
+        get { self[AIIngredientParserKey.self] }
+        set { self[AIIngredientParserKey.self] = newValue }
     }
 }
 
@@ -148,7 +216,7 @@ extension View {
     }
 
     /// Inject multiple mock services for testing/previews
-    func withMockServices(@MockServiceBuilder _ builder: (inout EnvironmentValues) -> Void) -> some View {
+    func withMockServices(@MockServiceBuilder _ builder: @escaping (inout EnvironmentValues) -> Void) -> some View {
         self.transformEnvironment(\.self) { environment in
             builder(&environment)
         }
@@ -173,7 +241,7 @@ struct MockServiceBuilder {
 extension ServiceContainer {
     /// Create a container configured for SwiftUI previews with mocks
     static func preview() -> ServiceContainer {
-        let container = ServiceContainer()
+        let container = ServiceContainer(forTesting: true)
 
         // Register mock services here
         // This will be populated as we create mocks
@@ -188,7 +256,7 @@ extension ServiceContainer {
 extension EnvironmentValues {
     /// Set all services to preview/mock mode
     static var preview: EnvironmentValues {
-        var environment = EnvironmentValues()
+        let environment = EnvironmentValues()
 
         // Set mock services here as we create them
         // Example:

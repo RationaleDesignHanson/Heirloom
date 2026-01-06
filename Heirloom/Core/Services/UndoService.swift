@@ -6,10 +6,15 @@ import SwiftData
 /// Provides temporary storage and restore capabilities for deleted items
 @MainActor
 class UndoService: ObservableObject {
-    static let shared = UndoService()
 
     /// Default undo window duration (5 seconds)
-    static let defaultUndoWindow: TimeInterval = 5.0
+    nonisolated static let defaultUndoWindow: TimeInterval = 5.0
+
+    // MARK: - Dependencies
+
+    private let analytics: AnalyticsService
+    private let backendConfig: BackendConfig
+    private let firebaseSync: FirebaseSyncService
 
     // MARK: - Undo Item
     struct UndoItem: Identifiable {
@@ -29,7 +34,11 @@ class UndoService: ObservableObject {
     // Store model context reference
     private var modelContext: ModelContext?
 
-    private init() {}
+    init(analytics: AnalyticsService, backendConfig: BackendConfig, firebaseSync: FirebaseSyncService) {
+        self.analytics = analytics
+        self.backendConfig = backendConfig
+        self.firebaseSync = firebaseSync
+    }
 
     // MARK: - Configuration
     func configure(modelContext: ModelContext) {
@@ -64,11 +73,11 @@ class UndoService: ObservableObject {
         // Schedule permanent deletion after undo window expires
         Task {
             try? await Task.sleep(nanoseconds: UInt64(undoWindow * 1_000_000_000))
-            await self.expireUndoItem(undoItem)
+            self.expireUndoItem(undoItem)
         }
 
         // Analytics
-        AnalyticsService.shared.track(event: .recipeDeleted, properties: [
+        analytics.track(event: .recipeDeleted, properties: [
             "Recipe Title": recipe.title,
             "Undo Available": true
         ])
@@ -91,10 +100,10 @@ class UndoService: ObservableObject {
         try? context.save()
 
         // Re-upload to Firebase if active
-        if BackendConfig.shared.isFirebaseActive {
+        if backendConfig.isFirebaseActive {
             Task {
                 do {
-                    try await FirebaseSyncService.shared.uploadRecipe(undoItem.recipe)
+                    try await firebaseSync.uploadRecipe(undoItem.recipe)
                     Log.info("Recipe restored to Firebase", category: .firebase, metadata: ["title": undoItem.recipe.title])
                 } catch {
                     Log.warning("Failed to restore recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
@@ -103,7 +112,7 @@ class UndoService: ObservableObject {
         }
 
         // Analytics
-        AnalyticsService.shared.track(event: .featureUsed, properties: [
+        analytics.track(event: .featureUsed, properties: [
             "feature": "undo_delete",
             "recipe_title": undoItem.recipe.title
         ])

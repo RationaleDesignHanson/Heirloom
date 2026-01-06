@@ -31,6 +31,26 @@ final class Recipe {
     /// Firebase Storage URL for synced images
     var firebaseImageURL: String?
 
+    // MARK: - Heritage Collections (Cold Start)
+    /// Flag indicating this is a heritage recipe from founding collections
+    var isHeritageRecipe: Bool = false
+
+    /// ID of the founding heritage collection this recipe belongs to
+    var heritageCollectionId: String?
+
+    /// Blurhash for progressive image loading placeholder
+    var blurhash: String?
+
+    /// Image variant URLs for different sizes (hero, card, thumbnail, collection-cover)
+    /// Keys: "hero", "card", "thumbnail", "collection-cover"
+    var imageVariants: [String: String]?
+
+    /// Original historical text for Artifact View (heritage recipes only)
+    var historicalText: String?
+
+    /// Historical context and background story (heritage recipes only)
+    var historicalContext: String?
+
     @Relationship(deleteRule: .cascade, inverse: \Ingredient.recipe)
     var ingredients: [Ingredient]?
 
@@ -176,6 +196,7 @@ final class Recipe {
             case .cookbook: return .scanned
             case .scan: return .scanned
             case .family: return .userCreated
+            case .heritage: return .imported
             }
         }()
 
@@ -218,6 +239,13 @@ extension Recipe {
             return "Scanned Recipe"
         case .manual:
             return "My Recipe"
+        case .heritage:
+            // For heritage recipes, show the collection name if available
+            if let collectionId = heritageCollectionId,
+               let collection = collections?.first(where: { $0.heritageCollectionId == collectionId }) {
+                return collection.name
+            }
+            return "Heritage Collection"
         }
     }
 
@@ -502,13 +530,15 @@ extension Recipe {
     /// Load the recipe image from file system
     func loadImage() async -> UIImage? {
         guard let fileName = imageFileName else { return nil }
-        return await ImageStorageService.shared.loadImage(fileName: fileName)
+        let imageStorageService = await ServiceContainer.shared.resolve(ImageStorageService.self)
+        return await imageStorageService.loadImage(fileName: fileName)
     }
 
     /// Save an image to file system and update the recipe
     @MainActor
     func saveImage(_ image: UIImage) async throws {
-        let fileName = try await ImageStorageService.shared.saveImage(
+        let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+        let fileName = try await imageStorageService.saveImage(
             image,
             recipeId: id
         )
@@ -520,7 +550,8 @@ extension Recipe {
     @MainActor
     func deleteImage() async {
         guard let fileName = imageFileName else { return }
-        await ImageStorageService.shared.deleteImage(fileName: fileName)
+        let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+        await imageStorageService.deleteImage(fileName: fileName)
         self.imageFileName = nil
         self.lastModified = Date()
     }
@@ -628,6 +659,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
     case family = "family"
     case manual = "manual"
     case scan = "scan"
+    case heritage = "heritage"
 
     var iconName: String {
         switch self {
@@ -636,6 +668,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .family: return "heart.fill"
         case .manual: return "square.and.pencil"
         case .scan: return "doc.viewfinder"
+        case .heritage: return "book.pages.fill"
         }
     }
 
@@ -646,6 +679,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .family: return "Family"
         case .manual: return "My Recipe"
         case .scan: return "Scanned"
+        case .heritage: return "Heritage Collection"
         }
     }
 }
@@ -695,5 +729,210 @@ extension Recipe {
         recipe.maximumServings = 96
 
         return recipe
+    }
+}
+
+// MARK: - Heritage Recipe Lifecycle
+extension Recipe {
+    /// Creates a deep copy of the recipe for user personalization
+    /// Used when editing or sharing heritage recipes to create user's own version
+    /// - Parameter context: ModelContext to insert the copy into
+    /// - Returns: New Recipe instance with copied data
+    func createUserCopy(context: ModelContext) -> Recipe {
+        let copy = Recipe(
+            title: title,
+            sourceType: sourceType ?? .manual,
+            instructions: instructions,
+            servings: servings,
+            prepTime: prepTime,
+            cookTime: cookTime
+        )
+
+        // Copy basic fields
+        copy.sourceURL = sourceURL
+        copy.sourceBookTitle = sourceBookTitle
+        copy.sourceBookAuthor = sourceBookAuthor
+        copy.sourceBookPage = sourceBookPage
+        copy.sourcePerson = sourcePerson
+        copy.sourceDate = sourceDate
+        copy.sourceStory = sourceStory
+        copy.notes = notes
+        copy.totalTime = totalTime
+
+        // Copy image references (not the file itself)
+        copy.imageFileName = imageFileName
+        copy.sourceImageURL = sourceImageURL
+        copy.firebaseImageURL = firebaseImageURL
+        copy.blurhash = blurhash
+        copy.imageVariants = imageVariants
+
+        // Heritage metadata - preserve but mark as user's copy
+        if isHeritageRecipe {
+            copy.isHeritageRecipe = false  // User copy is no longer "official" heritage
+            copy.heritageCollectionId = heritageCollectionId  // Keep collection reference
+            copy.historicalText = historicalText
+            copy.historicalContext = historicalContext
+
+            // Update provenance to show it's derived from heritage
+            if let originalProvenance = provenance {
+                copy.provenance = ProvenanceMetadata(
+                    sourceType: .shared,  // Mark as derived from heritage
+                    sourceURL: originalProvenance.sourceURL,
+                    sourceAttribution: originalProvenance.sourceAttribution,
+                    generation: originalProvenance.generation + 1,
+                    createdAt: originalProvenance.createdAt
+                )
+            }
+        } else {
+            copy.provenance = provenance
+        }
+
+        // Copy ingredients
+        if let originalIngredients = ingredients {
+            var copiedIngredients: [Ingredient] = []
+            for (index, ingredient) in originalIngredients.enumerated() {
+                let ingredientCopy = Ingredient(
+                    originalText: ingredient.originalText,
+                    name: ingredient.name,
+                    quantity: ingredient.quantity,
+                    unit: ingredient.unit,
+                    category: ingredient.category ?? .other,
+                    orderIndex: index
+                )
+                ingredientCopy.recipe = copy
+                copiedIngredients.append(ingredientCopy)
+            }
+            copy.ingredients = copiedIngredients
+        }
+
+        // Copy collections
+        copy.collections = collections
+
+        // Copy tags
+        copy.tags = tags
+
+        // Copy scaling metadata
+        copy.scalabilityRating = scalabilityRating
+        copy.recipeCategory = recipeCategory
+        copy.minimumServings = minimumServings
+        copy.maximumServings = maximumServings
+        copy.scalingNote = scalingNote
+
+        // DON'T copy: usage stats (times cooked, last cooked, favorite status)
+        // DON'T copy: personalization (card style, stickers, annotations)
+        // DON'T copy: social fields (shared by, passed down, etc.)
+
+        context.insert(copy)
+
+        // Copy card back if it exists (for heritage recipes, preserve heritage sections)
+        if let originalCardBack = cardBack {
+            let cardBackCopy = RecipeCardBack(recipe: copy)
+
+            // Copy user content
+            cardBackCopy.noteToFriends = originalCardBack.noteToFriends
+            cardBackCopy.personalTips = originalCardBack.personalTips
+            cardBackCopy.userRating = originalCardBack.userRating
+            cardBackCopy.userTags = originalCardBack.userTags
+
+            // Copy visual customization
+            cardBackCopy.backgroundStyle = originalCardBack.backgroundStyle
+            cardBackCopy.textColor = originalCardBack.textColor
+            cardBackCopy.showBorder = originalCardBack.showBorder
+            cardBackCopy.borderColor = originalCardBack.borderColor
+            cardBackCopy.fontSizeMultiplier = originalCardBack.fontSizeMultiplier
+
+            // Copy attribution settings
+            cardBackCopy.showAttribution = originalCardBack.showAttribution
+            cardBackCopy.customAttributionText = originalCardBack.customAttributionText
+            cardBackCopy.attributionPosition = originalCardBack.attributionPosition
+
+            // Copy layout configuration
+            cardBackCopy.visibleSections = originalCardBack.visibleSections
+            cardBackCopy.layoutStyle = originalCardBack.layoutStyle
+
+            // Copy sharing settings
+            cardBackCopy.shareMessage = originalCardBack.shareMessage
+            cardBackCopy.includeBackWhenSharing = originalCardBack.includeBackWhenSharing
+            cardBackCopy.privacyLevel = originalCardBack.privacyLevel
+
+            // Mark as complete if original was complete
+            cardBackCopy.isComplete = originalCardBack.isComplete
+
+            // Set timestamps
+            cardBackCopy.lastEditedAt = Date()
+            cardBackCopy.lastModified = Date()
+
+            // Insert card back
+            context.insert(cardBackCopy)
+            copy.cardBack = cardBackCopy
+
+            Log.info("Copied card back to user copy", category: .database, metadata: [
+                "hasNote": originalCardBack.noteToFriends != nil,
+                "tipsCount": originalCardBack.personalTips.count
+            ])
+        }
+
+        // Copy customizations (stickers, drawings, text, etc.)
+        let originalRecipeId = self.id
+        let customizationsFetchDescriptor = FetchDescriptor<Customization>(
+            predicate: #Predicate<Customization> { customization in
+                customization.recipeId == originalRecipeId && !customization.isDeleted
+            }
+        )
+
+        if let originalCustomizations = try? context.fetch(customizationsFetchDescriptor) {
+            for originalCustomization in originalCustomizations {
+                let customizationCopy = Customization(
+                    recipeId: copy.id,
+                    deviceId: originalCustomization.deviceId,
+                    userId: originalCustomization.userId,
+                    type: originalCustomization.type,
+                    position: CGPoint(
+                        x: originalCustomization.positionX,
+                        y: originalCustomization.positionY
+                    ),
+                    size: CGSize(
+                        width: originalCustomization.sizeWidth,
+                        height: originalCustomization.sizeHeight
+                    ),
+                    rotation: originalCustomization.rotation,
+                    zIndex: originalCustomization.zIndex,
+                    content: originalCustomization.content,
+                    vectorClock: VectorClock()
+                )
+
+                // Reset CRDT metadata for the copy
+                customizationCopy.createdAt = Date()
+                customizationCopy.modifiedAt = Date()
+
+                context.insert(customizationCopy)
+            }
+
+            Log.info("Copied customizations to user copy", category: .database, metadata: [
+                "count": originalCustomizations.count
+            ])
+        }
+
+        Log.info("Created user copy of heritage recipe", category: .database, metadata: [
+            "original": title,
+            "isHeritageOriginal": isHeritageRecipe
+        ])
+
+        return copy
+    }
+
+    /// Check if this unmodified heritage recipe should be considered for cleanup
+    /// Returns true if the recipe is heritage, unmodified, and has been around long enough
+    var shouldConsiderForCleanup: Bool {
+        guard isHeritageRecipe else { return false }
+
+        // Never cleanup if user has personalized it
+        if timesCooked > 0 || isFavorite || notes != nil && !notes!.isEmpty {
+            return false
+        }
+
+        // Check if it's been around for at least 30 days
+        let daysSinceAdded = Calendar.current.dateComponents([.day], from: dateAdded, to: Date()).day ?? 0
+        return daysSinceAdded >= 30
     }
 }

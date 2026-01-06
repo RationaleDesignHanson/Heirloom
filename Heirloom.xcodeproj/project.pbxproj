@@ -107,6 +107,106 @@
 		C56F3EC82F0519EC00D19743 /* FirebaseShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56F3EC72F0519EC00D19743 /* FirebaseShareService.swift */; };
 		C56F3EEF2F0528F200D19743 /* FirebaseLineageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56F3EEE2F0528F200D19743 /* FirebaseLineageService.swift */; };
 		C56F3EF12F05294500D19743 /* RecipeLineage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56F3EF02F05294500D19743 /* RecipeLineage.swift */; };
+		C583004E2F0CC6F40096478E /* presidential-013.png in Resources */ = {isa = PBXBuildFile; fileRef = C583003E2F0CC6F40096478E /* presidential-013.png */; };
+		C583004F2F0CC6F40096478E /* literary-018.png in Resources */ = {isa = PBXBuildFile; fileRef = C583002A2F0CC6F40096478E /* literary-018.png */; };
+		C58300502F0CC6F40096478E /* ancient-015.png in Resources */ = {isa = PBXBuildFile; fileRef = C583000E2F0CC6F40096478E /* ancient-015.png */; };
+		C58300512F0CC6F40096478E /* presidential-019.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300442F0CC6F40096478E /* presidential-019.png */; };
+		C58300522F0CC6F40096478E /* american-013.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFF42F0CC6F40096478E /* american-013.png */; };
+		C58300532F0CC6F40096478E /* presidential-004.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300352F0CC6F40096478E /* presidential-004.png */; };
+		C58300542F0CC6F40096478E /* american-023.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFFD2F0CC6F40096478E /* american-023.png */; };
+		C58300552F0CC6F40096478E /* american-018.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFF82F0CC6F40096478E /* american-018.png */; };
+		C58300562F0CC6F40096478E /* presidential-011.png in Resources */ = {isa = PBXBuildFile; fileRef = C583003C2F0CC6F40096478E /* presidential-011.png */; };
+		C58300572F0CC6F40096478E /* ancient-006.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300052F0CC6F40096478E /* ancient-006.png */; };
+		C58300582F0CC6F40096478E /* presidential-007.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300382F0CC6F40096478E /* presidential-007.png */; };
+		C58300592F0CC6F40096478E /* american-005.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFEC2F0CC6F40096478E /* american-005.png */; };
+		C583005A2F0CC6F40096478E /* literary-017.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300292F0CC6F40096478E /* literary-017.png */; };
+		C583005B2F0CC6F40096478E /* american-021.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFFB2F0CC6F40096478E /* american-021.png */; };
+		C583005C2F0CC6F40096478E /* american-009.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFF02F0CC6F40096478E /* american-009.png */; };
+		C583005D2F0CC6F40096478E /* american-001.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFE82F0CC6F40096478E /* american-001.png */; };
+		C583005E2F0CC6F40096478E /* literary-008.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300202F0CC6F40096478E /* literary-008.png */; };
+		C583005F2F0CC6F40096478E /* american-024.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFFE2F0CC6F40096478E /* american-024.png */; };
+		C58300602F0CC6F40096478E /* ancient-003.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300022F0CC6F40096478E /* ancient-003.png */; };
+		C58300612F0CC6F40096478E /* presidential-008.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300392F0CC6F40096478E /* presidential-008.png */; };
+		C58300622F0CC6F40096478E /* american-006.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFED2F0CC6F40096478E /* american-006.png */; };
+		C58300632F0CC6F40096478E /* american-022.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFFC2F0CC6F40096478E /* american-022.png */; };
+		C58300642F0CC6F40096478E /* american-025.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFFF2F0CC6F40096478E /* american-025.png */; };
+		C58300652F0CC6F40096478E /* ancient-009.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300082F0CC6F40096478E /* ancient-009.png */; };
+		C58300662F0CC6F40096478E /* presidential-023.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300482F0CC6F40096478E /* presidential-023.png */; };
+		C58300672F0CC6F40096478E /* american-019.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFF92F0CC6F40096478E /* american-019.png */; };
+		C58300682F0CC6F40096478E /* ancient-021.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300142F0CC6F40096478E /* ancient-021.png */; };
+		C58300692F0CC6F40096478E /* american-002.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFE92F0CC6F40096478E /* american-002.png */; };
+		C583006A2F0CC6F40096478E /* presidential-002.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300332F0CC6F40096478E /* presidential-002.png */; };
+		C583006B2F0CC6F40096478E /* american-004.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFEB2F0CC6F40096478E /* american-004.png */; };
+		C583006C2F0CC6F40096478E /* ancient-004.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300032F0CC6F40096478E /* ancient-004.png */; };
+		C583006D2F0CC6F40096478E /* ancient-011.png in Resources */ = {isa = PBXBuildFile; fileRef = C583000A2F0CC6F40096478E /* ancient-011.png */; };
+		C583006E2F0CC6F40096478E /* american-011.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFF22F0CC6F40096478E /* american-011.png */; };
+		C583006F2F0CC6F40096478E /* literary-022.png in Resources */ = {isa = PBXBuildFile; fileRef = C583002E2F0CC6F40096478E /* literary-022.png */; };
+		C58300702F0CC6F40096478E /* american-017.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFF72F0CC6F40096478E /* american-017.png */; };
+		C58300712F0CC6F40096478E /* ancient-010.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300092F0CC6F40096478E /* ancient-010.png */; };
+		C58300722F0CC6F40096478E /* literary-016.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300282F0CC6F40096478E /* literary-016.png */; };
+		C58300732F0CC6F40096478E /* heritage-recipes.json in Resources */ = {isa = PBXBuildFile; fileRef = C583004C2F0CC6F40096478E /* heritage-recipes.json */; };
+		C58300742F0CC6F40096478E /* presidential-010.png in Resources */ = {isa = PBXBuildFile; fileRef = C583003B2F0CC6F40096478E /* presidential-010.png */; };
+		C58300752F0CC6F40096478E /* ancient-014.png in Resources */ = {isa = PBXBuildFile; fileRef = C583000D2F0CC6F40096478E /* ancient-014.png */; };
+		C58300762F0CC6F40096478E /* literary-024.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300302F0CC6F40096478E /* literary-024.png */; };
+		C58300772F0CC6F40096478E /* presidential-017.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300422F0CC6F40096478E /* presidential-017.png */; };
+		C58300782F0CC6F40096478E /* american-015.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFF52F0CC6F40096478E /* american-015.png */; };
+		C58300792F0CC6F40096478E /* ancient-002.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300012F0CC6F40096478E /* ancient-002.png */; };
+		C583007A2F0CC6F40096478E /* ancient-025.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300182F0CC6F40096478E /* ancient-025.png */; };
+		C583007B2F0CC6F40096478E /* presidential-018.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300432F0CC6F40096478E /* presidential-018.png */; };
+		C583007C2F0CC6F40096478E /* ancient-019.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300122F0CC6F40096478E /* ancient-019.png */; };
+		C583007D2F0CC6F40096478E /* presidential-012.png in Resources */ = {isa = PBXBuildFile; fileRef = C583003D2F0CC6F40096478E /* presidential-012.png */; };
+		C583007E2F0CC6F40096478E /* presidential-016.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300412F0CC6F40096478E /* presidential-016.png */; };
+		C583007F2F0CC6F40096478E /* ancient-024.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300172F0CC6F40096478E /* ancient-024.png */; };
+		C58300802F0CC6F40096478E /* ancient-020.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300132F0CC6F40096478E /* ancient-020.png */; };
+		C58300812F0CC6F40096478E /* literary-003.png in Resources */ = {isa = PBXBuildFile; fileRef = C583001B2F0CC6F40096478E /* literary-003.png */; };
+		C58300822F0CC6F40096478E /* literary-006.png in Resources */ = {isa = PBXBuildFile; fileRef = C583001E2F0CC6F40096478E /* literary-006.png */; };
+		C58300832F0CC6F40096478E /* literary-009.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300212F0CC6F40096478E /* literary-009.png */; };
+		C58300842F0CC6F40096478E /* ancient-013.png in Resources */ = {isa = PBXBuildFile; fileRef = C583000C2F0CC6F40096478E /* ancient-013.png */; };
+		C58300852F0CC6F40096478E /* american-012.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFF32F0CC6F40096478E /* american-012.png */; };
+		C58300862F0CC6F40096478E /* ancient-007.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300062F0CC6F40096478E /* ancient-007.png */; };
+		C58300872F0CC6F40096478E /* ancient-008.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300072F0CC6F40096478E /* ancient-008.png */; };
+		C58300882F0CC6F40096478E /* literary-005.png in Resources */ = {isa = PBXBuildFile; fileRef = C583001D2F0CC6F40096478E /* literary-005.png */; };
+		C58300892F0CC6F40096478E /* presidential-021.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300462F0CC6F40096478E /* presidential-021.png */; };
+		C583008A2F0CC6F40096478E /* literary-011.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300232F0CC6F40096478E /* literary-011.png */; };
+		C583008B2F0CC6F40096478E /* presidential-009.png in Resources */ = {isa = PBXBuildFile; fileRef = C583003A2F0CC6F40096478E /* presidential-009.png */; };
+		C583008C2F0CC6F40096478E /* american-003.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFEA2F0CC6F40096478E /* american-003.png */; };
+		C583008D2F0CC6F40096478E /* american-020.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFFA2F0CC6F40096478E /* american-020.png */; };
+		C583008E2F0CC6F40096478E /* ancient-022.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300152F0CC6F40096478E /* ancient-022.png */; };
+		C583008F2F0CC6F40096478E /* ancient-018.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300112F0CC6F40096478E /* ancient-018.png */; };
+		C58300902F0CC6F40096478E /* literary-001.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300192F0CC6F40096478E /* literary-001.png */; };
+		C58300912F0CC6F40096478E /* american-016.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFF62F0CC6F40096478E /* american-016.png */; };
+		C58300922F0CC6F40096478E /* presidential-015.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300402F0CC6F40096478E /* presidential-015.png */; };
+		C58300932F0CC6F40096478E /* presidential-005.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300362F0CC6F40096478E /* presidential-005.png */; };
+		C58300942F0CC6F40096478E /* literary-021.png in Resources */ = {isa = PBXBuildFile; fileRef = C583002D2F0CC6F40096478E /* literary-021.png */; };
+		C58300952F0CC6F40096478E /* ancient-012.png in Resources */ = {isa = PBXBuildFile; fileRef = C583000B2F0CC6F40096478E /* ancient-012.png */; };
+		C58300962F0CC6F40096478E /* presidential-022.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300472F0CC6F40096478E /* presidential-022.png */; };
+		C58300972F0CC6F40096478E /* ancient-005.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300042F0CC6F40096478E /* ancient-005.png */; };
+		C58300982F0CC6F40096478E /* literary-002.png in Resources */ = {isa = PBXBuildFile; fileRef = C583001A2F0CC6F40096478E /* literary-002.png */; };
+		C58300992F0CC6F40096478E /* presidential-025.png in Resources */ = {isa = PBXBuildFile; fileRef = C583004A2F0CC6F40096478E /* presidential-025.png */; };
+		C583009A2F0CC6F40096478E /* literary-004.png in Resources */ = {isa = PBXBuildFile; fileRef = C583001C2F0CC6F40096478E /* literary-004.png */; };
+		C583009B2F0CC6F40096478E /* ancient-023.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300162F0CC6F40096478E /* ancient-023.png */; };
+		C583009C2F0CC6F40096478E /* literary-014.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300262F0CC6F40096478E /* literary-014.png */; };
+		C583009D2F0CC6F40096478E /* literary-010.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300222F0CC6F40096478E /* literary-010.png */; };
+		C583009E2F0CC6F40096478E /* literary-023.png in Resources */ = {isa = PBXBuildFile; fileRef = C583002F2F0CC6F40096478E /* literary-023.png */; };
+		C583009F2F0CC6F40096478E /* literary-015.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300272F0CC6F40096478E /* literary-015.png */; };
+		C58300A02F0CC6F40096478E /* literary-020.png in Resources */ = {isa = PBXBuildFile; fileRef = C583002C2F0CC6F40096478E /* literary-020.png */; };
+		C58300A12F0CC6F40096478E /* presidential-006.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300372F0CC6F40096478E /* presidential-006.png */; };
+		C58300A22F0CC6F40096478E /* ancient-001.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300002F0CC6F40096478E /* ancient-001.png */; };
+		C58300A32F0CC6F40096478E /* ancient-017.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300102F0CC6F40096478E /* ancient-017.png */; };
+		C58300A42F0CC6F40096478E /* literary-013.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300252F0CC6F40096478E /* literary-013.png */; };
+		C58300A52F0CC6F40096478E /* literary-025.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300312F0CC6F40096478E /* literary-025.png */; };
+		C58300A62F0CC6F40096478E /* american-008.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFEF2F0CC6F40096478E /* american-008.png */; };
+		C58300A72F0CC6F40096478E /* presidential-014.png in Resources */ = {isa = PBXBuildFile; fileRef = C583003F2F0CC6F40096478E /* presidential-014.png */; };
+		C58300A82F0CC6F40096478E /* presidential-001.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300322F0CC6F40096478E /* presidential-001.png */; };
+		C58300A92F0CC6F40096478E /* american-010.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFF12F0CC6F40096478E /* american-010.png */; };
+		C58300AA2F0CC6F40096478E /* american-007.png in Resources */ = {isa = PBXBuildFile; fileRef = C583FFEE2F0CC6F40096478E /* american-007.png */; };
+		C58300AB2F0CC6F40096478E /* literary-019.png in Resources */ = {isa = PBXBuildFile; fileRef = C583002B2F0CC6F40096478E /* literary-019.png */; };
+		C58300AC2F0CC6F40096478E /* literary-007.png in Resources */ = {isa = PBXBuildFile; fileRef = C583001F2F0CC6F40096478E /* literary-007.png */; };
+		C58300AD2F0CC6F40096478E /* presidential-003.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300342F0CC6F40096478E /* presidential-003.png */; };
+		C58300AE2F0CC6F40096478E /* presidential-020.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300452F0CC6F40096478E /* presidential-020.png */; };
+		C58300AF2F0CC6F40096478E /* ancient-016.png in Resources */ = {isa = PBXBuildFile; fileRef = C583000F2F0CC6F40096478E /* ancient-016.png */; };
+		C58300B02F0CC6F40096478E /* literary-012.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300242F0CC6F40096478E /* literary-012.png */; };
+		C58300B12F0CC6F40096478E /* presidential-024.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300492F0CC6F40096478E /* presidential-024.png */; };
 		C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */; };
 		C583F5A12F099E750096478E /* RecipeDetailHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59C2F099E750096478E /* RecipeDetailHeader.swift */; };
 		C583F5A22F099E750096478E /* RecipeInstructionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */; };
@@ -118,6 +218,41 @@
 		C583F5CF2F09FCAC0096478E /* ServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5CB2F09FCAC0096478E /* ServiceProtocols.swift */; };
 		C583F5D02F09FCAC0096478E /* ServiceEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5CA2F09FCAC0096478E /* ServiceEnvironment.swift */; };
 		C583F5D12F09FCAC0096478E /* ServiceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F5C92F09FCAC0096478E /* ServiceContainer.swift */; };
+		C583FF992F0C9C860096478E /* FlipAffordanceBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FF972F0C9C860096478E /* FlipAffordanceBadge.swift */; };
+		C583FF9A2F0C9C860096478E /* CustomizationOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FF962F0C9C860096478E /* CustomizationOverlayView.swift */; };
+		C583FF9B2F0C9C860096478E /* RecipeCardBackPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FF982F0C9C860096478E /* RecipeCardBackPreview.swift */; };
+		C583FF9D2F0C9CA90096478E /* HeritageRecipeCleanupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FF9C2F0C9CA90096478E /* HeritageRecipeCleanupView.swift */; };
+		C583FF9F2F0CA51D0096478E /* UndoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FF9E2F0CA51D0096478E /* UndoService.swift */; };
+		C583FFA22F0CA9870096478E /* FirebaseServiceProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFA02F0CA9870096478E /* FirebaseServiceProtocols.swift */; };
+		C583FFA52F0CAA610096478E /* FirebaseImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFA32F0CAA610096478E /* FirebaseImageService.swift */; };
+		C583FFAC2F0CAA6E0096478E /* FirebaseRecipeSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFAA2F0CAA6E0096478E /* FirebaseRecipeSync.swift */; };
+		C583FFAD2F0CAA6E0096478E /* FirebaseCollectionSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFA92F0CAA6E0096478E /* FirebaseCollectionSync.swift */; };
+		C583FFAE2F0CAA6E0096478E /* FirebaseConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFA62F0CAA6E0096478E /* FirebaseConfiguration.swift */; };
+		C583FFAF2F0CAA6E0096478E /* FirebaseRecordConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFA72F0CAA6E0096478E /* FirebaseRecordConverter.swift */; };
+		C583FFB22F0CAB830096478E /* Customization.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFB12F0CAB830096478E /* Customization.swift */; };
+		C583FFB42F0CAB960096478E /* HeritageRecipeCleanupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFB32F0CAB960096478E /* HeritageRecipeCleanupService.swift */; };
+		C583FFBA2F0CB3720096478E /* RecipeLineageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFB62F0CB3720096478E /* RecipeLineageService.swift */; };
+		C583FFBB2F0CB3720096478E /* UnitsConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFB92F0CB3720096478E /* UnitsConfiguration.swift */; };
+		C583FFBC2F0CB3720096478E /* CardCustomizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFB52F0CB3720096478E /* CardCustomizationService.swift */; };
+		C583FFBD2F0CB3720096478E /* StickerLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFB72F0CB3720096478E /* StickerLibraryService.swift */; };
+		C583FFBE2F0CB3720096478E /* TrendingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFB82F0CB3720096478E /* TrendingService.swift */; };
+		C583FFC32F0CB3860096478E /* DinnerPartySummaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFC02F0CB3860096478E /* DinnerPartySummaryService.swift */; };
+		C583FFC42F0CB3860096478E /* RecipeTimelineCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFC12F0CB3860096478E /* RecipeTimelineCalculator.swift */; };
+		C583FFC52F0CB3860096478E /* AIRecipeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFBF2F0CB3860096478E /* AIRecipeDetector.swift */; };
+		C583FFC62F0CB3860096478E /* ShoppingListSummaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFC22F0CB3860096478E /* ShoppingListSummaryService.swift */; };
+		C583FFC92F0CB3A00096478E /* PrivacyConsentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFC72F0CB3A00096478E /* PrivacyConsentService.swift */; };
+		C583FFCB2F0CB5E00096478E /* LineageTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFCA2F0CB5E00096478E /* LineageTree.swift */; };
+		C583FFCD2F0CB5EA0096478E /* StickerAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFCC2F0CB5EA0096478E /* StickerAsset.swift */; };
+		C583FFCF2F0CB7480096478E /* BlurHashEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFCE2F0CB7480096478E /* BlurHashEncoder.swift */; };
+		C583FFD12F0CB7830096478E /* HeritageRecipeSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFD02F0CB7830096478E /* HeritageRecipeSeeder.swift */; };
+		C583FFD32F0CB7970096478E /* CollectionsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFD22F0CB7970096478E /* CollectionsListView.swift */; };
+		C583FFD52F0CB81B0096478E /* CollectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFD42F0CB81B0096478E /* CollectionDetailView.swift */; };
+		C583FFD92F0CB8910096478E /* AsyncBlurhashImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFD62F0CB8910096478E /* AsyncBlurhashImage.swift */; };
+		C583FFE02F0CBE500096478E /* SelectionActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFDE2F0CBE500096478E /* SelectionActionBar.swift */; };
+		C583FFE12F0CBE500096478E /* RecipeListToolbarActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFDB2F0CBE500096478E /* RecipeListToolbarActions.swift */; };
+		C583FFE22F0CBE500096478E /* RecipeListToolbarLeading.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFDC2F0CBE500096478E /* RecipeListToolbarLeading.swift */; };
+		C583FFE52F0CC00B0096478E /* RecipeSheetModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFE32F0CC00A0096478E /* RecipeSheetModifiers.swift */; };
+		C583FFE72F0CC1740096478E /* BatchTagCollectionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFE62F0CC1740096478E /* BatchTagCollectionPickerView.swift */; };
 		C5B317602F00C7E40087CF6D /* RecipeVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */; };
 		C5B317622F00C7F30087CF6D /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */; };
 		C5B317662F00C8230087CF6D /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317652F00C8230087CF6D /* AboutView.swift */; };
@@ -128,7 +263,6 @@
 		C5B317762F00C8500087CF6D /* GestureGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3176E2F00C8500087CF6D /* GestureGuideView.swift */; };
 		C5B317772F00C8500087CF6D /* HelpArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3176F2F00C8500087CF6D /* HelpArticleView.swift */; };
 		C5B317782F00C8500087CF6D /* HelpContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3176C2F00C8500087CF6D /* HelpContent.swift */; };
-		C5B3177A2F00CA040087CF6D /* UndoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317792F00CA040087CF6D /* UndoService.swift */; };
 		C5B3177C2F00D6570087CF6D /* ShortURLService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3177B2F00D6570087CF6D /* ShortURLService.swift */; };
 		C5B317802F00D70B0087CF6D /* AccessibilityIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3177D2F00D70B0087CF6D /* AccessibilityIdentifiers.swift */; };
 		C5B317812F00D70B0087CF6D /* ErrorMessages.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3177E2F00D70B0087CF6D /* ErrorMessages.swift */; };
@@ -284,6 +418,82 @@
 		C56F3EC72F0519EC00D19743 /* FirebaseShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseShareService.swift; sourceTree = "<group>"; };
 		C56F3EEE2F0528F200D19743 /* FirebaseLineageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseLineageService.swift; sourceTree = "<group>"; };
 		C56F3EF02F05294500D19743 /* RecipeLineage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeLineage.swift; sourceTree = "<group>"; };
+		C58300002F0CC6F40096478E /* ancient-001.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-001.png"; sourceTree = "<group>"; };
+		C58300012F0CC6F40096478E /* ancient-002.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-002.png"; sourceTree = "<group>"; };
+		C58300022F0CC6F40096478E /* ancient-003.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-003.png"; sourceTree = "<group>"; };
+		C58300032F0CC6F40096478E /* ancient-004.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-004.png"; sourceTree = "<group>"; };
+		C58300042F0CC6F40096478E /* ancient-005.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-005.png"; sourceTree = "<group>"; };
+		C58300052F0CC6F40096478E /* ancient-006.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-006.png"; sourceTree = "<group>"; };
+		C58300062F0CC6F40096478E /* ancient-007.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-007.png"; sourceTree = "<group>"; };
+		C58300072F0CC6F40096478E /* ancient-008.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-008.png"; sourceTree = "<group>"; };
+		C58300082F0CC6F40096478E /* ancient-009.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-009.png"; sourceTree = "<group>"; };
+		C58300092F0CC6F40096478E /* ancient-010.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-010.png"; sourceTree = "<group>"; };
+		C583000A2F0CC6F40096478E /* ancient-011.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-011.png"; sourceTree = "<group>"; };
+		C583000B2F0CC6F40096478E /* ancient-012.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-012.png"; sourceTree = "<group>"; };
+		C583000C2F0CC6F40096478E /* ancient-013.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-013.png"; sourceTree = "<group>"; };
+		C583000D2F0CC6F40096478E /* ancient-014.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-014.png"; sourceTree = "<group>"; };
+		C583000E2F0CC6F40096478E /* ancient-015.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-015.png"; sourceTree = "<group>"; };
+		C583000F2F0CC6F40096478E /* ancient-016.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-016.png"; sourceTree = "<group>"; };
+		C58300102F0CC6F40096478E /* ancient-017.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-017.png"; sourceTree = "<group>"; };
+		C58300112F0CC6F40096478E /* ancient-018.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-018.png"; sourceTree = "<group>"; };
+		C58300122F0CC6F40096478E /* ancient-019.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-019.png"; sourceTree = "<group>"; };
+		C58300132F0CC6F40096478E /* ancient-020.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-020.png"; sourceTree = "<group>"; };
+		C58300142F0CC6F40096478E /* ancient-021.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-021.png"; sourceTree = "<group>"; };
+		C58300152F0CC6F40096478E /* ancient-022.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-022.png"; sourceTree = "<group>"; };
+		C58300162F0CC6F40096478E /* ancient-023.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-023.png"; sourceTree = "<group>"; };
+		C58300172F0CC6F40096478E /* ancient-024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-024.png"; sourceTree = "<group>"; };
+		C58300182F0CC6F40096478E /* ancient-025.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ancient-025.png"; sourceTree = "<group>"; };
+		C58300192F0CC6F40096478E /* literary-001.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-001.png"; sourceTree = "<group>"; };
+		C583001A2F0CC6F40096478E /* literary-002.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-002.png"; sourceTree = "<group>"; };
+		C583001B2F0CC6F40096478E /* literary-003.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-003.png"; sourceTree = "<group>"; };
+		C583001C2F0CC6F40096478E /* literary-004.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-004.png"; sourceTree = "<group>"; };
+		C583001D2F0CC6F40096478E /* literary-005.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-005.png"; sourceTree = "<group>"; };
+		C583001E2F0CC6F40096478E /* literary-006.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-006.png"; sourceTree = "<group>"; };
+		C583001F2F0CC6F40096478E /* literary-007.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-007.png"; sourceTree = "<group>"; };
+		C58300202F0CC6F40096478E /* literary-008.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-008.png"; sourceTree = "<group>"; };
+		C58300212F0CC6F40096478E /* literary-009.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-009.png"; sourceTree = "<group>"; };
+		C58300222F0CC6F40096478E /* literary-010.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-010.png"; sourceTree = "<group>"; };
+		C58300232F0CC6F40096478E /* literary-011.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-011.png"; sourceTree = "<group>"; };
+		C58300242F0CC6F40096478E /* literary-012.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-012.png"; sourceTree = "<group>"; };
+		C58300252F0CC6F40096478E /* literary-013.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-013.png"; sourceTree = "<group>"; };
+		C58300262F0CC6F40096478E /* literary-014.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-014.png"; sourceTree = "<group>"; };
+		C58300272F0CC6F40096478E /* literary-015.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-015.png"; sourceTree = "<group>"; };
+		C58300282F0CC6F40096478E /* literary-016.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-016.png"; sourceTree = "<group>"; };
+		C58300292F0CC6F40096478E /* literary-017.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-017.png"; sourceTree = "<group>"; };
+		C583002A2F0CC6F40096478E /* literary-018.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-018.png"; sourceTree = "<group>"; };
+		C583002B2F0CC6F40096478E /* literary-019.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-019.png"; sourceTree = "<group>"; };
+		C583002C2F0CC6F40096478E /* literary-020.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-020.png"; sourceTree = "<group>"; };
+		C583002D2F0CC6F40096478E /* literary-021.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-021.png"; sourceTree = "<group>"; };
+		C583002E2F0CC6F40096478E /* literary-022.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-022.png"; sourceTree = "<group>"; };
+		C583002F2F0CC6F40096478E /* literary-023.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-023.png"; sourceTree = "<group>"; };
+		C58300302F0CC6F40096478E /* literary-024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-024.png"; sourceTree = "<group>"; };
+		C58300312F0CC6F40096478E /* literary-025.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "literary-025.png"; sourceTree = "<group>"; };
+		C58300322F0CC6F40096478E /* presidential-001.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-001.png"; sourceTree = "<group>"; };
+		C58300332F0CC6F40096478E /* presidential-002.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-002.png"; sourceTree = "<group>"; };
+		C58300342F0CC6F40096478E /* presidential-003.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-003.png"; sourceTree = "<group>"; };
+		C58300352F0CC6F40096478E /* presidential-004.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-004.png"; sourceTree = "<group>"; };
+		C58300362F0CC6F40096478E /* presidential-005.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-005.png"; sourceTree = "<group>"; };
+		C58300372F0CC6F40096478E /* presidential-006.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-006.png"; sourceTree = "<group>"; };
+		C58300382F0CC6F40096478E /* presidential-007.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-007.png"; sourceTree = "<group>"; };
+		C58300392F0CC6F40096478E /* presidential-008.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-008.png"; sourceTree = "<group>"; };
+		C583003A2F0CC6F40096478E /* presidential-009.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-009.png"; sourceTree = "<group>"; };
+		C583003B2F0CC6F40096478E /* presidential-010.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-010.png"; sourceTree = "<group>"; };
+		C583003C2F0CC6F40096478E /* presidential-011.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-011.png"; sourceTree = "<group>"; };
+		C583003D2F0CC6F40096478E /* presidential-012.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-012.png"; sourceTree = "<group>"; };
+		C583003E2F0CC6F40096478E /* presidential-013.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-013.png"; sourceTree = "<group>"; };
+		C583003F2F0CC6F40096478E /* presidential-014.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-014.png"; sourceTree = "<group>"; };
+		C58300402F0CC6F40096478E /* presidential-015.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-015.png"; sourceTree = "<group>"; };
+		C58300412F0CC6F40096478E /* presidential-016.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-016.png"; sourceTree = "<group>"; };
+		C58300422F0CC6F40096478E /* presidential-017.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-017.png"; sourceTree = "<group>"; };
+		C58300432F0CC6F40096478E /* presidential-018.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-018.png"; sourceTree = "<group>"; };
+		C58300442F0CC6F40096478E /* presidential-019.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-019.png"; sourceTree = "<group>"; };
+		C58300452F0CC6F40096478E /* presidential-020.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-020.png"; sourceTree = "<group>"; };
+		C58300462F0CC6F40096478E /* presidential-021.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-021.png"; sourceTree = "<group>"; };
+		C58300472F0CC6F40096478E /* presidential-022.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-022.png"; sourceTree = "<group>"; };
+		C58300482F0CC6F40096478E /* presidential-023.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-023.png"; sourceTree = "<group>"; };
+		C58300492F0CC6F40096478E /* presidential-024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-024.png"; sourceTree = "<group>"; };
+		C583004A2F0CC6F40096478E /* presidential-025.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-025.png"; sourceTree = "<group>"; };
+		C583004C2F0CC6F40096478E /* heritage-recipes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "heritage-recipes.json"; sourceTree = "<group>"; };
 		C583F59C2F099E750096478E /* RecipeDetailHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailHeader.swift; sourceTree = "<group>"; };
 		C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeIngredientsSection.swift; sourceTree = "<group>"; };
 		C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeInstructionsSection.swift; sourceTree = "<group>"; };
@@ -295,6 +505,65 @@
 		C583F5CA2F09FCAC0096478E /* ServiceEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceEnvironment.swift; sourceTree = "<group>"; };
 		C583F5CB2F09FCAC0096478E /* ServiceProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceProtocols.swift; sourceTree = "<group>"; };
 		C583F5CC2F09FCAC0096478E /* ServiceRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRegistration.swift; sourceTree = "<group>"; };
+		C583FF962F0C9C860096478E /* CustomizationOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizationOverlayView.swift; sourceTree = "<group>"; };
+		C583FF972F0C9C860096478E /* FlipAffordanceBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlipAffordanceBadge.swift; sourceTree = "<group>"; };
+		C583FF982F0C9C860096478E /* RecipeCardBackPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCardBackPreview.swift; sourceTree = "<group>"; };
+		C583FF9C2F0C9CA90096478E /* HeritageRecipeCleanupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageRecipeCleanupView.swift; sourceTree = "<group>"; };
+		C583FF9E2F0CA51D0096478E /* UndoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoService.swift; sourceTree = "<group>"; };
+		C583FFA02F0CA9870096478E /* FirebaseServiceProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseServiceProtocols.swift; sourceTree = "<group>"; };
+		C583FFA32F0CAA610096478E /* FirebaseImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseImageService.swift; sourceTree = "<group>"; };
+		C583FFA62F0CAA6E0096478E /* FirebaseConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseConfiguration.swift; sourceTree = "<group>"; };
+		C583FFA72F0CAA6E0096478E /* FirebaseRecordConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseRecordConverter.swift; sourceTree = "<group>"; };
+		C583FFA92F0CAA6E0096478E /* FirebaseCollectionSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCollectionSync.swift; sourceTree = "<group>"; };
+		C583FFAA2F0CAA6E0096478E /* FirebaseRecipeSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseRecipeSync.swift; sourceTree = "<group>"; };
+		C583FFB12F0CAB830096478E /* Customization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Customization.swift; sourceTree = "<group>"; };
+		C583FFB32F0CAB960096478E /* HeritageRecipeCleanupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageRecipeCleanupService.swift; sourceTree = "<group>"; };
+		C583FFB52F0CB3720096478E /* CardCustomizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardCustomizationService.swift; sourceTree = "<group>"; };
+		C583FFB62F0CB3720096478E /* RecipeLineageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeLineageService.swift; sourceTree = "<group>"; };
+		C583FFB72F0CB3720096478E /* StickerLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickerLibraryService.swift; sourceTree = "<group>"; };
+		C583FFB82F0CB3720096478E /* TrendingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendingService.swift; sourceTree = "<group>"; };
+		C583FFB92F0CB3720096478E /* UnitsConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsConfiguration.swift; sourceTree = "<group>"; };
+		C583FFBF2F0CB3860096478E /* AIRecipeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRecipeDetector.swift; sourceTree = "<group>"; };
+		C583FFC02F0CB3860096478E /* DinnerPartySummaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinnerPartySummaryService.swift; sourceTree = "<group>"; };
+		C583FFC12F0CB3860096478E /* RecipeTimelineCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeTimelineCalculator.swift; sourceTree = "<group>"; };
+		C583FFC22F0CB3860096478E /* ShoppingListSummaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListSummaryService.swift; sourceTree = "<group>"; };
+		C583FFC72F0CB3A00096478E /* PrivacyConsentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyConsentService.swift; sourceTree = "<group>"; };
+		C583FFCA2F0CB5E00096478E /* LineageTree.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineageTree.swift; sourceTree = "<group>"; };
+		C583FFCC2F0CB5EA0096478E /* StickerAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickerAsset.swift; sourceTree = "<group>"; };
+		C583FFCE2F0CB7480096478E /* BlurHashEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurHashEncoder.swift; sourceTree = "<group>"; };
+		C583FFD02F0CB7830096478E /* HeritageRecipeSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageRecipeSeeder.swift; sourceTree = "<group>"; };
+		C583FFD22F0CB7970096478E /* CollectionsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionsListView.swift; sourceTree = "<group>"; };
+		C583FFD42F0CB81B0096478E /* CollectionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionDetailView.swift; sourceTree = "<group>"; };
+		C583FFD62F0CB8910096478E /* AsyncBlurhashImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncBlurhashImage.swift; sourceTree = "<group>"; };
+		C583FFDB2F0CBE500096478E /* RecipeListToolbarActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeListToolbarActions.swift; sourceTree = "<group>"; };
+		C583FFDC2F0CBE500096478E /* RecipeListToolbarLeading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeListToolbarLeading.swift; sourceTree = "<group>"; };
+		C583FFDE2F0CBE500096478E /* SelectionActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionActionBar.swift; sourceTree = "<group>"; };
+		C583FFE32F0CC00A0096478E /* RecipeSheetModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeSheetModifiers.swift; sourceTree = "<group>"; };
+		C583FFE62F0CC1740096478E /* BatchTagCollectionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchTagCollectionPickerView.swift; sourceTree = "<group>"; };
+		C583FFE82F0CC6F40096478E /* american-001.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-001.png"; sourceTree = "<group>"; };
+		C583FFE92F0CC6F40096478E /* american-002.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-002.png"; sourceTree = "<group>"; };
+		C583FFEA2F0CC6F40096478E /* american-003.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-003.png"; sourceTree = "<group>"; };
+		C583FFEB2F0CC6F40096478E /* american-004.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-004.png"; sourceTree = "<group>"; };
+		C583FFEC2F0CC6F40096478E /* american-005.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-005.png"; sourceTree = "<group>"; };
+		C583FFED2F0CC6F40096478E /* american-006.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-006.png"; sourceTree = "<group>"; };
+		C583FFEE2F0CC6F40096478E /* american-007.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-007.png"; sourceTree = "<group>"; };
+		C583FFEF2F0CC6F40096478E /* american-008.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-008.png"; sourceTree = "<group>"; };
+		C583FFF02F0CC6F40096478E /* american-009.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-009.png"; sourceTree = "<group>"; };
+		C583FFF12F0CC6F40096478E /* american-010.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-010.png"; sourceTree = "<group>"; };
+		C583FFF22F0CC6F40096478E /* american-011.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-011.png"; sourceTree = "<group>"; };
+		C583FFF32F0CC6F40096478E /* american-012.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-012.png"; sourceTree = "<group>"; };
+		C583FFF42F0CC6F40096478E /* american-013.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-013.png"; sourceTree = "<group>"; };
+		C583FFF52F0CC6F40096478E /* american-015.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-015.png"; sourceTree = "<group>"; };
+		C583FFF62F0CC6F40096478E /* american-016.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-016.png"; sourceTree = "<group>"; };
+		C583FFF72F0CC6F40096478E /* american-017.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-017.png"; sourceTree = "<group>"; };
+		C583FFF82F0CC6F40096478E /* american-018.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-018.png"; sourceTree = "<group>"; };
+		C583FFF92F0CC6F40096478E /* american-019.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-019.png"; sourceTree = "<group>"; };
+		C583FFFA2F0CC6F40096478E /* american-020.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-020.png"; sourceTree = "<group>"; };
+		C583FFFB2F0CC6F40096478E /* american-021.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-021.png"; sourceTree = "<group>"; };
+		C583FFFC2F0CC6F40096478E /* american-022.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-022.png"; sourceTree = "<group>"; };
+		C583FFFD2F0CC6F40096478E /* american-023.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-023.png"; sourceTree = "<group>"; };
+		C583FFFE2F0CC6F40096478E /* american-024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-024.png"; sourceTree = "<group>"; };
+		C583FFFF2F0CC6F40096478E /* american-025.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "american-025.png"; sourceTree = "<group>"; };
 		C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersion.swift; sourceTree = "<group>"; };
 		C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		C5B317652F00C8230087CF6D /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
@@ -305,7 +574,6 @@
 		C5B3176E2F00C8500087CF6D /* GestureGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureGuideView.swift; sourceTree = "<group>"; };
 		C5B3176F2F00C8500087CF6D /* HelpArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpArticleView.swift; sourceTree = "<group>"; };
 		C5B317702F00C8500087CF6D /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
-		C5B317792F00CA040087CF6D /* UndoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoService.swift; sourceTree = "<group>"; };
 		C5B3177B2F00D6570087CF6D /* ShortURLService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortURLService.swift; sourceTree = "<group>"; };
 		C5B3177D2F00D70B0087CF6D /* AccessibilityIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityIdentifiers.swift; sourceTree = "<group>"; };
 		C5B3177E2F00D70B0087CF6D /* ErrorMessages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorMessages.swift; sourceTree = "<group>"; };
@@ -398,6 +666,7 @@
 		0F3D5546DE4E878E349F1B91 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				C583004D2F0CC6F40096478E /* HeritageCollections */,
 				C56F3E652F04A4B300D19743 /* GoogleService-Info.plist */,
 				CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */,
 				C83CD55E6264416D6C3C5B99 /* Info.plist */,
@@ -425,6 +694,8 @@
 		1AED6E5E3EE7F59B5A26A3B1 /* Collections */ = {
 			isa = PBXGroup;
 			children = (
+				C583FFD42F0CB81B0096478E /* CollectionDetailView.swift */,
+				C583FFD22F0CB7970096478E /* CollectionsListView.swift */,
 				76EB290EF9B18F2DB16717C5 /* CollectionManagementView.swift */,
 			);
 			path = Collections;
@@ -433,6 +704,9 @@
 		1DCD93B7E846905705091E32 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				C583FF962F0C9C860096478E /* CustomizationOverlayView.swift */,
+				C583FF972F0C9C860096478E /* FlipAffordanceBadge.swift */,
+				C583FF982F0C9C860096478E /* RecipeCardBackPreview.swift */,
 				C5B317822F00D71E0087CF6D /* ConfettiView.swift */,
 				12CDE14CE26C4D94C2138898 /* AttributionBadge.swift */,
 				CCB806BBCED7E823626456DC /* ButtonStyles.swift */,
@@ -448,6 +722,7 @@
 		244452165382438DD0C76F47 /* Tags */ = {
 			isa = PBXGroup;
 			children = (
+				C583FFE62F0CC1740096478E /* BatchTagCollectionPickerView.swift */,
 				7C66294E21AF06144A65292A /* TagCollectionPickerView.swift */,
 				BD00B42E170495E57A417ABD /* TagManagementView.swift */,
 			);
@@ -542,6 +817,15 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C583FFD02F0CB7830096478E /* HeritageRecipeSeeder.swift */,
+				C583FFC82F0CB3A00096478E /* Privacy */,
+				C583FFB52F0CB3720096478E /* CardCustomizationService.swift */,
+				C583FFB62F0CB3720096478E /* RecipeLineageService.swift */,
+				C583FFB72F0CB3720096478E /* StickerLibraryService.swift */,
+				C583FFB82F0CB3720096478E /* TrendingService.swift */,
+				C583FFB92F0CB3720096478E /* UnitsConfiguration.swift */,
+				C583FFB32F0CAB960096478E /* HeritageRecipeCleanupService.swift */,
+				C583FF9E2F0CA51D0096478E /* UndoService.swift */,
 				C583F5A72F09A6B80096478E /* Logging */,
 				C568877A2F06B4AE006EA0B1 /* CRDT */,
 				C56F3E762F04AC9800D19743 /* Firebase */,
@@ -585,6 +869,7 @@
 		82DB2D05EA149582BC4C7525 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				C583FF9C2F0C9CA90096478E /* HeritageRecipeCleanupView.swift */,
 				C56F3DCE2F02285600D19743 /* DebugLogView.swift */,
 				C5B317672F00C8310087CF6D /* WhatsNewView.swift */,
 				C5B317652F00C8230087CF6D /* AboutView.swift */,
@@ -647,6 +932,9 @@
 		99534F5D5C4435D669F1B56B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C583FFCC2F0CB5EA0096478E /* StickerAsset.swift */,
+				C583FFCA2F0CB5E00096478E /* LineageTree.swift */,
+				C583FFB12F0CAB830096478E /* Customization.swift */,
 				C56887802F06B4C8006EA0B1 /* CRDT */,
 				C56F3EF02F05294500D19743 /* RecipeLineage.swift */,
 				C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */,
@@ -672,6 +960,7 @@
 		9CBD85EB54C579EAB7BE644E /* RecipeList */ = {
 			isa = PBXGroup;
 			children = (
+				C583FFDF2F0CBE500096478E /* Components */,
 				2034BAE23A6B77B50445F812 /* RecipeFiltersView.swift */,
 				5AEEEF32CCB325C980D13A0C /* RecipeListView.swift */,
 			);
@@ -774,6 +1063,10 @@
 		C56F3E762F04AC9800D19743 /* Firebase */ = {
 			isa = PBXGroup;
 			children = (
+				C583FFA82F0CAA6E0096478E /* Core */,
+				C583FFAB2F0CAA6E0096478E /* Sync */,
+				C583FFA42F0CAA610096478E /* Storage */,
+				C583FFA12F0CA9870096478E /* Protocols */,
 				C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */,
 				C5E955342F0553FE006CD3C2 /* FirebaseNotificationService.swift */,
 				C56F3EEE2F0528F200D19743 /* FirebaseLineageService.swift */,
@@ -790,6 +1083,121 @@
 				C56F3E7A2F04B67600D19743 /* FirebaseSignInView.swift */,
 			);
 			path = Auth;
+			sourceTree = "<group>";
+		};
+		C583004B2F0CC6F40096478E /* images */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFE82F0CC6F40096478E /* american-001.png */,
+				C583FFE92F0CC6F40096478E /* american-002.png */,
+				C583FFEA2F0CC6F40096478E /* american-003.png */,
+				C583FFEB2F0CC6F40096478E /* american-004.png */,
+				C583FFEC2F0CC6F40096478E /* american-005.png */,
+				C583FFED2F0CC6F40096478E /* american-006.png */,
+				C583FFEE2F0CC6F40096478E /* american-007.png */,
+				C583FFEF2F0CC6F40096478E /* american-008.png */,
+				C583FFF02F0CC6F40096478E /* american-009.png */,
+				C583FFF12F0CC6F40096478E /* american-010.png */,
+				C583FFF22F0CC6F40096478E /* american-011.png */,
+				C583FFF32F0CC6F40096478E /* american-012.png */,
+				C583FFF42F0CC6F40096478E /* american-013.png */,
+				C583FFF52F0CC6F40096478E /* american-015.png */,
+				C583FFF62F0CC6F40096478E /* american-016.png */,
+				C583FFF72F0CC6F40096478E /* american-017.png */,
+				C583FFF82F0CC6F40096478E /* american-018.png */,
+				C583FFF92F0CC6F40096478E /* american-019.png */,
+				C583FFFA2F0CC6F40096478E /* american-020.png */,
+				C583FFFB2F0CC6F40096478E /* american-021.png */,
+				C583FFFC2F0CC6F40096478E /* american-022.png */,
+				C583FFFD2F0CC6F40096478E /* american-023.png */,
+				C583FFFE2F0CC6F40096478E /* american-024.png */,
+				C583FFFF2F0CC6F40096478E /* american-025.png */,
+				C58300002F0CC6F40096478E /* ancient-001.png */,
+				C58300012F0CC6F40096478E /* ancient-002.png */,
+				C58300022F0CC6F40096478E /* ancient-003.png */,
+				C58300032F0CC6F40096478E /* ancient-004.png */,
+				C58300042F0CC6F40096478E /* ancient-005.png */,
+				C58300052F0CC6F40096478E /* ancient-006.png */,
+				C58300062F0CC6F40096478E /* ancient-007.png */,
+				C58300072F0CC6F40096478E /* ancient-008.png */,
+				C58300082F0CC6F40096478E /* ancient-009.png */,
+				C58300092F0CC6F40096478E /* ancient-010.png */,
+				C583000A2F0CC6F40096478E /* ancient-011.png */,
+				C583000B2F0CC6F40096478E /* ancient-012.png */,
+				C583000C2F0CC6F40096478E /* ancient-013.png */,
+				C583000D2F0CC6F40096478E /* ancient-014.png */,
+				C583000E2F0CC6F40096478E /* ancient-015.png */,
+				C583000F2F0CC6F40096478E /* ancient-016.png */,
+				C58300102F0CC6F40096478E /* ancient-017.png */,
+				C58300112F0CC6F40096478E /* ancient-018.png */,
+				C58300122F0CC6F40096478E /* ancient-019.png */,
+				C58300132F0CC6F40096478E /* ancient-020.png */,
+				C58300142F0CC6F40096478E /* ancient-021.png */,
+				C58300152F0CC6F40096478E /* ancient-022.png */,
+				C58300162F0CC6F40096478E /* ancient-023.png */,
+				C58300172F0CC6F40096478E /* ancient-024.png */,
+				C58300182F0CC6F40096478E /* ancient-025.png */,
+				C58300192F0CC6F40096478E /* literary-001.png */,
+				C583001A2F0CC6F40096478E /* literary-002.png */,
+				C583001B2F0CC6F40096478E /* literary-003.png */,
+				C583001C2F0CC6F40096478E /* literary-004.png */,
+				C583001D2F0CC6F40096478E /* literary-005.png */,
+				C583001E2F0CC6F40096478E /* literary-006.png */,
+				C583001F2F0CC6F40096478E /* literary-007.png */,
+				C58300202F0CC6F40096478E /* literary-008.png */,
+				C58300212F0CC6F40096478E /* literary-009.png */,
+				C58300222F0CC6F40096478E /* literary-010.png */,
+				C58300232F0CC6F40096478E /* literary-011.png */,
+				C58300242F0CC6F40096478E /* literary-012.png */,
+				C58300252F0CC6F40096478E /* literary-013.png */,
+				C58300262F0CC6F40096478E /* literary-014.png */,
+				C58300272F0CC6F40096478E /* literary-015.png */,
+				C58300282F0CC6F40096478E /* literary-016.png */,
+				C58300292F0CC6F40096478E /* literary-017.png */,
+				C583002A2F0CC6F40096478E /* literary-018.png */,
+				C583002B2F0CC6F40096478E /* literary-019.png */,
+				C583002C2F0CC6F40096478E /* literary-020.png */,
+				C583002D2F0CC6F40096478E /* literary-021.png */,
+				C583002E2F0CC6F40096478E /* literary-022.png */,
+				C583002F2F0CC6F40096478E /* literary-023.png */,
+				C58300302F0CC6F40096478E /* literary-024.png */,
+				C58300312F0CC6F40096478E /* literary-025.png */,
+				C58300322F0CC6F40096478E /* presidential-001.png */,
+				C58300332F0CC6F40096478E /* presidential-002.png */,
+				C58300342F0CC6F40096478E /* presidential-003.png */,
+				C58300352F0CC6F40096478E /* presidential-004.png */,
+				C58300362F0CC6F40096478E /* presidential-005.png */,
+				C58300372F0CC6F40096478E /* presidential-006.png */,
+				C58300382F0CC6F40096478E /* presidential-007.png */,
+				C58300392F0CC6F40096478E /* presidential-008.png */,
+				C583003A2F0CC6F40096478E /* presidential-009.png */,
+				C583003B2F0CC6F40096478E /* presidential-010.png */,
+				C583003C2F0CC6F40096478E /* presidential-011.png */,
+				C583003D2F0CC6F40096478E /* presidential-012.png */,
+				C583003E2F0CC6F40096478E /* presidential-013.png */,
+				C583003F2F0CC6F40096478E /* presidential-014.png */,
+				C58300402F0CC6F40096478E /* presidential-015.png */,
+				C58300412F0CC6F40096478E /* presidential-016.png */,
+				C58300422F0CC6F40096478E /* presidential-017.png */,
+				C58300432F0CC6F40096478E /* presidential-018.png */,
+				C58300442F0CC6F40096478E /* presidential-019.png */,
+				C58300452F0CC6F40096478E /* presidential-020.png */,
+				C58300462F0CC6F40096478E /* presidential-021.png */,
+				C58300472F0CC6F40096478E /* presidential-022.png */,
+				C58300482F0CC6F40096478E /* presidential-023.png */,
+				C58300492F0CC6F40096478E /* presidential-024.png */,
+				C583004A2F0CC6F40096478E /* presidential-025.png */,
+			);
+			path = images;
+			sourceTree = "<group>";
+		};
+		C583004D2F0CC6F40096478E /* HeritageCollections */ = {
+			isa = PBXGroup;
+			children = (
+				C583004B2F0CC6F40096478E /* images */,
+				C583004C2F0CC6F40096478E /* heritage-recipes.json */,
+			);
+			path = HeritageCollections;
 			sourceTree = "<group>";
 		};
 		C583F5A72F09A6B80096478E /* Logging */ = {
@@ -811,6 +1219,91 @@
 				C583F5CC2F09FCAC0096478E /* ServiceRegistration.swift */,
 			);
 			path = DI;
+			sourceTree = "<group>";
+		};
+		C583FFA12F0CA9870096478E /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFA02F0CA9870096478E /* FirebaseServiceProtocols.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
+		C583FFA42F0CAA610096478E /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFA32F0CAA610096478E /* FirebaseImageService.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		C583FFA82F0CAA6E0096478E /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFA62F0CAA6E0096478E /* FirebaseConfiguration.swift */,
+				C583FFA72F0CAA6E0096478E /* FirebaseRecordConverter.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		C583FFAB2F0CAA6E0096478E /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFA92F0CAA6E0096478E /* FirebaseCollectionSync.swift */,
+				C583FFAA2F0CAA6E0096478E /* FirebaseRecipeSync.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		C583FFC82F0CB3A00096478E /* Privacy */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFC72F0CB3A00096478E /* PrivacyConsentService.swift */,
+			);
+			path = Privacy;
+			sourceTree = "<group>";
+		};
+		C583FFD72F0CB8910096478E /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFD62F0CB8910096478E /* AsyncBlurhashImage.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		C583FFD82F0CB8910096478E /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFD72F0CB8910096478E /* Components */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		C583FFDA2F0CBE500096478E /* Modifiers */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFE32F0CC00A0096478E /* RecipeSheetModifiers.swift */,
+			);
+			path = Modifiers;
+			sourceTree = "<group>";
+		};
+		C583FFDD2F0CBE500096478E /* Toolbar */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFDB2F0CBE500096478E /* RecipeListToolbarActions.swift */,
+				C583FFDC2F0CBE500096478E /* RecipeListToolbarLeading.swift */,
+			);
+			path = Toolbar;
+			sourceTree = "<group>";
+		};
+		C583FFDF2F0CBE500096478E /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				C583FFDA2F0CBE500096478E /* Modifiers */,
+				C583FFDD2F0CBE500096478E /* Toolbar */,
+				C583FFDE2F0CBE500096478E /* SelectionActionBar.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 		C5B3176B2F00C8500087CF6D /* Models */ = {
@@ -853,6 +1346,7 @@
 		C5B3177F2F00D70B0087CF6D /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				C583FFCE2F0CB7480096478E /* BlurHashEncoder.swift */,
 				C56F3DCC2F02283700D19743 /* DeviceLogger.swift */,
 				C5B3177D2F00D70B0087CF6D /* AccessibilityIdentifiers.swift */,
 				C5B3177E2F00D70B0087CF6D /* ErrorMessages.swift */,
@@ -914,7 +1408,6 @@
 				C583F5CD2F09FCAC0096478E /* DI */,
 				C56F3E732F04AA3C00D19743 /* Config */,
 				C5B3177F2F00D70B0087CF6D /* Utilities */,
-				C5B317792F00CA040087CF6D /* UndoService.swift */,
 				EC76FAFFC21DC9B344EBA841 /* Data */,
 				C8004A9A6B408625BEFCB6D2 /* Design */,
 				185DB0D4AC5D6621346C5034 /* Extensions */,
@@ -927,6 +1420,10 @@
 		D1410A1826A4F1BF9127D673 /* AI */ = {
 			isa = PBXGroup;
 			children = (
+				C583FFBF2F0CB3860096478E /* AIRecipeDetector.swift */,
+				C583FFC02F0CB3860096478E /* DinnerPartySummaryService.swift */,
+				C583FFC12F0CB3860096478E /* RecipeTimelineCalculator.swift */,
+				C583FFC22F0CB3860096478E /* ShoppingListSummaryService.swift */,
 				C5E955382F055F5F006CD3C2 /* AIIngredientSpellChecker.swift */,
 				63DFA5F967E72AB51D37782B /* AIAPITest.swift */,
 				87BD07E6DBCB1BD37C3BEB4E /* AIIngredientParser.swift */,
@@ -974,6 +1471,7 @@
 		E2D5ED1318785436B81F724D /* Heirloom */ = {
 			isa = PBXGroup;
 			children = (
+				C583FFD82F0CB8910096478E /* UI */,
 				6B4A30A9AF151EE5F5625F56 /* Heirloom.entitlements */,
 				CBCDD79657CE35AFEF0321A4 /* App */,
 				CE482F3082BC4015FE64856D /* Core */,
@@ -1179,6 +1677,106 @@
 			files = (
 				C3F4F1430F87ACCB0530FA31 /* Assets.xcassets in Resources */,
 				C56F3E662F04A4B300D19743 /* GoogleService-Info.plist in Resources */,
+				C583004E2F0CC6F40096478E /* presidential-013.png in Resources */,
+				C583004F2F0CC6F40096478E /* literary-018.png in Resources */,
+				C58300502F0CC6F40096478E /* ancient-015.png in Resources */,
+				C58300512F0CC6F40096478E /* presidential-019.png in Resources */,
+				C58300522F0CC6F40096478E /* american-013.png in Resources */,
+				C58300532F0CC6F40096478E /* presidential-004.png in Resources */,
+				C58300542F0CC6F40096478E /* american-023.png in Resources */,
+				C58300552F0CC6F40096478E /* american-018.png in Resources */,
+				C58300562F0CC6F40096478E /* presidential-011.png in Resources */,
+				C58300572F0CC6F40096478E /* ancient-006.png in Resources */,
+				C58300582F0CC6F40096478E /* presidential-007.png in Resources */,
+				C58300592F0CC6F40096478E /* american-005.png in Resources */,
+				C583005A2F0CC6F40096478E /* literary-017.png in Resources */,
+				C583005B2F0CC6F40096478E /* american-021.png in Resources */,
+				C583005C2F0CC6F40096478E /* american-009.png in Resources */,
+				C583005D2F0CC6F40096478E /* american-001.png in Resources */,
+				C583005E2F0CC6F40096478E /* literary-008.png in Resources */,
+				C583005F2F0CC6F40096478E /* american-024.png in Resources */,
+				C58300602F0CC6F40096478E /* ancient-003.png in Resources */,
+				C58300612F0CC6F40096478E /* presidential-008.png in Resources */,
+				C58300622F0CC6F40096478E /* american-006.png in Resources */,
+				C58300632F0CC6F40096478E /* american-022.png in Resources */,
+				C58300642F0CC6F40096478E /* american-025.png in Resources */,
+				C58300652F0CC6F40096478E /* ancient-009.png in Resources */,
+				C58300662F0CC6F40096478E /* presidential-023.png in Resources */,
+				C58300672F0CC6F40096478E /* american-019.png in Resources */,
+				C58300682F0CC6F40096478E /* ancient-021.png in Resources */,
+				C58300692F0CC6F40096478E /* american-002.png in Resources */,
+				C583006A2F0CC6F40096478E /* presidential-002.png in Resources */,
+				C583006B2F0CC6F40096478E /* american-004.png in Resources */,
+				C583006C2F0CC6F40096478E /* ancient-004.png in Resources */,
+				C583006D2F0CC6F40096478E /* ancient-011.png in Resources */,
+				C583006E2F0CC6F40096478E /* american-011.png in Resources */,
+				C583006F2F0CC6F40096478E /* literary-022.png in Resources */,
+				C58300702F0CC6F40096478E /* american-017.png in Resources */,
+				C58300712F0CC6F40096478E /* ancient-010.png in Resources */,
+				C58300722F0CC6F40096478E /* literary-016.png in Resources */,
+				C58300732F0CC6F40096478E /* heritage-recipes.json in Resources */,
+				C58300742F0CC6F40096478E /* presidential-010.png in Resources */,
+				C58300752F0CC6F40096478E /* ancient-014.png in Resources */,
+				C58300762F0CC6F40096478E /* literary-024.png in Resources */,
+				C58300772F0CC6F40096478E /* presidential-017.png in Resources */,
+				C58300782F0CC6F40096478E /* american-015.png in Resources */,
+				C58300792F0CC6F40096478E /* ancient-002.png in Resources */,
+				C583007A2F0CC6F40096478E /* ancient-025.png in Resources */,
+				C583007B2F0CC6F40096478E /* presidential-018.png in Resources */,
+				C583007C2F0CC6F40096478E /* ancient-019.png in Resources */,
+				C583007D2F0CC6F40096478E /* presidential-012.png in Resources */,
+				C583007E2F0CC6F40096478E /* presidential-016.png in Resources */,
+				C583007F2F0CC6F40096478E /* ancient-024.png in Resources */,
+				C58300802F0CC6F40096478E /* ancient-020.png in Resources */,
+				C58300812F0CC6F40096478E /* literary-003.png in Resources */,
+				C58300822F0CC6F40096478E /* literary-006.png in Resources */,
+				C58300832F0CC6F40096478E /* literary-009.png in Resources */,
+				C58300842F0CC6F40096478E /* ancient-013.png in Resources */,
+				C58300852F0CC6F40096478E /* american-012.png in Resources */,
+				C58300862F0CC6F40096478E /* ancient-007.png in Resources */,
+				C58300872F0CC6F40096478E /* ancient-008.png in Resources */,
+				C58300882F0CC6F40096478E /* literary-005.png in Resources */,
+				C58300892F0CC6F40096478E /* presidential-021.png in Resources */,
+				C583008A2F0CC6F40096478E /* literary-011.png in Resources */,
+				C583008B2F0CC6F40096478E /* presidential-009.png in Resources */,
+				C583008C2F0CC6F40096478E /* american-003.png in Resources */,
+				C583008D2F0CC6F40096478E /* american-020.png in Resources */,
+				C583008E2F0CC6F40096478E /* ancient-022.png in Resources */,
+				C583008F2F0CC6F40096478E /* ancient-018.png in Resources */,
+				C58300902F0CC6F40096478E /* literary-001.png in Resources */,
+				C58300912F0CC6F40096478E /* american-016.png in Resources */,
+				C58300922F0CC6F40096478E /* presidential-015.png in Resources */,
+				C58300932F0CC6F40096478E /* presidential-005.png in Resources */,
+				C58300942F0CC6F40096478E /* literary-021.png in Resources */,
+				C58300952F0CC6F40096478E /* ancient-012.png in Resources */,
+				C58300962F0CC6F40096478E /* presidential-022.png in Resources */,
+				C58300972F0CC6F40096478E /* ancient-005.png in Resources */,
+				C58300982F0CC6F40096478E /* literary-002.png in Resources */,
+				C58300992F0CC6F40096478E /* presidential-025.png in Resources */,
+				C583009A2F0CC6F40096478E /* literary-004.png in Resources */,
+				C583009B2F0CC6F40096478E /* ancient-023.png in Resources */,
+				C583009C2F0CC6F40096478E /* literary-014.png in Resources */,
+				C583009D2F0CC6F40096478E /* literary-010.png in Resources */,
+				C583009E2F0CC6F40096478E /* literary-023.png in Resources */,
+				C583009F2F0CC6F40096478E /* literary-015.png in Resources */,
+				C58300A02F0CC6F40096478E /* literary-020.png in Resources */,
+				C58300A12F0CC6F40096478E /* presidential-006.png in Resources */,
+				C58300A22F0CC6F40096478E /* ancient-001.png in Resources */,
+				C58300A32F0CC6F40096478E /* ancient-017.png in Resources */,
+				C58300A42F0CC6F40096478E /* literary-013.png in Resources */,
+				C58300A52F0CC6F40096478E /* literary-025.png in Resources */,
+				C58300A62F0CC6F40096478E /* american-008.png in Resources */,
+				C58300A72F0CC6F40096478E /* presidential-014.png in Resources */,
+				C58300A82F0CC6F40096478E /* presidential-001.png in Resources */,
+				C58300A92F0CC6F40096478E /* american-010.png in Resources */,
+				C58300AA2F0CC6F40096478E /* american-007.png in Resources */,
+				C58300AB2F0CC6F40096478E /* literary-019.png in Resources */,
+				C58300AC2F0CC6F40096478E /* literary-007.png in Resources */,
+				C58300AD2F0CC6F40096478E /* presidential-003.png in Resources */,
+				C58300AE2F0CC6F40096478E /* presidential-020.png in Resources */,
+				C58300AF2F0CC6F40096478E /* ancient-016.png in Resources */,
+				C58300B02F0CC6F40096478E /* literary-012.png in Resources */,
+				C58300B12F0CC6F40096478E /* presidential-024.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1193,28 +1791,37 @@
 				473093936E209050DC5888FE /* AIConfiguration.swift in Sources */,
 				189E866732B2A3EF7F6A0483 /* AIError.swift in Sources */,
 				C56F3E772F04AC9800D19743 /* FirebaseSyncService.swift in Sources */,
+				C583FFD32F0CB7970096478E /* CollectionsListView.swift in Sources */,
 				64D4CE8DD0862C4231AFE553 /* AIIngredientParser.swift in Sources */,
 				B5427115D9C624069E2F954E /* AIRecipeExtractor.swift in Sources */,
 				D8F7E7468B50152E87AC99C8 /* AIServiceProtocol.swift in Sources */,
+				C583FFB42F0CAB960096478E /* HeritageRecipeCleanupService.swift in Sources */,
 				9D119E45E5ACF7422DDF9294 /* AISettingsView.swift in Sources */,
 				2AEBD4D58113BEF2D5E15F64 /* AnalyticsService.swift in Sources */,
 				DBEAA5BD5109F183D58A0BDE /* Annotation.swift in Sources */,
+				C583FFE72F0CC1740096478E /* BatchTagCollectionPickerView.swift in Sources */,
 				31A0E785FAC399245DB9A76A /* AnnotationEditorView.swift in Sources */,
 				C56F3E7C2F04B67600D19743 /* FirebaseSignInView.swift in Sources */,
 				5DB20729E76D3DFBC0706134 /* AnthropicAIService.swift in Sources */,
 				C583F5CE2F09FCAC0096478E /* ServiceRegistration.swift in Sources */,
 				C583F5CF2F09FCAC0096478E /* ServiceProtocols.swift in Sources */,
 				C583F5D02F09FCAC0096478E /* ServiceEnvironment.swift in Sources */,
+				C583FFC92F0CB3A00096478E /* PrivacyConsentService.swift in Sources */,
 				C583F5D12F09FCAC0096478E /* ServiceContainer.swift in Sources */,
 				52615A916BAFD2C901496ECA /* AttributionBadge.swift in Sources */,
 				C56F3DC92F0187EA00D19743 /* RecipeReceiveSheet.swift in Sources */,
 				ED52F1487AEF53834790D891 /* BulkImportView.swift in Sources */,
+				C583FFD52F0CB81B0096478E /* CollectionDetailView.swift in Sources */,
 				965A8945B59A7B82DD91939D /* ButtonStyles.swift in Sources */,
 				38CA24AAE112792C5AEBCF83 /* CardBackEditorView.swift in Sources */,
 				B909B5726C4D6D07CA115B68 /* CardPersonalizationView.swift in Sources */,
+				C583FFE02F0CBE500096478E /* SelectionActionBar.swift in Sources */,
+				C583FFE12F0CBE500096478E /* RecipeListToolbarActions.swift in Sources */,
+				C583FFE22F0CBE500096478E /* RecipeListToolbarLeading.swift in Sources */,
 				D31562B77568A50A609130FA /* CardStyle.swift in Sources */,
 				11E7D54E3CFB003AE848298C /* CategoryDetectionService.swift in Sources */,
 				C5E955352F0553FE006CD3C2 /* FirebaseNotificationService.swift in Sources */,
+				C583FF9D2F0C9CA90096478E /* HeritageRecipeCleanupView.swift in Sources */,
 				C5B317872F00D8330087CF6D /* RecipeVersionService.swift in Sources */,
 				C56F3DCD2F02283700D19743 /* DeviceLogger.swift in Sources */,
 				73CD8315C072A52F2AAEBB5C /* CloudRecipeImportService.swift in Sources */,
@@ -1230,8 +1837,11 @@
 				0F393B4431AECE756D5E8044 /* DinnerPartyDetailView.swift in Sources */,
 				1833BE419904DE4CDCCA6AC6 /* DinnerPartyEditorView.swift in Sources */,
 				795C6BC59A1F195E02DABEC4 /* DinnerPartyListView.swift in Sources */,
-				C5B3177A2F00CA040087CF6D /* UndoService.swift in Sources */,
 				68C41E2CF7813EE976D96D3E /* DinnerPartyShoppingListView.swift in Sources */,
+				C583FFAC2F0CAA6E0096478E /* FirebaseRecipeSync.swift in Sources */,
+				C583FFAD2F0CAA6E0096478E /* FirebaseCollectionSync.swift in Sources */,
+				C583FFAE2F0CAA6E0096478E /* FirebaseConfiguration.swift in Sources */,
+				C583FFAF2F0CAA6E0096478E /* FirebaseRecordConverter.swift in Sources */,
 				2F46430BA53D29AE89C05522 /* EmptyStateView.swift in Sources */,
 				C5B3177C2F00D6570087CF6D /* ShortURLService.swift in Sources */,
 				8ADFA5839933EC3D8374AFB5 /* EnhancedOCRService.swift in Sources */,
@@ -1241,6 +1851,7 @@
 				B2C81AF6BEE1E3C6FB9AAE7E /* FlipCard.swift in Sources */,
 				3A7C46360FC8CC6F799C7A30 /* HeirloomApp.swift in Sources */,
 				418BD47FE9CBC3220C0CBA23 /* ImageCache.swift in Sources */,
+				C583FFD12F0CB7830096478E /* HeritageRecipeSeeder.swift in Sources */,
 				679F93B31ACD344543403260 /* ImagePreprocessor.swift in Sources */,
 				BBD52D4E93767271B07C62A6 /* ImageStorageService.swift in Sources */,
 				14902ECCAAEBB9BA1C553ABD /* ImportAttempt.swift in Sources */,
@@ -1255,16 +1866,22 @@
 				77F45D61EB2A03C59BE9C93F /* IngredientParser.swift in Sources */,
 				C5B317892F00D89A0087CF6D /* RecipeSelectionView.swift in Sources */,
 				F338CD690F1EB5301AC2C49A /* LoadingViews.swift in Sources */,
+				C583FFA52F0CAA610096478E /* FirebaseImageService.swift in Sources */,
 				455227C53BB8C306AE866038 /* MixpanelService.swift in Sources */,
 				56B7410AFE53DF464D867AED /* OCRReviewView.swift in Sources */,
 				21EC256432ECC6D06E9B934D /* OnboardingView.swift in Sources */,
 				554881423D4F45E10725AC6D /* ProvenanceMetadata.swift in Sources */,
+				C583FFC32F0CB3860096478E /* DinnerPartySummaryService.swift in Sources */,
+				C583FFC42F0CB3860096478E /* RecipeTimelineCalculator.swift in Sources */,
+				C583FFC52F0CB3860096478E /* AIRecipeDetector.swift in Sources */,
+				C583FFC62F0CB3860096478E /* ShoppingListSummaryService.swift in Sources */,
 				C5B317802F00D70B0087CF6D /* AccessibilityIdentifiers.swift in Sources */,
 				C5B317812F00D70B0087CF6D /* ErrorMessages.swift in Sources */,
 				74DC70C5F9BED2FC3AD88944 /* Recipe.swift in Sources */,
 				51CA3B615505A24056B0B85B /* RecipeCardBack.swift in Sources */,
 				2BCC018C22A220A0A84E85A5 /* RecipeCollection.swift in Sources */,
 				C5E955312F054271006CD3C2 /* RecipeVersionSelector.swift in Sources */,
+				C583FFCF2F0CB7480096478E /* BlurHashEncoder.swift in Sources */,
 				C5E955322F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift in Sources */,
 				C5E955332F054271006CD3C2 /* RecipeDiffView.swift in Sources */,
 				6324B79E6EFC901B6632E832 /* RecipeComment.swift in Sources */,
@@ -1284,7 +1901,10 @@
 				C56887822F06B4C8006EA0B1 /* RecipeCRDT.swift in Sources */,
 				C56887832F06B4C8006EA0B1 /* OperationLog.swift in Sources */,
 				C56887842F06B4C8006EA0B1 /* RecipeOperation.swift in Sources */,
+				C583FFB22F0CAB830096478E /* Customization.swift in Sources */,
+				C583FF9F2F0CA51D0096478E /* UndoService.swift in Sources */,
 				C5B317742F00C8500087CF6D /* GestureGuide.swift in Sources */,
+				C583FFE52F0CC00B0096478E /* RecipeSheetModifiers.swift in Sources */,
 				C5B317752F00C8500087CF6D /* HelpArticle.swift in Sources */,
 				C5B317762F00C8500087CF6D /* GestureGuideView.swift in Sources */,
 				C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */,
@@ -1310,6 +1930,11 @@
 				D2540615909602F5D11BE209 /* ScalingTypes.swift in Sources */,
 				C56F3DC72F0187C900D19743 /* DeepLinkHandler.swift in Sources */,
 				C5B317602F00C7E40087CF6D /* RecipeVersion.swift in Sources */,
+				C583FFBA2F0CB3720096478E /* RecipeLineageService.swift in Sources */,
+				C583FFBB2F0CB3720096478E /* UnitsConfiguration.swift in Sources */,
+				C583FFBC2F0CB3720096478E /* CardCustomizationService.swift in Sources */,
+				C583FFBD2F0CB3720096478E /* StickerLibraryService.swift in Sources */,
+				C583FFBE2F0CB3720096478E /* TrendingService.swift in Sources */,
 				64CF275134BD2DF05BC42B58 /* SchemaV1.swift in Sources */,
 				1086A03B0F949141C61B5D54 /* ServingSelector.swift in Sources */,
 				218A8EDAF2DFA141EFA33091 /* SettingsView.swift in Sources */,
@@ -1317,19 +1942,26 @@
 				C56F3DCF2F02285600D19743 /* DebugLogView.swift in Sources */,
 				3815ADF1F8A3B87269E3F76B /* ShareOptions.swift in Sources */,
 				3DC4370D13356E958ECE4985 /* SharePreviewCard.swift in Sources */,
+				C583FFCB2F0CB5E00096478E /* LineageTree.swift in Sources */,
 				A5C0B1D1426453DB4D89A6DC /* ShoppingCartRecipe.swift in Sources */,
 				0690F2354B4F741C1D039D4E /* ShoppingListView.swift in Sources */,
 				7A04C130200034BA8D0F19C5 /* Sticker.swift in Sources */,
 				227DA999DB569E3826BDF9B1 /* StickerPickerView.swift in Sources */,
 				C5B317662F00C8230087CF6D /* AboutView.swift in Sources */,
 				C5B317622F00C7F30087CF6D /* NetworkMonitor.swift in Sources */,
+				C583FF992F0C9C860096478E /* FlipAffordanceBadge.swift in Sources */,
+				C583FF9A2F0C9C860096478E /* CustomizationOverlayView.swift in Sources */,
+				C583FF9B2F0C9C860096478E /* RecipeCardBackPreview.swift in Sources */,
 				CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */,
 				21D2472687CBCBB6A287FEA7 /* TagCollectionPickerView.swift in Sources */,
 				C5E955372F055550006CD3C2 /* View+Helpers.swift in Sources */,
 				596101FC88AB42BE7AD9C20C /* TagManagementView.swift in Sources */,
 				C56F3EF12F05294500D19743 /* RecipeLineage.swift in Sources */,
 				BA6E197B72A044F15CC9D173 /* ToastView.swift in Sources */,
+				C583FFD92F0CB8910096478E /* AsyncBlurhashImage.swift in Sources */,
+				C583FFCD2F0CB5EA0096478E /* StickerAsset.swift in Sources */,
 				7F0DA576A2BA5C4746384423 /* Typography.swift in Sources */,
+				C583FFA22F0CA9870096478E /* FirebaseServiceProtocols.swift in Sources */,
 				14B54EA78DD910B9F98D715B /* UIImage+Helpers.swift in Sources */,
 				C56F3EEF2F0528F200D19743 /* FirebaseLineageService.swift in Sources */,
 				D0F80C3F0014086C6080ABEE /* URLNormalizer.swift in Sources */,

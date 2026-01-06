@@ -5,11 +5,24 @@ import FirebaseStorage
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseAuth) private var firebaseAuth
     @Query private var recipes: [Recipe]
+
+    // Using concrete type for image storage
+    private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
+
+    // Using concrete type for toast notifications
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+    private var aiConfig: AIConfiguration { ServiceContainer.shared.resolve(AIConfiguration.self) }
 
     @State private var showClearDataConfirmation = false
     @State private var showSignOutConfirmation = false
+    @State private var showSignIn = false
     @State private var storageSize: String = "Calculating..."
+    @State private var showHeritageCleanup = false
 
     var body: some View {
         NavigationStack {
@@ -22,6 +35,9 @@ struct SettingsView: View {
 
                 // Data Management Section
                 dataManagementSection
+
+                // Heritage Collections Section
+                heritageCollectionsSection
 
                 // Account Section
                 accountSection
@@ -64,6 +80,13 @@ struct SettingsView: View {
             } message: {
                 Text("You'll need to sign in again to access your recipes.")
             }
+            .sheet(isPresented: $showSignIn) {
+                FirebaseSignInView()
+            }
+            // TODO: Re-enable once HeritageRecipeCleanupView is added to Xcode project
+            // .sheet(isPresented: $showHeritageCleanup) {
+            //     HeritageRecipeCleanupView()
+            // }
         }
     }
 
@@ -79,7 +102,7 @@ struct SettingsView: View {
                         .foregroundStyle(HeirloomColors.tomato)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("AI Features")
-                        Text(AIConfiguration.shared.isConfigured(provider: .anthropic) ? "Configured" : "Not Set")
+                        Text(aiConfig.isConfigured(provider: .anthropic) ? "Configured" : "Not Set")
                             .font(HeirloomFonts.caption1)
                             .foregroundStyle(HeirloomColors.secondaryText)
                     }
@@ -112,11 +135,40 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Heritage Collections Section
+
+    private var heritageCollectionsSection: some View {
+        Section {
+            let heritageCount = recipes.filter { $0.isHeritageRecipe }.count
+
+            LabeledContent("Heritage Recipes", value: "\(heritageCount)")
+
+            Button {
+                showHeritageCleanup = true
+            } label: {
+                HStack {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(.brown)
+                    Text("Review Unused Heritage Recipes")
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Text("Heritage Collections")
+        } footer: {
+            Text("Heritage recipes that haven't been used in 30+ days can be removed to keep your library organized.")
+        }
+    }
+
     // MARK: - Account Section
 
     private var accountSection: some View {
         Section {
-            if let user = FirebaseAuthService.shared.currentUser {
+            if let user = firebaseAuth.currentUser {
                 LabeledContent("Signed in as", value: user.email ?? "Unknown")
                     .font(HeirloomFonts.caption1)
 
@@ -130,13 +182,32 @@ struct SettingsView: View {
                         .foregroundStyle(.red)
                 }
             } else {
-                Text("Not signed in")
-                    .foregroundStyle(HeirloomColors.secondaryText)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Sign in to sync your recipes across devices and share with friends")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Button {
+                        showSignIn = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "person.circle.fill")
+                            Text("Sign In")
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundStyle(HeirloomColors.tomato)
+                    }
+                }
             }
         } header: {
             Text("Account")
         } footer: {
-            Text("Signing out will clear local data. Your recipes are safely stored in Firebase and will sync when you sign back in.")
+            if firebaseAuth.currentUser != nil {
+                Text("Signing out will clear local data. Your recipes are safely stored in Firebase and will sync when you sign back in.")
+            } else {
+                Text("Your recipes are stored locally. Sign in to enable cloud sync and sharing.")
+            }
         }
     }
 
@@ -257,7 +328,7 @@ struct SettingsView: View {
             }
 
             Button {
-                AnalyticsService.shared.track(event: .contactSupportTapped, properties: nil)
+                analytics.track(event: .contactSupportTapped, properties: nil)
                 if let url = URL(string: "mailto:support@heirloom.app") {
                     UIApplication.shared.open(url)
                 }
@@ -287,7 +358,7 @@ struct SettingsView: View {
                 let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
                 let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
 
-                AnalyticsService.shared.track(event: .bugReportSubmitted, properties: [
+                analytics.track(event: .bugReportSubmitted, properties: [
                     "app_version": appVersion,
                     "device_model": deviceModel,
                     "ios_version": systemVersion
@@ -313,7 +384,7 @@ struct SettingsView: View {
                 let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
                 let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
 
-                AnalyticsService.shared.track(event: .featureRequestSubmitted, properties: nil)
+                analytics.track(event: .featureRequestSubmitted, properties: nil)
 
                 if let url = URL(string: "mailto:support@heirloom.app?subject=\(encodedSubject)&body=\(encodedBody)") {
                     UIApplication.shared.open(url)
@@ -341,8 +412,7 @@ struct SettingsView: View {
 
     private func calculateStorageSize() async {
         // Calculate storage from image files
-        let imageService = ImageStorageService.shared
-        let totalSize = await imageService.calculateTotalStorageSize()
+        let totalSize = await imageStorageService.calculateTotalStorageSize()
 
         await MainActor.run {
             storageSize = ByteCountFormatter.string(fromByteCount: Int64(totalSize), countStyle: .file)
@@ -362,25 +432,25 @@ struct SettingsView: View {
 
             // Clean up images
             Task {
-                await ImageStorageService.shared.performCleanup()
+                await imageStorageService.performCleanup()
 
                 // Also clear Firebase if active
-                if BackendConfig.shared.isFirebaseActive {
+                if backendConfig.isFirebaseActive {
                     await clearFirebaseData()
                 }
             }
 
-            ToastManager.shared.success(title: "Data cleared")
-            AnalyticsService.shared.track(event: .dataCleared, properties: [
+            toastManager.success(title: "Data cleared")
+            analytics.track(event: .dataCleared, properties: [
                 "recipe_count": recipeCount
             ])
         } catch {
-            ToastManager.shared.error(title: "Failed to clear data", message: error.localizedDescription)
+            toastManager.error(title: "Failed to clear data", message: error.localizedDescription)
         }
     }
 
     private func clearFirebaseData() async {
-        guard let userId = FirebaseAuthService.shared.currentUser?.uid else { return }
+        guard let userId = firebaseAuth.currentUser?.uid else { return }
 
         do {
             let db = Firestore.firestore()
@@ -426,7 +496,7 @@ struct SettingsView: View {
     private func signOut() {
         do {
             // Sign out from Firebase
-            try FirebaseAuthService.shared.signOut()
+            try firebaseAuth.signOut()
 
             // Clear local data
             for recipe in recipes {
@@ -438,9 +508,9 @@ struct SettingsView: View {
             UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
 
             // Success feedback
-            ToastManager.shared.success(title: "Signed out successfully")
+            toastManager.success(title: "Signed out successfully")
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Sign out failed",
                 message: error.localizedDescription
             )

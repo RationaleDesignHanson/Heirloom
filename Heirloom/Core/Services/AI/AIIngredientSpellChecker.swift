@@ -4,8 +4,19 @@ import Foundation
 /// Detects misspellings and suggests corrections for ingredient text
 @MainActor
 class AIIngredientSpellChecker {
-    static let shared = AIIngredientSpellChecker()
-    private init() {}
+    // MARK: - Dependencies
+
+    private let aiService: AIServiceProtocol
+    private let configuration: AIConfigurationProtocol
+    private let analytics: AnalyticsService
+
+    // MARK: - Initialization
+
+    init(aiService: AIServiceProtocol, configuration: AIConfigurationProtocol, analytics: AnalyticsService) {
+        self.aiService = aiService
+        self.configuration = configuration
+        self.analytics = analytics
+    }
 
     // MARK: - Result Structure
 
@@ -41,8 +52,8 @@ class AIIngredientSpellChecker {
     /// - Returns: SpellingResult with suggestions if issues found
     func check(_ text: String) async throws -> SpellingResult {
         // Check if AI parsing is enabled
-        guard AIConfiguration.shared.enableAIParsing,
-              AIConfiguration.shared.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIParsing,
+              configuration.isConfigured(provider: .anthropic) else {
             // Return empty result if AI is disabled
             return SpellingResult(hasIssues: false, suggestions: [])
         }
@@ -56,7 +67,7 @@ class AIIngredientSpellChecker {
             let result = try await checkWithAI(text)
 
             // Track success
-            AnalyticsService.shared.track(event: .aiSpellCheckSuccess, properties: [
+            analytics.track(event: .aiSpellCheckSuccess, properties: [
                 "ingredient_text": text,
                 "has_issues": result.hasIssues,
                 "suggestion_count": result.suggestions.count
@@ -66,7 +77,7 @@ class AIIngredientSpellChecker {
 
         } catch {
             // Track failure
-            AnalyticsService.shared.track(event: .aiSpellCheckFailed, properties: [
+            analytics.track(event: .aiSpellCheckFailed, properties: [
                 "ingredient_text": text,
                 "error": error.localizedDescription
             ])
@@ -83,8 +94,8 @@ class AIIngredientSpellChecker {
     /// - Returns: Array of SpellingResult, one per ingredient
     func checkBatch(_ ingredients: [String]) async throws -> [SpellingResult] {
         // Check if AI parsing is enabled
-        guard AIConfiguration.shared.enableAIParsing,
-              AIConfiguration.shared.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIParsing,
+              configuration.isConfigured(provider: .anthropic) else {
             return ingredients.map { _ in SpellingResult(hasIssues: false, suggestions: []) }
         }
 
@@ -109,7 +120,7 @@ class AIIngredientSpellChecker {
         do {
             let batchResults = try await checkBatchWithAI(filteredIngredients)
 
-            AnalyticsService.shared.track(event: .aiSpellCheckSuccess, properties: [
+            analytics.track(event: .aiSpellCheckSuccess, properties: [
                 "batch_size": filteredIngredients.count,
                 "mode": "batch"
             ])
@@ -132,8 +143,8 @@ class AIIngredientSpellChecker {
     // MARK: - AI Spell Checking
 
     private func checkWithAI(_ text: String) async throws -> SpellingResult {
-        let service = AnthropicAIService.shared
-        let model = AIConfiguration.shared.model(for: .parsing)
+        let service = ServiceContainer.shared.resolve(AIServiceProtocol.self)
+        let model = configuration.model(for: .parsing)
 
         let prompt = buildPrompt(for: text)
 
@@ -222,8 +233,8 @@ class AIIngredientSpellChecker {
     }
 
     private func checkBatchWithAI(_ ingredients: [String]) async throws -> [SpellingResult] {
-        let service = AnthropicAIService.shared
-        let model = AIConfiguration.shared.model(for: .parsing)
+        let service = ServiceContainer.shared.resolve(AIServiceProtocol.self)
+        let model = configuration.model(for: .parsing)
 
         let prompt = buildBatchPrompt(for: ingredients)
 

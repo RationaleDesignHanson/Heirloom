@@ -4,11 +4,14 @@ import SwiftData
 struct TagCollectionPickerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
 
     @Query(sort: \Tag.name) private var allTags: [Tag]
     @Query(sort: \RecipeCollection.name) private var allCollections: [RecipeCollection]
 
     @Bindable var recipe: Recipe
+
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     @State private var showTagManagement = false
     @State private var showCollectionManagement = false
@@ -190,13 +193,13 @@ struct TagCollectionPickerView: View {
         try? modelContext.save()
 
         // Sync to Firebase if active
-        if BackendConfig.shared.isFirebaseActive {
+        if backendConfig.isFirebaseActive {
             Task {
                 do {
                     // Sync the tag itself
-                    try await FirebaseSyncService.shared.uploadTag(tag)
+                    try await firebaseSync.uploadTag(tag)
                     // Sync the recipe with updated tag IDs
-                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                    try await firebaseSync.uploadRecipe(recipe)
                     Log.info("Tag toggle synced to Firebase", category: .firebase, metadata: ["tagId": tag.id, "recipeId": recipe.id])
                 } catch {
                     Log.warning("Failed to sync tag toggle to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "tagId": tag.id, "recipeId": recipe.id])
@@ -228,13 +231,13 @@ struct TagCollectionPickerView: View {
         try? modelContext.save()
 
         // Sync to Firebase if active
-        if BackendConfig.shared.isFirebaseActive {
+        if backendConfig.isFirebaseActive {
             Task {
                 do {
                     // Sync the collection itself
-                    try await FirebaseSyncService.shared.uploadCollection(collection)
+                    try await firebaseSync.uploadCollection(collection)
                     // Sync the recipe with updated collection IDs
-                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                    try await firebaseSync.uploadRecipe(recipe)
                     Log.info("Collection toggle synced to Firebase", category: .firebase, metadata: ["collectionId": collection.id, "recipeId": recipe.id])
                 } catch {
                     Log.warning("Failed to sync collection toggle to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "collectionId": collection.id, "recipeId": recipe.id])

@@ -4,8 +4,15 @@ import SwiftUI
 
 @MainActor
 class RecipeExportService {
-    static let shared = RecipeExportService()
-    private init() {}
+    // MARK: - Dependencies
+
+    private let toastManager: ToastManager
+
+    // MARK: - Initialization
+
+    init(toastManager: ToastManager) {
+        self.toastManager = toastManager
+    }
 
     // MARK: - Share Methods
 
@@ -15,7 +22,7 @@ class RecipeExportService {
                 let items = try await prepareShareItems(for: recipe, format: format)
                 presentShareSheet(items: items, from: view)
             } catch {
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Failed to share",
                     message: error.localizedDescription
                 )

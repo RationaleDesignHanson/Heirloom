@@ -12,9 +12,8 @@ import Foundation
 
 /// Detects recipe category from title, ingredients, and instructions
 class CategoryDetectionService {
-    static let shared = CategoryDetectionService()
 
-    private init() {}
+    init() {}
 
     // MARK: - Public API
 
@@ -225,11 +224,17 @@ class CategoryDetectionService {
 extension Recipe {
     /// Auto-detect and apply category with scaling defaults
     func detectAndApplyCategory() {
-        CategoryDetectionService.shared.detectAndApply(to: self)
+        let service = MainActor.assumeIsolated {
+            ServiceContainer.shared.resolve(CategoryDetectionService.self)
+        }
+        service.detectAndApply(to: self)
     }
 
     /// Get the detected category without applying it
     func detectedCategory() -> RecipeCategory {
-        CategoryDetectionService.shared.detectCategory(for: self)
+        let service = MainActor.assumeIsolated {
+            ServiceContainer.shared.resolve(CategoryDetectionService.self)
+        }
+        return service.detectCategory(for: self)
     }
 }

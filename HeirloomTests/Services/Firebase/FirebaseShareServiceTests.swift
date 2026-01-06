@@ -29,8 +29,8 @@ final class FirebaseShareServiceTests: XCTestCase {
         let schema = Schema([
             Recipe.self,
             Ingredient.self,
-            RecipeLineage.self,
-            ShareOptions.self
+            RecipeLineage.self
+            // ShareOptions is a struct, not @Model - not needed in schema
         ])
 
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -66,7 +66,6 @@ final class FirebaseShareServiceTests: XCTestCase {
         try modelContext.save()
 
         let options = ShareOptions(
-            shareType: .casual,
             includeCardBack: false,
             includeRating: true,
             includeNotes: true,
@@ -74,10 +73,11 @@ final class FirebaseShareServiceTests: XCTestCase {
             includeAllComments: false,
             includeCookingHistory: false,
             includeStickers: false,
-            sharerName: "Test User",
             personalMessage: "Try this recipe!",
-            expirationDuration: nil,
-            allowReSharing: true
+            sharerName: "Test User",
+            shareType: .generic, // CHANGED: .casual -> .generic
+            allowReSharing: true,
+            expirationDuration: nil
         )
 
         // When: Create share
@@ -100,7 +100,7 @@ final class FirebaseShareServiceTests: XCTestCase {
         modelContext.insert(recipe)
         try modelContext.save()
 
-        let options = ShareOptions(shareType: .casual)
+        let options = ShareOptions(shareType: .generic)
 
         // When/Then: Should throw notAuthenticated error
         // TODO: Implement after DI
@@ -114,11 +114,11 @@ final class FirebaseShareServiceTests: XCTestCase {
         try modelContext.save()
 
         let options = ShareOptions(
-            shareType: .heirloom,
             includeCardBack: true,
             includeRating: false,
             includeNotes: true,
             personalMessage: "Family recipe",
+            shareType: .heirloom,
             allowReSharing: false
         )
 
@@ -152,7 +152,7 @@ final class FirebaseShareServiceTests: XCTestCase {
         modelContext.insert(recipe)
         try modelContext.save()
 
-        let options = ShareOptions(shareType: .casual)
+        let options = ShareOptions(shareType: .generic)
 
         // When: Create share
         // Then: Share document should include firebaseImageURL
@@ -170,7 +170,7 @@ final class FirebaseShareServiceTests: XCTestCase {
         modelContext.insert(recipe)
         try modelContext.save()
 
-        let options = ShareOptions(shareType: .casual, sharerName: "John Doe")
+        let options = ShareOptions(sharerName: "John Doe", shareType: .generic)
 
         // When: Create share
         // Then: Recipe should have sharedDate and sharedBy set
@@ -421,8 +421,8 @@ final class FirebaseShareServiceTests: XCTestCase {
         try modelContext.save()
 
         let options = ShareOptions(
-            shareType: .casual,
-            expirationDuration: .days(7)
+            shareType: .generic,
+            expirationDuration: .sevenDays // CHANGED: .days(7) -> .sevenDays
         )
 
         // When: Create share
@@ -439,7 +439,7 @@ final class FirebaseShareServiceTests: XCTestCase {
         try modelContext.save()
 
         let options = ShareOptions(
-            shareType: .casual,
+            shareType: .generic,
             expirationDuration: nil
         )
 
@@ -483,8 +483,8 @@ final class FirebaseShareServiceTests: XCTestCase {
         try modelContext.save()
 
         let options = ShareOptions(
-            shareType: .heirloom,
-            personalMessage: "Family treasure"
+            personalMessage: "Family treasure",
+            shareType: .heirloom
         )
 
         // When: Create share
@@ -518,7 +518,7 @@ final class FirebaseShareServiceTests: XCTestCase {
         modelContext.insert(recipe)
         try modelContext.save()
 
-        let options = ShareOptions(shareType: .casual, sharerName: "Tester")
+        let options = ShareOptions(sharerName: "Tester", shareType: .generic)
 
         // When: Full flow
         // 1. Create share

@@ -203,6 +203,14 @@ class MockLogger: LoggingService {
         return result
     }
 
+    func log(_ message: String, category: LogCategory, level: LogLevel, metadata: LogMetadata?, file: String = #fileID, function: String = #function, line: Int = #line) {
+        log(level: level, message: message, category: category, error: nil, metadata: metadata, file: file, function: function, line: line)
+    }
+
+    func log(_ message: String, category: LogCategory, level: LogLevel, metadata: LogMetadata?) {
+        log(level: level, message: message, category: category, error: nil, metadata: metadata, file: #fileID, function: #function, line: #line)
+    }
+
     private func log(level: LogLevel, message: String, category: LogCategory, error: Error?, metadata: LogMetadata?, file: String, function: String, line: Int) {
         // Filter by level
         guard level >= minimumLevel else { return }

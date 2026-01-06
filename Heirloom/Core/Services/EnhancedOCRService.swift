@@ -6,11 +6,7 @@ import UIKit
 /// Supports both printed and handwritten text with confidence scoring
 @MainActor
 final class EnhancedOCRService {
-    // MARK: - Singleton
-
-    static let shared = EnhancedOCRService()
-
-    private init() {}
+    init() {}
 
     // MARK: - Public API
 
@@ -334,5 +330,18 @@ extension EnhancedOCRService.OCRResult {
     /// Get confidence as percentage string
     var confidencePercentage: String {
         String(format: "%.1f%%", overallConfidence * 100)
+    }
+}
+
+// MARK: - Global Convenience
+
+extension EnhancedOCRService {
+    /// Global accessor that resolves from ServiceContainer for proper DI
+    /// Maintains backward compatibility with existing .shared usage
+    /// Note: Safe to use from any context - ServiceContainer is thread-safe
+    nonisolated(unsafe) static var shared: EnhancedOCRService {
+        MainActor.assumeIsolated {
+            ServiceContainer.shared.resolve(EnhancedOCRService.self)
+        }
     }
 }

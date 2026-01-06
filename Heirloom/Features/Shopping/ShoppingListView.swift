@@ -14,6 +14,10 @@ struct ShoppingListView: View {
     @Query private var cartRecipes: [ShoppingCartRecipe]
 
     @Environment(\.modelContext) private var modelContext
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var remindersService: RemindersService { ServiceContainer.shared.resolve(RemindersService.self) }
+
     @State private var selectedRecipeIds: Set<UUID> = []
     @State private var selectedIngredientData: IngredientRecipeData?
 
@@ -300,7 +304,7 @@ struct ShoppingListView: View {
                                 selectedIngredientData = nil
 
                                 // Show user feedback
-                                ToastManager.shared.info(
+                                toastManager.info(
                                     title: "Loading recipe data...",
                                     message: "Please try again"
                                 )
@@ -805,7 +809,7 @@ struct ShoppingListView: View {
 
         guard !items.isEmpty else {
             await MainActor.run {
-                ToastManager.shared.info(
+                toastManager.info(
                     title: "Nothing to export",
                     message: "All items are checked off"
                 )
@@ -814,9 +818,9 @@ struct ShoppingListView: View {
         }
 
         do {
-            try await RemindersService.shared.exportToReminders(items: items)
+            try await remindersService.exportToReminders(items: items)
             await MainActor.run {
-                ToastManager.shared.success(
+                toastManager.success(
                     title: "Exported to Reminders",
                     message: "Added \(items.count) items to 'Heirloom Shopping' list"
                 )
@@ -826,7 +830,7 @@ struct ShoppingListView: View {
             }
         } catch {
             await MainActor.run {
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Export failed",
                     message: error.localizedDescription
                 )

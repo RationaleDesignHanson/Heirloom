@@ -5,6 +5,14 @@ import SwiftData
 struct OCRReviewView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
+
+    // Using concrete type for now since view calls implementation-specific methods
+    private var aiIngredientParser: AIIngredientParser { ServiceContainer.shared.resolve(AIIngredientParser.self) }
+    private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     let ocrResult: EnhancedOCRService.OCRResult
     let parsedRecipe: RecipeStructureParser.ParsedRecipe
@@ -370,13 +378,13 @@ struct OCRReviewView: View {
             try modelContext.save()
 
             // Sync to Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 do {
-                    try await FirebaseSyncService.shared.uploadRecipe(recipe)
+                    try await firebaseSync.uploadRecipe(recipe)
 
                     // Upload scanned image if exists
                     if recipe.imageFileName != nil {
-                        if let imageURL = try await FirebaseSyncService.shared.uploadImage(for: recipe) {
+                        if let imageURL = try await firebaseSync.uploadImage(for: recipe) {
                             recipe.firebaseImageURL = imageURL
                             try? modelContext.save()
                         }
@@ -389,12 +397,12 @@ struct OCRReviewView: View {
             }
 
             await MainActor.run {
-                ToastManager.shared.success(
+                toastManager.success(
                     title: "Recipe saved!",
                     message: "Scanned '\(recipe.title)'"
                 )
 
-                AnalyticsService.shared.track(event: .recipeScanned, properties: [
+                analytics.track(event: .recipeScanned, properties: [
                     "source": "ocr_scan",
                     "ocr_quality": ocrResult.quality.displayName,
                     "ocr_confidence": ocrResult.overallConfidence,
@@ -412,7 +420,7 @@ struct OCRReviewView: View {
             }
         } catch {
             await MainActor.run {
-                ToastManager.shared.error(
+                toastManager.error(
                     title: "Failed to save recipe",
                     message: error.localizedDescription
                 )
@@ -425,7 +433,7 @@ struct OCRReviewView: View {
         let parsedIngredients: [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)]
 
         do {
-            parsedIngredients = try await AIIngredientParser.shared.parseBatch(ingredientTexts)
+            parsedIngredients = try await aiIngredientParser.parseBatchToTuple(ingredientTexts)
         } catch {
             Log.warning("Batch ingredient parsing failed, falling back to local parser", category: .ocr, metadata: ["error": error.localizedDescription, "ingredientCount": ingredientTexts.count])
             parsedIngredients = ingredientTexts.map { IngredientParser.parse($0) }
@@ -454,7 +462,7 @@ struct OCRReviewView: View {
 
     private func saveImage(_ image: UIImage, for recipe: Recipe) async {
         do {
-            let fileName = try await ImageStorageService.shared.saveImage(image, recipeId: recipe.id)
+            let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
             await MainActor.run {
                 recipe.imageFileName = fileName
             }

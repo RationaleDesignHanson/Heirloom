@@ -165,7 +165,7 @@ struct RecipeIngredientsSection: View {
         Ingredient(originalText: "2 cups chocolate chips", name: "chocolate chips", quantity: 2, unit: "cups", category: .bakery, orderIndex: 2)
     ]
 
-    return RecipeIngredientsSection(
+    RecipeIngredientsSection(
         recipe: recipe,
         ingredients: ingredients,
         targetServings: 48 // Double the recipe

@@ -7,7 +7,8 @@ struct GestureGuideView: View {
     @State private var selectedCategory: GestureCategory? = nil
     @Environment(\.dismiss) private var dismiss
 
-    private let gestureGuide = GestureGuide.shared
+    private var gestureGuide: GestureGuide { ServiceContainer.shared.resolve(GestureGuide.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
     var body: some View {
         NavigationStack {
@@ -30,7 +31,7 @@ struct GestureGuideView: View {
             }
             .onAppear {
                 // Track analytics
-                AnalyticsService.shared.track(event: .helpSectionViewed, properties: [
+                analytics.track(event: .helpSectionViewed, properties: [
                     "section": "gestures_guide"
                 ])
             }
@@ -172,7 +173,7 @@ struct GestureGuideView: View {
         .onChange(of: searchText) { oldValue, newValue in
             if !newValue.isEmpty {
                 // Track search
-                AnalyticsService.shared.track(event: .helpSearchPerformed, properties: [
+                analytics.track(event: .helpSearchPerformed, properties: [
                     "query": newValue,
                     "context": "gestures_guide",
                     "result_count": gestureGuide.search(newValue).count

@@ -6,18 +6,20 @@ import SwiftUI
 /// Provides real-time network status updates for offline capabilities
 @MainActor
 @Observable
-final class NetworkMonitor {
-
-    /// Shared singleton instance
-    nonisolated static let shared = NetworkMonitor()
+final class NetworkMonitor: NetworkMonitorProtocol {
 
     // MARK: - Published State
 
     /// Current network connectivity status
     private(set) var isConnected: Bool = true
 
-    /// Current connection type
-    private(set) var connectionType: ConnectionType = .unknown
+    /// Current connection type (enum)
+    private(set) var connectionTypeEnum: ConnectionType = .unknown
+
+    /// Current connection type (String) - for protocol conformance
+    var connectionType: String {
+        connectionTypeEnum.displayName
+    }
 
     /// Whether the connection is expensive (cellular data)
     private(set) var isExpensive: Bool = false
@@ -59,7 +61,7 @@ final class NetworkMonitor {
 
     // MARK: - Initialization
 
-    nonisolated private init() {
+    nonisolated init() {
         self.monitor = NWPathMonitor()
         startMonitoring()
     }
@@ -82,13 +84,13 @@ final class NetworkMonitor {
 
                 // Update connection type
                 if path.usesInterfaceType(.wifi) {
-                    self.connectionType = .wifi
+                    self.connectionTypeEnum = .wifi
                 } else if path.usesInterfaceType(.cellular) {
-                    self.connectionType = .cellular
+                    self.connectionTypeEnum = .cellular
                 } else if path.usesInterfaceType(.wiredEthernet) {
-                    self.connectionType = .wired
+                    self.connectionTypeEnum = .wired
                 } else {
-                    self.connectionType = .unknown
+                    self.connectionTypeEnum = .unknown
                 }
 
                 // Update connection characteristics
@@ -135,7 +137,7 @@ final class NetworkMonitor {
     private func logNetworkChange() {
         Log.info("Network status changed", category: .network, metadata: [
             "status": statusDescription,
-            "connectionType": connectionType.displayName,
+            "connectionType": connectionTypeEnum.displayName,
             "isExpensive": isExpensive,
             "isConstrained": isConstrained
         ])
@@ -147,14 +149,14 @@ final class NetworkMonitor {
     /// Simulate offline mode for testing (DEBUG only)
     func simulateOffline() {
         isConnected = false
-        connectionType = .unknown
+        connectionTypeEnum = .unknown
         Log.debug("Simulating offline mode", category: .network)
     }
 
     /// Simulate online mode for testing (DEBUG only)
     func simulateOnline() {
         isConnected = true
-        connectionType = .wifi
+        connectionTypeEnum = .wifi
         isExpensive = false
         isConstrained = false
         Log.debug("Simulating online mode", category: .network)

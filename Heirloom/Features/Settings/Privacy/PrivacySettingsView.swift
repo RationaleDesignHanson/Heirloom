@@ -2,7 +2,14 @@ import SwiftUI
 
 /// Privacy settings and consent management
 struct PrivacySettingsView: View {
-    @ObservedObject private var consentService = PrivacyConsentService.shared
+    @ObservedObject private var consentService: PrivacyConsentService
+    private let toastManager: ToastManager
+
+    init() {
+        self.consentService = ServiceContainer.shared.resolve(PrivacyConsentService.self)
+        self.toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+    }
+
     @State private var showPrivacyPolicy = false
     @State private var showDataExport = false
     @State private var showDeleteConfirmation = false
@@ -230,7 +237,7 @@ struct PrivacySettingsView: View {
             // This would require implementing a method in PublicShareService
             // For now, just show success message
 
-            ToastManager.shared.success(
+            toastManager.success(
                 title: "Shared Data Deleted",
                 message: "All your shared recipes have been removed from CloudKit"
             )

@@ -8,6 +8,9 @@ struct VersionSelectorView: View {
     @Binding var selectedVersionID: UUID?
     @Environment(\.modelContext) private var modelContext
 
+    // Using concrete type for version management
+    private var versionService: RecipeVersionService { ServiceContainer.shared.resolve(RecipeVersionService.self) }
+
     // Local state
     @State private var isExpanded: Bool = false
 
@@ -87,7 +90,7 @@ struct VersionSelectorView: View {
 
             // Persist selection
             do {
-                try RecipeVersionService.shared.selectVersion(
+                try versionService.selectVersion(
                     version,
                     for: recipe,
                     context: modelContext
@@ -184,6 +187,9 @@ struct CompactVersionSelector: View {
     @Binding var selectedVersionID: UUID?
     @Environment(\.modelContext) private var modelContext
 
+    // Using concrete type for version management
+    private var versionService: RecipeVersionService { ServiceContainer.shared.resolve(RecipeVersionService.self) }
+
     var body: some View {
         if recipe.hasMultipleVersions, let activeVersion = recipe.activeVersion {
             Menu {
@@ -224,7 +230,7 @@ struct CompactVersionSelector: View {
     private func selectVersion(_ version: RecipeVersion) {
         selectedVersionID = version.id
         do {
-            try RecipeVersionService.shared.selectVersion(
+            try versionService.selectVersion(
                 version,
                 for: recipe,
                 context: modelContext

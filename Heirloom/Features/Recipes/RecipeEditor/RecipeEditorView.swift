@@ -5,6 +5,21 @@ import PhotosUI
 struct RecipeEditorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
+    @Environment(\.firebaseLineage) private var firebaseLineage
+    @Environment(\.aiIngredientParser) private var aiIngredientParser
+
+    // Using concrete type for spell checker
+    private var spellChecker: AIIngredientSpellChecker { ServiceContainer.shared.resolve(AIIngredientSpellChecker.self) }
+
+    // Using concrete type for toast notifications
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
+    // Using concrete type for image storage
+    private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     @State private var recipe: Recipe
     @State private var isNewRecipe: Bool
@@ -76,190 +91,12 @@ struct RecipeEditorView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Basic Info Section
-                Section("Recipe Details") {
-                    TextField("Recipe Title", text: $title)
-                        .font(HeirloomFonts.body)
-
-                    Picker("Source", selection: $sourceType) {
-                        ForEach(RecipeSourceType.allCases, id: \.self) { type in
-                            Text(type.displayName).tag(type)
-                        }
-                    }
-                    .font(HeirloomFonts.body)
-
-                    if sourceType == .url {
-                        TextField("Recipe URL (optional)", text: $sourceURL)
-                            .font(HeirloomFonts.body)
-                            .keyboardType(.URL)
-                            .textInputAutocapitalization(.never)
-                    }
-                }
-
-                // Image Section
-                Section("Photo") {
-                    if let image = recipeImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(maxHeight: 200)
-                            .cornerRadius(8)
-                            .clipped()
-                    }
-
-                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        Label(
-                            recipeImage == nil ? "Add Photo" : "Change Photo",
-                            systemImage: "photo"
-                        )
-                        .font(HeirloomFonts.body)
-                    }
-                    .onChange(of: selectedPhoto) { _, newValue in
-                        Task {
-                            if let data = try? await newValue?.loadTransferable(type: Data.self),
-                               let image = UIImage(data: data) {
-                                recipeImage = image
-                            }
-                        }
-                    }
-                }
-
-                // Metadata Section
-                Section("Cooking Info") {
-                    HStack {
-                        Text("Servings")
-                            .font(HeirloomFonts.body)
-                        Spacer()
-                        TextField("4", text: $servings)
-                            .font(HeirloomFonts.body)
-                            .multilineTextAlignment(.trailing)
-                            .keyboardType(.numberPad)
-                            .frame(width: 100)
-                    }
-
-                    HStack {
-                        Text("Prep Time")
-                            .font(HeirloomFonts.body)
-                        Spacer()
-                        TextField("15 min", text: $prepTime)
-                            .font(HeirloomFonts.body)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                    }
-
-                    HStack {
-                        Text("Cook Time")
-                            .font(HeirloomFonts.body)
-                        Spacer()
-                        TextField("30 min", text: $cookTime)
-                            .font(HeirloomFonts.body)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                    }
-                }
-
-                // Ingredients Section
-                Section {
-                    ForEach(ingredientInputs.indices, id: \.self) { index in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                TextField("Ingredient", text: $ingredientInputs[index])
-                                    .font(HeirloomFonts.body)
-                                    .focused($focusedIngredientIndex, equals: index)
-                                    .onSubmit {
-                                        // Add new ingredient field when user presses Enter on last field
-                                        if index == ingredientInputs.count - 1 {
-                                            ingredientInputs.append("")
-                                            // Auto-focus the new field
-                                            focusedIngredientIndex = ingredientInputs.count - 1
-                                        }
-                                    }
-                                    .onChange(of: ingredientInputs[index]) { oldValue, newValue in
-                                        // Debounced spell check
-                                        checkSpelling(for: index, text: newValue)
-                                    }
-
-                                if ingredientInputs.count > 1 {
-                                    Button {
-                                        ingredientInputs.remove(at: index)
-                                        spellCheckResults.removeValue(forKey: index)
-                                    } label: {
-                                        Image(systemName: "minus.circle.fill")
-                                            .foregroundStyle(.red)
-                                    }
-                                }
-                            }
-
-                            // Show spell check suggestions if any
-                            if let result = spellCheckResults[index], result.hasIssues {
-                                ForEach(result.suggestions) { suggestion in
-                                    suggestionChip(for: suggestion, index: index)
-                                }
-                            }
-                        }
-                    }
-
-                    Button {
-                        ingredientInputs.append("")
-                    } label: {
-                        Label("Add Ingredient", systemImage: "plus.circle.fill")
-                            .font(HeirloomFonts.body)
-                    }
-                } header: {
-                    Text("Ingredients")
-                }
-
-                // Instructions Section
-                Section {
-                    ForEach(instructions.indices, id: \.self) { index in
-                        HStack(alignment: .top) {
-                            Text("\(index + 1).")
-                                .font(HeirloomFonts.bodyBold)
-                                .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
-                                .frame(width: 25, alignment: .leading)
-
-                            TextField("Step description", text: $instructions[index], axis: .vertical)
-                                .font(HeirloomFonts.body)
-                                .lineLimit(3...10)
-
-                            if instructions.count > 1 {
-                                Button {
-                                    instructions.remove(at: index)
-                                } label: {
-                                    Image(systemName: "minus.circle.fill")
-                                        .foregroundStyle(.red)
-                                }
-                            }
-                        }
-                    }
-                    .onMove { from, to in
-                        instructions.move(fromOffsets: from, toOffset: to)
-                    }
-
-                    Button {
-                        instructions.append("")
-                    } label: {
-                        Label("Add Step", systemImage: "plus.circle.fill")
-                            .font(HeirloomFonts.body)
-                    }
-                } header: {
-                    HStack {
-                        Text("Instructions")
-                        Spacer()
-                        if instructions.count > 1 {
-                            Text("Drag to reorder")
-                                .font(HeirloomFonts.caption2)
-                                .foregroundStyle(HeirloomColors.secondaryText)
-                        }
-                    }
-                }
-
-                // Notes Section
-                Section("Notes") {
-                    TextField("Add any notes or tips...", text: $notes, axis: .vertical)
-                        .font(HeirloomFonts.body)
-                        .lineLimit(3...10)
-                }
+                basicInfoSection
+                imageSection
+                metadataSection
+                ingredientsSection
+                instructionsSection
+                notesSection
             }
             .navigationTitle(isNewRecipe ? "New Recipe" : "Edit Recipe")
             .navigationBarTitleDisplayMode(.inline)
@@ -288,7 +125,7 @@ struct RecipeEditorView: View {
             .task {
                 // Load existing recipe image when editing
                 if !isNewRecipe, let imageFileName = recipe.imageFileName {
-                    if let loadedImage = await ImageStorageService.shared.loadImage(fileName: imageFileName) {
+                    if let loadedImage = await imageStorageService.loadImage(fileName: imageFileName) {
                         recipeImage = loadedImage
                         Log.info("Loaded existing recipe image", category: .storage, metadata: ["fileName": imageFileName])
                     } else {
@@ -296,6 +133,199 @@ struct RecipeEditorView: View {
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - View Sections
+
+    private var basicInfoSection: some View {
+        Section("Recipe Details") {
+            TextField("Recipe Title", text: $title)
+                .font(HeirloomFonts.body)
+
+            Picker("Source", selection: $sourceType) {
+                ForEach(RecipeSourceType.allCases, id: \.self) { type in
+                    Text(type.displayName).tag(type)
+                }
+            }
+            .font(HeirloomFonts.body)
+
+            if sourceType == .url {
+                TextField("Recipe URL (optional)", text: $sourceURL)
+                    .font(HeirloomFonts.body)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+            }
+        }
+    }
+
+    private var imageSection: some View {
+        Section("Photo") {
+            if let image = recipeImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(maxHeight: 200)
+                    .cornerRadius(8)
+                    .clipped()
+            }
+
+            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                Label(
+                    recipeImage == nil ? "Add Photo" : "Change Photo",
+                    systemImage: "photo"
+                )
+                .font(HeirloomFonts.body)
+            }
+            .onChange(of: selectedPhoto) { _, newValue in
+                Task {
+                    if let data = try? await newValue?.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data) {
+                        recipeImage = image
+                    }
+                }
+            }
+        }
+    }
+
+    private var metadataSection: some View {
+        Section("Cooking Info") {
+            HStack {
+                Text("Servings")
+                    .font(HeirloomFonts.body)
+                Spacer()
+                TextField("4", text: $servings)
+                    .font(HeirloomFonts.body)
+                    .multilineTextAlignment(.trailing)
+                    .keyboardType(.numberPad)
+                    .frame(width: 100)
+            }
+
+            HStack {
+                Text("Prep Time")
+                    .font(HeirloomFonts.body)
+                Spacer()
+                TextField("15 min", text: $prepTime)
+                    .font(HeirloomFonts.body)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 100)
+            }
+
+            HStack {
+                Text("Cook Time")
+                    .font(HeirloomFonts.body)
+                Spacer()
+                TextField("30 min", text: $cookTime)
+                    .font(HeirloomFonts.body)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 100)
+            }
+        }
+    }
+
+    private var ingredientsSection: some View {
+        Section {
+            ForEach(ingredientInputs.indices, id: \.self) { index in
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        TextField("Ingredient", text: $ingredientInputs[index])
+                            .font(HeirloomFonts.body)
+                            .focused($focusedIngredientIndex, equals: index)
+                            .onSubmit {
+                                // Add new ingredient field when user presses Enter on last field
+                                if index == ingredientInputs.count - 1 {
+                                    ingredientInputs.append("")
+                                    // Auto-focus the new field
+                                    focusedIngredientIndex = ingredientInputs.count - 1
+                                }
+                            }
+                            .onChange(of: ingredientInputs[index]) { oldValue, newValue in
+                                // Debounced spell check
+                                checkSpelling(for: index, text: newValue)
+                            }
+
+                        if ingredientInputs.count > 1 {
+                            Button {
+                                ingredientInputs.remove(at: index)
+                                spellCheckResults.removeValue(forKey: index)
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                    }
+
+                    // Show spell check suggestions if any
+                    if let result = spellCheckResults[index], result.hasIssues {
+                        ForEach(result.suggestions) { suggestion in
+                            suggestionChip(for: suggestion, index: index)
+                        }
+                    }
+                }
+            }
+
+            Button {
+                ingredientInputs.append("")
+            } label: {
+                Label("Add Ingredient", systemImage: "plus.circle.fill")
+                    .font(HeirloomFonts.body)
+            }
+        } header: {
+            Text("Ingredients")
+        }
+    }
+
+    private var instructionsSection: some View {
+        Section {
+            ForEach(instructions.indices, id: \.self) { index in
+                HStack(alignment: .top) {
+                    Text("\(index + 1).")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
+                        .frame(width: 25, alignment: .leading)
+
+                    TextField("Step description", text: $instructions[index], axis: .vertical)
+                        .font(HeirloomFonts.body)
+                        .lineLimit(3...10)
+
+                    if instructions.count > 1 {
+                        Button {
+                            instructions.remove(at: index)
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundStyle(.red)
+                        }
+                    }
+                }
+            }
+            .onMove { from, to in
+                instructions.move(fromOffsets: from, toOffset: to)
+            }
+
+            Button {
+                instructions.append("")
+            } label: {
+                Label("Add Step", systemImage: "plus.circle.fill")
+                    .font(HeirloomFonts.body)
+            }
+        } header: {
+            HStack {
+                Text("Instructions")
+                Spacer()
+                if instructions.count > 1 {
+                    Text("Drag to reorder")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
+        }
+    }
+
+    private var notesSection: some View {
+        Section("Notes") {
+            TextField("Add any notes or tips...", text: $notes, axis: .vertical)
+                .font(HeirloomFonts.body)
+                .lineLimit(3...10)
         }
     }
 
@@ -420,7 +450,7 @@ struct RecipeEditorView: View {
             var newIngredients: [Ingredient] = []
 
             // Parse all ingredients in batch for efficiency
-            let parsedResults = try await AIIngredientParser.shared.parseBatch(filteredIngredients)
+            let parsedResults = try await aiIngredientParser.parseBatch(filteredIngredients)
 
             for (index, ingredientText) in filteredIngredients.enumerated() {
                 let parsed = parsedResults[index]
@@ -444,7 +474,7 @@ struct RecipeEditorView: View {
             recipe.ingredients = newIngredients.isEmpty ? nil : newIngredients
 
             // Auto-detect recipe category for smart serving presets
-            CategoryDetectionService.shared.detectAndApply(to: recipe)
+            recipe.detectAndApplyCategory()
 
             // Save image if provided
             if let image = recipeImage {
@@ -475,6 +505,8 @@ struct RecipeEditorView: View {
                         provenanceSourceType = .shared
                     case .scan:
                         provenanceSourceType = .scanned
+                    case .heritage:
+                        provenanceSourceType = .imported
                     }
 
                     recipe.provenance = ProvenanceMetadata(
@@ -488,18 +520,18 @@ struct RecipeEditorView: View {
                 modelContext.insert(recipe)
 
                 // Track analytics
-                AnalyticsService.shared.trackRecipeCreated(recipe: recipe)
+                analytics.trackRecipeCreated(recipe: recipe)
             } else {
                 // Track analytics
-                AnalyticsService.shared.trackRecipeEdited(recipe: recipe)
+                analytics.trackRecipeEdited(recipe: recipe)
             }
 
             // CRDT-aware transactional save (v2.0+)
             // Phase 1: Upload to Firebase FIRST (if active)
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 do {
                     // Use transactional upload (uploads to Firebase, THEN marks as synced locally)
-                    try await FirebaseSyncService.shared.uploadRecipeTransactional(recipe)
+                    try await firebaseSync.uploadRecipeTransactional(recipe)
                     Log.info("Recipe synced to Firebase with transaction", category: .firebase, metadata: ["title": recipe.title])
 
                     // Track modification in lineage if this is an edit of a heirloom recipe
@@ -507,7 +539,7 @@ struct RecipeEditorView: View {
                     if !isNewRecipe {
                         Log.debug("Attempting to record lineage modification", category: .firebase)
                         do {
-                            try await FirebaseLineageService.shared.recordModification(
+                            try await firebaseLineage.recordModification(
                                 recipeId: recipe.id,
                                 changeType: .modified,
                                 changeDescription: "Recipe '\(recipe.title)' was edited",
@@ -549,7 +581,7 @@ struct RecipeEditorView: View {
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
 
-                ToastManager.shared.success(
+                toastManager.success(
                     title: isNewRecipe ? "Recipe created!" : "Recipe updated!"
                 )
                 dismiss()
@@ -562,7 +594,7 @@ struct RecipeEditorView: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.error)
 
-                    ToastManager.shared.error(
+                    toastManager.error(
                         title: "Failed to save recipe",
                         message: error.localizedDescription
                     )
@@ -592,7 +624,7 @@ struct RecipeEditorView: View {
 
             // Run spell check
             do {
-                let result = try await AIIngredientSpellChecker.shared.check(text)
+                let result = try await spellChecker.check(text)
 
                 // Update results if there are issues
                 if result.hasIssues {
@@ -672,7 +704,7 @@ struct RecipeEditorView: View {
         generator.impactOccurred()
 
         // Track analytics
-        AnalyticsService.shared.track(event: .featureUsed, properties: [
+        analytics.track(event: .featureUsed, properties: [
             "feature": "ingredient_spell_check",
             "action": "applied_suggestion",
             "original": suggestion.original,

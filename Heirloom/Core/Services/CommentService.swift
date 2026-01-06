@@ -4,8 +4,16 @@ import SwiftData
 /// Service for managing recipe comments - CRUD operations, threading, and persistence
 @MainActor
 final class CommentService {
-    static let shared = CommentService()
-    private init() {}
+    // MARK: - Dependencies
+
+    private let firebaseSync: FirebaseSyncService
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+
+    // MARK: - Initialization
+
+    init(firebaseSync: FirebaseSyncService) {
+        self.firebaseSync = firebaseSync
+    }
 
     // MARK: - Create
 
@@ -47,10 +55,10 @@ final class CommentService {
         try context.save()
 
         // Sync to Firebase if active
-        if BackendConfig.shared.isFirebaseActive {
+        if backendConfig.isFirebaseActive {
             Task {
                 do {
-                    try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipe.id)
+                    try await firebaseSync.uploadComment(comment, recipeId: recipe.id)
                     Log.info("Comment synced to Firebase", category: .firebase)
                 } catch {
                     Log.warning("Failed to sync comment to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
@@ -90,11 +98,11 @@ final class CommentService {
         try context.save()
 
         // Sync imported comments to Firebase if active
-        if BackendConfig.shared.isFirebaseActive {
+        if backendConfig.isFirebaseActive {
             Task {
                 for comment in importedComments {
                     do {
-                        try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipe.id)
+                        try await firebaseSync.uploadComment(comment, recipeId: recipe.id)
                     } catch {
                         Log.warning("Failed to sync imported comment to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                     }
@@ -174,10 +182,10 @@ final class CommentService {
         try context.save()
 
         // Sync updated comment to Firebase if active
-        if BackendConfig.shared.isFirebaseActive, let recipeId = comment.recipe?.id {
+        if backendConfig.isFirebaseActive, let recipeId = comment.recipe?.id {
             Task {
                 do {
-                    try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipeId)
+                    try await firebaseSync.uploadComment(comment, recipeId: recipeId)
                     Log.info("Updated comment synced to Firebase", category: .firebase)
                 } catch {
                     Log.warning("Failed to sync updated comment to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
@@ -192,10 +200,10 @@ final class CommentService {
         try context.save()
 
         // Sync updated vote count to Firebase if active
-        if BackendConfig.shared.isFirebaseActive, let recipeId = comment.recipe?.id {
+        if backendConfig.isFirebaseActive, let recipeId = comment.recipe?.id {
             Task {
                 do {
-                    try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipeId)
+                    try await firebaseSync.uploadComment(comment, recipeId: recipeId)
                     Log.info("Comment upvote synced to Firebase", category: .firebase)
                 } catch {
                     Log.warning("Failed to sync upvote to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
@@ -209,10 +217,10 @@ final class CommentService {
         try context.save()
 
         // Sync updated vote count to Firebase if active
-        if BackendConfig.shared.isFirebaseActive, let recipeId = comment.recipe?.id {
+        if backendConfig.isFirebaseActive, let recipeId = comment.recipe?.id {
             Task {
                 do {
-                    try await FirebaseSyncService.shared.uploadComment(comment, recipeId: recipeId)
+                    try await firebaseSync.uploadComment(comment, recipeId: recipeId)
                     Log.info("Comment downvote synced to Firebase", category: .firebase)
                 } catch {
                     Log.warning("Failed to sync downvote to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
@@ -283,10 +291,10 @@ final class CommentService {
         try context.save()
 
         // Delete from Firebase if active
-        if BackendConfig.shared.isFirebaseActive, let recipeId = recipeId {
+        if backendConfig.isFirebaseActive, let recipeId = recipeId {
             Task {
                 do {
-                    try await FirebaseSyncService.shared.deleteComment(commentId, from: recipeId)
+                    try await firebaseSync.deleteComment(commentId, from: recipeId)
                     Log.info("Comment deleted from Firebase", category: .firebase)
                 } catch {
                     Log.warning("Failed to delete comment from Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
@@ -310,11 +318,11 @@ final class CommentService {
         try context.save()
 
         // Delete all comments from Firebase if active
-        if BackendConfig.shared.isFirebaseActive {
+        if backendConfig.isFirebaseActive {
             Task {
                 for commentId in commentIds {
                     do {
-                        try await FirebaseSyncService.shared.deleteComment(commentId, from: recipeId)
+                        try await firebaseSync.deleteComment(commentId, from: recipeId)
                     } catch {
                         Log.warning("Failed to delete comment from Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
                     }

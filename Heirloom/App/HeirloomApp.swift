@@ -13,11 +13,13 @@ struct HeirloomApp: App {
     @State private var modelContainer: ModelContainer?
     @State private var showDataError = false
 
-    // Deep link coordinator for robust URL handling
-    @StateObject private var deepLinkCoordinator = DeepLinkCoordinator.shared
-
     // Dependency Injection Container
     private let serviceContainer = ServiceContainer.shared
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+
+    // Deep link coordinator for robust URL handling
+    @State private var deepLinkCoordinator: DeepLinkHandler?
 
     init() {
         // Initialize DI container with production services
@@ -28,19 +30,45 @@ struct HeirloomApp: App {
         Log.info("HeirloomApp initialization started", category: .general)
 
         // FIREBASE INITIALIZATION - Phase 1 of migration
-        DeviceLogger.shared.log("🔥 [Heirloom] Initializing Firebase...")
-        logger.info("🔥 [Heirloom] Initializing Firebase...")
-        FirebaseApp.configure()
+        // Skip Firebase initialization in test environment to prevent crashes
+        let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil ||
+                             NSClassFromString("XCTestCase") != nil
 
-        // CRITICAL: Configure Firestore settings IMMEDIATELY before any access
-        DeviceLogger.shared.log("⚙️ [Heirloom] Configuring Firestore settings...")
-        let settings = FirestoreSettings()
-        settings.cacheSettings = PersistentCacheSettings()  // Unlimited offline cache
-        Firestore.firestore().settings = settings
+        DeviceLogger.shared.log("🧪 [Heirloom] Test detection - XCTestConfigurationFilePath: \(ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil ? "YES" : "NO"), XCTestCase class: \(NSClassFromString("XCTestCase") != nil ? "YES" : "NO")")
 
-        DeviceLogger.shared.log("✅ [Heirloom] Firebase initialized successfully")
-        logger.info("✅ [Heirloom] Firebase initialized successfully")
-        Log.info("Firebase initialized successfully", category: .firebase)
+        if !isRunningTests {
+            DeviceLogger.shared.log("🔥 [Heirloom] Initializing Firebase...")
+            logger.info("🔥 [Heirloom] Initializing Firebase...")
+
+            // Only configure if not already configured
+            if FirebaseApp.app() == nil {
+                DeviceLogger.shared.log("📝 [Heirloom] Calling FirebaseApp.configure()...")
+                FirebaseApp.configure()
+                DeviceLogger.shared.log("✅ [Heirloom] FirebaseApp.configure() completed")
+
+                // CRITICAL: Configure Firestore settings IMMEDIATELY after first configuration
+                DeviceLogger.shared.log("⚙️ [Heirloom] Configuring Firestore settings...")
+                let settings = FirestoreSettings()
+                settings.cacheSettings = PersistentCacheSettings()  // Unlimited offline cache
+
+                DeviceLogger.shared.log("📝 [Heirloom] Getting Firestore instance...")
+                let firestore = Firestore.firestore()
+
+                DeviceLogger.shared.log("📝 [Heirloom] Setting Firestore settings...")
+                firestore.settings = settings
+
+                DeviceLogger.shared.log("✅ [Heirloom] Firebase initialized successfully")
+                logger.info("✅ [Heirloom] Firebase initialized successfully")
+                Log.info("Firebase initialized successfully", category: .firebase)
+            } else {
+                DeviceLogger.shared.log("ℹ️ [Heirloom] Firebase already configured")
+                logger.info("ℹ️ [Heirloom] Firebase already configured")
+            }
+        } else {
+            DeviceLogger.shared.log("🧪 [Heirloom] Test environment detected - skipping Firebase initialization")
+            logger.info("🧪 [Heirloom] Test environment detected - skipping Firebase initialization")
+            Log.info("Test environment detected - skipping Firebase initialization", category: .general)
+        }
 
         // Log active backend
         DeviceLogger.shared.log("🔧 [Heirloom] Active backend: Firebase")
@@ -74,6 +102,9 @@ struct HeirloomApp: App {
 
             _modelContainer = State(wrappedValue: container)
 
+            // Resolve deep link coordinator after services are registered
+            _deepLinkCoordinator = State(wrappedValue: serviceContainer.resolve(DeepLinkHandler.self))
+
             // Initialize services
             setupServices()
 
@@ -93,18 +124,18 @@ struct HeirloomApp: App {
                     authService: serviceContainer.resolve(FirebaseAuthService.self),
                     notificationService: serviceContainer.resolve(FirebaseNotificationService.self)
                 )
-                    .environmentObject(deepLinkCoordinator)
+                    .environmentObject(deepLinkCoordinator ?? serviceContainer.resolve(DeepLinkHandler.self))
                     .onOpenURL { url in
                         Log.info("WindowGroup received URL", category: .general, metadata: ["url": url.absoluteString])
                         logger.info("📱 WindowGroup received URL: \(url.absoluteString)")
                         DeviceLogger.shared.log("📱 [App] WindowGroup received URL: \(url.absoluteString)")
-                        deepLinkCoordinator.handle(url)
+                        deepLinkCoordinator?.handle(url)
                     }
                     .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
                         Log.info("WindowGroup received user activity", category: .general, metadata: ["activityType": userActivity.activityType])
                         logger.info("📱 WindowGroup received user activity")
                         DeviceLogger.shared.log("📱 [App] WindowGroup received user activity: \(userActivity.activityType)")
-                        deepLinkCoordinator.handle(userActivity)
+                        deepLinkCoordinator?.handle(userActivity)
                     }
             } else {
                 DataErrorView()
@@ -118,13 +149,14 @@ struct HeirloomApp: App {
 
         // Initialize image storage (in background task since it's an actor)
         Task {
-            await ImageStorageService.shared.performCleanup()
+            let imageStorageService = serviceContainer.resolve(ImageStorageService.self)
+            await imageStorageService.performCleanup()
         }
 
         // Initialize analytics
         Task { @MainActor in
-            AnalyticsService.shared.initialize()
-            AnalyticsService.shared.track(event: .appLaunched)
+            analytics.initialize()
+            analytics.track(event: .appLaunched)
         }
 
         // Request notification permissions for cooking timers
@@ -139,6 +171,23 @@ struct HeirloomApp: App {
             // Create system collections on first launch
             Task { @MainActor in
                 RecipeCollection.createSystemCollections(context: container.mainContext)
+
+                // Create heritage collections on first launch
+                RecipeCollection.createHeritageCollections(context: container.mainContext)
+
+                // Seed heritage recipes if needed (personalized 8-12 recipes)
+                let seeder = HeritageRecipeSeeder(modelContext: container.mainContext)
+                if !seeder.isSeeded() {
+                    do {
+                        let count = try await seeder.seedHeritageRecipes()
+                        Log.info("Heritage recipes seeded", category: .storage, metadata: ["count": count])
+                        DeviceLogger.shared.log("✅ [Heritage] Seeded \(count) personalized heritage recipes")
+                        analytics.track(event: .appLaunched, properties: ["heritage_recipes_seeded": count])
+                    } catch {
+                        Log.error("Failed to seed heritage recipes", category: .storage, metadata: ["error": error.localizedDescription])
+                        DeviceLogger.shared.log("❌ [Heritage] Failed to seed recipes: \(error.localizedDescription)")
+                    }
+                }
             }
 
             // Firebase sync configuration
@@ -178,7 +227,8 @@ struct HeirloomApp: App {
 
         // Process via deep link handler (will trigger when app is ready)
         let importDeepLink = URL(string: "heirloom://import?url=\(pendingURLString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!
-        DeepLinkHandler.shared.handle(importDeepLink)
+        let deepLinkHandler = serviceContainer.resolve(DeepLinkHandler.self)
+        deepLinkHandler.handle(importDeepLink)
 
         Log.info("Triggered deep link handler for share extension import", category: .general)
         DeviceLogger.shared.log("✅ [ShareExtension] Triggered deep link handler for import")
@@ -232,16 +282,36 @@ struct RootView: View {
     @ObservedObject var authService: FirebaseAuthService
     let notificationService: FirebaseNotificationService
 
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+
     var body: some View {
-        Group {
-            // Show sign-in if Firebase is active and user not authenticated
-            if BackendConfig.shared.isFirebaseActive && !authService.isAuthenticated {
-                FirebaseSignInView()
-            } else {
-                ContentView(notificationService: notificationService)
-                    .modelContainer(modelContainer)
+        // OPTION A (HYBRID AUTH UX): Always show ContentView
+        // Users can browse heritage recipes without signing in
+        // Sign-in is optional via Settings, contextual prompts when needed (e.g., sharing)
+        ContentView(notificationService: notificationService)
+            .modelContainer(modelContainer)
+            .onAppear {
+                // Start automatic sync if already authenticated on app launch
+                if authService.isAuthenticated {
+                    Log.info("User already authenticated on launch - starting automatic sync", category: .sync)
+                    DeviceLogger.shared.log("✅ [Auth] User already authenticated - starting automatic sync")
+
+                    // Resolve sync service now (after Firebase is initialized)
+                    let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+                    syncService.startAutomaticSync()
+                }
             }
-        }
+            .onChange(of: authService.isAuthenticated) { oldValue, newValue in
+                // When user signs in, start automatic sync
+                if !oldValue && newValue {
+                    Log.info("User authenticated - starting automatic Firebase sync", category: .sync)
+                    DeviceLogger.shared.log("✅ [Auth] User authenticated - starting automatic sync")
+
+                    // Resolve sync service now (after Firebase is initialized)
+                    let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+                    syncService.startAutomaticSync()
+                }
+            }
     }
 }
 
@@ -280,14 +350,14 @@ struct ContentView: View {
                 }
             }
 
-            Color.clear
+            CollectionsListView()
                 .tabItem {
-                    Label("Add", systemImage: "plus.circle.fill")
+                    Label("Collections", systemImage: "square.grid.2x2.fill")
                 }
                 .tag(1)
-                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.addTab)
-                .accessibilityLabel("Add Recipe")
-                .accessibilityHint("Opens sheet to create a new recipe")
+                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.collectionsTab)
+                .accessibilityLabel("Collections")
+                .accessibilityHint("View heritage and user collections")
 
             ShoppingListView()
                 .tabItem {
@@ -300,11 +370,11 @@ struct ContentView: View {
 
             DinnerPartyListView()
                 .tabItem {
-                    Label("Parties", systemImage: "fork.knife")
+                    Label("Meal Planning", systemImage: "calendar")
                 }
                 .tag(3)
-                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.partiesTab)
-                .accessibilityLabel("Dinner Parties")
+                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.mealPlanningTab)
+                .accessibilityLabel("Meal Planning")
                 .accessibilityHint("Plan and manage dinner parties")
 
             SettingsView()
@@ -320,12 +390,6 @@ struct ContentView: View {
         .tint(HeirloomColors.tomato)
         .toastContainer()
         .milestonesCelebration()
-        .onChange(of: selectedTab) { oldValue, newValue in
-            if newValue == 1 {
-                showAddRecipe = true
-                selectedTab = oldValue
-            }
-        }
         .sheet(isPresented: $showAddRecipe) {
             RecipeEditorView()
         }
@@ -367,6 +431,6 @@ struct ContentView: View {
     ContentView(
         notificationService: container.resolve(FirebaseNotificationService.self)
     )
-    .environmentObject(DeepLinkCoordinator.shared)
+    .environmentObject(container.resolve(DeepLinkHandler.self))
     .modelContainer(for: Recipe.self, inMemory: true)
 }

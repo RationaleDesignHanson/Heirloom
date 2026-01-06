@@ -6,7 +6,7 @@ struct BulkImportView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
-    @StateObject private var manager = ImportJobManager.shared
+    @StateObject private var manager = ServiceContainer.shared.resolve(ImportJobManager.self)
 
     @State private var pastedText = ""
     @State private var showingPreview = false

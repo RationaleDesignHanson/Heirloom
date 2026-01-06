@@ -6,11 +6,7 @@ import SwiftUI
 @MainActor
 final class RecipeLineageService {
 
-    // MARK: - Singleton
-
-    static let shared = RecipeLineageService()
-
-    private init() {}
+    init() {}
 
     // MARK: - Fetch Lineage Tree
 
@@ -89,14 +85,16 @@ final class RecipeLineageService {
             return ([], [])
         }
 
-        // Query for parent recipe
+        // Query for all recipes with provenance, then filter in memory
+        // (SwiftData predicates don't handle optional String comparisons well)
         let descriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { recipe in
-                recipe.provenance?.rootProvenanceHash == parentHash
+                recipe.provenance != nil
             }
         )
 
-        let parents = try context.fetch(descriptor)
+        let allRecipes = try context.fetch(descriptor)
+        let parents = allRecipes.filter { $0.provenance?.rootProvenanceHash == parentHash }
 
         for parent in parents {
             recipes.append(parent)
@@ -140,13 +138,17 @@ final class RecipeLineageService {
         guard let provenance = recipe.provenance else { return ([], []) }
 
         // Query for children (recipes that have this recipe as parent)
+        let rootHash = provenance.rootProvenanceHash
+
+        // Fetch all recipes with provenance, then filter in memory
         let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate { childRecipe in
-                childRecipe.provenance?.parentShareID == provenance.rootProvenanceHash
+            predicate: #Predicate<Recipe> { childRecipe in
+                childRecipe.provenance != nil
             }
         )
 
-        let children = try context.fetch(descriptor)
+        let allRecipes = try context.fetch(descriptor)
+        let children = allRecipes.filter { $0.provenance?.parentShareID == rootHash }
 
         for child in children {
             recipes.append(child)
@@ -228,27 +230,36 @@ final class RecipeLineageService {
         }
 
         // Query for siblings (same parent)
+        let recipeId = recipe.id
+
+        // Fetch all recipes with provenance, then filter in memory
         let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate { sibling in
-                sibling.provenance?.parentShareID == parentHash &&
-                sibling.id != recipe.id
+            predicate: #Predicate<Recipe> { sibling in
+                sibling.provenance != nil
             }
         )
 
-        return try context.fetch(descriptor)
+        let allRecipes = try context.fetch(descriptor)
+        return allRecipes.filter {
+            $0.provenance?.parentShareID == parentHash && $0.id != recipeId
+        }
     }
 
     /// Get direct children of a recipe
     func getDirectChildren(of recipe: Recipe, context: ModelContext) async throws -> [Recipe] {
         guard let provenance = recipe.provenance else { return [] }
 
+        let rootHash = provenance.rootProvenanceHash
+
+        // Fetch all recipes with provenance, then filter in memory
         let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate { child in
-                child.provenance?.parentShareID == provenance.rootProvenanceHash
+            predicate: #Predicate<Recipe> { child in
+                child.provenance != nil
             }
         )
 
-        return try context.fetch(descriptor)
+        let allRecipes = try context.fetch(descriptor)
+        return allRecipes.filter { $0.provenance?.parentShareID == rootHash }
     }
 }
 

@@ -5,8 +5,12 @@ import Security
 /// Adapted from Zero Inbox's environment variable pattern
 /// Uses iOS Keychain for secure storage instead of .env files
 @MainActor
-class AIConfiguration: ObservableObject {
-    static let shared = AIConfiguration()
+class AIConfiguration: ObservableObject, AIConfigurationProtocol {
+
+    // MARK: - Dependencies
+
+    private let analytics: AnalyticsService
+    private let keychain: Keychain
 
     // MARK: - Published Properties
 
@@ -45,7 +49,10 @@ class AIConfiguration: ObservableObject {
 
     // MARK: - Initialization
 
-    private init() {
+    init(analytics: AnalyticsService, keychain: Keychain) {
+        self.analytics = analytics
+        self.keychain = keychain
+
         // Default AI features to enabled if not explicitly set
         self.enableAIParsing = UserDefaults.standard.object(forKey: Keys.enableAIParsing) as? Bool ?? true
         self.enableAICategories = UserDefaults.standard.object(forKey: Keys.enableAICategories) as? Bool ?? true
@@ -74,15 +81,15 @@ class AIConfiguration: ObservableObject {
 
     /// Get API key for a provider
     func apiKey(for provider: AIProvider) -> String? {
-        return Keychain.shared.get(provider.keychainKey)
+        return keychain.get(provider.keychainKey)
     }
 
     /// Set API key for a provider
     func setAPIKey(_ key: String?, for provider: AIProvider) {
         if let key = key {
-            Keychain.shared.set(provider.keychainKey, value: key)
+            keychain.set(provider.keychainKey, value: key)
         } else {
-            Keychain.shared.delete(provider.keychainKey)
+            keychain.delete(provider.keychainKey)
         }
         objectWillChange.send()
     }
@@ -188,6 +195,23 @@ class AIConfiguration: ObservableObject {
         }
     }
 
+    // MARK: - Protocol Conformance
+
+    /// API key for protocol conformance (returns current API key or empty string)
+    var apiKey: String {
+        return currentAPIKey ?? ""
+    }
+
+    /// Default model for protocol conformance (returns parsing model)
+    var model: String {
+        return model(for: .parsing)
+    }
+
+    /// Max tokens for protocol conformance
+    var maxTokens: Int {
+        return 4096 // Default token limit
+    }
+
     // MARK: - Constants
 
     private enum Keys {
@@ -249,8 +273,7 @@ enum AITask {
 // MARK: - Keychain Helper (Adapted from Zero's secure storage pattern)
 
 class Keychain {
-    static let shared = Keychain()
-    private init() {}
+    init() {}
 
     /// Store a value in Keychain
     func set(_ key: String, value: String) {
@@ -313,13 +336,17 @@ class Keychain {
 
 @MainActor
 class AIUsageTracker: ObservableObject {
-    static let shared = AIUsageTracker()
 
     @Published var totalTokensUsed: Int = 0
     @Published var totalCost: Decimal = 0
     @Published var requestCount: Int = 0
 
-    private init() {
+    private let analytics: AnalyticsService
+    private weak var aiConfiguration: AIConfiguration?
+
+    init(analytics: AnalyticsService, aiConfiguration: AIConfiguration? = nil) {
+        self.analytics = analytics
+        self.aiConfiguration = aiConfiguration
         loadFromUserDefaults()
     }
 
@@ -334,9 +361,9 @@ class AIUsageTracker: ObservableObject {
         saveToUserDefaults()
 
         // Track in analytics
-        AnalyticsService.shared.track(event: .aiTokensUsed, properties: [
+        analytics.track(event: .aiTokensUsed, properties: [
             "provider": provider.rawValue,
-            "key_source": AIConfiguration.shared.isUsingDefaultKey ? "default" : "user",
+            "key_source": aiConfiguration?.isUsingDefaultKey ?? true ? "default" : "user",
             "input_tokens": tokens.inputTokens,
             "output_tokens": tokens.outputTokens,
             "total_tokens": tokens.totalTokens,

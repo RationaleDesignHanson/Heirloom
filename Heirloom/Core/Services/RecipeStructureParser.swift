@@ -4,11 +4,8 @@ import Foundation
 /// Identifies title, ingredients, instructions, and metadata
 @MainActor
 final class RecipeStructureParser {
-    // MARK: - Singleton
 
-    static let shared = RecipeStructureParser()
-
-    private init() {}
+    init() {}
 
     // MARK: - Public API
 
@@ -422,7 +419,9 @@ extension RecipeStructureParser.ParsedRecipe {
     /// Get ingredients as parsed ingredient objects
     /// Uses existing AIIngredientParser for detailed parsing
     func parseIngredients() async throws -> [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)] {
-        return try await AIIngredientParser.shared.parseBatch(ingredients)
+        let parser = await ServiceContainer.shared.resolve(AIIngredientParserProtocol.self)
+        let parsed = try await parser.parseBatch(ingredients)
+        return parsed.map { ($0.quantity, $0.quantityMax, $0.unit, $0.name) }
     }
 
     /// Summary of what was detected

@@ -10,9 +10,7 @@ import Foundation
 /// Global backend configuration
 /// Firebase is the only backend for data synchronization
 class BackendConfig {
-    static let shared = BackendConfig()
-
-    private init() {
+    init() {
         Log.info("BackendConfig initialized", category: .firebase, metadata: ["backend": "Firebase"])
     }
 

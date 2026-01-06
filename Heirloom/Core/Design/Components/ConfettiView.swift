@@ -7,6 +7,8 @@ struct ConfettiView: View {
     let particleCount: Int
     let duration: Double
 
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     @State private var isAnimating = false
 
     init(particleCount: Int = 50, duration: Double = 3.0) {
@@ -114,6 +116,8 @@ struct MilestoneCelebrationView: View {
     let icon: String
     @Binding var isPresented: Bool
 
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     var body: some View {
         ZStack {
             // Semi-transparent background
@@ -185,7 +189,7 @@ struct MilestoneCelebrationView: View {
             generator.notificationOccurred(.success)
 
             // Track analytics
-            AnalyticsService.shared.track(event: .featureUsed, properties: [
+            analytics.track(event: .featureUsed, properties: [
                 "feature": "milestone_celebration",
                 "milestone": title
             ])
@@ -203,12 +207,10 @@ struct MilestoneCelebrationView: View {
 /// Tracks and triggers milestone celebrations
 @MainActor
 class MilestoneManager: ObservableObject {
-    static let shared = MilestoneManager()
-
     @Published var showCelebration = false
     @Published var currentMilestone: Milestone?
 
-    private init() {}
+    init() {}
 
     struct Milestone {
         let title: String
@@ -304,7 +306,7 @@ extension View {
 
 /// Wrapper view that observes MilestoneManager to provide bindings
 private struct MilestonesCelebrationWrapper: View {
-    @ObservedObject var manager = MilestoneManager.shared
+    @ObservedObject var manager: MilestoneManager = ServiceContainer.shared.resolve(MilestoneManager.self)
 
     var body: some View {
         if manager.showCelebration,

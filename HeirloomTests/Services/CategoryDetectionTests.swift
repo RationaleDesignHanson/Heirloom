@@ -8,7 +8,7 @@ final class CategoryDetectionTests: XCTestCase {
     var modelContext: ModelContext!
 
     override func setUp() async throws {
-        service = CategoryDetectionService.shared
+        service = CategoryDetectionService()
 
         // Create in-memory container for testing
         let container = try ModelContainer(

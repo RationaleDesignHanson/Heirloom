@@ -25,7 +25,7 @@ class FirebaseConfiguration: FirebaseConfigurationProtocol {
 
     // MARK: - Initialization
 
-    init(logger: LoggingService = HeirloomLogger.shared) {
+    init(logger: LoggingService) {
         self.logger = logger
     }
 
@@ -59,7 +59,7 @@ class FirebaseConfiguration: FirebaseConfigurationProtocol {
         // Trigger lazy initialization of Firestore
         _ = db
 
-        logger.log("FirebaseConfiguration configured with model context", category: .firebase, level: .info)
+        logger.log("FirebaseConfiguration configured with model context", category: .firebase, level: .info, metadata: nil)
     }
 
     // MARK: - User Authentication

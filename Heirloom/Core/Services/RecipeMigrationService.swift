@@ -5,8 +5,7 @@ import SwiftData
 /// Run this once after deploying version support to existing users
 @MainActor
 final class RecipeMigrationService {
-    static let shared = RecipeMigrationService()
-    private init() {}
+    init() {}
 
     // MARK: - Migration
 
@@ -304,4 +303,17 @@ extension RecipeMigrationService {
         }
     }
 }
+
+// MARK: - Global Convenience
+
+extension RecipeMigrationService {
+    /// Global accessor that resolves from ServiceContainer for proper DI
+    /// Maintains backward compatibility with existing .shared usage
+    nonisolated(unsafe) static var shared: RecipeMigrationService {
+        MainActor.assumeIsolated {
+            ServiceContainer.shared.resolve(RecipeMigrationService.self)
+        }
+    }
+}
+
 #endif

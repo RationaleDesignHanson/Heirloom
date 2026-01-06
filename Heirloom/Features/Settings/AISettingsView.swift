@@ -2,8 +2,12 @@ import SwiftUI
 
 /// AI service configuration and monitoring view
 struct AISettingsView: View {
-    @StateObject private var config = AIConfiguration.shared
-    @StateObject private var tracker = AIUsageTracker.shared
+    @StateObject private var config = ServiceContainer.shared.resolve(AIConfiguration.self)
+    @StateObject private var tracker = ServiceContainer.shared.resolve(AIUsageTracker.self)
+    @Environment(\.aiService) private var aiService
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
     @State private var apiKey: String = ""
     @State private var isTestRunning = false
@@ -339,12 +343,12 @@ struct AISettingsView: View {
         config.setAPIKey(apiKey, for: .anthropic)
         showingAPIKeyInput = false
 
-        ToastManager.shared.success(
+        toastManager.success(
             title: "API Key Saved",
             message: "AI features are now available"
         )
 
-        AnalyticsService.shared.track(event: .settingChanged, properties: [
+        analytics.track(event: .settingChanged, properties: [
             "setting": "ai_api_key",
             "action": "configured"
         ])
@@ -360,15 +364,15 @@ struct AISettingsView: View {
             config.enableAIParsing = false
             config.enableAICategories = false
             config.enableAIEnhancement = false
-            ToastManager.shared.success(title: "API Key Removed")
+            toastManager.success(title: "API Key Removed")
         } else {
-            ToastManager.shared.success(
+            toastManager.success(
                 title: "Personal Key Removed",
                 message: "Now using shared key with daily limits"
             )
         }
 
-        AnalyticsService.shared.track(event: .settingChanged, properties: [
+        analytics.track(event: .settingChanged, properties: [
             "setting": "ai_api_key",
             "action": "removed"
         ])
@@ -376,7 +380,7 @@ struct AISettingsView: View {
 
     private func resetUsage() {
         tracker.reset()
-        ToastManager.shared.success(title: "Usage Statistics Reset")
+        toastManager.success(title: "Usage Statistics Reset")
     }
 
     private func runTest() {
@@ -385,8 +389,7 @@ struct AISettingsView: View {
 
         Task {
             do {
-                let service = AnthropicAIService.shared
-                let response = try await service.complete(
+                let response = try await aiService.complete(
                     prompt: "Say 'AI is working!' in exactly 3 words.",
                     options: AICompletionOptions(
                         model: "claude-3-haiku-20240307",

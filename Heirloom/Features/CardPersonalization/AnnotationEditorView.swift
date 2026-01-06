@@ -5,6 +5,9 @@ struct RecipeAnnotationEditorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     @Bindable var recipe: Recipe
 
     let annotation: RecipeAnnotation?
@@ -439,19 +442,19 @@ struct RecipeAnnotationEditorView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(
+            toastManager.success(
                 title: isEditing ? "Note updated!" : "Note added!"
             )
 
             // Track analytics
-            AnalyticsService.shared.track(event: .recipeEdited, properties: [
+            analytics.track(event: .recipeEdited, properties: [
                 "action": isEditing ? "annotation_updated" : "annotation_added",
                 "style": style.rawValue
             ])
 
             dismiss()
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to save note",
                 message: error.localizedDescription
             )
@@ -470,11 +473,11 @@ struct RecipeAnnotationEditorView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Note deleted")
+            toastManager.success(title: "Note deleted")
 
             dismiss()
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to delete note",
                 message: error.localizedDescription
             )

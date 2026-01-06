@@ -1,32 +1,17 @@
 import Foundation
 import UIKit
 
-/// Image use case for optimized processing
-enum ImageUseCase {
-    case ocr        // High quality for text recognition (2048px, 0.95 compression)
-    case display    // Balanced quality for general use (1600px, 0.85 compression)
-
-    var maxDimension: CGFloat {
-        switch self {
-        case .ocr: return 2048
-        case .display: return 1600
-        }
-    }
-
-    var compressionQuality: CGFloat {
-        switch self {
-        case .ocr: return 0.95
-        case .display: return 0.85
-        }
-    }
-}
-
 /// Anthropic Claude AI service client
 /// Adapted from Zero Inbox's OpenAI integration pattern
 /// Uses Claude API for food/recipe domain expertise including vision capabilities
 @MainActor
 class AnthropicAIService: AIServiceProtocol {
-    static let shared = AnthropicAIService()
+    // MARK: - Dependencies
+
+    private let configuration: AIConfigurationProtocol
+    private let usageTracker: AIUsageTracker
+
+    // MARK: - Properties
 
     private let apiVersion = "2023-06-01"
     private let baseURL = "https://api.anthropic.com/v1"
@@ -37,12 +22,14 @@ class AnthropicAIService: AIServiceProtocol {
     var providerName: String { "Anthropic" }
 
     var isConfigured: Bool {
-        return AIConfiguration.shared.isConfigured(provider: .anthropic)
+        return configuration.isConfigured(provider: .anthropic)
     }
 
     // MARK: - Initialization
 
-    private init() {
+    init(configuration: AIConfigurationProtocol, usageTracker: AIUsageTracker) {
+        self.configuration = configuration
+        self.usageTracker = usageTracker
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
@@ -56,7 +43,7 @@ class AnthropicAIService: AIServiceProtocol {
         options: AICompletionOptions? = nil
     ) async throws -> AICompletionResponse {
         // Check rate limit (for default key users)
-        let config = AIConfiguration.shared
+        let config = configuration
         guard config.canMakeRequest() else {
             throw AIError.quotaExceeded(
                 provider: providerName,
@@ -72,7 +59,7 @@ class AnthropicAIService: AIServiceProtocol {
 
         // Build request
         let opts = options ?? .default
-        let model = opts.model ?? AIConfiguration.shared.model(for: .parsing)
+        let model = opts.model ?? configuration.model(for: .parsing)
 
         let requestBody = AnthropicRequest(
             model: model,
@@ -144,7 +131,7 @@ class AnthropicAIService: AIServiceProtocol {
         useCase: ImageUseCase = .display
     ) async throws -> AICompletionResponse {
         // Check rate limit
-        let config = AIConfiguration.shared
+        let config = configuration
         guard config.canMakeRequest() else {
             throw AIError.quotaExceeded(
                 provider: providerName,
@@ -174,7 +161,7 @@ class AnthropicAIService: AIServiceProtocol {
 
         // Build request with vision content
         let opts = options ?? .default
-        let model = opts.model ?? AIConfiguration.shared.model(for: .vision)
+        let model = opts.model ?? configuration.model(for: .vision)
 
         let requestBody = AnthropicVisionRequest(
             model: model,
@@ -318,10 +305,10 @@ class AnthropicAIService: AIServiceProtocol {
         )
 
         // Track usage
-        AIUsageTracker.shared.trackUsage(tokens: usage, provider: .anthropic)
+        usageTracker.trackUsage(tokens: usage, provider: .anthropic)
 
         // Increment request counter for rate limiting
-        AIConfiguration.shared.incrementRequestCount()
+        configuration.incrementRequestCount()
 
         return AICompletionResponse(
             content: content,

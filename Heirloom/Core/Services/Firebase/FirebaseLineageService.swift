@@ -15,17 +15,15 @@ import FirebaseAuth
 /// Service for managing recipe lineage in Firebase
 /// Tracks family trees and syncs modifications across the heirloom network
 @MainActor
-class FirebaseLineageService: ObservableObject {
+class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
 
     // MARK: - Dependencies
 
-    private let firebaseSync: FirebaseSyncServiceProtocol
     private let logger: LoggingService
 
     // MARK: - Initialization
 
-    init(firebaseSync: FirebaseSyncServiceProtocol, logger: LoggingService) {
-        self.firebaseSync = firebaseSync
+    init(logger: LoggingService) {
         self.logger = logger
     }
 

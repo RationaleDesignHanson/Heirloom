@@ -4,9 +4,11 @@ import Foundation
 /// Provides more accurate parsing with fallback to local parser
 @MainActor
 class CloudRecipeImportService {
-    static let shared = CloudRecipeImportService()
+    private let importService: RecipeImportService
 
-    private init() {}
+    init(importService: RecipeImportService) {
+        self.importService = importService
+    }
 
     // Cloud Function URLs (deployed to Cloud Run)
     private let baseURL = "https://importrecipe-7kk7et3yua-uc.a.run.app"
@@ -100,7 +102,7 @@ class CloudRecipeImportService {
 
             // Fall back to local parser
             do {
-                let localRecipe = try await RecipeImportService.shared.importRecipe(from: url)
+                let localRecipe = try await importService.importRecipe(from: url)
 
                 // Convert to ImportResponse format
                 return ImportResponse(

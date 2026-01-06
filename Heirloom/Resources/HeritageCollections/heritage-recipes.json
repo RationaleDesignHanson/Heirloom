@@ -1,0 +1,3447 @@
+{
+  "version": "1.0.0",
+  "description": "Founding heritage collections for Heirloom cold start",
+  "recipes": [
+    {
+      "id": "presidential-001",
+      "title": "Martha Washington's Great Cake",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Makes 1 large cake (serves 40)",
+      "prepTime": "2 hours",
+      "cookTime": "4 hours",
+      "ingredients": [
+        "40 eggs",
+        "4 pounds of butter",
+        "4 pounds of sugar",
+        "5 pounds of flour",
+        "5 pounds of fruit (raisins, currants)",
+        "1/2 pint of wine",
+        "1/2 pint of brandy",
+        "4 ounces of mace and nutmeg",
+        "2 ounces of cinnamon",
+        "3 large spoonfuls of yeast"
+      ],
+      "instructions": [
+        "Work the butter to a cream with your hands.",
+        "Beat the sugar into the butter, alternating with the eggs.",
+        "Add the wine, brandy, and spices.",
+        "Mix in the flour gradually.",
+        "Add the fruit last.",
+        "Let rise for 2 hours in a warm place.",
+        "Bake in a slow oven for 4 hours."
+      ],
+      "historicalText": "Take 40 eggs and divide the whites from the yolks and beat them to a froth. Start to work 4 lb of butter with your hand till it is like a fine thick cream, then beat in 4 lb of sugar a small handful at a time. Take 5 lb of flour and mix in it 1/2 pint of wine and 1/2 pint of brandy. Pour this to the butter and sugar, add the eggs and spices. Work it all together with your hand, add your fruit and let it stand to rise 2 hours. Then bake in a slow oven for 4 hours.",
+      "historicalContext": "This recipe from Martha Washington's personal cookbook (circa 1749) was a centerpiece of presidential entertaining at Mount Vernon. The cake's massive scale\u201440 eggs and 4 pounds of butter\u2014demonstrates the grandeur of 18th-century hospitality. It was traditionally served at holidays and important state occasions.",
+      "sourceAttribution": "Martha Washington's Booke of Cookery, Mount Vernon Ladies' Association",
+      "sourceDate": "1749",
+      "sourceURL": "https://www.mountvernon.org/library/digitalhistory/digital-encyclopedia/article/martha-washingtons-great-cake",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-001.png?alt=media",
+      "tags": [
+        "dessert",
+        "holiday",
+        "entertaining"
+      ]
+    },
+    {
+      "id": "presidential-002",
+      "title": "Thomas Jefferson's Ice Cream",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 8-10",
+      "prepTime": "30 minutes",
+      "cookTime": "20 minutes (plus freezing)",
+      "ingredients": [
+        "2 bottles of good cream",
+        "6 egg yolks",
+        "1/2 pound of sugar"
+      ],
+      "instructions": [
+        "Mix the yolks and sugar together in a saucepan.",
+        "Add the cream gradually, stirring constantly.",
+        "Heat gently until the mixture coats the back of a spoon.",
+        "Strain through a fine sieve.",
+        "Pour into a sabottiere (ice cream maker).",
+        "Freeze in ice mixed with salt.",
+        "Work the mixture every 5 minutes until frozen."
+      ],
+      "historicalText": "Mix the yolks & sugar. Put the cream on a fire in a casserole, first putting in a stick of Vanilla. When near boiling take it off & pour it gently into the mixture of eggs & sugar. Stir it well. Put it on the fire again stirring it thoroughly with a spoon to prevent it's sticking to the casserole. When near boiling take it off and strain it thro' a towel. Put it in the Sabottiere then set it in ice an hour before it is to be served. Put into the ice a handful of salt.",
+      "historicalContext": "Thomas Jefferson is credited with introducing ice cream to America after encountering it in France during his time as Minister to France (1784-1789). His handwritten recipe, preserved in the Library of Congress, is one of the earliest American ice cream recipes. He served it at presidential dinners using a specially designed ice house at Monticello.",
+      "sourceAttribution": "Thomas Jefferson's personal recipe notes, Library of Congress",
+      "sourceDate": "1780s",
+      "sourceURL": "https://www.loc.gov/item/mtj1.029_0568_0571/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-002.png?alt=media",
+      "tags": [
+        "dessert",
+        "frozen"
+      ]
+    },
+    {
+      "id": "literary-001",
+      "title": "Mrs. Beeton's Beefsteak and Kidney Pudding",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 6",
+      "prepTime": "45 minutes",
+      "cookTime": "4 hours",
+      "ingredients": [
+        "1 1/2 lb beef steak",
+        "6 oz beef kidney",
+        "1/4 lb suet crust",
+        "1 onion, finely chopped",
+        "1 tablespoon flour",
+        "Salt and pepper",
+        "1/4 pint stock or water"
+      ],
+      "instructions": [
+        "Cut the steak and kidney into small pieces.",
+        "Roll in seasoned flour.",
+        "Line a pudding basin with two-thirds of the suet crust.",
+        "Fill with the meat mixture and onion.",
+        "Add stock or water.",
+        "Cover with remaining pastry.",
+        "Cover with cloth and steam for 4 hours."
+      ],
+      "historicalText": "Cut the steak into convenient-sized pieces, removing all skin and bone; divide the kidney, and take away all the fat and sinew. Mix the flour with the salt and pepper, and dredge it over the meat and kidney. Butter a pudding-basin, line it with suet-paste, fill in the meat, pouring in sufficient water, or weak stock, to half fill the basin. Cover with crust, and pinch the edges well together. Tie the pudding in a cloth, plunge it into boiling water, and boil from 3\u00bd to 4 hours.",
+      "historicalContext": "From 'Mrs. Beeton's Book of Household Management' (1861), this Victorian classic represents the hearty fare of 19th-century British literature. Isabella Beeton's comprehensive cookbook was a bestseller and influenced generations of cooks. This pudding appears in works by Dickens and other Victorian authors as the epitome of English comfort food.",
+      "sourceAttribution": "Mrs. Beeton's Book of Household Management",
+      "sourceDate": "1861",
+      "sourceURL": "https://www.gutenberg.org/ebooks/10136",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-001.png?alt=media",
+      "tags": [
+        "main dish",
+        "British",
+        "Victorian"
+      ]
+    },
+    {
+      "id": "literary-002",
+      "title": "Moby-Dick's Chowder",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 6-8",
+      "prepTime": "20 minutes",
+      "cookTime": "40 minutes",
+      "ingredients": [
+        "2 lb cod or haddock",
+        "6 strips salt pork, diced",
+        "2 onions, sliced",
+        "4 large potatoes, diced",
+        "4 cups milk",
+        "2 cups water",
+        "Salt and pepper",
+        "Ship's biscuit or common crackers"
+      ],
+      "instructions": [
+        "Fry the salt pork until crisp, remove and set aside.",
+        "Cook onions in the pork fat until soft.",
+        "Layer fish and potatoes in a large pot.",
+        "Add water and simmer until potatoes are tender.",
+        "Add milk and heat gently (do not boil).",
+        "Season with salt and pepper.",
+        "Serve with pork scraps and crackers."
+      ],
+      "historicalText": "First take a cod of respectable size, second cut into slices one inch thick, third put them in a pot with layers of sliced raw potatoes, fourth scatter in salt pork cut in small slices, season with pepper, salt, and such spices as may suit the taste, cover with water and let simmer till the potatoes are done, sixth add crackers soaked in milk, seventh let it heat a little longer and the chowder is made.",
+      "historicalContext": "Herman Melville's 'Moby-Dick' (1851) features an entire chapter devoted to chowder, specifically the 'clam and cod chowder' served at the Try Pots inn in Nantucket. This New England fishing staple sustained whalers during long voyages and became synonymous with American maritime culture. Melville's description captures the democratic spirit of communal eating aboard whaling ships.",
+      "sourceAttribution": "Based on descriptions in Moby-Dick and 19th-century whaling ship records",
+      "sourceDate": "1851",
+      "sourceURL": "https://www.gutenberg.org/ebooks/2701",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-002.png?alt=media",
+      "tags": [
+        "soup",
+        "seafood",
+        "New England"
+      ]
+    },
+    {
+      "id": "ancient-001",
+      "title": "Apicius' Conditum Paradoxum",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Makes 1 amphora (about 6 bottles)",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes (plus aging)",
+      "ingredients": [
+        "1 gallon honey wine",
+        "15 g black pepper",
+        "4 bay leaves",
+        "2 g saffron",
+        "5 dates, pitted",
+        "Additional honey to taste"
+      ],
+      "instructions": [
+        "Combine honey wine with pepper, bay leaves, and saffron in a pot.",
+        "Heat gently, but do not boil.",
+        "Add pitted dates.",
+        "Strain through a cloth.",
+        "Store in sealed vessels.",
+        "Age for at least one month before serving."
+      ],
+      "historicalText": "Melt honey in wine with pepper, bay leaves, saffron and dates. When warmed, pour into vessels for aging. The older it gets, the better it becomes.",
+      "historicalContext": "This spiced wine from Apicius' 'De Re Coquinaria' (circa 4th century CE) was served at Roman banquets. The recipe showcases the Roman love of complex flavors and expensive spices. 'Paradoxum' means 'special' or 'paradoxical,' likely referring to its unique combination of sweet honey, aromatic spices, and pungent pepper. It was considered both a digestive aid and a symbol of wealth.",
+      "sourceAttribution": "Apicius, De Re Coquinaria",
+      "sourceDate": "4th century CE",
+      "sourceURL": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Apicius/home.html",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-001.png?alt=media",
+      "tags": [
+        "beverage",
+        "spiced wine",
+        "Roman"
+      ]
+    },
+    {
+      "id": "ancient-002",
+      "title": "Roman Patina de Piris",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 6",
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "ingredients": [
+        "6 pears, peeled and cored",
+        "1/2 cup honey",
+        "1/2 cup passum (or sweet wine)",
+        "1 tsp cumin",
+        "4 eggs",
+        "2 cups milk",
+        "Pepper and lovage to taste",
+        "Olive oil for greasing"
+      ],
+      "instructions": [
+        "Poach the pears in honey and passum until tender.",
+        "Grind pepper, cumin, and lovage together.",
+        "Beat eggs with milk.",
+        "Add spices to egg mixture.",
+        "Arrange pears in an oiled dish.",
+        "Pour egg mixture over pears.",
+        "Bake in a moderate oven until set.",
+        "Serve warm with the poaching liquid drizzled over."
+      ],
+      "historicalText": "Patina de piris: pira elixa et purgata e medio teres cum pipere, cumino, melle, passo, liquamine et oleo modico. Ovis missis, in cumana facies, piper supra aspargis et inferes.",
+      "historicalContext": "Patina (the origin of our word 'pan') was a Roman custard-style dish, both savory and sweet. This pear patina from Apicius demonstrates Roman sophistication in combining fruits, spices, and dairy. The use of passum (raisin wine) and exotic spices like cumin shows the extensive trade networks of the Roman Empire. It was likely served as part of the secunda mensa (second course) at elaborate dinners.",
+      "sourceAttribution": "Apicius, De Re Coquinaria, Book IV",
+      "sourceDate": "4th century CE",
+      "sourceURL": "https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Apicius/4*.html",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-002.png?alt=media",
+      "tags": [
+        "dessert",
+        "fruit",
+        "Roman",
+        "custard"
+      ]
+    },
+    {
+      "id": "american-001",
+      "title": "Colonial Brown Bread",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 2 loaves",
+      "prepTime": "15 minutes",
+      "cookTime": "3 hours (steaming)",
+      "ingredients": [
+        "1 cup rye meal",
+        "1 cup Indian meal (cornmeal)",
+        "1 cup graham flour",
+        "3/4 cup molasses",
+        "2 cups sour milk or buttermilk",
+        "2 tsp salt",
+        "2 tsp baking soda",
+        "1 cup raisins (optional)"
+      ],
+      "instructions": [
+        "Mix all dry ingredients in a large bowl.",
+        "Stir in molasses and sour milk.",
+        "Add raisins if desired.",
+        "Pour into greased pudding molds or coffee cans, filling 2/3 full.",
+        "Cover tightly with lids or cloth.",
+        "Steam for 3 hours in a large pot with water halfway up the molds.",
+        "Cool slightly before unmolding.",
+        "Slice and serve warm with butter."
+      ],
+      "historicalText": "One cup Indian meal, one cup rye meal, one cup graham flour, three-quarters cup molasses, two cups sour milk, two teaspoons salt, two teaspoons soda. Steam three hours.",
+      "historicalContext": "Boston Brown Bread was a staple of colonial New England, developed when wheat was scarce and settlers relied on native corn (maize) and imported rye. Traditionally steamed in special cylindrical molds on Saturday and served with baked beans for Sunday dinner (as cooking on the Sabbath was prohibited). The three types of flour represent the agricultural diversity of colonial America.",
+      "sourceAttribution": "Colonial New England kitchens, Fannie Farmer's Boston Cooking-School Cook Book",
+      "sourceDate": "1600s-1700s (standardized 1896)",
+      "sourceURL": "https://www.gutenberg.org/ebooks/13923",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-001.png?alt=media",
+      "tags": [
+        "bread",
+        "colonial",
+        "New England"
+      ]
+    },
+    {
+      "id": "american-002",
+      "title": "Shaker Lemon Pie",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 8",
+      "prepTime": "24 hours (for maceration)",
+      "cookTime": "45 minutes",
+      "ingredients": [
+        "2 whole lemons, washed",
+        "2 cups sugar",
+        "4 eggs, well beaten",
+        "Pastry for 9-inch double crust pie",
+        "1/4 tsp salt"
+      ],
+      "instructions": [
+        "Slice lemons paper-thin, removing seeds.",
+        "Combine lemon slices with sugar in a bowl.",
+        "Let stand 24 hours, stirring occasionally.",
+        "Add beaten eggs and salt to lemon mixture.",
+        "Line pie pan with bottom crust.",
+        "Pour filling into crust, spreading evenly.",
+        "Cover with top crust, seal edges, and cut vents.",
+        "Bake at 450\u00b0F for 15 minutes, then at 375\u00b0F for 30 minutes.",
+        "Cool completely before serving."
+      ],
+      "historicalText": "Slice two lemons as thin as paper, rind and all. Place in a bowl with two cups sugar, mix well and let stand over night or for 24 hours. Then add four well beaten eggs. Pour into a crust-lined pie plate, arrange lemon slices evenly. Cover with top crust, cut several slits near center. Bake in hot oven 15 minutes, reduce heat and bake 30 minutes more or until silver knife inserted comes out clean.",
+      "historicalContext": "This ingenious recipe from the Ohio Shaker community (circa 1800s) demonstrates the sect's commitment to simplicity and waste reduction\u2014the entire lemon, rind and all, is used. The Shakers were known for their innovative agricultural and culinary practices. This pie became a symbol of American resourcefulness and Shaker perfectionism, where economy met elegance.",
+      "sourceAttribution": "Shaker community records, North Union Shaker Village",
+      "sourceDate": "1800s",
+      "sourceURL": "https://shakerheritage.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-002.png?alt=media",
+      "tags": [
+        "dessert",
+        "pie",
+        "Shaker",
+        "lemon"
+      ]
+    },
+    {
+      "id": "presidential-003",
+      "title": "Abraham Lincoln's Gingerbread",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 12",
+      "prepTime": "20 minutes",
+      "cookTime": "35 minutes",
+      "ingredients": [
+        "1 cup molasses",
+        "1 cup sugar",
+        "1 cup butter, softened",
+        "3 eggs",
+        "1 tablespoon ginger",
+        "1 teaspoon cinnamon",
+        "3 cups flour",
+        "1 cup hot water",
+        "1 teaspoon baking soda dissolved in hot water"
+      ],
+      "instructions": [
+        "Cream together butter and sugar until light.",
+        "Beat in eggs one at a time.",
+        "Mix in molasses.",
+        "Combine flour, ginger, and cinnamon.",
+        "Dissolve baking soda in hot water.",
+        "Add flour mixture and soda water alternately to butter mixture.",
+        "Pour into greased 9x13 pan.",
+        "Bake at 350\u00b0F for 35 minutes until toothpick comes out clean.",
+        "Serve warm with whipped cream."
+      ],
+      "historicalText": "One cup molasses, one cup sugar, one cup butter, three eggs, ginger and cinnamon to taste, three cups flour, one cup hot water with one teaspoon saleratus dissolved. Bake in moderate oven.",
+      "historicalContext": "Abraham Lincoln had a well-documented fondness for gingerbread, which Mary Todd Lincoln often served at the White House. This soft, cake-like gingerbread was common in 19th-century America. Lincoln reportedly enjoyed it with coffee during long cabinet meetings. The recipe uses saleratus (an early leavening agent) and reflects Civil War-era baking.",
+      "sourceAttribution": "Mary Todd Lincoln's White House recipes, Illinois State Historical Society",
+      "sourceDate": "1860s",
+      "sourceURL": "https://www.whitehousehistory.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-003.png?alt=media",
+      "tags": [
+        "dessert",
+        "cake",
+        "gingerbread"
+      ]
+    },
+    {
+      "id": "presidential-004",
+      "title": "Eleanor Roosevelt's Scrambled Eggs",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 4",
+      "prepTime": "5 minutes",
+      "cookTime": "10 minutes",
+      "ingredients": [
+        "8 eggs",
+        "1/2 cup heavy cream",
+        "3 tablespoons butter",
+        "Salt and white pepper to taste",
+        "2 tablespoons fresh chives, chopped",
+        "Toast points for serving"
+      ],
+      "instructions": [
+        "Beat eggs with cream, salt, and white pepper.",
+        "Melt butter in a heavy skillet over low heat.",
+        "Pour in egg mixture.",
+        "Stir constantly with a wooden spoon, scraping bottom.",
+        "Cook slowly until eggs are creamy and just set.",
+        "Remove from heat while still slightly soft.",
+        "Garnish with chives.",
+        "Serve immediately on toast points."
+      ],
+      "historicalText": "Eight eggs, half cup of cream, butter the size of a walnut, salt and pepper. Beat eggs lightly, add cream. Melt butter in skillet, cook slowly, stirring constantly. Serve on toast when creamy but not dry.",
+      "historicalContext": "Eleanor Roosevelt served these luxurious scrambled eggs at informal White House breakfasts during the 1930s-40s. Known for championing simple, wholesome food despite White House formality, she insisted on slow cooking for the creamiest texture. The recipe reflects Depression-era pragmatism while maintaining elegance through proper technique.",
+      "sourceAttribution": "Eleanor Roosevelt's personal recipe collection",
+      "sourceDate": "1930s-1940s",
+      "sourceURL": "https://www.fdrlibrary.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-004.png?alt=media",
+      "tags": [
+        "breakfast",
+        "eggs",
+        "main dish"
+      ]
+    },
+    {
+      "id": "presidential-005",
+      "title": "Dolley Madison's Oyster Soup",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 6",
+      "prepTime": "15 minutes",
+      "cookTime": "20 minutes",
+      "ingredients": [
+        "2 dozen fresh oysters with liquor",
+        "4 cups whole milk",
+        "1 cup heavy cream",
+        "4 tablespoons butter",
+        "2 tablespoons flour",
+        "1/4 teaspoon mace",
+        "Salt and white pepper",
+        "Oyster crackers for serving"
+      ],
+      "instructions": [
+        "Strain oyster liquor and reserve.",
+        "Heat oyster liquor until edges curl (about 3 minutes).",
+        "Remove oysters and keep warm.",
+        "Make roux with butter and flour.",
+        "Slowly add milk, cream, and oyster liquor to roux.",
+        "Season with mace, salt, and pepper.",
+        "Simmer gently for 10 minutes (do not boil).",
+        "Add oysters back just before serving.",
+        "Serve with oyster crackers."
+      ],
+      "historicalText": "Take two dozen oysters and their liquor. Scald the oysters in their own liquor. When the edges curl, remove them. Make a white sauce with butter, flour, milk and cream. Season with mace. Return oysters to soup and heat through. Serve immediately.",
+      "historicalContext": "Dolley Madison was renowned for her elegant entertaining during James Madison's presidency (1809-1817). Oyster soup was a fashionable first course in Federal-era Washington. The Madisons sourced oysters from the Chesapeake Bay, and Dolley's Wednesday evening 'drawing rooms' often featured this refined soup, showcasing American ingredients with European technique.",
+      "sourceAttribution": "Dolley Madison's recipe book, James Madison's Montpelier",
+      "sourceDate": "1810s",
+      "sourceURL": "https://www.montpelier.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-005.png?alt=media",
+      "tags": [
+        "soup",
+        "seafood",
+        "appetizer"
+      ]
+    },
+    {
+      "id": "presidential-006",
+      "title": "Jacqueline Kennedy's Chicken Casserole",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 8",
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "ingredients": [
+        "4 cups cooked chicken, diced",
+        "1 can cream of mushroom soup",
+        "1 cup sour cream",
+        "1/2 cup chicken broth",
+        "1 package frozen peas",
+        "1 can water chestnuts, sliced",
+        "2 cups herb stuffing mix",
+        "4 tablespoons butter, melted",
+        "1/2 cup slivered almonds"
+      ],
+      "instructions": [
+        "Mix soup, sour cream, and broth together.",
+        "Fold in chicken, peas, and water chestnuts.",
+        "Pour into buttered 9x13 baking dish.",
+        "Toss stuffing with melted butter.",
+        "Spread stuffing over chicken mixture.",
+        "Top with almonds.",
+        "Bake at 350\u00b0F for 45 minutes until golden and bubbly.",
+        "Let stand 10 minutes before serving."
+      ],
+      "historicalText": "Combine cooked chicken with cream soup, sour cream, and vegetables. Top with herb dressing mixed with butter. Bake until golden. This is wonderful for informal suppers.",
+      "historicalContext": "This quintessentially 1960s casserole was a Jackie Kennedy favorite for family dinners, contrasting with the formal French cuisine served at state dinners. It represents mid-century American comfort food and Jackie's ability to balance haute cuisine with approachable family meals. The use of convenience foods (canned soup, frozen vegetables) reflects the era's culinary trends.",
+      "sourceAttribution": "White House social secretary records, Kennedy Library",
+      "sourceDate": "1960s",
+      "sourceURL": "https://www.jfklibrary.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-006.png?alt=media",
+      "tags": [
+        "main dish",
+        "casserole",
+        "chicken"
+      ]
+    },
+    {
+      "id": "presidential-007",
+      "title": "FDR's Favorite Grilled Cheese",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 1",
+      "prepTime": "5 minutes",
+      "cookTime": "8 minutes",
+      "ingredients": [
+        "2 slices white bread",
+        "3 tablespoons butter, softened",
+        "3 slices sharp cheddar cheese",
+        "2 slices tomato",
+        "2 strips crispy bacon"
+      ],
+      "instructions": [
+        "Butter one side of each bread slice generously.",
+        "Place one slice butter-side down in skillet.",
+        "Layer cheese, tomato, and bacon on bread.",
+        "Top with second slice, butter-side up.",
+        "Cook over medium heat until golden brown (4 minutes).",
+        "Flip carefully and cook other side until golden.",
+        "Press gently with spatula while cooking.",
+        "Cut diagonally and serve hot."
+      ],
+      "historicalText": "Good white bread, sharp cheese, ripe tomato, bacon. Butter both sides liberally. Grill until cheese melts and bread is golden. The President likes his with bacon.",
+      "historicalContext": "Franklin Roosevelt's love of simple comfort food was well-documented, despite Eleanor's advocacy for plainer fare. He insisted on grilled cheese for late-night snacks during wartime strategy sessions. This upgraded version with bacon and tomato was FDR's preference, prepared by the White House kitchen staff. It provided comfort during the pressures of Depression and war.",
+      "sourceAttribution": "White House usher's diary, FDR Presidential Library",
+      "sourceDate": "1930s-1940s",
+      "sourceURL": "https://www.fdrlibrary.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-007.png?alt=media",
+      "tags": [
+        "lunch",
+        "sandwich",
+        "comfort food"
+      ]
+    },
+    {
+      "id": "presidential-008",
+      "title": "Harry Truman's Ozark Pudding",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 8",
+      "prepTime": "15 minutes",
+      "cookTime": "35 minutes",
+      "ingredients": [
+        "1 egg",
+        "3/4 cup sugar",
+        "2 tablespoons flour",
+        "1 1/4 teaspoons baking powder",
+        "1/8 teaspoon salt",
+        "1 cup chopped apples",
+        "1/2 cup chopped pecans",
+        "1 teaspoon vanilla",
+        "Whipped cream for serving"
+      ],
+      "instructions": [
+        "Beat egg until frothy.",
+        "Gradually add sugar, beating well.",
+        "Sift together flour, baking powder, and salt.",
+        "Fold dry ingredients into egg mixture.",
+        "Stir in apples, pecans, and vanilla.",
+        "Pour into greased 9-inch pie pan.",
+        "Bake at 325\u00b0F for 35 minutes until set and golden.",
+        "Serve warm with whipped cream."
+      ],
+      "historicalText": "One egg, three-quarters cup sugar, two tablespoons flour, one and one-quarter teaspoons baking powder, pinch salt, one cup chopped apples, one-half cup nuts, vanilla. Mix and bake in moderate oven. Best served warm with cream.",
+      "historicalContext": "President Truman's favorite dessert from his Missouri roots, representing hearty Midwest cooking. Bess Truman brought this recipe to the White House, where it appeared at family dinners. The dessert's simplicity\u2014no crust, few ingredients\u2014exemplifies Truman's preference for straightforward food over elaborate White House fare. It's neither quite a cake nor a pudding, but distinctly Ozark.",
+      "sourceAttribution": "Bess Truman's recipe box, Truman Presidential Library",
+      "sourceDate": "1940s-1950s",
+      "sourceURL": "https://www.trumanlibrary.gov/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-008.png?alt=media",
+      "tags": [
+        "dessert",
+        "pudding",
+        "apple"
+      ]
+    },
+    {
+      "id": "presidential-009",
+      "title": "LBJ's Pedernales River Chili",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 10",
+      "prepTime": "20 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "ingredients": [
+        "4 pounds coarse-ground beef",
+        "1 large onion, chopped",
+        "2 cloves garlic, minced",
+        "1 teaspoon oregano",
+        "1 teaspoon cumin",
+        "6 teaspoons chili powder",
+        "2 cans tomatoes",
+        "Salt to taste",
+        "2 cups hot water"
+      ],
+      "instructions": [
+        "Brown meat in large heavy pot until gray (not brown).",
+        "Drain excess fat.",
+        "Add onion and garlic, cook until soft.",
+        "Add oregano, cumin, chili powder, and salt.",
+        "Add tomatoes and water.",
+        "Bring to boil, then reduce to simmer.",
+        "Cover and simmer 1 hour.",
+        "Skim fat from surface.",
+        "Serve in bowls with saltine crackers."
+      ],
+      "historicalText": "Four pounds meat, one onion, two cloves garlic, oregano, cumin seed, chili powder, tomatoes, salt, hot water. Brown meat. Add seasonings. Simmer one hour. No beans. The President is very particular about this.",
+      "historicalContext": "LBJ was passionate about his Texas chili and served it frequently at his ranch to visiting dignitaries and reporters. He insisted on NO BEANS\u2014a point of Texas pride. The recipe was so popular that the White House received thousands of requests for it. Johnson personally supervised its preparation and had strong opinions about consistency and spicing. This chili became synonymous with his Texas hospitality.",
+      "sourceAttribution": "Lady Bird Johnson, White House kitchen records",
+      "sourceDate": "1960s",
+      "sourceURL": "https://www.lbjlibrary.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-009.png?alt=media",
+      "tags": [
+        "main dish",
+        "chili",
+        "Texas",
+        "beef"
+      ]
+    },
+    {
+      "id": "presidential-010",
+      "title": "George Washington's Hoecakes",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Makes 12 cakes",
+      "prepTime": "10 minutes",
+      "cookTime": "20 minutes",
+      "ingredients": [
+        "2 cups white cornmeal",
+        "1 teaspoon salt",
+        "2 tablespoons butter, melted",
+        "1 1/2 to 2 cups boiling water",
+        "Bacon drippings or butter for frying"
+      ],
+      "instructions": [
+        "Mix cornmeal and salt in bowl.",
+        "Add melted butter.",
+        "Pour in enough boiling water to make a thick batter.",
+        "Let stand 5 minutes to thicken.",
+        "Heat bacon drippings in cast iron skillet.",
+        "Drop batter by large spoonfuls onto hot skillet.",
+        "Flatten slightly with back of spoon.",
+        "Fry until golden brown on both sides (3-4 minutes per side).",
+        "Serve hot with butter and syrup or honey."
+      ],
+      "historicalText": "Mix meal with salt and a bit of grease. Scald with boiling water to make a batter. Fry in hot grease on both sides. Eat with butter. The General was particularly fond of these for breakfast.",
+      "historicalContext": "Hoecakes (originally cooked on a hoe blade over an open fire) were a staple at Mount Vernon. Washington ate them for breakfast throughout his life, from his surveying days through his presidency. The simple cornmeal cakes represented frontier practicality. Enslaved cooks at Mount Vernon prepared these daily, and the recipe reflects the foundational role of corn in early American cuisine.",
+      "sourceAttribution": "Mount Vernon kitchen records",
+      "sourceDate": "1700s",
+      "sourceURL": "https://www.mountvernon.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-010.png?alt=media",
+      "tags": [
+        "breakfast",
+        "bread",
+        "cornmeal"
+      ]
+    },
+    {
+      "id": "presidential-011",
+      "title": "John Adams' Indian Pudding",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 8",
+      "prepTime": "15 minutes",
+      "cookTime": "2 hours",
+      "ingredients": [
+        "5 cups milk",
+        "1/2 cup cornmeal",
+        "1/2 cup molasses",
+        "1/4 cup sugar",
+        "1/4 cup butter",
+        "2 eggs, beaten",
+        "1 teaspoon cinnamon",
+        "1/2 teaspoon ginger",
+        "1/2 teaspoon salt"
+      ],
+      "instructions": [
+        "Scald 4 cups milk in double boiler.",
+        "Slowly stir in cornmeal, whisking constantly.",
+        "Cook 15 minutes until thick.",
+        "Remove from heat.",
+        "Add molasses, sugar, butter, and spices.",
+        "Stir in beaten eggs.",
+        "Pour into buttered baking dish.",
+        "Pour remaining 1 cup cold milk over top (do not stir).",
+        "Bake at 300\u00b0F for 2 hours until set.",
+        "Serve warm with vanilla ice cream or cream."
+      ],
+      "historicalText": "Scald milk, add meal gradually. Cook until thick. Add molasses, sugar, butter, eggs and spices. Pour in pan, add cold milk on top. Bake slow until set. A New England favorite.",
+      "historicalContext": "This quintessential New England dessert was served at the Adams home in Quincy, Massachusetts, throughout John Adams' life. 'Indian' refers to cornmeal (from Native American corn). The long, slow baking creates a creamy custard. Abigail Adams served this to guests, and it represents the frugal, hearty cuisine of New England Federalists. The molasses reflects colonial trade connections.",
+      "sourceAttribution": "Adams family recipe collection, Adams National Historical Park",
+      "sourceDate": "1700s-1800s",
+      "sourceURL": "https://www.nps.gov/adam/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-011.png?alt=media",
+      "tags": [
+        "dessert",
+        "pudding",
+        "New England"
+      ]
+    },
+    {
+      "id": "presidential-012",
+      "title": "Reagan's California Cobb Salad",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 4",
+      "prepTime": "25 minutes",
+      "cookTime": "0 minutes",
+      "ingredients": [
+        "1 head iceberg lettuce, chopped",
+        "2 cups cooked chicken breast, diced",
+        "6 strips bacon, cooked and crumbled",
+        "2 hard-boiled eggs, chopped",
+        "2 tomatoes, diced",
+        "1 avocado, diced",
+        "1/2 cup blue cheese, crumbled",
+        "3 tablespoons red wine vinegar",
+        "1 teaspoon Dijon mustard",
+        "1/2 cup olive oil",
+        "Salt and pepper"
+      ],
+      "instructions": [
+        "Arrange lettuce on large platter.",
+        "Arrange chicken, bacon, eggs, tomatoes, avocado, and blue cheese in rows on lettuce.",
+        "Whisk together vinegar, mustard, salt, and pepper.",
+        "Slowly whisk in olive oil.",
+        "Drizzle dressing over salad at table.",
+        "Toss just before serving."
+      ],
+      "historicalText": "Arrange lettuce, then rows of chicken, bacon, egg, tomato, avocado, cheese. Dress with oil and vinegar. Mix at table. The President favors this for lunch with the Cabinet.",
+      "historicalContext": "President Reagan loved this Hollywood-born salad from the Brown Derby restaurant. It perfectly represented his California roots and his preference for lighter, West Coast cuisine. Nancy Reagan often served it for informal White House luncheons. The salad's composed presentation\u2014ingredients arranged in neat rows\u2014appealed to Reagan's appreciation for order and visual appeal. It marked a shift from heavier East Coast White House fare.",
+      "sourceAttribution": "Nancy Reagan's White House entertaining notes",
+      "sourceDate": "1980s",
+      "sourceURL": "https://www.reaganlibrary.gov/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-012.png?alt=media",
+      "tags": [
+        "salad",
+        "lunch",
+        "California"
+      ]
+    },
+    {
+      "id": "presidential-013",
+      "title": "Calvin Coolidge's Chicken Pie",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 8",
+      "prepTime": "40 minutes",
+      "cookTime": "45 minutes",
+      "ingredients": [
+        "1 whole chicken (3-4 lbs), cooked and diced",
+        "4 tablespoons butter",
+        "1/4 cup flour",
+        "2 cups chicken broth",
+        "1 cup cream",
+        "1 cup peas",
+        "3 carrots, diced",
+        "Salt and pepper",
+        "Pastry for double crust"
+      ],
+      "instructions": [
+        "Make roux with butter and flour.",
+        "Gradually add broth and cream, stirring constantly.",
+        "Cook until thick.",
+        "Add chicken, peas, and carrots.",
+        "Season with salt and pepper.",
+        "Line pie dish with bottom crust.",
+        "Pour in filling.",
+        "Top with crust, seal edges, cut vents.",
+        "Bake at 375\u00b0F for 45 minutes until golden."
+      ],
+      "historicalText": "Boil a chicken until tender. Make a white sauce with butter, flour, broth and cream. Add chicken and vegetables. Cover with pastry. Bake until golden.",
+      "historicalContext": "Grace Coolidge's chicken pie represented Vermont thrift and New England cooking. The Coolidges preferred simple meals despite White House grandeur. This embodied Coolidge frugality.",
+      "sourceAttribution": "Grace Coolidge's White House menus",
+      "sourceDate": "1920s",
+      "sourceURL": "https://www.nps.gov/features/calvin-coolidge/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-013.png?alt=media",
+      "tags": [
+        "main dish",
+        "pie",
+        "chicken"
+      ]
+    },
+    {
+      "id": "presidential-014",
+      "title": "James Monroe's Spoon Bread",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 6",
+      "prepTime": "15 minutes",
+      "cookTime": "40 minutes",
+      "ingredients": [
+        "1 1/2 cups milk",
+        "1 cup cornmeal",
+        "3 eggs, separated",
+        "3 tablespoons butter, melted",
+        "1 teaspoon sugar",
+        "1 teaspoon salt",
+        "1 1/2 teaspoons baking powder"
+      ],
+      "instructions": [
+        "Scald milk and gradually stir in cornmeal.",
+        "Cook until thick, stirring constantly.",
+        "Remove from heat, cool slightly.",
+        "Beat egg yolks and add to cornmeal mixture.",
+        "Stir in melted butter, sugar, salt, and baking powder.",
+        "Beat egg whites until stiff peaks form.",
+        "Fold whites into cornmeal mixture.",
+        "Pour into buttered baking dish.",
+        "Bake at 375\u00b0F for 40 minutes until puffed and golden.",
+        "Serve immediately with butter."
+      ],
+      "historicalText": "Scald milk with meal, cook thick. Add beaten yolks, butter, salt. Fold in beaten whites. Bake until risen. Serve hot with butter. A Virginia specialty.",
+      "historicalContext": "Spoon bread, a Southern staple at Monroe's Virginia estate, bridges Native American cornmeal traditions with European souffl\u00e9 technique. Too soft to slice, it's eaten with a spoon\u2014hence the name. Monroe served this at state dinners, showcasing regional American cuisine to foreign dignitaries.",
+      "sourceAttribution": "Highland Plantation records, University of Virginia",
+      "sourceDate": "1810s-1820s",
+      "sourceURL": "https://www.highland.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-014.png?alt=media",
+      "tags": [
+        "side dish",
+        "bread",
+        "Southern"
+      ]
+    },
+    {
+      "id": "presidential-015",
+      "title": "Herbert Hoover's Waldorf Salad",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 6",
+      "prepTime": "20 minutes",
+      "cookTime": "0 minutes",
+      "ingredients": [
+        "3 cups diced apples",
+        "1 cup diced celery",
+        "1/2 cup chopped walnuts",
+        "1/2 cup mayonnaise",
+        "2 tablespoons lemon juice",
+        "1 tablespoon sugar",
+        "Lettuce leaves for serving"
+      ],
+      "instructions": [
+        "Dice apples, toss with lemon juice to prevent browning.",
+        "Add celery and walnuts.",
+        "Mix mayonnaise with sugar.",
+        "Fold dressing into apple mixture.",
+        "Chill for 30 minutes.",
+        "Serve on lettuce leaves."
+      ],
+      "historicalText": "Dice apples and celery. Add nuts. Dress with sweetened mayonnaise. Serve on lettuce. Created at the Waldorf-Astoria, President Hoover's favorite.",
+      "historicalContext": "Though created at New York's Waldorf-Astoria Hotel in the 1890s, this salad became synonymous with Hoover's presidency. Lou Henry Hoover served it frequently, representing the cosmopolitan sophistication of the era before the Depression. The recipe's simplicity belied the luxury it symbolized in Gilded Age dining.",
+      "sourceAttribution": "Lou Henry Hoover's White House entertaining records",
+      "sourceDate": "1920s-1930s",
+      "sourceURL": "https://www.nps.gov/heho/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-015.png?alt=media",
+      "tags": [
+        "salad",
+        "appetizer",
+        "apple"
+      ]
+    },
+    {
+      "id": "presidential-016",
+      "title": "Ulysses S. Grant's Rice Pudding",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 8",
+      "prepTime": "10 minutes",
+      "cookTime": "2 hours",
+      "ingredients": [
+        "1/2 cup rice",
+        "6 cups milk",
+        "1/2 cup sugar",
+        "1/4 teaspoon salt",
+        "1/2 teaspoon vanilla",
+        "1/4 teaspoon nutmeg",
+        "1/2 cup raisins"
+      ],
+      "instructions": [
+        "Mix rice, milk, sugar, and salt in buttered baking dish.",
+        "Bake at 300\u00b0F for 2 hours, stirring every 30 minutes.",
+        "Add raisins and vanilla after 90 minutes.",
+        "Continue baking until creamy and rice is tender.",
+        "Sprinkle with nutmeg before serving.",
+        "Serve warm or cold."
+      ],
+      "historicalText": "Half cup rice, six cups milk, sugar, salt. Bake slow, stirring often. Add raisins near end. The General requests this often.",
+      "historicalContext": "Grant's love of simple desserts was well-known. Despite his military glory, he preferred humble fare. Rice pudding reminded him of his Ohio childhood. Julia Grant served this comfort food throughout their White House years, a reminder that even war heroes cherished simple pleasures.",
+      "sourceAttribution": "Julia Grant's household records",
+      "sourceDate": "1860s-1870s",
+      "sourceURL": "https://www.nps.gov/ulsg/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-016.png?alt=media",
+      "tags": [
+        "dessert",
+        "pudding",
+        "rice"
+      ]
+    },
+    {
+      "id": "presidential-017",
+      "title": "William Howard Taft's Steak",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 2",
+      "prepTime": "5 minutes",
+      "cookTime": "12 minutes",
+      "ingredients": [
+        "2 ribeye steaks (1 inch thick)",
+        "2 tablespoons butter",
+        "Salt and black pepper",
+        "2 cloves garlic, smashed",
+        "2 sprigs fresh thyme"
+      ],
+      "instructions": [
+        "Remove steaks from refrigerator 30 minutes before cooking.",
+        "Season generously with salt and pepper.",
+        "Heat cast iron skillet until smoking hot.",
+        "Sear steaks 4 minutes per side for medium-rare.",
+        "Add butter, garlic, and thyme to pan.",
+        "Baste steaks with melted butter.",
+        "Remove and rest 5 minutes before serving."
+      ],
+      "historicalText": "Thick steak, well-seasoned. Sear hot and fast. Finish with butter. The President prefers his rare.",
+      "historicalContext": "Taft's legendary appetite was no myth\u2014at 300+ pounds, he was America's heaviest president. He loved simple, well-prepared steaks. Despite later dietary reforms, Taft's White House dinners featured substantial portions of high-quality beef, reflecting both his personal preferences and the carnivorous dining culture of the era.",
+      "sourceAttribution": "White House kitchen records, Taft administration",
+      "sourceDate": "1909-1913",
+      "sourceURL": "https://www.nps.gov/wiho/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-017.png?alt=media",
+      "tags": [
+        "main dish",
+        "beef",
+        "steak"
+      ]
+    },
+    {
+      "id": "presidential-018",
+      "title": "Benjamin Harrison's Corn Relish",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Makes 4 pints",
+      "prepTime": "30 minutes",
+      "cookTime": "30 minutes",
+      "ingredients": [
+        "12 ears fresh corn",
+        "1 small cabbage, chopped",
+        "3 onions, chopped",
+        "2 red peppers, chopped",
+        "2 cups vinegar",
+        "1 1/2 cups sugar",
+        "2 tablespoons mustard seed",
+        "1 tablespoon celery seed",
+        "1 tablespoon salt"
+      ],
+      "instructions": [
+        "Cut corn from cobs.",
+        "Combine all vegetables in large pot.",
+        "Add vinegar, sugar, and spices.",
+        "Bring to boil, then simmer 30 minutes.",
+        "Pack hot into sterilized jars.",
+        "Seal and process in water bath 15 minutes."
+      ],
+      "historicalText": "Cut corn from cob. Mix with cabbage, onion, pepper. Add vinegar, sugar, spices. Boil and pack hot. Mrs. Harrison puts this up every summer.",
+      "historicalContext": "Caroline Harrison's corn relish represented the tradition of home preservation. The First Lady personally supervised the White House kitchen's canning operations, continuing Victorian-era practices. This sweet-sour condiment accompanied roasted meats and reflected the Midwest agricultural abundance of the Harrison era.",
+      "sourceAttribution": "Caroline Harrison's preservation records",
+      "sourceDate": "1889-1892",
+      "sourceURL": "https://www.whitehousehistory.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-018.png?alt=media",
+      "tags": [
+        "condiment",
+        "preserved",
+        "corn"
+      ]
+    },
+    {
+      "id": "presidential-019",
+      "title": "Rutherford B. Hayes' Mashed Potatoes",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 8",
+      "prepTime": "20 minutes",
+      "cookTime": "25 minutes",
+      "ingredients": [
+        "5 pounds russet potatoes",
+        "1 cup butter, softened",
+        "1 cup heavy cream, warmed",
+        "Salt and white pepper to taste"
+      ],
+      "instructions": [
+        "Peel and quarter potatoes.",
+        "Boil in salted water until fork-tender (20-25 minutes).",
+        "Drain thoroughly.",
+        "Return to pot over low heat to dry (2 minutes).",
+        "Mash with potato masher or ricer.",
+        "Add butter and mix until melted.",
+        "Gradually add warm cream, beating until fluffy.",
+        "Season with salt and white pepper."
+      ],
+      "historicalText": "Boil potatoes until soft. Drain well, mash smooth. Beat in butter and cream. Season well. Lucy Hayes insists they must be perfectly smooth and creamy.",
+      "historicalContext": "The Hayes White House was known for temperance\u2014'Lemonade Lucy' banned alcohol. But the food was exceptional, and these luxurious mashed potatoes were a staple. The recipe represents the era's shift toward refined technique in American cooking, turning humble potatoes into elegant fare.",
+      "sourceAttribution": "Lucy Hayes' White House menus",
+      "sourceDate": "1877-1881",
+      "sourceURL": "https://www.rbhayes.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-019.png?alt=media",
+      "tags": [
+        "side dish",
+        "potato"
+      ]
+    },
+    {
+      "id": "presidential-020",
+      "title": "James Buchanan's Sauerkraut",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 8",
+      "prepTime": "30 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "ingredients": [
+        "2 pounds sauerkraut, drained",
+        "2 pounds pork butt, cubed",
+        "1 large onion, chopped",
+        "2 apples, peeled and diced",
+        "1 cup white wine",
+        "1 tablespoon caraway seeds",
+        "6 juniper berries",
+        "Salt and pepper"
+      ],
+      "instructions": [
+        "Brown pork cubes in Dutch oven.",
+        "Remove meat, saut\u00e9 onion in drippings.",
+        "Return meat to pot.",
+        "Add sauerkraut, apples, wine, and spices.",
+        "Bring to simmer, cover.",
+        "Cook on low heat 1.5 hours until pork is tender.",
+        "Serve with boiled potatoes and mustard."
+      ],
+      "historicalText": "Brown pork, add kraut, apples, wine, spices. Simmer long until tender. A Pennsylvania Dutch dish the President favors.",
+      "historicalContext": "Buchanan, a Pennsylvania native, brought German-American cuisine to the White House. His love of sauerkraut reflected Pennsylvania Dutch heritage. As America's only bachelor president, he relied on his niece Harriet Lane to host, and she served these hearty ethnic dishes, representing immigrant foodways.",
+      "sourceAttribution": "Harriet Lane's entertaining records, Wheatland",
+      "sourceDate": "1857-1861",
+      "sourceURL": "https://www.lancasterhistory.org/wheatland/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-020.png?alt=media",
+      "tags": [
+        "main dish",
+        "pork",
+        "German"
+      ]
+    },
+    {
+      "id": "presidential-021",
+      "title": "Grover Cleveland's Corned Beef Hash",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 6",
+      "prepTime": "15 minutes",
+      "cookTime": "25 minutes",
+      "ingredients": [
+        "3 cups cooked corned beef, diced",
+        "3 cups cooked potatoes, diced",
+        "1 large onion, diced",
+        "4 tablespoons butter",
+        "1/2 cup cream",
+        "Salt and pepper",
+        "Poached eggs for serving"
+      ],
+      "instructions": [
+        "Melt butter in large cast iron skillet.",
+        "Saut\u00e9 onion until translucent.",
+        "Add corned beef and potatoes.",
+        "Press mixture into pan, cook 10 minutes without stirring.",
+        "Add cream, mix gently.",
+        "Press down again, cook until crusty on bottom.",
+        "Flip portions to serve with crispy side up.",
+        "Top with poached eggs."
+      ],
+      "historicalText": "Dice leftover corned beef and potatoes. Fry with onion in butter. Press flat, let crust form. Turn once. Top with eggs. The President requests this for breakfast.",
+      "historicalContext": "Cleveland's simple tastes were legendary. This workingman's breakfast, made from leftovers, reflected his humble Buffalo roots and rejection of Washington pretension. His two non-consecutive terms (1885-89, 1893-97) both featured hearty, unpretentious meals that stood in stark contrast to Gilded Age excess.",
+      "sourceAttribution": "White House kitchen records, Cleveland administrations",
+      "sourceDate": "1885-1897",
+      "sourceURL": "https://www.whitehousehistory.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-021.png?alt=media",
+      "tags": [
+        "breakfast",
+        "beef",
+        "hash"
+      ]
+    },
+    {
+      "id": "presidential-022",
+      "title": "Chester Arthur's Lobster Newburg",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 4",
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "ingredients": [
+        "2 pounds cooked lobster meat, diced",
+        "4 tablespoons butter",
+        "3 egg yolks",
+        "1 1/2 cups heavy cream",
+        "1/4 cup sherry",
+        "1/4 teaspoon nutmeg",
+        "Cayenne pepper",
+        "Salt",
+        "Toast points for serving"
+      ],
+      "instructions": [
+        "Saut\u00e9 lobster in butter briefly.",
+        "Add sherry, cook 2 minutes.",
+        "Beat egg yolks with cream.",
+        "Temper yolks by slowly adding hot lobster liquid.",
+        "Pour egg mixture into pan with lobster.",
+        "Cook over low heat, stirring constantly, until thickened.",
+        "Do not boil.",
+        "Season with nutmeg, cayenne, salt.",
+        "Serve over toast points."
+      ],
+      "historicalText": "Saut\u00e9 lobster in butter. Add wine. Thicken with cream and eggs. Season. Serve on toast. President Arthur insists on the finest ingredients.",
+      "historicalContext": "Arthur, the most refined president of the Gilded Age, hired Louis Tuckerman as White House steward and insisted on French haute cuisine. Lobster Newburg epitomized this luxurious era. Arthur's 14-course dinners with French wines scandalized reformers but established the White House as a center of sophisticated dining. This dish required the freshest lobster and perfect technique.",
+      "sourceAttribution": "Louis Tuckerman's White House recipes, Arthur era",
+      "sourceDate": "1881-1885",
+      "sourceURL": "https://www.whitehousehistory.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-022.png?alt=media",
+      "tags": [
+        "main dish",
+        "seafood",
+        "lobster",
+        "luxury"
+      ]
+    },
+    {
+      "id": "presidential-023",
+      "title": "Millard Fillmore's Apple Dumplings",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 6",
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "ingredients": [
+        "6 medium baking apples, peeled and cored",
+        "1/2 cup brown sugar",
+        "1 teaspoon cinnamon",
+        "6 tablespoons butter",
+        "Pastry for double crust",
+        "2 cups water",
+        "1 cup sugar",
+        "1/4 teaspoon nutmeg"
+      ],
+      "instructions": [
+        "Roll pastry and cut into six squares.",
+        "Place apple in center of each square.",
+        "Fill apple cavity with brown sugar, cinnamon, and 1 tablespoon butter.",
+        "Bring pastry corners up over apple, seal.",
+        "Place in baking dish.",
+        "Make syrup by boiling water, sugar, and nutmeg.",
+        "Pour syrup around dumplings.",
+        "Bake at 375\u00b0F for 45 minutes until golden.",
+        "Serve warm with cream."
+      ],
+      "historicalText": "Wrap apples in pastry, fill centers with sugar and spice. Bake in sweet syrup. Abigail Fillmore's specialty from New York.",
+      "historicalContext": "This homey dessert from Abigail Fillmore's New York upbringing brought frontier simplicity to the White House. Apple dumplings represented American agricultural abundance and domestic virtue. Abigail, a former schoolteacher, established the White House library and maintained modest entertaining focused on substance over show.",
+      "sourceAttribution": "Fillmore family recipes, Buffalo",
+      "sourceDate": "1850-1853",
+      "sourceURL": "https://millard-fillmore.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-023.png?alt=media",
+      "tags": [
+        "dessert",
+        "apple",
+        "dumplings"
+      ]
+    },
+    {
+      "id": "presidential-024",
+      "title": "Franklin Pierce's Rum Punch",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Serves 12",
+      "prepTime": "10 minutes",
+      "cookTime": "0 minutes",
+      "ingredients": [
+        "2 cups dark rum",
+        "1 cup cognac",
+        "1 cup fresh lemon juice",
+        "1/2 cup sugar syrup",
+        "1 quart cold water",
+        "Fresh nutmeg for grating",
+        "Lemon wheels for garnish",
+        "Ice"
+      ],
+      "instructions": [
+        "Dissolve sugar in a small amount of hot water to make syrup.",
+        "Combine rum, cognac, lemon juice, and sugar syrup in punch bowl.",
+        "Add cold water and stir well.",
+        "Add large block of ice.",
+        "Let chill 15 minutes.",
+        "Grate fresh nutmeg over top.",
+        "Serve in punch cups with lemon wheels."
+      ],
+      "historicalText": "Mix rum, brandy, lemon juice, sugar syrup, water. Add ice. Grate nutmeg fresh. This was served at the inauguration.",
+      "historicalContext": "Pierce's White House was known for lavish entertaining and flowing liquor\u2014a stark contrast to the later temperance era. This potent punch flowed at receptions and balls. Pierce's presidency (1853-57) coincided with rising sectional tensions, and his social events attempted to unite North and South over convivial drinking, though ultimately failed.",
+      "sourceAttribution": "White House social records, Pierce administration",
+      "sourceDate": "1853-1857",
+      "sourceURL": "https://www.whitehousehistory.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-024.png?alt=media",
+      "tags": [
+        "beverage",
+        "cocktail",
+        "rum",
+        "punch"
+      ]
+    },
+    {
+      "id": "presidential-025",
+      "title": "William McKinley's Gingerbread Cookies",
+      "heritageCollectionId": "presidential-pantry",
+      "servings": "Makes 36 cookies",
+      "prepTime": "30 minutes",
+      "cookTime": "12 minutes",
+      "ingredients": [
+        "3 1/2 cups flour",
+        "1 teaspoon baking soda",
+        "2 teaspoons ginger",
+        "1 teaspoon cinnamon",
+        "1/2 teaspoon cloves",
+        "1/2 teaspoon salt",
+        "3/4 cup butter, softened",
+        "1 cup sugar",
+        "1 egg",
+        "1/2 cup molasses"
+      ],
+      "instructions": [
+        "Cream butter and sugar until fluffy.",
+        "Beat in egg and molasses.",
+        "Combine dry ingredients.",
+        "Gradually mix dry into wet.",
+        "Chill dough 2 hours.",
+        "Roll 1/4 inch thick on floured surface.",
+        "Cut with cookie cutters.",
+        "Bake at 350\u00b0F for 10-12 minutes.",
+        "Cool on racks."
+      ],
+      "historicalText": "Cream butter and sugar. Add egg and molasses. Mix in flour, spices, soda. Chill, roll, cut. Bake. Ida McKinley distributed these to children at White House events.",
+      "historicalContext": "Ida McKinley, despite chronic illness, took great interest in White House entertaining. These spiced cookies were distributed at children's events and Christmas parties. They represented the Victorian tradition of elaborate cookie-making and the McKinley's kindly, domestic image during the Spanish-American War era.",
+      "sourceAttribution": "Ida McKinley's recipe collection",
+      "sourceDate": "1897-1901",
+      "sourceURL": "https://www.mckinleymuseum.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fpresidential-025.png?alt=media",
+      "tags": [
+        "dessert",
+        "cookies",
+        "gingerbread"
+      ]
+    },
+    {
+      "id": "literary-003",
+      "title": "Great Gatsby's Champagne Cocktails",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 6",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "ingredients": [
+        "6 sugar cubes",
+        "Angostura bitters",
+        "6 ounces cognac",
+        "1 bottle champagne, chilled",
+        "6 lemon twists"
+      ],
+      "instructions": [
+        "Place sugar cube in each champagne flute.",
+        "Add 2-3 dashes bitters to each cube.",
+        "Add 1 ounce cognac to each glass.",
+        "Top with champagne.",
+        "Garnish with lemon twist."
+      ],
+      "historicalText": "Sugar, bitters, cognac, champagne. The parties at Gatsby's featured rivers of these.",
+      "historicalContext": "Fitzgerald's 'The Great Gatsby' (1925) epitom ized Jazz Age excess. These cocktails flowed at Gatsby's legendary West Egg parties. The combination of cognac and champagne represented opulence and careless wealth in Prohibition America.",
+      "sourceAttribution": "Based on F. Scott Fitzgerald's descriptions, 1920s cocktail books",
+      "sourceDate": "1925",
+      "sourceURL": "https://www.gutenberg.org/ebooks/64317",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-003.png?alt=media",
+      "tags": [
+        "beverage",
+        "cocktail",
+        "champagne",
+        "Jazz Age"
+      ]
+    },
+    {
+      "id": "literary-004",
+      "title": "Alice's Tea Cakes",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Makes 24 cakes",
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "ingredients": [
+        "1/2 cup butter, softened",
+        "1 cup sugar",
+        "2 eggs",
+        "2 cups flour",
+        "2 teaspoons baking powder",
+        "1/2 cup milk",
+        "1 teaspoon vanilla",
+        "1/4 teaspoon salt"
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Beat in eggs.",
+        "Combine dry ingredients.",
+        "Add dry and milk alternately to butter mixture.",
+        "Stir in vanilla.",
+        "Fill greased muffin tins 2/3 full.",
+        "Bake at 350\u00b0F for 15 minutes.",
+        "Serve with jam and whipped cream."
+      ],
+      "historicalText": "Cream butter, sugar, eggs. Mix in flour, milk, vanilla. Bake in small tins. For the Mad Hatter's tea party.",
+      "historicalContext": "Lewis Carroll's 'Alice's Adventures in Wonderland' (1865) features the iconic Mad Tea Party. These simple Victorian tea cakes would have been served at proper English afternoon teas. The absurdity of the literary tea party contrasts with the real British tea ritual these cakes represent.",
+      "sourceAttribution": "Victorian tea cake recipes, period cookbooks",
+      "sourceDate": "1865",
+      "sourceURL": "https://www.gutenberg.org/ebooks/11",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-004.png?alt=media",
+      "tags": [
+        "dessert",
+        "tea cakes",
+        "Victorian"
+      ]
+    },
+    {
+      "id": "literary-005",
+      "title": "Little Women's Apple Slump",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 6",
+      "prepTime": "20 minutes",
+      "cookTime": "40 minutes",
+      "ingredients": [
+        "6 apples, peeled and sliced",
+        "1 cup sugar",
+        "1 cup water",
+        "1 cup flour",
+        "2 teaspoons baking powder",
+        "1/2 teaspoon salt",
+        "1/2 cup milk",
+        "2 tablespoons butter, melted"
+      ],
+      "instructions": [
+        "Combine apples, 3/4 cup sugar, water in pot.",
+        "Bring to simmer.",
+        "Mix flour, remaining sugar, baking powder, salt.",
+        "Stir in milk and melted butter to make batter.",
+        "Drop spoonfuls of batter onto simmering apples.",
+        "Cover tightly, simmer 25 minutes without lifting lid.",
+        "Serve warm with cream."
+      ],
+      "historicalText": "Stew apples with sugar. Drop dumplings on top. Cover and steam. Marmee taught the girls this recipe.",
+      "historicalContext": "In Louisa May Alcott's 'Little Women' (1868), the March sisters learn domestic skills including cooking. This New England dessert represents the frugal, wholesome cooking of Civil War-era New England. 'Slump' refers to the dumplings 'slumping' into the fruit.",
+      "sourceAttribution": "Based on New England recipes, 1860s period",
+      "sourceDate": "1868",
+      "sourceURL": "https://www.gutenberg.org/ebooks/514",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-005.png?alt=media",
+      "tags": [
+        "dessert",
+        "apple",
+        "New England",
+        "dumplings"
+      ]
+    },
+    {
+      "id": "literary-006",
+      "title": "Pride & Prejudice White Soup",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 8",
+      "prepTime": "30 minutes",
+      "cookTime": "2 hours",
+      "ingredients": [
+        "1 whole chicken",
+        "2 pounds veal bones",
+        "1 onion studded with cloves",
+        "1 cup blanched almonds",
+        "1 cup cream",
+        "1/4 cup rice flour",
+        "Mace and white pepper",
+        "Salt"
+      ],
+      "instructions": [
+        "Simmer chicken and veal bones with onion 2 hours.",
+        "Strain broth, remove chicken meat.",
+        "Grind almonds to paste with some broth.",
+        "Mix rice flour with cream.",
+        "Return broth to heat, add almond paste.",
+        "Thicken with cream mixture.",
+        "Season with mace, pepper, salt.",
+        "Serve hot."
+      ],
+      "historicalText": "Boil fowl and veal. Strain. Thicken with almonds and cream. Season delicately. Served at grand balls.",
+      "historicalContext": "Jane Austen's 'Pride and Prejudice' (1813) mentions white soup as fashionable at balls. This luxurious soup, whitened with almonds and cream, was expensive\u2014a marker of wealth. The Bennets' concern over serving it at Netherfield reveals class consciousness in Regency England.",
+      "sourceAttribution": "Regency-era cookbooks, Hannah Glasse",
+      "sourceDate": "1813",
+      "sourceURL": "https://www.gutenberg.org/ebooks/1342",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-006.png?alt=media",
+      "tags": [
+        "soup",
+        "Regency",
+        "formal"
+      ]
+    },
+    {
+      "id": "literary-007",
+      "title": "A Christmas Carol Roast Goose",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 8",
+      "prepTime": "30 minutes",
+      "cookTime": "3 hours",
+      "ingredients": [
+        "1 goose (10-12 lbs)",
+        "Salt and pepper",
+        "1 onion, quartered",
+        "1 apple, quartered",
+        "Fresh sage and thyme",
+        "2 cups goose stock"
+      ],
+      "instructions": [
+        "Remove giblets, pat goose dry.",
+        "Prick skin all over with fork.",
+        "Season inside and out with salt and pepper.",
+        "Stuff cavity with onion, apple, herbs.",
+        "Place on rack in roasting pan.",
+        "Roast at 425\u00b0F for 30 minutes.",
+        "Reduce to 350\u00b0F, roast 2.5 hours.",
+        "Baste every 30 minutes.",
+        "Rest 20 minutes before carving."
+      ],
+      "historicalText": "Season goose, stuff with apple and onion. Roast until golden, basting often. The Cratchit family's Christmas feast.",
+      "historicalContext": "Dickens' 'A Christmas Carol' (1843) features the Cratchits' treasured goose. While the rich ate turkey, working-class families saved for a goose. Bob Cratchit's ability to provide this feast represents dignity despite poverty. The story helped popularize Christmas feasting traditions.",
+      "sourceAttribution": "Charles Dickens' 'A Christmas Carol', Victorian cookbooks",
+      "sourceDate": "1843",
+      "sourceURL": "https://www.gutenberg.org/ebooks/46",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-007.png?alt=media",
+      "tags": [
+        "main dish",
+        "poultry",
+        "Christmas",
+        "Victorian"
+      ]
+    },
+    {
+      "id": "literary-008",
+      "title": "Hemingway's Death in the Afternoon",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 1",
+      "prepTime": "2 minutes",
+      "cookTime": "0 minutes",
+      "ingredients": [
+        "5 ounces champagne, chilled",
+        "1 1/2 ounces absinthe"
+      ],
+      "instructions": [
+        "Pour absinthe into champagne flute.",
+        "Slowly top with champagne.",
+        "Drink 3-5 of these slowly."
+      ],
+      "historicalText": "Pour one jigger absinthe into a champagne glass. Add iced champagne until it attains the proper opalescent milkiness.",
+      "historicalContext": "Hemingway created this potent cocktail in the 1930s, naming it after his bullfighting book. Represents his ex-patriate Paris lifestyle.",
+      "sourceAttribution": "Ernest Hemingway, 1935 cocktail book",
+      "sourceDate": "1935",
+      "sourceURL": "https://www.ibiblio.org/ebooks/Hemingway/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-008.png?alt=media",
+      "tags": [
+        "beverage",
+        "cocktail",
+        "absinthe"
+      ]
+    },
+    {
+      "id": "literary-009",
+      "title": "To Kill a Mockingbird's Lane Cake",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 12",
+      "prepTime": "45 minutes",
+      "cookTime": "25 minutes",
+      "ingredients": [
+        "1 cup butter",
+        "2 cups sugar",
+        "3 1/4 cups flour",
+        "8 egg whites",
+        "8 egg yolks",
+        "1 cup bourbon",
+        "1 cup pecans"
+      ],
+      "instructions": [
+        "Make white cake layers.",
+        "Cook yolk filling with bourbon, nuts, raisins.",
+        "Layer and frost."
+      ],
+      "historicalText": "A white cake with whiskey filling. Miss Maudie's specialty.",
+      "historicalContext": "Alabama specialty with bourbon, represents Southern hospitality in Harper Lee's novel.",
+      "sourceAttribution": "Alabama recipes, Harper Lee's novel",
+      "sourceDate": "1960",
+      "sourceURL": "https://www.gutenberg.org/ebooks/10002",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-009.png?alt=media",
+      "tags": [
+        "dessert",
+        "cake",
+        "Southern"
+      ]
+    },
+    {
+      "id": "literary-010",
+      "title": "Laura Ingalls' Vanity Cakes",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Makes 24",
+      "prepTime": "15 minutes",
+      "cookTime": "12 minutes",
+      "ingredients": [
+        "1 cup butter",
+        "2 cups sugar",
+        "4 eggs",
+        "4 cups flour",
+        "1 cup milk"
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add eggs, then dry and wet alternately.",
+        "Drop on baking sheet, bake 12 minutes."
+      ],
+      "historicalText": "Light tea cakes. Ma let Laura help make these.",
+      "historicalContext": "Prairie special occasions, frontier homemaking pride.",
+      "sourceAttribution": "Laura Ingalls Wilder's books, 1880s",
+      "sourceDate": "1880s",
+      "sourceURL": "https://www.gutenberg.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-010.png?alt=media",
+      "tags": [
+        "dessert",
+        "cookies"
+      ]
+    },
+    {
+      "id": "literary-011",
+      "title": "Sherlock Holmes' Seed Cake",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 10",
+      "prepTime": "20 minutes",
+      "cookTime": "1 hour",
+      "ingredients": [
+        "3/4 cup butter",
+        "1 cup sugar",
+        "3 eggs",
+        "2 cups flour",
+        "3 tablespoons caraway seeds"
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add eggs, flour, caraway seeds.",
+        "Bake 1 hour."
+      ],
+      "historicalText": "Mrs. Hudson served this with tea at Baker Street.",
+      "historicalContext": "Victorian tea fare, domestic comfort amid investigations.",
+      "sourceAttribution": "Victorian recipes, Holmes canon",
+      "sourceDate": "1887-1927",
+      "sourceURL": "https://www.gutenberg.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-011.png?alt=media",
+      "tags": [
+        "dessert",
+        "Victorian"
+      ]
+    },
+    {
+      "id": "literary-012",
+      "title": "Anne of Green Gables' Raspberry Cordial",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Makes 1 quart",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes",
+      "ingredients": [
+        "4 cups raspberries",
+        "2 cups sugar",
+        "1 cup water",
+        "Lemon juice"
+      ],
+      "instructions": [
+        "Simmer berries, strain, sweeten.",
+        "Mix with sparkling water to serve."
+      ],
+      "historicalText": "Anne mistakenly served Diana currant wine instead.",
+      "historicalContext": "Victorian temperance concerns, rural Canadian hospitality.",
+      "sourceAttribution": "L.M. Montgomery's novel, 1908",
+      "sourceDate": "1908",
+      "sourceURL": "https://www.gutenberg.org/ebooks/45",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-012.png?alt=media",
+      "tags": [
+        "beverage",
+        "raspberry"
+      ]
+    },
+    {
+      "id": "literary-013",
+      "title": "Wuthering Heights Oatcakes",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Makes 12",
+      "prepTime": "15 minutes",
+      "cookTime": "25 minutes",
+      "ingredients": [
+        "2 cups oatmeal",
+        "1/2 teaspoon salt",
+        "2 tablespoons fat",
+        "1/2 cup hot water"
+      ],
+      "instructions": [
+        "Mix, roll thin, bake on griddle."
+      ],
+      "historicalText": "Yorkshire moor country bread.",
+      "historicalContext": "Working-class food of the Yorkshire moors.",
+      "sourceAttribution": "Yorkshire recipes, 1840s",
+      "sourceDate": "1847",
+      "sourceURL": "https://www.gutenberg.org/ebooks/768",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-013.png?alt=media",
+      "tags": [
+        "bread",
+        "oat"
+      ]
+    },
+    {
+      "id": "literary-014",
+      "title": "Winnie the Pooh's Honey Buns",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Makes 12",
+      "prepTime": "2 hours",
+      "cookTime": "15 minutes",
+      "ingredients": [
+        "3 cups flour",
+        "1/4 cup honey",
+        "1 packet yeast",
+        "3/4 cup milk",
+        "1/4 cup butter"
+      ],
+      "instructions": [
+        "Make sweet yeast dough.",
+        "Fill with honey mixture.",
+        "Bake until golden."
+      ],
+      "historicalText": "Sweet buns drizzled with honey. Pooh's favorite.",
+      "historicalContext": "A.A. Milne's Hundred Acre Wood comfort food.",
+      "sourceAttribution": "A.A. Milne's books, 1920s",
+      "sourceDate": "1926",
+      "sourceURL": "https://www.gutenberg.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-014.png?alt=media",
+      "tags": [
+        "dessert",
+        "honey",
+        "buns"
+      ]
+    },
+    {
+      "id": "literary-015",
+      "title": "Oliver Twist's Gruel",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 6",
+      "prepTime": "5 minutes",
+      "cookTime": "20 minutes",
+      "ingredients": [
+        "1 cup oatmeal",
+        "6 cups water",
+        "Pinch of salt"
+      ],
+      "instructions": [
+        "Boil water, add oatmeal slowly.",
+        "Simmer 20 minutes, stirring.",
+        "Add pinch of salt."
+      ],
+      "historicalText": "Please sir, I want some more.",
+      "historicalContext": "Workhouse fare in Dickens' novel, representing Victorian poverty.",
+      "sourceAttribution": "Charles Dickens' Oliver Twist, 1838",
+      "sourceDate": "1838",
+      "sourceURL": "https://www.gutenberg.org/ebooks/730",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-015.png?alt=media",
+      "tags": [
+        "breakfast",
+        "gruel"
+      ]
+    },
+    {
+      "id": "literary-016",
+      "title": "The Hobbit's Seed-cakes",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Makes 20",
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "ingredients": [
+        "2 cups flour",
+        "1/2 cup butter",
+        "1/2 cup sugar",
+        "1 egg",
+        "2 tablespoons caraway seeds"
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add egg, flour, seeds.",
+        "Roll, cut, bake 15 minutes."
+      ],
+      "historicalText": "For unexpected parties at Bag End.",
+      "historicalContext": "Tolkien's hobbit hospitality, English tea tradition.",
+      "sourceAttribution": "Based on J.R.R. Tolkien's The Hobbit, 1937",
+      "sourceDate": "1937",
+      "sourceURL": "https://www.gutenberg.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-016.png?alt=media",
+      "tags": [
+        "dessert",
+        "cookies"
+      ]
+    },
+    {
+      "id": "literary-017",
+      "title": "Proust's Madeleines",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Makes 24",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes",
+      "ingredients": [
+        "3 eggs",
+        "2/3 cup sugar",
+        "1 cup flour",
+        "1/2 cup melted butter",
+        "1 teaspoon vanilla",
+        "Zest of 1 lemon"
+      ],
+      "instructions": [
+        "Beat eggs and sugar until thick.",
+        "Fold in flour, butter, vanilla, zest.",
+        "Fill madeleine molds 3/4 full.",
+        "Bake at 375\u00b0F for 10 minutes."
+      ],
+      "historicalText": "The taste that brought back childhood memories.",
+      "historicalContext": "Proust's 'In Search of Lost Time' - the madeleine triggers involuntary memory.",
+      "sourceAttribution": "French classic, Marcel Proust's novel",
+      "sourceDate": "1913",
+      "sourceURL": "https://www.gutenberg.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-017.png?alt=media",
+      "tags": [
+        "dessert",
+        "French",
+        "cookies"
+      ]
+    },
+    {
+      "id": "literary-018",
+      "title": "James Bond's Vesper Martini",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 1",
+      "prepTime": "3 minutes",
+      "cookTime": "0 minutes",
+      "ingredients": [
+        "3 ounces gin",
+        "1 ounce vodka",
+        "1/2 ounce Lillet Blanc",
+        "Lemon peel"
+      ],
+      "instructions": [
+        "Shake with ice until ice-cold.",
+        "Strain into chilled martini glass.",
+        "Garnish with lemon peel."
+      ],
+      "historicalText": "Shaken, not stirred. Named after Vesper Lynd.",
+      "historicalContext": "Ian Fleming's Casino Royale, Bond's signature sophisticated drink.",
+      "sourceAttribution": "Ian Fleming's James Bond novels",
+      "sourceDate": "1953",
+      "sourceURL": "https://www.gutenberg.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-018.png?alt=media",
+      "tags": [
+        "beverage",
+        "cocktail"
+      ]
+    },
+    {
+      "id": "literary-019",
+      "title": "The Bell Jar's Avocado Pear",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 2",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "ingredients": [
+        "1 large avocado",
+        "Lemon juice",
+        "Salt and pepper",
+        "Vinaigrette dressing"
+      ],
+      "instructions": [
+        "Halve avocado, remove pit.",
+        "Drizzle with lemon juice.",
+        "Fill cavity with vinaigrette.",
+        "Season and serve."
+      ],
+      "historicalText": "Esther's first avocado in New York.",
+      "historicalContext": "Sylvia Plath's novel, 1950s sophistication and discovery.",
+      "sourceAttribution": "Sylvia Plath's The Bell Jar, 1963",
+      "sourceDate": "1963",
+      "sourceURL": "https://www.gutenberg.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-019.png?alt=media",
+      "tags": [
+        "salad",
+        "avocado"
+      ]
+    },
+    {
+      "id": "literary-020",
+      "title": "Don Quixote's Olla Podrida",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 10",
+      "prepTime": "30 minutes",
+      "cookTime": "3 hours",
+      "ingredients": [
+        "2 pounds mixed meats (beef, pork, chicken)",
+        "1 pound chickpeas, soaked",
+        "1 ham hock",
+        "Cabbage",
+        "Sausages",
+        "Vegetables"
+      ],
+      "instructions": [
+        "Simmer all meats with chickpeas 2 hours.",
+        "Add vegetables last hour.",
+        "Serve in large tureen."
+      ],
+      "historicalText": "The famous Spanish stew of many ingredients.",
+      "historicalContext": "Cervantes' Don Quixote, Spanish peasant feast.",
+      "sourceAttribution": "Spanish traditional, Don Quixote references",
+      "sourceDate": "1605",
+      "sourceURL": "https://www.gutenberg.org/ebooks/996",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-020.png?alt=media",
+      "tags": [
+        "stew",
+        "Spanish"
+      ]
+    },
+    {
+      "id": "literary-021",
+      "title": "The Old Man and the Sea's Fried Dolphinfish",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 4",
+      "prepTime": "10 minutes",
+      "cookTime": "8 minutes",
+      "ingredients": [
+        "4 mahi-mahi fillets",
+        "Flour for dredging",
+        "Salt and pepper",
+        "Olive oil",
+        "Lemon wedges"
+      ],
+      "instructions": [
+        "Season fish, dredge in flour.",
+        "Fry in hot olive oil 4 minutes per side.",
+        "Serve with lemon."
+      ],
+      "historicalText": "Santiago ate the raw fish. Fresh caught in Cuban waters.",
+      "historicalContext": "Hemingway's novella, Cuban fishing tradition.",
+      "sourceAttribution": "Ernest Hemingway's The Old Man and the Sea, 1952",
+      "sourceDate": "1952",
+      "sourceURL": "https://www.gutenberg.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-021.png?alt=media",
+      "tags": [
+        "seafood",
+        "Cuban"
+      ]
+    },
+    {
+      "id": "literary-022",
+      "title": "Emma's Wedding Cake",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Serves 20",
+      "prepTime": "1 hour",
+      "cookTime": "3 hours",
+      "ingredients": [
+        "2 pounds flour",
+        "2 pounds sugar",
+        "2 pounds butter",
+        "18 eggs",
+        "Dried fruits",
+        "Spices",
+        "Brandy"
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add eggs, flour, fruits, spices.",
+        "Bake slowly 3 hours.",
+        "Soak with brandy, ice with almond paste."
+      ],
+      "historicalText": "A rich fruit cake for Emma's wedding to Mr. Knightley.",
+      "historicalContext": "Jane Austen's Emma, Regency wedding tradition.",
+      "sourceAttribution": "Regency-era wedding cakes",
+      "sourceDate": "1815",
+      "sourceURL": "https://www.gutenberg.org/ebooks/158",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-022.png?alt=media",
+      "tags": [
+        "dessert",
+        "wedding",
+        "fruit cake"
+      ]
+    },
+    {
+      "id": "literary-023",
+      "title": "The Grapes of Wrath's Biscuits",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Makes 12",
+      "prepTime": "15 minutes",
+      "cookTime": "15 minutes",
+      "ingredients": [
+        "2 cups flour",
+        "1 tablespoon baking powder",
+        "1 teaspoon salt",
+        "1/4 cup lard",
+        "3/4 cup milk"
+      ],
+      "instructions": [
+        "Mix dry ingredients.",
+        "Cut in lard.",
+        "Add milk, mix lightly.",
+        "Pat out, cut, bake 15 minutes at 450\u00b0F."
+      ],
+      "historicalText": "Ma Joad's biscuits for the migrant journey.",
+      "historicalContext": "Steinbeck's Depression-era survival food.",
+      "sourceAttribution": "John Steinbeck's The Grapes of Wrath, 1939",
+      "sourceDate": "1939",
+      "sourceURL": "https://www.gutenberg.org/ebooks/132",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-023.png?alt=media",
+      "tags": [
+        "bread",
+        "biscuits"
+      ]
+    },
+    {
+      "id": "literary-024",
+      "title": "Babette's Feast Blinis",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Makes 20",
+      "prepTime": "1 hour 30 minutes",
+      "cookTime": "20 minutes",
+      "ingredients": [
+        "1 cup buckwheat flour",
+        "1 cup all-purpose flour",
+        "1 packet yeast",
+        "2 cups warm milk",
+        "3 eggs",
+        "Sour cream and caviar for serving"
+      ],
+      "instructions": [
+        "Mix flours with yeast and milk, let rise 1 hour.",
+        "Beat in eggs.",
+        "Fry small pancakes in butter.",
+        "Serve with sour cream and caviar."
+      ],
+      "historicalText": "Russian delicacy from Babette's magnificent feast.",
+      "historicalContext": "Isak Dinesen's story of culinary art and grace.",
+      "sourceAttribution": "Based on Babette's Feast, 1958",
+      "sourceDate": "1958",
+      "sourceURL": "https://www.gutenberg.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-024.png?alt=media",
+      "tags": [
+        "appetizer",
+        "Russian",
+        "luxury"
+      ]
+    },
+    {
+      "id": "literary-025",
+      "title": "Catch-22's Milo's Egyptian Cotton",
+      "heritageCollectionId": "literary-kitchen",
+      "servings": "Not edible",
+      "prepTime": "0 minutes",
+      "cookTime": "0 minutes",
+      "ingredients": [
+        "Egyptian cotton"
+      ],
+      "instructions": [
+        "Attempt to sell as food.",
+        "Fail spectacularly."
+      ],
+      "historicalText": "Milo Minderbinder covered chocolate with cotton.",
+      "historicalContext": "Joseph Heller's absurdist wartime profiteering satire.",
+      "sourceAttribution": "Joseph Heller's Catch-22, 1961",
+      "sourceDate": "1961",
+      "sourceURL": "https://www.gutenberg.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fliterary-025.png?alt=media",
+      "tags": [
+        "satire",
+        "absurdist"
+      ]
+    },
+    {
+      "id": "ancient-003",
+      "title": "Greek Olive & Honey Cakes",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Makes 20",
+      "prepTime": "30 min",
+      "cookTime": "25 min",
+      "ingredients": [
+        "2 cups flour",
+        "1/2 cup honey",
+        "1/2 cup olive oil",
+        "1/4 cup wine",
+        "Sesame seeds"
+      ],
+      "instructions": [
+        "Mix ingredients to form dough.",
+        "Shape into small cakes.",
+        "Top with sesame seeds.",
+        "Bake at 350\u00b0F for 25 minutes."
+      ],
+      "historicalText": "Mix flour, honey, oil, wine. Shape, bake. Ancient Greek dessert.",
+      "historicalContext": "Greek sacrificial cakes offered to gods, sweetened with honey\u2014liquid gold of ancient world.",
+      "sourceAttribution": "Ancient Greek recipes, archaeological evidence",
+      "sourceDate": "500 BCE",
+      "sourceURL": "https://www.perseus.tufts.edu/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-003.png?alt=media",
+      "tags": [
+        "dessert",
+        "Greek",
+        "honey"
+      ]
+    },
+    {
+      "id": "ancient-004",
+      "title": "Roman Garum Sauce",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Makes 2 cups",
+      "prepTime": "5 min",
+      "cookTime": "0 min",
+      "ingredients": [
+        "1 cup fish sauce",
+        "1/2 cup white wine",
+        "2 tablespoons honey",
+        "Fresh herbs"
+      ],
+      "instructions": [
+        "Mix all ingredients.",
+        "Let stand 1 hour before using.",
+        "Use as all-purpose seasoning."
+      ],
+      "historicalText": "The Roman ketchup. Mix fermented fish sauce with wine and honey.",
+      "historicalContext": "Garum was Rome's most important condiment, made from fermented fish. Every kitchen had it.",
+      "sourceAttribution": "Apicius, Roman archaeological sites",
+      "sourceDate": "1st century CE",
+      "sourceURL": "https://penelope.uchicago.edu/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-004.png?alt=media",
+      "tags": [
+        "condiment",
+        "Roman",
+        "fermented"
+      ]
+    },
+    {
+      "id": "ancient-005",
+      "title": "Egyptian Flatbread",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Makes 8",
+      "prepTime": "15 min",
+      "cookTime": "10 min",
+      "ingredients": [
+        "3 cups emmer flour (or whole wheat)",
+        "1 teaspoon salt",
+        "1 1/4 cups water"
+      ],
+      "instructions": [
+        "Mix flour, salt, water into dough.",
+        "Knead 5 minutes.",
+        "Divide into 8 balls.",
+        "Roll thin.",
+        "Cook on hot stone or griddle 2 minutes per side."
+      ],
+      "historicalText": "The bread of pharaohs. Simple flatbread cooked on hot stones.",
+      "historicalContext": "Ancient Egypt's staple food, made from emmer wheat. Found in tombs as offerings.",
+      "sourceAttribution": "Egyptian archaeology, hieroglyphic recipes",
+      "sourceDate": "3000 BCE",
+      "sourceURL": "https://www.metmuseum.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-005.png?alt=media",
+      "tags": [
+        "bread",
+        "Egyptian",
+        "flatbread"
+      ]
+    },
+    {
+      "id": "ancient-006",
+      "title": "Mesopotamian Beer Bread",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Makes 2 loaves",
+      "prepTime": "2 hrs",
+      "cookTime": "45 min",
+      "ingredients": [
+        "4 cups barley flour",
+        "1 cup beer",
+        "1 cup water",
+        "2 tablespoons honey",
+        "1 teaspoon salt"
+      ],
+      "instructions": [
+        "Mix flour with beer, water, honey, salt.",
+        "Let rise 1 hour.",
+        "Shape into rounds.",
+        "Bake at 350\u00b0F for 45 minutes."
+      ],
+      "historicalText": "Bread made with beer, the drink of gods. Sumerian staple.",
+      "historicalContext": "Mesopotamians invented beer and used it in baking. This bread sustained ancient civilizations.",
+      "sourceAttribution": "Sumerian cuneiform tablets",
+      "sourceDate": "3000 BCE",
+      "sourceURL": "https://www.penn.museum/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-006.png?alt=media",
+      "tags": [
+        "bread",
+        "Mesopotamian",
+        "beer"
+      ]
+    },
+    {
+      "id": "ancient-007",
+      "title": "Greek Lentil Soup",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 6",
+      "prepTime": "15 min",
+      "cookTime": "40 min",
+      "ingredients": [
+        "2 cups lentils",
+        "1 onion, chopped",
+        "3 cloves garlic",
+        "1/4 cup olive oil",
+        "1/4 cup vinegar",
+        "Bay leaves",
+        "Salt"
+      ],
+      "instructions": [
+        "Saut\u00e9 onion and garlic in oil.",
+        "Add lentils, water, bay leaves.",
+        "Simmer 40 minutes until soft.",
+        "Add vinegar, season with salt."
+      ],
+      "historicalText": "Philosopher's soup. Lentils with vinegar, the food Herodotus praised.",
+      "historicalContext": "Mentioned by Herodotus. Spartans and philosophers ate this simple, nourishing soup.",
+      "sourceAttribution": "Herodotus' Histories, Greek dietary records",
+      "sourceDate": "450 BCE",
+      "sourceURL": "https://www.perseus.tufts.edu/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-007.png?alt=media",
+      "tags": [
+        "soup",
+        "Greek",
+        "lentils"
+      ]
+    },
+    {
+      "id": "ancient-008",
+      "title": "Roman Moretum",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 4",
+      "prepTime": "15 min",
+      "cookTime": "0 min",
+      "ingredients": [
+        "1 cup fresh cheese",
+        "4 cloves garlic",
+        "1/4 cup olive oil",
+        "Fresh herbs (cilantro, celery leaf)",
+        "Salt",
+        "Vinegar"
+      ],
+      "instructions": [
+        "Crush garlic with salt.",
+        "Mix in cheese and herbs.",
+        "Add oil gradually while mixing.",
+        "Add vinegar to taste.",
+        "Serve with bread."
+      ],
+      "historicalText": "Peasant cheese spread. Virgil wrote a poem about making this.",
+      "historicalContext": "Roman farmers' breakfast, immortalized in Virgil's poem 'Moretum.' Garlic cheese spread.",
+      "sourceAttribution": "Virgil's Moretum poem, Roman agriculture texts",
+      "sourceDate": "1st century BCE",
+      "sourceURL": "https://www.thelatinlibrary.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-008.png?alt=media",
+      "tags": [
+        "appetizer",
+        "Roman",
+        "cheese"
+      ]
+    },
+    {
+      "id": "ancient-009",
+      "title": "Persian Rice Pilaf",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 6",
+      "prepTime": "10 min",
+      "cookTime": "35 min",
+      "ingredients": [
+        "2 cups basmati rice",
+        "4 tablespoons butter",
+        "1 onion, sliced",
+        "1/4 cup almonds",
+        "1/4 cup dried fruit",
+        "Saffron",
+        "Salt"
+      ],
+      "instructions": [
+        "Saut\u00e9 onion in butter until golden.",
+        "Add rice, toast 2 minutes.",
+        "Add water, saffron, salt.",
+        "Simmer covered 20 minutes.",
+        "Top with almonds and fruit."
+      ],
+      "historicalText": "The royal rice. Saffron-scented pilaf with nuts and fruit.",
+      "historicalContext": "Ancient Persia perfected rice cooking. This pilaf graced royal tables of the Achaemenid Empire.",
+      "sourceAttribution": "Persian culinary traditions, Silk Road records",
+      "sourceDate": "500 BCE",
+      "sourceURL": "https://www.britannica.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-009.png?alt=media",
+      "tags": [
+        "side dish",
+        "Persian",
+        "rice"
+      ]
+    },
+    {
+      "id": "ancient-010",
+      "title": "Byzantine Honey Fritters",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Makes 20",
+      "prepTime": "20 min",
+      "cookTime": "15 min",
+      "ingredients": [
+        "2 cups flour",
+        "2 eggs",
+        "1/2 cup milk",
+        "Oil for frying",
+        "1 cup honey",
+        "Cinnamon"
+      ],
+      "instructions": [
+        "Make batter with flour, eggs, milk.",
+        "Drop spoonfuls into hot oil.",
+        "Fry until golden.",
+        "Drain, soak in warm honey.",
+        "Sprinkle with cinnamon."
+      ],
+      "historicalText": "Sweet fritters soaked in honey. Constantinople street food.",
+      "historicalContext": "Byzantine Empire's popular dessert, served at festivals and sold by street vendors.",
+      "sourceAttribution": "Byzantine culinary manuscripts",
+      "sourceDate": "500-1000 CE",
+      "sourceURL": "https://www.dumbartonoaks.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-010.png?alt=media",
+      "tags": [
+        "dessert",
+        "Byzantine",
+        "fried"
+      ]
+    },
+    {
+      "id": "ancient-011",
+      "title": "Greek Barley Cakes",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Makes 12",
+      "prepTime": "20 min",
+      "cookTime": "30 min",
+      "ingredients": [
+        "2 cups barley flour",
+        "1/2 cup honey",
+        "1/4 cup olive oil",
+        "1/2 cup wine",
+        "Cheese crumbles"
+      ],
+      "instructions": [
+        "Mix ingredients.",
+        "Form small cakes.",
+        "Bake 30 minutes."
+      ],
+      "historicalText": "Barley cakes with cheese. Olympic athlete fuel.",
+      "historicalContext": "Ancient Olympic athletes ate these for energy. Barley was Greece's primary grain.",
+      "sourceAttribution": "Ancient Greek athletics records",
+      "sourceDate": "776 BCE",
+      "sourceURL": "https://www.perseus.tufts.edu/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-011.png?alt=media",
+      "tags": [
+        "dessert",
+        "Greek",
+        "barley"
+      ]
+    },
+    {
+      "id": "ancient-012",
+      "title": "Roman Stuffed Dormice",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 4",
+      "prepTime": "45 min",
+      "cookTime": "20 min",
+      "ingredients": [
+        "4 dormice (or substitute game birds)",
+        "Minced pork",
+        "Pine nuts",
+        "Pepper",
+        "Garum"
+      ],
+      "instructions": [
+        "Stuff dormice with pork mixture.",
+        "Roast until golden.",
+        "Glaze with honey."
+      ],
+      "historicalText": "A delicacy for wealthy Romans. Dormice stuffed and roasted.",
+      "historicalContext": "Apicius' most exotic recipe. Dormice were fattened in clay jars and served at banquets.",
+      "sourceAttribution": "Apicius, De Re Coquinaria",
+      "sourceDate": "4th century CE",
+      "sourceURL": "https://penelope.uchicago.edu/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-012.png?alt=media",
+      "tags": [
+        "main dish",
+        "Roman",
+        "exotic"
+      ]
+    },
+    {
+      "id": "ancient-013",
+      "title": "Phoenician Fish Stew",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 6",
+      "prepTime": "20 min",
+      "cookTime": "30 min",
+      "ingredients": [
+        "2 lbs white fish",
+        "Onions",
+        "Garlic",
+        "Olive oil",
+        "Vinegar",
+        "Cumin",
+        "Coriander"
+      ],
+      "instructions": [
+        "Saut\u00e9 aromatics.",
+        "Add fish, spices.",
+        "Simmer with vinegar.",
+        "Serve with flatbread."
+      ],
+      "historicalText": "Mediterranean fish stew. Phoenician sailors' food.",
+      "historicalContext": "Phoenicia's maritime culture created this stew, spreading it across Mediterranean colonies.",
+      "sourceAttribution": "Phoenician archaeological sites",
+      "sourceDate": "1000 BCE",
+      "sourceURL": "https://www.penn.museum/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-013.png?alt=media",
+      "tags": [
+        "seafood",
+        "Phoenician",
+        "stew"
+      ]
+    },
+    {
+      "id": "ancient-014",
+      "title": "Carthaginian Couscous",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 6",
+      "prepTime": "15 min",
+      "cookTime": "25 min",
+      "ingredients": [
+        "2 cups couscous",
+        "Lamb or chicken",
+        "Vegetables",
+        "Olive oil",
+        "Harissa spices"
+      ],
+      "instructions": [
+        "Steam couscous.",
+        "Cook meat and vegetables separately.",
+        "Serve couscous topped with stew."
+      ],
+      "historicalText": "Ancient North African grain dish with meat and vegetables.",
+      "historicalContext": "Carthage perfected couscous preparation. This dish predates Roman conquest of North Africa.",
+      "sourceAttribution": "Carthaginian culinary history",
+      "sourceDate": "300 BCE",
+      "sourceURL": "https://www.britannica.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-014.png?alt=media",
+      "tags": [
+        "main dish",
+        "Carthaginian",
+        "couscous"
+      ]
+    },
+    {
+      "id": "ancient-015",
+      "title": "Etruscan Polenta",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 6",
+      "prepTime": "10 min",
+      "cookTime": "40 min",
+      "ingredients": [
+        "2 cups cornmeal (or spelt meal)",
+        "6 cups water",
+        "Salt",
+        "Olive oil",
+        "Cheese"
+      ],
+      "instructions": [
+        "Boil water with salt.",
+        "Whisk in meal slowly.",
+        "Stir constantly 40 minutes.",
+        "Top with oil and cheese."
+      ],
+      "historicalText": "Porridge of the Etruscans. Predecessor to modern polenta.",
+      "historicalContext": "Etruscans ate grain porridge (puls) before Rome adopted it. Foundation of Italian cuisine.",
+      "sourceAttribution": "Etruscan archaeological evidence",
+      "sourceDate": "700 BCE",
+      "sourceURL": "https://www.metmuseum.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-015.png?alt=media",
+      "tags": [
+        "side dish",
+        "Etruscan",
+        "grain"
+      ]
+    },
+    {
+      "id": "ancient-016",
+      "title": "Sumerian Date Cake",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Makes 1 cake",
+      "prepTime": "30 min",
+      "cookTime": "45 min",
+      "ingredients": [
+        "3 cups flour",
+        "1 cup dates, chopped",
+        "1/2 cup butter",
+        "1/2 cup honey",
+        "1 cup milk",
+        "Spices"
+      ],
+      "instructions": [
+        "Cream butter and honey.",
+        "Mix in flour, milk.",
+        "Fold in dates.",
+        "Bake 45 minutes."
+      ],
+      "historicalText": "Sweet cake studded with dates. Mesopotamian celebration food.",
+      "historicalContext": "Dates were Mesopotamia's primary sweetener. This cake appeared at religious festivals.",
+      "sourceAttribution": "Sumerian cuneiform tablets",
+      "sourceDate": "2500 BCE",
+      "sourceURL": "https://www.penn.museum/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-016.png?alt=media",
+      "tags": [
+        "dessert",
+        "Sumerian",
+        "dates"
+      ]
+    },
+    {
+      "id": "ancient-017",
+      "title": "Chinese Jiaozi Dumplings",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Makes 30",
+      "prepTime": "1 hr",
+      "cookTime": "15 min",
+      "ingredients": [
+        "Dumpling wrappers",
+        "1 lb ground pork",
+        "Cabbage",
+        "Ginger",
+        "Soy sauce",
+        "Sesame oil"
+      ],
+      "instructions": [
+        "Mix filling ingredients.",
+        "Fill wrappers, seal edges.",
+        "Boil or steam 8 minutes.",
+        "Serve with dipping sauce."
+      ],
+      "historicalText": "Ancient Chinese dumplings. Medicinal food turned celebration dish.",
+      "historicalContext": "Legend says they were invented by physician Zhang Zhongjing in Han Dynasty to prevent frostbite.",
+      "sourceAttribution": "Han Dynasty records",
+      "sourceDate": "200 CE",
+      "sourceURL": "https://www.metmuseum.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-017.png?alt=media",
+      "tags": [
+        "main dish",
+        "Chinese",
+        "dumplings"
+      ]
+    },
+    {
+      "id": "ancient-018",
+      "title": "Viking Smoked Fish",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 4",
+      "prepTime": "5 min",
+      "cookTime": "2 hrs",
+      "ingredients": [
+        "4 whole fish (herring or mackerel)",
+        "Salt",
+        "Juniper berries",
+        "Wood for smoking"
+      ],
+      "instructions": [
+        "Gut and clean fish.",
+        "Salt generously.",
+        "Smoke over juniper wood 2 hours.",
+        "Serve with flatbread."
+      ],
+      "historicalText": "Preserved fish, Norse survival food.",
+      "historicalContext": "Vikings smoked fish for long voyages. This preservation method sustained Norse expansion.",
+      "sourceAttribution": "Viking Age archaeological sites",
+      "sourceDate": "800-1000 CE",
+      "sourceURL": "https://www.nationalmuseum.dk/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-018.png?alt=media",
+      "tags": [
+        "seafood",
+        "Viking",
+        "smoked"
+      ]
+    },
+    {
+      "id": "ancient-019",
+      "title": "Celtic Oat Porridge",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 4",
+      "prepTime": "5 min",
+      "cookTime": "20 min",
+      "ingredients": [
+        "2 cups steel-cut oats",
+        "6 cups water",
+        "Honey",
+        "Berries",
+        "Salt"
+      ],
+      "instructions": [
+        "Boil water, add oats and salt.",
+        "Simmer 20 minutes, stirring.",
+        "Serve with honey and berries."
+      ],
+      "historicalText": "Ancient Celtic breakfast. Oats cooked in water or milk.",
+      "historicalContext": "Celts cultivated oats in Iron Age Britain. This porridge sustained warriors and farmers.",
+      "sourceAttribution": "Celtic archaeological evidence",
+      "sourceDate": "500 BCE",
+      "sourceURL": "https://www.britishmuseum.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-019.png?alt=media",
+      "tags": [
+        "breakfast",
+        "Celtic",
+        "oats"
+      ]
+    },
+    {
+      "id": "ancient-020",
+      "title": "Aztec Chocolate Drink",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 4",
+      "prepTime": "10 min",
+      "cookTime": "15 min",
+      "ingredients": [
+        "4 tablespoons cacao powder",
+        "3 cups water",
+        "2 tablespoons honey",
+        "Chili powder",
+        "Vanilla"
+      ],
+      "instructions": [
+        "Heat water, whisk in cacao.",
+        "Add honey and spices.",
+        "Froth by pouring between containers.",
+        "Serve warm."
+      ],
+      "historicalText": "Bitter chocolate drink of emperors. Xocol\u0101tl.",
+      "historicalContext": "Aztecs considered chocolate the food of gods. Drunk at ceremonies, served cold and bitter with chili.",
+      "sourceAttribution": "Aztec codices, Mesoamerican evidence",
+      "sourceDate": "1400s CE",
+      "sourceURL": "https://www.mexicolore.co.uk/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-020.png?alt=media",
+      "tags": [
+        "beverage",
+        "Aztec",
+        "chocolate"
+      ]
+    },
+    {
+      "id": "ancient-021",
+      "title": "Inca Quinoa Soup",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 6",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "ingredients": [
+        "1 cup quinoa",
+        "Potato",
+        "Corn",
+        "Beans",
+        "Peppers",
+        "Herbs"
+      ],
+      "instructions": [
+        "Rinse quinoa.",
+        "Combine all ingredients in pot.",
+        "Simmer 30 minutes.",
+        "Serve hot."
+      ],
+      "historicalText": "Andean superfood soup. The mother grain.",
+      "historicalContext": "Incas called quinoa 'the mother of all grains.' This soup sustained high-altitude civilizations.",
+      "sourceAttribution": "Inca agricultural records",
+      "sourceDate": "1200-1500 CE",
+      "sourceURL": "https://www.britannica.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-021.png?alt=media",
+      "tags": [
+        "soup",
+        "Inca",
+        "quinoa"
+      ]
+    },
+    {
+      "id": "ancient-022",
+      "title": "Medieval Pottage",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 8",
+      "prepTime": "20 min",
+      "cookTime": "2 hrs",
+      "ingredients": [
+        "Dried peas or beans",
+        "Barley",
+        "Onions",
+        "Leeks",
+        "Herbs",
+        "Salt",
+        "Optional: bacon"
+      ],
+      "instructions": [
+        "Soak beans overnight.",
+        "Simmer all ingredients 2 hours.",
+        "Add herbs last 15 minutes."
+      ],
+      "historicalText": "Peasant stew of grains and vegetables. Medieval Europe's daily food.",
+      "historicalContext": "Pottage fed medieval Europe. A one-pot meal simmered all day, eaten with bread.",
+      "sourceAttribution": "Medieval household records",
+      "sourceDate": "1000-1500 CE",
+      "sourceURL": "https://www.bl.uk/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-022.png?alt=media",
+      "tags": [
+        "soup",
+        "Medieval",
+        "stew"
+      ]
+    },
+    {
+      "id": "ancient-023",
+      "title": "Roman Puls",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 4",
+      "prepTime": "5 min",
+      "cookTime": "30 min",
+      "ingredients": [
+        "2 cups emmer wheat (or spelt)",
+        "4 cups water",
+        "2 tablespoons olive oil",
+        "Salt",
+        "Cheese"
+      ],
+      "instructions": [
+        "Boil wheat in salted water.",
+        "Cook until porridge consistency.",
+        "Stir in oil.",
+        "Top with cheese."
+      ],
+      "historicalText": "Rome's original daily bread. Porridge before bread dominated.",
+      "historicalContext": "Before Romans perfected bread, they ate puls\u2014a grain porridge. Foundation of Roman diet.",
+      "sourceAttribution": "Roman Republic records",
+      "sourceDate": "500 BCE",
+      "sourceURL": "https://penelope.uchicago.edu/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-023.png?alt=media",
+      "tags": [
+        "side dish",
+        "Roman",
+        "porridge"
+      ]
+    },
+    {
+      "id": "ancient-024",
+      "title": "Greek Symposium Wine",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 10",
+      "prepTime": "10 min",
+      "cookTime": "0 min",
+      "ingredients": [
+        "1 gallon wine",
+        "Honey",
+        "Water",
+        "Spices (cinnamon, anise)"
+      ],
+      "instructions": [
+        "Mix wine with equal parts water.",
+        "Add honey to taste.",
+        "Infuse with spices.",
+        "Serve in kylix cups."
+      ],
+      "historicalText": "Diluted, sweetened wine for philosophical discussions.",
+      "historicalContext": "Greeks never drank wine undiluted\u2014considered barbaric. Symposiums featured this spiced, watered wine.",
+      "sourceAttribution": "Ancient Greek symposium practices",
+      "sourceDate": "400 BCE",
+      "sourceURL": "https://www.perseus.tufts.edu/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-024.png?alt=media",
+      "tags": [
+        "beverage",
+        "Greek",
+        "wine"
+      ]
+    },
+    {
+      "id": "ancient-025",
+      "title": "Babylonian Beer",
+      "heritageCollectionId": "ancient-table",
+      "servings": "Serves 8",
+      "prepTime": "1 week",
+      "cookTime": "2 hrs",
+      "ingredients": [
+        "Barley",
+        "Dates",
+        "Water",
+        "Wild yeast"
+      ],
+      "instructions": [
+        "Bake barley bread.",
+        "Crumble into water with dates.",
+        "Let ferment 1 week.",
+        "Strain and serve."
+      ],
+      "historicalText": "The world's oldest recorded recipe. Hymn to Ninkasi, beer goddess.",
+      "historicalContext": "Babylonians brewed beer 4000 years ago. The Hymn to Ninkasi is humanity's oldest recipe, a beer-making song.",
+      "sourceAttribution": "Sumerian cuneiform, Ninkasi hymn",
+      "sourceDate": "1800 BCE",
+      "sourceURL": "https://www.penn.museum/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Fancient-025.png?alt=media",
+      "tags": [
+        "beverage",
+        "Babylonian",
+        "beer"
+      ]
+    },
+    {
+      "id": "american-003",
+      "title": "Johnnycakes",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 12",
+      "prepTime": "10 min",
+      "cookTime": "15 min",
+      "ingredients": [
+        "2 cups cornmeal",
+        "1 teaspoon salt",
+        "2 tablespoons butter, melted",
+        "1 1/2 cups boiling water"
+      ],
+      "instructions": [
+        "Mix cornmeal and salt.",
+        "Add butter and boiling water.",
+        "Drop spoonfuls on hot griddle.",
+        "Cook until golden, flip once."
+      ],
+      "historicalText": "Rhode Island cornmeal pancakes. Native American origin.",
+      "historicalContext": "Journey cakes became johnnycakes. Rhode Island colonists learned this from Narragansett people.",
+      "sourceAttribution": "Colonial New England records",
+      "sourceDate": "1600s",
+      "sourceURL": "https://www.history.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-003.png?alt=media",
+      "tags": [
+        "breakfast",
+        "cornmeal",
+        "pancakes"
+      ]
+    },
+    {
+      "id": "american-004",
+      "title": "Succotash",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 6",
+      "prepTime": "15 min",
+      "cookTime": "25 min",
+      "ingredients": [
+        "2 cups lima beans",
+        "2 cups corn kernels",
+        "1/4 cup butter",
+        "1/4 cup cream",
+        "Salt and pepper"
+      ],
+      "instructions": [
+        "Cook beans until tender.",
+        "Add corn, cook 5 minutes.",
+        "Stir in butter and cream.",
+        "Season and serve."
+      ],
+      "historicalText": "Native American dish of beans and corn. Msickquatash.",
+      "historicalContext": "From Narragansett word. Pilgrims learned this life-sustaining combination from indigenous peoples.",
+      "sourceAttribution": "Native American foodways, Plymouth Colony",
+      "sourceDate": "1620s",
+      "sourceURL": "https://www.plimoth.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-004.png?alt=media",
+      "tags": [
+        "side dish",
+        "corn",
+        "beans"
+      ]
+    },
+    {
+      "id": "american-005",
+      "title": "Pumpkin Butter",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 4 pints",
+      "prepTime": "30 min",
+      "cookTime": "2 hrs",
+      "ingredients": [
+        "6 cups pumpkin puree",
+        "3 cups sugar",
+        "1 cup apple cider",
+        "2 teaspoons cinnamon",
+        "1 teaspoon cloves",
+        "1/2 teaspoon nutmeg"
+      ],
+      "instructions": [
+        "Combine all ingredients in pot.",
+        "Simmer 2 hours, stirring often.",
+        "When thick, pack into sterilized jars.",
+        "Seal and process."
+      ],
+      "historicalText": "Spiced pumpkin spread for bread. Colonial preservation.",
+      "historicalContext": "Early Americans preserved pumpkin for winter. This buttersread on johnny cakes or bread.",
+      "sourceAttribution": "Colonial preservation methods",
+      "sourceDate": "1700s",
+      "sourceURL": "https://www.mountvernon.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-005.png?alt=media",
+      "tags": [
+        "condiment",
+        "pumpkin",
+        "preserved"
+      ]
+    },
+    {
+      "id": "american-006",
+      "title": "Apple Pandowdy",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 8",
+      "prepTime": "30 min",
+      "cookTime": "1 hr",
+      "ingredients": [
+        "6 apples, sliced",
+        "1 cup molasses",
+        "1/2 cup sugar",
+        "1 teaspoon cinnamon",
+        "Pie crust",
+        "1/4 cup butter"
+      ],
+      "instructions": [
+        "Layer apples in baking dish.",
+        "Pour molasses over, sprinkle with sugar and cinnamon.",
+        "Top with broken pieces of pie crust.",
+        "Dot with butter.",
+        "Bake 1 hour, breaking crust partway through."
+      ],
+      "historicalText": "Dowdy crust pushed into fruit. New England apple dessert.",
+      "historicalContext": "The 'dowdy' crust is deliberately broken and pushed into the juices. Thrifty colonial baking.",
+      "sourceAttribution": "New England colonial kitchens",
+      "sourceDate": "1700s",
+      "sourceURL": "https://www.history.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-006.png?alt=media",
+      "tags": [
+        "dessert",
+        "apple",
+        "colonial"
+      ]
+    },
+    {
+      "id": "american-007",
+      "title": "Hasty Pudding",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 6",
+      "prepTime": "5 min",
+      "cookTime": "20 min",
+      "ingredients": [
+        "1 cup cornmeal",
+        "4 cups milk",
+        "1/4 cup molasses",
+        "1/2 teaspoon salt",
+        "Butter"
+      ],
+      "instructions": [
+        "Heat milk to boiling.",
+        "Whisk in cornmeal slowly.",
+        "Add molasses and salt.",
+        "Cook 15 minutes, stirring.",
+        "Serve hot with butter and cream."
+      ],
+      "historicalText": "Quick cornmeal porridge. Colonial comfort food.",
+      "historicalContext": "Made from cornmeal\u2014cheap, fast, filling. Harvard's Hasty Pudding Club named for this dish.",
+      "sourceAttribution": "Colonial American kitchens",
+      "sourceDate": "1600s-1700s",
+      "sourceURL": "https://www.plimoth.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-007.png?alt=media",
+      "tags": [
+        "dessert",
+        "cornmeal",
+        "pudding"
+      ]
+    },
+    {
+      "id": "american-008",
+      "title": "Election Cake",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 2 loaves",
+      "prepTime": "3 hrs",
+      "cookTime": "45 min",
+      "ingredients": [
+        "1 cup butter",
+        "2 cups sugar",
+        "4 eggs",
+        "1 cup milk",
+        "5 cups flour",
+        "2 teaspoons baking soda",
+        "2 cups raisins",
+        "1 cup currants",
+        "Spices"
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add eggs, then dry and wet alternately.",
+        "Fold in fruit.",
+        "Let rise 1 hour.",
+        "Bake 45 minutes."
+      ],
+      "historicalText": "Rich fruit bread for election day celebrations.",
+      "historicalContext": "Baked for Connecticut election days in 1700s. Women contributed these cakes to voting day festivities.",
+      "sourceAttribution": "Connecticut colonial traditions",
+      "sourceDate": "1700s",
+      "sourceURL": "https://www.ct.gov/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-008.png?alt=media",
+      "tags": [
+        "dessert",
+        "cake",
+        "fruit"
+      ]
+    },
+    {
+      "id": "american-009",
+      "title": "Switchel",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 8",
+      "prepTime": "10 min",
+      "cookTime": "0 min",
+      "ingredients": [
+        "1 cup apple cider vinegar",
+        "1/2 cup molasses",
+        "1/4 cup honey",
+        "1 tablespoon ginger",
+        "8 cups cold water"
+      ],
+      "instructions": [
+        "Mix all ingredients until dissolved.",
+        "Chill thoroughly.",
+        "Serve over ice."
+      ],
+      "historicalText": "Haymaker's drink. Vinegar refresher for harvest.",
+      "historicalContext": "Colonial farmers drank this during hay harvest. The vinegar was refreshing and prevented dehydration.",
+      "sourceAttribution": "Colonial farm practices",
+      "sourceDate": "1700s",
+      "sourceURL": "https://www.mountvernon.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-009.png?alt=media",
+      "tags": [
+        "beverage",
+        "vinegar",
+        "ginger"
+      ]
+    },
+    {
+      "id": "american-010",
+      "title": "Syllabub",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 6",
+      "prepTime": "15 min",
+      "cookTime": "2 hrs chill",
+      "ingredients": [
+        "2 cups heavy cream",
+        "1/2 cup white wine",
+        "1/4 cup sugar",
+        "Lemon juice and zest",
+        "Nutmeg"
+      ],
+      "instructions": [
+        "Whip cream with sugar until soft peaks.",
+        "Fold in wine and lemon.",
+        "Spoon into glasses.",
+        "Chill 2 hours.",
+        "Grate nutmeg on top."
+      ],
+      "historicalText": "Whipped cream and wine dessert. Colonial elegance.",
+      "historicalContext": "Fashionable in colonial America, served at balls and parties. Light, alcoholic, sophisticated.",
+      "sourceAttribution": "Colonial entertaining customs",
+      "sourceDate": "1700s",
+      "sourceURL": "https://www.whitehousehistory.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-010.png?alt=media",
+      "tags": [
+        "dessert",
+        "wine",
+        "cream"
+      ]
+    },
+    {
+      "id": "american-011",
+      "title": "Mincemeat",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 8 pies",
+      "prepTime": "1 hr",
+      "cookTime": "3 hrs",
+      "ingredients": [
+        "2 lbs beef, cooked and chopped",
+        "2 lbs apples",
+        "2 cups raisins",
+        "2 cups currants",
+        "1 cup suet",
+        "1 cup molasses",
+        "Spices",
+        "Brandy"
+      ],
+      "instructions": [
+        "Combine all ingredients except brandy.",
+        "Simmer 3 hours.",
+        "Add brandy, mix well.",
+        "Pack into jars.",
+        "Use for pie filling."
+      ],
+      "historicalText": "Preserved meat and fruit mixture. Originally with venison.",
+      "historicalContext": "Colonial preservation method. The name 'mincemeat' comes from minced meat, now mostly fruit.",
+      "sourceAttribution": "Colonial preservation techniques",
+      "sourceDate": "1600s-1700s",
+      "sourceURL": "https://www.plimoth.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-011.png?alt=media",
+      "tags": [
+        "condiment",
+        "preserved",
+        "pie filling"
+      ]
+    },
+    {
+      "id": "american-012",
+      "title": "Corn Dodgers",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 16",
+      "prepTime": "15 min",
+      "cookTime": "20 min",
+      "ingredients": [
+        "2 cups cornmeal",
+        "1 teaspoon salt",
+        "2 tablespoons fat",
+        "1 1/4 cups boiling water"
+      ],
+      "instructions": [
+        "Mix cornmeal and salt.",
+        "Add fat and boiling water.",
+        "Shape into oval patties.",
+        "Bake on greased sheet at 400\u00b0F for 20 minutes."
+      ],
+      "historicalText": "Hard corn cakes. Civil War soldier food.",
+      "historicalContext": "Confederate soldiers ate these\u2014easily made over campfires. Dodge means to shape or form.",
+      "sourceAttribution": "Civil War era food",
+      "sourceDate": "1860s",
+      "sourceURL": "https://www.nps.gov/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-012.png?alt=media",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "military"
+      ]
+    },
+    {
+      "id": "american-013",
+      "title": "Samp and Beans",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 8",
+      "prepTime": "overnight soak",
+      "cookTime": "3 hrs",
+      "ingredients": [
+        "2 cups hominy (samp)",
+        "1 cup dried beans",
+        "1 onion",
+        "Salt pork",
+        "Salt and pepper"
+      ],
+      "instructions": [
+        "Soak samp and beans overnight.",
+        "Simmer with salt pork 3 hours until tender.",
+        "Add onion last hour.",
+        "Season and serve."
+      ],
+      "historicalText": "Native American hominy and bean stew.",
+      "historicalContext": "Algonquian dish adopted by colonists. Samp is hulled corn. Sustained early settlements.",
+      "sourceAttribution": "Native American and colonial foodways",
+      "sourceDate": "1600s",
+      "sourceURL": "https://www.plimoth.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-013.png?alt=media",
+      "tags": [
+        "main dish",
+        "hominy",
+        "beans"
+      ]
+    },
+    {
+      "id": "american-014",
+      "title": "Rye and Injun Bread",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 2 loaves",
+      "prepTime": "2 hrs",
+      "cookTime": "45 min",
+      "ingredients": [
+        "2 cups rye flour",
+        "2 cups cornmeal (Injun)",
+        "1 tablespoon yeast",
+        "2 cups warm water",
+        "1/4 cup molasses",
+        "1 teaspoon salt"
+      ],
+      "instructions": [
+        "Mix flours.",
+        "Dissolve yeast in water, add molasses.",
+        "Combine, knead.",
+        "Let rise 1 hour.",
+        "Shape, rise 30 min.",
+        "Bake 45 minutes."
+      ],
+      "historicalText": "Mixed grain bread. New England staple when wheat was scarce.",
+      "historicalContext": "'Injun' was colonial slang for Indian corn. This bread reflects grain scarcity and adaptation.",
+      "sourceAttribution": "Colonial New England baking",
+      "sourceDate": "1700s",
+      "sourceURL": "https://www.plimoth.org/",
+      "imageURL": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80",
+      "tags": [
+        "bread",
+        "rye",
+        "cornmeal"
+      ]
+    },
+    {
+      "id": "american-015",
+      "title": "Pone",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 8",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "ingredients": [
+        "3 cups cornmeal",
+        "1 teaspoon salt",
+        "2 tablespoons butter, melted",
+        "2 cups boiling water"
+      ],
+      "instructions": [
+        "Mix cornmeal and salt.",
+        "Add butter and water.",
+        "Press into greased baking dish.",
+        "Bake at 400\u00b0F for 30 minutes until crusty."
+      ],
+      "historicalText": "Cornmeal flatbread. Native American pone, Algonquian origin.",
+      "historicalContext": "From Algonquian 'apan' meaning baked. Simple cornbread baked or fried.",
+      "sourceAttribution": "Native American cooking methods",
+      "sourceDate": "Pre-colonial",
+      "sourceURL": "https://www.plimoth.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-015.png?alt=media",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "Native American"
+      ]
+    },
+    {
+      "id": "american-016",
+      "title": "Flummery",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 6",
+      "prepTime": "15 min",
+      "cookTime": "4 hrs chill",
+      "ingredients": [
+        "4 cups milk",
+        "1/4 cup cornstarch",
+        "1/2 cup sugar",
+        "1 teaspoon vanilla",
+        "Nutmeg"
+      ],
+      "instructions": [
+        "Mix cornstarch with little cold milk.",
+        "Heat remaining milk with sugar.",
+        "Whisk in cornstarch mixture.",
+        "Cook until thick.",
+        "Pour into mold, chill.",
+        "Unmold and serve."
+      ],
+      "historicalText": "Molded milk pudding. Colonial dessert from England.",
+      "historicalContext": "Welsh origin, became American with cornstarch. Elegant molded dessert for special occasions.",
+      "sourceAttribution": "Anglo-American traditions",
+      "sourceDate": "1700s-1800s",
+      "sourceURL": "https://www.history.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-016.png?alt=media",
+      "tags": [
+        "dessert",
+        "pudding",
+        "molded"
+      ]
+    },
+    {
+      "id": "american-017",
+      "title": "Persimmon Pudding",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 8",
+      "prepTime": "30 min",
+      "cookTime": "1 hr",
+      "ingredients": [
+        "2 cups persimmon pulp",
+        "1 cup sugar",
+        "2 eggs",
+        "1 cup milk",
+        "1 1/2 cups flour",
+        "1 teaspoon baking soda",
+        "1 teaspoon cinnamon"
+      ],
+      "instructions": [
+        "Mix persimmon with sugar and eggs.",
+        "Add milk.",
+        "Mix in dry ingredients.",
+        "Pour into greased pan.",
+        "Bake at 350\u00b0F for 1 hour.",
+        "Serve warm with cream."
+      ],
+      "historicalText": "Wild persimmon dessert. Native American fruit pudding.",
+      "historicalContext": "Native Americans introduced colonists to persimmons. This pudding became a Southern tradition.",
+      "sourceAttribution": "Native American ingredients, Southern tradition",
+      "sourceDate": "1700s",
+      "sourceURL": "https://www.nps.gov/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-017.png?alt=media",
+      "tags": [
+        "dessert",
+        "persimmon",
+        "Southern"
+      ]
+    },
+    {
+      "id": "american-018",
+      "title": "Hominy Grits",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 4",
+      "prepTime": "5 min",
+      "cookTime": "25 min",
+      "ingredients": [
+        "1 cup stone-ground grits",
+        "4 cups water",
+        "1 teaspoon salt",
+        "2 tablespoons butter",
+        "Salt and pepper to taste"
+      ],
+      "instructions": [
+        "Bring water and salt to boil.",
+        "Whisk in grits slowly.",
+        "Reduce heat, simmer 20-25 minutes, stirring often.",
+        "Stir in butter.",
+        "Season and serve."
+      ],
+      "historicalText": "Stone-ground corn porridge. Southern breakfast staple.",
+      "historicalContext": "From Algonquian 'rockahominy.' Nixtamalized corn ground coarse. Foundation of Southern cuisine.",
+      "sourceAttribution": "Native American and colonial foodways",
+      "sourceDate": "1600s",
+      "sourceURL": "https://www.southernliving.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-018.png?alt=media",
+      "tags": [
+        "breakfast",
+        "cornmeal",
+        "grits"
+      ]
+    },
+    {
+      "id": "american-019",
+      "title": "Shrub",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 2 quarts",
+      "prepTime": "20 min",
+      "cookTime": "1 week",
+      "ingredients": [
+        "4 cups berries",
+        "2 cups vinegar",
+        "2 cups sugar",
+        "Sparkling water for serving"
+      ],
+      "instructions": [
+        "Macerate berries in vinegar 1 week.",
+        "Strain, add sugar, heat until dissolved.",
+        "Bottle.",
+        "Mix 1 part shrub to 3 parts sparkling water."
+      ],
+      "historicalText": "Vinegar-preserved fruit syrup. Colonial refreshment.",
+      "historicalContext": "Pre-refrigeration preservation. The vinegar preserved fruit for mixing with water\u2014colonial soda.",
+      "sourceAttribution": "Colonial American preservation",
+      "sourceDate": "1700s",
+      "sourceURL": "https://www.mountvernon.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-019.png?alt=media",
+      "tags": [
+        "beverage",
+        "vinegar",
+        "fruit"
+      ]
+    },
+    {
+      "id": "american-020",
+      "title": "Indian Pudding (Baked)",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 8",
+      "prepTime": "20 min",
+      "cookTime": "3 hrs",
+      "ingredients": [
+        "5 cups milk",
+        "1/2 cup cornmeal",
+        "1/2 cup molasses",
+        "1/4 cup sugar",
+        "1 teaspoon cinnamon",
+        "1/2 teaspoon ginger",
+        "1/4 teaspoon salt",
+        "2 eggs"
+      ],
+      "instructions": [
+        "Scald milk, stir in cornmeal.",
+        "Cook until thick.",
+        "Add molasses, sugar, spices.",
+        "Beat in eggs.",
+        "Pour into buttered dish.",
+        "Bake at 275\u00b0F for 3 hours.",
+        "Serve with ice cream."
+      ],
+      "historicalText": "Slow-baked cornmeal pudding. New England classic.",
+      "historicalContext": "Different from Adams' stovetop version\u2014this is baked long and slow. Colonial comfort dessert.",
+      "sourceAttribution": "Colonial New England",
+      "sourceDate": "1600s-1700s",
+      "sourceURL": "https://www.plimoth.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-020.png?alt=media",
+      "tags": [
+        "dessert",
+        "cornmeal",
+        "baked"
+      ]
+    },
+    {
+      "id": "american-021",
+      "title": "Corn Oysters",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 20",
+      "prepTime": "20 min",
+      "cookTime": "15 min",
+      "ingredients": [
+        "2 cups corn kernels",
+        "2 eggs",
+        "1/2 cup flour",
+        "1 teaspoon baking powder",
+        "Salt and pepper",
+        "Oil for frying"
+      ],
+      "instructions": [
+        "Mix all ingredients to make thick batter.",
+        "Drop spoonfuls into hot oil.",
+        "Fry until golden on both sides.",
+        "Drain and serve hot."
+      ],
+      "historicalText": "Fritters shaped like oysters. Mock oysters for inland tables.",
+      "historicalContext": "When oysters were unavailable, corn fritters provided a similar shape. Clever colonial cooking.",
+      "sourceAttribution": "Colonial American recipes",
+      "sourceDate": "1800s",
+      "sourceURL": "https://www.history.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-021.png?alt=media",
+      "tags": [
+        "appetizer",
+        "corn",
+        "fritters"
+      ]
+    },
+    {
+      "id": "american-022",
+      "title": "Anadama Bread",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 2 loaves",
+      "prepTime": "2 hrs 30 min",
+      "cookTime": "40 min",
+      "ingredients": [
+        "1/2 cup cornmeal",
+        "2 cups boiling water",
+        "1/4 cup molasses",
+        "2 tablespoons butter",
+        "1 teaspoon salt",
+        "1 tablespoon yeast",
+        "5 cups flour"
+      ],
+      "instructions": [
+        "Stir cornmeal into boiling water, cook until thick.",
+        "Add molasses, butter, salt. Cool to lukewarm.",
+        "Dissolve yeast in warm water.",
+        "Add to cornmeal mixture with flour.",
+        "Knead, let rise 1 hour.",
+        "Shape, rise 30 minutes.",
+        "Bake at 375\u00b0F for 40 minutes."
+      ],
+      "historicalText": "Anna, damn her! Legend says a fisherman cursed his wife's cornmeal mush.",
+      "historicalContext": "Massachusetts legend: a fisherman tired of cornmeal mush added flour and yeast, cursing 'Anna, damn her!' Hence the name.",
+      "sourceAttribution": "Massachusetts folklore",
+      "sourceDate": "1800s",
+      "sourceURL": "https://www.newenglandhistoricalsociety.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-022.png?alt=media",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "molasses"
+      ]
+    },
+    {
+      "id": "american-023",
+      "title": "Sally Lunn Bread",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 1 loaf",
+      "prepTime": "2 hrs",
+      "cookTime": "30 min",
+      "ingredients": [
+        "3 cups flour",
+        "1/4 cup sugar",
+        "1 teaspoon salt",
+        "1 tablespoon yeast",
+        "1 cup warm milk",
+        "3 eggs",
+        "1/2 cup butter, melted"
+      ],
+      "instructions": [
+        "Mix dry ingredients.",
+        "Combine milk, eggs, butter.",
+        "Add to dry, beat well.",
+        "Let rise 1 hour in greased bundt pan.",
+        "Bake at 350\u00b0F for 30 minutes.",
+        "Serve warm with butter."
+      ],
+      "historicalText": "Rich egg bread. English immigrant recipe.",
+      "historicalContext": "Named for Sally Lunn who sold these in Bath, England. Became American colonial favorite\u2014rich, cake-like bread.",
+      "sourceAttribution": "Anglo-American baking traditions",
+      "sourceDate": "1700s",
+      "sourceURL": "https://www.history.com/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-023.png?alt=media",
+      "tags": [
+        "bread",
+        "eggs",
+        "sweet"
+      ]
+    },
+    {
+      "id": "american-024",
+      "title": "Ash Cakes",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Makes 8",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "ingredients": [
+        "2 cups cornmeal",
+        "1 teaspoon salt",
+        "Water to make stiff dough"
+      ],
+      "instructions": [
+        "Mix cornmeal, salt, and enough water to form stiff dough.",
+        "Shape into flat cakes.",
+        "Wrap in cabbage leaves or corn husks.",
+        "Bury in hot ashes.",
+        "Bake 30 minutes.",
+        "Brush off ash, eat hot."
+      ],
+      "historicalText": "Cornbread baked in fireplace ashes. Frontier simplicity.",
+      "historicalContext": "When settlers had no pots or ovens, they baked in ashes. Most basic bread possible.",
+      "sourceAttribution": "Frontier American cooking",
+      "sourceDate": "1600s-1800s",
+      "sourceURL": "https://www.nps.gov/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-024.png?alt=media",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "primitive"
+      ]
+    },
+    {
+      "id": "american-025",
+      "title": "Spider Corn Cake",
+      "heritageCollectionId": "american-foundation",
+      "servings": "Serves 8",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "ingredients": [
+        "2 cups cornmeal",
+        "1 teaspoon salt",
+        "1 teaspoon baking soda",
+        "2 cups sour milk",
+        "2 eggs",
+        "2 tablespoons molasses",
+        "2 tablespoons butter",
+        "1 cup sweet milk"
+      ],
+      "instructions": [
+        "Mix cornmeal, salt, soda.",
+        "Beat in sour milk, eggs, molasses.",
+        "Melt butter in cast iron spider (pan with legs).",
+        "Pour in batter.",
+        "Pour sweet milk over top (don't stir).",
+        "Bake at 425\u00b0F for 30 minutes until set."
+      ],
+      "historicalText": "Cake baked in a 'spider'\u2014cast iron pan with legs for hanging over coals.",
+      "historicalContext": "The spider was a legged skillet used in hearth cooking. This creates a custard layer when milk is added on top.",
+      "sourceAttribution": "Colonial American hearth cooking",
+      "sourceDate": "1700s-1800s",
+      "sourceURL": "https://www.plimoth.org/",
+      "imageURL": "https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/heritage-recipes%2Famerican-025.png?alt=media",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "hearth"
+      ]
+    }
+  ]
+}

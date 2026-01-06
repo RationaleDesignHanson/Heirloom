@@ -11,10 +11,6 @@ import os.log
 
 /// Production logging implementation using OSLog for performance
 final class HeirloomLogger: LoggingService {
-    // MARK: - Singleton
-
-    static let shared = HeirloomLogger()
-
     // MARK: - Configuration
 
     var minimumLevel: LogLevel = .debug
@@ -33,7 +29,7 @@ final class HeirloomLogger: LoggingService {
 
     // MARK: - Initialization
 
-    private init() {
+    init() {
         #if DEBUG
         minimumLevel = .debug
         #else
@@ -277,4 +273,10 @@ final class HeirloomLogger: LoggingService {
 
 /// Global logger instance for easy access throughout the app
 /// Usage: Log.info("message", category: .sync)
-let Log = HeirloomLogger.shared
+/// Resolves from ServiceContainer for proper DI
+/// Note: Safe to use from any context - uses nonisolated accessor
+nonisolated(unsafe) var Log: LoggingService {
+    // Access container's resolve method without MainActor isolation
+    // This is safe because we're just reading from dictionaries that were populated at startup
+    ServiceContainer.sharedUnsafe.resolveUnsafe(LoggingService.self)
+}

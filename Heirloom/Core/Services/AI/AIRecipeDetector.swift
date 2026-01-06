@@ -6,9 +6,14 @@ import UIKit
 /// Ported from rationale-public web demo's detect-recipes API
 @MainActor
 class AIRecipeDetector {
-    static let shared = AIRecipeDetector()
 
-    private init() {}
+    private let aiConfig: AIConfiguration
+    private let aiService: AnthropicAIService
+
+    init(aiConfig: AIConfiguration, aiService: AnthropicAIService) {
+        self.aiConfig = aiConfig
+        self.aiService = aiService
+    }
 
     // MARK: - Detection
 
@@ -52,13 +57,13 @@ class AIRecipeDetector {
         """
 
         let options = AICompletionOptions(
-            model: AIConfiguration.shared.model(for: .vision),
-            maxTokens: 1000,
-            temperature: 0.3 // Lower temperature for more consistent detection
+            model: aiConfig.model(for: .vision),
+            temperature: 0.3, // Lower temperature for more consistent detection
+            maxTokens: 1000
         )
 
         do {
-            let response: DetectionResponse = try await AnthropicAIService.shared.completeWithVisionStructured(
+            let response: DetectionResponse = try await aiService.completeWithVisionStructured(
                 image: image,
                 prompt: prompt,
                 schema: DetectionResponse.self,

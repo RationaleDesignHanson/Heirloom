@@ -196,6 +196,8 @@ struct RecipeCookingSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+
     let recipe: Recipe
     @Bindable var partyRecipe: DinnerPartyRecipe
 
@@ -219,11 +221,11 @@ struct RecipeCookingSheetView: View {
                                 let generator = UINotificationFeedbackGenerator()
                                 generator.notificationOccurred(.success)
 
-                                ToastManager.shared.success(
+                                toastManager.success(
                                     title: partyRecipe.isCompleted ? "Recipe completed" : "Marked incomplete"
                                 )
                             } catch {
-                                ToastManager.shared.error(
+                                toastManager.error(
                                     title: "Failed to update",
                                     message: error.localizedDescription
                                 )

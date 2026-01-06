@@ -11,21 +11,21 @@ class AIAPITest {
 
         // Step 1: Check configuration
         Log.info("Step 1: Checking configuration", category: .general)
-        let config = AIConfiguration.shared
+        let config = ServiceContainer.shared.resolve(AIConfiguration.self)
 
         if config.isConfigured(provider: .anthropic) {
             Log.info("Anthropic API key is configured", category: .general)
         } else {
             Log.warning("Anthropic API key NOT configured", category: .general)
             Log.info("To configure: 1. Get API key from: https://console.anthropic.com/", category: .general)
-            Log.info("2. Run this code in app: AIConfiguration.shared.setAPIKey(\"sk-ant-...\", for: .anthropic)", category: .general)
+            Log.info("2. Get AIConfiguration from ServiceContainer and call setAPIKey(\"sk-ant-...\", for: .anthropic)", category: .general)
             return
         }
 
         // Step 2: Test simple completion
         Log.info("Step 2: Testing simple completion", category: .general)
         do {
-            let service = AnthropicAIService.shared
+            let service = ServiceContainer.shared.resolve(AIServiceProtocol.self)
             let response = try await service.complete(
                 prompt: "Say 'Hello from Heirloom!' in exactly 3 words.",
                 options: AICompletionOptions(
@@ -60,7 +60,7 @@ class AIAPITest {
         }
 
         do {
-            let service = AnthropicAIService.shared
+            let service = ServiceContainer.shared.resolve(AIServiceProtocol.self)
             let ingredient = try await service.completeStructured(
                 prompt: """
                 Parse this ingredient: "2 cups flour"
@@ -89,7 +89,7 @@ class AIAPITest {
 
         // Step 4: Show usage statistics
         Log.info("Step 4: Usage statistics", category: .general)
-        let tracker = AIUsageTracker.shared
+        let tracker = ServiceContainer.shared.resolve(AIUsageTracker.self)
         Log.info("Usage statistics", category: .general, metadata: [
             "totalTokensUsed": tracker.totalTokensUsed,
             "totalCost": tracker.totalCost,
@@ -136,11 +136,13 @@ class AIAPITest {
  ─────────────
 
  // In your app startup or settings:
- AIConfiguration.shared.setAPIKey("sk-ant-api03-YOUR-KEY-HERE", for: .anthropic)
+ let config = ServiceContainer.shared.resolve(AIConfiguration.self)
+ config.setAPIKey("sk-ant-api03-YOUR-KEY-HERE", for: .anthropic)
 
  // Or test without UI by modifying this file:
  // Add at the top of run():
- // AIConfiguration.shared.setAPIKey("sk-ant-...", for: .anthropic)
+ // let config = ServiceContainer.shared.resolve(AIConfiguration.self)
+ // config.setAPIKey("sk-ant-...", for: .anthropic)
 
 
  Get API Key:

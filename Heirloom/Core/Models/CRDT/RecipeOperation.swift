@@ -146,6 +146,14 @@ final class RecipeOperation: Codable, Identifiable {
             return "\(userName) added an ingredient"
         case .addInstruction:
             return "\(userName) added an instruction"
+        case .addCustomization:
+            return "\(userName) added a customization"
+        case .modifyCustomization:
+            return "\(userName) modified a customization"
+        case .deleteCustomization:
+            return "\(userName) deleted a customization"
+        case .reorderCustomizations:
+            return "\(userName) reordered customizations"
         }
     }
 
@@ -179,6 +187,12 @@ enum OperationType: String, Codable {
     case delete           // Field or entity deleted
     case addIngredient    // Ingredient added (special case for array operations)
     case addInstruction   // Instruction added (special case for array operations)
+
+    // MARK: - Customization Operations
+    case addCustomization      // Customization added to recipe card
+    case modifyCustomization   // Customization modified (position, size, rotation, etc.)
+    case deleteCustomization   // Customization soft-deleted
+    case reorderCustomizations // Z-index reordering of multiple customizations
 }
 
 // MARK: - Operation Value
@@ -190,6 +204,7 @@ enum OperationValue: Codable, Equatable {
     case double(Double)
     case bool(Bool)
     case stringArray([String])
+    case jsonData(Data)  // For complex objects like Customization
     case null
 
     // MARK: - Codable
@@ -219,6 +234,9 @@ enum OperationValue: Codable, Equatable {
         case "stringArray":
             let value = try container.decode([String].self, forKey: .value)
             self = .stringArray(value)
+        case "jsonData":
+            let value = try container.decode(Data.self, forKey: .value)
+            self = .jsonData(value)
         case "null":
             self = .null
         default:
@@ -250,6 +268,9 @@ enum OperationValue: Codable, Equatable {
         case .stringArray(let value):
             try container.encode("stringArray", forKey: .type)
             try container.encode(value, forKey: .value)
+        case .jsonData(let value):
+            try container.encode("jsonData", forKey: .type)
+            try container.encode(value, forKey: .value)
         case .null:
             try container.encode("null", forKey: .type)
         }
@@ -279,6 +300,11 @@ enum OperationValue: Codable, Equatable {
 
     var stringArrayValue: [String]? {
         if case .stringArray(let value) = self { return value }
+        return nil
+    }
+
+    var jsonDataValue: Data? {
+        if case .jsonData(let value) = self { return value }
         return nil
     }
 }
@@ -398,6 +424,9 @@ extension OperationValue {
             return ["type": "bool", "value": value]
         case .stringArray(let value):
             return ["type": "stringArray", "value": value]
+        case .jsonData(let value):
+            // Convert Data to base64 string for Firestore
+            return ["type": "jsonData", "value": value.base64EncodedString()]
         case .null:
             return ["type": "null"]
         }
@@ -425,6 +454,10 @@ extension OperationValue {
         case "stringArray":
             guard let value = dict["value"] as? [String] else { return nil }
             return .stringArray(value)
+        case "jsonData":
+            guard let base64String = dict["value"] as? String,
+                  let data = Data(base64Encoded: base64String) else { return nil }
+            return .jsonData(data)
         case "null":
             return .null
         default:

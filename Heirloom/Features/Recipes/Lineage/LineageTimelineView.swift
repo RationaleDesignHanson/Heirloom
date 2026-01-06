@@ -5,6 +5,8 @@ struct LineageTimelineView: View {
     let tree: LineageTree
     let onTapRecipe: (Recipe) -> Void
 
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     @State private var sortOrder: TimelineSortOrder = .chronological
     @State private var selectedNodeID: UUID?
 
@@ -282,6 +284,8 @@ struct LineageContainerView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
 
+    private var lineageService: RecipeLineageService { ServiceContainer.shared.resolve(RecipeLineageService.self) }
+
     var body: some View {
         Group {
             if isLoading {
@@ -370,7 +374,7 @@ struct LineageContainerView: View {
         errorMessage = nil
 
         do {
-            let loadedTree = try await RecipeLineageService.shared.fetchLineageTree(
+            let loadedTree = try await lineageService.fetchLineageTree(
                 for: recipe,
                 context: modelContext
             )
@@ -381,7 +385,7 @@ struct LineageContainerView: View {
             }
 
             // Track analytics
-            AnalyticsService.shared.track(event: .featureUsed, properties: [
+            analytics.track(event: .featureUsed, properties: [
                 "feature": "lineage_view",
                 "recipe_id": recipe.id.uuidString,
                 "total_nodes": loadedTree.nodes.count,

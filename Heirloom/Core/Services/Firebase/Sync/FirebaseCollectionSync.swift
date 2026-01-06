@@ -17,13 +17,13 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
 
     // MARK: - Dependencies
 
-    private let configuration: FirebaseConfigurationProtocol
-    private let converter: FirebaseRecordConverterProtocol
+    private let configuration: FirebaseConfiguration
+    private let converter: FirebaseRecordConverter
     private let logger: LoggingService
 
     // MARK: - Initialization
 
-    init(configuration: FirebaseConfigurationProtocol, converter: FirebaseRecordConverterProtocol, logger: LoggingService) {
+    init(configuration: FirebaseConfiguration, converter: FirebaseRecordConverter, logger: LoggingService) {
         self.configuration = configuration
         self.converter = converter
         self.logger = logger
@@ -47,7 +47,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         let existingIngredients = try await ingredientsRef.getDocuments()
 
         if !existingIngredients.documents.isEmpty {
-            logger.log("Deleting old ingredients", category: .sync, level: .debug)
+            logger.log("Deleting old ingredients", category: .sync, level: .debug, metadata: nil)
 
             let deleteBatch = configuration.db.batch()
             for doc in existingIngredients.documents {
@@ -58,17 +58,17 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
 
         // Upload new ingredients
         if !ingredients.isEmpty {
-            logger.log("Uploading ingredients", category: .sync, level: .info)
+            logger.log("Uploading ingredients", category: .sync, level: .info, metadata: nil)
 
             let uploadBatch = configuration.db.batch()
             for ingredient in ingredients {
                 let ingredientRef = ingredientsRef.document(ingredient.id.uuidString)
-                let ingredientData = converter.convertIngredientToFirestoreData(ingredient)
+                let ingredientData = FirebaseRecordConverter.convertIngredientToFirestoreData(ingredient)
                 uploadBatch.setData(ingredientData, forDocument: ingredientRef)
             }
             try await uploadBatch.commit()
 
-            logger.log("Ingredients uploaded successfully", category: .sync, level: .info)
+            logger.log("Ingredients uploaded successfully", category: .sync, level: .info, metadata: nil)
         }
     }
 
@@ -85,10 +85,10 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         let ingredientsRef = try configuration.ingredientsSubcollection(recipeId: recipeId)
         let snapshot = try await ingredientsRef.getDocuments()
 
-        logger.log("Downloaded ingredients", category: .sync, level: .info)
+        logger.log("Downloaded ingredients", category: .sync, level: .info, metadata: nil)
 
         let ingredients = snapshot.documents.map { doc in
-            converter.convertIngredientFromFirestoreData(doc.data(), id: doc.documentID)
+            FirebaseRecordConverter.convertIngredientFromFirestoreData(doc.data(), id: doc.documentID)
         }
 
         // Sort by orderIndex
@@ -125,12 +125,12 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             let uploadBatch = configuration.db.batch()
             for comment in comments {
                 let commentRef = commentsRef.document(comment.id.uuidString)
-                let commentData = converter.convertCommentToFirestoreData(comment)
+                let commentData = FirebaseRecordConverter.convertCommentToFirestoreData(comment)
                 uploadBatch.setData(commentData, forDocument: commentRef)
             }
             try await uploadBatch.commit()
 
-            logger.log("Comments uploaded successfully", category: .sync, level: .info)
+            logger.log("Comments uploaded successfully", category: .sync, level: .info, metadata: nil)
         }
     }
 
@@ -148,11 +148,11 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         let snapshot = try await commentsRef.getDocuments()
 
         let comments = snapshot.documents.map { doc in
-            converter.convertCommentFromFirestoreData(doc.data(), id: doc.documentID)
+            FirebaseRecordConverter.convertCommentFromFirestoreData(doc.data(), id: doc.documentID)
         }
 
         recipe.comments = comments
-        logger.log("Comments downloaded successfully", category: .sync, level: .info)
+        logger.log("Comments downloaded successfully", category: .sync, level: .info, metadata: nil)
     }
 
     // MARK: - Card Back Sync
@@ -168,10 +168,10 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         }
 
         let cardBackRef = try configuration.cardBackDocument(recipeId: recipeId)
-        let cardBackData = converter.convertCardBackToFirestoreData(cardBack)
+        let cardBackData = FirebaseRecordConverter.convertCardBackToFirestoreData(cardBack)
 
         try await cardBackRef.setData(cardBackData)
-        logger.log("Card back uploaded successfully", category: .sync, level: .info)
+        logger.log("Card back uploaded successfully", category: .sync, level: .info, metadata: nil)
     }
 
     /// Download card back for a recipe from Firestore
@@ -188,8 +188,8 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         let snapshot = try await cardBackRef.getDocument()
 
         if snapshot.exists, let data = snapshot.data() {
-            recipe.cardBack = converter.convertCardBackFromFirestoreData(data)
-            logger.log("Card back downloaded successfully", category: .sync, level: .info)
+            recipe.cardBack = FirebaseRecordConverter.convertCardBackFromFirestoreData(data)
+            logger.log("Card back downloaded successfully", category: .sync, level: .info, metadata: nil)
         }
     }
 
@@ -213,7 +213,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         data["recipeIds"] = collection.recipes?.map { $0.id.uuidString } ?? []
 
         try await collectionRef.setData(data)
-        logger.log("Collection uploaded successfully", category: .sync, level: .info)
+        logger.log("Collection uploaded successfully", category: .sync, level: .info, metadata: nil)
     }
 
     /// Delete collection from Firebase
@@ -227,7 +227,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         let collectionRef = try configuration.collectionsCollection().document(collectionId.uuidString)
         try await collectionRef.delete()
 
-        logger.log("Collection deleted successfully", category: .sync, level: .info)
+        logger.log("Collection deleted successfully", category: .sync, level: .info, metadata: nil)
     }
 
     // MARK: - Tags Sync
@@ -249,7 +249,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         data["recipeIds"] = tag.recipes?.map { $0.id.uuidString } ?? []
 
         try await tagRef.setData(data)
-        logger.log("Tag uploaded successfully", category: .sync, level: .info)
+        logger.log("Tag uploaded successfully", category: .sync, level: .info, metadata: nil)
     }
 
     /// Delete tag from Firebase
@@ -263,7 +263,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         let tagRef = try configuration.tagsCollection().document(tagId.uuidString)
         try await tagRef.delete()
 
-        logger.log("Tag deleted successfully", category: .sync, level: .info)
+        logger.log("Tag deleted successfully", category: .sync, level: .info, metadata: nil)
     }
 
     // MARK: - Shopping Cart Sync
@@ -285,7 +285,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         data["dateAdded"] = Timestamp(date: cartRecipe.dateAdded)
 
         try await cartRef.setData(data)
-        logger.log("Shopping cart recipe uploaded successfully", category: .sync, level: .info)
+        logger.log("Shopping cart recipe uploaded successfully", category: .sync, level: .info, metadata: nil)
     }
 
     /// Delete shopping cart recipe from Firebase
@@ -299,7 +299,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         let cartRef = try configuration.shoppingCartCollection().document(cartRecipeId.uuidString)
         try await cartRef.delete()
 
-        logger.log("Shopping cart recipe deleted successfully", category: .sync, level: .info)
+        logger.log("Shopping cart recipe deleted successfully", category: .sync, level: .info, metadata: nil)
     }
 
     // MARK: - Dinner Parties Sync
@@ -324,7 +324,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         data["createdDate"] = Timestamp(date: party.createdDate)
 
         try await partyRef.setData(data)
-        logger.log("Dinner party uploaded successfully", category: .sync, level: .info)
+        logger.log("Dinner party uploaded successfully", category: .sync, level: .info, metadata: nil)
     }
 
     /// Delete dinner party from Firebase
@@ -338,6 +338,6 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         let partyRef = try configuration.dinnerPartiesCollection().document(partyId.uuidString)
         try await partyRef.delete()
 
-        logger.log("Dinner party deleted successfully", category: .sync, level: .info)
+        logger.log("Dinner party deleted successfully", category: .sync, level: .info, metadata: nil)
     }
 }

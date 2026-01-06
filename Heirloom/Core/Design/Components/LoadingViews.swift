@@ -168,6 +168,9 @@ struct AsyncRecipeImage: View {
         self.placeholder = placeholder
     }
 
+    // Using concrete type for image storage
+    private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
+
     @State private var loadedImage: UIImage?
     @State private var isLoading = true
     @State private var hasAttemptedLoad = false
@@ -230,7 +233,7 @@ struct AsyncRecipeImage: View {
 
         Log.debug("AsyncRecipeImage: Loading image", category: .storage, metadata: ["fileName": fileName])
 
-        if let image = await ImageStorageService.shared.loadImage(fileName: fileName) {
+        if let image = await imageStorageService.loadImage(fileName: fileName) {
             Log.debug("AsyncRecipeImage: Successfully loaded image", category: .storage, metadata: ["fileName": fileName])
             await MainActor.run {
                 loadedImage = image

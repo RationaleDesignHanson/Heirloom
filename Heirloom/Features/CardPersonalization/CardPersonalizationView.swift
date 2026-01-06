@@ -5,6 +5,9 @@ struct CardPersonalizationView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var milestoneManager: MilestoneManager { ServiceContainer.shared.resolve(MilestoneManager.self) }
+
     @Bindable var recipe: Recipe
 
     @State private var selectedTab: PersonalizationTab = .background
@@ -828,7 +831,7 @@ struct CardPersonalizationView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.warning)
 
-        ToastManager.shared.info(title: "Changes reset")
+        toastManager.info(title: "Changes reset")
     }
 
     private func removeRecipeSticker(_ sticker: RecipeSticker) {
@@ -865,14 +868,14 @@ struct CardPersonalizationView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Card updated!")
+            toastManager.success(title: "Card updated!")
 
             // Check card personalization milestone
-            MilestoneManager.shared.checkFirstCardPersonalization()
+            milestoneManager.checkFirstCardPersonalization()
 
             dismiss()
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to save changes",
                 message: error.localizedDescription
             )

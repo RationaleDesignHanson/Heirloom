@@ -4,6 +4,10 @@ import SwiftData
 struct CollectionManagementView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     @Query(sort: \RecipeCollection.name) private var collections: [RecipeCollection]
 
@@ -138,11 +142,11 @@ struct CollectionManagementView: View {
             try modelContext.save()
 
             // Delete from Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Task {
                     for collectionId in collectionIdsToDelete {
                         do {
-                            try await FirebaseSyncService.shared.deleteCollection(collectionId)
+                            try await firebaseSync.deleteCollection(collectionId)
                         } catch {
                             Log.warning("Failed to delete collection from Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "collectionId": collectionId])
                         }
@@ -155,9 +159,9 @@ struct CollectionManagementView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(title: "Collection deleted")
+            toastManager.success(title: "Collection deleted")
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to delete collection",
                 message: error.localizedDescription
             )
@@ -170,6 +174,10 @@ struct CollectionManagementView: View {
 struct CollectionEditorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseSync) private var firebaseSync
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     @State private var collection: RecipeCollection?
     @State private var name: String = ""
@@ -361,10 +369,10 @@ struct CollectionEditorView: View {
             try modelContext.save()
 
             // Sync to Firebase if active
-            if BackendConfig.shared.isFirebaseActive {
+            if backendConfig.isFirebaseActive {
                 Task {
                     do {
-                        try await FirebaseSyncService.shared.uploadCollection(collectionToSync)
+                        try await firebaseSync.uploadCollection(collectionToSync)
                         Log.info("Collection synced to Firebase", category: .firebase, metadata: ["collectionId": collectionToSync.id])
                     } catch {
                         Log.warning("Failed to sync collection to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "collectionId": collectionToSync.id])
@@ -376,13 +384,13 @@ struct CollectionEditorView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            ToastManager.shared.success(
+            toastManager.success(
                 title: isEditing ? "Collection updated" : "Collection created"
             )
 
             dismiss()
         } catch {
-            ToastManager.shared.error(
+            toastManager.error(
                 title: "Failed to save collection",
                 message: error.localizedDescription
             )

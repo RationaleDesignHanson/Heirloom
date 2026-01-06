@@ -25,6 +25,10 @@ class CardStyleUndoManager: ObservableObject {
     @Published private(set) var undoDescription: String?
     @Published private(set) var redoDescription: String?
 
+    // MARK: - Dependencies
+
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+
     // MARK: - Private State
     private var undoStack: [CardStyleAction] = []
     private var redoStack: [CardStyleAction] = []
@@ -51,7 +55,7 @@ class CardStyleUndoManager: ObservableObject {
         updateState()
 
         // Track analytics
-        AnalyticsService.shared.track(event: .featureUsed, properties: [
+        analytics.track(event: .featureUsed, properties: [
             "feature": "card_styling",
             "action": action.description,
             "undo_stack_size": undoStack.count
@@ -73,7 +77,7 @@ class CardStyleUndoManager: ObservableObject {
         updateState()
 
         // Track analytics
-        AnalyticsService.shared.track(event: .featureUsed, properties: [
+        analytics.track(event: .featureUsed, properties: [
             "feature": "undo",
             "action": action.description,
             "undo_stack_size": undoStack.count
@@ -95,7 +99,7 @@ class CardStyleUndoManager: ObservableObject {
         updateState()
 
         // Track analytics
-        AnalyticsService.shared.track(event: .featureUsed, properties: [
+        analytics.track(event: .featureUsed, properties: [
             "feature": "redo",
             "action": action.description,
             "redo_stack_size": redoStack.count
