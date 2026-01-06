@@ -489,11 +489,8 @@ struct RecipeDetailView: View {
                 if recipe.cardBack != nil {
                     // Card back exists - show preview with edit button
                     ZStack(alignment: .topTrailing) {
-                        // TODO: Re-enable once RecipeCardBackPreview is added to Xcode project
-                        // RecipeCardBackPreview(cardBack: recipe.cardBack!, recipe: recipe)
-                        Text("Card Back Preview")
+                        RecipeCardBackPreview(cardBack: recipe.cardBack!, recipe: recipe)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color(.systemBackground))
 
                         // Edit affordance
                         Button {
