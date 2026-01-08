@@ -43,6 +43,9 @@ struct RecipeListView: View {
     @State private var conflictRecipeCRDT: RecipeCRDT?
     @State private var conflictList: [DetailedConflict] = []
 
+    // Coach mark
+    @State private var showToolbarCoachMark = false
+
     var body: some View {
         NavigationStack {
             mainContent
@@ -54,10 +57,29 @@ struct RecipeListView: View {
                     RecipeDetailView(recipe: recipe)
                 }
                 .modifier(sheetModifiers)
-                .onAppear(perform: configureUndoService)
+                .onAppear {
+                    configureUndoService()
+                    // Show toolbar coach mark on first visit
+                    if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenToolbarCoachMark) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            showToolbarCoachMark = true
+                        }
+                    }
+                }
                 .onReceive(NotificationCenter.default.publisher(for: .recipeConflictsDetected), perform: handleConflictNotification)
                 .overlay(alignment: .bottom) {
                     selectionOverlay
+                }
+                .overlay {
+                    if showToolbarCoachMark {
+                        CoachMarkView(
+                            message: "Add a recipe from anywhere — URL, photo, or type it in. Don't have one? Try our sample →",
+                            onDismiss: {
+                                showToolbarCoachMark = false
+                                UserDefaults.standard.set(true, forKey: UserDefaultsKeys.hasSeenToolbarCoachMark)
+                            }
+                        )
+                    }
                 }
         }
     }
@@ -118,7 +140,8 @@ struct RecipeListView: View {
                 onImportRecipe: { showImportRecipe = true },
                 onBulkImport: { showBulkImport = true },
                 onCookbookScanner: { showCookbookScanner = true },
-                onAddSample: addSampleRecipe
+                onAddNormalSample: addSampleRecipe,
+                onAddHeritageSample: addSampleRecipe
             )
         }
     }
@@ -1183,7 +1206,7 @@ struct RecipeCardView: View {
                 }
             }
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(recipe.title)
                     .font(HeirloomFonts.subheadline)
                     .foregroundStyle(HeirloomColors.primaryText)
@@ -1191,44 +1214,49 @@ struct RecipeCardView: View {
                     .lineLimit(2)
                     .frame(minHeight: 34, alignment: .topLeading)
 
-                Text(recipe.sourceDisplayName)
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .lineLimit(1)
+                // Consolidated: Source, Times Cooked, and Generation Badge on one line
+                HStack(spacing: 6) {
+                    Text(recipe.sourceDisplayName)
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .lineLimit(1)
+
+                    if recipe.timesCooked > 0 {
+                        Text("•")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+
+                        Label("\(recipe.timesCooked)", systemImage: "flame.fill")
+                            .font(.caption)
+                            .foregroundStyle(HeirloomColors.amber)
+                            .accessibilityLabel("Cooked \(recipe.timesCooked) times")
+                    }
+
+                    Spacer()
+
+                    // Generation badge for lineage
+                    if let generation = recipe.provenance?.generation, generation > 0 {
+                        HStack(spacing: 2) {
+                            Image(systemName: "circle.fill")
+                                .font(.system(size: 6))
+                                .foregroundStyle(generationColor(for: generation))
+
+                            Text(generationBadge(for: generation))
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(generationColor(for: generation))
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule()
+                                .fill(generationColor(for: generation).opacity(0.15))
+                        )
+                        .accessibilityLabel("\(generationBadge(for: generation)) recipe")
+                    }
+                }
+                .frame(height: 20)
             }
             .accessibilityElement(children: .combine)
-
-            HStack {
-                if recipe.timesCooked > 0 {
-                    Label("\(recipe.timesCooked)", systemImage: "flame.fill")
-                        .font(.caption)
-                        .foregroundStyle(HeirloomColors.amber)
-                        .accessibilityLabel("Cooked \(recipe.timesCooked) times")
-                }
-
-                Spacer()
-
-                // Generation badge for lineage
-                if let generation = recipe.provenance?.generation, generation > 0 {
-                    HStack(spacing: 2) {
-                        Image(systemName: "circle.fill")
-                            .font(.system(size: 6))
-                            .foregroundStyle(generationColor(for: generation))
-
-                        Text(generationBadge(for: generation))
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(generationColor(for: generation))
-                    }
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(
-                        Capsule()
-                            .fill(generationColor(for: generation).opacity(0.15))
-                    )
-                    .accessibilityLabel("\(generationBadge(for: generation)) recipe")
-                }
-            }
-            .frame(height: 20)
         }
         .padding(HeirloomSpacing.sm)
         .frame(maxWidth: .infinity)

@@ -15,6 +15,7 @@ struct CookbookScannerView: View {
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
     @State private var showCamera = false
     @State private var capturedImage: UIImage?
@@ -25,6 +26,7 @@ struct CookbookScannerView: View {
     @State private var multiRecipeResult: AIRecipeExtractor.MultiRecipeExtractionResult?
     @State private var errorMessage: String?
     @State private var imageSource: ImageSource = .camera
+    @State private var showSoftWall = false
 
     // Progress tracking
     @State private var processingStep: ProcessingStep = .preparing
@@ -122,6 +124,13 @@ struct CookbookScannerView: View {
                 }
             }
             .onChange(of: selectedPhotoItem) { _, newItem in
+                // Check for premium subscription
+                guard subscriptionManager.isPremium else {
+                    selectedPhotoItem = nil
+                    showSoftWall = true
+                    return
+                }
+
                 Task {
                     if let data = try? await newItem?.loadTransferable(type: Data.self),
                        let image = UIImage(data: data) {
@@ -132,6 +141,9 @@ struct CookbookScannerView: View {
                         }
                     }
                 }
+            }
+            .sheet(isPresented: $showSoftWall) {
+                SoftWallView(trigger: .cookbookScan)
             }
         }
     }
@@ -176,6 +188,11 @@ struct CookbookScannerView: View {
             VStack(spacing: HeirloomSpacing.md) {
                 // Camera Button
                 Button {
+                    // Check for premium subscription
+                    guard subscriptionManager.isPremium else {
+                        showSoftWall = true
+                        return
+                    }
                     showCamera = true
                 } label: {
                     HStack {

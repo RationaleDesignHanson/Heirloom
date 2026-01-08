@@ -4,7 +4,14 @@ import SwiftData
 /// Detail view showing recipes within a collection
 struct CollectionDetailView: View {
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var notificationService: FirebaseNotificationService
     let collection: RecipeCollection
+
+    @State private var showAddRecipe = false
+    @State private var showImportRecipe = false
+    @State private var showBulkImport = false
+    @State private var showCookbookScanner = false
+    @State private var showDeleteConfirmation = false
 
     @Query private var allRecipes: [Recipe]
 
@@ -32,14 +39,15 @@ struct CollectionDetailView: View {
                     emptyStateView
                 } else {
                     LazyVGrid(columns: [
-                        GridItem(.flexible(), spacing: HeirloomSpacing.md),
-                        GridItem(.flexible(), spacing: HeirloomSpacing.md)
-                    ], spacing: HeirloomSpacing.md) {
+                        GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing),
+                        GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
+                    ], spacing: HeirloomSpacing.gridSpacing) {
                         ForEach(recipes, id: \.id) { recipe in
                             NavigationLink {
                                 RecipeDetailView(recipe: recipe)
+                                    .environmentObject(notificationService)
                             } label: {
-                                RecipeGridCard(recipe: recipe)
+                                RecipeCardView(recipe: recipe)
                             }
                             .buttonStyle(.plain)
                         }
@@ -51,6 +59,67 @@ struct CollectionDetailView: View {
         }
         .navigationTitle(collection.name)
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                RecipeListToolbarActions(
+                    isSelectionMode: false,
+                    selectedCount: 0,
+                    filteredCount: recipes.count,
+                    onSelectAllToggle: {},
+                    onAddRecipe: { showAddRecipe = true },
+                    onImportRecipe: { showImportRecipe = true },
+                    onBulkImport: { showBulkImport = true },
+                    onCookbookScanner: { showCookbookScanner = true },
+                    onAddNormalSample: addNormalSampleRecipe,
+                    onAddHeritageSample: addHeritageSampleRecipe
+                )
+            }
+
+            // Delete button for non-system collections
+            if !collection.isSystemCollection {
+                ToolbarItem(placement: .secondaryAction) {
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .accessibilityLabel("Delete Collection")
+                }
+            }
+        }
+        .sheet(isPresented: $showAddRecipe) {
+            RecipeEditorView()
+        }
+        .sheet(isPresented: $showImportRecipe) {
+            RecipeImportView()
+        }
+        .sheet(isPresented: $showBulkImport) {
+            BulkImportView()
+        }
+        .sheet(isPresented: $showCookbookScanner) {
+            CookbookScannerView()
+        }
+        .confirmationDialog(
+            "Delete \(collection.name)?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Collection Only", role: .destructive) {
+                Task {
+                    await deleteCollectionKeepingRecipes()
+                }
+            }
+
+            Button("Delete Collection & Recipes", role: .destructive) {
+                Task {
+                    await deleteCollectionAndRecipes()
+                }
+            }
+
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Choose what to delete:\n• Collection Only: Recipes remain in your library\n• Collection & Recipes: Removes everything")
+        }
     }
 
     // MARK: - Collection Header
@@ -88,6 +157,351 @@ struct CollectionDetailView: View {
         .padding(.horizontal, HeirloomSpacing.md)
     }
 
+    // MARK: - Heritage Recipe JSON Model
+
+    private struct HeritageRecipeJSON: Codable {
+        let id: String
+        let title: String
+        let heritageCollectionId: String
+        let servings: String?
+        let prepTime: String?
+        let cookTime: String?
+        let ingredients: [String]
+        let instructions: [String]
+        let historicalText: String?
+        let historicalContext: String?
+        let sourceAttribution: String?
+        let sourceDate: String?
+        let sourceURL: String?
+        let imageURL: String?
+        let tags: [String]?
+    }
+
+    // MARK: - Actions
+
+    private func addNormalSampleRecipe() {
+        // Pick any recipe from the full library
+        guard let sampleRecipe = SampleRecipeLibrary.all.randomElement() else { return }
+
+        Task {
+            await createSampleRecipe(from: sampleRecipe, addToCollection: collection)
+        }
+    }
+
+    private func addHeritageSampleRecipe() {
+        Task {
+            await createHeritageRecipe(addToCollection: collection)
+        }
+    }
+
+    private func createHeritageRecipe(addToCollection: RecipeCollection) async {
+        // Load heritage recipes from JSON
+        guard let url = Bundle.main.url(forResource: "heritage-recipes", withExtension: "json"),
+              let data = try? Data(contentsOf: url) else {
+            return
+        }
+
+        struct HeritageRecipeData: Codable {
+            let recipes: [HeritageRecipeJSON]
+        }
+
+        guard let heritageData = try? JSONDecoder().decode(HeritageRecipeData.self, from: data) else {
+            return
+        }
+
+        // Get existing recipe titles to avoid duplicates
+        let existingTitles = recipes.map { $0.title }
+
+        // Filter out recipes that already exist
+        let availableRecipes = heritageData.recipes.filter { !existingTitles.contains($0.title) }
+
+        // Pick a random recipe that doesn't already exist
+        guard let heritageRecipe = availableRecipes.randomElement() else {
+            // If all recipes exist, pick any and add a number
+            guard let heritageRecipe = heritageData.recipes.randomElement() else { return }
+            await createHeritageRecipeFromJSON(heritageRecipe, addToCollection: addToCollection, titleExists: true)
+            return
+        }
+
+        await createHeritageRecipeFromJSON(heritageRecipe, addToCollection: addToCollection, titleExists: false)
+    }
+
+    private func createHeritageRecipeFromJSON(_ json: HeritageRecipeJSON, addToCollection: RecipeCollection, titleExists: Bool) async {
+        let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+
+        // Create unique title if needed
+        var finalTitle = json.title
+        if titleExists {
+            let existingTitles = recipes.map { $0.title }
+            var counter = 2
+            while existingTitles.contains("\(json.title) (\(counter))") {
+                counter += 1
+            }
+            finalTitle = "\(json.title) (\(counter))"
+        }
+
+        // Create recipe
+        let recipe = Recipe(
+            title: finalTitle,
+            sourceType: .heritage,
+            sourceURL: json.sourceURL,
+            instructions: json.instructions,
+            servings: json.servings,
+            prepTime: json.prepTime,
+            cookTime: json.cookTime
+        )
+
+        recipe.sourceDate = json.sourceDate
+        recipe.historicalContext = json.historicalContext
+        recipe.notes = json.historicalText
+
+        // Download and save image if available
+        if let imageURLString = json.imageURL, let imageURL = URL(string: imageURLString) {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: imageURL)
+                if let image = UIImage(data: data) {
+                    let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
+                    recipe.imageFileName = fileName
+                }
+            } catch {
+                // Continue without image
+            }
+        }
+
+        // Insert recipe
+        await MainActor.run {
+            modelContext.insert(recipe)
+        }
+
+        // Create and insert ingredients
+        var ingredients: [Ingredient] = []
+        for (index, text) in json.ingredients.enumerated() {
+            let parsed = IngredientParser.parse(text)
+
+            let ingredient = Ingredient(
+                originalText: text,
+                name: parsed.name,
+                quantity: parsed.quantity,
+                unit: parsed.unit,
+                category: GroceryCategory.categorize(parsed.name),
+                orderIndex: index
+            )
+            ingredient.quantityMax = parsed.quantityMax
+            ingredient.recipe = recipe
+            await MainActor.run {
+                modelContext.insert(ingredient)
+            }
+            ingredients.append(ingredient)
+        }
+
+        recipe.ingredients = ingredients
+
+        // Add to collection
+        await MainActor.run {
+            recipe.collections = [addToCollection]
+            try? modelContext.save()
+        }
+    }
+
+    private func createSampleRecipe(from sampleRecipe: SampleRecipeData, addToCollection: RecipeCollection, isHeritage: Bool = false) async {
+        let sampleData = sampleRecipe.recipe
+        let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+
+        // Create a unique title variation by checking existing recipes
+        var finalTitle = sampleData.title
+        let existingTitles = recipes.map { $0.title }
+        if existingTitles.contains(sampleData.title) {
+            // Add a variation number if duplicate exists
+            var counter = 2
+            while existingTitles.contains("\(sampleData.title) (\(counter))") {
+                counter += 1
+            }
+            finalTitle = "\(sampleData.title) (\(counter))"
+        }
+
+        // Create a NEW Recipe object (don't reuse the sample)
+        let recipe = Recipe(
+            title: finalTitle,
+            sourceType: isHeritage ? .heritage : (sampleData.sourceType ?? .manual),
+            sourceURL: sampleData.sourceURL,
+            instructions: sampleData.instructions,
+            servings: sampleData.servings,
+            prepTime: sampleData.prepTime,
+            cookTime: sampleData.cookTime
+        )
+
+        // Copy additional properties
+        recipe.sourcePerson = sampleData.sourcePerson
+        recipe.sourceDate = sampleData.sourceDate
+        recipe.sourceBookTitle = sampleData.sourceBookTitle
+        recipe.timesCooked = sampleData.timesCooked
+        recipe.isFavorite = sampleData.isFavorite
+        recipe.notes = sampleData.notes
+
+        // Download and save image
+        if let imageURL = URL(string: sampleRecipe.imageURL) {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: imageURL)
+                if let image = UIImage(data: data) {
+                    let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
+                    recipe.imageFileName = fileName
+                }
+            } catch {
+                // Continue without image - not a fatal error
+            }
+        }
+
+        // Insert recipe first
+        await MainActor.run {
+            modelContext.insert(recipe)
+        }
+
+        // Create and insert ingredients with proper parsing
+        var ingredients: [Ingredient] = []
+        for (index, text) in sampleRecipe.ingredients.enumerated() {
+            let parsed = IngredientParser.parse(text)
+
+            let ingredient = Ingredient(
+                originalText: text,
+                name: parsed.name,
+                quantity: parsed.quantity,
+                unit: parsed.unit,
+                category: GroceryCategory.categorize(parsed.name),
+                orderIndex: index
+            )
+            ingredient.quantityMax = parsed.quantityMax
+            ingredient.recipe = recipe
+            await MainActor.run {
+                modelContext.insert(ingredient)
+            }
+            ingredients.append(ingredient)
+        }
+
+        recipe.ingredients = ingredients
+
+        // Add to the specified collection
+        await MainActor.run {
+            recipe.collections = [addToCollection]
+            try? modelContext.save()
+        }
+    }
+
+    // MARK: - Delete Actions
+
+    private func deleteCollectionKeepingRecipes() async {
+        // Prevent deletion of system collections
+        guard !collection.isSystemCollection else {
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.error(title: "Cannot delete", message: "System collections cannot be deleted")
+            }
+            return
+        }
+
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+
+        do {
+            // Remove collection-recipe relationships
+            if let recipes = collection.recipes {
+                for recipe in recipes {
+                    recipe.collections?.removeAll { $0.id == collection.id }
+                }
+            }
+
+            // Delete collection
+            await MainActor.run {
+                modelContext.delete(collection)
+                try? modelContext.save()
+            }
+
+            // Firebase sync
+            let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
+            if backendConfig.isFirebaseActive {
+                let firebaseSync = ServiceContainer.shared.resolve(FirebaseSyncServiceProtocol.self)
+                try await firebaseSync.deleteCollection(collection.id)
+            }
+
+            // Success feedback
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.success(title: "Collection deleted", message: "Recipes remain in your library")
+                generator.notificationOccurred(.success)
+            }
+
+        } catch {
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.error(title: "Failed to delete collection", message: error.localizedDescription)
+                generator.notificationOccurred(.error)
+            }
+        }
+    }
+
+    private func deleteCollectionAndRecipes() async {
+        // Prevent deletion of system collections
+        guard !collection.isSystemCollection else {
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.error(title: "Cannot delete", message: "System collections cannot be deleted")
+            }
+            return
+        }
+
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+
+        do {
+            let recipesToDelete = collection.recipes ?? []
+            let recipeCount = recipesToDelete.count
+
+            // Delete all recipes first
+            for recipe in recipesToDelete {
+                await MainActor.run {
+                    modelContext.delete(recipe)
+                }
+            }
+
+            // Delete collection
+            await MainActor.run {
+                modelContext.delete(collection)
+                try? modelContext.save()
+            }
+
+            // Firebase sync
+            let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
+            if backendConfig.isFirebaseActive {
+                let firebaseSync = ServiceContainer.shared.resolve(FirebaseSyncServiceProtocol.self)
+
+                // Delete recipes from Firebase
+                for recipe in recipesToDelete {
+                    try await firebaseSync.deleteRecipe(recipe.id)
+                }
+
+                // Delete collection from Firebase
+                try await firebaseSync.deleteCollection(collection.id)
+            }
+
+            // Success feedback
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.success(
+                    title: "Collection and \(recipeCount) recipe\(recipeCount == 1 ? "" : "s") deleted"
+                )
+                generator.notificationOccurred(.success)
+            }
+
+        } catch {
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.error(title: "Failed to delete", message: error.localizedDescription)
+                generator.notificationOccurred(.error)
+            }
+        }
+    }
+
     // MARK: - Empty State
 
     private var emptyStateView: some View {
@@ -107,58 +521,6 @@ struct CollectionDetailView: View {
         }
         .padding(HeirloomSpacing.xl)
         .frame(maxWidth: .infinity)
-    }
-}
-
-// MARK: - Recipe Grid Card
-
-struct RecipeGridCard: View {
-    let recipe: Recipe
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            // Image with blurhash placeholder
-            ZStack {
-                AsyncBlurhashImage(
-                    recipe: recipe,
-                    variant: .card,
-                    contentMode: .fill
-                )
-
-                // Fallback icon if no image
-                if recipe.imageFileName == nil {
-                    Image(systemName: recipe.isHeritageRecipe ? "scroll.fill" : "fork.knife")
-                        .font(.largeTitle)
-                        .foregroundStyle(HeirloomColors.charcoal.opacity(0.2))
-                }
-            }
-            .frame(height: 120)
-            .background(recipe.isHeritageRecipe ? Color(hex: "#F0EDE6") : Color(hex: "#F8F8F8"))
-            .cornerRadius(HeirloomSpacing.cardCornerRadius)
-            .clipped()
-
-            // Recipe title
-            Text(recipe.title)
-                .font(HeirloomFonts.caption1)
-                .foregroundStyle(HeirloomColors.primaryText)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
-
-            // Heritage badge or metadata
-            if recipe.isHeritageRecipe {
-                HStack(spacing: 4) {
-                    Image(systemName: "laurel.trailing")
-                        .font(.system(size: 10))
-                    Text("Heritage")
-                }
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
-            } else if let servings = recipe.servings {
-                Text(servings)
-                    .font(HeirloomFonts.caption2)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-            }
-        }
     }
 }
 

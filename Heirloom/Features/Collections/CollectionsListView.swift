@@ -4,11 +4,15 @@ import SwiftData
 /// Main Collections tab view showing heritage and user collections
 struct CollectionsListView: View {
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var notificationService: FirebaseNotificationService
     @Query(sort: \RecipeCollection.createdDate) private var allCollections: [RecipeCollection]
 
     @State private var showCreateCollection = false
     @State private var showAddRecipe = false
     @State private var selectedCollection: RecipeCollection?
+    @State private var showRecipeCoachMark = false
+    @State private var collectionToDelete: RecipeCollection?
+    @State private var showDeleteConfirmation = false
 
     // Filter heritage collections (founding collections)
     var heritageCollections: [RecipeCollection] {
@@ -49,7 +53,20 @@ struct CollectionsListView: View {
                                 ForEach(heritageCollections, id: \.id) { collection in
                                     HeritageCollectionCard(collection: collection)
                                         .onTapGesture {
-                                            selectedCollection = collection
+                                            // Show coach mark on first tap if not seen
+                                            if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
+                                                showRecipeCoachMark = true
+                                            } else {
+                                                selectedCollection = collection
+                                            }
+                                        }
+                                        .contextMenu {
+                                            Button(role: .destructive) {
+                                                collectionToDelete = collection
+                                                showDeleteConfirmation = true
+                                            } label: {
+                                                Label("Delete Collection", systemImage: "trash")
+                                            }
                                         }
                                 }
                             }
@@ -66,15 +83,18 @@ struct CollectionsListView: View {
 
                             Spacer()
 
-                            Button {
-                                showCreateCollection = true
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "plus.circle.fill")
-                                    Text("New")
+                            // Only show "+ New" button when user has created at least one collection
+                            if !userCollections.isEmpty {
+                                Button {
+                                    showCreateCollection = true
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "plus.circle.fill")
+                                        Text("New")
+                                    }
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(HeirloomColors.tomato)
                                 }
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(HeirloomColors.tomato)
                             }
                         }
                         .padding(.horizontal, HeirloomSpacing.md)
@@ -87,6 +107,14 @@ struct CollectionsListView: View {
                                     UserCollectionRow(collection: collection)
                                         .onTapGesture {
                                             selectedCollection = collection
+                                        }
+                                        .contextMenu {
+                                            Button(role: .destructive) {
+                                                collectionToDelete = collection
+                                                showDeleteConfirmation = true
+                                            } label: {
+                                                Label("Delete Collection", systemImage: "trash")
+                                            }
                                         }
                                 }
                             }
@@ -135,6 +163,60 @@ struct CollectionsListView: View {
             }
             .navigationDestination(item: $selectedCollection) { collection in
                 CollectionDetailView(collection: collection)
+                    .environmentObject(notificationService)
+            }
+            .overlay {
+                if showRecipeCoachMark {
+                    CoachMarkView(
+                        message: "Tap to view. Edit to make it yours, or share to pass it on.",
+                        onDismiss: {
+                            showRecipeCoachMark = false
+                            UserDefaults.standard.set(true, forKey: UserDefaultsKeys.hasSeenRecipeCoachMark)
+                        }
+                    )
+                }
+            }
+            .confirmationDialog(
+                "Delete \(collectionToDelete?.name ?? "Collection")?",
+                isPresented: $showDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete Collection Only", role: .destructive) {
+                    if let collection = collectionToDelete {
+                        Task {
+                            await deleteCollectionKeepingRecipes(collection)
+                        }
+                    }
+                }
+
+                Button("Delete Collection & Recipes", role: .destructive) {
+                    if let collection = collectionToDelete {
+                        Task {
+                            await deleteCollectionAndRecipes(collection)
+                        }
+                    }
+                }
+
+                Button("Cancel", role: .cancel) {
+                    collectionToDelete = nil
+                }
+            } message: {
+                if let count = collectionToDelete?.recipeCount {
+                    Text("This collection has \(count) recipe\(count == 1 ? "" : "s").\n\nDelete collection only or delete with all recipes?")
+                } else {
+                    Text("Choose what to delete")
+                }
+            }
+            .onAppear {
+                // Show coach mark after 10 seconds if not seen before
+                if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
+                    Task {
+                        try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+                        if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
+                            showRecipeCoachMark = true
+                        }
+                    }
+                }
             }
         }
     }
@@ -168,6 +250,133 @@ struct CollectionsListView: View {
             .padding(.top, HeirloomSpacing.sm)
         }
         .padding(HeirloomSpacing.xl)
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Delete Actions
+
+    private func deleteCollectionKeepingRecipes(_ collection: RecipeCollection) async {
+        // Prevent deletion of system collections
+        guard !collection.isSystemCollection else {
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.error(title: "Cannot delete", message: "System collections cannot be deleted")
+            }
+            return
+        }
+
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+
+        do {
+            // Remove collection-recipe relationships
+            if let recipes = collection.recipes {
+                for recipe in recipes {
+                    recipe.collections?.removeAll { $0.id == collection.id }
+                }
+            }
+
+            // Delete collection
+            await MainActor.run {
+                modelContext.delete(collection)
+                try? modelContext.save()
+            }
+
+            // Firebase sync
+            let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
+            if backendConfig.isFirebaseActive {
+                let firebaseSync = ServiceContainer.shared.resolve(FirebaseSyncServiceProtocol.self)
+                try await firebaseSync.deleteCollection(collection.id)
+            }
+
+            // Success feedback
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.success(title: "Collection deleted", message: "Recipes remain in your library")
+                generator.notificationOccurred(.success)
+            }
+
+            // Clear the deleted collection reference
+            await MainActor.run {
+                collectionToDelete = nil
+            }
+
+        } catch {
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.error(title: "Failed to delete collection", message: error.localizedDescription)
+                generator.notificationOccurred(.error)
+            }
+        }
+    }
+
+    private func deleteCollectionAndRecipes(_ collection: RecipeCollection) async {
+        // Prevent deletion of system collections
+        guard !collection.isSystemCollection else {
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.error(title: "Cannot delete", message: "System collections cannot be deleted")
+            }
+            return
+        }
+
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+
+        do {
+            let recipesToDelete = collection.recipes ?? []
+            let recipeCount = recipesToDelete.count
+
+            // Delete all recipes first
+            for recipe in recipesToDelete {
+                await MainActor.run {
+                    modelContext.delete(recipe)
+                }
+            }
+
+            // Delete collection
+            await MainActor.run {
+                modelContext.delete(collection)
+                try? modelContext.save()
+            }
+
+            // Firebase sync
+            let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
+            if backendConfig.isFirebaseActive {
+                let firebaseSync = ServiceContainer.shared.resolve(FirebaseSyncServiceProtocol.self)
+
+                // Delete recipes from Firebase
+                for recipe in recipesToDelete {
+                    try await firebaseSync.deleteRecipe(recipe.id)
+                }
+
+                // Delete collection from Firebase
+                try await firebaseSync.deleteCollection(collection.id)
+            }
+
+            // Success feedback
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.success(
+                    title: "Collection and \(recipeCount) recipe\(recipeCount == 1 ? "" : "s") deleted"
+                )
+                generator.notificationOccurred(.success)
+            }
+
+            // Clear the deleted collection reference
+            await MainActor.run {
+                collectionToDelete = nil
+            }
+
+        } catch {
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            await MainActor.run {
+                toastManager.error(title: "Failed to delete", message: error.localizedDescription)
+                generator.notificationOccurred(.error)
+            }
+        }
     }
 }
 

@@ -18,7 +18,8 @@ struct RecipeListToolbarActions: View {
     let onImportRecipe: () -> Void
     let onBulkImport: () -> Void
     let onCookbookScanner: () -> Void
-    let onAddSample: () -> Void
+    let onAddNormalSample: () -> Void
+    let onAddHeritageSample: () -> Void
 
     var body: some View {
         if isSelectionMode {
@@ -62,13 +63,27 @@ struct RecipeListToolbarActions: View {
 
                 Divider()
 
-                Button {
-                    onAddSample()
+                Menu {
+                    Button {
+                        onAddNormalSample()
+                    } label: {
+                        Label("Normal Recipe", systemImage: "fork.knife")
+                    }
+                    .accessibilityLabel("Normal Recipe")
+                    .accessibilityHint("Add a normal sample recipe")
+
+                    Button {
+                        onAddHeritageSample()
+                    } label: {
+                        Label("Heritage Recipe", systemImage: "scroll.fill")
+                    }
+                    .accessibilityLabel("Heritage Recipe")
+                    .accessibilityHint("Add a heritage sample recipe")
                 } label: {
-                    Label("Add Sample Recipe", systemImage: "sparkles")
+                    Label("Generate Sample Recipe", systemImage: "sparkles")
                 }
-                .accessibilityLabel("Add Sample Recipe")
-                .accessibilityHint("Add a sample recipe for testing")
+                .accessibilityLabel("Generate Sample Recipe")
+                .accessibilityHint("Generate a sample recipe for testing")
             } label: {
                 Image(systemName: "plus")
             }

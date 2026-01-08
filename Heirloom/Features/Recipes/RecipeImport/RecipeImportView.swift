@@ -16,6 +16,7 @@ struct RecipeImportView: View {
     private var cloudImportService: CloudRecipeImportService { ServiceContainer.shared.resolve(CloudRecipeImportService.self) }
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     private var aiConfig: AIConfiguration { ServiceContainer.shared.resolve(AIConfiguration.self) }
+    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
     // Optional URL passed from Share Extension
     let url: URL?
@@ -25,6 +26,7 @@ struct RecipeImportView: View {
     @State private var importedRecipe: ImportedRecipe?
     @State private var importError: String?
     @State private var isSaving = false
+    @State private var showSoftWall = false
 
     // Init for manual URL entry
     init() {
@@ -78,10 +80,18 @@ struct RecipeImportView: View {
                 // If URL was passed from Share Extension, auto-populate and import
                 if let shareURL = url {
                     urlText = shareURL.absoluteString
-                    Task {
-                        await importFromURL()
+                    // Check premium before auto-importing
+                    if subscriptionManager.isPremium {
+                        Task {
+                            await importFromURL()
+                        }
+                    } else {
+                        showSoftWall = true
                     }
                 }
+            }
+            .sheet(isPresented: $showSoftWall) {
+                SoftWallView(trigger: .urlImport)
             }
         }
     }
@@ -133,6 +143,12 @@ struct RecipeImportView: View {
 
             // Import Button
             Button {
+                // Check for premium subscription
+                guard subscriptionManager.isPremium else {
+                    showSoftWall = true
+                    return
+                }
+
                 Task {
                     await importFromURL()
                 }

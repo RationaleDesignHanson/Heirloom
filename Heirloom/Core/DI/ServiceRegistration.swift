@@ -262,6 +262,10 @@ extension ServiceContainer {
             return RecipeExportService(toastManager: toastManager)
         }
 
+        register(RecipeExporter.self, lifecycle: .singleton) { _ in
+            RecipeExporter()
+        }
+
         register(RecipeMigrationService.self, lifecycle: .singleton) { _ in
             RecipeMigrationService()
         }

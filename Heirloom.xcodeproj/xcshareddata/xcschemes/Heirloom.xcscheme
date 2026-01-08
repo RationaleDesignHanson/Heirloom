@@ -48,6 +48,17 @@
                ReferencedContainer = "container:Heirloom.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C5B3178D2F00DB6A0087CF6D"
+               BuildableName = "HeirloomTests.xctest"
+               BlueprintName = "HeirloomTests"
+               ReferencedContainer = "container:Heirloom.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

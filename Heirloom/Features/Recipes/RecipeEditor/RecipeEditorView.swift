@@ -20,6 +20,7 @@ struct RecipeEditorView: View {
     // Using concrete type for image storage
     private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+    private var paywallManager: PaywallManager { ServiceContainer.shared.resolve(PaywallManager.self) }
 
     @State private var recipe: Recipe
     @State private var isNewRecipe: Bool
@@ -521,6 +522,9 @@ struct RecipeEditorView: View {
 
                 // Track analytics
                 analytics.trackRecipeCreated(recipe: recipe)
+
+                // Track for paywall triggers (1st recipe, 5th recipe, etc.)
+                paywallManager.trackRecipeAdded()
             } else {
                 // Track analytics
                 analytics.trackRecipeEdited(recipe: recipe)
@@ -584,6 +588,18 @@ struct RecipeEditorView: View {
                 toastManager.success(
                     title: isNewRecipe ? "Recipe created!" : "Recipe updated!"
                 )
+
+                // Show share extension tip after first recipe save
+                if isNewRecipe && !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenShareExtensionCoachMark) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        toastManager.info(
+                            title: "Pro tip: Share recipes directly from Safari",
+                            message: "Use the share button in Safari to import recipes instantly"
+                        )
+                        UserDefaults.standard.set(true, forKey: UserDefaultsKeys.hasSeenShareExtensionCoachMark)
+                    }
+                }
+
                 dismiss()
             }
             } catch {

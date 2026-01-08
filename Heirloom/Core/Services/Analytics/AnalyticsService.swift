@@ -110,6 +110,9 @@ enum AnalyticsEvent: String {
     case paywallShown = "Paywall Shown"
     case paywallDismissed = "Paywall Dismissed"
     case paywallStrikeRuleActivated = "Paywall Strike Rule Activated"
+    case recipesExported = "Recipes Exported"
+    case purchasesRestored = "Purchases Restored"
+    case manageSubscriptionOpened = "Manage Subscription Opened"
 }
 
 // MARK: - Console-Only Analytics (Fallback)

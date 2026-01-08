@@ -22,7 +22,6 @@
 		1E7D0C95CDBDC0560A371AE2 /* RemindersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20EF7482F8FE293941F6911 /* RemindersService.swift */; };
 		218A8EDAF2DFA141EFA33091 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0F6F9D39F3D74534E5137DF /* SettingsView.swift */; };
 		21D2472687CBCBB6A287FEA7 /* TagCollectionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C66294E21AF06144A65292A /* TagCollectionPickerView.swift */; };
-		21EC256432ECC6D06E9B934D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6014291FB9F6FAC1A99F2D9 /* OnboardingView.swift */; };
 		227DA999DB569E3826BDF9B1 /* StickerPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D1B5E18F7CAEF14B282A32 /* StickerPickerView.swift */; };
 		28E4E26F3EBD90318EF438B2 /* RecipeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AEEEF32CCB325C980D13A0C /* RecipeListView.swift */; };
 		2AEBD4D58113BEF2D5E15F64 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A331FB1CB826B99CAE24F0A3 /* AnalyticsService.swift */; };
@@ -216,6 +215,19 @@
 		C583070F2F0EC5480096478E /* FilePathValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58307092F0EC5480096478E /* FilePathValidator.swift */; };
 		C58307102F0EC5480096478E /* URLValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583070B2F0EC5480096478E /* URLValidator.swift */; };
 		C58309142F0FD6510096478E /* DinnerPartyShoppingSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58309132F0FD6510096478E /* DinnerPartyShoppingSync.swift */; };
+		C5830E0B2F103A3D0096478E /* PaywallManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E072F103A3D0096478E /* PaywallManager.swift */; };
+		C5830E0C2F103A3D0096478E /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E092F103A3D0096478E /* SubscriptionManager.swift */; };
+		C5830E0D2F103A3D0096478E /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E082F103A3D0096478E /* StoreManager.swift */; };
+		C5830E0F2F103A580096478E /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E0E2F103A580096478E /* UserDefaultsKeys.swift */; };
+		C5830E112F103A710096478E /* CoachMarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E102F103A710096478E /* CoachMarkView.swift */; };
+		C5830E152F103A7A0096478E /* OnboardingScreen1.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E132F103A7A0096478E /* OnboardingScreen1.swift */; };
+		C5830E162F103A7A0096478E /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E122F103A7A0096478E /* OnboardingContainerView.swift */; };
+		C5830E172F103A7A0096478E /* OnboardingScreen2.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E142F103A7A0096478E /* OnboardingScreen2.swift */; };
+		C5830E1B2F103AAE0096478E /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E182F103AAE0096478E /* PaywallView.swift */; };
+		C5830E1C2F103AAE0096478E /* SoftWallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E192F103AAE0096478E /* SoftWallView.swift */; };
+		C5830E1E2F103AC20096478E /* Configuration.storekit in Resources */ = {isa = PBXBuildFile; fileRef = C5830E1D2F103AC20096478E /* Configuration.storekit */; };
+		C5830E202F103B500096478E /* HeirloomSubscriptionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E1F2F103B500096478E /* HeirloomSubscriptionStatus.swift */; };
+		C5830E232F103E9C0096478E /* RecipeExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5830E212F103E9C0096478E /* RecipeExporter.swift */; };
 		C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */; };
 		C583F5A12F099E750096478E /* RecipeDetailHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59C2F099E750096478E /* RecipeDetailHeader.swift */; };
 		C583F5A22F099E750096478E /* RecipeInstructionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */; };
@@ -519,6 +531,19 @@
 		C583070B2F0EC5480096478E /* URLValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLValidator.swift; sourceTree = "<group>"; };
 		C583070C2F0EC5480096478E /* ValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationService.swift; sourceTree = "<group>"; };
 		C58309132F0FD6510096478E /* DinnerPartyShoppingSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinnerPartyShoppingSync.swift; sourceTree = "<group>"; };
+		C5830E072F103A3D0096478E /* PaywallManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallManager.swift; sourceTree = "<group>"; };
+		C5830E082F103A3D0096478E /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
+		C5830E092F103A3D0096478E /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		C5830E0E2F103A580096478E /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
+		C5830E102F103A710096478E /* CoachMarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMarkView.swift; sourceTree = "<group>"; };
+		C5830E122F103A7A0096478E /* OnboardingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingContainerView.swift; sourceTree = "<group>"; };
+		C5830E132F103A7A0096478E /* OnboardingScreen1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScreen1.swift; sourceTree = "<group>"; };
+		C5830E142F103A7A0096478E /* OnboardingScreen2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScreen2.swift; sourceTree = "<group>"; };
+		C5830E182F103AAE0096478E /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		C5830E192F103AAE0096478E /* SoftWallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftWallView.swift; sourceTree = "<group>"; };
+		C5830E1D2F103AC20096478E /* Configuration.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Configuration.storekit; sourceTree = "<group>"; };
+		C5830E1F2F103B500096478E /* HeirloomSubscriptionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeirloomSubscriptionStatus.swift; sourceTree = "<group>"; };
+		C5830E212F103E9C0096478E /* RecipeExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeExporter.swift; sourceTree = "<group>"; };
 		C583F59C2F099E750096478E /* RecipeDetailHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailHeader.swift; sourceTree = "<group>"; };
 		C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeIngredientsSection.swift; sourceTree = "<group>"; };
 		C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeInstructionsSection.swift; sourceTree = "<group>"; };
@@ -615,7 +640,6 @@
 		C5E955362F055550006CD3C2 /* View+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Helpers.swift"; sourceTree = "<group>"; };
 		C5E955382F055F5F006CD3C2 /* AIIngredientSpellChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIIngredientSpellChecker.swift; sourceTree = "<group>"; };
 		C5E9553A2F056341006CD3C2 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
-		C6014291FB9F6FAC1A99F2D9 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C9A499F6282CBE6AC6C45E99 /* RecipeStructureParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeStructureParser.swift; sourceTree = "<group>"; };
 		CA433CBD9799D0CB83B81959 /* DinnerPartyEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinnerPartyEditorView.swift; sourceTree = "<group>"; };
@@ -738,6 +762,7 @@
 		1DCD93B7E846905705091E32 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				C5830E102F103A710096478E /* CoachMarkView.swift */,
 				C583FF962F0C9C860096478E /* CustomizationOverlayView.swift */,
 				C583FF972F0C9C860096478E /* FlipAffordanceBadge.swift */,
 				C583FF982F0C9C860096478E /* RecipeCardBackPreview.swift */,
@@ -852,6 +877,8 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5830E222F103E9C0096478E /* Export */,
+				C5830E0A2F103A3D0096478E /* Store */,
 				C58309132F0FD6510096478E /* DinnerPartyShoppingSync.swift */,
 				C58307092F0EC5480096478E /* FilePathValidator.swift */,
 				C583070A2F0EC5480096478E /* HTMLSanitizer.swift */,
@@ -895,7 +922,9 @@
 		7163C016CDBBBFAAE25B1F74 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
-				C6014291FB9F6FAC1A99F2D9 /* OnboardingView.swift */,
+				C5830E122F103A7A0096478E /* OnboardingContainerView.swift */,
+				C5830E132F103A7A0096478E /* OnboardingScreen1.swift */,
+				C5830E142F103A7A0096478E /* OnboardingScreen2.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -1243,6 +1272,34 @@
 			path = HeritageCollections;
 			sourceTree = "<group>";
 		};
+		C5830E0A2F103A3D0096478E /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				C5830E1F2F103B500096478E /* HeirloomSubscriptionStatus.swift */,
+				C5830E072F103A3D0096478E /* PaywallManager.swift */,
+				C5830E082F103A3D0096478E /* StoreManager.swift */,
+				C5830E092F103A3D0096478E /* SubscriptionManager.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		C5830E1A2F103AAE0096478E /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				C5830E182F103AAE0096478E /* PaywallView.swift */,
+				C5830E192F103AAE0096478E /* SoftWallView.swift */,
+			);
+			path = Subscription;
+			sourceTree = "<group>";
+		};
+		C5830E222F103E9C0096478E /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				C5830E212F103E9C0096478E /* RecipeExporter.swift */,
+			);
+			path = Export;
+			sourceTree = "<group>";
+		};
 		C583F5A72F09A6B80096478E /* Logging */ = {
 			isa = PBXGroup;
 			children = (
@@ -1389,6 +1446,7 @@
 		C5B3177F2F00D70B0087CF6D /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				C5830E0E2F103A580096478E /* UserDefaultsKeys.swift */,
 				34D9F9336F8C4D64AB4A135C /* TaskTimeout.swift */,
 				C583FFCE2F0CB7480096478E /* BlurHashEncoder.swift */,
 				C56F3DCC2F02283700D19743 /* DeviceLogger.swift */,
@@ -1429,6 +1487,7 @@
 		CC9AF2BB0CC0DBBEC558EC0F /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				C5830E1A2F103AAE0096478E /* Subscription */,
 				C56F3E7B2F04B67600D19743 /* Auth */,
 				C5B317722F00C8500087CF6D /* Help */,
 				DB146B0BB0E4FD24B29DE96E /* CardPersonalization */,
@@ -1493,6 +1552,7 @@
 		D8B643938B68CF6D98D144FE = {
 			isa = PBXGroup;
 			children = (
+				C5830E1D2F103AC20096478E /* Configuration.storekit */,
 				E2D5ED1318785436B81F724D /* Heirloom */,
 				C5B3178F2F00DB6A0087CF6D /* HeirloomTests */,
 				C56887332F057B02006EA0B1 /* HeirloomShareExtension */,
@@ -1757,6 +1817,7 @@
 			files = (
 				C3F4F1430F87ACCB0530FA31 /* Assets.xcassets in Resources */,
 				C56F3E662F04A4B300D19743 /* GoogleService-Info.plist in Resources */,
+				C5830E1E2F103AC20096478E /* Configuration.storekit in Resources */,
 				C583004E2F0CC6F40096478E /* presidential-013.png in Resources */,
 				C583004F2F0CC6F40096478E /* literary-018.png in Resources */,
 				C58300502F0CC6F40096478E /* ancient-015.png in Resources */,
@@ -1876,6 +1937,9 @@
 				64D4CE8DD0862C4231AFE553 /* AIIngredientParser.swift in Sources */,
 				B5427115D9C624069E2F954E /* AIRecipeExtractor.swift in Sources */,
 				D8F7E7468B50152E87AC99C8 /* AIServiceProtocol.swift in Sources */,
+				C5830E152F103A7A0096478E /* OnboardingScreen1.swift in Sources */,
+				C5830E162F103A7A0096478E /* OnboardingContainerView.swift in Sources */,
+				C5830E172F103A7A0096478E /* OnboardingScreen2.swift in Sources */,
 				C583FFB42F0CAB960096478E /* HeritageRecipeCleanupService.swift in Sources */,
 				9D119E45E5ACF7422DDF9294 /* AISettingsView.swift in Sources */,
 				2AEBD4D58113BEF2D5E15F64 /* AnalyticsService.swift in Sources */,
@@ -1941,8 +2005,10 @@
 				14902ECCAAEBB9BA1C553ABD /* ImportAttempt.swift in Sources */,
 				CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */,
 				F22F7A301F871867FF273924 /* ImportJob.swift in Sources */,
+				C5830E0F2F103A580096478E /* UserDefaultsKeys.swift in Sources */,
 				3CC6B00DE8E62E4254000E3A /* ImportJobManager.swift in Sources */,
 				E65CA0A636B690DCB9F89D0C /* ImportPreviewView.swift in Sources */,
+				C5830E202F103B500096478E /* HeirloomSubscriptionStatus.swift in Sources */,
 				C5B317BD2F00DC010087CF6D /* RecipeMigrationService.swift in Sources */,
 				08DCE55BE7C9B5B087D88C4D /* ImportProgressView.swift in Sources */,
 				8382C45014984CD39A6F2149 /* ImportReviewView.swift in Sources */,
@@ -1952,8 +2018,10 @@
 				F338CD690F1EB5301AC2C49A /* LoadingViews.swift in Sources */,
 				C583FFA52F0CAA610096478E /* FirebaseImageService.swift in Sources */,
 				455227C53BB8C306AE866038 /* MixpanelService.swift in Sources */,
+				C5830E0B2F103A3D0096478E /* PaywallManager.swift in Sources */,
+				C5830E0C2F103A3D0096478E /* SubscriptionManager.swift in Sources */,
+				C5830E0D2F103A3D0096478E /* StoreManager.swift in Sources */,
 				56B7410AFE53DF464D867AED /* OCRReviewView.swift in Sources */,
-				21EC256432ECC6D06E9B934D /* OnboardingView.swift in Sources */,
 				554881423D4F45E10725AC6D /* ProvenanceMetadata.swift in Sources */,
 				C583FFC32F0CB3860096478E /* DinnerPartySummaryService.swift in Sources */,
 				C583FFC42F0CB3860096478E /* RecipeTimelineCalculator.swift in Sources */,
@@ -1980,6 +2048,7 @@
 				BEE02532548CCE013ECE7CC7 /* RecipeExportService.swift in Sources */,
 				BA4F19E9FA015B7A3A98A171 /* RecipeFiltersView.swift in Sources */,
 				A7992E0AC9A461294C0A01DB /* RecipeImportService.swift in Sources */,
+				C5830E232F103E9C0096478E /* RecipeExporter.swift in Sources */,
 				C56F3E792F04B5C800D19743 /* FirebaseAuthService.swift in Sources */,
 				C583F5A82F09A6B80096478E /* HeirloomLogger.swift in Sources */,
 				C583F5A92F09A6B80096478E /* LoggingService.swift in Sources */,
@@ -1999,6 +2068,8 @@
 				C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */,
 				C583F5A12F099E750096478E /* RecipeDetailHeader.swift in Sources */,
 				C583F5A22F099E750096478E /* RecipeInstructionsSection.swift in Sources */,
+				C5830E1B2F103AAE0096478E /* PaywallView.swift in Sources */,
+				C5830E1C2F103AAE0096478E /* SoftWallView.swift in Sources */,
 				C583F5A32F099E750096478E /* RecipeMetadataSection.swift in Sources */,
 				C5B317772F00C8500087CF6D /* HelpArticleView.swift in Sources */,
 				C5B317782F00C8500087CF6D /* HelpContent.swift in Sources */,
@@ -2041,6 +2112,7 @@
 				C583FF992F0C9C860096478E /* FlipAffordanceBadge.swift in Sources */,
 				C583FF9A2F0C9C860096478E /* CustomizationOverlayView.swift in Sources */,
 				C583FF9B2F0C9C860096478E /* RecipeCardBackPreview.swift in Sources */,
+				C5830E112F103A710096478E /* CoachMarkView.swift in Sources */,
 				CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */,
 				21D2472687CBCBB6A287FEA7 /* TagCollectionPickerView.swift in Sources */,
 				C5E955372F055550006CD3C2 /* View+Helpers.swift in Sources */,

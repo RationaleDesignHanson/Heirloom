@@ -94,7 +94,7 @@ final class PaywallManager {
         // Load persisted state
         loadState()
 
-        logger.log("PaywallManager initialized", category: .store, level: .info)
+        logger.log("PaywallManager initialized", category: .store, level: .info, metadata: nil)
     }
 
     // MARK: - Trigger Evaluation
@@ -114,7 +114,8 @@ final class PaywallManager {
                 logger.log(
                     "Hard wall blocked by 3-strike rule",
                     category: .store,
-                    level: .debug
+                    level: .debug,
+                    metadata: nil
                 )
                 return false
             }
@@ -126,18 +127,20 @@ final class PaywallManager {
             logger.log(
                 "Soft wall blocked by 3-strike rule",
                 category: .store,
-                level: .debug
+                level: .debug,
+                metadata: nil
             )
             return false
         }
 
         // Check cooldown for soft walls
-        if let cooldown = trigger.cooldownHours {
+        if trigger.cooldownHours != nil {
             if !isCooldownExpired(for: trigger) {
                 logger.log(
                     "Paywall on cooldown for \(trigger.displayName)",
                     category: .store,
-                    level: .debug
+                    level: .debug,
+                    metadata: nil
                 )
                 return false
             }
@@ -174,7 +177,8 @@ final class PaywallManager {
         logger.log(
             "Showing paywall: \(trigger.displayName)",
             category: .store,
-            level: .info
+            level: .info,
+            metadata: nil
         )
 
         analytics.track(event: .paywallShown, properties: [
@@ -200,7 +204,8 @@ final class PaywallManager {
                 logger.log(
                     "3-strike rule activated",
                     category: .store,
-                    level: .info
+                    level: .info,
+                    metadata: nil
                 )
 
                 analytics.track(event: .paywallStrikeRuleActivated)
@@ -213,7 +218,8 @@ final class PaywallManager {
         logger.log(
             "Paywall dismissed: \(trigger.displayName) (count: \(softWallDismissCount))",
             category: .store,
-            level: .info
+            level: .info,
+            metadata: nil
         )
 
         analytics.track(event: .paywallDismissed, properties: [
@@ -234,7 +240,8 @@ final class PaywallManager {
         logger.log(
             "Recipe count: \(newCount)",
             category: .store,
-            level: .debug
+            level: .debug,
+            metadata: nil
         )
 
         // Check triggers
@@ -368,6 +375,6 @@ final class PaywallManager {
         shouldShowPaywall = false
         currentTrigger = nil
 
-        logger.log("Paywall state reset", category: .store, level: .info)
+        logger.log("Paywall state reset", category: .store, level: .info, metadata: nil)
     }
 }

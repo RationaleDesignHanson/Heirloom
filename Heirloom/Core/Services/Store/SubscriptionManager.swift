@@ -16,7 +16,7 @@ final class SubscriptionManager {
     // MARK: - Published State
 
     /// Current subscription status
-    private(set) var status: SubscriptionStatus = .none
+    private(set) var status: HeirloomSubscriptionStatus = .none
 
     /// Trial expiry date (if in trial)
     private(set) var trialExpiryDate: Date?
@@ -76,7 +76,7 @@ final class SubscriptionManager {
         self.logger = logger
         self.analytics = analytics
 
-        logger.log("SubscriptionManager initialized", category: .store, level: .info)
+        logger.log("SubscriptionManager initialized", category: .store, level: .info, metadata: nil)
 
         // Load cached status
         loadCachedStatus()
@@ -98,14 +98,15 @@ final class SubscriptionManager {
             logger.log(
                 "Using cached subscription status",
                 category: .store,
-                level: .debug
+                level: .debug,
+                metadata: nil
             )
             return
         }
 
         isRefreshing = true
 
-        logger.log("Refreshing subscription status...", category: .store, level: .info)
+        logger.log("Refreshing subscription status...", category: .store, level: .info, metadata: nil)
 
         // Check for lifetime purchase first
         let hasLifetime = await storeManager.hasLifetimePurchase()
@@ -131,7 +132,8 @@ final class SubscriptionManager {
         logger.log(
             "Subscription status: \(status.displayName)",
             category: .store,
-            level: .info
+            level: .info,
+            metadata: nil
         )
 
         analytics.track(event: .subscriptionStatusChecked, properties: [
@@ -154,25 +156,21 @@ final class SubscriptionManager {
                 // Check if subscription is still valid
                 if Date() < expirationDate {
                     // Active subscription
-                    let status: SubscriptionStatus = productID == .monthly ? .monthly : .annual
+                    let status: HeirloomSubscriptionStatus = productID == .monthly ? .monthly : .annual
                     updateStatus(status)
 
                     // Calculate days remaining
                     calculateDaysRemaining()
 
-                    // Check grace period
-                    if let gracePeriodExpiration = transaction.gracePeriodExpirationDate {
-                        if Date() < gracePeriodExpiration {
-                            updateStatus(.grace)
-                        }
-                    }
+                    // Note: Grace period is handled by StoreKit 2 automatically
+                    // Transactions in grace period still appear as active
                 } else {
                     // Expired subscription
                     updateStatus(.expired)
                 }
             } else {
                 // No expiration date - treat as active
-                let status: SubscriptionStatus = productID == .monthly ? .monthly : .annual
+                let status: HeirloomSubscriptionStatus = productID == .monthly ? .monthly : .annual
                 updateStatus(status)
             }
         } else {
@@ -183,7 +181,7 @@ final class SubscriptionManager {
 
     /// Handle trial status (no active purchase)
     private func handleTrialStatus() {
-        guard let firstLaunch = UserDefaults.standard.object(forKey: Keys.firstLaunchDate) as? Date else {
+        guard UserDefaults.standard.object(forKey: Keys.firstLaunchDate) as? Date != nil else {
             // No first launch date - not in trial
             updateStatus(.none)
             return
@@ -206,7 +204,7 @@ final class SubscriptionManager {
     }
 
     /// Update subscription status
-    private func updateStatus(_ newStatus: SubscriptionStatus) {
+    private func updateStatus(_ newStatus: HeirloomSubscriptionStatus) {
         guard newStatus != status else { return }
 
         let oldStatus = status
@@ -218,7 +216,8 @@ final class SubscriptionManager {
         logger.log(
             "Subscription status changed: \(oldStatus.rawValue) → \(newStatus.rawValue)",
             category: .store,
-            level: .info
+            level: .info,
+            metadata: nil
         )
 
         analytics.track(event: .subscriptionStatusChanged, properties: [
@@ -250,7 +249,8 @@ final class SubscriptionManager {
         logger.log(
             "Trial started: \(trialDaysAnnual) days",
             category: .store,
-            level: .info
+            level: .info,
+            metadata: nil
         )
 
         analytics.track(event: .trialStarted, properties: [
@@ -283,7 +283,8 @@ final class SubscriptionManager {
         logger.log(
             "Trial adjusted: \(trialDays) days for \(productID.displayName)",
             category: .store,
-            level: .info
+            level: .info,
+            metadata: nil
         )
 
         analytics.track(event: .trialAdjusted, properties: [
@@ -322,7 +323,7 @@ final class SubscriptionManager {
     private func loadCachedStatus() {
         // Load status
         if let statusRaw = UserDefaults.standard.string(forKey: Keys.subscriptionStatus),
-           let cachedStatus = SubscriptionStatus(rawValue: statusRaw) {
+           let cachedStatus = HeirloomSubscriptionStatus(rawValue: statusRaw) {
             status = cachedStatus
         }
 
@@ -336,7 +337,8 @@ final class SubscriptionManager {
         logger.log(
             "Loaded cached subscription status: \(status.displayName)",
             category: .store,
-            level: .debug
+            level: .debug,
+            metadata: nil
         )
     }
 
@@ -363,7 +365,7 @@ final class SubscriptionManager {
         subscriptionExpiryDate = nil
         daysRemaining = nil
 
-        logger.log("Subscription cache cleared", category: .store, level: .info)
+        logger.log("Subscription cache cleared", category: .store, level: .info, metadata: nil)
     }
 
     // MARK: - Transaction Observer

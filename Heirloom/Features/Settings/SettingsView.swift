@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import StoreKit
 import FirebaseFirestore
 import FirebaseStorage
 
@@ -18,6 +19,9 @@ struct SettingsView: View {
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     private var aiConfig: AIConfiguration { ServiceContainer.shared.resolve(AIConfiguration.self) }
     private var firebaseSyncService: FirebaseSyncService { ServiceContainer.shared.resolve(FirebaseSyncService.self) }
+    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
+    private var storeManager: StoreManager { ServiceContainer.shared.resolve(StoreManager.self) }
+    private var recipeExporter: RecipeExporter { ServiceContainer.shared.resolve(RecipeExporter.self) }
 
     @State private var showClearDataConfirmation = false
     @State private var showSignOutConfirmation = false
@@ -26,10 +30,15 @@ struct SettingsView: View {
     @State private var showHeritageCleanup = false
     @State private var authStateChanged = false // Force view updates when auth state changes
     @State private var isClearingData = false // Show loading indicator while clearing
+    @State private var isExporting = false
+    @State private var isRestoringPurchases = false
 
     var body: some View {
         NavigationStack {
             List {
+                // Subscription Section
+                subscriptionSection
+
                 // AI Features Section
                 aiSection
 
@@ -149,12 +158,84 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Subscription Section
+
+    private var subscriptionSection: some View {
+        Section {
+            // Status row
+            LabeledContent("Status", value: subscriptionStatusText)
+                .foregroundStyle(subscriptionStatusColor)
+
+            // Renewal/Expiry date row (if applicable)
+            if let dateText = subscriptionDateText {
+                LabeledContent(subscriptionDateLabel, value: dateText)
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+
+            // Manage Subscription button (for active subscriptions)
+            if subscriptionManager.isPremium && subscriptionManager.status != .lifetime {
+                Button {
+                    openManageSubscription()
+                } label: {
+                    Label("Manage Subscription", systemImage: "gearshape")
+                }
+            }
+
+            // Upgrade button (for free users)
+            if !subscriptionManager.isPremium {
+                NavigationLink {
+                    PaywallView()
+                } label: {
+                    Label("Upgrade to Premium", systemImage: "crown.fill")
+                        .foregroundStyle(HeirloomColors.tomato)
+                }
+            }
+
+            // Restore Purchases button
+            Button {
+                restorePurchases()
+            } label: {
+                if isRestoringPurchases {
+                    HStack {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                        Text("Restoring...")
+                    }
+                } else {
+                    Label("Restore Purchases", systemImage: "arrow.clockwise")
+                }
+            }
+            .disabled(isRestoringPurchases)
+
+        } header: {
+            Text("Subscription")
+        } footer: {
+            Text(subscriptionFooterText)
+        }
+    }
+
     // MARK: - Data Management Section
 
     private var dataManagementSection: some View {
         Section {
             LabeledContent("Recipes", value: "\(recipes.count)")
             LabeledContent("Storage Used", value: storageSize)
+
+            Button {
+                exportRecipes()
+            } label: {
+                if isExporting {
+                    HStack {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                        Text("Exporting...")
+                    }
+                } else {
+                    Label("Export All Recipes", systemImage: "square.and.arrow.up")
+                }
+            }
+            .disabled(isExporting || recipes.isEmpty)
 
             Button(role: .destructive) {
                 showClearDataConfirmation = true
@@ -165,7 +246,7 @@ struct SettingsView: View {
         } header: {
             Text("Data Management")
         } footer: {
-            Text("Clearing data will permanently delete all recipes from this device and Firebase.")
+            Text("Export your recipes as JSON. Your recipes are always yours, even without a subscription.")
         }
     }
 
@@ -454,7 +535,162 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Subscription Helpers
+
+    private var subscriptionStatusText: String {
+        switch subscriptionManager.status {
+        case .none:
+            return "Free"
+        case .trial:
+            if let days = subscriptionManager.daysRemaining {
+                return "Premium Trial • \(days) day\(days == 1 ? "" : "s") remaining"
+            }
+            return "Premium Trial"
+        case .monthly:
+            return "Premium (Monthly)"
+        case .annual:
+            return "Premium (Annual)"
+        case .lifetime:
+            return "Premium (Lifetime)"
+        case .expired:
+            return "Subscription Expired"
+        case .grace:
+            return "Payment Issue"
+        }
+    }
+
+    private var subscriptionStatusColor: Color {
+        subscriptionManager.isPremium ? HeirloomColors.tomato : HeirloomColors.secondaryText
+    }
+
+    private var subscriptionDateText: String? {
+        if let expiryDate = subscriptionManager.subscriptionExpiryDate {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            return formatter.string(from: expiryDate)
+        } else if let trialExpiry = subscriptionManager.trialExpiryDate {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            return formatter.string(from: trialExpiry)
+        }
+        return nil
+    }
+
+    private var subscriptionDateLabel: String {
+        if subscriptionManager.status == .trial {
+            return "Trial Ends"
+        } else if subscriptionManager.status == .expired {
+            return "Ended"
+        } else {
+            return "Renews"
+        }
+    }
+
+    private var subscriptionFooterText: String {
+        if subscriptionManager.isPremium {
+            return "Manage your subscription or restore purchases on another device."
+        } else {
+            return "Upgrade to unlock URL import, cookbook scanning, and device sync."
+        }
+    }
+
     // MARK: - Actions
+
+    private func exportRecipes() {
+        isExporting = true
+
+        Task {
+            do {
+                let jsonData = try recipeExporter.exportToJSON(recipes: recipes)
+                let filename = recipeExporter.generateFilename()
+
+                await MainActor.run {
+                    // Create temporary file
+                    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+                    try? jsonData.write(to: tempURL)
+
+                    // Show share sheet
+                    let activityVC = UIActivityViewController(
+                        activityItems: [tempURL],
+                        applicationActivities: nil
+                    )
+
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let window = windowScene.windows.first,
+                       let rootVC = window.rootViewController {
+                        activityVC.completionWithItemsHandler = { _, _, _, _ in
+                            // Clean up temp file
+                            try? FileManager.default.removeItem(at: tempURL)
+                        }
+                        rootVC.present(activityVC, animated: true)
+                    }
+
+                    isExporting = false
+                    toastManager.success(title: "Recipes exported", message: "Saved \(recipes.count) recipes to JSON")
+                }
+
+                analytics.track(event: .recipesExported, properties: ["count": recipes.count])
+
+            } catch {
+                await MainActor.run {
+                    isExporting = false
+                    toastManager.error(title: "Export failed", message: error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    private func restorePurchases() {
+        isRestoringPurchases = true
+
+        Task {
+            do {
+                let transactions = try await storeManager.restorePurchases()
+
+                await MainActor.run {
+                    isRestoringPurchases = false
+
+                    if !transactions.isEmpty {
+                        toastManager.success(
+                            title: "Purchases restored",
+                            message: "Your subscription has been restored"
+                        )
+
+                        // Refresh subscription status
+                        Task {
+                            await subscriptionManager.refreshStatus(force: true)
+                        }
+                    } else {
+                        toastManager.info(
+                            title: "No purchases found",
+                            message: "We couldn't find any previous purchases to restore"
+                        )
+                    }
+                }
+
+                analytics.track(event: .purchasesRestored, properties: ["count": transactions.count])
+
+            } catch {
+                await MainActor.run {
+                    isRestoringPurchases = false
+                    toastManager.error(title: "Restore failed", message: error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    private func openManageSubscription() {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            Task {
+                do {
+                    try await AppStore.showManageSubscriptions(in: windowScene)
+                    analytics.track(event: .manageSubscriptionOpened)
+                } catch {
+                    toastManager.error(title: "Could not open", message: "Unable to open subscription management")
+                }
+            }
+        }
+    }
 
     private func calculateStorageSize() async {
         // Calculate storage from image files

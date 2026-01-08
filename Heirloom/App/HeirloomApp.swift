@@ -236,6 +236,37 @@ struct HeirloomApp: App {
             analytics.track(event: .appLaunched)
         }
 
+        // Initialize subscription system
+        Task { @MainActor in
+            let storeManager = serviceContainer.resolve(StoreManager.self)
+            let subscriptionManager = serviceContainer.resolve(SubscriptionManager.self)
+            let paywallManager = serviceContainer.resolve(PaywallManager.self)
+
+            // Load products from App Store
+            try? await storeManager.loadProducts()
+
+            // Refresh subscription status
+            await subscriptionManager.refreshStatus()
+
+            Log.info("Subscription system initialized", category: .store)
+            DeviceLogger.shared.log("✅ [Store] Subscription system initialized")
+
+            // Check for day-based paywall triggers (if not premium)
+            if !subscriptionManager.isPremium {
+                // Day 7: "You're getting the hang of it" soft nudge
+                if paywallManager.shouldShow(for: .fiveRecipesOrDay7) {
+                    paywallManager.show(for: .fiveRecipesOrDay7)
+                    Log.info("Day 7 paywall triggered", category: .store)
+                }
+
+                // Day 13: "Your trial ends soon" urgency nudge
+                else if paywallManager.shouldShow(for: .day13Urgency) {
+                    paywallManager.show(for: .day13Urgency)
+                    Log.info("Day 13 paywall triggered", category: .store)
+                }
+            }
+        }
+
         // Request notification permissions for cooking timers
         Task {
             await requestNotificationPermission()
@@ -374,9 +405,16 @@ struct RootView: View {
                     Log.info("User already authenticated on launch - starting automatic sync", category: .sync)
                     DeviceLogger.shared.log("✅ [Auth] User already authenticated - starting automatic sync")
 
-                    // Resolve sync service now (after Firebase is initialized)
-                    let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
-                    syncService.startAutomaticSync()
+                    // Check for premium subscription (sync is premium-only)
+                    let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+
+                    if subscriptionManager.isPremium {
+                        // Resolve sync service now (after Firebase is initialized)
+                        let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+                        syncService.startAutomaticSync()
+                    } else {
+                        Log.info("Sync requires premium subscription - not starting automatic sync", category: .sync)
+                    }
                 }
             }
             .onChange(of: authService.isAuthenticated) { oldValue, newValue in
@@ -385,9 +423,16 @@ struct RootView: View {
                     Log.info("User authenticated - starting automatic Firebase sync", category: .sync)
                     DeviceLogger.shared.log("✅ [Auth] User authenticated - starting automatic sync")
 
-                    // Resolve sync service now (after Firebase is initialized)
-                    let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
-                    syncService.startAutomaticSync()
+                    // Check for premium subscription (sync is premium-only)
+                    let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+
+                    if subscriptionManager.isPremium {
+                        // Resolve sync service now (after Firebase is initialized)
+                        let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+                        syncService.startAutomaticSync()
+                    } else {
+                        Log.info("Sync requires premium subscription - not starting automatic sync", category: .sync)
+                    }
                 }
             }
     }
@@ -429,6 +474,7 @@ struct ContentView: View {
             }
 
             CollectionsListView()
+                .environmentObject(notificationService)
                 .tabItem {
                     Label("Collections", systemImage: "square.grid.2x2.fill")
                 }
@@ -488,7 +534,8 @@ struct ContentView: View {
             }
         }
         .fullScreenCover(isPresented: $showOnboarding) {
-            OnboardingView()
+            OnboardingContainerView(selectedTab: $selectedTab)
+                .environmentObject(notificationService)
         }
         .onAppear {
             // Mark app as ready to process deep links

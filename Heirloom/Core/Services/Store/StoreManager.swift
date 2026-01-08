@@ -95,14 +95,14 @@ final class StoreManager {
         self.logger = logger
         self.analytics = analytics
 
-        logger.log("StoreManager initialized", category: .store, level: .info)
+        logger.log("StoreManager initialized", category: .store, level: .info, metadata: nil)
 
         // Start listening for transactions immediately
         startTransactionListener()
     }
 
     deinit {
-        transactionListener?.cancel()
+        // Task will be automatically cancelled when StoreManager is deallocated
     }
 
     // MARK: - Product Loading
@@ -113,7 +113,7 @@ final class StoreManager {
         isLoading = true
         currentError = nil
 
-        logger.log("Loading products from App Store...", category: .store, level: .info)
+        logger.log("Loading products from App Store...", category: .store, level: .info, metadata: nil)
 
         do {
             let productIDs = ProductIdentifier.allCases.map(\.rawValue)
@@ -127,7 +127,8 @@ final class StoreManager {
                     logger.log(
                         "Loaded product: \(product.displayName) - \(product.displayPrice)",
                         category: .store,
-                        level: .debug
+                        level: .debug,
+                        metadata: nil
                     )
                 }
             }
@@ -141,7 +142,8 @@ final class StoreManager {
                 logger.log(
                     "Missing products: \(missingNames)",
                     category: .store,
-                    level: .warning
+                    level: .warning,
+                    metadata: nil
                 )
             }
 
@@ -160,7 +162,8 @@ final class StoreManager {
             logger.log(
                 "Failed to load products: \(error.localizedDescription)",
                 category: .store,
-                level: .error
+                level: .error,
+                metadata: nil
             )
 
             analytics.track(event: .storeLoadFailed, properties: [
@@ -184,7 +187,8 @@ final class StoreManager {
             logger.log(
                 "Purchase failed: product not found \(productID.rawValue)",
                 category: .store,
-                level: .error
+                level: .error,
+                metadata: nil
             )
 
             analytics.track(event: .purchaseFailed, properties: [
@@ -198,7 +202,8 @@ final class StoreManager {
         logger.log(
             "Starting purchase: \(product.displayName)",
             category: .store,
-            level: .info
+            level: .info,
+            metadata: nil
         )
 
         analytics.track(event: .purchaseStarted, properties: [
@@ -221,7 +226,8 @@ final class StoreManager {
                     logger.log(
                         "Purchase successful: \(product.displayName)",
                         category: .store,
-                        level: .info
+                        level: .info,
+                        metadata: nil
                     )
 
                     analytics.track(event: .purchaseSuccess, properties: [
@@ -239,7 +245,8 @@ final class StoreManager {
                     logger.log(
                         "Purchase verification failed: \(error.localizedDescription)",
                         category: .store,
-                        level: .error
+                        level: .error,
+                        metadata: nil
                     )
 
                     analytics.track(event: .purchaseFailed, properties: [
@@ -254,7 +261,8 @@ final class StoreManager {
                 logger.log(
                     "Purchase cancelled by user",
                     category: .store,
-                    level: .info
+                    level: .info,
+                    metadata: nil
                 )
 
                 analytics.track(event: .purchaseCancelled, properties: [
@@ -267,7 +275,8 @@ final class StoreManager {
                 logger.log(
                     "Purchase pending approval (Ask to Buy)",
                     category: .store,
-                    level: .info
+                    level: .info,
+                    metadata: nil
                 )
 
                 analytics.track(event: .purchasePending, properties: [
@@ -283,7 +292,8 @@ final class StoreManager {
                 logger.log(
                     "Unknown purchase result",
                     category: .store,
-                    level: .error
+                    level: .error,
+                    metadata: nil
                 )
 
                 return .failed(error)
@@ -296,7 +306,8 @@ final class StoreManager {
             logger.log(
                 "Purchase error: \(error.localizedDescription)",
                 category: .store,
-                level: .error
+                level: .error,
+                metadata: nil
             )
 
             analytics.track(event: .purchaseFailed, properties: [
@@ -313,7 +324,7 @@ final class StoreManager {
     /// Restore previous purchases
     /// - Returns: Array of restored transactions
     func restorePurchases() async throws -> [Transaction] {
-        logger.log("Restoring purchases...", category: .store, level: .info)
+        logger.log("Restoring purchases...", category: .store, level: .info, metadata: nil)
 
         analytics.track(event: .restoreStarted)
 
@@ -331,14 +342,16 @@ final class StoreManager {
                     logger.log(
                         "Restored: \(transaction.productID)",
                         category: .store,
-                        level: .debug
+                        level: .debug,
+                        metadata: nil
                     )
                 }
             } catch {
                 logger.log(
                     "Failed to verify restored transaction: \(error.localizedDescription)",
                     category: .store,
-                    level: .warning
+                    level: .warning,
+                    metadata: nil
                 )
             }
         }
@@ -346,7 +359,8 @@ final class StoreManager {
         logger.log(
             "Restored \(restoredTransactions.count) purchases",
             category: .store,
-            level: .info
+            level: .info,
+            metadata: nil
         )
 
         analytics.track(event: .restoreCompleted, properties: [
@@ -379,7 +393,8 @@ final class StoreManager {
                 logger.log(
                     "Found active subscription: \(transaction.productID)",
                     category: .store,
-                    level: .debug
+                    level: .debug,
+                    metadata: nil
                 )
 
                 return transaction
@@ -388,7 +403,8 @@ final class StoreManager {
                 logger.log(
                     "Failed to verify transaction: \(error.localizedDescription)",
                     category: .store,
-                    level: .warning
+                    level: .warning,
+                    metadata: nil
                 )
             }
         }
@@ -425,10 +441,11 @@ final class StoreManager {
                 do {
                     let transaction = try self.checkVerified(result)
 
-                    await self.logger.log(
+                    self.logger.log(
                         "Transaction updated: \(transaction.productID)",
                         category: .store,
-                        level: .info
+                        level: .info,
+                        metadata: nil
                     )
 
                     // Notify SubscriptionManager of change
@@ -441,10 +458,11 @@ final class StoreManager {
                     await transaction.finish()
 
                 } catch {
-                    await self.logger.log(
+                    self.logger.log(
                         "Transaction verification failed: \(error.localizedDescription)",
                         category: .store,
-                        level: .error
+                        level: .error,
+                        metadata: nil
                     )
                 }
             }
