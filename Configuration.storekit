@@ -1,0 +1,186 @@
+{
+  "identifier" : "B803CF37",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "6739208569",
+      "localizations" : [
+        {
+          "description" : "Premium features with 7-day free trial. Import recipes from any site, scan cookbooks, and sync across devices. Cancel anytime.",
+          "displayName" : "Heirloom Premium Monthly",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.rationalestudio.heirloom.monthly",
+      "referenceName" : "Heirloom Premium Monthly",
+      "type" : "Auto-Renewable Subscription",
+      "subscription" : {
+        "subscriptionGroupID" : "21567831",
+        "subscriptionPeriod" : "P1M"
+      }
+    },
+    {
+      "displayPrice" : "29.99",
+      "familyShareable" : false,
+      "internalID" : "6739208570",
+      "localizations" : [
+        {
+          "description" : "Premium features with 14-day free trial. Import recipes from any site, scan cookbooks, and sync across devices. Our best value — save over 50%.",
+          "displayName" : "Heirloom Premium Annual",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.rationalestudio.heirloom.annual",
+      "referenceName" : "Heirloom Premium Annual",
+      "type" : "Auto-Renewable Subscription",
+      "subscription" : {
+        "subscriptionGroupID" : "21567831",
+        "subscriptionPeriod" : "P1Y"
+      }
+    },
+    {
+      "displayPrice" : "99.00",
+      "familyShareable" : false,
+      "internalID" : "6739208571",
+      "localizations" : [
+        {
+          "description" : "One-time purchase. All premium features forever. Founding Member pricing — available for a limited time.",
+          "displayName" : "Heirloom Premium Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.rationalestudio.heirloom.lifetime",
+      "referenceName" : "Heirloom Premium Lifetime",
+      "type" : "Non-Consumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21567831",
+      "localizations" : [
+
+      ],
+      "name" : "Heirloom Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6739208570",
+          "introductoryOffer" : {
+            "internalID" : "DC3BF2CB",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P2W"
+          },
+          "localizations" : [
+            {
+              "description" : "Premium features with 14-day free trial. Import recipes from any site, scan cookbooks, and sync across devices. Our best value — save over 50%.",
+              "displayName" : "Heirloom Premium Annual",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.rationalestudio.heirloom.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Heirloom Premium Annual",
+          "subscriptionGroupID" : "21567831",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6739208569",
+          "introductoryOffer" : {
+            "internalID" : "89F00AF1",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Premium features with 7-day free trial. Import recipes from any site, scan cookbooks, and sync across devices. Cancel anytime.",
+              "displayName" : "Heirloom Premium Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.rationalestudio.heirloom.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Heirloom Premium Monthly",
+          "subscriptionGroupID" : "21567831",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

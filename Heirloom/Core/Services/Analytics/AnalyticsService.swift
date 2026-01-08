@@ -92,6 +92,24 @@ enum AnalyticsEvent: String {
     case contactSupportTapped = "Contact Support Tapped"
     case bugReportSubmitted = "Bug Report Submitted"
     case featureRequestSubmitted = "Feature Request Submitted"
+
+    // Store & Subscriptions
+    case storeProductsLoaded = "Store Products Loaded"
+    case storeLoadFailed = "Store Load Failed"
+    case purchaseStarted = "Purchase Started"
+    case purchaseSuccess = "Purchase Success"
+    case purchaseFailed = "Purchase Failed"
+    case purchaseCancelled = "Purchase Cancelled"
+    case purchasePending = "Purchase Pending"
+    case restoreStarted = "Restore Started"
+    case restoreCompleted = "Restore Completed"
+    case subscriptionStatusChecked = "Subscription Status Checked"
+    case subscriptionStatusChanged = "Subscription Status Changed"
+    case trialStarted = "Trial Started"
+    case trialAdjusted = "Trial Adjusted"
+    case paywallShown = "Paywall Shown"
+    case paywallDismissed = "Paywall Dismissed"
+    case paywallStrikeRuleActivated = "Paywall Strike Rule Activated"
 }
 
 // MARK: - Console-Only Analytics (Fallback)

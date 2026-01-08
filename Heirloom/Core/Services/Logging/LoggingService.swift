@@ -57,6 +57,7 @@ enum LogCategory: String, CustomStringConvertible {
     case ocr = "OCR"
     case performance = "Performance"
     case database = "Database"
+    case store = "Store"
     case general = "General"
 
     var description: String { rawValue }
@@ -73,6 +74,7 @@ enum LogCategory: String, CustomStringConvertible {
         case .ocr: return "📸"
         case .performance: return "⚡️"
         case .database: return "🗄️"
+        case .store: return "💳"
         case .general: return "ℹ️"
         }
     }
