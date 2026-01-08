@@ -98,12 +98,16 @@ struct FirebaseRecordConverter: FirebaseRecordConverterProtocol {
         recipe.id = UUID(uuidString: id) ?? UUID()
 
         // Additional fields
-        recipe.notes = data["notes"] as? String
+        recipe.setNotes(data["notes"] as? String)
         recipe.isFavorite = data["isFavorite"] as? Bool ?? false
         recipe.timesCooked = data["timesCooked"] as? Int ?? 0
 
         // Image fields
-        recipe.imageFileName = data["imageFileName"] as? String
+        do {
+            try recipe.setImageFileName(data["imageFileName"] as? String)
+        } catch {
+            Log.warning("Skipped invalid imageFileName during Firebase sync", category: .firebase, metadata: ["error": error.localizedDescription])
+        }
         recipe.sourceImageURL = data["sourceImageURL"] as? String
         recipe.firebaseImageURL = data["firebaseImageURL"] as? String
 
@@ -248,8 +252,9 @@ struct FirebaseRecordConverter: FirebaseRecordConverterProtocol {
     static func convertCardBackFromFirestoreData(_ data: [String: Any]) -> RecipeCardBack {
         let cardBack = RecipeCardBack()
 
-        cardBack.noteToFriends = data["noteToFriends"] as? String
-        cardBack.personalTips = data["personalTips"] as? [String] ?? []
+        cardBack.setNoteToFriends(data["noteToFriends"] as? String)
+        // SECURITY FIX: Sanitize personalTips array from Firestore
+        cardBack.setPersonalTips(data["personalTips"] as? [String] ?? [])
         cardBack.userRating = data["userRating"] as? Int
         cardBack.showAttribution = data["showAttribution"] as? Bool ?? true
         cardBack.customAttributionText = data["customAttributionText"] as? String

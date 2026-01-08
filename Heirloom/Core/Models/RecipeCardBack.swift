@@ -170,6 +170,28 @@ struct RecipeStickerPosition: Codable {
 // MARK: - Extensions
 
 extension RecipeCardBack {
+    /// Safely set noteToFriends with HTML sanitization (SEC-2)
+    func setNoteToFriends(_ note: String?) {
+        guard let note = note else {
+            self.noteToFriends = nil
+            return
+        }
+
+        // SECURITY FIX: Sanitize HTML to prevent XSS attacks
+        self.noteToFriends = HTMLSanitizer.shared.stripAllHTML(note)
+        self.lastModified = Date()
+        self.lastEditedAt = Date()
+    }
+
+    /// Safely set personalTips with HTML sanitization for each element (SEC-6)
+    func setPersonalTips(_ tips: [String]) {
+        // SECURITY FIX: Sanitize each tip to prevent XSS in array elements
+        self.personalTips = tips.map { HTMLSanitizer.shared.stripAllHTML($0) }
+                                .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+        self.lastModified = Date()
+        self.lastEditedAt = Date()
+    }
+
     /// Whether card back has any user content
     var hasContent: Bool {
         noteToFriends != nil ||

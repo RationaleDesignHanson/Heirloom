@@ -30,6 +30,36 @@ final class Ingredient {
     @Relationship(deleteRule: .cascade, inverse: \Substitution.ingredient)
     var substitutions: [Substitution]?
 
+    // MARK: - Multilingual Support (SchemaV2)
+    /// Original ingredient name in source language
+    /// Nil for English ingredients, populated for foreign language imports
+    var originalLanguageName: String?
+
+    /// Translated ingredient name (if translated from foreign language)
+    /// Nil for English ingredients or untranslated foreign ingredients
+    var translatedName: String?
+
+    /// Original unit before conversion (e.g., "カップ" for Japanese cup)
+    /// Nil for English/standard units, populated for regional units requiring conversion
+    var originalLanguageUnit: String?
+
+    /// Quantity after unit conversion (e.g., Japanese 200ml cup → 0.83 US cups)
+    /// Nil if no conversion was needed
+    var convertedQuantity: Double?
+
+    /// Unit after conversion (e.g., "cup" after converting from Japanese "カップ")
+    /// Nil if no conversion was needed
+    var convertedUnit: String?
+
+    /// Human-readable explanation of conversion for UI display
+    /// Example: "Japanese cup (200ml) converted to 0.83 US cups (240ml)"
+    /// Nil if no conversion was needed
+    var conversionNote: String?
+
+    /// Whether this ingredient required regional unit conversion
+    /// Helps UI show conversion badges/indicators
+    var wasConverted: Bool = false
+
     // MARK: - Initialization
     init(
         originalText: String = "",
@@ -257,7 +287,7 @@ enum GroceryCategory: String, Codable, CaseIterable, Identifiable {
         }
 
         // Meat & Seafood
-        if lowercased.contains("chicken") || lowercased.contains("beef") || lowercased.contains("pork") || lowercased.contains("fish") || lowercased.contains("meat") || lowercased.contains("bacon") || lowercased.contains("sausage") || lowercased.contains("turkey") || lowercased.contains("salmon") || lowercased.contains("tuna") || lowercased.contains("shrimp") || lowercased.contains("cod") || lowercased.contains("seafood") {
+        if lowercased.contains("chicken") || lowercased.contains("beef") || lowercased.contains("pork") || lowercased.contains("fish") || lowercased.contains("meat") || lowercased.contains("bacon") || lowercased.contains("sausage") || lowercased.contains("turkey") || lowercased.contains("salmon") || lowercased.contains("tuna") || lowercased.contains("shrimp") || lowercased.contains("cod") || lowercased.contains("seafood") || lowercased.contains("steak") {
             return .meat
         }
 

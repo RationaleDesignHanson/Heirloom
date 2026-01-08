@@ -250,3 +250,40 @@ export interface URLClickEvent {
   referrer?: string;
   ipHash?: string; // Hashed for privacy
 }
+
+// ===== Language Detection & Translation Types =====
+
+// Request to detect language of recipe text
+export interface DetectLanguageRequest {
+  text: string; // Recipe text to analyze (title + ingredients + instructions)
+  hints?: {
+    url?: string; // Source URL for additional context
+    domain?: string; // Domain for regional hints
+  };
+}
+
+// Response from detectLanguage endpoint
+export interface DetectLanguageResponse {
+  language: string; // ISO 639-1 code (e.g., 'en', 'fr', 'ja')
+  confidence: number; // 0-1 confidence score
+  languageName: string; // Human-readable name (e.g., 'English', 'French')
+  detectedUnitSystem?: 'metric' | 'imperial' | 'mixed'; // Unit system hint
+  needsTranslation: boolean; // True if not English
+}
+
+// Request to translate recipe text
+export interface TranslateTextRequest {
+  text: string; // Text to translate
+  sourceLanguage: string; // ISO 639-1 source language code
+  targetLanguage?: string; // Target language (defaults to 'en')
+  context?: 'title' | 'ingredient' | 'instruction' | 'note'; // Type of text for better translation
+}
+
+// Response from translateText endpoint
+export interface TranslateTextResponse {
+  translatedText: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  confidence: number; // Translation confidence 0-1
+  engine: 'claude' | 'fallback'; // Which translation engine was used
+}

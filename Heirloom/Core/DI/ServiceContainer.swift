@@ -22,10 +22,10 @@ final class ServiceContainer {
 
     // Safe to access from any context - initialized once at startup before concurrent access
     // Underlying storage for both main-actor and nonisolated access
-    // Note: nonisolated(unsafe) is necessary to allow nonisolated access from sharedUnsafe
-    // even though ServiceContainer is Sendable. Without it, we get "main actor-isolated" errors.
-    // The compiler warning about this being unnecessary is a false positive and can be safely ignored.
-    private nonisolated(unsafe) static let _shared = ServiceContainer()
+    //
+    // Since ServiceContainer conforms to Sendable and _shared is an immutable constant (let),
+    // we can safely use nonisolated (without unsafe) to allow sharedUnsafe access.
+    private nonisolated static let _shared = ServiceContainer()
 
     // Main-actor-isolated accessor (default usage)
     static var shared: ServiceContainer {
@@ -169,6 +169,14 @@ final class ServiceContainer {
         }
 
         return resolve(type)
+    }
+
+    /// Check if a service is registered (nonisolated for use in global accessors)
+    /// - Parameter type: The service type to check
+    /// - Returns: true if the service is registered, false otherwise
+    nonisolated func isRegistered<T>(_ type: T.Type) -> Bool {
+        let key = String(describing: type)
+        return lifecycles[key] != nil
     }
 
     /// Resolve a service without MainActor isolation

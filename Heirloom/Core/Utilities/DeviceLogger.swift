@@ -96,13 +96,26 @@ extension DeviceLogger {
 
 // MARK: - Global Convenience
 
+/// Fallback DeviceLogger used when ServiceContainer hasn't been configured yet
+/// This prevents crashes during static initialization or test environments
+private let _fallbackDeviceLogger = DeviceLogger()
+
 extension DeviceLogger {
     /// Global accessor that resolves from ServiceContainer for proper DI
     /// Maintains backward compatibility with existing .shared usage
-    /// Note: Safe to use from any context - ServiceContainer is thread-safe
+    /// Falls back to a standalone logger if ServiceContainer isn't ready
+    /// Note: Safe to use from any context - no MainActor assumption
     nonisolated(unsafe) static var shared: DeviceLogger {
-        MainActor.assumeIsolated {
-            ServiceContainer.shared.resolve(DeviceLogger.self)
+        let container = ServiceContainer.sharedUnsafe
+
+        // Check if DeviceLogger is registered
+        if container.isRegistered(DeviceLogger.self) {
+            // Service is registered - resolve it
+            return container.resolveUnsafe(DeviceLogger.self)
+        } else {
+            // Service not registered yet - use fallback logger
+            // This prevents crashes during static initialization
+            return _fallbackDeviceLogger
         }
     }
 }

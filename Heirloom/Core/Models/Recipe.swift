@@ -162,6 +162,48 @@ final class Recipe {
     /// Conflict badge should be shown on recipe card
     var showConflictBadge: Bool = false
 
+    // MARK: - Multilingual Support (SchemaV2)
+    /// ISO 639-1 language code of the source recipe ("en", "ja", "ko", "es", "fr", "de", "zh")
+    /// Defaults to "en" for existing recipes during V1 → V2 migration
+    var sourceLanguage: String?
+
+    /// Confidence score of language detection (0.0-1.0)
+    /// Defaults to 1.0 for existing English recipes
+    var sourceLanguageConfidence: Double?
+
+    /// Original title in source language (preserved for display)
+    /// Nil for English recipes, populated for foreign language imports
+    var originalTitle: String?
+
+    /// Original instructions in source language (preserved for Artifact View)
+    /// Nil for English recipes, populated for foreign language imports
+    var originalInstructions: [String]?
+
+    /// Translated title (if recipe was translated from foreign language)
+    /// Nil for English recipes or untranslated foreign recipes
+    var translatedTitle: String?
+
+    /// Translated instructions (if recipe was translated)
+    /// Nil for English recipes or untranslated foreign recipes
+    var translatedInstructions: [String]?
+
+    /// Original measurement system detected ("metric", "imperial", or "mixed")
+    /// Based on ingredient units (e.g., "grams" → metric, "cups" → imperial)
+    /// Auto-detected during migration for existing recipes
+    var detectedUnitSystem: String?
+
+    /// User preference: should we show original or translated version?
+    /// Default false = show translated version if available
+    var preferOriginalLanguage: Bool = false
+
+    /// Translation quality indicator ("excellent", "good", "needs_review", nil)
+    /// Used to show quality badges and suggest re-translation
+    var translationQuality: String?
+
+    /// When was this recipe translated (for cache invalidation)
+    /// Nil for untranslated recipes
+    var translatedAt: Date?
+
     // MARK: - Initialization
     init(
         title: String = "",
@@ -934,5 +976,49 @@ extension Recipe {
         // Check if it's been around for at least 30 days
         let daysSinceAdded = Calendar.current.dateComponents([.day], from: dateAdded, to: Date()).day ?? 0
         return daysSinceAdded >= 30
+    }
+}
+
+// MARK: - Security Helper Methods (Phase 7)
+
+extension Recipe {
+    /// Safely set notes with HTML sanitization (SEC-3)
+    func setNotes(_ newNotes: String?) {
+        guard let newNotes = newNotes else {
+            self.notes = nil
+            return
+        }
+
+        // SECURITY FIX: Sanitize HTML to prevent XSS attacks
+        self.notes = HTMLSanitizer.shared.stripAllHTML(newNotes)
+        self.modifiedAt = Date()
+    }
+
+    /// Safely set sourceURL with validation (SEC-4, SEC-5, SEC-6)
+    func setSourceURL(_ urlString: String?) throws {
+        guard let urlString = urlString else {
+            self.sourceURL = nil
+            return
+        }
+
+        // SECURITY FIX: Validate URL to prevent injection and SSRF attacks
+        let validatedURL = try URLValidator.shared.validateRecipeSourceURL(urlString)
+
+        self.sourceURL = validatedURL?.absoluteString
+        self.modifiedAt = Date()
+    }
+
+    /// Safely set imageFileName with path validation (SEC-7)
+    func setImageFileName(_ fileName: String?) throws {
+        guard let fileName = fileName else {
+            self.imageFileName = nil
+            return
+        }
+
+        // SECURITY FIX: Validate file path to prevent path traversal attacks
+        let validatedPath = try FilePathValidator.shared.validateImagePath(fileName)
+
+        self.imageFileName = validatedPath
+        self.modifiedAt = Date()
     }
 }

@@ -26,6 +26,14 @@ final class ShoppingCartRecipe {
     var targetServings: Int = 0
     var dateAdded: Date = Date()
 
+    // MARK: - Dinner Party Tracking
+
+    /// IDs of dinner parties that use this recipe (for auto-sync and cleanup)
+    var dinnerPartyIds: [UUID] = []
+
+    /// Optional ID of the specific DinnerPartyRecipe for servings calculation
+    var dinnerPartyRecipeId: UUID?
+
     // MARK: - Initialization
 
     init(recipe: Recipe, targetServings: Int) {

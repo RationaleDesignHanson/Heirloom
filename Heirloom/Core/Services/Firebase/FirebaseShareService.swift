@@ -66,7 +66,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
 
         // 0. Copy-on-share for heritage recipes
         // If sharing a heritage recipe, create a user copy and share that instead
-        let recipeToShare: Recipe
+        var recipeToShare: Recipe
         if recipe.isHeritageRecipe {
             logger.log("Heritage recipe detected - creating user copy before sharing", category: .firebase, level: .info, metadata: [
                 "originalRecipeId": recipe.id.uuidString,
@@ -93,12 +93,37 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         }
 
         // 1. Ensure recipe is uploaded to Firebase (including image)
+        // uploadRecipe() handles the complete upload flow including image upload
+        // and updating firebaseImageURL property before it returns
         try await firebaseSync.uploadRecipe(recipeToShare)
 
-        // Wait briefly for image URL to be set (uploadRecipe updates it asynchronously)
+        // 2. Force context save to persist any changes from upload
+        try context.save()
+
+        // 3. Re-fetch the recipe from context to ensure we have the latest data
+        // This eliminates race conditions by getting a fresh instance with
+        // the updated firebaseImageURL property
+        let recipeId = recipeToShare.id
+        let fetchDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { $0.id == recipeId }
+        )
+        if let freshRecipe = try context.fetch(fetchDescriptor).first {
+            recipeToShare = freshRecipe
+        }
+
+        // 4. Verify image URL was set (if recipe has an image)
         if recipeToShare.imageFileName != nil && recipeToShare.firebaseImageURL == nil {
-            // Give it a moment to update
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            logger.log(
+                "⚠️ Recipe has image but firebaseImageURL is nil after upload",
+                category: .firebase,
+                level: .warning,
+                metadata: [
+                    "recipeId": recipeToShare.id.uuidString,
+                    "imageFileName": recipeToShare.imageFileName ?? "nil"
+                ]
+            )
+            // Continue with share creation - the image upload may have failed
+            // but we should still create the share without the image
         }
 
         // 1.5. Fetch lineage information if this is a heirloom share

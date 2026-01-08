@@ -97,18 +97,21 @@ extension FirebaseSyncService {
             recipe.vectorClockData = vectorClockData
         }
 
-        try await recipeRef.setData(recipeData)
+        // Wrap Firestore uploads with timeout protection (30 seconds standard)
+        try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseStandard) {
+            try await recipeRef.setData(recipeData)
 
-        // Upload operation log to subcollection
-        let operationsRef = recipeRef.collection("operations")
+            // Upload operation log to subcollection
+            let operationsRef = recipeRef.collection("operations")
 
-        // Upload all operations
-        Log.info("Uploading operations to subcollection", category: .crdt, metadata: ["count": crdt.operationLog.operations.count])
-        for operation in crdt.operationLog.operations {
-            let opDoc = operationsRef.document(operation.id.uuidString)
-            let opData = operation.toFirestoreData()
-            Log.debug("Uploading operation", category: .crdt, metadata: ["operationId": operation.id.uuidString, "fieldPath": operation.fieldPath])
-            try await opDoc.setData(opData)
+            // Upload all operations
+            Log.info("Uploading operations to subcollection", category: .crdt, metadata: ["count": crdt.operationLog.operations.count])
+            for operation in crdt.operationLog.operations {
+                let opDoc = operationsRef.document(operation.id.uuidString)
+                let opData = operation.toFirestoreData()
+                Log.debug("Uploading operation", category: .crdt, metadata: ["operationId": operation.id.uuidString, "fieldPath": operation.fieldPath])
+                try await opDoc.setData(opData)
+            }
         }
 
         Log.info("Recipe uploaded with operations", category: .crdt, metadata: ["operationCount": crdt.operationLog.operations.count])

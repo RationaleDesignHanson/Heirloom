@@ -118,20 +118,23 @@ class AIIngredientParser: AIIngredientParserProtocol {
 
         let prompt = buildPrompt(for: text)
 
-        let result = try await aiService.completeStructured(
-            prompt: prompt,
-            schema: ParsedIngredient.self,
-            options: AICompletionOptions(
-                model: model,
-                temperature: 0.3, // Low temperature for consistent parsing
-                maxTokens: 150,
-                systemMessage: """
-                You are an expert culinary ingredient parser. Extract structured data from ingredient text.
-                Be precise with quantities, units, and ingredient names.
-                """,
-                stopSequences: nil
+        // Add timeout protection for AI API calls (30 seconds)
+        let result = try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseStandard) { [self] in
+            try await self.aiService.completeStructured(
+                prompt: prompt,
+                schema: ParsedIngredient.self,
+                options: AICompletionOptions(
+                    model: model,
+                    temperature: 0.3, // Low temperature for consistent parsing
+                    maxTokens: 150,
+                    systemMessage: """
+                    You are an expert culinary ingredient parser. Extract structured data from ingredient text.
+                    Be precise with quantities, units, and ingredient names.
+                    """,
+                    stopSequences: nil
+                )
             )
-        )
+        }
 
         return result
     }
@@ -243,20 +246,23 @@ class AIIngredientParser: AIIngredientParserProtocol {
 
         let prompt = buildBatchPrompt(for: ingredients)
 
-        let result = try await aiService.completeStructured(
-            prompt: prompt,
-            schema: [ParsedIngredient].self,
-            options: AICompletionOptions(
-                model: model,
-                temperature: 0.3,
-                maxTokens: 500,
-                systemMessage: """
-                You are an expert culinary ingredient parser. Extract structured data from multiple ingredients.
-                Return a JSON array with one object per ingredient in the same order.
-                """,
-                stopSequences: nil
+        // Add timeout protection for AI API calls (60 seconds for batch operations)
+        let result = try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseLong) { [self] in
+            try await self.aiService.completeStructured(
+                prompt: prompt,
+                schema: [ParsedIngredient].self,
+                options: AICompletionOptions(
+                    model: model,
+                    temperature: 0.3,
+                    maxTokens: 500,
+                    systemMessage: """
+                    You are an expert culinary ingredient parser. Extract structured data from multiple ingredients.
+                    Return a JSON array with one object per ingredient in the same order.
+                    """,
+                    stopSequences: nil
+                )
             )
-        )
+        }
 
         return result
     }

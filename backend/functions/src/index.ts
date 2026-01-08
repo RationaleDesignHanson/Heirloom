@@ -10,7 +10,14 @@ import * as admin from 'firebase-admin';
 import {RecipeImporter} from './services/recipeImporter';
 import {AnalyticsService} from './services/analyticsService';
 import {URLShortenerService} from './services/urlShortenerService';
-import {ImportRequest, FeedbackRequest, ShortenURLRequest} from './types';
+import {LanguageService} from './services/languageService';
+import {
+  ImportRequest,
+  FeedbackRequest,
+  ShortenURLRequest,
+  DetectLanguageRequest,
+  TranslateTextRequest,
+} from './types';
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -19,6 +26,10 @@ const db = admin.firestore();
 const analyticsService = new AnalyticsService(db);
 const recipeImporter = new RecipeImporter(analyticsService);
 const urlShortener = new URLShortenerService(db);
+
+// Initialize language service (API key from environment variable)
+const claudeApiKey = process.env.CLAUDE_API_KEY || '';
+const languageService = new LanguageService(claudeApiKey);
 
 /**
  * Main recipe import endpoint
@@ -379,6 +390,116 @@ export const cleanCache = onSchedule(
       } catch (error) {
         console.error('❌ Error cleaning cache:', error);
         throw error;
+      }
+    }
+);
+
+/**
+ * Detect language of recipe text
+ * POST /detectLanguage
+ * Body: { text: string, hints?: { url?: string, domain?: string } }
+ */
+export const detectLanguage = onRequest(
+    {
+      timeoutSeconds: 30,
+      memory: '256MiB',
+      cors: true,
+    },
+    async (req: Request, res: Response) => {
+      if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+      }
+
+      if (req.method !== 'POST') {
+        res.status(405).json({error: 'Method not allowed'});
+        return;
+      }
+
+      try {
+        const requestBody = req.body as DetectLanguageRequest;
+
+        if (!requestBody || !requestBody.text) {
+          res.status(400).json({
+            error: 'Missing required field: text',
+          });
+          return;
+        }
+
+        console.log('🌐 Language detection request');
+
+        // Detect language using Claude
+        const result = await languageService.detectLanguage(
+            requestBody.text,
+            requestBody.hints
+        );
+
+        console.log(`✅ Detected language: ${result.language} (${result.confidence})`);
+
+        res.status(200).json(result);
+      } catch (error: any) {
+        console.error('❌ Language detection error:', error);
+        res.status(500).json({
+          error: 'Language detection failed',
+          message: error.message,
+        });
+      }
+    }
+);
+
+/**
+ * Translate recipe text
+ * POST /translateText
+ * Body: { text: string, sourceLanguage: string, targetLanguage?: string, context?: string }
+ */
+export const translateText = onRequest(
+    {
+      timeoutSeconds: 30,
+      memory: '256MiB',
+      cors: true,
+    },
+    async (req: Request, res: Response) => {
+      if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+      }
+
+      if (req.method !== 'POST') {
+        res.status(405).json({error: 'Method not allowed'});
+        return;
+      }
+
+      try {
+        const requestBody = req.body as TranslateTextRequest;
+
+        if (!requestBody || !requestBody.text || !requestBody.sourceLanguage) {
+          res.status(400).json({
+            error: 'Missing required fields: text, sourceLanguage',
+          });
+          return;
+        }
+
+        console.log(
+            `🌐 Translation request: ${requestBody.sourceLanguage} → ${requestBody.targetLanguage || 'en'}`
+        );
+
+        // Translate using Claude
+        const result = await languageService.translateText(
+            requestBody.text,
+            requestBody.sourceLanguage,
+            requestBody.targetLanguage,
+            requestBody.context
+        );
+
+        console.log(`✅ Translation completed (confidence: ${result.confidence})`);
+
+        res.status(200).json(result);
+      } catch (error: any) {
+        console.error('❌ Translation error:', error);
+        res.status(500).json({
+          error: 'Translation failed',
+          message: error.message,
+        });
       }
     }
 );

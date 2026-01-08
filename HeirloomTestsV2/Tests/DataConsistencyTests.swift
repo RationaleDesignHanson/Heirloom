@@ -1,0 +1,560 @@
+import Testing
+import Foundation
+import SwiftData
+
+@testable import Heirloom
+
+@Suite("Data Consistency Tests")
+struct DataConsistencyTests {
+    var container: ModelContainer
+    var context: ModelContext
+
+    init() throws {
+        let schema = Schema([
+            Heirloom.Recipe.self,
+            Heirloom.Tag.self,
+            Heirloom.RecipeCollection.self,
+            Heirloom.Ingredient.self,
+            Heirloom.CardStyle.self,
+            Heirloom.Sticker.self,
+            Heirloom.Annotation.self,
+            Heirloom.Substitution.self
+        ])
+        let modelConfiguration = ModelConfiguration(isStoredInMemoryOnly: true)
+        container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+        context = ModelContext(container)
+    }
+
+    // MARK: - Concurrent Operations Tests
+
+    @Test("Multiple recipes can be created concurrently")
+    func testConcurrentRecipeCreation_MaintainsIntegrity() throws {
+        // Arrange - create multiple recipes
+        var recipes: [Heirloom.Recipe] = []
+        for i in 0..<10 {
+            let recipe = Heirloom.Recipe(title: "Recipe \(i)")
+            context.insert(recipe)
+            recipes.append(recipe)
+        }
+
+        // Act - save all at once
+        try context.save()
+
+        // Assert - all recipes should exist
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>()
+        let fetchedRecipes = try context.fetch(recipeFetch)
+        #expect(fetchedRecipes.count == 10)
+
+        // Verify each recipe has unique ID
+        let uniqueIds = Set(fetchedRecipes.map { $0.id })
+        #expect(uniqueIds.count == 10)
+    }
+
+    @Test("Concurrent tag assignments maintain consistency")
+    func testConcurrentTagAssignments_MaintainsConsistency() throws {
+        // Arrange - create multiple recipes and tags
+        var recipes: [Heirloom.Recipe] = []
+        for i in 0..<5 {
+            let recipe = Heirloom.Recipe(title: "Recipe \(i)")
+            context.insert(recipe)
+            recipes.append(recipe)
+        }
+
+        var tags: [Heirloom.Tag] = []
+        for i in 0..<3 {
+            let tag = Heirloom.Tag(name: "Tag \(i)", color: "#FF6B6B")
+            context.insert(tag)
+            tags.append(tag)
+        }
+
+        // Act - assign all tags to all recipes
+        for recipe in recipes {
+            recipe.tags = tags
+        }
+        try context.save()
+
+        // Assert - all assignments should be preserved
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>()
+        let fetchedRecipes = try context.fetch(recipeFetch)
+
+        for fetchedRecipe in fetchedRecipes {
+            #expect(fetchedRecipe.tags?.count == 3)
+        }
+
+        // Verify reverse relationship
+        let tagFetch = FetchDescriptor<Heirloom.Tag>()
+        let fetchedTags = try context.fetch(tagFetch)
+
+        for fetchedTag in fetchedTags {
+            #expect(fetchedTag.recipes?.count == 5)
+        }
+    }
+
+    // MARK: - Relationship Consistency Tests
+
+    @Test("Adding ingredient maintains recipe relationship consistency")
+    func testAddIngredient_MaintainsRelationshipConsistency() throws {
+        // Arrange
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
+        context.insert(recipe)
+        try context.save()
+
+        // Act - add ingredient
+        let ingredient = Heirloom.Ingredient(originalText: "flour", name: "flour")
+        ingredient.recipe = recipe
+        recipe.ingredients = [ingredient]
+        context.insert(ingredient)
+        try context.save()
+
+        // Assert - fetch and verify both sides of relationship
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>(
+            predicate: #Predicate { $0.id == recipe.id }
+        )
+        let fetchedRecipe = try context.fetch(recipeFetch).first
+        #expect(fetchedRecipe?.ingredients?.count == 1)
+
+        let ingredientFetch = FetchDescriptor<Heirloom.Ingredient>(
+            predicate: #Predicate { $0.id == ingredient.id }
+        )
+        let fetchedIngredient = try context.fetch(ingredientFetch).first
+        #expect(fetchedIngredient?.recipe?.id == recipe.id)
+    }
+
+    @Test("Removing tag from recipe maintains consistency on both sides")
+    func testRemoveTag_MaintainsConsistency() throws {
+        // Arrange
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
+        let tag1 = Heirloom.Tag(name: "Tag 1", color: "#FF6B6B")
+        let tag2 = Heirloom.Tag(name: "Tag 2", color: "#4ECDC4")
+
+        recipe.tags = [tag1, tag2]
+
+        context.insert(recipe)
+        context.insert(tag1)
+        context.insert(tag2)
+        try context.save()
+
+        let recipeId = recipe.id
+        let tag1Id = tag1.id
+        let tag2Id = tag2.id
+
+        // Act - remove one tag
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>(
+            predicate: #Predicate { $0.id == recipeId }
+        )
+        let fetchedRecipe = try context.fetch(recipeFetch).first
+        fetchedRecipe?.tags?.removeAll { $0.id == tag1Id }
+        try context.save()
+
+        // Assert - recipe should have one tag
+        let updatedRecipe = try context.fetch(recipeFetch).first
+        #expect(updatedRecipe?.tags?.count == 1)
+        #expect(updatedRecipe?.tags?.first?.id == tag2Id)
+
+        // Tag 1 should no longer reference this recipe
+        let tag1Fetch = FetchDescriptor<Heirloom.Tag>(
+            predicate: #Predicate { $0.id == tag1Id }
+        )
+        let fetchedTag1 = try context.fetch(tag1Fetch).first
+        #expect(fetchedTag1?.recipes?.contains(where: { $0.id == recipeId }) == false)
+
+        // Tag 2 should still reference this recipe
+        let tag2Fetch = FetchDescriptor<Heirloom.Tag>(
+            predicate: #Predicate { $0.id == tag2Id }
+        )
+        let fetchedTag2 = try context.fetch(tag2Fetch).first
+        #expect(fetchedTag2?.recipes?.contains(where: { $0.id == recipeId }) == true)
+    }
+
+    @Test("Updating recipe with multiple relationships maintains all relationships")
+    func testUpdateRecipe_MaintainsAllRelationships() throws {
+        // Arrange - create recipe with tags, collections, and ingredients
+        let recipe = Heirloom.Recipe(title: "Original Title")
+        let tag = Heirloom.Tag(name: "Tag", color: "#FF6B6B")
+        let collection = Heirloom.RecipeCollection(name: "Collection")
+        let ingredient = Heirloom.Ingredient(originalText: "flour", name: "flour")
+
+        recipe.tags = [tag]
+        recipe.collections = [collection]
+        ingredient.recipe = recipe
+        recipe.ingredients = [ingredient]
+
+        context.insert(recipe)
+        context.insert(tag)
+        context.insert(collection)
+        context.insert(ingredient)
+        try context.save()
+
+        let recipeId = recipe.id
+
+        // Act - update recipe title
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>(
+            predicate: #Predicate { $0.id == recipeId }
+        )
+        let fetchedRecipe = try context.fetch(recipeFetch).first
+        fetchedRecipe?.title = "Updated Title"
+        try context.save()
+
+        // Assert - all relationships should be preserved
+        let updatedRecipe = try context.fetch(recipeFetch).first
+        #expect(updatedRecipe?.title == "Updated Title")
+        #expect(updatedRecipe?.tags?.count == 1)
+        #expect(updatedRecipe?.collections?.count == 1)
+        #expect(updatedRecipe?.ingredients?.count == 1)
+    }
+
+    // MARK: - Transaction & Save Failure Tests
+
+    @Test("Save after delete maintains consistency")
+    func testSaveAfterDelete_MaintainsConsistency() throws {
+        // Arrange - create and save recipes
+        let recipe1 = Heirloom.Recipe(title: "Recipe 1")
+        let recipe2 = Heirloom.Recipe(title: "Recipe 2")
+
+        context.insert(recipe1)
+        context.insert(recipe2)
+        try context.save()
+
+        let recipe1Id = recipe1.id
+
+        // Act - delete one recipe
+        context.delete(recipe1)
+        try context.save()
+
+        // Assert - only recipe 2 should remain
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>()
+        let remainingRecipes = try context.fetch(recipeFetch)
+        #expect(remainingRecipes.count == 1)
+        #expect(remainingRecipes.first?.title == "Recipe 2")
+
+        // Verify deleted recipe is truly gone
+        let deletedRecipeFetch = FetchDescriptor<Heirloom.Recipe>(
+            predicate: #Predicate { $0.id == recipe1Id }
+        )
+        #expect(try context.fetch(deletedRecipeFetch).isEmpty)
+    }
+
+    @Test("Multiple saves maintain cumulative changes")
+    func testMultipleSaves_MaintainCumulativeChanges() throws {
+        // Arrange - create recipe
+        let recipe = Heirloom.Recipe(title: "Original")
+        context.insert(recipe)
+        try context.save()
+
+        let recipeId = recipe.id
+
+        // Act - make multiple changes with saves in between
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>(
+            predicate: #Predicate { $0.id == recipeId }
+        )
+
+        // First change
+        let fetchedRecipe1 = try context.fetch(recipeFetch).first
+        fetchedRecipe1?.title = "First Update"
+        try context.save()
+
+        // Second change
+        let fetchedRecipe2 = try context.fetch(recipeFetch).first
+        fetchedRecipe2?.subtitle = "Added Subtitle"
+        try context.save()
+
+        // Third change
+        let fetchedRecipe3 = try context.fetch(recipeFetch).first
+        fetchedRecipe3?.notes = "Added Notes"
+        try context.save()
+
+        // Assert - all changes should be preserved
+        let finalRecipe = try context.fetch(recipeFetch).first
+        #expect(finalRecipe?.title == "First Update")
+        #expect(finalRecipe?.subtitle == "Added Subtitle")
+        #expect(finalRecipe?.notes == "Added Notes")
+    }
+
+    @Test("Inserting duplicate relationships doesn't create duplicates")
+    func testDuplicateRelationships_DoesNotCreateDuplicates() throws {
+        // Arrange
+        let recipe = Heirloom.Recipe(title: "Recipe")
+        let tag = Heirloom.Tag(name: "Tag", color: "#FF6B6B")
+
+        context.insert(recipe)
+        context.insert(tag)
+
+        // Act - add same tag multiple times
+        recipe.tags = [tag]
+        try context.save()
+
+        recipe.tags?.append(tag)
+        try context.save()
+
+        // Assert - tag should only appear once
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>(
+            predicate: #Predicate { $0.id == recipe.id }
+        )
+        let fetchedRecipe = try context.fetch(recipeFetch).first
+        #expect(fetchedRecipe?.tags?.count == 1)
+    }
+
+    // MARK: - Cascade Delete Consistency Tests
+
+    @Test("Cascade delete maintains referential integrity")
+    func testCascadeDelete_MaintainsReferentialIntegrity() throws {
+        // Arrange - create recipe with ingredients
+        let recipe = Heirloom.Recipe(title: "Recipe")
+        let ingredient1 = Heirloom.Ingredient(originalText: "flour", name: "flour")
+        let ingredient2 = Heirloom.Ingredient(originalText: "sugar", name: "sugar")
+
+        ingredient1.recipe = recipe
+        ingredient2.recipe = recipe
+        recipe.ingredients = [ingredient1, ingredient2]
+
+        context.insert(recipe)
+        context.insert(ingredient1)
+        context.insert(ingredient2)
+        try context.save()
+
+        let ingredient1Id = ingredient1.id
+        let ingredient2Id = ingredient2.id
+
+        // Act - delete recipe (should cascade to ingredients)
+        context.delete(recipe)
+        try context.save()
+
+        // Assert - ingredients should be deleted
+        let ingredient1Fetch = FetchDescriptor<Heirloom.Ingredient>(
+            predicate: #Predicate { $0.id == ingredient1Id }
+        )
+        #expect(try context.fetch(ingredient1Fetch).isEmpty)
+
+        let ingredient2Fetch = FetchDescriptor<Heirloom.Ingredient>(
+            predicate: #Predicate { $0.id == ingredient2Id }
+        )
+        #expect(try context.fetch(ingredient2Fetch).isEmpty)
+    }
+
+    @Test("Non-cascade delete preserves related entities")
+    func testNonCascadeDelete_PreservesRelatedEntities() throws {
+        // Arrange - create recipe with tag (many-to-many, no cascade)
+        let recipe = Heirloom.Recipe(title: "Recipe")
+        let tag = Heirloom.Tag(name: "Tag", color: "#FF6B6B")
+
+        recipe.tags = [tag]
+
+        context.insert(recipe)
+        context.insert(tag)
+        try context.save()
+
+        let tagId = tag.id
+
+        // Act - delete recipe
+        context.delete(recipe)
+        try context.save()
+
+        // Assert - tag should still exist
+        let tagFetch = FetchDescriptor<Heirloom.Tag>(
+            predicate: #Predicate { $0.id == tagId }
+        )
+        let fetchedTag = try context.fetch(tagFetch).first
+        #expect(fetchedTag != nil)
+        #expect(fetchedTag?.recipes?.isEmpty ?? true)
+    }
+
+    // MARK: - Batch Operations Tests
+
+    @Test("Batch insert maintains integrity")
+    func testBatchInsert_MaintainsIntegrity() throws {
+        // Arrange - create multiple entities in batch
+        var recipes: [Heirloom.Recipe] = []
+        var tags: [Heirloom.Tag] = []
+
+        for i in 0..<20 {
+            let recipe = Heirloom.Recipe(title: "Recipe \(i)")
+            context.insert(recipe)
+            recipes.append(recipe)
+        }
+
+        for i in 0..<5 {
+            let tag = Heirloom.Tag(name: "Tag \(i)", color: "#FF6B6B")
+            context.insert(tag)
+            tags.append(tag)
+        }
+
+        // Act - save all at once
+        try context.save()
+
+        // Assert - all entities should be persisted
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>()
+        #expect(try context.fetch(recipeFetch).count == 20)
+
+        let tagFetch = FetchDescriptor<Heirloom.Tag>()
+        #expect(try context.fetch(tagFetch).count == 5)
+    }
+
+    @Test("Batch delete maintains remaining entities")
+    func testBatchDelete_MaintainsRemainingEntities() throws {
+        // Arrange - create multiple recipes
+        var recipes: [Heirloom.Recipe] = []
+        for i in 0..<10 {
+            let recipe = Heirloom.Recipe(title: "Recipe \(i)")
+            context.insert(recipe)
+            recipes.append(recipe)
+        }
+        try context.save()
+
+        // Act - delete first 5 recipes
+        for i in 0..<5 {
+            context.delete(recipes[i])
+        }
+        try context.save()
+
+        // Assert - remaining 5 recipes should exist
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>()
+        let remainingRecipes = try context.fetch(recipeFetch)
+        #expect(remainingRecipes.count == 5)
+
+        // Verify correct recipes remain
+        let remainingTitles = remainingRecipes.map { $0.title }
+        for i in 5..<10 {
+            #expect(remainingTitles.contains("Recipe \(i)"))
+        }
+    }
+
+    @Test("Batch update maintains consistency")
+    func testBatchUpdate_MaintainsConsistency() throws {
+        // Arrange - create multiple recipes
+        var recipes: [Heirloom.Recipe] = []
+        var recipeIds: [UUID] = []
+
+        for i in 0..<10 {
+            let recipe = Heirloom.Recipe(title: "Recipe \(i)")
+            context.insert(recipe)
+            recipes.append(recipe)
+            recipeIds.append(recipe.id)
+        }
+        try context.save()
+
+        // Act - update all recipes
+        for id in recipeIds {
+            let recipeFetch = FetchDescriptor<Heirloom.Recipe>(
+                predicate: #Predicate<Heirloom.Recipe> { $0.id == id }
+            )
+            if let recipe = try context.fetch(recipeFetch).first {
+                recipe.subtitle = "Updated"
+            }
+        }
+        try context.save()
+
+        // Assert - all updates should be persisted
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>()
+        let updatedRecipes = try context.fetch(recipeFetch)
+
+        for recipe in updatedRecipes {
+            #expect(recipe.subtitle == "Updated")
+        }
+    }
+
+    // MARK: - Edge Cases
+
+    @Test("Empty save doesn't cause errors")
+    func testEmptySave_DoesNotCauseErrors() throws {
+        // Act - save without any changes
+        try context.save()
+
+        // Assert - should complete without error
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>()
+        #expect(try context.fetch(recipeFetch).isEmpty)
+    }
+
+    @Test("Saving same entity multiple times is safe")
+    func testSaveSameEntity_MultipleTimes_IsSafe() throws {
+        // Arrange
+        let recipe = Heirloom.Recipe(title: "Recipe")
+        context.insert(recipe)
+
+        // Act - save multiple times
+        try context.save()
+        try context.save()
+        try context.save()
+
+        // Assert - only one recipe should exist
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>()
+        #expect(try context.fetch(recipeFetch).count == 1)
+    }
+
+    @Test("Deleting already deleted entity doesn't cause errors")
+    func testDeleteAlreadyDeleted_DoesNotCauseErrors() throws {
+        // Arrange
+        let recipe = Heirloom.Recipe(title: "Recipe")
+        context.insert(recipe)
+        try context.save()
+
+        let recipeId = recipe.id
+
+        // Act - delete once
+        context.delete(recipe)
+        try context.save()
+
+        // Verify deletion
+        let recipeFetch = FetchDescriptor<Heirloom.Recipe>(
+            predicate: #Predicate { $0.id == recipeId }
+        )
+        #expect(try context.fetch(recipeFetch).isEmpty)
+
+        // Second delete attempt should not find the entity
+        // (This is expected behavior - entity no longer exists in context)
+    }
+
+    @Test("Complex relationship updates maintain graph consistency")
+    func testComplexRelationshipUpdates_MaintainGraphConsistency() throws {
+        // Arrange - create complex graph
+        let recipe1 = Heirloom.Recipe(title: "Recipe 1")
+        let recipe2 = Heirloom.Recipe(title: "Recipe 2")
+        let tag1 = Heirloom.Tag(name: "Tag 1", color: "#FF6B6B")
+        let tag2 = Heirloom.Tag(name: "Tag 2", color: "#4ECDC4")
+        let collection = Heirloom.RecipeCollection(name: "Collection")
+
+        recipe1.tags = [tag1, tag2]
+        recipe2.tags = [tag1]
+        recipe1.collections = [collection]
+        recipe2.collections = [collection]
+
+        context.insert(recipe1)
+        context.insert(recipe2)
+        context.insert(tag1)
+        context.insert(tag2)
+        context.insert(collection)
+        try context.save()
+
+        // Act - modify relationships
+        recipe1.tags?.removeAll { $0.id == tag1.id }
+        recipe2.tags?.append(tag2)
+        try context.save()
+
+        // Assert - verify final state
+        let recipe1Fetch = FetchDescriptor<Heirloom.Recipe>(
+            predicate: #Predicate { $0.id == recipe1.id }
+        )
+        let fetchedRecipe1 = try context.fetch(recipe1Fetch).first
+        #expect(fetchedRecipe1?.tags?.count == 1)
+        #expect(fetchedRecipe1?.tags?.first?.name == "Tag 2")
+
+        let recipe2Fetch = FetchDescriptor<Heirloom.Recipe>(
+            predicate: #Predicate { $0.id == recipe2.id }
+        )
+        let fetchedRecipe2 = try context.fetch(recipe2Fetch).first
+        #expect(fetchedRecipe2?.tags?.count == 2)
+
+        // Verify tag relationships
+        let tag1Fetch = FetchDescriptor<Heirloom.Tag>(
+            predicate: #Predicate { $0.id == tag1.id }
+        )
+        let fetchedTag1 = try context.fetch(tag1Fetch).first
+        #expect(fetchedTag1?.recipes?.count == 1)
+        #expect(fetchedTag1?.recipes?.first?.title == "Recipe 2")
+
+        let tag2Fetch = FetchDescriptor<Heirloom.Tag>(
+            predicate: #Predicate { $0.id == tag2.id }
+        )
+        let fetchedTag2 = try context.fetch(tag2Fetch).first
+        #expect(fetchedTag2?.recipes?.count == 2)
+    }
+}

@@ -177,8 +177,7 @@ final class CommentService {
         text: String,
         context: ModelContext
     ) throws {
-        comment.text = text
-        comment.modifiedAt = Date()
+        comment.setText(text)
         try context.save()
 
         // Sync updated comment to Firebase if active

@@ -3,8 +3,7 @@
  * Creates and manages short URLs for recipe sharing
  */
 
-import {Firestore} from 'firebase-admin/firestore';
-import * as crypto from 'crypto';
+import {Firestore, FieldValue} from 'firebase-admin/firestore';
 import {ShortURL, URLClickEvent} from '../types';
 
 export class URLShortenerService {
@@ -120,14 +119,14 @@ export class URLShortenerService {
 
     // Increment total clicks
     await docRef.update({
-      clicks: Firestore.FieldValue.increment(1),
+      clicks: FieldValue.increment(1),
       lastAccessed: new Date(),
     });
 
     // Track clicks by day
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     await docRef.update({
-      [`clicksByDay.${today}`]: Firestore.FieldValue.increment(1),
+      [`clicksByDay.${today}`]: FieldValue.increment(1),
     });
 
     // Track referrer if provided
@@ -135,7 +134,7 @@ export class URLShortenerService {
       try {
         const referrerDomain = new URL(referrer).hostname;
         await docRef.update({
-          [`referrers.${referrerDomain}`]: Firestore.FieldValue.increment(1),
+          [`referrers.${referrerDomain}`]: FieldValue.increment(1),
         });
       } catch (e) {
         // Invalid referrer URL, skip
@@ -281,13 +280,6 @@ export class URLShortenerService {
     } catch (e) {
       return false;
     }
-  }
-
-  /**
-   * Hash IP address for privacy
-   */
-  private hashIP(ip: string): string {
-    return crypto.createHash('sha256').update(ip).digest('hex').substring(0, 16);
   }
 
   /**

@@ -1,10 +1,15 @@
 import Foundation
 
 /// Simple ingredient parser to extract quantity, unit, and name from text
-/// This is a basic implementation - will be enhanced in later phases
+/// Supports multilingual parsing for 7 languages: English, French, Spanish, German, Japanese, Chinese, Korean
 struct IngredientParser {
 
-    static func parse(_ text: String) -> (quantity: Double?, quantityMax: Double?, unit: String?, name: String) {
+    /// Parse ingredient text with optional language hint
+    /// - Parameters:
+    ///   - text: Ingredient text to parse
+    ///   - language: ISO 639-1 language code (defaults to "en")
+    /// - Returns: Tuple with quantity, quantityMax, unit (normalized to English), and ingredient name
+    static func parse(_ text: String, language: String = "en") -> (quantity: Double?, quantityMax: Double?, unit: String?, name: String) {
         var remainingText = text.trimmingCharacters(in: .whitespaces)
 
         // Extract quantity (including fractions and ranges)
@@ -13,7 +18,7 @@ struct IngredientParser {
 
         // Extract unit only if there was a space after quantity
         // This prevents parsing "250g" as "250" + "g" (should be treated as single token)
-        let (unit, afterUnit) = hadSpaceAfterQuantity ? extractUnit(from: remainingText) : (nil, remainingText)
+        let (unit, afterUnit) = hadSpaceAfterQuantity ? extractUnit(from: remainingText, language: language) : (nil, remainingText)
         remainingText = afterUnit
 
         // Remaining text is the ingredient name
@@ -195,7 +200,7 @@ struct IngredientParser {
 
     // MARK: - Unit Extraction
 
-    private static func extractUnit(from text: String) -> (unit: String?, remaining: String) {
+    private static func extractUnit(from text: String, language: String = "en") -> (unit: String?, remaining: String) {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return (nil, trimmed) }
 
@@ -223,7 +228,88 @@ struct IngredientParser {
             if firstChar == "c" || firstChar == "C" { return extractMatched(String(firstChar)) }
         }
 
-        // Common units (sorted by length descending to match longer units first)
+        // Multilingual units - add language-specific units first (highest priority)
+        var multilingualUnits: [String] = []
+
+        switch language {
+        case "fr": // French
+            multilingualUnits = [
+                "cuillères à soupe", "cuillère à soupe", "cuillères à café", "cuillère à café",
+                "cuillères", "cuillère", "c. à soupe", "c. à café", "c.à.s", "c.à.c",
+                "tasses", "tasse", "verres", "verre",
+                "litres", "litre", "millilitres", "millilitre",
+                "kilogrammes", "kilogramme", "grammes", "gramme",
+                "livres", "livre", "onces", "once",
+                "pincées", "pincée", "poignées", "poignée",
+                "tranches", "tranche", "morceaux", "morceau",
+                "boîtes", "boîte", "sachets", "sachet", "paquets", "paquet"
+            ]
+        case "es": // Spanish
+            multilingualUnits = [
+                "cucharadas", "cucharada", "cucharaditas", "cucharadita",
+                "cdas", "cda", "cdtas", "cdta",
+                "tazas", "taza", "vasos", "vaso",
+                "litros", "litro", "mililitros", "mililitro",
+                "kilogramos", "kilogramo", "gramos", "gramo",
+                "libras", "libra", "onzas", "onza",
+                "pizcas", "pizca", "puñados", "puñado",
+                "rebanadas", "rebanada", "rodajas", "rodaja",
+                "latas", "lata", "paquetes", "paquete"
+            ]
+        case "de": // German
+            multilingualUnits = [
+                "Esslöffel", "Teelöffel", "EL", "TL",
+                "Tassen", "Tasse", "Becher",
+                "Liter", "Milliliter", "ml",
+                "Kilogramm", "Gramm", "kg",
+                "Pfund", "Unzen", "Unze",
+                "Prisen", "Prise", "Messerspitzen", "Messerspitze",
+                "Scheiben", "Scheibe", "Stücke", "Stück",
+                "Dosen", "Dose", "Packungen", "Packung"
+            ]
+        case "ja": // Japanese
+            multilingualUnits = [
+                "大さじ", "小さじ", "カップ", "合",
+                "リットル", "ミリリットル", "cc", "㏄",
+                "キログラム", "グラム", "㎏", "㌘",
+                "ポンド", "オンス",
+                "つまみ", "ひとつまみ", "少々",
+                "切れ", "枚", "個", "本", "缶", "袋", "パック"
+            ]
+        case "zh": // Chinese (Simplified)
+            multilingualUnits = [
+                "汤匙", "茶匙", "大勺", "小勺",
+                "杯", "碗", "升", "毫升",
+                "公斤", "千克", "克",
+                "磅", "盎司",
+                "少许", "适量", "少量",
+                "片", "块", "个", "根", "罐", "包", "袋"
+            ]
+        case "ko": // Korean
+            multilingualUnits = [
+                "큰술", "큰스푼", "작은술", "작은스푼",
+                "컵", "잔", "그릇",
+                "리터", "밀리리터",
+                "킬로그램", "그램", "근", "돈",
+                "파운드", "온스",
+                "꼬집", "약간", "조금",
+                "조각", "개", "병", "캔", "봉지", "팩"
+            ]
+        default: // English (en) or unknown
+            break
+        }
+
+        // Try to match multilingual units first (language-specific)
+        for unit in multilingualUnits {
+            if matchUnit(unit) {
+                let (matchedUnit, remaining) = extractMatched(unit)
+                // Normalize to English equivalent
+                let normalized = normalizeMultilingualUnit(matchedUnit, language: language)
+                return (normalized, remaining)
+            }
+        }
+
+        // Common English units (sorted by length descending to match longer units first)
         let units = [
             // Volume - longest to shortest
             "tablespoons", "tablespoon",
@@ -274,6 +360,231 @@ struct IngredientParser {
     }
 
     // MARK: - Unit Normalization
+
+    /// Normalizes multilingual units to their English equivalents
+    /// Examples: "cuillère à soupe" (French) → "tablespoon", "大さじ" (Japanese) → "tablespoon"
+    private static func normalizeMultilingualUnit(_ unit: String, language: String) -> String {
+        let lowercased = unit.lowercased()
+
+        switch language {
+        case "fr": // French → English
+            switch lowercased {
+            case "cuillères à soupe", "cuillère à soupe", "c. à soupe", "c.à.s":
+                return "tablespoon"
+            case "cuillères à café", "cuillère à café", "c. à café", "c.à.c":
+                return "teaspoon"
+            case "cuillères", "cuillère":
+                return "spoon"
+            case "tasses", "tasse":
+                return "cup"
+            case "verres", "verre":
+                return "cup"
+            case "litres", "litre":
+                return "liter"
+            case "millilitres", "millilitre":
+                return "milliliter"
+            case "kilogrammes", "kilogramme":
+                return "kilogram"
+            case "grammes", "gramme":
+                return "gram"
+            case "livres", "livre":
+                return "pound"
+            case "onces", "once":
+                return "oz."
+            case "pincées", "pincée":
+                return "pinch"
+            case "poignées", "poignée":
+                return "handful"
+            case "tranches", "tranche":
+                return "slice"
+            case "morceaux", "morceau":
+                return "piece"
+            case "boîtes", "boîte":
+                return "can"
+            case "sachets", "sachet", "paquets", "paquet":
+                return "package"
+            default:
+                return unit
+            }
+
+        case "es": // Spanish → English
+            switch lowercased {
+            case "cucharadas", "cucharada", "cdas", "cda":
+                return "tablespoon"
+            case "cucharaditas", "cucharadita", "cdtas", "cdta":
+                return "teaspoon"
+            case "tazas", "taza":
+                return "cup"
+            case "vasos", "vaso":
+                return "cup"
+            case "litros", "litro":
+                return "liter"
+            case "mililitros", "mililitro":
+                return "milliliter"
+            case "kilogramos", "kilogramo":
+                return "kilogram"
+            case "gramos", "gramo":
+                return "gram"
+            case "libras", "libra":
+                return "pound"
+            case "onzas", "onza":
+                return "oz."
+            case "pizcas", "pizca":
+                return "pinch"
+            case "puñados", "puñado":
+                return "handful"
+            case "rebanadas", "rebanada", "rodajas", "rodaja":
+                return "slice"
+            case "latas", "lata":
+                return "can"
+            case "paquetes", "paquete":
+                return "package"
+            default:
+                return unit
+            }
+
+        case "de": // German → English
+            switch lowercased {
+            case "esslöffel", "el":
+                return "tablespoon"
+            case "teelöffel", "tl":
+                return "teaspoon"
+            case "tassen", "tasse", "becher":
+                return "cup"
+            case "liter":
+                return "liter"
+            case "milliliter", "ml":
+                return "milliliter"
+            case "kilogramm", "kg":
+                return "kilogram"
+            case "gramm":
+                return "gram"
+            case "pfund":
+                return "pound"
+            case "unzen", "unze":
+                return "oz."
+            case "prisen", "prise", "messerspitzen", "messerspitze":
+                return "pinch"
+            case "scheiben", "scheibe":
+                return "slice"
+            case "stücke", "stück":
+                return "piece"
+            case "dosen", "dose":
+                return "can"
+            case "packungen", "packung":
+                return "package"
+            default:
+                return unit
+            }
+
+        case "ja": // Japanese → English
+            switch unit {  // Case-sensitive for Japanese
+            case "大さじ":
+                return "tablespoon"
+            case "小さじ":
+                return "teaspoon"
+            case "カップ", "合":
+                return "cup"
+            case "リットル":
+                return "liter"
+            case "ミリリットル", "cc", "㏄":
+                return "milliliter"
+            case "キログラム", "㎏":
+                return "kilogram"
+            case "グラム", "㌘":
+                return "gram"
+            case "ポンド":
+                return "pound"
+            case "オンス":
+                return "oz."
+            case "つまみ", "ひとつまみ", "少々":
+                return "pinch"
+            case "切れ", "枚":
+                return "slice"
+            case "個", "本":
+                return "piece"
+            case "缶":
+                return "can"
+            case "袋", "パック":
+                return "package"
+            default:
+                return unit
+            }
+
+        case "zh": // Chinese → English
+            switch unit {  // Case-sensitive for Chinese
+            case "汤匙", "大勺":
+                return "tablespoon"
+            case "茶匙", "小勺":
+                return "teaspoon"
+            case "杯", "碗":
+                return "cup"
+            case "升":
+                return "liter"
+            case "毫升":
+                return "milliliter"
+            case "公斤", "千克":
+                return "kilogram"
+            case "克":
+                return "gram"
+            case "磅":
+                return "pound"
+            case "盎司":
+                return "oz."
+            case "少许", "适量", "少量":
+                return "pinch"
+            case "片", "块":
+                return "slice"
+            case "个", "根":
+                return "piece"
+            case "罐":
+                return "can"
+            case "包", "袋":
+                return "package"
+            default:
+                return unit
+            }
+
+        case "ko": // Korean → English
+            switch unit {  // Case-sensitive for Korean
+            case "큰술", "큰스푼":
+                return "tablespoon"
+            case "작은술", "작은스푼":
+                return "teaspoon"
+            case "컵", "잔", "그릇":
+                return "cup"
+            case "리터":
+                return "liter"
+            case "밀리리터":
+                return "milliliter"
+            case "킬로그램":
+                return "kilogram"
+            case "그램":
+                return "gram"
+            case "근", "돈":  // Traditional Korean units → grams (will need conversion)
+                return "gram"
+            case "파운드":
+                return "pound"
+            case "온스":
+                return "oz."
+            case "꼬집", "약간", "조금":
+                return "pinch"
+            case "조각":
+                return "slice"
+            case "개":
+                return "piece"
+            case "병", "캔":
+                return "can"
+            case "봉지", "팩":
+                return "package"
+            default:
+                return unit
+            }
+
+        default:
+            return unit
+        }
+    }
 
     /// Normalizes units to their canonical singular form
     /// Examples: "cups" → "cup", "tablespoons" → "tablespoon", "oz" → "oz."

@@ -109,9 +109,12 @@ class FirebaseNotificationService: ObservableObject, FirebaseNotificationService
 
         logger.log("Marking notification as read", category: .firebase, level: .info, metadata: nil)
 
-        try await db.collection("users/\(userId)/notifications")
-            .document(notification.id)
-            .updateData(["read": true])
+        // Add timeout protection for Firestore operations (30 seconds)
+        try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseStandard) { [self] in
+            try await self.db.collection("users/\(userId)/notifications")
+                .document(notification.id)
+                .updateData(["read": true])
+        }
 
         logger.log("Notification marked as read", category: .firebase, level: .info, metadata: nil)
     }
@@ -136,7 +139,10 @@ class FirebaseNotificationService: ObservableObject, FirebaseNotificationService
             batch.updateData(["read": true], forDocument: ref)
         }
 
-        try await batch.commit()
+        // Add timeout protection for Firestore batch operations (30 seconds)
+        try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseStandard) {
+            try await batch.commit()
+        }
 
         logger.log("All recipe notifications marked as read", category: .firebase, level: .info, metadata: nil)
     }
@@ -161,7 +167,10 @@ class FirebaseNotificationService: ObservableObject, FirebaseNotificationService
             batch.updateData(["read": true], forDocument: ref)
         }
 
-        try await batch.commit()
+        // Add timeout protection for Firestore batch operations (30 seconds)
+        try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseStandard) {
+            try await batch.commit()
+        }
 
         Log.info("All notifications marked as read", category: .firebase)
     }

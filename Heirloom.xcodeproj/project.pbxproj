@@ -18,6 +18,7 @@
 		1833BE419904DE4CDCCA6AC6 /* DinnerPartyEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA433CBD9799D0CB83B81959 /* DinnerPartyEditorView.swift */; };
 		189E866732B2A3EF7F6A0483 /* AIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E7C5CD12705EBAF5390533 /* AIError.swift */; };
 		199F5CD019A20502FDBFEAF9 /* SampleRecipeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85079635380FEC4B62DC52E7 /* SampleRecipeLibrary.swift */; };
+		1BAA4B71E9134A38B8F2EC28 /* LanguageDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D8A34356274E14A362177A /* LanguageDetectionService.swift */; };
 		1E7D0C95CDBDC0560A371AE2 /* RemindersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20EF7482F8FE293941F6911 /* RemindersService.swift */; };
 		218A8EDAF2DFA141EFA33091 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0F6F9D39F3D74534E5137DF /* SettingsView.swift */; };
 		21D2472687CBCBB6A287FEA7 /* TagCollectionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C66294E21AF06144A65292A /* TagCollectionPickerView.swift */; };
@@ -55,6 +56,7 @@
 		64D4CE8DD0862C4231AFE553 /* AIIngredientParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87BD07E6DBCB1BD37C3BEB4E /* AIIngredientParser.swift */; };
 		679F93B31ACD344543403260 /* ImagePreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2490446E8B30F77AFA4961 /* ImagePreprocessor.swift */; };
 		68C41E2CF7813EE976D96D3E /* DinnerPartyShoppingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90A5FC65FCB5590D33108981 /* DinnerPartyShoppingListView.swift */; };
+		7109F22C39414BD9B2F3FC92 /* UnitConversionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5CA6CD90184812AB02FAC1 /* UnitConversionService.swift */; };
 		73CD8315C072A52F2AAEBB5C /* CloudRecipeImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C130EE6834B5AABCC4B67EF /* CloudRecipeImportService.swift */; };
 		73FBB8E6B4F0A1D404C8DE55 /* RecipeCommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC91DF3D04AF7C85D27C96B /* RecipeCommentView.swift */; };
 		74DC70C5F9BED2FC3AD88944 /* Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B1795DB5F1B37A1F96C636 /* Recipe.swift */; };
@@ -65,6 +67,7 @@
 		7F0DA576A2BA5C4746384423 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2A620E1F5AF3545DD07B38 /* Typography.swift */; };
 		8382C45014984CD39A6F2149 /* ImportReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65FD41A40CAC0291CE388238 /* ImportReviewView.swift */; };
 		83FCC330472FB4732B7A7021 /* ScaledRecipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B7935EFA2271F1A5930EF9 /* ScaledRecipe.swift */; };
+		85E6393EB70C40ABB95B05A7 /* TaskTimeout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D9F9336F8C4D64AB4A135C /* TaskTimeout.swift */; };
 		8ADFA5839933EC3D8374AFB5 /* EnhancedOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50360B5F681D1995C9C96C34 /* EnhancedOCRService.swift */; };
 		965A8945B59A7B82DD91939D /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB806BBCED7E823626456DC /* ButtonStyles.swift */; };
 		9D119E45E5ACF7422DDF9294 /* AISettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17BE23577236AF623637028 /* AISettingsView.swift */; };
@@ -207,6 +210,12 @@
 		C58300AF2F0CC6F40096478E /* ancient-016.png in Resources */ = {isa = PBXBuildFile; fileRef = C583000F2F0CC6F40096478E /* ancient-016.png */; };
 		C58300B02F0CC6F40096478E /* literary-012.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300242F0CC6F40096478E /* literary-012.png */; };
 		C58300B12F0CC6F40096478E /* presidential-024.png in Resources */ = {isa = PBXBuildFile; fileRef = C58300492F0CC6F40096478E /* presidential-024.png */; };
+		C58302542F0CDC140096478E /* SchemaV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58302532F0CDC140096478E /* SchemaV2.swift */; };
+		C583070D2F0EC5480096478E /* HTMLSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583070A2F0EC5480096478E /* HTMLSanitizer.swift */; };
+		C583070E2F0EC5480096478E /* ValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583070C2F0EC5480096478E /* ValidationService.swift */; };
+		C583070F2F0EC5480096478E /* FilePathValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58307092F0EC5480096478E /* FilePathValidator.swift */; };
+		C58307102F0EC5480096478E /* URLValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583070B2F0EC5480096478E /* URLValidator.swift */; };
+		C58309142F0FD6510096478E /* DinnerPartyShoppingSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58309132F0FD6510096478E /* DinnerPartyShoppingSync.swift */; };
 		C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */; };
 		C583F5A12F099E750096478E /* RecipeDetailHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59C2F099E750096478E /* RecipeDetailHeader.swift */; };
 		C583F5A22F099E750096478E /* RecipeInstructionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */; };
@@ -305,6 +314,13 @@
 			remoteGlobalIDString = C56887312F057B02006EA0B1;
 			remoteInfo = HeirloomShareExtension;
 		};
+		C58305232F0E06D30096478E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A0A07447C00177730D773FFC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8C89A26D541EF27F051E6DC1;
+			remoteInfo = Heirloom;
+		};
 		C5B317922F00DB6A0087CF6D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A0A07447C00177730D773FFC /* Project object */;
@@ -345,12 +361,14 @@
 		2AFC154590CE51056017C5D6 /* CommentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentService.swift; sourceTree = "<group>"; };
 		2E8FADFE90A53162B78F4CEE /* DinnerPartyActiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinnerPartyActiveView.swift; sourceTree = "<group>"; };
 		30A306DE6CE42AEC0FAFE3D2 /* CookingModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookingModeView.swift; sourceTree = "<group>"; };
+		34D9F9336F8C4D64AB4A135C /* TaskTimeout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskTimeout.swift; sourceTree = "<group>"; };
 		3710CDA84A79220B4C5876A6 /* EnhancedScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedScannerView.swift; sourceTree = "<group>"; };
 		38627CC088D64544C7D8F9B7 /* ImageStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageStorageService.swift; sourceTree = "<group>"; };
 		3DC91DF3D04AF7C85D27C96B /* RecipeCommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCommentView.swift; sourceTree = "<group>"; };
 		3FDBB6B3E0784BE9273928AA /* IngredientParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientParser.swift; sourceTree = "<group>"; };
 		43B7935EFA2271F1A5930EF9 /* ScaledRecipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaledRecipe.swift; sourceTree = "<group>"; };
 		4BECC4D86B452C1C18B6F42F /* SchemaV1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaV1.swift; sourceTree = "<group>"; };
+		4F5CA6CD90184812AB02FAC1 /* UnitConversionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitConversionService.swift; sourceTree = "<group>"; };
 		50360B5F681D1995C9C96C34 /* EnhancedOCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedOCRService.swift; sourceTree = "<group>"; };
 		5AEEEF32CCB325C980D13A0C /* RecipeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeListView.swift; sourceTree = "<group>"; };
 		63CA3A01927C2260DAF53896 /* DinnerPartyDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinnerPartyDetailView.swift; sourceTree = "<group>"; };
@@ -494,6 +512,13 @@
 		C58300492F0CC6F40096478E /* presidential-024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-024.png"; sourceTree = "<group>"; };
 		C583004A2F0CC6F40096478E /* presidential-025.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "presidential-025.png"; sourceTree = "<group>"; };
 		C583004C2F0CC6F40096478E /* heritage-recipes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "heritage-recipes.json"; sourceTree = "<group>"; };
+		C58302532F0CDC140096478E /* SchemaV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaV2.swift; sourceTree = "<group>"; };
+		C583051F2F0E06D30096478E /* HeirloomTestsV2.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HeirloomTestsV2.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C58307092F0EC5480096478E /* FilePathValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePathValidator.swift; sourceTree = "<group>"; };
+		C583070A2F0EC5480096478E /* HTMLSanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLSanitizer.swift; sourceTree = "<group>"; };
+		C583070B2F0EC5480096478E /* URLValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLValidator.swift; sourceTree = "<group>"; };
+		C583070C2F0EC5480096478E /* ValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationService.swift; sourceTree = "<group>"; };
+		C58309132F0FD6510096478E /* DinnerPartyShoppingSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinnerPartyShoppingSync.swift; sourceTree = "<group>"; };
 		C583F59C2F099E750096478E /* RecipeDetailHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailHeader.swift; sourceTree = "<group>"; };
 		C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeIngredientsSection.swift; sourceTree = "<group>"; };
 		C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeInstructionsSection.swift; sourceTree = "<group>"; };
@@ -600,6 +625,7 @@
 		CD49D01F1A8B7AC03122C471 /* ScalingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingEngine.swift; sourceTree = "<group>"; };
 		CD892928C21467099E4A3651 /* BulkImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulkImportView.swift; sourceTree = "<group>"; };
 		CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D0D8A34356274E14A362177A /* LanguageDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageDetectionService.swift; sourceTree = "<group>"; };
 		D39FD9E00AF45AC306A810EB /* RecipeComment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeComment.swift; sourceTree = "<group>"; };
 		DE33AE2124D9A957530668C2 /* Sticker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sticker.swift; sourceTree = "<group>"; };
 		DE5DEEE00455B0323C36CF40 /* RecipeImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImportService.swift; sourceTree = "<group>"; };
@@ -629,6 +655,7 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C56887332F057B02006EA0B1 /* HeirloomShareExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (C568873D2F057B02006EA0B1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = HeirloomShareExtension; sourceTree = "<group>"; };
+		C58305202F0E06D30096478E /* HeirloomTestsV2 */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HeirloomTestsV2; sourceTree = "<group>"; };
 		C5B3178F2F00DB6A0087CF6D /* HeirloomTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HeirloomTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -647,6 +674,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C568872F2F057B02006EA0B1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C583051C2F0E06D30096478E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -781,6 +815,7 @@
 				7783D80B7B8AD9C0FBDC0EF7 /* Heirloom.app */,
 				C5B3178E2F00DB6A0087CF6D /* HeirloomTests.xctest */,
 				C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */,
+				C583051F2F0E06D30096478E /* HeirloomTestsV2.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -817,6 +852,11 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C58309132F0FD6510096478E /* DinnerPartyShoppingSync.swift */,
+				C58307092F0EC5480096478E /* FilePathValidator.swift */,
+				C583070A2F0EC5480096478E /* HTMLSanitizer.swift */,
+				C583070B2F0EC5480096478E /* URLValidator.swift */,
+				C583070C2F0EC5480096478E /* ValidationService.swift */,
 				C583FFD02F0CB7830096478E /* HeritageRecipeSeeder.swift */,
 				C583FFC82F0CB3A00096478E /* Privacy */,
 				C583FFB52F0CB3720096478E /* CardCustomizationService.swift */,
@@ -835,6 +875,8 @@
 				C5B3177B2F00D6570087CF6D /* ShortURLService.swift */,
 				C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */,
 				1C130EE6834B5AABCC4B67EF /* CloudRecipeImportService.swift */,
+				D0D8A34356274E14A362177A /* LanguageDetectionService.swift */,
+				4F5CA6CD90184812AB02FAC1 /* UnitConversionService.swift */,
 				2AFC154590CE51056017C5D6 /* CommentService.swift */,
 				50360B5F681D1995C9C96C34 /* EnhancedOCRService.swift */,
 				9B2490446E8B30F77AFA4961 /* ImagePreprocessor.swift */,
@@ -932,6 +974,7 @@
 		99534F5D5C4435D669F1B56B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C58302532F0CDC140096478E /* SchemaV2.swift */,
 				C583FFCC2F0CB5EA0096478E /* StickerAsset.swift */,
 				C583FFCA2F0CB5E00096478E /* LineageTree.swift */,
 				C583FFB12F0CAB830096478E /* Customization.swift */,
@@ -1346,6 +1389,7 @@
 		C5B3177F2F00D70B0087CF6D /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				34D9F9336F8C4D64AB4A135C /* TaskTimeout.swift */,
 				C583FFCE2F0CB7480096478E /* BlurHashEncoder.swift */,
 				C56F3DCC2F02283700D19743 /* DeviceLogger.swift */,
 				C5B3177D2F00D70B0087CF6D /* AccessibilityIdentifiers.swift */,
@@ -1452,6 +1496,7 @@
 				E2D5ED1318785436B81F724D /* Heirloom */,
 				C5B3178F2F00DB6A0087CF6D /* HeirloomTests */,
 				C56887332F057B02006EA0B1 /* HeirloomShareExtension */,
+				C58305202F0E06D30096478E /* HeirloomTestsV2 */,
 				5BB257FBB97C951B5E07EF21 /* Products */,
 				C56F3E692F04A9E000D19743 /* Frameworks */,
 				C5E9553A2F056341006CD3C2 /* Config.xcconfig */,
@@ -1585,6 +1630,29 @@
 			productReference = C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		C583051E2F0E06D30096478E /* HeirloomTestsV2 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C58305252F0E06D30096478E /* Build configuration list for PBXNativeTarget "HeirloomTestsV2" */;
+			buildPhases = (
+				C583051B2F0E06D30096478E /* Sources */,
+				C583051C2F0E06D30096478E /* Frameworks */,
+				C583051D2F0E06D30096478E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C58305242F0E06D30096478E /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C58305202F0E06D30096478E /* HeirloomTestsV2 */,
+			);
+			name = HeirloomTestsV2;
+			packageProductDependencies = (
+			);
+			productName = HeirloomTestsV2;
+			productReference = C583051F2F0E06D30096478E /* HeirloomTestsV2.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		C5B3178D2F00DB6A0087CF6D /* HeirloomTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C5B317942F00DB6A0087CF6D /* Build configuration list for PBXNativeTarget "HeirloomTests" */;
@@ -1624,6 +1692,10 @@
 					C56887312F057B02006EA0B1 = {
 						CreatedOnToolsVersion = 26.2;
 					};
+					C583051E2F0E06D30096478E = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 8C89A26D541EF27F051E6DC1;
+					};
 					C5B3178D2F00DB6A0087CF6D = {
 						CreatedOnToolsVersion = 26.2;
 						TestTargetID = 8C89A26D541EF27F051E6DC1;
@@ -1651,12 +1723,20 @@
 				8C89A26D541EF27F051E6DC1 /* Heirloom */,
 				C5B3178D2F00DB6A0087CF6D /* HeirloomTests */,
 				C56887312F057B02006EA0B1 /* HeirloomShareExtension */,
+				C583051E2F0E06D30096478E /* HeirloomTestsV2 */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		C56887302F057B02006EA0B1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C583051D2F0E06D30096478E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1787,6 +1867,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				85E6393EB70C40ABB95B05A7 /* TaskTimeout.swift in Sources */,
 				B99A84751B29D8825814A8E8 /* AIAPITest.swift in Sources */,
 				473093936E209050DC5888FE /* AIConfiguration.swift in Sources */,
 				189E866732B2A3EF7F6A0483 /* AIError.swift in Sources */,
@@ -1825,6 +1906,8 @@
 				C5B317872F00D8330087CF6D /* RecipeVersionService.swift in Sources */,
 				C56F3DCD2F02283700D19743 /* DeviceLogger.swift in Sources */,
 				73CD8315C072A52F2AAEBB5C /* CloudRecipeImportService.swift in Sources */,
+				1BAA4B71E9134A38B8F2EC28 /* LanguageDetectionService.swift in Sources */,
+				7109F22C39414BD9B2F3FC92 /* UnitConversionService.swift in Sources */,
 				3A2B757E35F97BF6730774C4 /* CollectionManagementView.swift in Sources */,
 				F4B1A0AFB96B040047C28032 /* Colors.swift in Sources */,
 				34F93EBDD70B86330CDD75AA /* CommentAnalysisService.swift in Sources */,
@@ -1845,6 +1928,7 @@
 				2F46430BA53D29AE89C05522 /* EmptyStateView.swift in Sources */,
 				C5B3177C2F00D6570087CF6D /* ShortURLService.swift in Sources */,
 				8ADFA5839933EC3D8374AFB5 /* EnhancedOCRService.swift in Sources */,
+				C58309142F0FD6510096478E /* DinnerPartyShoppingSync.swift in Sources */,
 				C5B317832F00D71E0087CF6D /* ConfettiView.swift in Sources */,
 				52CD3F9F7C8F07B305AFE900 /* EnhancedScannerView.swift in Sources */,
 				C5B317682F00C8310087CF6D /* WhatsNewView.swift in Sources */,
@@ -1882,6 +1966,10 @@
 				2BCC018C22A220A0A84E85A5 /* RecipeCollection.swift in Sources */,
 				C5E955312F054271006CD3C2 /* RecipeVersionSelector.swift in Sources */,
 				C583FFCF2F0CB7480096478E /* BlurHashEncoder.swift in Sources */,
+				C583070D2F0EC5480096478E /* HTMLSanitizer.swift in Sources */,
+				C583070E2F0EC5480096478E /* ValidationService.swift in Sources */,
+				C583070F2F0EC5480096478E /* FilePathValidator.swift in Sources */,
+				C58307102F0EC5480096478E /* URLValidator.swift in Sources */,
 				C5E955322F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift in Sources */,
 				C5E955332F054271006CD3C2 /* RecipeDiffView.swift in Sources */,
 				6324B79E6EFC901B6632E832 /* RecipeComment.swift in Sources */,
@@ -1901,6 +1989,7 @@
 				C56887822F06B4C8006EA0B1 /* RecipeCRDT.swift in Sources */,
 				C56887832F06B4C8006EA0B1 /* OperationLog.swift in Sources */,
 				C56887842F06B4C8006EA0B1 /* RecipeOperation.swift in Sources */,
+				C58302542F0CDC140096478E /* SchemaV2.swift in Sources */,
 				C583FFB22F0CAB830096478E /* Customization.swift in Sources */,
 				C583FF9F2F0CA51D0096478E /* UndoService.swift in Sources */,
 				C5B317742F00C8500087CF6D /* GestureGuide.swift in Sources */,
@@ -1975,6 +2064,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C583051B2F0E06D30096478E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C5B3178A2F00DB6A0087CF6D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1989,6 +2085,11 @@
 			isa = PBXTargetDependency;
 			target = C56887312F057B02006EA0B1 /* HeirloomShareExtension */;
 			targetProxy = C568873A2F057B02006EA0B1 /* PBXContainerItemProxy */;
+		};
+		C58305242F0E06D30096478E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8C89A26D541EF27F051E6DC1 /* Heirloom */;
+			targetProxy = C58305232F0E06D30096478E /* PBXContainerItemProxy */;
 		};
 		C5B317932F00DB6A0087CF6D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2171,14 +2272,14 @@
 				INFOPLIST_FILE = HeirloomShareExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = HeirloomShareExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2207,14 +2308,14 @@
 				INFOPLIST_FILE = HeirloomShareExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = HeirloomShareExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2224,6 +2325,64 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C58305262F0E06D30096478E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q2HHH2GDN8;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Heirloom.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Heirloom";
+			};
+			name = Debug;
+		};
+		C58305272F0E06D30096478E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q2HHH2GDN8;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Heirloom.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Heirloom";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -2243,7 +2402,7 @@
 					"$(inherited)",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTests;
@@ -2270,7 +2429,7 @@
 				DEVELOPMENT_TEAM = G6Q28X9VJR;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTests;
@@ -2337,6 +2496,15 @@
 			buildConfigurations = (
 				C568873F2F057B02006EA0B1 /* Debug */,
 				C56887402F057B02006EA0B1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C58305252F0E06D30096478E /* Build configuration list for PBXNativeTarget "HeirloomTestsV2" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C58305262F0E06D30096478E /* Debug */,
+				C58305272F0E06D30096478E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

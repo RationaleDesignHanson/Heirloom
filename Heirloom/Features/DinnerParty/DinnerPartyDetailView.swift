@@ -8,6 +8,7 @@ struct DinnerPartyDetailView: View {
 
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+    private var shoppingSync: DinnerPartyShoppingSync { ServiceContainer.shared.resolve(DinnerPartyShoppingSync.self) }
 
     @Bindable var party: DinnerParty
     @State private var showEditSheet = false
@@ -300,6 +301,10 @@ struct DinnerPartyDetailView: View {
 
     private func deleteParty() {
         let partyId = party.id
+
+        // Clean up shopping cart before deletion
+        shoppingSync.cleanupShoppingCart(party, context: modelContext)
+
         modelContext.delete(party)
 
         do {

@@ -15,28 +15,60 @@ struct HeirloomApp: App {
 
     // Dependency Injection Container
     private let serviceContainer = ServiceContainer.shared
-    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
-    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+    // DISABLED: These computed properties can trigger early service resolution
+    // private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    // private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     // Deep link coordinator for robust URL handling
     @State private var deepLinkCoordinator: DeepLinkHandler?
 
+    // Test environment detection - computed once at initialization
+    private let isRunningTests: Bool
+
+    // Pre-resolved services (only available in production, nil in test environment)
+    @State private var authService: FirebaseAuthService?
+    @State private var notificationService: FirebaseNotificationService?
+
     init() {
-        // Initialize DI container with production services
-        serviceContainer.registerProductionServices()
+        print("🚀 [INIT] HeirloomApp.init() START")
+
+        // Detect test environment ONCE at initialization - use multiple checks
+        let hasXCTestConfig = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        let hasXCTestClass = NSClassFromString("XCTestCase") != nil
+        let hasXCTestBundle = Bundle.allBundles.contains(where: { $0.bundlePath.contains("xctest") })
+        self.isRunningTests = hasXCTestConfig || hasXCTestClass || hasXCTestBundle
+
+        print("🧪 [INIT] Test detection: XCTestConfig=\(hasXCTestConfig), XCTestClass=\(hasXCTestClass), XCTestBundle=\(hasXCTestBundle)")
+        print("🧪 [INIT] isRunningTests = \(self.isRunningTests)")
+
         // FILE-BASED LOGGING - guaranteed to work on device
         DeviceLogger.shared.log("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
+        DeviceLogger.shared.log("🧪 [Heirloom] Test detection: XCTestConfig=\(hasXCTestConfig), XCTestClass=\(hasXCTestClass), XCTestBundle=\(hasXCTestBundle)")
+        DeviceLogger.shared.log("🧪 [Heirloom] isRunningTests = \(self.isRunningTests)")
         logger.info("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
         Log.info("HeirloomApp initialization started", category: .general)
 
         // FIREBASE INITIALIZATION - Phase 1 of migration
         // Skip Firebase initialization in test environment to prevent crashes
-        let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil ||
-                             NSClassFromString("XCTestCase") != nil
-
         DeviceLogger.shared.log("🧪 [Heirloom] Test detection - XCTestConfigurationFilePath: \(ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil ? "YES" : "NO"), XCTestCase class: \(NSClassFromString("XCTestCase") != nil ? "YES" : "NO")")
 
+        print("📦 [INIT] About to register services...")
+
+        // Initialize DI container - skip production services in test environment
         if !isRunningTests {
+            print("📦 [INIT] Registering PRODUCTION services...")
+            serviceContainer.registerProductionServices()
+            print("✅ [INIT] Production services registered")
+            DeviceLogger.shared.log("✅ [Heirloom] Production services registered")
+        } else {
+            print("🧪 [INIT] Test environment - SKIPPING production service registration")
+            DeviceLogger.shared.log("🧪 [Heirloom] Test environment - skipping production service registration")
+        }
+
+        print("🔥 [INIT] Checking Firebase initialization...")
+
+        if !isRunningTests {
+            print("🔥 [INIT] Initializing Firebase...")
             DeviceLogger.shared.log("🔥 [Heirloom] Initializing Firebase...")
             logger.info("🔥 [Heirloom] Initializing Firebase...")
 
@@ -75,12 +107,17 @@ struct HeirloomApp: App {
         logger.info("🔧 [Heirloom] Active backend: Firebase")
         Log.info("Active backend configured", category: .firebase, metadata: ["backend": "Firebase"])
 
-        do {
-            DeviceLogger.shared.log("🔧 [Heirloom] Configuring SwiftData schema...")
-            logger.info("🔧 [Heirloom] Configuring SwiftData schema...")
+        print("💾 [INIT] Starting SwiftData configuration...")
 
-            // Use versioned schema for future migrations
-            let schema = SchemaV1.schema
+        do {
+            print("💾 [INIT] Getting SchemaV2.schema...")
+            DeviceLogger.shared.log("🔧 [Heirloom] Configuring SwiftData schema (V2 - Multilingual Support)...")
+            logger.info("🔧 [Heirloom] Configuring SwiftData schema (V2 - Multilingual Support)...")
+
+            // Use SchemaV2 with migration plan from V1 → V2
+            // V2 adds optional multilingual fields without breaking existing data
+            let schema = SchemaV2.schema
+            print("✅ [INIT] Got SchemaV2.schema successfully")
 
             // Configure for LOCAL ONLY storage
             // Firebase handles sync separately - no CloudKit integration
@@ -91,22 +128,54 @@ struct HeirloomApp: App {
                 cloudKitDatabase: .none  // Firebase-only backend
             )
 
+            print("📦 [INIT] Creating ModelContainer...")
+
+            // Initialize container without migration plan for testing
+            // TODO: Re-enable migration plan once app can launch successfully
             let container = try ModelContainer(
                 for: schema,
                 configurations: config
             )
 
+            print("✅ [INIT] ModelContainer created successfully")
             DeviceLogger.shared.log("✅ [Heirloom] SwiftData initialized (Local storage with Firebase sync)")
             logger.info("✅ [Heirloom] SwiftData initialized (Local storage with Firebase sync)")
             Log.info("SwiftData initialized with local storage and Firebase sync", category: .database)
 
             _modelContainer = State(wrappedValue: container)
 
-            // Resolve deep link coordinator after services are registered
-            _deepLinkCoordinator = State(wrappedValue: serviceContainer.resolve(DeepLinkHandler.self))
+            print("🔧 [INIT] Checking service resolution...")
 
-            // Initialize services
-            setupServices()
+            // Resolve deep link coordinator and services after they're registered (skip in test environment)
+            if !isRunningTests {
+                print("🔧 [INIT] Resolving production services...")
+                DeviceLogger.shared.log("🔧 [Heirloom] Resolving DeepLinkHandler...")
+                _deepLinkCoordinator = State(wrappedValue: serviceContainer.resolve(DeepLinkHandler.self))
+                print("✅ [INIT] DeepLinkHandler resolved")
+
+                DeviceLogger.shared.log("🔧 [Heirloom] Resolving FirebaseAuthService...")
+                let authSvc = serviceContainer.resolve(FirebaseAuthService.self)
+                _authService = State(wrappedValue: authSvc)
+                print("✅ [INIT] FirebaseAuthService resolved")
+
+                DeviceLogger.shared.log("🔧 [Heirloom] Setting up FirebaseAuthService listener...")
+                authSvc.setupAuthListener()
+                print("✅ [INIT] FirebaseAuthService listener setup complete")
+
+                DeviceLogger.shared.log("🔧 [Heirloom] Resolving FirebaseNotificationService...")
+                _notificationService = State(wrappedValue: serviceContainer.resolve(FirebaseNotificationService.self))
+                print("✅ [INIT] FirebaseNotificationService resolved")
+
+                DeviceLogger.shared.log("✅ [Heirloom] All services resolved successfully")
+
+                // Initialize services
+                setupServices()
+            } else {
+                print("🧪 [INIT] Test environment - SKIPPING service resolution and initialization")
+                DeviceLogger.shared.log("🧪 [Heirloom] Test environment - skipping service initialization")
+            }
+
+            print("✅ [INIT] HeirloomApp.init() COMPLETED SUCCESSFULLY")
 
         } catch {
             DeviceLogger.shared.log("❌ [Heirloom] Failed to configure SwiftData: \(error.localizedDescription)", level: .error)
@@ -119,12 +188,14 @@ struct HeirloomApp: App {
     var body: some Scene {
         WindowGroup {
             if let modelContainer {
-                RootView(
-                    modelContainer: modelContainer,
-                    authService: serviceContainer.resolve(FirebaseAuthService.self),
-                    notificationService: serviceContainer.resolve(FirebaseNotificationService.self)
-                )
-                    .environmentObject(deepLinkCoordinator ?? serviceContainer.resolve(DeepLinkHandler.self))
+                // In test environment, skip RootView since it requires Firebase services
+                if !isRunningTests, let authService, let notificationService {
+                    RootView(
+                        modelContainer: modelContainer,
+                        authService: authService,
+                        notificationService: notificationService
+                    )
+                        .environmentObject(deepLinkCoordinator!)
                     .onOpenURL { url in
                         Log.info("WindowGroup received URL", category: .general, metadata: ["url": url.absoluteString])
                         logger.info("📱 WindowGroup received URL: \(url.absoluteString)")
@@ -137,6 +208,11 @@ struct HeirloomApp: App {
                         DeviceLogger.shared.log("📱 [App] WindowGroup received user activity: \(userActivity.activityType)")
                         deepLinkCoordinator?.handle(userActivity)
                     }
+                } else {
+                    // Test environment - show minimal view
+                    Text("Test Environment")
+                        .modelContainer(modelContainer)
+                }
             } else {
                 DataErrorView()
             }
@@ -155,6 +231,7 @@ struct HeirloomApp: App {
 
         // Initialize analytics
         Task { @MainActor in
+            let analytics = serviceContainer.resolve(AnalyticsService.self)
             analytics.initialize()
             analytics.track(event: .appLaunched)
         }
@@ -182,6 +259,7 @@ struct HeirloomApp: App {
                         let count = try await seeder.seedHeritageRecipes()
                         Log.info("Heritage recipes seeded", category: .storage, metadata: ["count": count])
                         DeviceLogger.shared.log("✅ [Heritage] Seeded \(count) personalized heritage recipes")
+                        let analytics = serviceContainer.resolve(AnalyticsService.self)
                         analytics.track(event: .appLaunched, properties: ["heritage_recipes_seeded": count])
                     } catch {
                         Log.error("Failed to seed heritage recipes", category: .storage, metadata: ["error": error.localizedDescription])

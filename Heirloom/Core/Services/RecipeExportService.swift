@@ -544,7 +544,7 @@ class RecipeExportService {
         recipe.sourceDate = json["sourceDate"] as? String
         recipe.sourceStory = json["sourceStory"] as? String
         recipe.totalTime = json["totalTime"] as? String
-        recipe.notes = json["notes"] as? String
+        recipe.setNotes(json["notes"] as? String)
 
         // Set metadata (don't import timesCooked, lastCooked, isFavorite - these should be fresh)
         // Parse dates

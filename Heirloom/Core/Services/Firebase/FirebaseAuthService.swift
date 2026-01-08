@@ -30,6 +30,16 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         self.logger = logger
         super.init()
 
+        // IMPORTANT: Delay auth access until Firebase is fully configured
+        // This prevents crashes when service is instantiated before Firebase.configure()
+        logger.log("FirebaseAuthService initialized (auth listener setup deferred)", category: .auth, level: .info, metadata: nil)
+    }
+
+    /// Setup auth listener after Firebase is fully configured
+    /// Call this from app init AFTER Firebase.configure() completes
+    func setupAuthListener() {
+        logger.log("Setting up Firebase auth listener", category: .auth, level: .info, metadata: nil)
+
         // Check current auth state immediately (before listener fires)
         if let user = configuration.auth.currentUser {
             currentUser = user
@@ -190,7 +200,10 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         defer { isAuthenticating = false }
 
         do {
-            let authResult = try await configuration.auth.signIn(withEmail: email, password: password)
+            // Add timeout protection (30 seconds for auth operations)
+            let authResult = try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseStandard) { [self] in
+                try await self.configuration.auth.signIn(withEmail: email, password: password)
+            }
             logger.log("Successfully signed in with email: \(authResult.user.uid)", category: .auth, level: .info, metadata: nil)
             authError = nil
         } catch {
@@ -208,7 +221,10 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         defer { isAuthenticating = false }
 
         do {
-            let authResult = try await configuration.auth.createUser(withEmail: email, password: password)
+            // Add timeout protection (30 seconds for auth operations)
+            let authResult = try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseStandard) { [self] in
+                try await self.configuration.auth.createUser(withEmail: email, password: password)
+            }
             logger.log("Successfully created account: \(authResult.user.uid)", category: .auth, level: .info, metadata: nil)
             authError = nil
         } catch {

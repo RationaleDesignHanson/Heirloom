@@ -85,6 +85,7 @@ struct FirebaseSignInView: View {
                             Task {
                                 do {
                                     try await authService.signInWithApple()
+                                    dismiss()
                                 } catch {
                                     hasAttemptedSignIn = false
                                     showError = true
@@ -112,6 +113,7 @@ struct FirebaseSignInView: View {
                             Task {
                                 do {
                                     try await authService.signInWithGoogle()
+                                    dismiss()
                                 } catch {
                                     hasAttemptedSignIn = false
                                     showError = true
@@ -294,6 +296,7 @@ struct FirebaseSignInView: View {
                         } else {
                             try await authService.signInWithEmail(email: email, password: password)
                         }
+                        dismiss()
                     } catch {
                         showError = true
                     }

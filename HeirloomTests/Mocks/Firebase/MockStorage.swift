@@ -4,6 +4,11 @@
 //
 //  Mock implementation of Firebase Storage for testing
 //
+//  ⚠️ WARNING: Disabled due to dependency on FirebaseProtocols.swift which has infinite recursion bugs
+//  See FirebaseProtocols.swift for details
+//
+
+#if false  // Disabled - depends on FirebaseProtocols.swift
 
 import Foundation
 import FirebaseStorage
@@ -132,3 +137,5 @@ class MockStorageReference: StorageReferenceProtocol {
         return URL(string: "https://mock-storage.firebase.com/\(path)")!
     }
 }
+
+#endif  // Disabled - depends on FirebaseProtocols.swift

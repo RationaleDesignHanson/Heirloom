@@ -271,12 +271,26 @@ final class HeirloomLogger: LoggingService {
 
 // MARK: - Global Logger Convenience
 
+/// Fallback logger used when ServiceContainer hasn't been configured yet
+/// This prevents crashes during static initialization or test environments
+private let _fallbackLogger = HeirloomLogger()
+
 /// Global logger instance for easy access throughout the app
 /// Usage: Log.info("message", category: .sync)
-/// Resolves from ServiceContainer for proper DI
+/// Resolves from ServiceContainer for proper DI, falls back to console logger if not registered
 /// Note: Safe to use from any context - uses nonisolated accessor
 nonisolated(unsafe) var Log: LoggingService {
-    // Access container's resolve method without MainActor isolation
-    // This is safe because we're just reading from dictionaries that were populated at startup
-    ServiceContainer.sharedUnsafe.resolveUnsafe(LoggingService.self)
+    // Try to resolve from container, but don't crash if not registered yet
+    // This can happen during static initialization or in test environments
+    let container = ServiceContainer.sharedUnsafe
+
+    // Check if LoggingService is registered
+    if container.isRegistered(LoggingService.self) {
+        // Service is registered - resolve it
+        return container.resolveUnsafe(LoggingService.self)
+    } else {
+        // Service not registered yet - use fallback logger
+        // This prevents crashes during static initialization
+        return _fallbackLogger
+    }
 }

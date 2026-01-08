@@ -462,8 +462,9 @@ struct CardBackEditorView: View {
         do {
             if let existingCardBack = recipe.cardBack {
                 // Update existing
-                existingCardBack.noteToFriends = noteToFriends.isEmpty ? nil : noteToFriends
-                existingCardBack.personalTips = personalTips
+                existingCardBack.setNoteToFriends(noteToFriends.isEmpty ? nil : noteToFriends)
+                // SECURITY FIX: Sanitize personalTips from user input
+                existingCardBack.setPersonalTips(personalTips)
                 existingCardBack.userRating = userRating
                 existingCardBack.userTags = userTags
                 existingCardBack.showAttribution = showAttribution
@@ -475,8 +476,9 @@ struct CardBackEditorView: View {
             } else {
                 // Create new
                 let newCardBack = RecipeCardBack(recipe: recipe)
-                newCardBack.noteToFriends = noteToFriends.isEmpty ? nil : noteToFriends
-                newCardBack.personalTips = personalTips
+                newCardBack.setNoteToFriends(noteToFriends.isEmpty ? nil : noteToFriends)
+                // SECURITY FIX: Sanitize personalTips from user input
+                newCardBack.setPersonalTips(personalTips)
                 newCardBack.userRating = userRating
                 newCardBack.userTags = userTags
                 newCardBack.showAttribution = showAttribution
@@ -513,8 +515,9 @@ struct CardBackEditorView: View {
 
     private var previewCardBack: RecipeCardBack {
         let preview = RecipeCardBack(recipe: recipe)
-        preview.noteToFriends = noteToFriends.isEmpty ? nil : noteToFriends
-        preview.personalTips = personalTips
+        preview.setNoteToFriends(noteToFriends.isEmpty ? nil : noteToFriends)
+        // SECURITY FIX: Sanitize personalTips from user input
+        preview.setPersonalTips(personalTips)
         preview.userRating = userRating
         preview.userTags = userTags
         preview.showAttribution = showAttribution

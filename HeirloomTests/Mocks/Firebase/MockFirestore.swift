@@ -4,6 +4,11 @@
 //
 //  Mock implementation of Firestore for testing
 //
+//  ⚠️ WARNING: Disabled due to dependency on FirebaseProtocols.swift which has infinite recursion bugs
+//  See FirebaseProtocols.swift for details
+//
+
+#if false  // Disabled - depends on FirebaseProtocols.swift
 
 import Foundation
 import FirebaseFirestore
@@ -261,3 +266,5 @@ class MockListenerRegistration: NSObject, ListenerRegistration {
         removeHandler()
     }
 }
+
+#endif  // Disabled - depends on FirebaseProtocols.swift

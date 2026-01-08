@@ -346,11 +346,11 @@ struct RecipeEditorView: View {
                 // Update recipe properties
                 recipe.title = title
                 recipe.sourceType = sourceType
-                recipe.sourceURL = sourceURL.isEmpty ? nil : sourceURL
+                try recipe.setSourceURL(sourceURL.isEmpty ? nil : sourceURL)
                 recipe.servings = servings.isEmpty ? nil : servings
                 recipe.prepTime = prepTime.isEmpty ? nil : prepTime
                 recipe.cookTime = cookTime.isEmpty ? nil : cookTime
-                recipe.notes = notes.isEmpty ? nil : notes
+                recipe.setNotes(notes.isEmpty ? nil : notes)
                 recipe.instructions = instructions.filter { !$0.isEmpty }
                 recipe.lastModified = Date()
 

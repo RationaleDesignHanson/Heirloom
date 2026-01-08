@@ -45,6 +45,41 @@ struct ExtractedRecipe: Codable {
     let category: String?
     let cuisine: String?
     let keywords: [String]?
+
+    // Custom initializer with default values for optional parameters
+    init(
+        title: String,
+        ingredients: [String],
+        instructions: [String],
+        servings: String? = nil,
+        prepTime: String? = nil,
+        cookTime: String? = nil,
+        totalTime: String? = nil,
+        imageUrl: String? = nil,
+        rating: Double? = nil,
+        ratingCount: Int? = nil,
+        description: String? = nil,
+        author: String? = nil,
+        category: String? = nil,
+        cuisine: String? = nil,
+        keywords: [String]? = nil
+    ) {
+        self.title = title
+        self.ingredients = ingredients
+        self.instructions = instructions
+        self.servings = servings
+        self.prepTime = prepTime
+        self.cookTime = cookTime
+        self.totalTime = totalTime
+        self.imageUrl = imageUrl
+        self.rating = rating
+        self.ratingCount = ratingCount
+        self.description = description
+        self.author = author
+        self.category = category
+        self.cuisine = cuisine
+        self.keywords = keywords
+    }
 }
 
 /// Import error from server (renamed to avoid conflict with local ImportError and CloudImportError)

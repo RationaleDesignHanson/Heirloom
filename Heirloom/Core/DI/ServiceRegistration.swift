@@ -216,7 +216,12 @@ extension ServiceContainer {
 
         register(CloudRecipeImportService.self, lifecycle: .singleton) { container in
             let importService = container.resolve(RecipeImportService.self)
-            return CloudRecipeImportService(importService: importService)
+            let languageService = container.resolve(LanguageDetectionService.self)
+            return CloudRecipeImportService(importService: importService, languageService: languageService)
+        }
+
+        register(LanguageDetectionService.self, lifecycle: .singleton) { _ in
+            LanguageDetectionService()
         }
 
         register(RecipeVersionService.self, lifecycle: .singleton) { _ in
@@ -251,6 +256,10 @@ extension ServiceContainer {
 
         register(TrendingService.self, lifecycle: .singleton) { _ in
             TrendingService()
+        }
+
+        register(DinnerPartyShoppingSync.self, lifecycle: .singleton) { _ in
+            DinnerPartyShoppingSync()
         }
 
         // MARK: - Card Customization Services

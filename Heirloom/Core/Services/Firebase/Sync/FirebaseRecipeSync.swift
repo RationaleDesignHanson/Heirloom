@@ -217,8 +217,25 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
                 throw FirebaseError.downloadFailed(NSError(domain: "FirebaseRecipeSync", code: -1, userInfo: [NSLocalizedDescriptionKey: "Recipe not found"]))
             }
 
-            // Convert from Firestore data to Recipe
-            let recipe = FirebaseRecordConverter.convertFromFirestoreData(data, id: recipeId, context: context)
+            // Check if recipe already exists locally by UUID
+            let recipeUUID = UUID(uuidString: recipeId) ?? UUID()
+            let descriptor = FetchDescriptor<Recipe>(
+                predicate: #Predicate<Recipe> { $0.id == recipeUUID }
+            )
+
+            let existingRecipes = try? context.fetch(descriptor)
+            let recipe: Recipe
+
+            if let existingRecipe = existingRecipes?.first {
+                // Update existing recipe with Firebase data
+                Log.info("Updating existing recipe from Firebase", category: .sync, metadata: ["id": recipeId, "title": data["title"] as? String ?? ""])
+                recipe = existingRecipe
+                updateRecipeFromFirestoreData(recipe, data: data)
+            } else {
+                // Create new recipe
+                Log.info("Creating new recipe from Firebase", category: .sync, metadata: ["id": recipeId, "title": data["title"] as? String ?? ""])
+                recipe = FirebaseRecordConverter.convertFromFirestoreData(data, id: recipeId, context: context)
+            }
 
             // Download related data
             try await collectionSync.downloadIngredients(for: recipeId, recipe: recipe)
@@ -258,12 +275,32 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
 
             for document in snapshot.documents {
                 let data = document.data()
-                let recipe = FirebaseRecordConverter.convertFromFirestoreData(data, id: document.documentID, context: context)
+                let firebaseId = document.documentID
+
+                // Check if recipe already exists locally by UUID
+                let recipeUUID = UUID(uuidString: firebaseId) ?? UUID()
+                let descriptor = FetchDescriptor<Recipe>(
+                    predicate: #Predicate<Recipe> { $0.id == recipeUUID }
+                )
+
+                let existingRecipes = try? context.fetch(descriptor)
+                let recipe: Recipe
+
+                if let existingRecipe = existingRecipes?.first {
+                    // Update existing recipe with Firebase data
+                    Log.info("Updating existing recipe from Firebase", category: .sync, metadata: ["id": firebaseId, "title": data["title"] as? String ?? ""])
+                    recipe = existingRecipe
+                    updateRecipeFromFirestoreData(recipe, data: data)
+                } else {
+                    // Create new recipe
+                    Log.info("Creating new recipe from Firebase", category: .sync, metadata: ["id": firebaseId, "title": data["title"] as? String ?? ""])
+                    recipe = FirebaseRecordConverter.convertFromFirestoreData(data, id: firebaseId, context: context)
+                }
 
                 // Download related data
-                try await collectionSync.downloadIngredients(for: document.documentID, recipe: recipe)
-                try await collectionSync.downloadComments(for: document.documentID, recipe: recipe)
-                try await collectionSync.downloadCardBack(for: document.documentID, recipe: recipe)
+                try await collectionSync.downloadIngredients(for: firebaseId, recipe: recipe)
+                try await collectionSync.downloadComments(for: firebaseId, recipe: recipe)
+                try await collectionSync.downloadCardBack(for: firebaseId, recipe: recipe)
 
                 // Download image if available
                 if let _ = recipe.firebaseImageURL {
@@ -280,6 +317,71 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
             logger.log("Failed to download recipes", category: .sync, level: .error, metadata: nil)
             throw FirebaseError.downloadFailed(error)
         }
+    }
+
+    // MARK: - Helper Methods
+
+    /// Update an existing recipe with data from Firestore
+    /// - Parameters:
+    ///   - recipe: Existing recipe to update
+    ///   - data: Firestore document data
+    private func updateRecipeFromFirestoreData(_ recipe: Recipe, data: [String: Any]) {
+        // Update basic fields
+        recipe.title = data["title"] as? String ?? recipe.title
+
+        if let sourceTypeString = data["sourceType"] as? String,
+           let sourceType = RecipeSourceType(rawValue: sourceTypeString) {
+            recipe.sourceType = sourceType
+        }
+
+        recipe.sourceURL = data["sourceURL"] as? String
+        recipe.instructions = data["instructions"] as? [String] ?? []
+        recipe.servings = data["servings"] as? String
+        recipe.prepTime = data["prepTime"] as? String
+        recipe.cookTime = data["cookTime"] as? String
+
+        // Update optional fields
+        recipe.setNotes(data["notes"] as? String)
+        recipe.isFavorite = data["isFavorite"] as? Bool ?? false
+        recipe.timesCooked = data["timesCooked"] as? Int ?? 0
+
+        // Update image fields
+        do {
+            try recipe.setImageFileName(data["imageFileName"] as? String)
+        } catch {
+            Log.warning("Skipped invalid imageFileName during sync update", category: .firebase, metadata: ["error": error.localizedDescription])
+        }
+        recipe.sourceImageURL = data["sourceImageURL"] as? String
+        recipe.firebaseImageURL = data["firebaseImageURL"] as? String
+
+        // Update timestamps
+        if let createdAt = (data["createdAt"] as? Timestamp)?.dateValue() {
+            recipe.createdAt = createdAt
+        }
+        if let modifiedAt = (data["modifiedAt"] as? Timestamp)?.dateValue() {
+            recipe.modifiedAt = modifiedAt
+        }
+        if let lastCooked = (data["lastCooked"] as? Timestamp)?.dateValue() {
+            recipe.lastCooked = lastCooked
+        }
+
+        // Update social/sharing fields
+        recipe.sharedBy = data["sharedBy"] as? String
+        if let sharedDate = (data["sharedDate"] as? Timestamp)?.dateValue() {
+            recipe.sharedDate = sharedDate
+        }
+        recipe.passedDownMessage = data["passedDownMessage"] as? String
+        recipe.generationCount = data["generationCount"] as? Int ?? 0
+
+        // Update provenance
+        if let provenanceJSON = data["provenanceJSON"] as? String,
+           let provenanceData = provenanceJSON.data(using: .utf8),
+           let provenance = try? JSONDecoder().decode(ProvenanceMetadata.self, from: provenanceData) {
+            recipe.provenance = provenance
+        }
+
+        // Update sync metadata
+        recipe.lastSyncedAt = Date()
     }
 
     // MARK: - Full Sync Orchestration
@@ -429,7 +531,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         existing.servings = resolved.servings
         existing.prepTime = resolved.prepTime
         existing.cookTime = resolved.cookTime
-        existing.notes = resolved.notes
+        existing.setNotes(resolved.notes)
         existing.isFavorite = resolved.isFavorite
         existing.modifiedAt = resolved.modifiedAt
         existing.provenance = resolved.provenance

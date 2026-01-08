@@ -390,11 +390,19 @@ struct RecipeListView: View {
                 let successGenerator = UINotificationFeedbackGenerator()
                 successGenerator.notificationOccurred(.success)
             } catch {
-                Log.error("Pull-to-refresh sync failed", category: .sync, error: error)
+                // Silently skip if user isn't authenticated - this is expected behavior
+                // when the user hasn't signed in yet
+                if case FirebaseSyncService.SyncError.notAuthenticated = error {
+                    Log.info("Pull-to-refresh skipped: user not signed in", category: .sync)
+                    // No error haptic - just silently complete the refresh
+                } else {
+                    // Show error feedback for actual sync/network errors
+                    Log.error("Pull-to-refresh sync failed", category: .sync, error: error)
 
-                // Error haptic
-                let errorGenerator = UINotificationFeedbackGenerator()
-                errorGenerator.notificationOccurred(.error)
+                    // Error haptic
+                    let errorGenerator = UINotificationFeedbackGenerator()
+                    errorGenerator.notificationOccurred(.error)
+                }
             }
         } else {
             // If Firebase not active, just add small delay for better UX
@@ -1143,6 +1151,21 @@ struct RecipeCardView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 }
 
+                // Language badge (bottom right overlay) - show for non-English recipes
+                if let language = recipe.sourceLanguage, language != "en" {
+                    Text(languageFlag(for: language))
+                        .font(.title3)
+                        .padding(6)
+                        .background(
+                            Circle()
+                                .fill(.white)
+                                .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                        )
+                        .padding(8)
+                        .accessibilityLabel("Recipe in \(languageName(for: language))")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                }
+
                 // Selection checkbox (top right overlay)
                 if isSelectionMode {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
@@ -1242,6 +1265,32 @@ struct RecipeCardView: View {
         case 2: return .green
         case 3: return .orange
         default: return HeirloomColors.warmGray
+        }
+    }
+
+    // MARK: - Language Badge Helpers
+
+    private func languageFlag(for languageCode: String) -> String {
+        switch languageCode {
+        case "fr": return "🇫🇷"
+        case "es": return "🇪🇸"
+        case "de": return "🇩🇪"
+        case "ja": return "🇯🇵"
+        case "zh": return "🇨🇳"
+        case "ko": return "🇰🇷"
+        default: return "🌍"
+        }
+    }
+
+    private func languageName(for languageCode: String) -> String {
+        switch languageCode {
+        case "fr": return "French"
+        case "es": return "Spanish"
+        case "de": return "German"
+        case "ja": return "Japanese"
+        case "zh": return "Chinese"
+        case "ko": return "Korean"
+        default: return languageCode.uppercased()
         }
     }
 }

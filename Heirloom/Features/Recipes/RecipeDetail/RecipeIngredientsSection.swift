@@ -68,9 +68,22 @@ struct RecipeIngredientsSection: View {
                 .foregroundStyle(HeirloomColors.tomato)
                 .padding(.top, 4)
 
-            Text(scaledIngredientText(ingredient))
-                .font(HeirloomFonts.body)
-                .foregroundStyle(HeirloomColors.charcoal)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(scaledIngredientText(ingredient))
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.charcoal)
+
+                // Show unit conversion note if ingredient was converted
+                if ingredient.wasConverted, let conversionNote = ingredient.conversionNote {
+                    HStack(spacing: 4) {
+                        Image(systemName: "info.circle")
+                            .font(.caption2)
+                        Text(conversionNote)
+                            .font(HeirloomFonts.caption1)
+                    }
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
         }
     }
 

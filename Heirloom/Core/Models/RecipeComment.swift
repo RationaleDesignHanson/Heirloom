@@ -100,7 +100,9 @@ final class RecipeComment {
         parentComment: RecipeComment? = nil
     ) {
         self.id = UUID()
-        self.text = text
+        // SECURITY FIX: Sanitize text to prevent XSS attacks (SEC-1)
+        // Strip all HTML tags from comments to prevent script injection
+        self.text = HTMLSanitizer.shared.stripAllHTML(text)
         self.authorName = authorName
         self.source = source
         self.commentType = commentType
@@ -259,6 +261,14 @@ extension RecipeComment {
     /// Whether this comment has significant engagement
     var hasSignificantEngagement: Bool {
         totalEngagementScore >= 5 || endorsementCount >= 3
+    }
+
+    // MARK: - Security Helper Methods (Phase 7)
+
+    /// Safely set text with HTML sanitization (SEC-1)
+    func setText(_ newText: String) {
+        self.text = HTMLSanitizer.shared.stripAllHTML(newText)
+        self.modifiedAt = Date()
     }
 }
 

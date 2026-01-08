@@ -73,6 +73,16 @@ final class RecipeAnnotation {
     }
 }
 
+// MARK: - Security Helper Methods (Phase 7)
+
+extension RecipeAnnotation {
+    /// Safely set text with HTML sanitization (SEC-8)
+    func setText(_ newText: String) {
+        self.text = HTMLSanitizer.shared.stripAllHTML(newText)
+        self.lastModified = Date()
+    }
+}
+
 // MARK: - Predefined Colors
 
 extension RecipeAnnotation {

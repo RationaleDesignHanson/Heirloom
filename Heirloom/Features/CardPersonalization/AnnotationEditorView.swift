@@ -405,7 +405,7 @@ struct RecipeAnnotationEditorView: View {
 
         if let annotation = annotation {
             // Update existing annotation
-            annotation.text = trimmedText
+            annotation.setText(trimmedText)
             annotation.style = style
             annotation.colorHex = colorHex
             annotation.fontSize = fontSize

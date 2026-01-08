@@ -32,6 +32,11 @@ struct RecipeMetadataSection: View {
             if let cookTime = recipe.cookTime {
                 metadataItem(icon: "flame.fill", label: "Cook", value: cookTime)
             }
+
+            // Language info (for multilingual recipes)
+            if let language = recipe.sourceLanguage, language != "en" {
+                metadataItem(icon: "globe", label: "Language", value: languageName(for: language))
+            }
         }
         .padding(HeirloomSpacing.md)
         .frame(maxWidth: .infinity)
@@ -133,6 +138,18 @@ struct RecipeMetadataSection: View {
             }
         }
         return count == 1 ? "serving" : "servings"
+    }
+
+    private func languageName(for languageCode: String) -> String {
+        switch languageCode {
+        case "fr": return "French"
+        case "es": return "Spanish"
+        case "de": return "German"
+        case "ja": return "Japanese"
+        case "zh": return "Chinese"
+        case "ko": return "Korean"
+        default: return languageCode.uppercased()
+        }
     }
 
     private func metadataItem(icon: String, label: String, value: String) -> some View {

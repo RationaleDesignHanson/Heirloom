@@ -238,7 +238,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
 
         // Add notes if present
         if let notes = extracted.notes, !notes.isEmpty {
-            recipe.notes = notes
+            recipe.setNotes(notes)
         }
 
         return recipe

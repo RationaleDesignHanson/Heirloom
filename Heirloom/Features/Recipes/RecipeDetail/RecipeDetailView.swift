@@ -34,6 +34,9 @@ struct RecipeDetailView: View {
     @StateObject private var versionViewModel = RecipeVersionSelectorViewModel()
     @State private var selectedVersion: RecipeLineageVersion?
 
+    // Language toggle (for multilingual recipes)
+    @State private var showOriginalLanguage = false
+
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     @State private var isDiffExpanded = false
 
@@ -54,7 +57,11 @@ struct RecipeDetailView: View {
 
     /// The title to display (from selected version or base recipe)
     private var displayTitle: String {
-        selectedVersion?.title ?? recipe.title
+        // Show original language if toggle is on and original exists
+        if showOriginalLanguage, let originalTitle = recipe.originalTitle {
+            return originalTitle
+        }
+        return selectedVersion?.title ?? recipe.title
     }
 
     /// The ingredients to display (always show current recipe's ingredients)
@@ -64,7 +71,11 @@ struct RecipeDetailView: View {
 
     /// The instructions to display (always show current recipe's instructions)
     private var displayInstructions: [String] {
-        recipe.instructions
+        // Show original language if toggle is on and original exists
+        if showOriginalLanguage, let originalInstructions = recipe.originalInstructions {
+            return originalInstructions
+        }
+        return recipe.instructions
     }
 
     /// The image filename to display (from selected version or base recipe)
@@ -102,6 +113,13 @@ struct RecipeDetailView: View {
         }
 
         return nil
+    }
+
+    /// Whether the recipe has been translated from another language
+    private var hasTranslation: Bool {
+        return recipe.sourceLanguage != nil &&
+               recipe.sourceLanguage != "en" &&
+               recipe.originalTitle != nil
     }
 
     /// Summary of what changed (for disclosure header)
@@ -201,6 +219,11 @@ struct RecipeDetailView: View {
                         onToggleFavorite: toggleFavorite,
                         onAddToShoppingList: addToShoppingList
                     )
+
+                    // Language Toggle (for multilingual recipes)
+                    if hasTranslation {
+                        languageToggle
+                    }
 
                     // Tags and Collections Section
                     if (recipe.tags != nil && !recipe.tags!.isEmpty) || (recipe.collections != nil && !recipe.collections!.isEmpty) {
@@ -1077,6 +1100,37 @@ struct RecipeDetailView: View {
         }
     }
 
+    // MARK: - Language Toggle
+    private var languageToggle: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            HStack(spacing: HeirloomSpacing.sm) {
+                Image(systemName: "globe")
+                    .foregroundStyle(HeirloomColors.tomato)
+                    .font(.callout)
+
+                Text("Language")
+                    .font(HeirloomFonts.caption2)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .textCase(.uppercase)
+            }
+
+            Picker("Language", selection: $showOriginalLanguage) {
+                Text("English").tag(false)
+                if let language = recipe.sourceLanguage {
+                    Text(languageName(for: language)).tag(true)
+                }
+            }
+            .pickerStyle(.segmented)
+            .accessibilityLabel("Toggle between English and original language")
+        }
+        .padding(HeirloomSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.white)
+                .shadow(color: HeirloomColors.cardShadow, radius: 4, x: 0, y: 2)
+        )
+    }
+
     // MARK: - Source Section
     private var sourceSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
@@ -1289,6 +1343,18 @@ struct RecipeDetailView: View {
             }
 
             Spacer()
+        }
+    }
+
+    private func languageName(for languageCode: String) -> String {
+        switch languageCode {
+        case "fr": return "French"
+        case "es": return "Spanish"
+        case "de": return "German"
+        case "ja": return "Japanese"
+        case "zh": return "Chinese"
+        case "ko": return "Korean"
+        default: return languageCode.uppercased()
         }
     }
 

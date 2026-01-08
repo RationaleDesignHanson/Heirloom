@@ -4,6 +4,11 @@
 //
 //  Mock implementation of Firebase Auth for testing
 //
+//  ⚠️ WARNING: Disabled due to dependency on FirebaseProtocols.swift which has infinite recursion bugs
+//  See FirebaseProtocols.swift for details
+//
+
+#if false  // Disabled - depends on FirebaseProtocols.swift
 
 import Foundation
 import FirebaseAuth
@@ -112,3 +117,5 @@ struct MockUser: UserProtocol {
 struct MockAuthDataResult: AuthDataResultProtocol {
     let user: UserProtocol
 }
+
+#endif  // Disabled - depends on FirebaseProtocols.swift

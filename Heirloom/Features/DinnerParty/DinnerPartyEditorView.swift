@@ -9,6 +9,7 @@ struct DinnerPartyEditorView: View {
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+    private var shoppingSync: DinnerPartyShoppingSync { ServiceContainer.shared.resolve(DinnerPartyShoppingSync.self) }
 
     @Query private var allRecipes: [Recipe]
 
@@ -62,6 +63,12 @@ struct DinnerPartyEditorView: View {
                 Section("Guests") {
                     Stepper("\(guestCount) guests", value: $guestCount, in: 1...100)
                         .font(HeirloomFonts.body)
+                        .onChange(of: guestCount) { oldValue, newValue in
+                            // Update shopping cart servings when guest count changes
+                            if let existingParty = party {
+                                shoppingSync.updateTargetServings(existingParty, context: modelContext)
+                            }
+                        }
                 }
 
                 Section {
@@ -169,6 +176,7 @@ struct DinnerPartyEditorView: View {
 
             // Update recipes
             existingParty.recipes?.removeAll()
+            addRecipes(to: existingParty)
             partyToSync = existingParty
 
         } else {
@@ -187,6 +195,9 @@ struct DinnerPartyEditorView: View {
         }
 
         do {
+            // Sync recipes to shopping cart
+            shoppingSync.syncRecipesToShoppingCart(partyToSync, context: modelContext)
+
             try modelContext.save()
 
             // Sync to Firebase if active

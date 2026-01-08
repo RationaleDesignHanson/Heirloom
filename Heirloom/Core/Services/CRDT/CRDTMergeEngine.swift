@@ -12,6 +12,54 @@ import SwiftData
 class CRDTMergeEngine {
     init() {}
 
+    // MARK: - Field Path Validation (SEC-8)
+
+    /// Valid field paths that can be modified via CRDT operations
+    private let validFieldPaths: Set<String> = [
+        "title", "notes", "prepTime", "cookTime", "servings"
+    ]
+
+    /// Validates a CRDT field path to prevent injection attacks
+    /// - Parameter fieldPath: The field path from a CRDT operation
+    /// - Returns: True if the field path is safe to use
+    private func isValidFieldPath(_ fieldPath: String) -> Bool {
+        // Check for empty or suspicious patterns
+        guard !fieldPath.isEmpty else {
+            Log.warning("CRDT field path is empty", category: .crdt)
+            return false
+        }
+
+        // Allow simple field names
+        if validFieldPaths.contains(fieldPath) {
+            return true
+        }
+
+        // Allow array access patterns: ingredients[0], instructions[1]
+        if fieldPath.starts(with: "ingredients[") || fieldPath.starts(with: "instructions[") {
+            // Extract and validate the index
+            let components = fieldPath.split(separator: "[")
+            guard components.count == 2,
+                  let indexPart = components.last,
+                  indexPart.hasSuffix("]") else {
+                Log.warning("Invalid CRDT array field path format", category: .crdt, metadata: ["fieldPath": fieldPath])
+                return false
+            }
+
+            // Extract index and ensure it's a valid non-negative integer
+            let indexString = indexPart.dropLast()
+            guard let index = Int(indexString), index >= 0 else {
+                Log.warning("Invalid CRDT array index", category: .crdt, metadata: ["fieldPath": fieldPath, "indexString": String(indexString)])
+                return false
+            }
+
+            return true
+        }
+
+        // Reject any other patterns (potential injection attempts)
+        Log.warning("Unknown CRDT field path rejected", category: .crdt, metadata: ["fieldPath": fieldPath])
+        return false
+    }
+
     // MARK: - Merge Operations
 
     /// Merge two RecipeCRDTs and return the result
@@ -219,6 +267,12 @@ class CRDTMergeEngine {
     private func applyUpdate(_ operation: RecipeOperation, to recipe: Recipe) {
         guard let newValue = operation.newValue else { return }
 
+        // SEC-8: Validate field path before applying operation
+        guard isValidFieldPath(operation.fieldPath) else {
+            Log.error("Rejected CRDT operation with invalid field path", category: .crdt, metadata: ["fieldPath": operation.fieldPath])
+            return
+        }
+
         switch operation.fieldPath {
         case "title":
             if let value = newValue.stringValue {
@@ -281,6 +335,12 @@ class CRDTMergeEngine {
     }
 
     private func applyDelete(_ operation: RecipeOperation, to recipe: Recipe) {
+        // SEC-8: Validate field path before applying delete operation
+        guard isValidFieldPath(operation.fieldPath) else {
+            Log.error("Rejected CRDT delete operation with invalid field path", category: .crdt, metadata: ["fieldPath": operation.fieldPath])
+            return
+        }
+
         // Handle deletion based on field path
         if operation.fieldPath.starts(with: "ingredients[") {
             // Extract index from field path

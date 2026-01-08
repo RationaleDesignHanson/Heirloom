@@ -17,12 +17,15 @@ struct SettingsView: View {
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     private var aiConfig: AIConfiguration { ServiceContainer.shared.resolve(AIConfiguration.self) }
+    private var firebaseSyncService: FirebaseSyncService { ServiceContainer.shared.resolve(FirebaseSyncService.self) }
 
     @State private var showClearDataConfirmation = false
     @State private var showSignOutConfirmation = false
     @State private var showSignIn = false
     @State private var storageSize: String = "Calculating..."
     @State private var showHeritageCleanup = false
+    @State private var authStateChanged = false // Force view updates when auth state changes
+    @State private var isClearingData = false // Show loading indicator while clearing
 
     var body: some View {
         NavigationStack {
@@ -87,6 +90,37 @@ struct SettingsView: View {
             // .sheet(isPresented: $showHeritageCleanup) {
             //     HeritageRecipeCleanupView()
             // }
+            .onChange(of: firebaseAuth.isAuthenticated) { _, _ in
+                // Toggle state to force view refresh when auth state changes
+                authStateChanged.toggle()
+            }
+            .onChange(of: firebaseAuth.currentUser?.uid) { _, _ in
+                // Also watch for user changes (different account sign-in)
+                authStateChanged.toggle()
+            }
+            .overlay {
+                if isClearingData {
+                    ZStack {
+                        Color.black.opacity(0.4)
+                            .ignoresSafeArea()
+
+                        VStack(spacing: 20) {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(1.5)
+
+                            Text("Clearing data...")
+                                .foregroundColor(.white)
+                                .font(HeirloomFonts.bodyBold)
+                        }
+                        .padding(40)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(white: 0.2))
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -168,11 +202,23 @@ struct SettingsView: View {
 
     private var accountSection: some View {
         Section {
-            if let user = firebaseAuth.currentUser {
-                LabeledContent("Signed in as", value: user.email ?? "Unknown")
-                    .font(HeirloomFonts.caption1)
+            // Force view dependency on authStateChanged to trigger re-renders
+            let _ = authStateChanged
 
-                LabeledContent("User ID", value: String(user.uid.prefix(8)) + "...")
+            if let user = firebaseAuth.currentUser {
+                // Determine sign-in provider for fallback display
+                let provider = user.providerData.first?.providerID ?? "Unknown"
+                let providerName: String = {
+                    switch provider {
+                    case "apple.com": return "Apple"
+                    case "google.com": return "Google"
+                    case "password": return "Email"
+                    default: return "Unknown Provider"
+                    }
+                }()
+
+                let userDisplay = user.displayName ?? user.email ?? "Signed in with \(providerName)"
+                LabeledContent("Signed in as", value: userDisplay)
                     .font(HeirloomFonts.caption1)
 
                 Button(role: .destructive) {
@@ -422,67 +468,114 @@ struct SettingsView: View {
     private func clearAllData() {
         let recipeCount = recipes.count
 
-        // Delete all recipes (cascade deletes ingredients)
-        for recipe in recipes {
-            modelContext.delete(recipe)
-        }
+        // Show loading indicator
+        isClearingData = true
 
-        do {
-            try modelContext.save()
+        // CRITICAL: Wait for any ongoing Firebase sync to complete
+        // This prevents crashes where sync tries to access deleted recipes
+        Task {
+            // Wait for sync to finish (with timeout of 10 seconds)
+            var waitTime = 0
+            while firebaseSyncService.isSyncing && waitTime < 10 {
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                waitTime += 1
+            }
 
-            // Clean up images
-            Task {
-                await imageStorageService.performCleanup()
+            // CRITICAL: Force-resolve all Recipe attributes to prevent SwiftData faulting errors
+            // When we delete recipes, SwiftData marks them as "faulted" (detached from context)
+            // If any code later tries to access an attribute that wasn't loaded, it crashes
+            // Solution: Access all optional properties BEFORE deletion to force SwiftData to load them
+            let recipeIds = await MainActor.run {
+                recipes.map { recipe in
+                    // Force-resolve all optional attributes by accessing them
+                    _ = recipe.sourceType  // This was causing the crash!
+                    _ = recipe.sourceURL
+                    _ = recipe.imageFileName
+                    _ = recipe.ingredients
+                    _ = recipe.tags
+                    _ = recipe.collections
 
-                // Also clear Firebase if active
-                if backendConfig.isFirebaseActive {
-                    await clearFirebaseData()
+                    return recipe.id.uuidString
                 }
             }
 
-            toastManager.success(title: "Data cleared")
-            analytics.track(event: .dataCleared, properties: [
-                "recipe_count": recipeCount
-            ])
-        } catch {
-            toastManager.error(title: "Failed to clear data", message: error.localizedDescription)
+            // Delete all recipes from local database
+            await MainActor.run {
+                for recipe in recipes {
+                    modelContext.delete(recipe)
+                }
+
+                do {
+                    try modelContext.save()
+                } catch {
+                    toastManager.error(title: "Failed to clear data", message: error.localizedDescription)
+                    isClearingData = false
+                    return
+                }
+            }
+
+            // CRITICAL: Give SwiftUI time to process the deletion and update all views
+            // This prevents crashes where views try to access deleted (faulted) recipe objects
+            // The delay ensures all @Query views have updated before we proceed
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+
+            // Clean up images
+            await imageStorageService.performCleanup()
+
+            // CRITICAL: Wait for Firebase deletion to complete BEFORE showing success
+            // This prevents recipes from coming back if user closes app too quickly
+            if backendConfig.isFirebaseActive {
+                await clearFirebaseData(recipeIds: recipeIds)
+            }
+
+            // CRITICAL: Clear sync timestamp at the VERY END, after all Firebase operations
+            // This ensures that any internal Firebase writes during cleanup don't restore the timestamp
+            await MainActor.run {
+                UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
+            }
+
+            // Show success only after ALL cleanup completes (including Firebase)
+            await MainActor.run {
+                isClearingData = false
+                toastManager.success(title: "Data cleared")
+                analytics.track(event: .dataCleared, properties: [
+                    "recipe_count": recipeCount
+                ])
+            }
         }
     }
 
-    private func clearFirebaseData() async {
+    private func clearFirebaseData(recipeIds: [String]) async {
         guard let userId = firebaseAuth.currentUser?.uid else { return }
 
         do {
             let db = Firestore.firestore()
             let recipesRef = db.collection("users/\(userId)/recipes")
 
-            // Fetch all recipe documents
-            let snapshot = try await recipesRef.getDocuments()
+            Log.info("Clearing recipes from Firebase", category: .firebase, metadata: ["count": recipeIds.count, "userId": userId])
 
-            Log.info("Clearing recipes from Firebase", category: .firebase, metadata: ["count": snapshot.documents.count, "userId": userId])
-
-            // Delete each recipe and its subcollections
-            for document in snapshot.documents {
+            // Delete each recipe and its subcollections using pre-captured IDs
+            for recipeId in recipeIds {
                 // Delete ingredients subcollection
-                let ingredientsSnapshot = try await recipesRef.document(document.documentID)
+                let ingredientsSnapshot = try await recipesRef.document(recipeId)
                     .collection("ingredients").getDocuments()
                 for ingredient in ingredientsSnapshot.documents {
                     try await ingredient.reference.delete()
                 }
 
                 // Delete comments subcollection
-                let commentsSnapshot = try await recipesRef.document(document.documentID)
+                let commentsSnapshot = try await recipesRef.document(recipeId)
                     .collection("comments").getDocuments()
                 for comment in commentsSnapshot.documents {
                     try await comment.reference.delete()
                 }
 
                 // Delete the recipe document
-                try await document.reference.delete()
+                try await recipesRef.document(recipeId).delete()
 
                 // Delete image from Storage if exists
                 let storage = Storage.storage()
-                let imagePath = "users/\(userId)/recipes/\(document.documentID)/image.jpg"
+                let imagePath = "users/\(userId)/recipes/\(recipeId)/image.jpg"
                 let imageRef = storage.reference().child(imagePath)
                 try? await imageRef.delete() // Don't fail if image doesn't exist
             }
@@ -498,13 +591,7 @@ struct SettingsView: View {
             // Sign out from Firebase
             try firebaseAuth.signOut()
 
-            // Clear local data
-            for recipe in recipes {
-                modelContext.delete(recipe)
-            }
-            try modelContext.save()
-
-            // Clear sync timestamps
+            // Clear sync timestamps (but keep local recipes for offline use)
             UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
 
             // Success feedback

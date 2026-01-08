@@ -180,12 +180,16 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         recipe.id = UUID(uuidString: id) ?? UUID()
 
         // Additional fields
-        recipe.notes = data["notes"] as? String
+        recipe.setNotes(data["notes"] as? String)
         recipe.isFavorite = data["isFavorite"] as? Bool ?? false
         recipe.timesCooked = data["timesCooked"] as? Int ?? 0
 
         // Image fields
-        recipe.imageFileName = data["imageFileName"] as? String
+        do {
+            try recipe.setImageFileName(data["imageFileName"] as? String)
+        } catch {
+            Log.warning("Skipped invalid imageFileName during Firebase sync", category: .firebase, metadata: ["error": error.localizedDescription])
+        }
         recipe.sourceImageURL = data["sourceImageURL"] as? String
         recipe.firebaseImageURL = data["firebaseImageURL"] as? String
 
@@ -330,8 +334,9 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
     func convertCardBackFromFirestoreData(_ data: [String: Any]) -> RecipeCardBack {
         let cardBack = RecipeCardBack()
 
-        cardBack.noteToFriends = data["noteToFriends"] as? String
-        cardBack.personalTips = data["personalTips"] as? [String] ?? []
+        cardBack.setNoteToFriends(data["noteToFriends"] as? String)
+        // SECURITY FIX: Sanitize personalTips array from Firestore
+        cardBack.setPersonalTips(data["personalTips"] as? [String] ?? [])
         cardBack.userRating = data["userRating"] as? Int
         cardBack.showAttribution = data["showAttribution"] as? Bool ?? true
         cardBack.customAttributionText = data["customAttributionText"] as? String
@@ -384,12 +389,14 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         logger.log("Uploading recipe", category: .sync, level: .info, metadata: nil)
 
         do {
-            let recipeId = recipe.id.uuidString
-            let recipeRef = try recipeDocument(id: recipeId)
+            // Wrap all Firestore operations in timeout protection
+            try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseStandard) { [self] in
+                let recipeId = recipe.id.uuidString
+                let recipeRef = try self.recipeDocument(id: recipeId)
 
-            // Step 1: Upload recipe document
-            let recipeData = convertToFirestoreData(recipe)
-            try await recipeRef.setData(recipeData)
+                // Step 1: Upload recipe document
+                let recipeData = convertToFirestoreData(recipe)
+                try await recipeRef.setData(recipeData)
 
             logger.log("✅ [Firebase] Uploaded recipe: \(recipe.title)", category: .sync, level: .info, metadata: nil)
             logger.log("Recipe uploaded successfully", category: .sync, level: .info, metadata: nil)
@@ -493,9 +500,10 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 Log.warning("ModelContext is nil, cannot track lineage", category: .firebase)
             }
 
-            // Update local sync metadata
-            recipe.lastSyncedAt = Date()
-            try? modelContext?.save()
+                // Update local sync metadata
+                recipe.lastSyncedAt = Date()
+                try? modelContext?.save()
+            } // End TaskTimeout.withTimeout
 
         } catch {
             DeviceLogger.shared.log("❌ [Firebase] Upload failed: \(error.localizedDescription)", level: .error)
@@ -782,7 +790,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         existing.servings = resolved.servings
         existing.prepTime = resolved.prepTime
         existing.cookTime = resolved.cookTime
-        existing.notes = resolved.notes
+        existing.setNotes(resolved.notes)
         existing.isFavorite = resolved.isFavorite
         existing.modifiedAt = resolved.modifiedAt
         existing.provenance = resolved.provenance
@@ -907,15 +915,17 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
         Log.info("Uploading image to Firebase Storage", category: .storage, metadata: ["title": recipe.title, "path": storagePath])
 
-        // Upload image data
-        let metadata = StorageMetadata()
-        metadata.contentType = "image/jpeg"
+        // Upload image data with timeout protection (60 seconds for large images)
+        let urlString = try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseLong) {
+            let metadata = StorageMetadata()
+            metadata.contentType = "image/jpeg"
 
-        _ = try await storageRef.putDataAsync(imageData, metadata: metadata)
+            _ = try await storageRef.putDataAsync(imageData, metadata: metadata)
 
-        // Get download URL
-        let downloadURL = try await storageRef.downloadURL()
-        let urlString = downloadURL.absoluteString
+            // Get download URL
+            let downloadURL = try await storageRef.downloadURL()
+            return downloadURL.absoluteString
+        }
 
         Log.info("Image uploaded successfully", category: .storage, metadata: ["path": storagePath])
 
