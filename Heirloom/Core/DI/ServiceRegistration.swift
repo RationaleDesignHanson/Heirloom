@@ -195,6 +195,35 @@ extension ServiceContainer {
             container.resolve(AnalyticsService.self) as any AnalyticsServiceProtocol
         }
 
+        // MARK: - Subscription Services
+        register(StoreManager.self, lifecycle: .singleton) { container in
+            let logger = container.resolve(LoggingService.self)
+            let analytics = container.resolve(AnalyticsService.self)
+            return StoreManager(logger: logger, analytics: analytics)
+        }
+
+        register(SubscriptionManager.self, lifecycle: .singleton) { container in
+            let storeManager = container.resolve(StoreManager.self)
+            let logger = container.resolve(LoggingService.self)
+            let analytics = container.resolve(AnalyticsService.self)
+            return SubscriptionManager(
+                storeManager: storeManager,
+                logger: logger,
+                analytics: analytics
+            )
+        }
+
+        register(PaywallManager.self, lifecycle: .singleton) { container in
+            let subscriptionManager = container.resolve(SubscriptionManager.self)
+            let logger = container.resolve(LoggingService.self)
+            let analytics = container.resolve(AnalyticsService.self)
+            return PaywallManager(
+                subscriptionManager: subscriptionManager,
+                logger: logger,
+                analytics: analytics
+            )
+        }
+
         // MARK: - Storage
         register(ImageCache.self, lifecycle: .singleton) { _ in
             ImageCache()
