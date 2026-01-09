@@ -121,6 +121,7 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
 
             // Step 4: Frame analysis (optional, parallel in future)
             var visualElements: [String] = []
+            var detectedWatermark: WatermarkDetectionResult? = nil
 
             if shouldPerformFrameAnalysis(transcriptConfidence: transcript.confidence) {
                 state = .analyzingFrames
@@ -129,6 +130,21 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                 do {
                     let frames = try await frameAnalyzer.extractKeyFrames(from: videoURL, count: 5)
                     visualElements = try await frameAnalyzer.analyzeForRecipeElements(frames)
+
+                    // Step 4.5: Detect watermarks (NEW - Week 5)
+                    if let aiService = aiService as? AnthropicAIService {
+                        print("\n🔍 WATERMARK DETECTION:")
+                        let watermarkService = WatermarkDetectionService(aiService: aiService)
+                        detectedWatermark = try await watermarkService.detectWatermark(from: frames)
+
+                        if let watermark = detectedWatermark {
+                            print("   ✅ Detected: \(watermark.creatorHandle ?? "unknown")")
+                            print("   Platform: \(watermark.platform?.displayName ?? "unknown")")
+                            print("   Confidence: \(String(format: "%.0f", watermark.confidence * 100))%")
+                        } else {
+                            print("   ❌ No watermark detected")
+                        }
+                    }
                 } catch {
                     // Frame analysis is optional - log error but continue
                     print("Frame analysis failed, continuing without visual elements: \(error)")
@@ -233,13 +249,13 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                 usedFrameAnalysis: !visualElements.isEmpty
             )
 
-            // Create attribution (user will fill this in review)
+            // Create attribution (pre-fill with detected watermark if found)
             let attribution = VideoSourceAttribution(
-                creatorName: nil,
+                creatorName: detectedWatermark?.creatorHandle,  // Auto-populate if watermark detected
                 videoTitle: nil,
-                platform: .cameraRoll,
+                platform: detectedWatermark?.platform ?? .cameraRoll,  // Use detected platform
                 sourceURL: videoURL.absoluteString,
-                notes: nil,
+                notes: detectedWatermark != nil ? "(detected from video)" : nil,  // Add note if auto-detected
                 importDate: Date(),
                 hasPermission: true
             )

@@ -64,12 +64,6 @@ class WatermarkDetectionService {
 
     /// Detect watermark in a single frame using Claude's vision API
     private func detectWatermarkInFrame(_ frame: UIImage) async throws -> WatermarkDetectionResult? {
-        // Convert image to base64
-        guard let imageData = frame.jpegData(compressionQuality: 0.7) else {
-            return nil
-        }
-        let base64Image = imageData.base64EncodedString()
-
         // Construct prompt for watermark detection
         let prompt = """
         Analyze this video frame and detect any creator watermarks, handles, or attribution text.
@@ -95,16 +89,20 @@ class WatermarkDetectionService {
         Example: "TikTok/@chef_maria" → "chef_maria"
         """
 
-        // Call Claude with vision
+        // Call Claude with vision using existing completeWithVision method
         do {
-            let response = try await aiService.sendVisionMessage(
+            let response = try await aiService.completeWithVision(
+                image: frame,
                 prompt: prompt,
-                imageData: imageData,
-                mimeType: "image/jpeg"
+                options: AICompletionOptions(
+                    temperature: 0.3,  // Lower temperature for more deterministic parsing
+                    maxTokens: 300
+                ),
+                useCase: .ocr  // Optimize for text recognition
             )
 
-            // Parse JSON response
-            if let result = parseWatermarkResponse(response) {
+            // Parse JSON response from the content
+            if let result = parseWatermarkResponse(response.content) {
                 return result
             }
         } catch {
@@ -162,62 +160,5 @@ class WatermarkDetectionService {
             print("⚠️ Failed to parse watermark JSON: \(error)")
             return nil
         }
-    }
-}
-
-// MARK: - AnthropicAIService Vision Extension
-
-extension AnthropicAIService {
-    /// Send a vision message to Claude with an image
-    func sendVisionMessage(prompt: String, imageData: Data, mimeType: String) async throws -> String {
-        let base64Image = imageData.base64EncodedString()
-
-        let requestBody: [String: Any] = [
-            "model": "claude-3-5-sonnet-20241022",
-            "max_tokens": 1000,
-            "messages": [
-                [
-                    "role": "user",
-                    "content": [
-                        [
-                            "type": "image",
-                            "source": [
-                                "type": "base64",
-                                "media_type": mimeType,
-                                "data": base64Image
-                            ]
-                        ],
-                        [
-                            "type": "text",
-                            "text": prompt
-                        ]
-                    ]
-                ]
-            ]
-        ]
-
-        let jsonData = try JSONSerialization.data(withJSONObject: requestBody)
-
-        var request = URLRequest(url: URL(string: "https://api.anthropic.com/v1/messages")!)
-        request.httpMethod = "POST"
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
-        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-        request.setValue("application/json", forHTTPHeaderField: "content-type")
-        request.httpBody = jsonData
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw AnthropicAIError.invalidResponse
-        }
-
-        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        guard let content = json?["content"] as? [[String: Any]],
-              let text = content.first?["text"] as? String else {
-            throw AnthropicAIError.invalidResponse
-        }
-
-        return text
     }
 }
