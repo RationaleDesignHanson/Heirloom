@@ -157,7 +157,18 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
             var similarRecipes: [SimilarRecipeMatch] = []
             var webRecipes: [WebRecipeResult] = []
 
+            print("\n🤔 AUGMENTATION CHECK:")
+            print("   enableAugmentation: \(enableAugmentation)")
+            print("   modelContext: \(modelContext != nil ? "✅ present" : "❌ nil")")
+            print("   aiService: \(aiService != nil ? "✅ present" : "❌ nil")")
+            let lowConfidenceCount = structuredRecipe.ingredients.filter {
+                $0.confidence == .approximate || $0.confidence == .unknown || $0.quantity == nil
+            }.count
+            print("   Low confidence ingredients: \(lowConfidenceCount) / \(structuredRecipe.ingredients.count)")
+            print("   Should augment: \(shouldPerformAugmentation(structuredRecipe: structuredRecipe))\n")
+
             if shouldPerformAugmentation(structuredRecipe: structuredRecipe) {
+                print("✅ Starting augmentation pipeline...")
                 state = .augmentingWithSimilarRecipes
                 progress = 0.93
 
@@ -181,8 +192,8 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                         print("🌐 Found \(webRecipes.count) similar web recipes")
                     }
 
-                    // Augment recipe with AI (if we have similar recipes and AI service)
-                    if (!similarRecipes.isEmpty || !webRecipes.isEmpty), let aiSvc = aiService {
+                    // Augment recipe with AI (always run if AI service available)
+                    if let aiSvc = aiService {
                         let augmentationService = RecipeAugmentationService(aiService: aiSvc)
                         augmentedRecipe = try await augmentationService.augment(
                             structuredRecipe,
@@ -190,6 +201,8 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                             webRecipes: webRecipes
                         )
                         print("✨ Augmentation complete: \(augmentedRecipe?.augmentedIngredients.count ?? 0) ingredients enhanced")
+                    } else {
+                        print("⚠️ AI service not available - skipping augmentation")
                     }
                 } catch {
                     // Augmentation is optional - log error but continue
@@ -199,7 +212,16 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                 progress = 0.95
                 try Task.checkCancellation()
             } else {
-                print("ℹ️ Skipping augmentation - recipe already has good confidence")
+                print("❌ SKIPPING AUGMENTATION")
+                if !enableAugmentation {
+                    print("   Reason: augmentation disabled")
+                } else if modelContext == nil {
+                    print("   Reason: modelContext is nil")
+                } else if aiService == nil {
+                    print("   Reason: aiService is nil")
+                } else {
+                    print("   Reason: < 2 low-confidence ingredients")
+                }
             }
 
             progress = 1.0
@@ -308,8 +330,8 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
             ingredient.quantity == nil
         }
 
-        // Require at least 2 ingredients needing help to make augmentation worthwhile
-        return lowConfidenceIngredients.count >= 2
+        // Run augmentation if ANY ingredient needs help (lowered from 2)
+        return lowConfidenceIngredients.count >= 1
     }
 
     private func calculateCost(transcriptLength: Int, usedFrameAnalysis: Bool) -> Decimal {

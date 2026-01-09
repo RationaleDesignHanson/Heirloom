@@ -57,6 +57,12 @@ class RecipeAugmentationService {
             )
         }
 
+        // CRITICAL: Proceed with augmentation even if no similar recipes found
+        // Claude has extensive culinary knowledge and can infer standard quantities
+        if similarRecipes.isEmpty && webRecipes.isEmpty {
+            print("⚠️ No similar recipes found - using Claude's culinary knowledge for inference")
+        }
+
         // 2. Build context from similar recipes
         let similarRecipeContext = buildSimilarRecipeContext(
             similarRecipes: similarRecipes,
@@ -77,7 +83,7 @@ class RecipeAugmentationService {
         let options = AICompletionOptions(
             model: "claude-sonnet-4-20250514",
             temperature: 0.2, // Low for consistent inference
-            maxTokens: 800,
+            maxTokens: 2500, // Increased from 800 - need room for 10+ ingredients with reasoning
             systemMessage: augmentationSystemPrompt,
             stopSequences: nil
         )
@@ -88,9 +94,28 @@ class RecipeAugmentationService {
         )
 
         print("🔮 Received AI response (\(response.usage.outputTokens) tokens)")
+        print("🔮 Response content (first 1000 chars):")
+        print(String(response.content.prefix(1000)))
+        print("...")
 
         // 4. Parse augmentation result
         let augmentationResult = try parseAugmentationResponse(response.content)
+
+        print("📊 Parsed \(augmentationResult.augmentedIngredients.count) ingredients from AI")
+        let withQty = augmentationResult.augmentedIngredients.filter { $0.inferredQuantity != nil }.count
+        print("   With quantities: \(withQty)")
+        print("   Without quantities: \(augmentationResult.augmentedIngredients.count - withQty)")
+
+        if withQty == 0 {
+            print("⚠️ WARNING: AI returned 0 ingredients with quantities!")
+            print("   First ingredient example:")
+            if let first = augmentationResult.augmentedIngredients.first {
+                print("      originalText: \(first.originalText)")
+                print("      inferredQuantity: \(first.inferredQuantity ?? "nil")")
+                print("      inferredUnit: \(first.inferredUnit ?? "nil")")
+                print("      confidence: \(first.confidence)")
+            }
+        }
 
         let processingTime = Date().timeIntervalSince(startTime)
 
@@ -108,22 +133,25 @@ class RecipeAugmentationService {
 
     private var augmentationSystemPrompt: String {
         """
-        You are a culinary expert specializing in recipe standardization. Your task is to infer missing or imprecise ingredient quantities from video transcripts by analyzing similar recipes.
+        You are a culinary expert specializing in recipe standardization. Your task is to infer missing or imprecise ingredient quantities from video transcripts.
+
+        CRITICAL: You MUST provide a quantity for EVERY ingredient. Use your culinary knowledge of standard recipes.
 
         Guidelines:
-        - Only provide quantities when there's strong consensus across similar recipes
-        - Always include confidence level: high (3+ matching recipes), medium (2 matching), low (1 match or inference)
-        - Cite which similar recipes support each inference
-        - Consider recipe category, servings, and context
-        - If no good inference exists, mark as "unknown" and explain why
-        - For ranges in transcript ("some", "a bit"), use the median from similar recipes
-        - Account for serving size differences (scale proportionally)
+        - Use typical quantities for the dish type (e.g., "Butter Chicken" typically uses 1.5-2 lbs chicken, 1/4 cup butter, etc.)
+        - Consider recipe servings when scaling quantities
+        - For common ingredients without quantities, infer based on:
+          * Standard ratios for this type of dish
+          * Typical home cooking portions
+          * Balance of flavors (e.g., soy sauce to honey ratio in Asian dishes)
+        - If similar recipes are provided, use their consensus
+        - If no similar recipes, use your knowledge of standard recipes
 
-        Confidence Levels:
-        - HIGH: 3+ similar recipes agree on quantity (±20% variance)
-        - MEDIUM: 2 similar recipes agree, or strong contextual inference
-        - LOW: Only 1 similar recipe, or high variance (>30%)
-        - UNKNOWN: No similar recipes or conflicting data
+        Confidence Levels (BE GENEROUS - prefer medium/high over low):
+        - HIGH: You're very confident based on standard recipes for this dish type
+        - MEDIUM: Reasonable inference based on typical cooking ratios
+        - LOW: Educated guess but could vary significantly
+        - UNKNOWN: Only use if ingredient is truly ambiguous (e.g., "to taste")
 
         Respond ONLY with valid JSON matching the provided schema. No additional text.
         """
@@ -137,6 +165,8 @@ class RecipeAugmentationService {
         let ingredientList = needsAugmentation.map { ingredient in
             "- \"\(ingredient.originalText)\" (confidence: \(ingredient.confidence.rawValue))"
         }.joined(separator: "\n")
+
+        let hasReferences = !similarRecipeContext.contains("No similar recipes found")
 
         return """
         Augment this recipe extracted from a video transcript:
@@ -156,21 +186,25 @@ class RecipeAugmentationService {
         \(similarRecipeContext)
         </similar_recipes>
 
-        For each ingredient needing augmentation, infer the most likely quantity based on similar recipes. Consider:
-        - Consensus across similar recipes
-        - Recipe serving size (extracted recipe: \(extractedRecipe.servings ?? "not specified"))
-        - Typical ratios for this recipe type
+        For each ingredient needing augmentation, infer the most likely quantity. \(hasReferences ? "Use similar recipes as primary guidance." : "Use your culinary knowledge of standard \(extractedRecipe.title) recipes.")
+
+        CRITICAL REQUIREMENTS:
+        - You MUST provide a quantity for EVERY ingredient in the augmentation list
+        - Never return null for inferredQuantity unless ingredient is truly "to taste"
+        - Use standard recipes for "\(extractedRecipe.title)" as your knowledge base
+        - Consider serving size: \(extractedRecipe.servings ?? "not specified")
+        - Use typical home cooking portions
 
         Return JSON:
         {
           "augmentedIngredients": [
             {
               "originalText": "string - exact match from needs augmentation list",
-              "inferredQuantity": "string - amount (e.g., '2', '1/2', 'to taste') or null if unknown",
-              "inferredUnit": "string - unit (e.g., 'cups', 'teaspoons') or null",
-              "confidence": "high|medium|low|unknown",
+              "inferredQuantity": "string - amount (e.g., '2', '1.5', '1/4') - REQUIRED",
+              "inferredUnit": "string - unit (e.g., 'pounds', 'cups', 'tablespoons') - REQUIRED",
+              "confidence": "high|medium|low",
               "reasoning": "string - why this quantity was inferred",
-              "sourceRecipes": ["string - titles of supporting recipes"]
+              "sourceRecipes": ["string - similar recipes used, or 'Standard recipe knowledge'"]
             }
           ]
         }
@@ -238,12 +272,23 @@ class RecipeAugmentationService {
             .replacingOccurrences(of: "```", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
+        // DEBUG: Print the actual response
+        print("🔮 DEBUG: Claude response (first 500 chars):")
+        print(String(cleanedJSON.prefix(500)))
+
         guard let data = cleanedJSON.data(using: .utf8) else {
             throw AugmentationError.invalidJSON
         }
 
         let decoder = JSONDecoder()
-        return try decoder.decode(AugmentationResult.self, from: data)
+        do {
+            return try decoder.decode(AugmentationResult.self, from: data)
+        } catch {
+            print("❌ JSON parsing failed: \(error)")
+            print("🔮 Full response:")
+            print(cleanedJSON)
+            throw error
+        }
     }
 
     // MARK: - Result Creation

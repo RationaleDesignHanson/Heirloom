@@ -39,55 +39,41 @@ actor TaskTimeout {
         seconds: TimeInterval,
         operation: @escaping () async throws -> T
     ) async throws -> T {
-        Log.info("🕐 TaskTimeout.withTimeout CALLED with \(seconds)s timeout", category: .network, metadata: nil)
+        // Note: Verbose logging removed to avoid Swift 6 concurrency warnings
+        // Log calls require MainActor isolation
 
         return try await withThrowingTaskGroup(of: TaskTimeoutResult<T>.self) { group in
-            Log.debug("🕐 Creating task group", category: .network, metadata: nil)
-
             // Start the actual operation
             group.addTask {
-                Log.debug("🕐 Operation task STARTED", category: .network, metadata: nil)
                 do {
                     let result = try await operation()
-                    Log.debug("🕐 Operation task COMPLETED successfully", category: .network, metadata: nil)
                     return .success(result)
                 } catch {
-                    Log.error("🕐 Operation task FAILED with error: \(error.localizedDescription)", category: .network, metadata: nil)
                     return .failure(error)
                 }
             }
 
             // Start the timeout task
             group.addTask {
-                Log.debug("🕐 Timeout task STARTED (will wait \(seconds)s)", category: .network, metadata: nil)
                 try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-                Log.warning("⏰ TIMEOUT REACHED after \(seconds)s - throwing timeout error", category: .network, metadata: nil)
                 return .timeout
             }
 
             // Wait for first result
-            Log.debug("🕐 Waiting for first task to complete...", category: .network, metadata: nil)
             guard let firstResult = try await group.next() else {
-                Log.error("🕐 Task group returned nil - should never happen", category: .network, metadata: nil)
                 throw TaskTimeoutError.timedOut
             }
 
-            Log.debug("🕐 First task completed, result type: \(String(describing: firstResult))", category: .network, metadata: nil)
-
             // Cancel remaining tasks
             group.cancelAll()
-            Log.debug("🕐 Cancelled remaining tasks", category: .network, metadata: nil)
 
             // Handle result
             switch firstResult {
             case .success(let value):
-                Log.info("✅ TaskTimeout.withTimeout completed successfully", category: .network, metadata: nil)
                 return value
             case .failure(let error):
-                Log.error("❌ TaskTimeout.withTimeout failed with error: \(error.localizedDescription)", category: .network, metadata: nil)
                 throw error
             case .timeout:
-                Log.error("⏰ TaskTimeout.withTimeout TIMED OUT after \(seconds)s", category: .network, metadata: nil)
                 throw TaskTimeoutError.timedOut
             }
         }

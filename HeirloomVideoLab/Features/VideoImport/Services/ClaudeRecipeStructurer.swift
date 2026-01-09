@@ -72,6 +72,14 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
         """
         You are a recipe extraction specialist. Your task is to extract structured recipe data from cooking video transcripts.
 
+        RECIPE TITLE GUIDELINES:
+        - Extract the recipe title EXACTLY as the narrator describes it
+        - If they say "honey butter chicken", use "Honey Butter Chicken"
+        - If they say "crispy garlic shrimp", use "Crispy Garlic Shrimp"
+        - Only remove filler words like "easy", "quick", "simple", "homemade" if they're clearly not part of the dish name
+        - Examples: "easy homemade pizza" → "Pizza", "quick stir fry" → "Stir Fry"
+        - But: "honey garlic chicken" → "Honey Garlic Chicken" (honey garlic IS the dish name)
+
         IMPORTANT GUIDELINES:
         - Extract ALL ingredients mentioned, even if quantities are imprecise
         - Convert colloquial measurements to standard units where possible

@@ -232,6 +232,7 @@ struct VideoLabApp: App {
 struct ContentView: View {
     @EnvironmentObject private var services: VideoLabServiceContainer
     @State private var showVideoImport = false
+    @Query private var recipes: [Recipe]
 
     var body: some View {
         NavigationStack {
@@ -262,75 +263,144 @@ struct ContentView: View {
                     Spacer()
                 }
             } else {
-                VStack(spacing: 24) {
-                    Spacer()
+                // Recipe List
+                RecipeListView(recipes: recipes)
+                    .navigationTitle("VideoLab Recipes")
+                    .toolbar {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button {
+                                showVideoImport = true
+                            } label: {
+                                Label("Import Video", systemImage: "video.fill")
+                            }
+                        }
+                    }
+                    .sheet(isPresented: $showVideoImport) {
+                        VideoImportView()
+                    }
+            }
+        }
+    }
+}
 
-                    // Logo/Icon
+// MARK: - Recipe List View
+
+struct RecipeListView: View {
+    let recipes: [Recipe]
+    @Environment(\.modelContext) private var modelContext
+
+    var body: some View {
+        Group {
+            if recipes.isEmpty {
+                // Empty state
+                VStack(spacing: 24) {
                     Image(systemName: "video.badge.waveform")
                         .font(.system(size: 80))
                         .foregroundStyle(.orange.gradient)
 
-                    // Title
                     VStack(spacing: 8) {
-                        Text("HeirloomVideoLab")
-                            .font(.largeTitle.bold())
+                        Text("No Recipes Yet")
+                            .font(.title2.bold())
 
-                        Text("Video Recipe Import Testing")
-                            .font(.title3)
+                        Text("Import a cooking video to get started")
+                            .font(.subheadline)
                             .foregroundStyle(.secondary)
-
-                        Text("Week 4 - Similar Recipe Augmentation")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 4)
-                            .background(Color.orange.opacity(0.1))
-                            .clipShape(Capsule())
                     }
-
-                    Spacer()
-
-                    // Import button
-                    Button {
-                        showVideoImport = true
-                    } label: {
-                        Label("Import Video Recipe", systemImage: "video.fill")
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.orange.gradient)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                    }
-                    .padding(.horizontal, 32)
-
-                    // Info
-                    VStack(spacing: 8) {
-                        Text("This app uses real AI services for video processing")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-
-                        Text("WhisperKit transcription + Claude recipe structuring + AI augmentation")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-
-                        Text("Searches local & web recipes to infer missing quantities")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                            .padding(.top, 2)
-                    }
-                    .padding(.horizontal, 32)
-
-                    Spacer()
                 }
-                .navigationTitle("VideoLab")
-                .navigationBarTitleDisplayMode(.inline)
-                .sheet(isPresented: $showVideoImport) {
-                    VideoImportView()
+            } else {
+                // Recipe cards with images
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(recipes) { recipe in
+                            RecipeCard(recipe: recipe)
+                        }
+                    }
+                    .padding()
                 }
             }
         }
+    }
+}
+
+// MARK: - Recipe Card
+
+struct RecipeCard: View {
+    let recipe: Recipe
+    @Environment(\.modelContext) private var modelContext
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Image
+            if let imageFileName = recipe.imageFileName, let imageURL = getImageURL(for: imageFileName) {
+                AsyncImage(url: imageURL) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: 200)
+                        .clipped()
+                } placeholder: {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(height: 200)
+                        .overlay(
+                            ProgressView()
+                        )
+                }
+            } else {
+                Rectangle()
+                    .fill(LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(height: 200)
+                    .overlay(
+                        Image(systemName: "video.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.white.opacity(0.5))
+                    )
+            }
+
+            // Content
+            VStack(alignment: .leading, spacing: 8) {
+                Text(recipe.title)
+                    .font(.title3.bold())
+
+                if let ingredients = recipe.ingredients, !ingredients.isEmpty {
+                    Text("\(ingredients.count) ingredients")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if let provenance = recipe.provenance {
+                    HStack(spacing: 4) {
+                        Image(systemName: "video.fill")
+                            .font(.caption2)
+                        Text(provenance.sourceAttribution ?? "Video import")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.orange)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+        }
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+        .contextMenu {
+            Button(role: .destructive) {
+                deleteRecipe()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+    }
+
+    private func deleteRecipe() {
+        modelContext.delete(recipe)
+        try? modelContext.save()
+    }
+
+    private func getImageURL(for fileName: String) -> URL? {
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return documentsPath.appendingPathComponent("RecipeImages").appendingPathComponent(fileName)
     }
 }
 

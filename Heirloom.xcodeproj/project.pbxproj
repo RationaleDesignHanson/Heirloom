@@ -367,7 +367,6 @@
 		C5E955352F0553FE006CD3C2 /* FirebaseNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E955342F0553FE006CD3C2 /* FirebaseNotificationService.swift */; };
 		C5E955372F055550006CD3C2 /* View+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E955362F055550006CD3C2 /* View+Helpers.swift */; };
 		C5E955392F055F5F006CD3C2 /* AIIngredientSpellChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E955382F055F5F006CD3C2 /* AIIngredientSpellChecker.swift */; };
-		C5E9553B2F056341006CD3C2 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C5E9553A2F056341006CD3C2 /* Config.xcconfig */; };
 		C5E9553E2F056CA2006CD3C2 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = C5E9553D2F056CA2006CD3C2 /* GoogleSignIn */; };
 		CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC154590CE51056017C5D6 /* CommentService.swift */; };
 		D0F80C3F0014086C6080ABEE /* URLNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8372FA8022D3000704B35085 /* URLNormalizer.swift */; };
@@ -2053,7 +2052,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C5E9553B2F056341006CD3C2 /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2565,6 +2563,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -2626,6 +2625,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;

@@ -21,7 +21,14 @@ struct VideoSourceAttribution: Codable, Equatable {
     var platform: VideoPlatform?
 
     /// Original video URL (if applicable and not a direct download)
+    /// NOTE: This link is for attribution only - NOT used for extraction/scraping
+    /// Displayed on recipe card as "View Original" link
     var sourceURL: String?
+
+    /// Video caption/description text (from social media post)
+    /// Optional - helps improve ingredient extraction accuracy
+    /// User can paste caption from Instagram/TikTok/YouTube description
+    var captionText: String?
 
     /// Additional notes about the source
     var notes: String?
@@ -38,6 +45,7 @@ struct VideoSourceAttribution: Codable, Equatable {
         videoTitle: String? = nil,
         platform: VideoPlatform? = nil,
         sourceURL: String? = nil,
+        captionText: String? = nil,
         notes: String? = nil,
         importDate: Date = Date(),
         hasPermission: Bool = true  // Default true for camera roll videos
@@ -46,6 +54,7 @@ struct VideoSourceAttribution: Codable, Equatable {
         self.videoTitle = videoTitle
         self.platform = platform
         self.sourceURL = sourceURL
+        self.captionText = captionText
         self.notes = notes
         self.importDate = importDate
         self.hasPermission = hasPermission

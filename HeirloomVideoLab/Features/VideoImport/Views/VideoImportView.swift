@@ -14,7 +14,12 @@ struct VideoImportView: View {
     @EnvironmentObject private var services: VideoLabServiceContainer
     @State private var selectedVideoURL: URL?
     @State private var showVideoPicker = false
+    @State private var showSourceDetails = false
     @State private var showProcessing = false
+
+    // Optional source metadata
+    @State private var sourceURL: String = ""
+    @State private var captionText: String = ""
 
     var body: some View {
         NavigationStack {
@@ -88,15 +93,37 @@ struct VideoImportView: View {
             }
             .onChange(of: selectedVideoURL) { _, newURL in
                 if newURL != nil {
-                    showProcessing = true
+                    // Show source details sheet (optional step)
+                    showSourceDetails = true
                 }
+            }
+            .sheet(isPresented: $showSourceDetails) {
+                VideoSourceDetailsView(
+                    sourceURL: $sourceURL,
+                    captionText: $captionText,
+                    onContinue: {
+                        showSourceDetails = false
+                        showProcessing = true
+                    },
+                    onSkip: {
+                        showSourceDetails = false
+                        showProcessing = true
+                    }
+                )
             }
             .fullScreenCover(isPresented: $showProcessing) {
                 if let videoURL = selectedVideoURL,
                    let processor = services.videoProcessor {
+                    // Pass source metadata to processor
+                    let attribution = VideoSourceAttribution(
+                        sourceURL: sourceURL.isEmpty ? nil : sourceURL,
+                        captionText: captionText.isEmpty ? nil : captionText
+                    )
+
                     VideoProcessingView(
                         processor: processor,
-                        videoURL: videoURL
+                        videoURL: videoURL,
+                        sourceAttribution: attribution
                     )
                 } else {
                     // Fallback: Services not initialized
@@ -106,6 +133,94 @@ struct VideoImportView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Video Source Details View
+
+/// Optional step to capture source link and caption text
+struct VideoSourceDetailsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var sourceURL: String
+    @Binding var captionText: String
+    let onContinue: () -> Void
+    let onSkip: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("Optional Enhancement", systemImage: "sparkles")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.blue)
+
+                        Text("If this video is from social media (Instagram, TikTok, YouTube), you can paste additional info to improve recipe extraction accuracy.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
+
+                Section {
+                    TextField("Original Post Link (optional)", text: $sourceURL, axis: .vertical)
+                        .keyboardType(.URL)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .lineLimit(2...3)
+
+                    TextField("Video Caption/Description (optional)", text: $captionText, axis: .vertical)
+                        .lineLimit(3...6)
+                } header: {
+                    Text("Source Information")
+                } footer: {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("• Link is for attribution only - displayed as \"View Original\" on recipe card")
+                        Text("• Caption text helps AI find missing ingredient quantities")
+                        Text("• Both fields are optional - skip if not applicable")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+
+                Section {
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 8) {
+                            Image(systemName: "lock.shield")
+                                .font(.title2)
+                                .foregroundStyle(.green)
+                            Text("We do NOT scrape websites")
+                                .font(.caption.bold())
+                            Text("Links are for attribution only, never used for extraction")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        Spacer()
+                    }
+                    .listRowBackground(Color(.systemGroupedBackground))
+                }
+            }
+            .navigationTitle("Video Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Skip") {
+                        onSkip()
+                        dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Continue") {
+                        onContinue()
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
                 }
             }
         }

@@ -41,7 +41,7 @@ struct VideoRecipeReviewView: View {
         // Initialize state from extraction
         _editedTitle = State(initialValue: extraction.structuredRecipe.title)
         _editedServings = State(initialValue: extraction.structuredRecipe.servings ?? "")
-        _editedIngredients = State(initialValue: extraction.structuredRecipe.ingredients)
+        _editedIngredients = State(initialValue: enhancedExtraction?.finalRecipe.ingredients ?? extraction.structuredRecipe.ingredients)
         _editedSteps = State(initialValue: extraction.structuredRecipe.steps)
 
         // Initialize attribution fields
@@ -90,24 +90,6 @@ struct VideoRecipeReviewView: View {
                     }
                 }
 
-                // Confidence warning if applicable
-                if extraction.structuredRecipe.overallConfidence < 0.7 {
-                    Section {
-                        HStack(spacing: 12) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.orange)
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Low Confidence Extraction")
-                                    .font(.subheadline.bold())
-                                Text("Some items may need review. Fields marked with ⚠️ require verification.")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                }
 
                 // Similar Recipes Augmentation Info (NEW - Week 4)
                 if let enhanced = enhancedExtraction {
@@ -221,6 +203,31 @@ struct VideoRecipeReviewView: View {
                     .disabled(!isValid)
                 }
             }
+            .onAppear {
+                // DEBUG: Log augmentation status
+                print("📊 AUGMENTATION STATUS:")
+                if let enhanced = enhancedExtraction {
+                    print("   ✅ Enhanced extraction present")
+                    if let augmented = enhanced.augmentedRecipe {
+                        print("   📝 Augmented ingredients: \(augmented.augmentedIngredients.count)")
+                        print("   🔍 With inferred quantities: \(augmented.augmentedIngredients.filter { $0.inferredQuantity != nil }.count)")
+                        print("   ❌ Without quantities: \(augmented.augmentedIngredients.filter { $0.inferredQuantity == nil }.count)")
+
+                        // List ingredients without quantities
+                        let noQty = augmented.augmentedIngredients.filter { $0.inferredQuantity == nil }
+                        if !noQty.isEmpty {
+                            print("   Ingredients with no inferred quantity:")
+                            for ing in noQty {
+                                print("      - \(ing.originalIngredient.item) (confidence: \(ing.inferredConfidence.rawValue))")
+                            }
+                        }
+                    } else {
+                        print("   ⚠️ No augmented recipe data")
+                    }
+                } else {
+                    print("   ❌ No enhanced extraction (augmentation not run)")
+                }
+            }
         }
     }
 
@@ -242,13 +249,17 @@ struct VideoRecipeReviewView: View {
             $0.originalIngredient.originalText == ingredient.originalText
         }
 
-        // Use augmented row if augmentation data exists, otherwise use basic row
-        if augmentation != nil {
+        // Use augmented row if augmentation data exists AND has inferred quantity
+        // (No point showing augmented UI if we don't have an inferred value)
+        if let augmentation = augmentation, augmentation.inferredQuantity != nil {
             AugmentedIngredientEditRow(
                 ingredient: ingredient,
                 augmentation: augmentation,
                 quantity: Binding(
-                    get: { ingredient.quantity ?? "" },
+                    get: {
+                        // Augmentation already unwrapped by outer if-let
+                        return augmentation.inferredQuantity ?? ingredient.quantity ?? ""
+                    },
                     set: { newValue in
                         editedIngredients[index] = ExtractedIngredient(
                             originalText: ingredient.originalText,
@@ -261,7 +272,10 @@ struct VideoRecipeReviewView: View {
                     }
                 ),
                 unit: Binding(
-                    get: { ingredient.unit ?? "" },
+                    get: {
+                        // Augmentation already unwrapped by outer if-let
+                        return augmentation.inferredUnit ?? ingredient.unit ?? ""
+                    },
                     set: { newValue in
                         editedIngredients[index] = ExtractedIngredient(
                             originalText: ingredient.originalText,
@@ -347,63 +361,71 @@ struct IngredientEditRow: View {
     @Binding var ingredient: ExtractedIngredient
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                TextField("Qty", text: Binding(
-                    get: { ingredient.quantity ?? "" },
-                    set: { ingredient = ExtractedIngredient(
-                        originalText: ingredient.originalText,
-                        item: ingredient.item,
-                        quantity: $0.isEmpty ? nil : $0,
-                        unit: ingredient.unit,
-                        preparation: ingredient.preparation,
-                        confidence: ingredient.confidence
-                    )}
-                ))
-                .frame(width: 60)
-                .textFieldStyle(.roundedBorder)
+        HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
+            // Circle bullet (matching RecipeImportView)
+            Image(systemName: "circle.fill")
+                .font(.system(size: 6))
+                .foregroundStyle(HeirloomColors.tomato)
+                .padding(.top, 12)
 
-                TextField("Unit", text: Binding(
-                    get: { ingredient.unit ?? "" },
-                    set: { ingredient = ExtractedIngredient(
-                        originalText: ingredient.originalText,
-                        item: ingredient.item,
-                        quantity: ingredient.quantity,
-                        unit: $0.isEmpty ? nil : $0,
-                        preparation: ingredient.preparation,
-                        confidence: ingredient.confidence
-                    )}
-                ))
-                .frame(width: 70)
-                .textFieldStyle(.roundedBorder)
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                HStack(spacing: HeirloomSpacing.xs) {
+                    TextField("Qty", text: Binding(
+                        get: { ingredient.quantity ?? "" },
+                        set: { ingredient = ExtractedIngredient(
+                            originalText: ingredient.originalText,
+                            item: ingredient.item,
+                            quantity: $0.isEmpty ? nil : $0,
+                            unit: ingredient.unit,
+                            preparation: ingredient.preparation,
+                            confidence: ingredient.confidence
+                        )}
+                    ))
+                    .frame(width: 60)
+                    .textFieldStyle(.roundedBorder)
 
-                TextField("Ingredient *", text: Binding(
-                    get: { ingredient.item },
-                    set: { ingredient = ExtractedIngredient(
-                        originalText: ingredient.originalText,
-                        item: $0,
-                        quantity: ingredient.quantity,
-                        unit: ingredient.unit,
-                        preparation: ingredient.preparation,
-                        confidence: ingredient.confidence
-                    )}
-                ))
-                .textFieldStyle(.roundedBorder)
-            }
+                    TextField("Unit", text: Binding(
+                        get: { ingredient.unit ?? "" },
+                        set: { ingredient = ExtractedIngredient(
+                            originalText: ingredient.originalText,
+                            item: ingredient.item,
+                            quantity: ingredient.quantity,
+                            unit: $0.isEmpty ? nil : $0,
+                            preparation: ingredient.preparation,
+                            confidence: ingredient.confidence
+                        )}
+                    ))
+                    .frame(width: 70)
+                    .textFieldStyle(.roundedBorder)
 
-            // Confidence indicator
-            if ingredient.needsReview {
-                HStack(spacing: 6) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundStyle(.orange)
-                        .font(.caption2)
-                    Text("Please verify - confidence: \(ingredient.confidence.displayName)")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    TextField("Ingredient *", text: Binding(
+                        get: { ingredient.item },
+                        set: { ingredient = ExtractedIngredient(
+                            originalText: ingredient.originalText,
+                            item: $0,
+                            quantity: ingredient.quantity,
+                            unit: ingredient.unit,
+                            preparation: ingredient.preparation,
+                            confidence: ingredient.confidence
+                        )}
+                    ))
+                    .textFieldStyle(.roundedBorder)
+                }
+
+                // Confidence indicator
+                if ingredient.needsReview {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundStyle(HeirloomColors.tomato)
+                            .font(.caption2)
+                        Text("Please verify - confidence: \(ingredient.confidence.displayName)")
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, HeirloomSpacing.xs)
     }
 }
 
@@ -414,12 +436,17 @@ struct StepEditRow: View {
     let number: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top) {
-                Text("\(number).")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
+        HStack(alignment: .top, spacing: HeirloomSpacing.md) {
+            // Numbered circle (matching RecipeImportView)
+            Text("\(number)")
+                .font(HeirloomFonts.bodyBold)
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+                .background(HeirloomColors.tomato)
+                .cornerRadius(14)
+                .padding(.top, 4)
 
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 TextField("Instruction *", text: Binding(
                     get: { step.instruction },
                     set: { step = ExtractedStep(
@@ -431,21 +458,22 @@ struct StepEditRow: View {
                 ), axis: .vertical)
                 .textFieldStyle(.roundedBorder)
                 .lineLimit(3...6)
-            }
+                .font(HeirloomFonts.body)
 
-            // Confidence indicator
-            if step.needsReview {
-                HStack(spacing: 6) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundStyle(.orange)
-                        .font(.caption2)
-                    Text("Please verify - confidence: \(step.confidence.displayName)")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                // Confidence indicator
+                if step.needsReview {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundStyle(HeirloomColors.tomato)
+                            .font(.caption2)
+                        Text("Please verify - confidence: \(step.confidence.displayName)")
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, HeirloomSpacing.xs)
     }
 }
 
