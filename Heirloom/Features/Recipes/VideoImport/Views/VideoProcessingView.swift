@@ -14,7 +14,7 @@ struct VideoProcessingView: View {
     @ObservedObject var processor: VideoRecipeProcessor
     let videoURL: URL
     let sourceAttribution: VideoSourceAttribution
-    let onComplete: () -> Void  // NEW: Called when recipe is saved
+    let onComplete: (Recipe) -> Void  // NEW: Called when recipe is saved, passes saved recipe
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
@@ -80,8 +80,8 @@ struct VideoProcessingView: View {
                         extraction: extraction,
                         enhancedExtraction: processor.enhancedExtraction,  // NEW: Pass augmentation data
                         onSave: { updatedExtraction in
-                            saveToSwiftData(updatedExtraction)
-                            onComplete()  // Dismiss entire flow back to recipe list
+                            let savedRecipe = saveToSwiftData(updatedExtraction)
+                            onComplete(savedRecipe)  // Pass recipe to show detail view
                         },
                         onCancel: {
                             dismiss()
@@ -131,7 +131,7 @@ struct VideoProcessingView: View {
 
     // MARK: - Save to SwiftData
 
-    private func saveToSwiftData(_ extraction: VideoRecipeExtraction) {
+    private func saveToSwiftData(_ extraction: VideoRecipeExtraction) -> Recipe {
         let recipe = Recipe(
             title: extraction.structuredRecipe.title,
             sourceType: .manual,  // Mark as manual since they reviewed/edited
@@ -188,6 +188,8 @@ struct VideoProcessingView: View {
         } catch {
             print("❌ Failed to save recipe: \(error)")
         }
+
+        return recipe
     }
 }
 

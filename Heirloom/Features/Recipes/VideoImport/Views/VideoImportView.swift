@@ -14,12 +14,15 @@ import UIKit
 struct VideoImportView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var notificationService: FirebaseNotificationService
     @State private var selectedVideoURL: URL?
     @State private var showVideoPicker = false
     @State private var showSourceDetails = false
     @State private var showProcessing = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @State private var savedRecipe: Recipe?  // NEW: Recipe to show after save
+    @State private var navigateToRecipe = false  // NEW: Navigation trigger
 
     // Optional source metadata
     @State private var sourceURL: String = ""
@@ -138,11 +141,21 @@ struct VideoImportView: View {
                         videoURL: videoURL,
                         sourceAttribution: attribution,
                         modelContext: modelContext,
-                        onComplete: {
+                        onComplete: { recipe in
+                            savedRecipe = recipe
                             showProcessing = false
-                            dismiss()  // Dismiss VideoImportView back to recipe list
+                            navigateToRecipe = true
                         }
                     )
+                }
+            }
+            .navigationDestination(isPresented: $navigateToRecipe) {
+                if let recipe = savedRecipe {
+                    RecipeDetailView(recipe: recipe)
+                        .environmentObject(notificationService)
+                        .onDisappear {
+                            dismiss()  // Dismiss VideoImportView when recipe detail is closed
+                        }
                 }
             }
         }
@@ -359,7 +372,7 @@ struct VideoProcessingContainerView: View {
     let videoURL: URL
     let sourceAttribution: VideoSourceAttribution
     let modelContext: ModelContext
-    let onComplete: () -> Void  // NEW: Called when recipe is saved
+    let onComplete: (Recipe) -> Void  // NEW: Called when recipe is saved, passes recipe
 
     @State private var processor: VideoRecipeProcessor?
     @State private var isInitializing = true
