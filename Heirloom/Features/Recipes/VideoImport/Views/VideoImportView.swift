@@ -18,6 +18,8 @@ struct VideoImportView: View {
     @State private var showVideoPicker = false
     @State private var showSourceDetails = false
     @State private var showProcessing = false
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
 
     // Optional source metadata
     @State private var sourceURL: String = ""
@@ -91,7 +93,18 @@ struct VideoImportView: View {
                 }
             }
             .sheet(isPresented: $showVideoPicker) {
-                VideoPickerView(selectedURL: $selectedVideoURL)
+                VideoPickerView(
+                    selectedURL: $selectedVideoURL,
+                    onError: { error in
+                        errorMessage = error
+                        showErrorAlert = true
+                    }
+                )
+            }
+            .alert("Video Loading Failed", isPresented: $showErrorAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
             }
             .onChange(of: selectedVideoURL) { _, newURL in
                 if newURL != nil {
@@ -124,7 +137,11 @@ struct VideoImportView: View {
                     VideoProcessingContainerView(
                         videoURL: videoURL,
                         sourceAttribution: attribution,
-                        modelContext: modelContext
+                        modelContext: modelContext,
+                        onComplete: {
+                            showProcessing = false
+                            dismiss()  // Dismiss VideoImportView back to recipe list
+                        }
                     )
                 }
             }
@@ -261,12 +278,14 @@ struct SourceOptionRow: View {
 
 struct VideoPickerView: UIViewControllerRepresentable {
     @Binding var selectedURL: URL?
+    let onError: (String) -> Void
     @Environment(\.dismiss) private var dismiss
 
     func makeUIViewController(context: Context) -> PHPickerViewController {
-        var config = PHPickerConfiguration()
+        var config = PHPickerConfiguration(photoLibrary: .shared())
         config.selectionLimit = 1
         config.filter = .videos
+        config.preferredAssetRepresentationMode = .current  // Force download from iCloud if needed
 
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = context.coordinator
@@ -291,25 +310,42 @@ struct VideoPickerView: UIViewControllerRepresentable {
 
             guard let result = results.first else { return }
 
-            // Load video as file URL
-            result.itemProvider.loadFileRepresentation(forTypeIdentifier: "public.movie") { url, error in
-                guard let url = url else {
-                    print("Failed to load video: \(error?.localizedDescription ?? "Unknown")")
+            // Try to load as data (more reliable in simulator and with iCloud videos)
+            result.itemProvider.loadDataRepresentation(forTypeIdentifier: "public.movie") { data, error in
+                guard let data = data else {
+                    let errorMsg: String
+                    if let error = error as NSError? {
+                        if error.domain == "CloudPhotoLibraryErrorDomain" ||
+                           error.code == 1006 ||
+                           error.localizedDescription.contains("iCloud") {
+                            errorMsg = "This video is stored in iCloud and couldn't be downloaded. Please ensure the video is fully downloaded to your device and try again."
+                        } else {
+                            errorMsg = "Failed to load video: \(error.localizedDescription)"
+                        }
+                    } else {
+                        errorMsg = "Failed to load video. Please try another video."
+                    }
+
+                    DispatchQueue.main.async {
+                        self.parent.onError(errorMsg)
+                    }
                     return
                 }
 
-                // Copy to temp location (original URL is temporary)
+                // Write data to temp file
                 let tempURL = FileManager.default.temporaryDirectory
                     .appendingPathComponent(UUID().uuidString)
-                    .appendingPathExtension(url.pathExtension)
+                    .appendingPathExtension("mov")
 
                 do {
-                    try FileManager.default.copyItem(at: url, to: tempURL)
+                    try data.write(to: tempURL)
                     DispatchQueue.main.async {
                         self.parent.selectedURL = tempURL
                     }
                 } catch {
-                    print("Failed to copy video: \(error)")
+                    DispatchQueue.main.async {
+                        self.parent.onError("Failed to save video: \(error.localizedDescription)")
+                    }
                 }
             }
         }
@@ -323,6 +359,7 @@ struct VideoProcessingContainerView: View {
     let videoURL: URL
     let sourceAttribution: VideoSourceAttribution
     let modelContext: ModelContext
+    let onComplete: () -> Void  // NEW: Called when recipe is saved
 
     @State private var processor: VideoRecipeProcessor?
     @State private var isInitializing = true
@@ -333,7 +370,8 @@ struct VideoProcessingContainerView: View {
                 VideoProcessingView(
                     processor: processor,
                     videoURL: videoURL,
-                    sourceAttribution: sourceAttribution
+                    sourceAttribution: sourceAttribution,
+                    onComplete: onComplete
                 )
             } else {
                 // Show loading while initializing
@@ -351,31 +389,24 @@ struct VideoProcessingContainerView: View {
     }
 
     private func initializeProcessor() async {
-        do {
-            // Initialize services
-            let aiService = ServiceContainer.shared.resolve(AnthropicAIService.self)
-            let transcriptionService = await WhisperKitTranscriptionService()
-            let recipeStructurer = ClaudeRecipeStructurer(aiService: aiService)
+        // Initialize services
+        let aiService = ServiceContainer.shared.resolve(AnthropicAIService.self)
+        let transcriptionService = await WhisperKitTranscriptionService()
+        let recipeStructurer = ClaudeRecipeStructurer(aiService: aiService)
 
-            let newProcessor = VideoRecipeProcessor(
-                transcriptionService: transcriptionService,
-                recipeStructurer: recipeStructurer,
-                modelContext: modelContext,
-                aiService: aiService,
-                enableFrameAnalysis: true,
-                enableCaching: true,
-                enableAugmentation: true
-            )
+        let newProcessor = VideoRecipeProcessor(
+            transcriptionService: transcriptionService,
+            recipeStructurer: recipeStructurer,
+            modelContext: modelContext,
+            aiService: aiService,
+            enableFrameAnalysis: true,
+            enableCaching: true,
+            enableAugmentation: true
+        )
 
-            await MainActor.run {
-                self.processor = newProcessor
-                self.isInitializing = false
-            }
-        } catch {
-            print("Failed to initialize processor: \(error)")
-            await MainActor.run {
-                self.isInitializing = false
-            }
+        await MainActor.run {
+            self.processor = newProcessor
+            self.isInitializing = false
         }
     }
 }

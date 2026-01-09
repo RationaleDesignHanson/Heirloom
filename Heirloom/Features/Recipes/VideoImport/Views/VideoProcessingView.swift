@@ -14,6 +14,7 @@ struct VideoProcessingView: View {
     @ObservedObject var processor: VideoRecipeProcessor
     let videoURL: URL
     let sourceAttribution: VideoSourceAttribution
+    let onComplete: () -> Void  // NEW: Called when recipe is saved
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
@@ -80,7 +81,7 @@ struct VideoProcessingView: View {
                         enhancedExtraction: processor.enhancedExtraction,  // NEW: Pass augmentation data
                         onSave: { updatedExtraction in
                             saveToSwiftData(updatedExtraction)
-                            dismiss()
+                            onComplete()  // Dismiss entire flow back to recipe list
                         },
                         onCancel: {
                             dismiss()

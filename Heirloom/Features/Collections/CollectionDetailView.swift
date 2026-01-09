@@ -11,6 +11,7 @@ struct CollectionDetailView: View {
     @State private var showImportRecipe = false
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
+    @State private var showVideoImport = false
     @State private var showDeleteConfirmation = false
 
     @Query private var allRecipes: [Recipe]
@@ -70,6 +71,7 @@ struct CollectionDetailView: View {
                     onImportRecipe: { showImportRecipe = true },
                     onBulkImport: { showBulkImport = true },
                     onCookbookScanner: { showCookbookScanner = true },
+                    onVideoImport: { showVideoImport = true },
                     onAddCollection: {}, // Not applicable within a collection detail view
                     onAddNormalSample: addNormalSampleRecipe,
                     onAddHeritageSample: addHeritageSampleRecipe
@@ -99,6 +101,9 @@ struct CollectionDetailView: View {
         }
         .sheet(isPresented: $showCookbookScanner) {
             CookbookScannerView()
+        }
+        .sheet(isPresented: $showVideoImport) {
+            VideoImportView()
         }
         .confirmationDialog(
             "Delete \(collection.name)?",
