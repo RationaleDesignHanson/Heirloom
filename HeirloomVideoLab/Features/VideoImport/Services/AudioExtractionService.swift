@@ -55,11 +55,12 @@ class AudioExtractionService: AudioExtractionServiceProtocol {
         exportSession.outputFileType = .m4a
 
         // Export asynchronously
-        // TODO: Update to new iOS 18+ export(to:as:) API when min deployment target increases
+        // Note: Using iOS 16+ compatible API. Will migrate to export(to:as:) when min target is iOS 18+
         if #available(iOS 18.0, *) {
-            // Suppress deprecation warnings for now - we support iOS 16+
-            await exportSession.export()
+            // Use new iOS 18+ API (no deprecation)
+            try await exportSession.export(to: outputURL, as: .m4a)
         } else {
+            // Fallback for iOS 16-17
             await exportSession.export()
         }
 
@@ -68,8 +69,10 @@ class AudioExtractionService: AudioExtractionServiceProtocol {
         case .completed:
             return outputURL
         case .failed:
-            let error = exportSession.error
-            throw AudioExtractionError.exportFailed(error)
+            if let error = exportSession.error {
+                throw AudioExtractionError.exportFailed(error)
+            }
+            throw AudioExtractionError.exportFailed(nil)
         case .cancelled:
             throw VideoImportError.cancelled
         default:

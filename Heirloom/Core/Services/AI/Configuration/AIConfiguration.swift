@@ -1,5 +1,6 @@
 import Foundation
 import Security
+import Combine
 
 /// AI service configuration and API key management
 /// Adapted from Zero Inbox's environment variable pattern

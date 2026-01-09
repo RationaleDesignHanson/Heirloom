@@ -10,6 +10,7 @@
 import Foundation
 import AVFoundation
 import UIKit
+import Combine
 
 // MARK: - Mock Audio Extractor
 
@@ -268,11 +269,10 @@ class MockRecipeStructurer: RecipeStructurerProtocol {
 // MARK: - Mock Video Recipe Processor
 
 @MainActor
-@Observable
-class MockVideoRecipeProcessor: VideoRecipeProcessorProtocol {
-    var state: ProcessingState = .idle
-    var progress: Double = 0.0
-    var canCancel: Bool = false
+class MockVideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
+    @Published var state: ProcessingState = .idle
+    @Published var progress: Double = 0.0
+    @Published var canCancel: Bool = false
 
     private var processingTask: Task<Void, Never>?
 

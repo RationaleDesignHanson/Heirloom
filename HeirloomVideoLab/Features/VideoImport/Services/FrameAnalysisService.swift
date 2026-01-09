@@ -35,15 +35,31 @@ class FrameAnalysisService: FrameAnalysisServiceProtocol {
 
         // Extract frames
         var frames: [UIImage] = []
-        for time in times {
-            autoreleasepool {
+
+        if #available(iOS 18.0, *) {
+            // Use new iOS 18+ async API (no deprecation)
+            for time in times {
                 do {
-                    let cgImage = try generator.copyCGImage(at: time, actualTime: nil)
+                    let (cgImage, _) = try await generator.image(at: time)
                     let uiImage = UIImage(cgImage: cgImage)
                     frames.append(uiImage)
                 } catch {
                     // Skip failed frames, don't fail entire extraction
                     print("Failed to extract frame at \(time.seconds)s: \(error)")
+                }
+            }
+        } else {
+            // Fallback for iOS 16-17
+            for time in times {
+                autoreleasepool {
+                    do {
+                        let cgImage = try generator.copyCGImage(at: time, actualTime: nil)
+                        let uiImage = UIImage(cgImage: cgImage)
+                        frames.append(uiImage)
+                    } catch {
+                        // Skip failed frames, don't fail entire extraction
+                        print("Failed to extract frame at \(time.seconds)s: \(error)")
+                    }
                 }
             }
         }

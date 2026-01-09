@@ -9,60 +9,8 @@
 
 import Foundation
 
-// MARK: - Placeholder AIService Protocol
-// This will be replaced by actual AnthropicAIService when Core/Services linked
-
-/// Placeholder for AIServiceProtocol
-/// Real implementation in: Heirloom/Core/Services/AI/Protocols/AIServiceProtocol.swift
-@MainActor
-protocol AIServiceProtocol {
-    func complete(
-        prompt: String,
-        systemPrompt: String?,
-        options: AICompletionOptions?
-    ) async throws -> AICompletionResponse
-}
-
-struct AICompletionOptions {
-    let model: String
-    let temperature: Double
-    let maxTokens: Int
-}
-
-struct AICompletionResponse {
-    let text: String
-    let usage: TokenUsage
-
-    struct TokenUsage {
-        let inputTokens: Int
-        let outputTokens: Int
-    }
-}
-
-/// Placeholder for AIConfiguration
-@MainActor
-class AIConfiguration {
-    static let shared = AIConfiguration()
-
-    func model(for task: AITask) -> String {
-        switch task {
-        case .vision:
-            return "claude-3-5-sonnet-20241022"
-        case .parsing:
-            return "claude-3-haiku-20240307"
-        default:
-            return "claude-3-haiku-20240307"
-        }
-    }
-}
-
-enum AITask {
-    case vision
-    case parsing
-    case categorization
-}
-
 // MARK: - Claude Recipe Structurer
+// Uses real AIServiceProtocol and AIConfiguration from Core/Services/AI/
 
 @MainActor
 class ClaudeRecipeStructurer: RecipeStructurerProtocol {
@@ -91,15 +39,16 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
         let prompt = buildPrompt(transcript: transcript, visualElements: visualElements)
 
         let options = AICompletionOptions(
-            model: AIConfiguration.shared.model(for: .vision),
+            model: "claude-sonnet-4-20250514",  // Claude Sonnet 4 with vision
             temperature: 0.3,  // Lower temperature for structured extraction
-            maxTokens: 2048
+            maxTokens: 2048,
+            systemMessage: systemPrompt,
+            stopSequences: nil
         )
 
         do {
             let response = try await aiService.complete(
                 prompt: prompt,
-                systemPrompt: systemPrompt,
                 options: options
             )
 
@@ -110,7 +59,7 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
             )
 
             // Parse JSON response
-            return try parseRecipeJSON(response.text)
+            return try parseRecipeJSON(response.content)
 
         } catch {
             throw VideoImportError.recipeStructuringFailed(underlying: error)
@@ -127,7 +76,9 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
         - Extract ALL ingredients mentioned, even if quantities are imprecise
         - Convert colloquial measurements to standard units where possible
         - Mark confidence level for each extracted item based on how clearly it was stated
-        - If a measurement is unclear, use "to taste" or provide a reasonable estimate with low confidence
+        - **CRITICAL**: Leave quantity as null (empty) if not clearly stated - DO NOT default to "to taste"
+        - Only use "to taste" for true seasonings (salt, pepper) where personal preference matters
+        - For other ingredients with vague quantities, leave quantity as null so AI augmentation can infer from similar recipes
         - Preserve the original spoken text for reference
         - Steps should be actionable and in logical order
         - Include timing and temperature information when mentioned
@@ -137,16 +88,21 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
         - "a pinch" → "1/16 tsp" (medium confidence)
         - "a handful" → "1/2 cup" for dry ingredients (approximate confidence)
         - "a dollop" → "1-2 tbsp" (approximate confidence)
-        - "some" / "a bit" → "to taste" (inferred confidence)
         - "a knob" (butter) → "1-2 tbsp" (approximate confidence)
         - "a splash" → "1-2 tbsp" (approximate confidence)
+
+        HANDLING VAGUE QUANTITIES:
+        - "some flour" → quantity: null (unknown confidence) - augmentation will infer
+        - "a bit of honey" → quantity: null (unknown confidence) - augmentation will infer
+        - "salt" or "pepper" → quantity: "to taste" (inferred confidence) - these are seasonings
+        - "cooking spray" → quantity: "as needed" (inferred confidence)
 
         CONFIDENCE LEVELS:
         - explicit: Clearly stated with specific measurement (e.g., "2 cups of flour")
         - visual: Confirmed by on-screen text or visual demonstration
         - inferred: Derived from context or standard recipes (e.g., "eggs" → likely "2 eggs" for cookies)
         - approximate: Converted from imprecise description (e.g., "a handful" → "1/2 cup")
-        - unknown: Mentioned but no quantity given (e.g., "add salt")
+        - unknown: Mentioned but no quantity given (quantity should be null, not "to taste")
 
         RESPOND ONLY WITH VALID JSON matching the provided schema. No additional text before or after.
         """
@@ -186,7 +142,7 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
                 {
                     "originalText": "string - exact words from transcript",
                     "item": "string - ingredient name (e.g., 'all-purpose flour')",
-                    "quantity": "string or null - amount (e.g., '2', '1/2', 'to taste')",
+                    "quantity": "string or null - MUST be null if not clearly stated (augmentation will infer). Use 'to taste' ONLY for salt/pepper",
                     "unit": "string or null - unit (e.g., 'cups', 'teaspoons', null for count)",
                     "preparation": "string or null - e.g., 'diced', 'room temperature', 'sifted'",
                     "confidence": "explicit|visual|inferred|approximate|unknown"

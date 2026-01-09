@@ -186,6 +186,7 @@ enum ProcessingState {
     case transcribing(progress: Double)
     case analyzingFrames
     case structuringRecipe
+    case augmentingWithSimilarRecipes  // NEW: Step 5.5
     case reviewing(StructuredRecipe)
     case completed
     case failed(String)  // Error message
@@ -197,6 +198,7 @@ enum ProcessingState {
         case .transcribing: return "Transcribing Video"
         case .analyzingFrames: return "Analyzing Frames"
         case .structuringRecipe: return "Creating Recipe"
+        case .augmentingWithSimilarRecipes: return "Finding Similar Recipes"
         case .reviewing: return "Review Recipe"
         case .completed: return "Complete"
         case .failed: return "Error"
@@ -214,6 +216,7 @@ enum ProcessingState {
             return "This may take a few minutes for longer videos"
         case .analyzingFrames: return "Looking for on-screen text..."
         case .structuringRecipe: return "Organizing ingredients and steps..."
+        case .augmentingWithSimilarRecipes: return "Improving recipe accuracy with similar recipes..."
         case .reviewing: return "Review the extracted recipe before saving"
         case .completed: return "Recipe ready to save"
         case .failed(let error): return error
@@ -223,7 +226,7 @@ enum ProcessingState {
 
 /// Master coordinator for video recipe processing
 @MainActor
-protocol VideoRecipeProcessorProtocol {
+protocol VideoRecipeProcessorProtocol: ObservableObject {
     /// Current processing state
     var state: ProcessingState { get }
 

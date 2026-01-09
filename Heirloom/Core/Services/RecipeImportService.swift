@@ -1,5 +1,6 @@
 import Foundation
 import SwiftSoup
+import UIKit
 
 /// Service for importing recipes from URLs
 class RecipeImportService {

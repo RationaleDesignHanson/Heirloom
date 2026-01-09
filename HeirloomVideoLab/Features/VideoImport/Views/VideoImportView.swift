@@ -11,10 +11,10 @@ import PhotosUI
 
 struct VideoImportView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var services: VideoLabServiceContainer
     @State private var selectedVideoURL: URL?
     @State private var showVideoPicker = false
     @State private var showProcessing = false
-    @State private var processor = MockVideoRecipeProcessor()
 
     var body: some View {
         NavigationStack {
@@ -92,11 +92,20 @@ struct VideoImportView: View {
                 }
             }
             .fullScreenCover(isPresented: $showProcessing) {
-                if let videoURL = selectedVideoURL {
+                if let videoURL = selectedVideoURL,
+                   let processor = services.videoProcessor {
                     VideoProcessingView(
                         processor: processor,
                         videoURL: videoURL
                     )
+                } else {
+                    // Fallback: Services not initialized
+                    VStack(spacing: 16) {
+                        ProgressView()
+                        Text("Initializing video processor...")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }

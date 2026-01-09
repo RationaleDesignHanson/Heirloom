@@ -10,6 +10,7 @@ import SwiftUI
 
 struct VideoRecipeReviewView: View {
     let extraction: VideoRecipeExtraction
+    let enhancedExtraction: VideoRecipeExtraction.Enhanced?  // NEW: Augmentation data
     let onSave: (VideoRecipeExtraction) -> Void
     let onCancel: () -> Void
 
@@ -26,8 +27,14 @@ struct VideoRecipeReviewView: View {
 
     @State private var showTranscript = false
 
-    init(extraction: VideoRecipeExtraction, onSave: @escaping (VideoRecipeExtraction) -> Void, onCancel: @escaping () -> Void) {
+    init(
+        extraction: VideoRecipeExtraction,
+        enhancedExtraction: VideoRecipeExtraction.Enhanced? = nil,  // NEW
+        onSave: @escaping (VideoRecipeExtraction) -> Void,
+        onCancel: @escaping () -> Void
+    ) {
         self.extraction = extraction
+        self.enhancedExtraction = enhancedExtraction
         self.onSave = onSave
         self.onCancel = onCancel
 
@@ -102,6 +109,17 @@ struct VideoRecipeReviewView: View {
                     }
                 }
 
+                // Similar Recipes Augmentation Info (NEW - Week 4)
+                if let enhanced = enhancedExtraction {
+                    Section {
+                        SimilarRecipesInfoView(
+                            augmentedRecipe: enhanced.augmentedRecipe,
+                            similarRecipes: enhanced.similarRecipes,
+                            webRecipes: enhanced.webRecipes
+                        )
+                    }
+                }
+
                 // Title and Servings
                 Section("Recipe Details") {
                     TextField("Recipe Name *", text: $editedTitle)
@@ -110,10 +128,10 @@ struct VideoRecipeReviewView: View {
                     TextField("Servings (optional)", text: $editedServings)
                 }
 
-                // Ingredients
+                // Ingredients (with augmentation support)
                 Section {
                     ForEach(editedIngredients.indices, id: \.self) { index in
-                        IngredientEditRow(ingredient: $editedIngredients[index])
+                        ingredientRow(for: index)
                     }
                     .onDelete { indices in
                         editedIngredients.remove(atOffsets: indices)
@@ -211,6 +229,67 @@ struct VideoRecipeReviewView: View {
         !creatorName.trimmingCharacters(in: .whitespaces).isEmpty &&
         !editedIngredients.isEmpty &&
         !editedSteps.isEmpty
+    }
+
+    // MARK: - Ingredient Row Builder
+
+    @ViewBuilder
+    private func ingredientRow(for index: Int) -> some View {
+        let ingredient = editedIngredients[index]
+
+        // Find augmentation data for this ingredient (if available)
+        let augmentation = enhancedExtraction?.augmentedRecipe?.augmentedIngredients.first {
+            $0.originalIngredient.originalText == ingredient.originalText
+        }
+
+        // Use augmented row if augmentation data exists, otherwise use basic row
+        if augmentation != nil {
+            AugmentedIngredientEditRow(
+                ingredient: ingredient,
+                augmentation: augmentation,
+                quantity: Binding(
+                    get: { ingredient.quantity ?? "" },
+                    set: { newValue in
+                        editedIngredients[index] = ExtractedIngredient(
+                            originalText: ingredient.originalText,
+                            item: ingredient.item,
+                            quantity: newValue.isEmpty ? nil : newValue,
+                            unit: ingredient.unit,
+                            preparation: ingredient.preparation,
+                            confidence: ingredient.confidence
+                        )
+                    }
+                ),
+                unit: Binding(
+                    get: { ingredient.unit ?? "" },
+                    set: { newValue in
+                        editedIngredients[index] = ExtractedIngredient(
+                            originalText: ingredient.originalText,
+                            item: ingredient.item,
+                            quantity: ingredient.quantity,
+                            unit: newValue.isEmpty ? nil : newValue,
+                            preparation: ingredient.preparation,
+                            confidence: ingredient.confidence
+                        )
+                    }
+                ),
+                name: Binding(
+                    get: { ingredient.item },
+                    set: { newValue in
+                        editedIngredients[index] = ExtractedIngredient(
+                            originalText: ingredient.originalText,
+                            item: newValue,
+                            quantity: ingredient.quantity,
+                            unit: ingredient.unit,
+                            preparation: ingredient.preparation,
+                            confidence: ingredient.confidence
+                        )
+                    }
+                )
+            )
+        } else {
+            IngredientEditRow(ingredient: $editedIngredients[index])
+        }
     }
 
     private func saveRecipe() {
@@ -429,6 +508,7 @@ struct StepEditRow: View {
 
     return VideoRecipeReviewView(
         extraction: mockExtraction,
+        enhancedExtraction: nil,  // Can add mock enhanced extraction if needed
         onSave: { _ in },
         onCancel: {}
     )

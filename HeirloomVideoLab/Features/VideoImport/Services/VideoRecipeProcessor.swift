@@ -5,17 +5,19 @@
 //  Created by Claude on 1/8/26.
 //
 //  Production coordinator for video-to-recipe processing pipeline
-//  Orchestrates: Audio Extraction → Transcription → Frame Analysis → Recipe Structuring
+//  Orchestrates: Audio Extraction → Transcription → Frame Analysis → Recipe Structuring → Augmentation
 
 import Foundation
 import CryptoKit
+import Combine
+import SwiftData
 
 @MainActor
-@Observable
-class VideoRecipeProcessor: VideoRecipeProcessorProtocol {
-    var state: ProcessingState = .idle
-    var progress: Double = 0.0
-    var canCancel: Bool = false
+class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
+    @Published var state: ProcessingState = .idle
+    @Published var progress: Double = 0.0
+    @Published var canCancel: Bool = false
+    @Published var enhancedExtraction: VideoRecipeExtraction.Enhanced? = nil  // NEW: Augmentation data
 
     private var processingTask: Task<Void, Error>?
     private let cache = VideoProcessingCache.shared
@@ -26,40 +28,57 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol {
     private let frameAnalyzer: FrameAnalysisServiceProtocol
     private let recipeStructurer: RecipeStructurerProtocol
 
+    // Augmentation services (Week 4)
+    private let modelContext: ModelContext?
+    private let aiService: AIServiceProtocol?
+
     // Configuration
     private let enableFrameAnalysis: Bool
     private let enableCaching: Bool
+    private let enableAugmentation: Bool
 
     init(
         audioExtractor: AudioExtractionServiceProtocol,
         transcriptionService: TranscriptionServiceProtocol,
         frameAnalyzer: FrameAnalysisServiceProtocol,
         recipeStructurer: RecipeStructurerProtocol,
+        modelContext: ModelContext? = nil,
+        aiService: AIServiceProtocol? = nil,
         enableFrameAnalysis: Bool = true,
-        enableCaching: Bool = true
+        enableCaching: Bool = true,
+        enableAugmentation: Bool = true
     ) {
         self.audioExtractor = audioExtractor
         self.transcriptionService = transcriptionService
         self.frameAnalyzer = frameAnalyzer
         self.recipeStructurer = recipeStructurer
+        self.modelContext = modelContext
+        self.aiService = aiService
         self.enableFrameAnalysis = enableFrameAnalysis
         self.enableCaching = enableCaching
+        self.enableAugmentation = enableAugmentation
     }
 
     /// Convenience initializer with default service implementations
     convenience init(
         transcriptionService: TranscriptionServiceProtocol,
         recipeStructurer: RecipeStructurerProtocol,
+        modelContext: ModelContext? = nil,
+        aiService: AIServiceProtocol? = nil,
         enableFrameAnalysis: Bool = true,
-        enableCaching: Bool = true
+        enableCaching: Bool = true,
+        enableAugmentation: Bool = true
     ) {
         self.init(
             audioExtractor: AudioExtractionService(),
             transcriptionService: transcriptionService,
             frameAnalyzer: FrameAnalysisService(),
             recipeStructurer: recipeStructurer,
+            modelContext: modelContext,
+            aiService: aiService,
             enableFrameAnalysis: enableFrameAnalysis,
-            enableCaching: enableCaching
+            enableCaching: enableCaching,
+            enableAugmentation: enableAugmentation
         )
     }
 
@@ -131,6 +150,58 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol {
                 visualElements: visualElements
             )
 
+            progress = 0.92
+
+            // Step 5.5: Augment with similar recipes (NEW - Week 4)
+            var augmentedRecipe: AugmentedRecipe? = nil
+            var similarRecipes: [SimilarRecipeMatch] = []
+            var webRecipes: [WebRecipeResult] = []
+
+            if shouldPerformAugmentation(structuredRecipe: structuredRecipe) {
+                state = .augmentingWithSimilarRecipes
+                progress = 0.93
+
+                do {
+                    // Find similar recipes locally
+                    if let context = modelContext {
+                        let similarityService = LocalRecipeSimilarityService(modelContext: context)
+                        similarRecipes = try await similarityService.findSimilarRecipes(
+                            to: structuredRecipe,
+                            limit: 5
+                        )
+                        print("🔍 Found \(similarRecipes.count) similar local recipes")
+                    }
+
+                    // Search web for similar recipes (if local results < 3)
+                    if similarRecipes.count < 3 {
+                        let webSearchService = WebRecipeSearchService()
+                        webRecipes = try await webSearchService.searchSimilarRecipes(
+                            for: structuredRecipe
+                        )
+                        print("🌐 Found \(webRecipes.count) similar web recipes")
+                    }
+
+                    // Augment recipe with AI (if we have similar recipes and AI service)
+                    if (!similarRecipes.isEmpty || !webRecipes.isEmpty), let aiSvc = aiService {
+                        let augmentationService = RecipeAugmentationService(aiService: aiSvc)
+                        augmentedRecipe = try await augmentationService.augment(
+                            structuredRecipe,
+                            similarRecipes: similarRecipes,
+                            webRecipes: webRecipes
+                        )
+                        print("✨ Augmentation complete: \(augmentedRecipe?.augmentedIngredients.count ?? 0) ingredients enhanced")
+                    }
+                } catch {
+                    // Augmentation is optional - log error but continue
+                    print("⚠️ Augmentation failed, continuing without: \(error.localizedDescription)")
+                }
+
+                progress = 0.95
+                try Task.checkCancellation()
+            } else {
+                print("ℹ️ Skipping augmentation - recipe already has good confidence")
+            }
+
             progress = 1.0
 
             // Step 6: Calculate processing metadata
@@ -172,6 +243,17 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol {
                 estimatedCost: estimatedCost
             )
 
+            // Create enhanced extraction with augmentation data
+            let enhanced = VideoRecipeExtraction.Enhanced(
+                original: extraction,
+                augmentedRecipe: augmentedRecipe,
+                similarRecipes: similarRecipes,
+                webRecipes: webRecipes
+            )
+
+            // Store enhanced extraction for UI access
+            self.enhancedExtraction = enhanced
+
             // Cache extraction
             if enableCaching {
                 await cache.cacheExtraction(extraction, forVideoHash: videoHash)
@@ -180,8 +262,8 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol {
             // Cleanup temporary audio file
             AudioExtractionService.cleanupTemporaryAudio(at: audioURL)
 
-            // Transition to review state
-            state = .reviewing(structuredRecipe)
+            // Transition to review state (use augmented recipe if available)
+            state = .reviewing(enhanced.finalRecipe)
 
             return extraction
 
@@ -209,6 +291,25 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol {
         // Skip frame analysis if transcript is very high quality
         // This saves ~30 seconds and improves user experience
         return transcriptConfidence < 0.85
+    }
+
+    private func shouldPerformAugmentation(structuredRecipe: StructuredRecipe) -> Bool {
+        guard enableAugmentation else { return false }
+
+        // Augmentation requires ModelContext and AI service
+        guard modelContext != nil, aiService != nil else {
+            return false
+        }
+
+        // Only augment if there are low-confidence ingredients
+        let lowConfidenceIngredients = structuredRecipe.ingredients.filter { ingredient in
+            ingredient.confidence == .approximate ||
+            ingredient.confidence == .unknown ||
+            ingredient.quantity == nil
+        }
+
+        // Require at least 2 ingredients needing help to make augmentation worthwhile
+        return lowConfidenceIngredients.count >= 2
     }
 
     private func calculateCost(transcriptLength: Int, usedFrameAnalysis: Bool) -> Decimal {

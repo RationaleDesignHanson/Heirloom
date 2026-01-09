@@ -5,43 +5,9 @@
 //  Created by Claude on 1/8/26.
 //
 //  On-device transcription using WhisperKit
-//  NOTE: Using mock implementation until WhisperKit package dependencies resolve
 
 import Foundation
-// TODO: Uncomment when WhisperKit is properly configured
-// import WhisperKit
-
-// MARK: - Mock WhisperKit (Temporary)
-// Remove this section when real WhisperKit is working
-
-class WhisperKit {
-    init(model: String) async throws {
-        print("Mock WhisperKit initialized with model: \(model)")
-    }
-
-    func transcribe(audioPath: String) async throws -> MockTranscriptionResult? {
-        // Simulate transcription delay
-        try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
-
-        return MockTranscriptionResult(
-            text: "Mock transcription: This is a simulated transcript from WhisperKit.",
-            segments: [],
-            language: "en"
-        )
-    }
-}
-
-struct MockTranscriptionResult {
-    let text: String
-    let segments: [MockSegment]
-    let language: String
-}
-
-struct MockSegment {
-    let text: String
-    let start: TimeInterval
-    let end: TimeInterval
-}
+import WhisperKit
 
 // MARK: - Transcription Errors
 
@@ -90,31 +56,56 @@ class WhisperKitTranscriptionService: TranscriptionServiceProtocol {
             throw VideoImportError.transcriptionUnavailable
         }
 
-        // Transcribe audio file
-        let result = try await whisper.transcribe(audioPath: audioURL.path)
+        // Transcribe audio file - WhisperKit returns array of results
+        let results = try await whisper.transcribe(audioPath: audioURL.path)
+
+        guard let result = results.first else {
+            throw VideoImportError.transcriptionFailed(
+                underlying: TranscriptionError.transcriptionFailed
+            )
+        }
 
         // Convert WhisperKit result to our format
-        let segments = (result?.segments ?? []).map { segment in
+        let segments = result.segments.map { segment in
             TranscriptSegment(
                 text: segment.text,
-                startTime: segment.start,
-                endTime: segment.end
+                startTime: TimeInterval(segment.start),
+                endTime: TimeInterval(segment.end)
             )
         }
 
         // Get transcript text
-        let text = result?.text ?? "Mock transcription result"
+        let text = result.text
 
-        // Estimate confidence (mock returns moderate confidence)
-        let confidence = 0.75
+        // Estimate confidence based on result quality
+        // WhisperKit doesn't provide direct confidence, use heuristics
+        let confidence = estimateConfidence(fromText: text, segments: segments)
 
         return TranscriptionResult(
             text: text,
             segments: segments,
             confidence: confidence,
             provider: .whisperKit,
-            language: result?.language ?? "en"
+            language: result.language
         )
+    }
+
+    // MARK: - Confidence Estimation
+
+    /// Estimate transcription confidence from result quality
+    private func estimateConfidence(fromText text: String, segments: [TranscriptSegment]) -> Double {
+        // WhisperKit doesn't provide confidence scores
+        // Use text length and segment count as proxy for quality
+        let hasContent = !text.isEmpty && text.count > 10
+        let hasSegments = !segments.isEmpty
+
+        if hasContent && hasSegments {
+            return 0.8  // Good confidence
+        } else if hasContent {
+            return 0.6  // Moderate confidence
+        } else {
+            return 0.4  // Low confidence
+        }
     }
 
     // MARK: - Model Selection

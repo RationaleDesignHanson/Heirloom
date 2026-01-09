@@ -193,14 +193,14 @@ extension View {
 // MARK: - Preview
 #Preview {
     let toastManager = ToastManager()
-    return VStack(spacing: HeirloomSpacing.lg) {
+    VStack(spacing: HeirloomSpacing.lg) {
         Button("Show Success") {
             toastManager.success(
                 title: "Recipe Saved!",
                 message: "Your recipe has been added to your collection."
             )
         }
-        .buttonStyle(.primary)
+        .buttonStyle(.borderedProminent)
 
         Button("Show Error") {
             toastManager.error(
@@ -208,7 +208,7 @@ extension View {
                 message: "Could not import recipe from URL."
             )
         }
-        .buttonStyle(.primary)
+        .buttonStyle(.borderedProminent)
 
         Button("Show Info") {
             toastManager.info(
@@ -216,7 +216,7 @@ extension View {
                 message: "Your recipes are up to date."
             )
         }
-        .buttonStyle(.primary)
+        .buttonStyle(.borderedProminent)
 
         Button("Show Warning") {
             toastManager.warning(
@@ -224,7 +224,7 @@ extension View {
                 message: "Changes will sync when connection is restored."
             )
         }
-        .buttonStyle(.primary)
+        .buttonStyle(.borderedProminent)
     }
     .padding()
     .toastContainer()

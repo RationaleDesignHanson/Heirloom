@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct VideoProcessingView: View {
-    @Bindable var processor: MockVideoRecipeProcessor
+    @ObservedObject var processor: VideoRecipeProcessor
     let videoURL: URL
     @Environment(\.dismiss) private var dismiss
 
@@ -68,6 +68,7 @@ struct VideoProcessingView: View {
                 if let extraction = extraction {
                     VideoRecipeReviewView(
                         extraction: extraction,
+                        enhancedExtraction: processor.enhancedExtraction,  // NEW: Pass augmentation data
                         onSave: { updatedExtraction in
                             // In real app: save to SwiftData
                             print("Would save recipe: \(updatedExtraction.structuredRecipe.title)")
@@ -149,23 +150,12 @@ struct ProcessingIndicator: View {
 
 // MARK: - Preview
 
-#Preview("Processing") {
-    VideoProcessingView(
-        processor: MockVideoRecipeProcessor(),
-        videoURL: URL(fileURLWithPath: "/tmp/test.mp4")
-    )
-}
+// Previews commented out - require real VideoRecipeProcessor instance
+// Use simulator to test this view
 
-#Preview("Transcribing") {
-    @Previewable @State var processor = {
-        let p = MockVideoRecipeProcessor()
-        p.state = .transcribing(progress: 0.45)
-        p.progress = 0.45
-        return p
-    }()
-
-    VideoProcessingView(
-        processor: processor,
-        videoURL: URL(fileURLWithPath: "/tmp/test.mp4")
-    )
-}
+//#Preview("Processing") {
+//    VideoProcessingView(
+//        processor: VideoRecipeProcessor(...),
+//        videoURL: URL(fileURLWithPath: "/tmp/test.mp4")
+//    )
+//}
