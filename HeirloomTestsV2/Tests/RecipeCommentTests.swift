@@ -11,10 +11,10 @@ struct RecipeCommentTests {
 
     func createTestContext() -> ModelContext {
         let schema = Schema([
-            Recipe.self,
+            Heirloom.Recipe.self,
             RecipeComment.self,
-            Ingredient.self,
-            Tag.self,
+            Heirloom.Ingredient.self,
+            Heirloom.Tag.self,
             RecipeCollection.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -60,7 +60,7 @@ struct RecipeCommentTests {
     @Test("RecipeComment initializes with custom parameters")
     func testInit_WithCustomParameters_SetsValues() {
         // Arrange
-        let recipe = Recipe(title: "Test")
+        let recipe = Heirloom.Recipe(title: "Test")
 
         // Act
         let comment = RecipeComment(
@@ -648,7 +648,7 @@ struct RecipeCommentTests {
     func testRecipe_CanBeAssociated() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let comment = RecipeComment(text: "Great!", recipe: recipe)

@@ -12,10 +12,10 @@ struct RecipeLineageTests {
 
     func createTestContext() -> ModelContext {
         let schema = Schema([
-            Recipe.self,
+            Heirloom.Recipe.self,
             RecipeLineage.self,
-            Ingredient.self,
-            Tag.self,
+            Heirloom.Ingredient.self,
+            Heirloom.Tag.self,
             RecipeCollection.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -217,7 +217,7 @@ struct RecipeLineageTests {
     @Test("LineageTree initializes with nodes and edges")
     func testLineageTree_Init_WithNodesAndEdges() {
         // Arrange
-        let root = Recipe(title: "Root Recipe")
+        let root = Heirloom.Recipe(title: "Root Recipe")
         let node = LineageNode(recipe: root, generation: 0, position: .zero, stats: NodeStats(cookCount: 0, shareCount: 0, viewCount: 0, rating: nil), isCurrentUser: true)
 
         // Act
@@ -232,10 +232,10 @@ struct RecipeLineageTests {
     @Test("LineageTree maxGeneration returns highest generation")
     func testLineageTree_MaxGeneration_ReturnsHighest() {
         // Arrange
-        let root = Recipe(title: "Root")
+        let root = Heirloom.Recipe(title: "Root")
         let node0 = LineageNode(recipe: root, generation: 0, position: .zero, stats: NodeStats(cookCount: 0, shareCount: 0, viewCount: 0, rating: nil), isCurrentUser: true)
-        let node1 = LineageNode(recipe: Recipe(title: "Gen1"), generation: 1, position: .zero, stats: NodeStats(cookCount: 0, shareCount: 0, viewCount: 0, rating: nil), isCurrentUser: false)
-        let node2 = LineageNode(recipe: Recipe(title: "Gen2"), generation: 2, position: .zero, stats: NodeStats(cookCount: 0, shareCount: 0, viewCount: 0, rating: nil), isCurrentUser: false)
+        let node1 = LineageNode(recipe: Heirloom.Recipe(title: "Gen1"), generation: 1, position: .zero, stats: NodeStats(cookCount: 0, shareCount: 0, viewCount: 0, rating: nil), isCurrentUser: false)
+        let node2 = LineageNode(recipe: Heirloom.Recipe(title: "Gen2"), generation: 2, position: .zero, stats: NodeStats(cookCount: 0, shareCount: 0, viewCount: 0, rating: nil), isCurrentUser: false)
 
         let tree = LineageTree(root: root, nodes: [node0, node1, node2], edges: [])
 
@@ -246,9 +246,9 @@ struct RecipeLineageTests {
     @Test("LineageTree stats calculates totals correctly")
     func testLineageTree_Stats_CalculatesTotals() {
         // Arrange
-        let root = Recipe(title: "Root")
+        let root = Heirloom.Recipe(title: "Root")
         let node1 = LineageNode(recipe: root, generation: 0, position: .zero, stats: NodeStats(cookCount: 5, shareCount: 2, viewCount: 10, rating: nil), isCurrentUser: true)
-        let node2 = LineageNode(recipe: Recipe(title: "Gen1"), generation: 1, position: .zero, stats: NodeStats(cookCount: 3, shareCount: 1, viewCount: 5, rating: nil), isCurrentUser: false)
+        let node2 = LineageNode(recipe: Heirloom.Recipe(title: "Gen1"), generation: 1, position: .zero, stats: NodeStats(cookCount: 3, shareCount: 1, viewCount: 5, rating: nil), isCurrentUser: false)
 
         let tree = LineageTree(root: root, nodes: [node1, node2], edges: [])
 
@@ -266,7 +266,7 @@ struct RecipeLineageTests {
     @Test("LineageNode generationBadge returns correct labels")
     func testLineageNode_GenerationBadge_ReturnsCorrectLabels() {
         // Arrange
-        let recipe = Recipe(title: "Test")
+        let recipe = Heirloom.Recipe(title: "Test")
         let stats = NodeStats(cookCount: 0, shareCount: 0, viewCount: 0, rating: nil)
 
         // Act & Assert
@@ -283,7 +283,7 @@ struct RecipeLineageTests {
     @Test("LineageNode displayLabel returns recipe title")
     func testLineageNode_DisplayLabel_ReturnsTitle() {
         // Arrange
-        let recipe = Recipe(title: "Chocolate Cake")
+        let recipe = Heirloom.Recipe(title: "Chocolate Cake")
         let node = LineageNode(recipe: recipe, generation: 0, position: .zero, stats: NodeStats(cookCount: 0, shareCount: 0, viewCount: 0, rating: nil), isCurrentUser: true)
 
         // Assert

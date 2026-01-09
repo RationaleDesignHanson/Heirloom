@@ -11,10 +11,10 @@ struct RecipeCardBackTests {
 
     func createTestContext() -> ModelContext {
         let schema = Schema([
-            Recipe.self,
+            Heirloom.Recipe.self,
             RecipeCardBack.self,
-            Ingredient.self,
-            Tag.self,
+            Heirloom.Ingredient.self,
+            Heirloom.Tag.self,
             RecipeCollection.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -62,7 +62,7 @@ struct RecipeCardBackTests {
     func testInit_WithRecipe_SetsRecipe() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act
@@ -809,7 +809,7 @@ struct RecipeCardBackTests {
     func testSample_WithRecipe_SetsRecipe() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act

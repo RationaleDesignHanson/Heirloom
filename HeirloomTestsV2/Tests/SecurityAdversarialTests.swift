@@ -12,11 +12,11 @@ struct SecurityAdversarialTests {
 
     func createTestContext() -> ModelContext {
         let schema = Schema([
-            Recipe.self,
+            Heirloom.Recipe.self,
             RecipeComment.self,
             RecipeCardBack.self,
-            Ingredient.self,
-            Tag.self,
+            Heirloom.Ingredient.self,
+            Heirloom.Tag.self,
             RecipeCollection.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -119,7 +119,7 @@ struct SecurityAdversarialTests {
     func testRecipeCardBack_XSS_NoteToFriends() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let cardBack = RecipeCardBack(recipe: recipe)
@@ -139,7 +139,7 @@ struct SecurityAdversarialTests {
     func testRecipeCardBack_XSS_PersonalTips() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let cardBack = RecipeCardBack(recipe: recipe)
@@ -165,7 +165,7 @@ struct SecurityAdversarialTests {
     func testRecipe_XSS_Notes() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         let maliciousNotes = """
         Great recipe!
         <script>
@@ -189,7 +189,7 @@ struct SecurityAdversarialTests {
     func testRecipe_URLInjection_JavascriptScheme() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
 
         // Act - Try to set malicious URL
         let maliciousURL = "javascript:alert(document.cookie)"
@@ -211,7 +211,7 @@ struct SecurityAdversarialTests {
     func testRecipe_URLInjection_DataScheme() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
 
         // Act
         let maliciousURL = "data:text/html,<script>alert('XSS')</script>"
@@ -229,7 +229,7 @@ struct SecurityAdversarialTests {
     func testRecipe_URLInjection_FileScheme() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
 
         // Act
         let maliciousURL = "file:///etc/passwd"
@@ -247,7 +247,7 @@ struct SecurityAdversarialTests {
     func testRecipe_URLInjection_InternalNetwork() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
 
         // Act - Try to set internal network URL (SSRF risk)
         let maliciousURL = "http://192.168.1.1/admin"
@@ -273,7 +273,7 @@ struct SecurityAdversarialTests {
     func testRecipe_PathTraversal_ImageFileName() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
 
         // Act - Try to set path traversal filename
         let maliciousFilename = "../../../etc/passwd"
@@ -296,7 +296,7 @@ struct SecurityAdversarialTests {
     func testRecipe_PathTraversal_AbsolutePath() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
 
         // Act
         let maliciousFilename = "/var/lib/important-file.txt"
@@ -314,7 +314,7 @@ struct SecurityAdversarialTests {
     func testRecipe_PathTraversal_NullByte() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
 
         // Act - Null byte can terminate string in some contexts
         let maliciousFilename = "innocent.jpg\0.txt"
@@ -362,7 +362,7 @@ struct SecurityAdversarialTests {
     func testRecipe_FirestoreDocumentSize_Overflow() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
 
         // Act - Create recipe that would exceed 1MB Firestore limit
         // Firestore limit is 1,048,576 bytes (1MB)
@@ -433,7 +433,7 @@ struct SecurityAdversarialTests {
     func testRecipe_URLLength_ExtremelyLong() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
 
         // Act - Create 100KB URL (some servers accept, most don't)
         let hugeURL = "https://example.com/recipe?" + String(repeating: "param=value&", count: 10_000)

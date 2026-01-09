@@ -9,6 +9,8 @@ struct RecipeEditorView: View {
     @Environment(\.firebaseLineage) private var firebaseLineage
     @Environment(\.aiIngredientParser) private var aiIngredientParser
 
+    @Query(sort: \RecipeCollection.name) private var allCollections: [RecipeCollection]
+
     // Using concrete type for spell checker
     private var spellChecker: AIIngredientSpellChecker { ServiceContainer.shared.resolve(AIIngredientSpellChecker.self) }
 
@@ -36,6 +38,9 @@ struct RecipeEditorView: View {
     @State private var notes = ""
     @State private var instructions: [String] = [""]
     @State private var ingredientInputs: [String] = [""]
+
+    // Collections selection
+    @State private var selectedCollectionIDs: Set<UUID> = []
 
     // Image handling
     @State private var selectedPhoto: PhotosPickerItem?
@@ -72,6 +77,11 @@ struct RecipeEditorView: View {
             if let ingredients = recipe.ingredients, !ingredients.isEmpty {
                 _ingredientInputs = State(initialValue: ingredients.map { $0.originalText })
             }
+
+            // Initialize selected collections
+            if let collections = recipe.collections {
+                _selectedCollectionIDs = State(initialValue: Set(collections.map { $0.id }))
+            }
         } else {
             // Initialize from OCR/scanner if provided
             if let image = initialImage {
@@ -95,6 +105,7 @@ struct RecipeEditorView: View {
                 basicInfoSection
                 imageSection
                 metadataSection
+                collectionsSection
                 ingredientsSection
                 instructionsSection
                 notesSection
@@ -135,6 +146,13 @@ struct RecipeEditorView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Computed Properties
+
+    /// User-created collections (excludes system and heritage collections)
+    private var userCollections: [RecipeCollection] {
+        allCollections.filter { !$0.isSystemCollection && !$0.isHeritageCollection }
     }
 
     // MARK: - View Sections
@@ -221,6 +239,51 @@ struct RecipeEditorView: View {
                     .multilineTextAlignment(.trailing)
                     .frame(width: 100)
             }
+        }
+    }
+
+    private var collectionsSection: some View {
+        Section {
+            if userCollections.isEmpty {
+                Text("No collections yet. Create one from the Collections tab.")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            } else {
+                ForEach(userCollections, id: \.id) { collection in
+                    Button {
+                        toggleCollection(collection)
+                    } label: {
+                        HStack(spacing: HeirloomSpacing.md) {
+                            Image(systemName: collection.iconName)
+                                .font(.title3)
+                                .foregroundStyle(collection.swiftUIColor)
+                                .frame(width: 28)
+
+                            Text(collection.name)
+                                .font(HeirloomFonts.body)
+                                .foregroundStyle(HeirloomColors.primaryText)
+
+                            Spacer()
+
+                            if selectedCollectionIDs.contains(collection.id) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(collection.swiftUIColor)
+                                    .font(.title3)
+                            } else {
+                                Image(systemName: "circle")
+                                    .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
+                                    .font(.title3)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        } header: {
+            Text("Collections (Optional)")
+        } footer: {
+            Text("Add this recipe to collections to keep your recipes organized.")
+                .font(HeirloomFonts.caption1)
         }
     }
 
@@ -331,6 +394,19 @@ struct RecipeEditorView: View {
     }
 
     // MARK: - Actions
+
+    private func toggleCollection(_ collection: RecipeCollection) {
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+
+        if selectedCollectionIDs.contains(collection.id) {
+            selectedCollectionIDs.remove(collection.id)
+        } else {
+            selectedCollectionIDs.insert(collection.id)
+        }
+    }
+
     private func saveRecipe() {
         isSaving = true
 
@@ -354,6 +430,10 @@ struct RecipeEditorView: View {
                 recipe.setNotes(notes.isEmpty ? nil : notes)
                 recipe.instructions = instructions.filter { !$0.isEmpty }
                 recipe.lastModified = Date()
+
+                // Apply selected collections
+                let selectedCollections = allCollections.filter { selectedCollectionIDs.contains($0.id) }
+                recipe.collections = selectedCollections.isEmpty ? nil : selectedCollections
 
                 // Create CRDT operations for changes (if editing existing recipe)
                 if !isNewRecipe && recipe.usesCRDT {

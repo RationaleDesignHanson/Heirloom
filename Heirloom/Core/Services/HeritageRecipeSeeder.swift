@@ -269,6 +269,56 @@ class HeritageRecipeSeeder {
 
         return Date()
     }
+
+    // MARK: - Migration & Repair
+
+    /// Ensure all heritage recipes have card backs configured
+    /// Call this to repair existing installations where card backs were added later
+    func ensureHeritageCardBacks() {
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { recipe in
+                recipe.isHeritageRecipe == true
+            }
+        )
+
+        do {
+            let heritageRecipes = try modelContext.fetch(descriptor)
+
+            var created = 0
+            var configured = 0
+
+            for recipe in heritageRecipes {
+                if recipe.cardBack == nil {
+                    // Create missing card back
+                    let cardBack = RecipeCardBack(recipe: recipe)
+                    cardBack.configureForHeritageRecipe()
+                    cardBack.isComplete = true
+                    recipe.cardBack = cardBack
+                    modelContext.insert(cardBack)
+                    created += 1
+
+                    Log.info("Created missing heritage card back", category: .storage, metadata: [
+                        "title": recipe.title,
+                        "recipeId": recipe.id.uuidString
+                    ])
+                } else if let cardBack = recipe.cardBack {
+                    // Ensure existing card back is properly configured
+                    cardBack.configureForHeritageRecipe()
+                    configured += 1
+                }
+            }
+
+            try modelContext.save()
+
+            Log.info("Heritage card back migration completed", category: .storage, metadata: [
+                "total": heritageRecipes.count,
+                "created": created,
+                "configured": configured
+            ])
+        } catch {
+            Log.error("Failed to migrate heritage card backs", category: .storage, metadata: ["error": error.localizedDescription])
+        }
+    }
 }
 
 // MARK: - Errors

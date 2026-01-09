@@ -12,10 +12,10 @@ struct AnnotationTests {
 
     func createTestContext() -> ModelContext {
         let schema = Schema([
-            Recipe.self,
-            RecipeAnnotation.self,
-            Ingredient.self,
-            Tag.self,
+            Heirloom.Recipe.self,
+            Heirloom.RecipeAnnotation.self,
+            Heirloom.Ingredient.self,
+            Heirloom.Tag.self,
             RecipeCollection.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -371,7 +371,7 @@ struct AnnotationTests {
     func testRecipe_CanBeAssociated() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let annotation = RecipeAnnotation(text: "Great recipe!")

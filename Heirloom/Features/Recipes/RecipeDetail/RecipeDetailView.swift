@@ -12,6 +12,7 @@ struct RecipeDetailView: View {
     @Environment(\.firebaseAuth) private var firebaseAuth
     @State private var showDeleteConfirmation = false
     @State private var showSignInPrompt = false
+    @State private var showFirebaseSignIn = false
     @State private var isDeleting = false
     @State private var showEditSheet = false
     @State private var showCookingMode = false
@@ -437,8 +438,7 @@ struct RecipeDetailView: View {
                         showSignInPrompt = false
                         // Small delay so sheets don't conflict
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            // Navigate to Settings where sign-in is available
-                            // Or present sign-in directly - for now, just dismiss
+                            showFirebaseSignIn = true
                         }
                     } label: {
                         Text("Continue to Sign In")
@@ -471,6 +471,9 @@ struct RecipeDetailView: View {
                 }
             }
             .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $showFirebaseSignIn) {
+            FirebaseSignInView()
         }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe)

@@ -680,13 +680,37 @@ struct SettingsView: View {
     }
 
     private func openManageSubscription() {
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            Task {
-                do {
-                    try await AppStore.showManageSubscriptions(in: windowScene)
-                    analytics.track(event: .manageSubscriptionOpened)
-                } catch {
-                    toastManager.error(title: "Could not open", message: "Unable to open subscription management")
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+            toastManager.error(title: "Could not open", message: "Unable to find window scene")
+            return
+        }
+
+        Task {
+            do {
+                try await AppStore.showManageSubscriptions(in: windowScene)
+                analytics.track(event: .manageSubscriptionOpened)
+            } catch {
+                // Log the actual error for debugging
+                await MainActor.run {
+                    Log.error(
+                        "Failed to open subscription management",
+                        category: .store,
+                        error: error,
+                        metadata: ["error_description": error.localizedDescription]
+                    )
+
+                    // Show helpful error message
+                    if error.localizedDescription.contains("account") || error.localizedDescription.contains("sign in") {
+                        toastManager.error(
+                            title: "Apple ID Required",
+                            message: "Please sign in to your Apple account in Settings to manage subscriptions"
+                        )
+                    } else {
+                        toastManager.error(
+                            title: "Could not open",
+                            message: "Unable to open subscription management. Please try again or manage via the App Store."
+                        )
+                    }
                 }
             }
         }

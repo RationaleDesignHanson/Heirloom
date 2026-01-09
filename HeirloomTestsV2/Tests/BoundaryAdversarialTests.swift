@@ -11,9 +11,9 @@ struct BoundaryAdversarialTests {
 
     func createTestContext() -> ModelContext {
         let schema = Schema([
-            Recipe.self,
-            Ingredient.self,
-            Tag.self,
+            Heirloom.Recipe.self,
+            Heirloom.Ingredient.self,
+            Heirloom.Tag.self,
             RecipeCollection.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -30,7 +30,7 @@ struct BoundaryAdversarialTests {
         let largeTitle = String(repeating: "A", count: 10_240)
 
         // Act - Create recipe with extremely long title
-        let recipe = Recipe(title: largeTitle)
+        let recipe = Heirloom.Recipe(title: largeTitle)
         context.insert(recipe)
 
         try? context.save()
@@ -60,7 +60,7 @@ struct BoundaryAdversarialTests {
         let massiveTitle = String(repeating: "B", count: 102_400)
 
         // Act
-        let recipe = Recipe(title: massiveTitle)
+        let recipe = Heirloom.Recipe(title: massiveTitle)
         context.insert(recipe)
 
         try? context.save()
@@ -80,7 +80,7 @@ struct BoundaryAdversarialTests {
     func testBoundary_Recipe_1MBSerializedSize() {
         // Arrange - Create recipe that approaches Firestore 1MB limit
         let context = createTestContext()
-        let recipe = Recipe(title: "Large Recipe")
+        let recipe = Heirloom.Recipe(title: "Large Recipe")
 
         // Add massive notes field (500KB)
         recipe.notes = String(repeating: "X", count: 512_000)
@@ -130,7 +130,7 @@ struct BoundaryAdversarialTests {
     func testBoundary_Recipe_10KIngredients() {
         // Arrange - Create recipe with absurdly large ingredient list
         let context = createTestContext()
-        let recipe = Recipe(title: "Massive Recipe")
+        let recipe = Heirloom.Recipe(title: "Massive Recipe")
 
         // Act - Add 10,000 ingredients
         for i in 0..<10_000 {
@@ -163,7 +163,7 @@ struct BoundaryAdversarialTests {
     func testBoundary_Recipe_10KInstructions() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Overly Detailed Recipe")
+        let recipe = Heirloom.Recipe(title: "Overly Detailed Recipe")
 
         // Act - Add 10,000 instruction steps
         for i in 0..<10_000 {
@@ -219,7 +219,7 @@ struct BoundaryAdversarialTests {
     func testBoundary_Recipe_InvalidServingRange() {
         // Arrange - Create recipe where minimum > maximum
         let context = createTestContext()
-        let recipe = Recipe(title: "Broken Range Recipe")
+        let recipe = Heirloom.Recipe(title: "Broken Range Recipe")
         recipe.minimumServings = 10
         recipe.maximumServings = 2  // Less than minimum!
 
@@ -254,19 +254,19 @@ struct BoundaryAdversarialTests {
         let context = createTestContext()
 
         // Test 1: Zero servings
-        let recipe1 = Recipe(title: "Zero Servings")
+        let recipe1 = Heirloom.Recipe(title: "Zero Servings")
         recipe1.minimumServings = 0
         recipe1.maximumServings = 0
         context.insert(recipe1)
 
         // Test 2: Negative servings
-        let recipe2 = Recipe(title: "Negative Servings")
+        let recipe2 = Heirloom.Recipe(title: "Negative Servings")
         recipe2.minimumServings = -5
         recipe2.maximumServings = -1
         context.insert(recipe2)
 
         // Test 3: Extremely large servings
-        let recipe3 = Recipe(title: "Million Servings")
+        let recipe3 = Heirloom.Recipe(title: "Million Servings")
         recipe3.minimumServings = 1_000_000
         recipe3.maximumServings = 10_000_000
         context.insert(recipe3)
@@ -295,7 +295,7 @@ struct BoundaryAdversarialTests {
     func testBoundary_Recipe_EmptyWhitespaceFields() {
         // Arrange - Create recipe with various empty/whitespace fields
         let context = createTestContext()
-        let recipe = Recipe(title: "   ")  // Whitespace-only title
+        let recipe = Heirloom.Recipe(title: "   ")  // Whitespace-only title
         recipe.notes = ""  // Empty string
         recipe.servings = "     "  // Whitespace-only
         recipe.sourceURL = "   "  // Whitespace-only URL
@@ -331,7 +331,7 @@ struct BoundaryAdversarialTests {
     func testBoundary_Recipe_1000Versions() {
         // Arrange - Simulate recipe edited 1000 times
         let context = createTestContext()
-        let recipe = Recipe(title: "Heavily Edited Recipe")
+        let recipe = Heirloom.Recipe(title: "Heavily Edited Recipe")
         context.insert(recipe)
 
         // Act - Create 1000 versions
@@ -367,7 +367,7 @@ struct BoundaryAdversarialTests {
     func testBoundary_Recipe_InfinityNaN() {
         // Arrange - Test special floating point values
         let context = createTestContext()
-        let recipe = Recipe(title: "Special Numbers Recipe")
+        let recipe = Heirloom.Recipe(title: "Special Numbers Recipe")
 
         // Note: Recipe model uses Int16 for servings, not Float
         // But parsed values could theoretically be extreme

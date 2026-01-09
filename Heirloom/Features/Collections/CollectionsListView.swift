@@ -74,35 +74,26 @@ struct CollectionsListView: View {
                         }
                     }
 
-                    // User Collections Section
+                    // My Collections Section (includes system + user collections)
                     VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-                        HStack {
-                            Text("My Collections")
-                                .font(HeirloomFonts.title3)
-                                .foregroundStyle(HeirloomColors.primaryText)
+                        Text("My Collections")
+                            .font(HeirloomFonts.title3)
+                            .foregroundStyle(HeirloomColors.primaryText)
+                            .padding(.horizontal, HeirloomSpacing.md)
 
-                            Spacer()
-
-                            // Only show "+ New" button when user has created at least one collection
-                            if !userCollections.isEmpty {
-                                Button {
-                                    showCreateCollection = true
-                                } label: {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "plus.circle.fill")
-                                        Text("New")
-                                    }
-                                    .font(HeirloomFonts.caption1)
-                                    .foregroundStyle(HeirloomColors.tomato)
-                                }
-                            }
-                        }
-                        .padding(.horizontal, HeirloomSpacing.md)
-
-                        if userCollections.isEmpty {
+                        if systemCollections.isEmpty && userCollections.isEmpty {
                             emptyUserCollectionsView
                         } else {
                             LazyVStack(spacing: HeirloomSpacing.sm) {
+                                // System collections first (Favorites, Quick Meals, etc.)
+                                ForEach(systemCollections, id: \.id) { collection in
+                                    UserCollectionRow(collection: collection)
+                                        .onTapGesture {
+                                            selectedCollection = collection
+                                        }
+                                }
+
+                                // User collections after system collections
                                 ForEach(userCollections, id: \.id) { collection in
                                     UserCollectionRow(collection: collection)
                                         .onTapGesture {
@@ -121,26 +112,6 @@ struct CollectionsListView: View {
                             .padding(.horizontal, HeirloomSpacing.md)
                         }
                     }
-
-                    // System Collections Section
-                    if !systemCollections.isEmpty {
-                        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-                            Text("Smart Collections")
-                                .font(HeirloomFonts.title3)
-                                .foregroundStyle(HeirloomColors.primaryText)
-                                .padding(.horizontal, HeirloomSpacing.md)
-
-                            LazyVStack(spacing: HeirloomSpacing.sm) {
-                                ForEach(systemCollections, id: \.id) { collection in
-                                    UserCollectionRow(collection: collection)
-                                        .onTapGesture {
-                                            selectedCollection = collection
-                                        }
-                                }
-                            }
-                            .padding(.horizontal, HeirloomSpacing.md)
-                        }
-                    }
                 }
                 .padding(.vertical, HeirloomSpacing.lg)
             }
@@ -148,8 +119,18 @@ struct CollectionsListView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showAddRecipe = true
+                    Menu {
+                        Button {
+                            showAddRecipe = true
+                        } label: {
+                            Label("New Recipe", systemImage: "square.and.pencil")
+                        }
+
+                        Button {
+                            showCreateCollection = true
+                        } label: {
+                            Label("New Collection", systemImage: "folder.badge.plus")
+                        }
                     } label: {
                         Image(systemName: "plus")
                     }

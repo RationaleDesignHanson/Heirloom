@@ -12,10 +12,10 @@ struct CardStyleTests {
 
     func createTestContext() -> ModelContext {
         let schema = Schema([
-            Recipe.self,
+            Heirloom.Recipe.self,
             RecipeCardStyle.self,
-            Ingredient.self,
-            Tag.self,
+            Heirloom.Ingredient.self,
+            Heirloom.Tag.self,
             RecipeCollection.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -428,7 +428,7 @@ struct CardStyleTests {
     func testRecipe_CanBeAssociated() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let style = RecipeCardStyle()

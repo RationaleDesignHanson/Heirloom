@@ -11,11 +11,11 @@ struct RecipeMultiVersionTests {
 
     func createTestContext() -> ModelContext {
         let schema = Schema([
-            Recipe.self,
-            RecipeVersion.self,
-            Ingredient.self,
-            Tag.self,
-            RecipeCollection.self
+            Heirloom.Recipe.self,
+            Heirloom.RecipeVersion.self,
+            Heirloom.Ingredient.self,
+            Heirloom.Tag.self,
+            Heirloom.RecipeCollection.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try! ModelContainer(for: schema, configurations: config)
@@ -27,21 +27,19 @@ struct RecipeMultiVersionTests {
     @Test("SharingPermissionLevel enum has all expected cases")
     func testSharingPermissionLevel_AllCases() {
         // Arrange & Act
-        let allCases = SharingPermissionLevel.allCases
+        let allCases = Recipe.SharingPermissionLevel.allCases
 
         // Assert
-        #expect(allCases.count == 4)
-        #expect(allCases.contains(.off))
+        #expect(allCases.count == 2)
         #expect(allCases.contains(.regular))
-        #expect(allCases.contains(.unrestricted))
-        #expect(allCases.contains(.publicLibrary))
+        #expect(allCases.contains(.heirloom))
     }
 
     @Test("Sharing permission defaults to regular")
     func testSharingPermission_DefaultsToRegular() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act & Assert
@@ -52,28 +50,28 @@ struct RecipeMultiVersionTests {
     func testSharingPermission_SetterAndGetter() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act
-        recipe.sharingPermission = .publicLibrary
+        recipe.sharingPermission = .heirloom
 
         // Assert
-        #expect(recipe.sharingPermission == .publicLibrary)
+        #expect(recipe.sharingPermission == .heirloom)
     }
 
     @Test("Sharing permission raw value is stored correctly")
     func testSharingPermission_RawValueStorage() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act
-        recipe.sharingPermission = .unrestricted
+        recipe.sharingPermission = .heirloom
 
         // Assert
-        #expect(recipe.sharingPermissionRaw == "unrestricted")
+        #expect(recipe.sharingPermissionRaw == "heirloom")
     }
 
     // MARK: - Base Version Tests
@@ -82,7 +80,7 @@ struct RecipeMultiVersionTests {
     func testBaseVersion_NoVersions_ReturnsNil() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act & Assert
@@ -93,7 +91,7 @@ struct RecipeMultiVersionTests {
     func testBaseVersion_WithBaseVersion_ReturnsBase() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let baseVersion = RecipeVersion(
@@ -117,7 +115,7 @@ struct RecipeMultiVersionTests {
     func testBaseVersion_MultipleBaseVersions_ReturnsFirst() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let baseVersion1 = RecipeVersion(
@@ -150,7 +148,7 @@ struct RecipeMultiVersionTests {
     func testContributorVersions_NoVersions_ReturnsEmpty() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act
@@ -164,7 +162,7 @@ struct RecipeMultiVersionTests {
     func testContributorVersions_ExcludesBaseVersion() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let baseVersion = RecipeVersion(
@@ -195,7 +193,7 @@ struct RecipeMultiVersionTests {
     func testContributorVersions_OnlyIncludesActive() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let activeVersion = RecipeVersion(
@@ -228,7 +226,7 @@ struct RecipeMultiVersionTests {
     func testContributorVersions_MultipleActive() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let contributor1 = RecipeVersion(
@@ -268,7 +266,7 @@ struct RecipeMultiVersionTests {
     func testActiveVersion_NoSelection_ReturnsBase() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let baseVersion = RecipeVersion(
@@ -291,7 +289,7 @@ struct RecipeMultiVersionTests {
     func testActiveVersion_WithSelection_ReturnsSelected() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let baseVersion = RecipeVersion(
@@ -324,7 +322,7 @@ struct RecipeMultiVersionTests {
     func testActiveVersion_SelectionNotFound_FallsBackToBase() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let baseVersion = RecipeVersion(
@@ -351,7 +349,7 @@ struct RecipeMultiVersionTests {
     func testContributorCount_NoContributors_Returns0() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act & Assert
@@ -362,7 +360,7 @@ struct RecipeMultiVersionTests {
     func testContributorCount_ExcludesBase() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let baseVersion = RecipeVersion(
@@ -381,7 +379,7 @@ struct RecipeMultiVersionTests {
     func testContributorCount_MultipleContributors() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         for i in 1...5 {
@@ -404,7 +402,7 @@ struct RecipeMultiVersionTests {
     func testHasMultipleVersions_NoContributors_ReturnsFalse() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act & Assert
@@ -415,7 +413,7 @@ struct RecipeMultiVersionTests {
     func testHasMultipleVersions_OnlyBase_ReturnsFalse() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let baseVersion = RecipeVersion(
@@ -434,7 +432,7 @@ struct RecipeMultiVersionTests {
     func testHasMultipleVersions_WithContributors_ReturnsTrue() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let baseVersion = RecipeVersion(
@@ -463,7 +461,7 @@ struct RecipeMultiVersionTests {
     func testGenerationLabel_NoVersions_ReturnsOriginal() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act & Assert
@@ -474,7 +472,7 @@ struct RecipeMultiVersionTests {
     func testGenerationLabel_OneVersion_ReturnsOriginal() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let version = RecipeVersion(
@@ -493,7 +491,7 @@ struct RecipeMultiVersionTests {
     func testGenerationLabel_TwoVersions() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let baseVersion = RecipeVersion(
@@ -520,7 +518,7 @@ struct RecipeMultiVersionTests {
     func testGenerationLabel_MultipleVersions() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         for i in 1...5 {
@@ -543,7 +541,7 @@ struct RecipeMultiVersionTests {
     func testSortedVersions_NoVersions_ReturnsEmpty() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         // Act
@@ -557,7 +555,7 @@ struct RecipeMultiVersionTests {
     func testSortedVersions_SortsByCreationDate() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let date1 = Date(timeIntervalSince1970: 1000)
@@ -605,7 +603,7 @@ struct RecipeMultiVersionTests {
     func testSortedVersions_StableSort() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe")
+        let recipe = Heirloom.Recipe(title: "Test Recipe")
         context.insert(recipe)
 
         let sameDate = Date()

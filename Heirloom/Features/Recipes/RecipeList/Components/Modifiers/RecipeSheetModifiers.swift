@@ -9,12 +9,13 @@ import SwiftUI
 import SwiftData
 
 /// ViewModifier that handles all sheet and dialog presentations for RecipeListView
-/// Encapsulates: add recipe, import, bulk import, cookbook scanner, filters, delete confirmations, collection picker, conflict resolution
+/// Encapsulates: add recipe, import, bulk import, cookbook scanner, collection editor, filters, delete confirmations, collection picker, conflict resolution
 struct RecipeSheetModifiers: ViewModifier {
     @Binding var showAddRecipe: Bool
     @Binding var showImportRecipe: Bool
     @Binding var showBulkImport: Bool
     @Binding var showCookbookScanner: Bool
+    @Binding var showCreateCollection: Bool
     @Binding var showFilters: Bool
     @Binding var filters: RecipeFilters
     @Binding var showDeleteConfirmation: Bool
@@ -25,6 +26,7 @@ struct RecipeSheetModifiers: ViewModifier {
     let onBatchDelete: () -> Void
     @Binding var showCollectionPicker: Bool
     let onExitSelection: () -> Void
+    @Binding var recipeForCollectionPicker: Recipe?
     @Binding var showConflictResolution: Bool
     let conflictResolutionSheet: AnyView
 
@@ -41,6 +43,9 @@ struct RecipeSheetModifiers: ViewModifier {
             }
             .sheet(isPresented: $showCookbookScanner) {
                 CookbookScannerView()
+            }
+            .sheet(isPresented: $showCreateCollection) {
+                CollectionEditorView()
             }
             .sheet(isPresented: $showFilters) {
                 RecipeFiltersView(filters: $filters)
@@ -76,6 +81,9 @@ struct RecipeSheetModifiers: ViewModifier {
                         onExitSelection()
                     }
                 )
+            }
+            .sheet(item: $recipeForCollectionPicker) { recipe in
+                TagCollectionPickerView(recipe: recipe)
             }
             .sheet(isPresented: $showConflictResolution) {
                 conflictResolutionSheet

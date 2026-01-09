@@ -18,7 +18,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "fr"
         )
 
-        XCTAssertEqual(qty, 2.0, accuracy: 0.01, "Should parse French quantity")
+        XCTAssertEqual(qty ?? 0, 2.0, accuracy: 0.01, "Should parse French quantity")
         XCTAssertNil(qtyMax, "Should not have max quantity")
         XCTAssertEqual(unit, "cup", "Should normalize 'tasse' to 'cup'")
         XCTAssertEqual(name, "farine", "Should extract ingredient name")
@@ -30,7 +30,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "fr"
         )
 
-        XCTAssertEqual(qty, 500.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 500.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "g")
         XCTAssertEqual(name, "sucre")
@@ -42,7 +42,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "fr"
         )
 
-        XCTAssertEqual(qty, 3.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 3.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tbsp", "Should normalize 'cuillère à soupe' to 'tbsp'")
         XCTAssertEqual(name, "huile")
@@ -54,7 +54,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "fr"
         )
 
-        XCTAssertEqual(qty, 1.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 1.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tsp", "Should normalize 'cuillère à café' to 'tsp'")
         XCTAssertEqual(name, "sel")
@@ -66,7 +66,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "fr"
         )
 
-        XCTAssertEqual(qty, 1.5, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 1.5, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "L")
         XCTAssertEqual(name, "eau")
@@ -80,7 +80,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "es"
         )
 
-        XCTAssertEqual(qty, 3.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 3.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "cup", "Should normalize 'taza' to 'cup'")
         XCTAssertEqual(name, "harina")
@@ -92,7 +92,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "es"
         )
 
-        XCTAssertEqual(qty, 2.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 2.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tbsp", "Should normalize 'cucharada' to 'tbsp'")
         XCTAssertEqual(name, "aceite")
@@ -104,7 +104,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "es"
         )
 
-        XCTAssertEqual(qty, 1.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 1.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tsp", "Should normalize 'cucharadita' to 'tsp'")
         XCTAssertEqual(name, "sal")
@@ -116,7 +116,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "es"
         )
 
-        XCTAssertEqual(qty, 2.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 2.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "kg")
         XCTAssertEqual(name, "carne")
@@ -130,7 +130,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "de"
         )
 
-        XCTAssertEqual(qty, 2.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 2.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "cup", "Should normalize 'Tasse' to 'cup'")
         XCTAssertEqual(name, "Mehl")
@@ -142,7 +142,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "de"
         )
 
-        XCTAssertEqual(qty, 3.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 3.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tbsp", "Should normalize 'Esslöffel' to 'tbsp'")
         XCTAssertEqual(name, "Öl")
@@ -154,7 +154,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "de"
         )
 
-        XCTAssertEqual(qty, 1.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 1.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tsp", "Should normalize 'Teelöffel' to 'tsp'")
         XCTAssertEqual(name, "Salz")
@@ -166,7 +166,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "de"
         )
 
-        XCTAssertEqual(qty, 250.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 250.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "g")
         XCTAssertEqual(name, "Zucker")
@@ -180,7 +180,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ja"
         )
 
-        XCTAssertEqual(qty, 2.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 2.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "cup", "Should normalize 'カップ' to 'cup'")
         XCTAssertEqual(name, "小麦粉")
@@ -192,7 +192,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ja"
         )
 
-        XCTAssertEqual(qty, 3.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 3.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tbsp", "Should normalize '大さじ' to 'tbsp'")
         XCTAssertEqual(name, "油")
@@ -204,7 +204,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ja"
         )
 
-        XCTAssertEqual(qty, 1.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 1.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tsp", "Should normalize '小さじ' to 'tsp'")
         XCTAssertEqual(name, "塩")
@@ -216,7 +216,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ja"
         )
 
-        XCTAssertEqual(qty, 300.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 300.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "g")
         XCTAssertEqual(name, "砂糖")
@@ -230,7 +230,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "zh"
         )
 
-        XCTAssertEqual(qty, 2.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 2.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "cup", "Should normalize '杯' to 'cup'")
         XCTAssertEqual(name, "面粉")
@@ -242,7 +242,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "zh"
         )
 
-        XCTAssertEqual(qty, 3.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 3.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tbsp", "Should normalize '大勺' to 'tbsp'")
         XCTAssertEqual(name, "油")
@@ -254,7 +254,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "zh"
         )
 
-        XCTAssertEqual(qty, 1.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 1.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tsp", "Should normalize '小勺' to 'tsp'")
         XCTAssertEqual(name, "盐")
@@ -266,7 +266,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "zh"
         )
 
-        XCTAssertEqual(qty, 500.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 500.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "g", "Should normalize '克' to 'g'")
         XCTAssertEqual(name, "糖")
@@ -280,7 +280,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ko"
         )
 
-        XCTAssertEqual(qty, 2.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 2.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "cup", "Should normalize '컵' to 'cup'")
         XCTAssertEqual(name, "밀가루")
@@ -292,7 +292,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ko"
         )
 
-        XCTAssertEqual(qty, 3.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 3.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tbsp", "Should normalize '큰술' to 'tbsp'")
         XCTAssertEqual(name, "식용유")
@@ -304,7 +304,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ko"
         )
 
-        XCTAssertEqual(qty, 1.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 1.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tsp", "Should normalize '작은술' to 'tsp'")
         XCTAssertEqual(name, "소금")
@@ -316,7 +316,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ko"
         )
 
-        XCTAssertEqual(qty, 300.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 300.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "g")
         XCTAssertEqual(name, "설탕")
@@ -328,7 +328,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ko"
         )
 
-        XCTAssertEqual(qty, 1.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 1.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "g", "Should normalize '근' to 'g' for conversion")
         XCTAssertEqual(name, "쇠고기")
@@ -340,7 +340,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ko"
         )
 
-        XCTAssertEqual(qty, 5.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 5.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "g", "Should normalize '돈' to 'g' for conversion")
         XCTAssertEqual(name, "인삼")
@@ -354,7 +354,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "en"
         )
 
-        XCTAssertEqual(qty, 2.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 2.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "cup")
         XCTAssertEqual(name, "flour")
@@ -364,7 +364,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
         // Default language should be "en"
         let (qty, qtyMax, unit, name) = IngredientParser.parse("1 tbsp butter")
 
-        XCTAssertEqual(qty, 1.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 1.0, accuracy: 0.01)
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "tbsp")
         XCTAssertEqual(name, "butter")
@@ -378,8 +378,8 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "fr"
         )
 
-        XCTAssertEqual(qty, 2.0, accuracy: 0.01)
-        XCTAssertEqual(qtyMax, 3.0, accuracy: 0.01, "Should parse range")
+        XCTAssertEqual(qty ?? 0, 2.0, accuracy: 0.01)
+        XCTAssertEqual(qtyMax ?? 0, 3.0, accuracy: 0.01, "Should parse range")
         XCTAssertEqual(unit, "cup")
         XCTAssertEqual(name, "farine")
     }
@@ -390,8 +390,8 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "ja"
         )
 
-        XCTAssertEqual(qty, 1.0, accuracy: 0.01)
-        XCTAssertEqual(qtyMax, 2.0, accuracy: 0.01, "Should parse Japanese range with 〜")
+        XCTAssertEqual(qty ?? 0, 1.0, accuracy: 0.01)
+        XCTAssertEqual(qtyMax ?? 0, 2.0, accuracy: 0.01, "Should parse Japanese range with 〜")
         XCTAssertEqual(unit, "cup")
         XCTAssertEqual(name, "水")
     }
@@ -416,7 +416,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "fr"
         )
 
-        XCTAssertEqual(qty, 0.5, accuracy: 0.01, "Should parse fraction")
+        XCTAssertEqual(qty ?? 0, 0.5, accuracy: 0.01, "Should parse fraction")
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "cup")
         XCTAssertEqual(name, "sucre")
@@ -428,7 +428,7 @@ final class MultilingualIngredientParsingTests: XCTestCase {
             language: "de"
         )
 
-        XCTAssertEqual(qty, 1.5, accuracy: 0.01, "Should parse German decimal (comma)")
+        XCTAssertEqual(qty ?? 0, 1.5, accuracy: 0.01, "Should parse German decimal (comma)")
         XCTAssertNil(qtyMax)
         XCTAssertEqual(unit, "L")
         XCTAssertEqual(name, "Milch")

@@ -65,7 +65,7 @@ final class MultilingualRecipeImportTests: XCTestCase {
         XCTAssertNotNil(ingredient.conversionNote)
         XCTAssertNotNil(ingredient.originalLanguageName)
         XCTAssertNotNil(ingredient.translatedName)
-        XCTAssertEqual(ingredient.quantity, 1.688, accuracy: 0.001)
+        XCTAssertEqual(ingredient.quantity ?? 0, 1.688, accuracy: 0.001)
     }
 
     func testRecipeWithMultilingualMetadata() throws {
@@ -339,7 +339,7 @@ final class MultilingualRecipeImportTests: XCTestCase {
         for (input, expectedQty, expectedUnit, expectedName) in testCases {
             let (qty, _, unit, name) = IngredientParser.parse(input, language: "en")
 
-            XCTAssertEqual(qty, expectedQty, accuracy: 0.01,
+            XCTAssertEqual(qty ?? 0, expectedQty, accuracy: 0.01,
                           "English parsing changed for: \(input)")
             XCTAssertEqual(unit, expectedUnit,
                           "English unit detection changed for: \(input)")
@@ -352,7 +352,7 @@ final class MultilingualRecipeImportTests: XCTestCase {
         // Test that omitting language parameter defaults to English
         let (qty, _, unit, name) = IngredientParser.parse("2 cups flour")
 
-        XCTAssertEqual(qty, 2.0, accuracy: 0.01)
+        XCTAssertEqual(qty ?? 0, 2.0, accuracy: 0.01)
         XCTAssertEqual(unit, "cup")
         XCTAssertEqual(name, "flour")
 

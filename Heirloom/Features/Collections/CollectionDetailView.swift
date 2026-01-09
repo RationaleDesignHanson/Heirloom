@@ -70,6 +70,7 @@ struct CollectionDetailView: View {
                     onImportRecipe: { showImportRecipe = true },
                     onBulkImport: { showBulkImport = true },
                     onCookbookScanner: { showCookbookScanner = true },
+                    onAddCollection: {}, // Not applicable within a collection detail view
                     onAddNormalSample: addNormalSampleRecipe,
                     onAddHeritageSample: addHeritageSampleRecipe
                 )

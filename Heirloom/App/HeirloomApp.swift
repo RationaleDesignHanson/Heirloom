@@ -297,6 +297,10 @@ struct HeirloomApp: App {
                         DeviceLogger.shared.log("❌ [Heritage] Failed to seed recipes: \(error.localizedDescription)")
                     }
                 }
+
+                // Ensure all heritage recipes have card backs (migration for existing installations)
+                seeder.ensureHeritageCardBacks()
+                DeviceLogger.shared.log("✅ [Heritage] Verified/repaired card backs for heritage recipes")
             }
 
             // Firebase sync configuration
@@ -327,12 +331,33 @@ struct HeirloomApp: App {
             return
         }
 
+        // Check timestamp to prevent re-processing stale URLs from previous sessions
+        if let timestamp = groupDefaults.object(forKey: "pendingImportTimestamp") as? Date {
+            let ageInSeconds = Date().timeIntervalSince(timestamp)
+            let maxAgeSeconds: TimeInterval = 300 // 5 minutes
+
+            if ageInSeconds > maxAgeSeconds {
+                Log.warning("Ignoring stale pending import URL", category: .general, metadata: [
+                    "url": pendingURLString,
+                    "ageSeconds": ageInSeconds
+                ])
+                DeviceLogger.shared.log("⚠️ [ShareExtension] Ignoring stale URL (age: \(Int(ageInSeconds))s): \(pendingURLString)")
+
+                // Clear the stale URL
+                groupDefaults.removeObject(forKey: "pendingImportURL")
+                groupDefaults.removeObject(forKey: "pendingImportTimestamp")
+                groupDefaults.synchronize()
+                return
+            }
+        }
+
         Log.info("Found pending import URL from share extension", category: .general, metadata: ["url": pendingURLString])
         DeviceLogger.shared.log("✅ [ShareExtension] Found pending import URL: \(pendingURLString)")
 
         // Clear it immediately to prevent re-processing
         groupDefaults.removeObject(forKey: "pendingImportURL")
         groupDefaults.removeObject(forKey: "pendingImportTimestamp")
+        groupDefaults.synchronize()
 
         // Process via deep link handler (will trigger when app is ready)
         let importDeepLink = URL(string: "heirloom://import?url=\(pendingURLString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")!

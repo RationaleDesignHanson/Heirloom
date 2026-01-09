@@ -173,15 +173,15 @@ final class UnitConversionServiceTests: XCTestCase {
     }
 
     func testEnglishWithNilLanguage() {
-        // Nil language should default to no conversion
+        // Empty language should default to no conversion
         let result = UnitConversionService.adjustQuantity(
             2.5,
             unit: "tbsp",
-            sourceLanguage: nil
+            sourceLanguage: ""
         )
 
         XCTAssertEqual(result, 2.5, accuracy: 0.001,
-                      "Nil language should not convert")
+                      "Empty language should not convert")
     }
 
     // MARK: - Edge Cases
@@ -198,15 +198,15 @@ final class UnitConversionServiceTests: XCTestCase {
     }
 
     func testNilUnit() {
-        // No unit means no conversion
+        // Empty unit means no conversion
         let result = UnitConversionService.adjustQuantity(
             1.0,
-            unit: nil,
+            unit: "",
             sourceLanguage: "ja"
         )
 
         XCTAssertEqual(result, 1.0, accuracy: 0.001,
-                      "Nil unit should not convert")
+                      "Empty unit should not convert")
     }
 
     func testNonConvertibleUnit() {

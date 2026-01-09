@@ -18,6 +18,7 @@ struct RecipeListToolbarActions: View {
     let onImportRecipe: () -> Void
     let onBulkImport: () -> Void
     let onCookbookScanner: () -> Void
+    let onAddCollection: () -> Void
     let onAddNormalSample: () -> Void
     let onAddHeritageSample: () -> Void
 
@@ -60,6 +61,16 @@ struct RecipeListToolbarActions: View {
                 }
                 .accessibilityLabel("Scan Cookbook")
                 .accessibilityHint("Scan a recipe from a cookbook page")
+
+                Divider()
+
+                Button {
+                    onAddCollection()
+                } label: {
+                    Label("New Collection", systemImage: "folder.badge.plus")
+                }
+                .accessibilityLabel("New Collection")
+                .accessibilityHint("Create a new collection")
 
                 Divider()
 

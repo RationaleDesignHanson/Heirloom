@@ -25,6 +25,7 @@ struct RecipeListView: View {
     @State private var showImportRecipe = false
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
+    @State private var showCreateCollection = false
     @State private var showFilters = false
     @State private var filters = RecipeFilters()
     @State private var recipeToDelete: Recipe?
@@ -37,6 +38,9 @@ struct RecipeListView: View {
     @State private var selectedRecipeIds: Set<UUID> = []
     @State private var showBatchDeleteConfirmation = false
     @State private var showCollectionPicker = false
+
+    // Single recipe collection picker
+    @State private var recipeForCollectionPicker: Recipe?
 
     // Conflict resolution
     @State private var showConflictResolution = false
@@ -140,6 +144,7 @@ struct RecipeListView: View {
                 onImportRecipe: { showImportRecipe = true },
                 onBulkImport: { showBulkImport = true },
                 onCookbookScanner: { showCookbookScanner = true },
+                onAddCollection: { showCreateCollection = true },
                 onAddNormalSample: addSampleRecipe,
                 onAddHeritageSample: addSampleRecipe
             )
@@ -152,6 +157,7 @@ struct RecipeListView: View {
             showImportRecipe: $showImportRecipe,
             showBulkImport: $showBulkImport,
             showCookbookScanner: $showCookbookScanner,
+            showCreateCollection: $showCreateCollection,
             showFilters: $showFilters,
             filters: $filters,
             showDeleteConfirmation: $showDeleteConfirmation,
@@ -162,6 +168,7 @@ struct RecipeListView: View {
             onBatchDelete: batchDeleteRecipes,
             showCollectionPicker: $showCollectionPicker,
             onExitSelection: exitSelectionMode,
+            recipeForCollectionPicker: $recipeForCollectionPicker,
             showConflictResolution: $showConflictResolution,
             conflictResolutionSheet: AnyView(conflictResolutionSheet)
         )
@@ -247,6 +254,13 @@ struct RecipeListView: View {
                         )
                     }
                     .accessibilityLabel(recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List")
+
+                    Button {
+                        recipeForCollectionPicker = recipe
+                    } label: {
+                        Label("Add to Collection", systemImage: "folder.badge.plus")
+                    }
+                    .accessibilityLabel("Add \(recipe.title) to collection")
 
                     Divider()
 

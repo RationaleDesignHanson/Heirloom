@@ -100,8 +100,8 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: Date())
         context.insert(party)
 
-        let recipe1 = Recipe(title: "Recipe 1", instructions: [])
-        let recipe2 = Recipe(title: "Recipe 2", instructions: [])
+        let recipe1 = Heirloom.Recipe(title: "Recipe 1", instructions: [])
+        let recipe2 = Heirloom.Recipe(title: "Recipe 2", instructions: [])
         context.insert(recipe1)
         context.insert(recipe2)
 
@@ -134,9 +134,9 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: Date())
         context.insert(party)
 
-        let recipe1 = Recipe(title: "Recipe 1", instructions: [])
+        let recipe1 = Heirloom.Recipe(title: "Recipe 1", instructions: [])
         recipe1.prepTime = "15 min"
-        let recipe2 = Recipe(title: "Recipe 2", instructions: [])
+        let recipe2 = Heirloom.Recipe(title: "Recipe 2", instructions: [])
         recipe2.prepTime = "30 min"
         context.insert(recipe1)
         context.insert(recipe2)
@@ -170,9 +170,9 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: Date())
         context.insert(party)
 
-        let recipe1 = Recipe(title: "Recipe 1", instructions: [])
+        let recipe1 = Heirloom.Recipe(title: "Recipe 1", instructions: [])
         recipe1.cookTime = "20 min"
-        let recipe2 = Recipe(title: "Recipe 2", instructions: [])
+        let recipe2 = Heirloom.Recipe(title: "Recipe 2", instructions: [])
         recipe2.cookTime = "45 min"
         context.insert(recipe1)
         context.insert(recipe2)
@@ -207,8 +207,8 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: mealTime)
         context.insert(party)
 
-        let recipe1 = Recipe(title: "Recipe 1", instructions: [])
-        let recipe2 = Recipe(title: "Recipe 2", instructions: [])
+        let recipe1 = Heirloom.Recipe(title: "Recipe 1", instructions: [])
+        let recipe2 = Heirloom.Recipe(title: "Recipe 2", instructions: [])
         context.insert(recipe1)
         context.insert(recipe2)
 
@@ -241,7 +241,7 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: mealTime)
         context.insert(party)
 
-        let recipe = Recipe(title: "Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Recipe", instructions: [])
         context.insert(recipe)
 
         let dpRecipe = DinnerPartyRecipe(recipe: recipe, startTimeOffset: 30)
@@ -261,7 +261,7 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: mealTime)
         context.insert(party)
 
-        let recipe = Recipe(title: "Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Recipe", instructions: [])
         context.insert(recipe)
 
         // Start time is 60 min before meal = 30 min ago (in past)
@@ -294,7 +294,7 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: mealTime)
         context.insert(party)
 
-        let recipe = Recipe(title: "Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Recipe", instructions: [])
         context.insert(recipe)
 
         let dpRecipe = DinnerPartyRecipe(recipe: recipe, startTimeOffset: 60)
@@ -324,7 +324,7 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: mealTime)
         context.insert(party)
 
-        let recipe = Recipe(title: "Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Recipe", instructions: [])
         context.insert(recipe)
 
         let dpRecipe = DinnerPartyRecipe(recipe: recipe, startTimeOffset: 30)
@@ -345,7 +345,7 @@ struct DinnerPartyTests {
     func testDinnerPartyRecipe_Init_WithRequiredFields() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Test Recipe", instructions: [])
         context.insert(recipe)
 
         // Act
@@ -365,7 +365,7 @@ struct DinnerPartyTests {
     func testDinnerPartyRecipe_Init_WithCustomScalingFactor() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Test Recipe", instructions: [])
         context.insert(recipe)
 
         // Act
@@ -382,7 +382,7 @@ struct DinnerPartyTests {
     func testDinnerPartyRecipe_StartTime_NoDinnerParty() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Test Recipe", instructions: [])
         context.insert(recipe)
 
         let dpRecipe = DinnerPartyRecipe(recipe: recipe, startTimeOffset: 30)
@@ -400,7 +400,7 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: mealTime)
         context.insert(party)
 
-        let recipe = Recipe(title: "Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Test Recipe", instructions: [])
         context.insert(recipe)
 
         let dpRecipe = DinnerPartyRecipe(recipe: recipe, startTimeOffset: 45)
@@ -423,7 +423,7 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: mealTime)
         context.insert(party)
 
-        let recipe = Recipe(title: "Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Test Recipe", instructions: [])
         context.insert(recipe)
 
         // Start time is 60 min before meal = 30 min ago (in past)
@@ -444,7 +444,7 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: mealTime)
         context.insert(party)
 
-        let recipe = Recipe(title: "Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Test Recipe", instructions: [])
         context.insert(recipe)
 
         let dpRecipe = DinnerPartyRecipe(recipe: recipe, startTimeOffset: 60)
@@ -464,7 +464,7 @@ struct DinnerPartyTests {
         let party = DinnerParty(name: "Test", mealTime: mealTime)
         context.insert(party)
 
-        let recipe = Recipe(title: "Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Test Recipe", instructions: [])
         context.insert(recipe)
 
         let dpRecipe = DinnerPartyRecipe(recipe: recipe, startTimeOffset: 30)
@@ -502,7 +502,7 @@ struct DinnerPartyTests {
     func testDinnerPartyRecipe_ZeroStartTimeOffset() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Test Recipe", instructions: [])
         context.insert(recipe)
 
         // Act
@@ -517,7 +517,7 @@ struct DinnerPartyTests {
     func testDinnerPartyRecipe_HandlesNotes() {
         // Arrange
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Test Recipe", instructions: [])
         context.insert(recipe)
 
         let dpRecipe = DinnerPartyRecipe(recipe: recipe, startTimeOffset: 30)

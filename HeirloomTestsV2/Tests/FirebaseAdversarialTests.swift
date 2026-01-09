@@ -11,7 +11,7 @@ struct FirebaseAdversarialTests {
 
     func createTestContext() -> ModelContext {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: Recipe.self, Ingredient.self, Tag.self, RecipeCollection.self, configurations: config)
+        let container = try! ModelContainer(for: Heirloom.Recipe.self, Heirloom.Ingredient.self, Heirloom.Tag.self, Heirloom.RecipeCollection.self, configurations: config)
         return ModelContext(container)
     }
 
@@ -42,7 +42,7 @@ struct FirebaseAdversarialTests {
         // - Use DispatchQueue or actor to ensure thread-safety
 
         let context = createTestContext()
-        let recipe = Recipe(title: "Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Test Recipe", instructions: [])
         context.insert(recipe)
         try? context.save()
 
@@ -86,7 +86,7 @@ struct FirebaseAdversarialTests {
         // - Offline queue of pending changes
 
         let context = createTestContext()
-        let recipe = Recipe(title: "Offline Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Offline Recipe", instructions: [])
         recipe.setNotes("This was edited offline")
         context.insert(recipe)
         try? context.save()
@@ -135,7 +135,7 @@ struct FirebaseAdversarialTests {
         // - Or: Upload image synchronously before allowing share
 
         let context = createTestContext()
-        let recipe = Recipe(title: "Recipe With Image", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Recipe With Image", instructions: [])
         try? recipe.setImageFileName("local-image.jpg")  // Local image exists
         recipe.firebaseImageURL = nil  // Firebase URL not set yet
 
@@ -182,14 +182,14 @@ struct FirebaseAdversarialTests {
         // - Queue operations for later retry
 
         let context = createTestContext()
-        let recipe = Recipe(title: "Large Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Large Recipe", instructions: [])
 
         // Add large notes (512KB)
         recipe.setNotes(String(repeating: "X", count: 512_000))
 
         // Add 100 ingredients
         for i in 0..<100 {
-            let ingredient = Ingredient(originalText: "1 cup Ingredient \(i)", name: "Ingredient \(i)", quantity: 1.0, unit: "cup", orderIndex: i)
+            let ingredient = Heirloom.Ingredient(originalText: "1 cup Ingredient \(i)", name: "Ingredient \(i)", quantity: 1.0, unit: "cup", orderIndex: i)
             ingredient.recipe = recipe
             recipe.ingredients?.append(ingredient)
         }
@@ -199,7 +199,7 @@ struct FirebaseAdversarialTests {
 
         // Assert - Large recipe created
         #expect(recipe.notes!.count == 512_000)
-        #expect(recipe.ingredients.count == 100)
+        #expect(recipe.ingredients?.count == 100)
 
         // Documents: No timeout configuration or handling
         // Large recipe could hang indefinitely on slow network
@@ -241,11 +241,11 @@ struct FirebaseAdversarialTests {
         // - Use Firestore batched writes for atomicity
 
         let context = createTestContext()
-        let recipe = Recipe(title: "Recipe To Delete", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Recipe To Delete", instructions: [])
 
         // Add ingredients
-        let ing1 = Ingredient(originalText: "2 cups Flour", name: "Flour", quantity: 2.0, unit: "cups", orderIndex: 0)
-        let ing2 = Ingredient(originalText: "1 cup Sugar", name: "Sugar", quantity: 1.0, unit: "cup", orderIndex: 1)
+        let ing1 = Heirloom.Ingredient(originalText: "2 cups Flour", name: "Flour", quantity: 2.0, unit: "cups", orderIndex: 0)
+        let ing2 = Heirloom.Ingredient(originalText: "1 cup Sugar", name: "Sugar", quantity: 1.0, unit: "cup", orderIndex: 1)
         ing1.recipe = recipe
         ing2.recipe = recipe
         recipe.ingredients?.append(ing1)
@@ -255,7 +255,7 @@ struct FirebaseAdversarialTests {
         try? context.save()
 
         // Assert - Recipe and ingredients exist
-        #expect(recipe.ingredients.count == 2)
+        #expect(recipe.ingredients?.count == 2)
 
         // Act - Delete recipe (simulates cascade)
         context.delete(recipe)
@@ -305,7 +305,7 @@ struct FirebaseAdversarialTests {
         // - Or: Manual merge tool
 
         let context = createTestContext()
-        let recipe = Recipe(title: "Concurrent Edit Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Concurrent Edit Recipe", instructions: [])
         recipe.setNotes("Original notes")
         context.insert(recipe)
         try? context.save()
@@ -359,7 +359,7 @@ struct FirebaseAdversarialTests {
         // - If refresh fails, prompt user to sign in again
 
         let context = createTestContext()
-        let recipe = Recipe(title: "Auth Test Recipe", instructions: [])
+        let recipe = Heirloom.Recipe(title: "Auth Test Recipe", instructions: [])
         context.insert(recipe)
         try? context.save()
 

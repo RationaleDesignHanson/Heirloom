@@ -11,10 +11,10 @@ struct CRDTAdversarialTests {
 
     func createTestContext() -> ModelContext {
         let schema = Schema([
-            Recipe.self,
-            Ingredient.self,
-            Tag.self,
-            RecipeCollection.self
+            Heirloom.Recipe.self,
+            Heirloom.Ingredient.self,
+            Heirloom.Tag.self,
+            Heirloom.RecipeCollection.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try! ModelContainer(for: schema, configurations: config)

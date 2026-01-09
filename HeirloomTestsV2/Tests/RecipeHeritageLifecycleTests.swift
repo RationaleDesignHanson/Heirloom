@@ -11,12 +11,12 @@ struct RecipeHeritageLifecycleTests {
 
     func createTestContext() -> ModelContext {
         let schema = Schema([
-            Recipe.self,
-            Ingredient.self,
-            Tag.self,
-            RecipeCollection.self,
-            RecipeCardBack.self,
-            Customization.self
+            Heirloom.Recipe.self,
+            Heirloom.Ingredient.self,
+            Heirloom.Tag.self,
+            Heirloom.RecipeCollection.self,
+            Heirloom.RecipeCardBack.self,
+            Heirloom.Customization.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try! ModelContainer(for: schema, configurations: config)
@@ -29,7 +29,7 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_CreatesNewInstance() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Heritage Chocolate Cake")
+        let original = Heirloom.Recipe(title: "Heritage Chocolate Cake")
         context.insert(original)
 
         // Act
@@ -44,10 +44,10 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_CopiesBasicFields() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(
+        let original = Heirloom.Recipe(
             title: "Test Recipe",
             sourceType: .cookbook,
-            instructions: "Mix and bake",
+            instructions: ["Mix and bake"],
             servings: "12 servings",
             prepTime: "30 min",
             cookTime: "45 min"
@@ -56,7 +56,7 @@ struct RecipeHeritageLifecycleTests {
         original.sourceBookTitle = "Joy of Cooking"
         original.sourceBookAuthor = "Irma S. Rombauer"
         original.sourceBookPage = 123
-        original.notes = "Original notes"
+        original.setNotes("Original notes")
         context.insert(original)
 
         // Act
@@ -65,7 +65,7 @@ struct RecipeHeritageLifecycleTests {
         // Assert
         #expect(copy.title == "Test Recipe")
         #expect(copy.sourceType == .cookbook)
-        #expect(copy.instructions == "Mix and bake")
+        #expect(copy.instructions == ["Mix and bake"])
         #expect(copy.servings == "12 servings")
         #expect(copy.prepTime == "30 min")
         #expect(copy.cookTime == "45 min")
@@ -80,7 +80,7 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_CopiesImageReferences() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Test Recipe")
+        let original = Heirloom.Recipe(title: "Test Recipe")
         original.imageFileName = "recipe-123.jpg"
         original.sourceImageURL = "https://example.com/image.jpg"
         original.firebaseImageURL = "gs://bucket/image.jpg"
@@ -105,7 +105,7 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_HeritageRecipe_MarksAsNonHeritage() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Heritage Recipe")
+        let original = Heirloom.Recipe(title: "Heritage Recipe")
         original.isHeritageRecipe = true
         original.heritageCollectionId = "founding-collection-1"
         original.historicalText = "A recipe from 1890"
@@ -126,7 +126,7 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_HeritageRecipe_UpdatesProvenance() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Heritage Recipe")
+        let original = Heirloom.Recipe(title: "Heritage Recipe")
         original.isHeritageRecipe = true
         original.provenance = ProvenanceMetadata(
             sourceType: .userCreated,
@@ -150,7 +150,7 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_NonHeritage_PreservesProvenance() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "User Recipe")
+        let original = Heirloom.Recipe(title: "User Recipe")
         original.isHeritageRecipe = false
         original.provenance = ProvenanceMetadata(
             sourceType: .imported,
@@ -173,20 +173,20 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_CopiesIngredients() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Test Recipe")
+        let original = Heirloom.Recipe(title: "Test Recipe")
         context.insert(original)
 
-        let ingredient1 = Ingredient(
+        let ingredient1 = Heirloom.Ingredient(
             originalText: "2 cups flour",
             name: "flour",
             quantity: 2.0,
             unit: "cups",
-            category: .baking,
+            category: .bakery,
             orderIndex: 0
         )
         ingredient1.recipe = original
 
-        let ingredient2 = Ingredient(
+        let ingredient2 = Heirloom.Ingredient(
             originalText: "1 tsp salt",
             name: "salt",
             quantity: 1.0,
@@ -211,15 +211,15 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_CreatesNewIngredientInstances() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Test Recipe")
+        let original = Heirloom.Recipe(title: "Test Recipe")
         context.insert(original)
 
-        let ingredient = Ingredient(
+        let ingredient = Heirloom.Ingredient(
             originalText: "2 cups flour",
             name: "flour",
             quantity: 2.0,
             unit: "cups",
-            category: .baking,
+            category: .bakery,
             orderIndex: 0
         )
         ingredient.recipe = original
@@ -238,7 +238,7 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_CopiesCollections() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Test Recipe")
+        let original = Heirloom.Recipe(title: "Test Recipe")
         context.insert(original)
 
         let collection1 = RecipeCollection(name: "Desserts")
@@ -261,7 +261,7 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_CopiesTags() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Test Recipe")
+        let original = Heirloom.Recipe(title: "Test Recipe")
         context.insert(original)
 
         let tag1 = Tag(name: "quick")
@@ -286,7 +286,7 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_CopiesScalingMetadata() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Test Recipe")
+        let original = Heirloom.Recipe(title: "Test Recipe")
         original.scalabilityRating = "moderate"
         original.recipeCategory = "Cookies"
         original.minimumServings = 6
@@ -311,7 +311,7 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_DoesNotCopyUsageStats() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Test Recipe")
+        let original = Heirloom.Recipe(title: "Test Recipe")
         original.timesCooked = 15
         original.lastCooked = Date()
         original.isFavorite = true
@@ -330,7 +330,7 @@ struct RecipeHeritageLifecycleTests {
     func testCreateUserCopy_DoesNotCopySocialFields() {
         // Arrange
         let context = createTestContext()
-        let original = Recipe(title: "Test Recipe")
+        let original = Heirloom.Recipe(title: "Test Recipe")
         original.sharedBy = "Grandma"
         original.passedDownBy = "Mom"
         context.insert(original)
@@ -348,7 +348,7 @@ struct RecipeHeritageLifecycleTests {
     @Test("shouldConsiderForCleanup returns false for non-heritage recipe")
     func testShouldConsiderForCleanup_NonHeritage_ReturnsFalse() {
         // Arrange
-        let recipe = Recipe(title: "User Recipe")
+        let recipe = Heirloom.Recipe(title: "User Recipe")
         recipe.isHeritageRecipe = false
 
         // Act & Assert
@@ -358,7 +358,7 @@ struct RecipeHeritageLifecycleTests {
     @Test("shouldConsiderForCleanup returns false when recipe is cooked")
     func testShouldConsiderForCleanup_Cooked_ReturnsFalse() {
         // Arrange
-        let recipe = Recipe(title: "Heritage Recipe")
+        let recipe = Heirloom.Recipe(title: "Heritage Recipe")
         recipe.isHeritageRecipe = true
         recipe.timesCooked = 1
 
@@ -369,7 +369,7 @@ struct RecipeHeritageLifecycleTests {
     @Test("shouldConsiderForCleanup returns false when recipe is favorited")
     func testShouldConsiderForCleanup_Favorited_ReturnsFalse() {
         // Arrange
-        let recipe = Recipe(title: "Heritage Recipe")
+        let recipe = Heirloom.Recipe(title: "Heritage Recipe")
         recipe.isHeritageRecipe = true
         recipe.isFavorite = true
 
@@ -380,7 +380,7 @@ struct RecipeHeritageLifecycleTests {
     @Test("shouldConsiderForCleanup returns false when recipe has notes")
     func testShouldConsiderForCleanup_HasNotes_ReturnsFalse() {
         // Arrange
-        let recipe = Recipe(title: "Heritage Recipe")
+        let recipe = Heirloom.Recipe(title: "Heritage Recipe")
         recipe.isHeritageRecipe = true
         recipe.notes = "My modifications"
 
@@ -391,7 +391,7 @@ struct RecipeHeritageLifecycleTests {
     @Test("shouldConsiderForCleanup returns false when recipe is less than 30 days old")
     func testShouldConsiderForCleanup_LessThan30Days_ReturnsFalse() {
         // Arrange
-        let recipe = Recipe(title: "Heritage Recipe")
+        let recipe = Heirloom.Recipe(title: "Heritage Recipe")
         recipe.isHeritageRecipe = true
         recipe.dateAdded = Calendar.current.date(byAdding: .day, value: -20, to: Date())!
 
@@ -402,7 +402,7 @@ struct RecipeHeritageLifecycleTests {
     @Test("shouldConsiderForCleanup returns true for unmodified heritage recipe over 30 days")
     func testShouldConsiderForCleanup_UnmodifiedOld_ReturnsTrue() {
         // Arrange
-        let recipe = Recipe(title: "Heritage Recipe")
+        let recipe = Heirloom.Recipe(title: "Heritage Recipe")
         recipe.isHeritageRecipe = true
         recipe.timesCooked = 0
         recipe.isFavorite = false
@@ -416,7 +416,7 @@ struct RecipeHeritageLifecycleTests {
     @Test("shouldConsiderForCleanup returns false when notes is empty string")
     func testShouldConsiderForCleanup_EmptyNotes_ReturnsTrue() {
         // Arrange
-        let recipe = Recipe(title: "Heritage Recipe")
+        let recipe = Heirloom.Recipe(title: "Heritage Recipe")
         recipe.isHeritageRecipe = true
         recipe.timesCooked = 0
         recipe.isFavorite = false
