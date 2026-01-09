@@ -18,6 +18,7 @@ struct RecipeListToolbarActions: View {
     let onImportRecipe: () -> Void
     let onBulkImport: () -> Void
     let onCookbookScanner: () -> Void
+    let onVideoImport: () -> Void
     let onAddCollection: () -> Void
     let onAddNormalSample: () -> Void
     let onAddHeritageSample: () -> Void
@@ -61,6 +62,16 @@ struct RecipeListToolbarActions: View {
                 }
                 .accessibilityLabel("Scan Cookbook")
                 .accessibilityHint("Scan a recipe from a cookbook page")
+
+                #if DEBUG
+                Button {
+                    onVideoImport()
+                } label: {
+                    Label("Import from Video", systemImage: "video.badge.waveform")
+                }
+                .accessibilityLabel("Import recipe from cooking video")
+                .accessibilityHint("Extract recipes from YouTube, TikTok, or camera roll videos")
+                #endif
 
                 Divider()
 

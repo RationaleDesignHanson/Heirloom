@@ -15,6 +15,7 @@ struct RecipeSheetModifiers: ViewModifier {
     @Binding var showImportRecipe: Bool
     @Binding var showBulkImport: Bool
     @Binding var showCookbookScanner: Bool
+    @Binding var showVideoImport: Bool
     @Binding var showCreateCollection: Bool
     @Binding var showFilters: Bool
     @Binding var filters: RecipeFilters
@@ -43,6 +44,9 @@ struct RecipeSheetModifiers: ViewModifier {
             }
             .sheet(isPresented: $showCookbookScanner) {
                 CookbookScannerView()
+            }
+            .sheet(isPresented: $showVideoImport) {
+                VideoImportView()
             }
             .sheet(isPresented: $showCreateCollection) {
                 CollectionEditorView()

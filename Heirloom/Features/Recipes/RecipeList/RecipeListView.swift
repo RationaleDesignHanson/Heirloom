@@ -25,6 +25,7 @@ struct RecipeListView: View {
     @State private var showImportRecipe = false
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
+    @State private var showVideoImport = false
     @State private var showCreateCollection = false
     @State private var showFilters = false
     @State private var filters = RecipeFilters()
@@ -144,6 +145,7 @@ struct RecipeListView: View {
                 onImportRecipe: { showImportRecipe = true },
                 onBulkImport: { showBulkImport = true },
                 onCookbookScanner: { showCookbookScanner = true },
+                onVideoImport: { showVideoImport = true },
                 onAddCollection: { showCreateCollection = true },
                 onAddNormalSample: addSampleRecipe,
                 onAddHeritageSample: addSampleRecipe
@@ -157,6 +159,7 @@ struct RecipeListView: View {
             showImportRecipe: $showImportRecipe,
             showBulkImport: $showBulkImport,
             showCookbookScanner: $showCookbookScanner,
+            showVideoImport: $showVideoImport,
             showCreateCollection: $showCreateCollection,
             showFilters: $showFilters,
             filters: $filters,
