@@ -1954,7 +1954,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					8C89A26D541EF27F051E6DC1 = {
 						DevelopmentTeam = Q2HHH2GDN8;
