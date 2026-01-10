@@ -239,6 +239,7 @@ final class Recipe {
             case .scan: return .scanned
             case .family: return .userCreated
             case .heritage: return .imported
+            case .video: return .video
             }
         }()
 
@@ -288,7 +289,53 @@ extension Recipe {
                 return collection.name
             }
             return "Heritage Collection"
+        case .video:
+            // For video imports, extract creator name from sourceAttribution
+            if let attribution = provenance?.sourceAttribution,
+               !attribution.isEmpty {
+                // Extract creator name (format: "creatorName - videoTitle" or just "creatorName")
+                let parts = attribution.components(separatedBy: " - ")
+                if let creatorName = parts.first?.trimmingCharacters(in: .whitespaces),
+                   !creatorName.isEmpty,
+                   creatorName != "Unknown" {
+                    return "@\(creatorName)"
+                }
+            }
+            return "Video Recipe"
         }
+    }
+
+    /// Get creator profile URL for video-imported recipes
+    var creatorProfileURL: URL? {
+        guard sourceType == .video else { return nil }
+
+        // Extract creator name from sourceAttribution
+        guard let attribution = provenance?.sourceAttribution,
+              !attribution.isEmpty else {
+            return nil
+        }
+
+        let parts = attribution.components(separatedBy: " - ")
+        guard let creatorName = parts.first?.trimmingCharacters(in: .whitespaces),
+              !creatorName.isEmpty,
+              creatorName != "Unknown" else {
+            return nil
+        }
+
+        // Try to construct platform-specific URL
+        // Check sourceURL for platform hints or construct generic search
+        if let sourceURL = provenance?.sourceURL, !sourceURL.isEmpty {
+            if sourceURL.contains("tiktok.com") {
+                return URL(string: "https://www.tiktok.com/@\(creatorName)")
+            } else if sourceURL.contains("youtube.com") || sourceURL.contains("youtu.be") {
+                return URL(string: "https://www.youtube.com/@\(creatorName)")
+            } else if sourceURL.contains("instagram.com") {
+                return URL(string: "https://www.instagram.com/\(creatorName)")
+            }
+        }
+
+        // Default: TikTok format (most common for cooking videos)
+        return URL(string: "https://www.tiktok.com/@\(creatorName)")
     }
 
     var shouldShowLoveMarks: Bool {
@@ -702,6 +749,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
     case manual = "manual"
     case scan = "scan"
     case heritage = "heritage"
+    case video = "video"
 
     var iconName: String {
         switch self {
@@ -711,6 +759,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .manual: return "square.and.pencil"
         case .scan: return "doc.viewfinder"
         case .heritage: return "book.pages.fill"
+        case .video: return "video.circle.fill"
         }
     }
 
@@ -722,6 +771,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .manual: return "My Recipe"
         case .scan: return "Scanned"
         case .heritage: return "Heritage Collection"
+        case .video: return "Video Import"
         }
     }
 }

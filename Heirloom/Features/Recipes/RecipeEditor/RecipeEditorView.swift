@@ -588,6 +588,8 @@ struct RecipeEditorView: View {
                         provenanceSourceType = .scanned
                     case .heritage:
                         provenanceSourceType = .imported
+                    case .video:
+                        provenanceSourceType = .video
                     }
 
                     recipe.provenance = ProvenanceMetadata(

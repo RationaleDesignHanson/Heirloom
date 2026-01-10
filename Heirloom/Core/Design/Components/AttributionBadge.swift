@@ -158,6 +158,8 @@ struct AttributionBadge: View {
                 return .orange
             case .ai:
                 return .pink
+            case .video:
+                return HeirloomColors.tomato
             }
         }
 
@@ -189,6 +191,8 @@ struct AttributionBadge: View {
                 return Color.orange.opacity(0.1)
             case .ai:
                 return Color.pink.opacity(0.1)
+            case .video:
+                return HeirloomColors.tomato.opacity(0.1)
             }
         }
 

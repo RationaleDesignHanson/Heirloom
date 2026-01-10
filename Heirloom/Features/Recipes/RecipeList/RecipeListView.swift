@@ -1233,10 +1233,21 @@ struct RecipeCardView: View {
 
                 // Consolidated: Source, Times Cooked, and Generation Badge on one line
                 HStack(spacing: 6) {
-                    Text(recipe.sourceDisplayName)
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .lineLimit(1)
+                    // Creator name link for video recipes
+                    if recipe.sourceType == .video, let profileURL = recipe.creatorProfileURL {
+                        Link(destination: profileURL) {
+                            Text(recipe.sourceDisplayName)
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.tomato)
+                                .underline()
+                                .lineLimit(1)
+                        }
+                    } else {
+                        Text(recipe.sourceDisplayName)
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                            .lineLimit(1)
+                    }
 
                     if recipe.timesCooked > 0 {
                         Text("•")

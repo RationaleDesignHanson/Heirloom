@@ -63,7 +63,6 @@ struct RecipeListToolbarActions: View {
                 .accessibilityLabel("Scan Cookbook")
                 .accessibilityHint("Scan a recipe from a cookbook page")
 
-                #if DEBUG
                 Button {
                     onVideoImport()
                 } label: {
@@ -71,7 +70,6 @@ struct RecipeListToolbarActions: View {
                 }
                 .accessibilityLabel("Import recipe from cooking video")
                 .accessibilityHint("Extract recipes from YouTube, TikTok, or camera roll videos")
-                #endif
 
                 Divider()
 

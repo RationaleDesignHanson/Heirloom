@@ -267,7 +267,7 @@ struct CollectionsListView: View {
             // Firebase sync
             let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
             if backendConfig.isFirebaseActive {
-                let firebaseSync = ServiceContainer.shared.resolve(FirebaseSyncServiceProtocol.self)
+                let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
                 try await firebaseSync.deleteCollection(collection.id)
             }
 
@@ -326,7 +326,7 @@ struct CollectionsListView: View {
             // Firebase sync
             let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
             if backendConfig.isFirebaseActive {
-                let firebaseSync = ServiceContainer.shared.resolve(FirebaseSyncServiceProtocol.self)
+                let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
 
                 // Delete recipes from Firebase
                 for recipe in recipesToDelete {
