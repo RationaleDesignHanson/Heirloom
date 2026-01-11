@@ -205,13 +205,28 @@ struct VideoRecipeReviewView: View {
             }
             .onAppear {
                 // DEBUG: Log augmentation status
+                print("🔥🔥🔥 ============================================")
+                print("🔥 VIDEO RECIPE REVIEW VIEW APPEARED")
+                print("🔥🔥🔥 ============================================")
                 print("📊 AUGMENTATION STATUS:")
+                print("   - Enhanced extraction: \(enhancedExtraction != nil ? "✅ Present" : "❌ NIL")")
+
                 if let enhanced = enhancedExtraction {
                     print("   ✅ Enhanced extraction present")
+                    print("   - Augmented recipe: \(enhanced.augmentedRecipe != nil ? "✅ Present" : "❌ NIL")")
+
                     if let augmented = enhanced.augmentedRecipe {
                         print("   📝 Augmented ingredients: \(augmented.augmentedIngredients.count)")
                         print("   🔍 With inferred quantities: \(augmented.augmentedIngredients.filter { $0.inferredQuantity != nil }.count)")
                         print("   ❌ Without quantities: \(augmented.augmentedIngredients.filter { $0.inferredQuantity == nil }.count)")
+
+                        // Log each augmented ingredient
+                        for (idx, aug) in augmented.augmentedIngredients.enumerated() {
+                            print("   Ingredient \(idx + 1): \(aug.originalIngredient.originalText)")
+                            print("      - Inferred: \(aug.inferredQuantity ?? "none") \(aug.inferredUnit ?? "")")
+                            print("      - Confidence: \(aug.inferredConfidence)")
+                            print("      - Has reasoning: \(!aug.reasoning.isEmpty)")
+                        }
 
                         // List ingredients without quantities
                         let noQty = augmented.augmentedIngredients.filter { $0.inferredQuantity == nil }
@@ -249,9 +264,12 @@ struct VideoRecipeReviewView: View {
             $0.originalIngredient.originalText == ingredient.originalText
         }
 
-        // Use augmented row if augmentation data exists AND has inferred quantity
-        // (No point showing augmented UI if we don't have an inferred value)
-        if let augmentation = augmentation, augmentation.inferredQuantity != nil {
+        // DEBUG: Log matching attempt (moved outside ViewBuilder)
+        let _ = debugIngredientMatching(ingredient: ingredient, augmentation: augmentation)
+
+        // Use augmented row if augmentation data exists
+        // Show reasoning even for low-confidence or no-inference cases
+        if let augmentation = augmentation {
             AugmentedIngredientEditRow(
                 ingredient: ingredient,
                 augmentation: augmentation,
@@ -303,6 +321,21 @@ struct VideoRecipeReviewView: View {
             )
         } else {
             IngredientEditRow(ingredient: $editedIngredients[index])
+        }
+    }
+
+    private func debugIngredientMatching(ingredient: ExtractedIngredient, augmentation: AugmentedIngredient?) {
+        if ingredient.confidence == .unknown || ingredient.confidence == .approximate {
+            print("🔍 Looking for augmentation for ingredient: '\(ingredient.originalText)' (confidence: \(ingredient.confidence.rawValue))")
+            print("   Available augmented ingredients:")
+            if let augmentedIngredients = enhancedExtraction?.augmentedRecipe?.augmentedIngredients {
+                for aug in augmentedIngredients {
+                    print("      - '\(aug.originalIngredient.originalText)'")
+                }
+            } else {
+                print("      (none - augmentedRecipe is nil)")
+            }
+            print("   Match found: \(augmentation != nil ? "YES" : "NO")")
         }
     }
 
@@ -412,20 +445,41 @@ struct IngredientEditRow: View {
                     .textFieldStyle(.roundedBorder)
                 }
 
-                // Confidence indicator
+                // Confidence indicator with explanation
                 if ingredient.needsReview {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.circle.fill")
                             .foregroundStyle(HeirloomColors.tomato)
                             .font(.caption2)
-                        Text("Please verify - confidence: \(ingredient.confidence.displayName)")
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(HeirloomColors.secondaryText)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Please verify - confidence: \(ingredient.confidence.displayName)")
+                                .font(HeirloomFonts.caption2)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                            Text(confidenceExplanation(for: ingredient.confidence))
+                                .font(.system(size: 10))
+                                .foregroundStyle(HeirloomColors.secondaryText.opacity(0.8))
+                        }
                     }
                 }
             }
         }
         .padding(.vertical, HeirloomSpacing.xs)
+    }
+
+    // Helper to explain confidence levels
+    private func confidenceExplanation(for confidence: ExtractionConfidence) -> String {
+        switch confidence {
+        case .explicit:
+            return "Clearly stated in source"
+        case .visual:
+            return "Confirmed by video frames"
+        case .inferred:
+            return "Derived from context"
+        case .approximate:
+            return "Extracted from imprecise description - please verify accuracy"
+        case .unknown:
+            return "Could not extract quantity - please add or verify"
+        }
     }
 }
 

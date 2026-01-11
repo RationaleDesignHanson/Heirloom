@@ -481,10 +481,20 @@ struct ASMRVideoImportView: View {
             servings: extraction.structuredRecipe.servings
         )
 
+        // Use full attribution data from review screen
+        let attribution = extraction.metadata.attribution
+        let creatorInfo = attribution.creatorName ?? "Unknown Creator"
+        let videoInfo = attribution.videoTitle ?? "ASMR Video"
+        let platformInfo = attribution.platform?.displayName ?? ""
+
+        let attributionText = platformInfo.isEmpty
+            ? "\(creatorInfo) - \(videoInfo)"
+            : "\(creatorInfo) (\(platformInfo)) - \(videoInfo)"
+
         recipe.provenance = ProvenanceMetadata(
             sourceType: .imported,
-            sourceURL: selectedVideoURL?.absoluteString,
-            sourceAttribution: "ASMR Video - \(extraction.metadata.attribution.captionText ?? "Silent video")",
+            sourceURL: attribution.sourceURL ?? selectedVideoURL?.absoluteString,
+            sourceAttribution: attributionText,
             generation: 0,
             sharedByName: nil,
             createdAt: Date()
