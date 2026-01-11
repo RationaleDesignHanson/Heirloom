@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import SwiftData
 
 /// Orchestrates the 5-pass ASMR vision analysis pipeline
 @MainActor
@@ -17,6 +18,7 @@ class ASMRRecipeStructurer {
     private let aiService: AnthropicAIService
     private let frameExtractor: ASMRFrameExtractionService
     private let augmentationService: RecipeAugmentationService
+    private let similarRecipeService: LocalRecipeSimilarityService
 
     // MARK: - State
 
@@ -28,7 +30,9 @@ class ASMRRecipeStructurer {
     init(
         aiService: AnthropicAIService? = nil,
         frameExtractor: ASMRFrameExtractionService? = nil,
-        augmentationService: RecipeAugmentationService? = nil
+        augmentationService: RecipeAugmentationService? = nil,
+        similarRecipeService: LocalRecipeSimilarityService? = nil,
+        modelContext: ModelContext? = nil
     ) {
         if let aiService = aiService {
             self.aiService = aiService
@@ -43,6 +47,17 @@ class ASMRRecipeStructurer {
         } else {
             let aiServiceProtocol: AIServiceProtocol = self.aiService
             self.augmentationService = RecipeAugmentationService(aiService: aiServiceProtocol)
+        }
+
+        // LocalRecipeSimilarityService needs ModelContext
+        if let similarRecipeService = similarRecipeService {
+            self.similarRecipeService = similarRecipeService
+        } else if let modelContext = modelContext {
+            self.similarRecipeService = LocalRecipeSimilarityService(modelContext: modelContext)
+        } else {
+            // Default to ServiceContainer's model context
+            let context = ServiceContainer.shared.resolve(ModelContext.self)
+            self.similarRecipeService = LocalRecipeSimilarityService(modelContext: context)
         }
     }
 
@@ -856,13 +871,22 @@ class ASMRRecipeStructurer {
         dishName: String
     ) async throws -> (recipe: StructuredRecipe, augmentedRecipe: AugmentedRecipe?, tokensUsed: Int, cost: Double) {
 
-        // Call augmentation service (same as regular video imports)
-        // Pass empty arrays for similar recipes since we don't have them in ASMR flow
-        // The service will use Claude's culinary knowledge to infer quantities
+        print("🔍 Searching for similar recipes to '\(dishName)'...")
+
+        // Search for similar recipes in user's collection (same as regular video imports)
+        let similarRecipes = try await similarRecipeService.findSimilarRecipes(to: recipe, limit: 10)
+
+        print("📊 Found \(similarRecipes.count) similar recipes:")
+        for (index, match) in similarRecipes.prefix(5).enumerated() {
+            print("   \(index + 1). \(match.recipe.title) (\(match.similarityPercentage)% match)")
+        }
+
+        // Call augmentation service with similar recipe context
+        // This allows the AI to infer quantities based on actual recipes in the user's collection
         let augmentedResult: AugmentedRecipe = try await augmentationService.augment(
             recipe,
-            similarRecipes: [],
-            webRecipes: []
+            similarRecipes: similarRecipes,
+            webRecipes: []  // Web search not yet implemented for ASMR
         )
 
         // If no augmentation occurred, return original
