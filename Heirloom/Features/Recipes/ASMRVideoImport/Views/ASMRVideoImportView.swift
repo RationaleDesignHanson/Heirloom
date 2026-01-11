@@ -14,7 +14,15 @@ struct ASMRVideoImportView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @StateObject private var usageManager = ASMRUsageManager.shared
-    @StateObject private var processor = ASMRVideoProcessor()
+
+    // Processor will be initialized in init() with modelContext
+    @StateObject private var processor: ASMRVideoProcessor
+
+    init() {
+        // Capture modelContext is not possible here since @Environment is only available in body
+        // We'll pass it lazily when needed
+        _processor = StateObject(wrappedValue: ASMRVideoProcessor())
+    }
 
     @State private var selectedVideoURL: URL?
     @State private var userCaption = ""

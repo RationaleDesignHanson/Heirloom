@@ -18,7 +18,7 @@ class ASMRRecipeStructurer {
     private let aiService: AnthropicAIService
     private let frameExtractor: ASMRFrameExtractionService
     private let augmentationService: RecipeAugmentationService
-    private let similarRecipeService: LocalRecipeSimilarityService
+    private let similarRecipeService: LocalRecipeSimilarityService?
 
     // MARK: - State
 
@@ -50,14 +50,15 @@ class ASMRRecipeStructurer {
         }
 
         // LocalRecipeSimilarityService needs ModelContext
+        // If not provided, we'll skip similar recipe search (fallback to AI knowledge only)
         if let similarRecipeService = similarRecipeService {
             self.similarRecipeService = similarRecipeService
         } else if let modelContext = modelContext {
             self.similarRecipeService = LocalRecipeSimilarityService(modelContext: modelContext)
         } else {
-            // Default to ServiceContainer's model context
-            let context = ServiceContainer.shared.resolve(ModelContext.self)
-            self.similarRecipeService = LocalRecipeSimilarityService(modelContext: context)
+            // No ModelContext available - similar recipe search will be skipped
+            self.similarRecipeService = nil
+            print("⚠️ ASMRRecipeStructurer: No ModelContext provided, similar recipe search disabled")
         }
     }
 
@@ -871,14 +872,20 @@ class ASMRRecipeStructurer {
         dishName: String
     ) async throws -> (recipe: StructuredRecipe, augmentedRecipe: AugmentedRecipe?, tokensUsed: Int, cost: Double) {
 
-        print("🔍 Searching for similar recipes to '\(dishName)'...")
+        var similarRecipes: [SimilarRecipeMatch] = []
 
-        // Search for similar recipes in user's collection (same as regular video imports)
-        let similarRecipes = try await similarRecipeService.findSimilarRecipes(to: recipe, limit: 10)
+        // Search for similar recipes if service is available
+        if let similarRecipeService = similarRecipeService {
+            print("🔍 Searching for similar recipes to '\(dishName)'...")
 
-        print("📊 Found \(similarRecipes.count) similar recipes:")
-        for (index, match) in similarRecipes.prefix(5).enumerated() {
-            print("   \(index + 1). \(match.recipe.title) (\(match.similarityPercentage)% match)")
+            similarRecipes = try await similarRecipeService.findSimilarRecipes(to: recipe, limit: 10)
+
+            print("📊 Found \(similarRecipes.count) similar recipes:")
+            for (index, match) in similarRecipes.prefix(5).enumerated() {
+                print("   \(index + 1). \(match.recipe.title) (\(match.similarityPercentage)% match)")
+            }
+        } else {
+            print("⚠️ Similar recipe search disabled (no ModelContext), using AI knowledge only")
         }
 
         // Call augmentation service with similar recipe context

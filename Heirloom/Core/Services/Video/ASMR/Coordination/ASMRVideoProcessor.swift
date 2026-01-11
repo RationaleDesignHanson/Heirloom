@@ -9,6 +9,7 @@ import Foundation
 import AVFoundation
 import Combine
 import UIKit
+import SwiftData
 
 /// Main coordinator for ASMR video processing pipeline
 @MainActor
@@ -44,11 +45,12 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         structurer: ASMRRecipeStructurer? = nil,
         usageManager: ASMRUsageManager? = nil,
         cacheService: ASMRCacheService? = nil,
-        aiService: AnthropicAIService? = nil
+        aiService: AnthropicAIService? = nil,
+        modelContext: ModelContext? = nil
     ) {
         self.soundAnalyzer = soundAnalyzer ?? ASMRSoundAnalysisService()
         self.frameExtractor = frameExtractor ?? ASMRFrameExtractionService()
-        self.structurer = structurer ?? ASMRRecipeStructurer()
+        self.structurer = structurer ?? ASMRRecipeStructurer(modelContext: modelContext)
         self.usageManager = usageManager ?? ASMRUsageManager.shared
         self.cacheService = cacheService ?? ASMRCacheService.shared
         self.aiService = aiService ?? ServiceContainer.shared.resolve(AnthropicAIService.self)
