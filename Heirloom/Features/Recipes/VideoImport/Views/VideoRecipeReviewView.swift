@@ -41,7 +41,9 @@ struct VideoRecipeReviewView: View {
         // Initialize state from extraction
         _editedTitle = State(initialValue: extraction.structuredRecipe.title)
         _editedServings = State(initialValue: extraction.structuredRecipe.servings ?? "")
-        _editedIngredients = State(initialValue: enhancedExtraction?.finalRecipe.ingredients ?? extraction.structuredRecipe.ingredients)
+        // IMPORTANT: Use ORIGINAL ingredients, not finalRecipe
+        // finalRecipe has confidence values overwritten, breaking augmentation matching
+        _editedIngredients = State(initialValue: extraction.structuredRecipe.ingredients)
         _editedSteps = State(initialValue: extraction.structuredRecipe.steps)
 
         // Initialize attribution fields
