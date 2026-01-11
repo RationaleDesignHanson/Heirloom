@@ -448,6 +448,8 @@ struct IngredientEditRow: View {
                 }
 
                 // Confidence indicator with explanation
+                // For ASMR: always show rationale since all quantities are vision-based
+                // For regular imports: only show for ingredients needing review
                 if ingredient.needsReview {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.circle.fill")
@@ -458,6 +460,21 @@ struct IngredientEditRow: View {
                                 .font(HeirloomFonts.caption2)
                                 .foregroundStyle(HeirloomColors.secondaryText)
                             Text(confidenceExplanation(for: ingredient.confidence))
+                                .font(.system(size: 10))
+                                .foregroundStyle(HeirloomColors.secondaryText.opacity(0.8))
+                        }
+                    }
+                } else if ingredient.confidence == .inferred {
+                    // For vision-based extraction (ASMR), show rationale even for "good" quantities
+                    HStack(spacing: 6) {
+                        Image(systemName: "eye.circle.fill")
+                            .foregroundStyle(HeirloomColors.familyGreen)
+                            .font(.caption2)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Vision-based extraction")
+                                .font(HeirloomFonts.caption2)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                            Text("Quantity extracted from video analysis - appears reliable")
                                 .font(.system(size: 10))
                                 .foregroundStyle(HeirloomColors.secondaryText.opacity(0.8))
                         }

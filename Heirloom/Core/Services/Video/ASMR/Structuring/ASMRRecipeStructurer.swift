@@ -793,41 +793,60 @@ class ASMRRecipeStructurer {
 
     /// Determines if an ingredient quantity needs augmentation based on quality indicators
     /// Detects patterns that indicate uncertainty: ranges, vague terms, missing data
+    /// For ASMR (vision-only), we're more conservative since ALL quantities are guesses
     private func qualityNeedsAugmentation(quantity: String?, unit: String?) -> Bool {
         // No quantity provided
         guard let quantity = quantity, !quantity.isEmpty else {
+            print("   ❌ No quantity - needs augmentation")
             return true
         }
 
-        // Check for range patterns (e.g., "2-3", "1-2", "8-10")
+        // Check for range patterns (e.g., "2-3", "1-2", "1-1.5", "8-10")
+        // This indicates Claude is uncertain about the exact amount
         if quantity.contains("-") && !quantity.contains("½") && !quantity.contains("¼") && !quantity.contains("¾") {
-            // Allow fractions like "1-½" but not ranges like "2-3"
+            // Allow fractions like "1-½" but not ranges like "2-3" or "1-1.5"
             let components = quantity.split(separator: "-")
-            if components.count == 2,
-               let first = Int(components[0].trimmingCharacters(in: .whitespaces)),
-               let second = Int(components[1].trimmingCharacters(in: .whitespaces)),
-               second > first {
-                return true  // It's a range, needs augmentation
+            if components.count == 2 {
+                let first = components[0].trimmingCharacters(in: .whitespaces)
+                let second = components[1].trimmingCharacters(in: .whitespaces)
+
+                // Try to parse as numbers (Int or Double)
+                if let firstNum = Double(first), let secondNum = Double(second), secondNum > firstNum {
+                    print("   ❌ Range detected '\(quantity)' - needs augmentation")
+                    return true  // It's a range, needs augmentation
+                }
             }
         }
 
         // Check for vague/uncertain terms
-        let vagueTerms = ["some", "a bit", "handful", "to taste", "pinch", "amount"]
+        let vagueTerms = ["some", "a bit", "handful", "to taste", "pinch", "amount", "about", "approximately"]
         let lowerQuantity = quantity.lowercased()
         if vagueTerms.contains(where: { lowerQuantity.contains($0) }) {
+            print("   ❌ Vague term in '\(quantity)' - needs augmentation")
             return true
         }
 
         // Check for missing or vague unit
         if unit == nil || unit?.isEmpty == true {
+            print("   ❌ Missing unit for '\(quantity)' - needs augmentation")
             return true  // Has quantity but no unit, incomplete
         }
 
-        let vagueUnits = ["pieces", "amount", "some"]
+        let vagueUnits = ["pieces", "amount", "some", "medium", "small", "large"]
         if let unit = unit?.lowercased(), vagueUnits.contains(unit) {
+            print("   ❌ Vague unit '\(unit)' for '\(quantity)' - needs augmentation")
             return true
         }
 
+        // For ASMR specifically: fractional quantities without explicit units are suspect
+        // e.g., "0.5 cup cheese" might be a guess - but this has a unit so it's ok
+        // However, very small quantities (<1) might be guesses
+        if let numericQuantity = Double(quantity), numericQuantity < 1.0, numericQuantity > 0 {
+            // Small fractional amounts in vision-only are often guesses
+            print("   ⚠️ Small fractional quantity '\(quantity)' - borderline, allowing for now")
+        }
+
+        print("   ✅ Quality looks good: '\(quantity)' '\(unit ?? "")' - no augmentation needed")
         return false  // Quantity looks good, no augmentation needed
     }
 
