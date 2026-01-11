@@ -1,6 +1,133 @@
 import SwiftUI
 import SwiftData
 
+/// Mode for video import - determines processing approach
+enum VideoImportMode: String, CaseIterable, Identifiable {
+    case withInstructions = "Video with Instructions"
+    case withoutInstructions = "Video without Instructions"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .withInstructions: return "video.fill"
+        case .withoutInstructions: return "eye.circle.fill"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .withInstructions:
+            return "Narration or on-screen text guides you through"
+        case .withoutInstructions:
+            return "ASMR or silent videos - watch & infer the recipe"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .withInstructions: return .blue
+        case .withoutInstructions: return .purple
+        }
+    }
+}
+
+/// Bottom sheet for selecting video import mode
+struct VideoImportModeSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let onModeSelected: (VideoImportMode) -> Void
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                // Header
+                VStack(spacing: 8) {
+                    Text("Choose Video Type")
+                        .font(.title2.bold())
+
+                    Text("Select how to process your cooking video")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top)
+
+                // Mode options
+                VStack(spacing: 16) {
+                    ForEach(VideoImportMode.allCases) { mode in
+                        ModeCard(mode: mode) {
+                            onModeSelected(mode)
+                            dismiss()
+                        }
+                    }
+                }
+                .padding(.horizontal)
+
+                Spacer()
+            }
+            .navigationTitle("Video to Recipe")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+private struct ModeCard: View {
+    let mode: VideoImportMode
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                // Icon circle
+                ZStack {
+                    Circle()
+                        .fill(mode.color.opacity(0.15))
+                        .frame(width: 56, height: 56)
+
+                    Image(systemName: mode.icon)
+                        .font(.title2)
+                        .foregroundStyle(mode.color)
+                }
+
+                // Content
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(mode.rawValue)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    Text(mode.description)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                // Arrow
+                Image(systemName: "chevron.right")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(.separator), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 struct RecipeListView: View {
     @Query(sort: \Recipe.dateAdded, order: .reverse)
     private var recipes: [Recipe]
@@ -26,6 +153,9 @@ struct RecipeListView: View {
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
+    @State private var showASMRVideoImport = false
+    @State private var showVideoImportModeSheet = false
+    @State private var selectedImportMode: VideoImportMode?
     @State private var showCreateCollection = false
     @State private var showFilters = false
     @State private var filters = RecipeFilters()
@@ -62,6 +192,18 @@ struct RecipeListView: View {
                     RecipeDetailView(recipe: recipe)
                 }
                 .modifier(sheetModifiers)
+                .sheet(isPresented: $showVideoImportModeSheet) {
+                    VideoImportModeSheet { mode in
+                        selectedImportMode = mode
+                        // Show appropriate import view based on mode
+                        switch mode {
+                        case .withInstructions:
+                            showVideoImport = true
+                        case .withoutInstructions:
+                            showASMRVideoImport = true
+                        }
+                    }
+                }
                 .onAppear {
                     configureUndoService()
                     // Show toolbar coach mark on first visit
@@ -145,7 +287,7 @@ struct RecipeListView: View {
                 onImportRecipe: { showImportRecipe = true },
                 onBulkImport: { showBulkImport = true },
                 onCookbookScanner: { showCookbookScanner = true },
-                onVideoImport: { showVideoImport = true },
+                onVideoImport: { showVideoImportModeSheet = true },
                 onAddCollection: { showCreateCollection = true },
                 onAddNormalSample: addSampleRecipe,
                 onAddHeritageSample: addSampleRecipe
@@ -160,6 +302,7 @@ struct RecipeListView: View {
             showBulkImport: $showBulkImport,
             showCookbookScanner: $showCookbookScanner,
             showVideoImport: $showVideoImport,
+            showASMRVideoImport: $showASMRVideoImport,
             showCreateCollection: $showCreateCollection,
             showFilters: $showFilters,
             filters: $filters,

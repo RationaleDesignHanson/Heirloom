@@ -211,7 +211,7 @@ struct VideoImportMetadata: Codable {
 // MARK: - Video Recipe Extraction (Complete Result)
 
 /// Complete result from video processing pipeline
-struct VideoRecipeExtraction {
+struct VideoRecipeExtraction: Codable {
     let structuredRecipe: StructuredRecipe
     let transcript: TranscriptionResult
     let visualElements: [String]

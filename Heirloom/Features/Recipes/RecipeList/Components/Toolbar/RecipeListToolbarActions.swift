@@ -66,10 +66,19 @@ struct RecipeListToolbarActions: View {
                 Button {
                     onVideoImport()
                 } label: {
-                    Label("Import from Video", systemImage: "video.badge.waveform")
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Video to Recipe")
+                            Text("From cooking videos")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "video.badge.waveform")
+                    }
                 }
                 .accessibilityLabel("Import recipe from cooking video")
-                .accessibilityHint("Extract recipes from YouTube, TikTok, or camera roll videos")
+                .accessibilityHint("Extract recipes from cooking videos with or without narration")
 
                 Divider()
 

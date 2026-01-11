@@ -39,8 +39,19 @@ struct VideoImportView: View {
                         .font(.system(size: 64))
                         .foregroundStyle(.blue)
 
-                    Text("Import from Video")
-                        .font(.title.bold())
+                    VStack(spacing: 4) {
+                        Text("Import from Video")
+                            .font(.title.bold())
+
+                        // Mode indicator badge
+                        Text("Video with Instructions")
+                            .font(.caption.bold())
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .background(Color.blue)
+                            .cornerRadius(12)
+                    }
 
                     Text("Extract a recipe from a cooking video. Works best with clear audio narration.")
                         .font(.subheadline)

@@ -102,14 +102,22 @@ class AnthropicAIService: AIServiceProtocol {
 
         let response = try await complete(prompt: structuredPrompt, options: options)
 
+        // Clean JSON from markdown code blocks if present
+        let cleanedJSON = cleanJSONFromMarkdown(response.content)
+
         // Parse JSON response
-        guard let data = response.content.data(using: .utf8) else {
+        guard let data = cleanedJSON.data(using: .utf8) else {
             throw AIError.invalidResponse(reason: "Could not convert response to data")
         }
 
         do {
             return try JSONDecoder().decode(T.self, from: data)
         } catch {
+            // Log the actual response for debugging
+            Log.error("Failed to decode JSON from Claude response", category: .network, metadata: [
+                "response": cleanedJSON.prefix(500),
+                "error": error.localizedDescription
+            ])
             throw AIError.jsonDecodingFailed(underlying: error)
         }
     }
@@ -219,14 +227,23 @@ class AnthropicAIService: AIServiceProtocol {
             useCase: useCase
         )
 
+        // Clean JSON from markdown code blocks if present
+        let cleanedJSON = cleanJSONFromMarkdown(response.content)
+
         // Parse JSON response
-        guard let data = response.content.data(using: .utf8) else {
+        guard let data = cleanedJSON.data(using: .utf8) else {
             throw AIError.invalidResponse(reason: "Could not convert response to data")
         }
 
         do {
             return try JSONDecoder().decode(T.self, from: data)
         } catch {
+            // Log the actual response for debugging
+            Log.error("Failed to decode JSON from Claude vision response", category: .network, metadata: [
+                "response": cleanedJSON.prefix(500),
+                "error": error.localizedDescription,
+                "schemaType": String(describing: T.self)
+            ])
             throw AIError.jsonDecodingFailed(underlying: error)
         }
     }
@@ -408,6 +425,30 @@ class AnthropicAIService: AIServiceProtocol {
             context.cgContext.interpolationQuality = .high
             image.draw(in: CGRect(origin: .zero, size: newSize))
         }
+    }
+
+    /// Clean JSON from markdown code blocks
+    /// Claude sometimes wraps JSON in ```json ... ``` even when instructed not to
+    private func cleanJSONFromMarkdown(_ text: String) -> String {
+        var cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Remove markdown code block wrapper if present
+        // Patterns: ```json\n...\n``` or ```\n...\n```
+        if cleaned.hasPrefix("```") {
+            // Remove opening ```json or ```
+            if let firstNewline = cleaned.firstIndex(of: "\n") {
+                cleaned = String(cleaned[cleaned.index(after: firstNewline)...])
+            }
+
+            // Remove closing ```
+            if cleaned.hasSuffix("```") {
+                cleaned = String(cleaned.dropLast(3))
+            }
+
+            cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        return cleaned
     }
 }
 
