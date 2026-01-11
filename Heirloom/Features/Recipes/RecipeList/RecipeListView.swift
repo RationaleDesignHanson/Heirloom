@@ -135,6 +135,7 @@ struct RecipeListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.firebaseSync) private var firebaseSync
     @Environment(\.firebaseLineage) private var firebaseLineage
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     // Using concrete type for image storage
     private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
@@ -283,12 +284,30 @@ struct RecipeListView: View {
                 selectedCount: selectedRecipeIds.count,
                 filteredCount: filteredRecipes.count,
                 onSelectAllToggle: selectAllToggle,
-                onAddRecipe: { showAddRecipe = true },
-                onImportRecipe: { showImportRecipe = true },
-                onBulkImport: { showBulkImport = true },
-                onCookbookScanner: { showCookbookScanner = true },
-                onVideoImport: { showVideoImportModeSheet = true },
-                onAddCollection: { showCreateCollection = true },
+                onAddRecipe: {
+                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    showAddRecipe = true
+                },
+                onImportRecipe: {
+                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    showImportRecipe = true
+                },
+                onBulkImport: {
+                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    showBulkImport = true
+                },
+                onCookbookScanner: {
+                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    showCookbookScanner = true
+                },
+                onVideoImport: {
+                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    showVideoImportModeSheet = true
+                },
+                onAddCollection: {
+                    tabCoordinator.willCreateCollection(from: .recipesTab)
+                    showCreateCollection = true
+                },
                 onAddNormalSample: addSampleRecipe,
                 onAddHeritageSample: addSampleRecipe
             )
@@ -1372,7 +1391,7 @@ struct RecipeCardView: View {
                     .foregroundStyle(HeirloomColors.primaryText)
                     .fontWeight(.semibold)
                     .lineLimit(2)
-                    .frame(minHeight: 34, alignment: .topLeading)
+                    .frame(height: 40, alignment: .topLeading)
 
                 // Consolidated: Source, Times Cooked, and Generation Badge on one line
                 HStack(spacing: 6) {

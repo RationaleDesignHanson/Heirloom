@@ -7,6 +7,7 @@ struct CookbookScannerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.firebaseSync) private var firebaseSync
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     // Using concrete types for now since views call implementation-specific methods
     private var aiRecipeExtractor: AIRecipeExtractor { ServiceContainer.shared.resolve(AIRecipeExtractor.self) }
@@ -86,6 +87,8 @@ struct CookbookScannerView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
+                        // Clear coordinator context on cancel
+                        tabCoordinator.didCancelCreation()
                         dismiss()
                     }
                 }
@@ -510,6 +513,9 @@ struct CookbookScannerView: View {
                     title: "Recipe Added!",
                     message: "'\(recipe.title)' has been added to your collection"
                 )
+
+                // Notify coordinator of recipe creation for cross-tab navigation
+                tabCoordinator.didCreateRecipe()
 
                 // Dismiss scanner
                 dismiss()

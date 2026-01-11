@@ -13,6 +13,7 @@ import AVFoundation
 struct ASMRVideoImportView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @StateObject private var usageManager = ASMRUsageManager.shared
 
     // Processor will be initialized in init() with modelContext
@@ -74,6 +75,8 @@ struct ASMRVideoImportView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
+                        // Clear coordinator context on cancel
+                        tabCoordinator.didCancelCreation()
                         dismiss()
                     }
                 }
@@ -136,6 +139,8 @@ struct ASMRVideoImportView: View {
                             print("📊 Saving recipe...")
                             _ = saveRecipeToSwiftData(updatedExtraction)
                             showReview = false
+                            // Notify coordinator of recipe creation for cross-tab navigation
+                            tabCoordinator.didCreateRecipe()
                             dismiss()
                         },
                         onCancel: {

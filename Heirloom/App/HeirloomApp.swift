@@ -422,7 +422,11 @@ struct RootView: View {
         // OPTION A (HYBRID AUTH UX): Always show ContentView
         // Users can browse heritage recipes without signing in
         // Sign-in is optional via Settings, contextual prompts when needed (e.g., sharing)
-        ContentView(notificationService: notificationService)
+        let tabCoordinator = ServiceContainer.shared.resolve(TabNavigationCoordinator.self)
+        ContentView(
+            tabCoordinator: tabCoordinator,
+            notificationService: notificationService
+        )
             .modelContainer(modelContainer)
             .onAppear {
                 // Start automatic sync if already authenticated on app launch
@@ -464,7 +468,6 @@ struct RootView: View {
 }
 
 struct ContentView: View {
-    @State private var selectedTab = 0
     @State private var showAddRecipe = false
     @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     @State private var hasViewedRecipesList = false
@@ -472,14 +475,18 @@ struct ContentView: View {
     // Deep link coordinator (injected via environment)
     @EnvironmentObject private var deepLinkCoordinator: DeepLinkCoordinator
 
+    // Tab navigation coordinator (injected from DI container)
+    @ObservedObject var tabCoordinator: TabNavigationCoordinator
+
     // Notification service (injected from DI container)
     @ObservedObject var notificationService: FirebaseNotificationService
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $tabCoordinator.selectedTab) {
             Group {
                 RecipeListView()
                     .environmentObject(notificationService)
+                    .environmentObject(tabCoordinator)
             }
             .tabItem {
                 Label("Recipes", systemImage: "book.closed.fill")
@@ -500,6 +507,7 @@ struct ContentView: View {
 
             CollectionsListView()
                 .environmentObject(notificationService)
+                .environmentObject(tabCoordinator)
                 .tabItem {
                     Label("Collections", systemImage: "square.grid.2x2.fill")
                 }
@@ -541,6 +549,7 @@ struct ContentView: View {
         .milestonesCelebration()
         .sheet(isPresented: $showAddRecipe) {
             RecipeEditorView()
+                .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $deepLinkCoordinator.showShareAcceptanceSheet) {
             if let shareURL = deepLinkCoordinator.pendingShareURL {
@@ -559,7 +568,7 @@ struct ContentView: View {
             }
         }
         .fullScreenCover(isPresented: $showOnboarding) {
-            OnboardingContainerView(selectedTab: $selectedTab)
+            OnboardingContainerView(selectedTab: $tabCoordinator.selectedTab)
                 .environmentObject(notificationService)
         }
         .onAppear {
@@ -579,6 +588,7 @@ struct ContentView: View {
     }()
 
     ContentView(
+        tabCoordinator: container.resolve(TabNavigationCoordinator.self),
         notificationService: container.resolve(FirebaseNotificationService.self)
     )
     .environmentObject(container.resolve(DeepLinkHandler.self))

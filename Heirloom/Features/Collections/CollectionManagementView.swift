@@ -175,6 +175,7 @@ struct CollectionEditorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(\.firebaseSync) private var firebaseSync
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
@@ -262,6 +263,10 @@ struct CollectionEditorView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
+                        // Clear coordinator context if canceling new collection
+                        if !isEditing {
+                            tabCoordinator.didCancelCreation()
+                        }
                         dismiss()
                     }
                 }
@@ -387,6 +392,11 @@ struct CollectionEditorView: View {
             toastManager.success(
                 title: isEditing ? "Collection updated" : "Collection created"
             )
+
+            // Notify coordinator of collection creation for cross-tab navigation
+            if !isEditing {
+                tabCoordinator.didCreateCollection()
+            }
 
             dismiss()
         } catch {

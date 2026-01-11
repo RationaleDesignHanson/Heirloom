@@ -8,6 +8,7 @@ struct RecipeEditorView: View {
     @Environment(\.firebaseSync) private var firebaseSync
     @Environment(\.firebaseLineage) private var firebaseLineage
     @Environment(\.aiIngredientParser) private var aiIngredientParser
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     @Query(sort: \RecipeCollection.name) private var allCollections: [RecipeCollection]
 
@@ -115,6 +116,10 @@ struct RecipeEditorView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
+                        // Clear coordinator context if canceling new recipe
+                        if isNewRecipe {
+                            tabCoordinator.didCancelCreation()
+                        }
                         dismiss()
                     }
                 }
@@ -680,6 +685,11 @@ struct RecipeEditorView: View {
                         )
                         UserDefaults.standard.set(true, forKey: UserDefaultsKeys.hasSeenShareExtensionCoachMark)
                     }
+                }
+
+                // Notify coordinator of recipe creation for cross-tab navigation
+                if isNewRecipe {
+                    tabCoordinator.didCreateRecipe()
                 }
 
                 dismiss()

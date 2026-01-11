@@ -471,6 +471,11 @@ extension ServiceContainer {
             )
         }
 
+        // MARK: - Navigation
+        register(TabNavigationCoordinator.self, lifecycle: .singleton) { _ in
+            TabNavigationCoordinator()
+        }
+
         // MARK: - Comments
         // Note: CommentService doesn't fully implement CommentServiceProtocol yet
         // Registering concrete type only for now

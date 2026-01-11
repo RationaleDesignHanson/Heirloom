@@ -6,6 +6,7 @@ import SwiftData
 struct CollectionDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var notificationService: FirebaseNotificationService
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     let collection: RecipeCollection
 
     @State private var showAddRecipe = false
@@ -71,11 +72,26 @@ struct CollectionDetailView: View {
                     selectedCount: 0,
                     filteredCount: recipes.count,
                     onSelectAllToggle: {},
-                    onAddRecipe: { showAddRecipe = true },
-                    onImportRecipe: { showImportRecipe = true },
-                    onBulkImport: { showBulkImport = true },
-                    onCookbookScanner: { showCookbookScanner = true },
-                    onVideoImport: { showVideoImportModeSheet = true },
+                    onAddRecipe: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showAddRecipe = true
+                    },
+                    onImportRecipe: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showImportRecipe = true
+                    },
+                    onBulkImport: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showBulkImport = true
+                    },
+                    onCookbookScanner: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showCookbookScanner = true
+                    },
+                    onVideoImport: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showVideoImportModeSheet = true
+                    },
                     onAddCollection: {}, // Not applicable within a collection detail view
                     onAddNormalSample: addNormalSampleRecipe,
                     onAddHeritageSample: addHeritageSampleRecipe
@@ -96,15 +112,19 @@ struct CollectionDetailView: View {
         }
         .sheet(isPresented: $showAddRecipe) {
             RecipeEditorView()
+                .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showImportRecipe) {
             RecipeImportView()
+                .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showBulkImport) {
             BulkImportView()
+                .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showCookbookScanner) {
             CookbookScannerView()
+                .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showVideoImportModeSheet) {
             VideoImportModeSheet { mode in
@@ -120,9 +140,11 @@ struct CollectionDetailView: View {
         }
         .sheet(isPresented: $showVideoImport) {
             VideoImportView()
+                .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showASMRVideoImport) {
             ASMRVideoImportView()
+                .environmentObject(tabCoordinator)
         }
         .confirmationDialog(
             "Delete \(collection.name)?",

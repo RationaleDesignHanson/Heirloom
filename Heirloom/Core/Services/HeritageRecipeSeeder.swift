@@ -13,8 +13,12 @@ class HeritageRecipeSeeder {
     /// Number of recipes each user receives (randomized within range)
     private let recipesPerUser = (min: 8, max: 12)
 
-    /// Minimum recipes per collection to ensure variety
-    private let minRecipesPerCollection = 2
+    /// Returns minimum recipes for a given collection ID
+    /// Literary Kitchen gets 4 minimum to ensure adequate onboarding preview
+    /// Other collections get 2 minimum for variety
+    private func minimumRecipes(for collectionId: String) -> Int {
+        return collectionId == "literary-kitchen" ? 4 : 2
+    }
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -223,8 +227,9 @@ class HeritageRecipeSeeder {
         var remaining = allRecipes.shuffled()
 
         // First pass: Ensure minimum recipes per collection
-        for (_, recipes) in recipesByCollection {
-            let collectionRecipes = recipes.shuffled().prefix(minRecipesPerCollection)
+        for (collectionId, recipes) in recipesByCollection {
+            let minimum = minimumRecipes(for: collectionId)
+            let collectionRecipes = recipes.shuffled().prefix(minimum)
             selected.append(contentsOf: collectionRecipes)
 
             // Remove selected from remaining

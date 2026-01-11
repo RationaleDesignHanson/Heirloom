@@ -5,6 +5,7 @@ struct RecipeImportView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(\.firebaseSync) private var firebaseSync
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     // Using concrete type for now since view calls implementation-specific methods
     private var aiIngredientParser: AIIngredientParser { ServiceContainer.shared.resolve(AIIngredientParser.self) }
@@ -52,6 +53,8 @@ struct RecipeImportView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
+                        // Clear coordinator context on cancel
+                        tabCoordinator.didCancelCreation()
                         dismiss()
                     }
                 }
@@ -469,6 +472,9 @@ struct RecipeImportView: View {
                 "has_image": importedRecipe?.imageURL != nil,
                 "used_ai_parsing": aiConfig.enableAIParsing
             ])
+
+            // Notify coordinator of recipe creation for cross-tab navigation
+            tabCoordinator.didCreateRecipe()
 
             dismiss()
         } catch {

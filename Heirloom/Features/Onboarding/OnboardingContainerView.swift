@@ -11,23 +11,23 @@ import SwiftUI
 struct OnboardingContainerView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var notificationService: FirebaseNotificationService
-    @State private var currentScreen: OnboardingScreen = .screen1
+    @State private var currentScreen: OnboardingScreen = .importMethods
 
     /// Binding to control which tab should be selected after onboarding
     @Binding var selectedTab: Int
 
     enum OnboardingScreen {
-        case screen1, screen2
+        case importMethods, collectionsPreview
     }
 
     var body: some View {
         NavigationStack {
             Group {
             switch currentScreen {
-            case .screen1:
-                OnboardingScreen1 {
+            case .importMethods:
+                OnboardingImportMethodsScreen {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .screen2
+                        currentScreen = .collectionsPreview
                     }
                 }
                 .transition(.asymmetric(
@@ -35,10 +35,10 @@ struct OnboardingContainerView: View {
                     removal: .move(edge: .leading)
                 ))
 
-            case .screen2:
-                OnboardingScreen2 {
-                    // Navigate to Collections tab (index 1)
-                    selectedTab = 1
+            case .collectionsPreview:
+                OnboardingCollectionsPreviewScreen {
+                    // Navigate to Recipes tab (index 0)
+                    selectedTab = 0
                     dismiss()
                 }
                 .environmentObject(notificationService)

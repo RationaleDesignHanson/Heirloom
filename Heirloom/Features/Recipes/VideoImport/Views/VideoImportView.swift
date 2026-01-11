@@ -15,6 +15,7 @@ struct VideoImportView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var notificationService: FirebaseNotificationService
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @State private var selectedVideoURL: URL?
     @State private var showVideoPicker = false
     @State private var showSourceDetails = false
@@ -102,6 +103,8 @@ struct VideoImportView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
+                        // Clear coordinator context on cancel
+                        tabCoordinator.didCancelCreation()
                         dismiss()
                     }
                 }
@@ -156,6 +159,8 @@ struct VideoImportView: View {
                             savedRecipe = recipe
                             showProcessing = false
                             navigateToRecipe = true
+                            // Notify coordinator of recipe creation for cross-tab navigation
+                            tabCoordinator.didCreateRecipe()
                         }
                     )
                 }

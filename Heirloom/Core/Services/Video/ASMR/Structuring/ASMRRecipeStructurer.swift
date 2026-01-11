@@ -19,6 +19,7 @@ class ASMRRecipeStructurer {
     private let frameExtractor: ASMRFrameExtractionService
     private let augmentationService: RecipeAugmentationService
     private let similarRecipeService: LocalRecipeSimilarityService?
+    private let ingredientDeduplicator: IngredientDeduplicator
 
     // MARK: - State
 
@@ -60,6 +61,9 @@ class ASMRRecipeStructurer {
             self.similarRecipeService = nil
             print("⚠️ ASMRRecipeStructurer: No ModelContext provided, similar recipe search disabled")
         }
+
+        // Initialize ingredient deduplicator
+        self.ingredientDeduplicator = IngredientDeduplicator(aiService: self.aiService)
     }
 
     // MARK: - Public API
@@ -786,8 +790,36 @@ class ASMRRecipeStructurer {
             warnings: response.validationNotes.map { $0.message }
         )
 
+        // ========== INGREDIENT DEDUPLICATION PASS ==========
+        print("\n🔍 Running ingredient deduplication pass...")
+        print("Before deduplication: \(structuredRecipe.ingredients.count) ingredients")
+
+        let deduplicatedIngredients = try await ingredientDeduplicator.deduplicateIngredients(
+            structuredRecipe.ingredients
+        )
+
+        print("After deduplication: \(deduplicatedIngredients.count) ingredients")
+        if structuredRecipe.ingredients.count > deduplicatedIngredients.count {
+            let removed = structuredRecipe.ingredients.count - deduplicatedIngredients.count
+            print("✅ Removed \(removed) duplicate ingredient\(removed == 1 ? "" : "s")")
+        }
+
+        // Create final recipe with deduplicated ingredients
+        let finalRecipe = StructuredRecipe(
+            title: structuredRecipe.title,
+            description: structuredRecipe.description,
+            servings: structuredRecipe.servings,
+            prepTime: structuredRecipe.prepTime,
+            cookTime: structuredRecipe.cookTime,
+            ingredients: deduplicatedIngredients,  // ← Use deduplicated list
+            steps: structuredRecipe.steps,
+            overallConfidence: structuredRecipe.overallConfidence,
+            warnings: structuredRecipe.warnings
+        )
+        // ========== END DEDUPLICATION PASS ==========
+
         let result = SynthesisResult(
-            finalRecipe: structuredRecipe,
+            finalRecipe: finalRecipe,  // ← Use finalRecipe instead of structuredRecipe
             validationNotes: response.validationNotes,
             confidence: response.overallConfidence,
             completeness: response.completeness
@@ -931,7 +963,7 @@ class ASMRRecipeStructurer {
         }
 
         // Merge augmented quantities back into original recipe
-        let mergedRecipe = mergeAugmentedRecipe(original: recipe, augmented: augmentedResult)
+        let mergedRecipe = try await mergeAugmentedRecipe(original: recipe, augmented: augmentedResult)
 
         // Estimate token usage and cost based on number of augmented ingredients
         // Augmentation typically uses ~100-150 tokens per ingredient
@@ -943,7 +975,7 @@ class ASMRRecipeStructurer {
     }
 
     /// Merge augmented quantities back into original recipe (same pattern as regular video imports)
-    private func mergeAugmentedRecipe(original: StructuredRecipe, augmented: AugmentedRecipe) -> StructuredRecipe {
+    private func mergeAugmentedRecipe(original: StructuredRecipe, augmented: AugmentedRecipe) async throws -> StructuredRecipe {
         var mergedIngredients = original.ingredients
 
         for augmentedIngredient in augmented.augmentedIngredients {
@@ -969,14 +1001,28 @@ class ASMRRecipeStructurer {
             }
         }
 
-        // Return new StructuredRecipe with merged ingredients
+        // ========== FINAL DEDUPLICATION PASS ==========
+        // Run deduplication again in case augmentation introduced any duplicates
+        print("\n🔍 Running post-augmentation deduplication pass...")
+        print("Before final deduplication: \(mergedIngredients.count) ingredients")
+
+        let finalDeduplicated = try await ingredientDeduplicator.deduplicateIngredients(mergedIngredients)
+
+        print("After final deduplication: \(finalDeduplicated.count) ingredients")
+        if mergedIngredients.count > finalDeduplicated.count {
+            let removed = mergedIngredients.count - finalDeduplicated.count
+            print("✅ Removed \(removed) duplicate ingredient\(removed == 1 ? "" : "s") after augmentation")
+        }
+        // ========== END FINAL DEDUPLICATION PASS ==========
+
+        // Return new StructuredRecipe with merged and deduplicated ingredients
         return StructuredRecipe(
             title: original.title,
             description: original.description,
             servings: original.servings,
             prepTime: original.prepTime,
             cookTime: original.cookTime,
-            ingredients: mergedIngredients,
+            ingredients: finalDeduplicated,  // ← Use deduplicated ingredients
             steps: original.steps,
             overallConfidence: max(original.overallConfidence, 0.8), // Boost confidence if augmented
             warnings: original.warnings

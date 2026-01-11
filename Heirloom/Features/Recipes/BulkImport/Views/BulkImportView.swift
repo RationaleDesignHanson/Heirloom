@@ -5,6 +5,7 @@ import SwiftData
 struct BulkImportView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     @StateObject private var manager = ServiceContainer.shared.resolve(ImportJobManager.self)
 
@@ -39,6 +40,8 @@ struct BulkImportView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
+                        // Clear coordinator context on cancel
+                        tabCoordinator.didCancelCreation()
                         dismiss()
                     }
                 }
@@ -217,6 +220,9 @@ struct BulkImportView: View {
 
             // Start processing
             try await manager.startJob(job, context: modelContext)
+
+            // Notify coordinator of recipe creation for cross-tab navigation
+            tabCoordinator.didCreateRecipe()
 
             // When complete, show review
             dismiss()
