@@ -724,13 +724,16 @@ class ASMRRecipeStructurer {
             }
         }
 
+        // Increased token limit to prevent truncation of complex recipes
+        // Previous limit of 2000 was causing truncated JSON responses
         let response: SynthesisResponse = try await aiService.completeStructured(
             prompt: prompt,
             schema: SynthesisResponse.self,
-            options: AICompletionOptions(temperature: 0.4, maxTokens: 2000)
+            options: AICompletionOptions(temperature: 0.4, maxTokens: 4000)
         )
 
-        let tokensUsed = 2000
+        // Estimate token usage (actual varies by recipe complexity)
+        let tokensUsed = 2500
         let cost = calculateCost(inputTokens: 1500, outputTokens: tokensUsed)
 
         let findings = [
