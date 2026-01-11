@@ -235,11 +235,11 @@ struct DinnerPartyListView: View {
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("No Dinner Parties", systemImage: "fork.knife")
+            Label("No Meal Plans", systemImage: "fork.knife")
         } description: {
-            Text("Create a dinner party to coordinate cooking multiple recipes for your guests")
+            Text("Create a meal plan to coordinate cooking multiple recipes for your guests")
         } actions: {
-            Button("Create Dinner Party") {
+            Button("Create Meal Plan") {
                 showCreateParty = true
             }
             .buttonStyle(.borderedProminent)
@@ -271,7 +271,7 @@ struct DinnerPartyListView: View {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
 
-            toastManager.success(title: "Dinner party deleted")
+            toastManager.success(title: "Meal plan deleted")
         } catch {
             toastManager.error(
                 title: "Failed to delete",

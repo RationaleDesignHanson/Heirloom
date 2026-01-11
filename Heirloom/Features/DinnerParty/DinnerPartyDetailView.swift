@@ -46,7 +46,7 @@ struct DinnerPartyDetailView: View {
                         Button {
                             showEditSheet = true
                         } label: {
-                            Label("Edit Party", systemImage: "pencil")
+                            Label("Edit Meal Plan", systemImage: "pencil")
                         }
 
                         Button(role: .destructive) {
@@ -322,7 +322,7 @@ struct DinnerPartyDetailView: View {
                 }
             }
 
-            toastManager.success(title: "Dinner party deleted")
+            toastManager.success(title: "Meal plan deleted")
             dismiss()
         } catch {
             toastManager.error(title: "Failed to delete", message: error.localizedDescription)

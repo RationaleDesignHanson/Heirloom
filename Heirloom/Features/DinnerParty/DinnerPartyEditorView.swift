@@ -42,7 +42,7 @@ struct DinnerPartyEditorView: View {
         NavigationStack {
             Form {
                 Section("Event Details") {
-                    TextField("Party name", text: $name)
+                    TextField("Meal plan name", text: $name)
                         .font(HeirloomFonts.body)
 
                     TextField("Description (optional)", text: $description, axis: .vertical)
@@ -129,7 +129,7 @@ struct DinnerPartyEditorView: View {
                     }
                 }
             }
-            .navigationTitle(isEditing ? "Edit Party" : "New Dinner Party")
+            .navigationTitle(isEditing ? "Edit Meal Plan" : "New Meal Plan")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -222,19 +222,19 @@ struct DinnerPartyEditorView: View {
             ])
 
             toastManager.success(
-                title: isEditing ? "Party updated" : "Party created"
+                title: isEditing ? "Meal plan updated" : "Meal plan created"
             )
 
             dismiss()
         } catch {
             if party == nil {
                 toastManager.error(
-                    title: "Failed to create party",
+                    title: "Failed to create meal plan",
                     message: error.localizedDescription
                 )
             } else {
                 toastManager.error(
-                    title: "Failed to update party",
+                    title: "Failed to update meal plan",
                     message: error.localizedDescription
                 )
             }
