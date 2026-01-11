@@ -57,10 +57,19 @@ struct AugmentedIngredientEditRow: View {
                 }
             }
 
-            // Augmentation info badge (if inferred)
-            if let augmentation = augmentation,
-               augmentation.inferredQuantity != nil {
-                inferredBadge(for: augmentation)
+            // Augmentation info badge (if inferred quantity exists)
+            if let augmentation = augmentation {
+                if augmentation.inferredQuantity != nil {
+                    inferredBadge(for: augmentation)
+
+                    // Additional low confidence warning
+                    if augmentation.inferredConfidence == .low || augmentation.inferredConfidence == .unknown {
+                        lowConfidenceWarning(for: augmentation)
+                    }
+                } else {
+                    // Show badge even when no quantity inferred (AI tried but couldn't infer)
+                    noInferenceBadge(for: augmentation)
+                }
             }
 
             // Expanded reasoning section
@@ -92,6 +101,42 @@ struct AugmentedIngredientEditRow: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(inferenceBackgroundColor(for: augmentation.inferredConfidence))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+    }
+
+    @ViewBuilder
+    private func lowConfidenceWarning(for augmentation: AugmentedIngredient) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.caption2)
+                .foregroundStyle(.orange)
+
+            Text("Low confidence - verify quantity")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+
+            confidenceDot(for: augmentation.inferredConfidence)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.orange.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+    }
+
+    @ViewBuilder
+    private func noInferenceBadge(for augmentation: AugmentedIngredient) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "questionmark.circle")
+                .font(.caption2)
+                .foregroundStyle(.gray)
+
+            Text("Could not infer quantity - see reasoning")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.gray.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 

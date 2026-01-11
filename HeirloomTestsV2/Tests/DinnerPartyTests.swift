@@ -11,7 +11,10 @@ struct DinnerPartyTests {
 
     func createTestContext() -> ModelContext {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: Recipe.self, DinnerParty.self, DinnerPartyRecipe.self, Ingredient.self, Tag.self, RecipeCollection.self, configurations: config)
+        let container = try! ModelContainer(
+            for: [Recipe.self, DinnerParty.self, DinnerPartyRecipe.self, Ingredient.self, Tag.self, RecipeCollection.self],
+            configurations: config
+        )
         return ModelContext(container)
     }
 

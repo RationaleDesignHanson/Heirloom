@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 /// Detail view showing recipes within a collection
+/// Note: Uses VideoImportMode enum defined in RecipeListView.swift
 struct CollectionDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var notificationService: FirebaseNotificationService
@@ -12,6 +13,9 @@ struct CollectionDetailView: View {
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
+    @State private var showASMRVideoImport = false
+    @State private var showVideoImportModeSheet = false
+    @State private var selectedImportMode: VideoImportMode?
     @State private var showDeleteConfirmation = false
 
     @Query private var allRecipes: [Recipe]
@@ -71,7 +75,7 @@ struct CollectionDetailView: View {
                     onImportRecipe: { showImportRecipe = true },
                     onBulkImport: { showBulkImport = true },
                     onCookbookScanner: { showCookbookScanner = true },
-                    onVideoImport: { showVideoImport = true },
+                    onVideoImport: { showVideoImportModeSheet = true },
                     onAddCollection: {}, // Not applicable within a collection detail view
                     onAddNormalSample: addNormalSampleRecipe,
                     onAddHeritageSample: addHeritageSampleRecipe
@@ -102,8 +106,23 @@ struct CollectionDetailView: View {
         .sheet(isPresented: $showCookbookScanner) {
             CookbookScannerView()
         }
+        .sheet(isPresented: $showVideoImportModeSheet) {
+            VideoImportModeSheet { mode in
+                selectedImportMode = mode
+                // Show appropriate import view based on mode
+                switch mode {
+                case .withInstructions:
+                    showVideoImport = true
+                case .withoutInstructions:
+                    showASMRVideoImport = true
+                }
+            }
+        }
         .sheet(isPresented: $showVideoImport) {
             VideoImportView()
+        }
+        .sheet(isPresented: $showASMRVideoImport) {
+            ASMRVideoImportView()
         }
         .confirmationDialog(
             "Delete \(collection.name)?",

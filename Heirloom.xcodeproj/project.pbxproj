@@ -246,6 +246,17 @@
 		C58316502F119E910096478E /* FrameAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58316372F119E910096478E /* FrameAnalysisService.swift */; };
 		C58316532F119F060096478E /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = C58316522F119F060096478E /* WhisperKit */; };
 		C58316552F11B0CE0096478E /* WatermarkDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58316542F11B0CE0096478E /* WatermarkDetectionService.swift */; };
+		C58319702F123CFF0096478E /* ASMRProcessingProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319692F123CFF0096478E /* ASMRProcessingProtocols.swift */; };
+		C58319712F123CFF0096478E /* ASMRVideoProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319672F123CFF0096478E /* ASMRVideoProcessor.swift */; };
+		C58319722F123CFF0096478E /* ASMRUsageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583196D2F123CFF0096478E /* ASMRUsageManager.swift */; };
+		C58319732F123CFF0096478E /* ASMRFrameExtractionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319642F123CFF0096478E /* ASMRFrameExtractionService.swift */; };
+		C58319742F123CFF0096478E /* ASMRSoundAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319652F123CFF0096478E /* ASMRSoundAnalysisService.swift */; };
+		C58319752F123CFF0096478E /* ASMRRecipeStructurer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583196B2F123CFF0096478E /* ASMRRecipeStructurer.swift */; };
+		C58319772F123D140096478E /* ASMRRecipeExtraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319762F123D140096478E /* ASMRRecipeExtraction.swift */; };
+		C583197F2F123D280096478E /* ASMRPassProgressCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319782F123D280096478E /* ASMRPassProgressCard.swift */; };
+		C58319802F123D280096478E /* ASMRUsageBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319792F123D280096478E /* ASMRUsageBadge.swift */; };
+		C58319812F123D280096478E /* ASMRProcessingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583197B2F123D280096478E /* ASMRProcessingView.swift */; };
+		C58319822F123D280096478E /* ASMRVideoImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583197C2F123D280096478E /* ASMRVideoImportView.swift */; };
 		C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */; };
 		C583F5A12F099E750096478E /* RecipeDetailHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59C2F099E750096478E /* RecipeDetailHeader.swift */; };
 		C583F5A22F099E750096478E /* RecipeInstructionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */; };
@@ -579,6 +590,17 @@
 		C58316432F119E910096478E /* ClaudeRecipeStructurer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeRecipeStructurer.swift; sourceTree = "<group>"; };
 		C58316452F119E910096478E /* WhisperKitTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperKitTranscriptionService.swift; sourceTree = "<group>"; };
 		C58316542F11B0CE0096478E /* WatermarkDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatermarkDetectionService.swift; sourceTree = "<group>"; };
+		C58319642F123CFF0096478E /* ASMRFrameExtractionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRFrameExtractionService.swift; sourceTree = "<group>"; };
+		C58319652F123CFF0096478E /* ASMRSoundAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRSoundAnalysisService.swift; sourceTree = "<group>"; };
+		C58319672F123CFF0096478E /* ASMRVideoProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRVideoProcessor.swift; sourceTree = "<group>"; };
+		C58319692F123CFF0096478E /* ASMRProcessingProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRProcessingProtocols.swift; sourceTree = "<group>"; };
+		C583196B2F123CFF0096478E /* ASMRRecipeStructurer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRRecipeStructurer.swift; sourceTree = "<group>"; };
+		C583196D2F123CFF0096478E /* ASMRUsageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRUsageManager.swift; sourceTree = "<group>"; };
+		C58319762F123D140096478E /* ASMRRecipeExtraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRRecipeExtraction.swift; sourceTree = "<group>"; };
+		C58319782F123D280096478E /* ASMRPassProgressCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRPassProgressCard.swift; sourceTree = "<group>"; };
+		C58319792F123D280096478E /* ASMRUsageBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRUsageBadge.swift; sourceTree = "<group>"; };
+		C583197B2F123D280096478E /* ASMRProcessingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRProcessingView.swift; sourceTree = "<group>"; };
+		C583197C2F123D280096478E /* ASMRVideoImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRVideoImportView.swift; sourceTree = "<group>"; };
 		C583F59C2F099E750096478E /* RecipeDetailHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailHeader.swift; sourceTree = "<group>"; };
 		C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeIngredientsSection.swift; sourceTree = "<group>"; };
 		C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeInstructionsSection.swift; sourceTree = "<group>"; };
@@ -1014,6 +1036,7 @@
 		8AC18A265A5E4A850FD25D2C /* Recipes */ = {
 			isa = PBXGroup;
 			children = (
+				C583197E2F123D280096478E /* ASMRVideoImport */,
 				C583162D2F119A030096478E /* VideoImport */,
 				54CFFABBD772A87D0DBB8108 /* BulkImport */,
 				3179E81B4C5063370C65EE0E /* CookbookScanner */,
@@ -1041,6 +1064,7 @@
 		99534F5D5C4435D669F1B56B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C58319762F123D140096478E /* ASMRRecipeExtraction.swift */,
 				C58316332F119E7C0096478E /* SimilarRecipeModels.swift */,
 				C58316342F119E7C0096478E /* VideoRecipeModels.swift */,
 				C58302532F0CDC140096478E /* SchemaV2.swift */,
@@ -1422,6 +1446,7 @@
 		C58316472F119E910096478E /* Video */ = {
 			isa = PBXGroup;
 			children = (
+				C583196F2F123CFF0096478E /* ASMR */,
 				C58316382F119E910096478E /* Analysis */,
 				C583163A2F119E910096478E /* Audio */,
 				C583163E2F119E910096478E /* Augmentation */,
@@ -1431,6 +1456,86 @@
 				C58316462F119E910096478E /* Transcription */,
 			);
 			path = Video;
+			sourceTree = "<group>";
+		};
+		C58319662F123CFF0096478E /* Analysis */ = {
+			isa = PBXGroup;
+			children = (
+				C58319642F123CFF0096478E /* ASMRFrameExtractionService.swift */,
+				C58319652F123CFF0096478E /* ASMRSoundAnalysisService.swift */,
+			);
+			path = Analysis;
+			sourceTree = "<group>";
+		};
+		C58319682F123CFF0096478E /* Coordination */ = {
+			isa = PBXGroup;
+			children = (
+				C58319672F123CFF0096478E /* ASMRVideoProcessor.swift */,
+			);
+			path = Coordination;
+			sourceTree = "<group>";
+		};
+		C583196A2F123CFF0096478E /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				C58319692F123CFF0096478E /* ASMRProcessingProtocols.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
+		C583196C2F123CFF0096478E /* Structuring */ = {
+			isa = PBXGroup;
+			children = (
+				C583196B2F123CFF0096478E /* ASMRRecipeStructurer.swift */,
+			);
+			path = Structuring;
+			sourceTree = "<group>";
+		};
+		C583196E2F123CFF0096478E /* Usage */ = {
+			isa = PBXGroup;
+			children = (
+				C583196D2F123CFF0096478E /* ASMRUsageManager.swift */,
+			);
+			path = Usage;
+			sourceTree = "<group>";
+		};
+		C583196F2F123CFF0096478E /* ASMR */ = {
+			isa = PBXGroup;
+			children = (
+				C58319662F123CFF0096478E /* Analysis */,
+				C58319682F123CFF0096478E /* Coordination */,
+				C583196A2F123CFF0096478E /* Protocols */,
+				C583196C2F123CFF0096478E /* Structuring */,
+				C583196E2F123CFF0096478E /* Usage */,
+			);
+			path = ASMR;
+			sourceTree = "<group>";
+		};
+		C583197A2F123D280096478E /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				C58319782F123D280096478E /* ASMRPassProgressCard.swift */,
+				C58319792F123D280096478E /* ASMRUsageBadge.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		C583197D2F123D280096478E /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C583197B2F123D280096478E /* ASMRProcessingView.swift */,
+				C583197C2F123D280096478E /* ASMRVideoImportView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C583197E2F123D280096478E /* ASMRVideoImport */ = {
+			isa = PBXGroup;
+			children = (
+				C583197A2F123D280096478E /* Components */,
+				C583197D2F123D280096478E /* Views */,
+			);
+			path = ASMRVideoImport;
 			sourceTree = "<group>";
 		};
 		C583F5A72F09A6B80096478E /* Logging */ = {
@@ -2112,6 +2217,12 @@
 				F4B1A0AFB96B040047C28032 /* Colors.swift in Sources */,
 				34F93EBDD70B86330CDD75AA /* CommentAnalysisService.swift in Sources */,
 				CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */,
+				C58319702F123CFF0096478E /* ASMRProcessingProtocols.swift in Sources */,
+				C58319712F123CFF0096478E /* ASMRVideoProcessor.swift in Sources */,
+				C58319722F123CFF0096478E /* ASMRUsageManager.swift in Sources */,
+				C58319732F123CFF0096478E /* ASMRFrameExtractionService.swift in Sources */,
+				C58319742F123CFF0096478E /* ASMRSoundAnalysisService.swift in Sources */,
+				C58319752F123CFF0096478E /* ASMRRecipeStructurer.swift in Sources */,
 				5D4AB08420CFFF166E649998 /* CookbookScannerView.swift in Sources */,
 				FBC3DAB4D681A708C08D2CF1 /* CookingModeView.swift in Sources */,
 				3CD1A2F75968D634EC4A16A8 /* DataErrorView.swift in Sources */,
@@ -2172,6 +2283,7 @@
 				C583FFCF2F0CB7480096478E /* BlurHashEncoder.swift in Sources */,
 				C583070D2F0EC5480096478E /* HTMLSanitizer.swift in Sources */,
 				C583070E2F0EC5480096478E /* ValidationService.swift in Sources */,
+				C58319772F123D140096478E /* ASMRRecipeExtraction.swift in Sources */,
 				C583070F2F0EC5480096478E /* FilePathValidator.swift in Sources */,
 				C583162E2F119A030096478E /* VideoProcessingView.swift in Sources */,
 				C583162F2F119A030096478E /* SimilarRecipesInfoView.swift in Sources */,
@@ -2223,6 +2335,10 @@
 				595A6356EEFF0154AED1955E /* RecipeStructureParser.swift in Sources */,
 				1E7D0C95CDBDC0560A371AE2 /* RemindersService.swift in Sources */,
 				C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */,
+				C583197F2F123D280096478E /* ASMRPassProgressCard.swift in Sources */,
+				C58319802F123D280096478E /* ASMRUsageBadge.swift in Sources */,
+				C58319812F123D280096478E /* ASMRProcessingView.swift in Sources */,
+				C58319822F123D280096478E /* ASMRVideoImportView.swift in Sources */,
 				199F5CD019A20502FDBFEAF9 /* SampleRecipeLibrary.swift in Sources */,
 				C5E955392F055F5F006CD3C2 /* AIIngredientSpellChecker.swift in Sources */,
 				83FCC330472FB4732B7A7021 /* ScaledRecipe.swift in Sources */,
@@ -2485,7 +2601,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2525,7 +2641,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2560,7 +2676,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2591,7 +2707,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2618,7 +2734,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = G6Q28X9VJR;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2649,7 +2765,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = G6Q28X9VJR;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;

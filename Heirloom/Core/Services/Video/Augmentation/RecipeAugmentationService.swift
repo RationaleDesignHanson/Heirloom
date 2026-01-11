@@ -122,6 +122,7 @@ class RecipeAugmentationService {
         // 5. Create augmented recipe
         return createAugmentedRecipe(
             original: extractedRecipe,
+            needsAugmentation: needsAugmentation,
             augmentationResult: augmentationResult,
             similarRecipes: similarRecipes,
             webRecipes: webRecipes,
@@ -295,13 +296,14 @@ class RecipeAugmentationService {
 
     private func createAugmentedRecipe(
         original: StructuredRecipe,
+        needsAugmentation: [ExtractedIngredient],
         augmentationResult: AugmentationResult,
         similarRecipes: [SimilarRecipeMatch],
         webRecipes: [WebRecipeResult],
         processingTime: TimeInterval
     ) -> AugmentedRecipe {
         // Convert raw augmentation results to AugmentedIngredient objects
-        let augmentedIngredients = augmentationResult.augmentedIngredients.map { raw in
+        var augmentedIngredients = augmentationResult.augmentedIngredients.map { raw in
             // Find corresponding original ingredient
             let originalIngredient = original.ingredients.first {
                 $0.originalText == raw.originalText
@@ -324,6 +326,40 @@ class RecipeAugmentationService {
                 reasoning: raw.reasoning,
                 sourceRecipes: raw.sourceRecipes
             )
+        }
+
+        // CRITICAL: Find ingredients that needed augmentation but weren't returned by AI
+        // Create fallback AugmentedIngredient objects for them with explanatory reasoning
+        let augmentedOriginalTexts = Set(augmentedIngredients.map { $0.originalIngredient.originalText })
+        let missingIngredients = needsAugmentation.filter { !augmentedOriginalTexts.contains($0.originalText) }
+
+        if !missingIngredients.isEmpty {
+            print("⚠️ Creating fallback augmentation for \(missingIngredients.count) ingredients not returned by AI:")
+            for ingredient in missingIngredients {
+                print("   - \(ingredient.originalText)")
+            }
+        }
+
+        for ingredient in missingIngredients {
+            let hasReferences = !similarRecipes.isEmpty || !webRecipes.isEmpty
+            let reasoning: String
+
+            if hasReferences {
+                reasoning = "Could not confidently infer quantity from \(similarRecipes.count + webRecipes.count) similar recipes. The ingredient appears in similar recipes but with significant variation in quantities. Please verify the amount based on the video or use standard recipe proportions for \(original.title)."
+            } else {
+                reasoning = "No similar recipes found in your collection to infer quantity from. Please verify the amount based on the video or use standard recipe proportions for \(original.title)."
+            }
+
+            let fallbackAugmentation = AugmentedIngredient(
+                originalIngredient: ingredient,
+                inferredQuantity: nil,
+                inferredUnit: nil,
+                inferredConfidence: .unknown,
+                reasoning: reasoning,
+                sourceRecipes: []
+            )
+
+            augmentedIngredients.append(fallbackAugmentation)
         }
 
         // Calculate average confidence
