@@ -317,6 +317,13 @@ class ASMRRecipeStructurer {
 
         Track transformations: "raw onions (whole) → caramelized onions (diced)" with timestamp.
 
+        ⚠️ CRITICAL - DO NOT INCLUDE COOKING EQUIPMENT AS INGREDIENTS:
+        - DO NOT include: spoons, spatulas, whisks, tongs, ladles, knives, cutting boards
+        - DO NOT include: pans, pots, bowls (as ingredients - they're just containers)
+        - DO NOT include: measuring cups/spoons themselves (just use them to estimate)
+        - DO NOT include: plates, utensils, cookware, appliances
+        - ONLY include actual FOOD ITEMS that go into the dish
+
         IMPORTANT: Only report ingredients you can CLEARLY SEE. Don't infer yet.
 
         Respond in JSON:
