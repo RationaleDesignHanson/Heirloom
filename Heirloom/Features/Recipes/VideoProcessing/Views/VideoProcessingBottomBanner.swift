@@ -18,17 +18,24 @@ struct VideoProcessingBottomBanner: View {
     @Query(sort: \VideoProcessingJob.createdAt, order: .forward)
     private var allJobs: [VideoProcessingJob]
 
-    // Filter to active jobs (processing, pending, completed, or failed)
+    // Filter to active jobs (processing, pending, completed, or failed - exclude only saved/cancelled)
     private var activeJobs: [VideoProcessingJob] {
         allJobs.filter { job in
-            job.status == .processing || job.status == .pending || job.status == .completed || job.status == .failed
+            job.status == .processing || job.status == .pending ||
+            job.status == .completed || job.status == .failed
         }
     }
 
     // Separate job types
     private var processingJobs: [VideoProcessingJob] {
         allJobs.filter { job in
-            job.status == .processing || job.status == .pending
+            job.status == .processing
+        }
+    }
+
+    private var queuedJobs: [VideoProcessingJob] {
+        allJobs.filter { job in
+            job.status == .pending
         }
     }
 
@@ -115,10 +122,10 @@ struct VideoProcessingBottomBanner: View {
                             .font(HeirloomFonts.caption1)
                             .foregroundStyle(HeirloomColors.secondaryText)
 
-                        if processingJobs.count > 1 {
+                        if !queuedJobs.isEmpty {
                             Text("•")
                                 .foregroundStyle(HeirloomColors.secondaryText)
-                            Text("\(processingJobs.count - 1) in queue")
+                            Text("\(queuedJobs.count) in queue")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.secondaryText)
                         }
@@ -208,9 +215,16 @@ struct VideoProcessingBottomBanner: View {
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
 
-                    Text("Tap to retry or view error")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
+                    // Show context if there are also completed jobs
+                    if !completedJobs.isEmpty {
+                        Text("\(completedJobs.count) ready to review")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.familyGreen)
+                    } else {
+                        Text("Tap to retry or view error")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
                 }
 
                 Spacer()

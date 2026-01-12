@@ -9,6 +9,7 @@ import Foundation
 import SwiftData
 import UserNotifications
 import Combine
+import CryptoKit
 
 /// Manages background video processing jobs with persistence and resume capability
 @MainActor
@@ -47,7 +48,7 @@ final class VideoProcessingJobManager: ObservableObject {
             aiService: aiService,
             enableFrameAnalysis: true,
             enableCaching: true,
-            enableAugmentation: true
+            enableAugmentation: true  // Re-enabled - AppGroup issue fixed
         )
         self.standardProcessor = processor
         return processor
@@ -75,6 +76,28 @@ final class VideoProcessingJobManager: ObservableObject {
         sourceAttribution: VideoSourceAttribution?,
         context: ModelContext
     ) throws -> VideoProcessingJob {
+        // STEP 1: Compute video hash for duplicate detection
+        let videoData = try Data(contentsOf: videoURL)
+        let videoHashData = SHA256.hash(data: videoData)
+        let videoHash = videoHashData.compactMap { String(format: "%02x", $0) }.joined()
+
+        // STEP 2: Check for existing jobs with same hash
+        let descriptor = FetchDescriptor<VideoProcessingJob>()
+        let allJobs = try context.fetch(descriptor)
+
+        // Filter for matching hash and active statuses
+        if let existingJob = allJobs.first(where: { job in
+            job.videoHash == videoHash &&
+            (job.status == .pending || job.status == .processing || job.status == .completed)
+        }) {
+            Log.info("Duplicate video detected, returning existing job", category: .video, metadata: [
+                "existingJobId": existingJob.id.uuidString,
+                "status": existingJob.status.rawValue
+            ])
+            return existingJob  // Don't create duplicate
+        }
+
+        // STEP 3: No duplicate found, proceed with job creation
         // Copy video to persistent location in app documents directory
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let videosDir = documentsURL.appendingPathComponent("Videos", isDirectory: true)
@@ -88,15 +111,17 @@ final class VideoProcessingJobManager: ObservableObject {
 
         Log.info("Video copied to persistent location", category: .video, metadata: [
             "from": videoURL.path,
-            "to": destinationURL.path
+            "to": destinationURL.path,
+            "hash": videoHash
         ])
 
-        // Create the job with persistent URL
+        // Create the job with persistent URL and hash
         let job = VideoProcessingJob(
             videoURL: destinationURL.path,
             videoType: videoType,
             userCaption: userCaption,
             videoDuration: videoDuration,
+            videoHash: videoHash,
             sourceURL: sourceAttribution?.sourceURL,
             sourceAttribution: sourceAttribution?.creatorName
         )
@@ -250,7 +275,7 @@ final class VideoProcessingJobManager: ObservableObject {
         try context.save()
 
         // Schedule completion notification
-        scheduleCompletionNotification(job)
+        scheduleCompletionNotification(job, context: context)
 
         Log.info("Job completed successfully", category: .video, metadata: ["jobId": job.id.uuidString])
     }
@@ -395,7 +420,7 @@ final class VideoProcessingJobManager: ObservableObject {
         try? context.save()
 
         // Schedule failure notification
-        scheduleFailureNotification(job)
+        scheduleFailureNotification(job, context: context)
     }
 
     // MARK: - Credit Management
@@ -479,6 +504,12 @@ final class VideoProcessingJobManager: ObservableObject {
             throw VideoProcessingError.maxRetriesExceeded
         }
 
+        // Verify video file still exists before retrying
+        let videoURL = URL(fileURLWithPath: job.videoURL)
+        guard FileManager.default.fileExists(atPath: videoURL.path) else {
+            throw VideoProcessingError.videoFileNotFound
+        }
+
         job.retryCount += 1
         job.status = .pending
         job.errorMessage = nil
@@ -505,6 +536,108 @@ final class VideoProcessingJobManager: ObservableObject {
         try await startNextJob(context: context)
     }
 
+    /// Save recipe from completed job
+    func saveRecipeFromJob(_ job: VideoProcessingJob, context: ModelContext) throws -> Recipe {
+        // STEP 1: Verify job is completed
+        guard job.status == .completed else {
+            throw VideoProcessingError.invalidJobState
+        }
+
+        // STEP 2: Deserialize extraction JSON
+        guard let jsonData = job.extractionJSON else {
+            throw VideoProcessingError.noExtractionData
+        }
+
+        // Try to decode as Enhanced first (new format), fall back to base extraction (old format)
+        let recipeToSave: StructuredRecipe
+        let extraction: VideoRecipeExtraction
+
+        if let enhanced = try? JSONDecoder().decode(VideoRecipeExtraction.Enhanced.self, from: jsonData) {
+            // Use finalRecipe which merges augmented quantities/units into the recipe
+            recipeToSave = enhanced.finalRecipe
+            extraction = enhanced.original
+        } else {
+            // Fall back to base extraction
+            extraction = try JSONDecoder().decode(VideoRecipeExtraction.self, from: jsonData)
+            recipeToSave = extraction.structuredRecipe
+        }
+
+        // STEP 3: Create Recipe from extraction
+        let recipe = Recipe(
+            title: recipeToSave.title,
+            sourceType: .manual,
+            instructions: recipeToSave.steps.map { $0.instruction },
+            servings: recipeToSave.servings
+        )
+
+        // STEP 4: Set provenance metadata
+        recipe.provenance = ProvenanceMetadata(
+            sourceType: .imported,
+            sourceURL: job.sourceURL,
+            sourceAttribution: job.sourceAttribution ?? extraction.metadata.attribution.creatorName,
+            generation: 0,
+            sharedByName: nil,
+            createdAt: Date()
+        )
+
+        // STEP 5: Create ingredients (use augmented data if available)
+        for (index, ingredient) in recipeToSave.ingredients.enumerated() {
+            // Parse quantity string to Double (handles fractions like "1/4", "1 1/2", "¼")
+            let quantityDouble = parseQuantityString(ingredient.quantity)
+
+            let ing = Ingredient(
+                originalText: ingredient.originalText,
+                name: ingredient.item,
+                quantity: quantityDouble,
+                unit: ingredient.unit,
+                orderIndex: index
+            )
+            ing.recipe = recipe
+            context.insert(ing)
+        }
+
+        // STEP 6: Insert and save recipe
+        context.insert(recipe)
+        try context.save()
+
+        Log.info("Recipe saved from job", category: .video, metadata: [
+            "jobId": job.id.uuidString,
+            "recipeId": recipe.id.uuidString,
+            "recipeTitle": recipe.title
+        ])
+
+        // STEP 7: Update job status
+        job.status = .saved
+        job.recipeID = recipe.id
+        try context.save()
+
+        // STEP 8: Refresh queue to remove from active list
+        refreshQueue(context: context)
+
+        // STEP 9: Show toast confirmation
+        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+        toastManager.success(
+            title: "Recipe Saved",
+            message: recipe.title
+        )
+
+        return recipe
+    }
+
+    /// Parse string quantity to Double, handling fractions like "1/4", "1 1/2", "¼"
+    private func parseQuantityString(_ quantityString: String?) -> Double? {
+        guard let quantityString = quantityString?.trimmingCharacters(in: .whitespaces),
+              !quantityString.isEmpty else {
+            return nil
+        }
+
+        // Use IngredientParser to parse a fake ingredient text with just the quantity
+        // This leverages existing fraction parsing logic
+        let fakeIngredient = "\(quantityString) item"
+        let parsed = IngredientParser.parse(fakeIngredient)
+        return parsed.quantity
+    }
+
     // MARK: - Auto-Resume
 
     /// Resume pending jobs on app launch
@@ -521,12 +654,23 @@ final class VideoProcessingJobManager: ObservableObject {
             let jobs = allJobs.filter { $0.status == .processing || $0.status == .pending }
 
             // Mark crashed jobs as pending for retry
+            // Only mark as crashed if job started more than 5 minutes ago (prevents race condition)
+            let crashThreshold: TimeInterval = 300 // 5 minutes
             for job in jobs where job.status == .processing {
-                Log.info("Found crashed job, marking as pending", category: .video, metadata: [
-                    "jobId": job.id.uuidString,
-                    "phase": job.currentPhase.displayName
-                ])
-                job.status = .pending
+                let timeSinceStart = Date().timeIntervalSince(job.startedAt ?? job.createdAt)
+                if timeSinceStart > crashThreshold {
+                    Log.info("Found crashed job, marking as pending", category: .video, metadata: [
+                        "jobId": job.id.uuidString,
+                        "phase": job.currentPhase.displayName,
+                        "timeSinceStart": "\(Int(timeSinceStart))s"
+                    ])
+                    job.status = .pending
+                } else {
+                    Log.debug("Job recently started, not marking as crashed", category: .video, metadata: [
+                        "jobId": job.id.uuidString,
+                        "timeSinceStart": "\(Int(timeSinceStart))s"
+                    ])
+                }
             }
 
             try context.save()
@@ -548,13 +692,11 @@ final class VideoProcessingJobManager: ObservableObject {
     // MARK: - Badge Management
 
     /// Get count of jobs that need user attention (completed or failed)
-    private func getJobsNeedingAttentionCount() -> Int {
+    private func getJobsNeedingAttentionCount(context: ModelContext) -> Int {
         // Fetch all jobs and filter in code (Predicate macro doesn't support enum comparisons well)
         let descriptor = FetchDescriptor<VideoProcessingJob>()
 
         do {
-            let container = try ModelContainer(for: VideoProcessingJob.self)
-            let context = ModelContext(container)
             let allJobs = try context.fetch(descriptor)
 
             // Filter for jobs needing attention
@@ -573,7 +715,7 @@ final class VideoProcessingJobManager: ObservableObject {
 
     // MARK: - Notifications
 
-    private func scheduleCompletionNotification(_ job: VideoProcessingJob) {
+    private func scheduleCompletionNotification(_ job: VideoProcessingJob, context: ModelContext) {
         let content = UNMutableNotificationContent()
         content.title = "Your recipe is ready!"
         content.body = "Tap to review and save your extracted recipe."
@@ -582,7 +724,7 @@ final class VideoProcessingJobManager: ObservableObject {
         content.userInfo = ["jobId": job.id.uuidString]
 
         // Update app badge with count of jobs ready to review
-        content.badge = NSNumber(value: getJobsNeedingAttentionCount())
+        content.badge = NSNumber(value: getJobsNeedingAttentionCount(context: context))
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
         let request = UNNotificationRequest(
@@ -600,7 +742,7 @@ final class VideoProcessingJobManager: ObservableObject {
         }
     }
 
-    private func scheduleFailureNotification(_ job: VideoProcessingJob) {
+    private func scheduleFailureNotification(_ job: VideoProcessingJob, context: ModelContext) {
         let content = UNMutableNotificationContent()
         content.title = "Video processing failed"
         content.body = job.canRetry ? "Tap to retry or view error details." : "Tap to view error details."
@@ -609,7 +751,7 @@ final class VideoProcessingJobManager: ObservableObject {
         content.userInfo = ["jobId": job.id.uuidString]
 
         // Update app badge with count of jobs needing attention
-        content.badge = NSNumber(value: getJobsNeedingAttentionCount())
+        content.badge = NSNumber(value: getJobsNeedingAttentionCount(context: context))
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
         let request = UNNotificationRequest(
@@ -636,6 +778,8 @@ enum VideoProcessingError: LocalizedError {
     case maxRetriesExceeded
     case jobNotFound
     case processingInProgress
+    case invalidJobState
+    case noExtractionData
 
     var errorDescription: String? {
         switch self {
@@ -649,6 +793,10 @@ enum VideoProcessingError: LocalizedError {
             return "Job not found"
         case .processingInProgress:
             return "Processing already in progress"
+        case .invalidJobState:
+            return "Job is not in completed state"
+        case .noExtractionData:
+            return "No extraction data available for this job"
         }
     }
 }

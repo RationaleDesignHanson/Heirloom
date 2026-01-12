@@ -16,7 +16,7 @@ struct ASMRVideoImportView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @StateObject private var usageManager = ASMRUsageManager.shared
-    @State private var jobManager = VideoProcessingJobManager()
+    @StateObject private var jobManager = VideoProcessingJobManager()
 
     @State private var selectedVideoURL: URL?
     @State private var userCaption = ""

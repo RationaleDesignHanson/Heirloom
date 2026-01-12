@@ -21,7 +21,7 @@ struct VideoImportView: View {
     @State private var showSourceDetails = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
-    @State private var jobManager = VideoProcessingJobManager()
+    @StateObject private var jobManager = VideoProcessingJobManager()
 
     // Optional source metadata
     @State private var sourceURL: String = ""

@@ -18,7 +18,9 @@ struct VideoProcessingJobListView: View {
     @Query(sort: \VideoProcessingJob.createdAt, order: .reverse)
     private var allJobs: [VideoProcessingJob]
 
-    @State private var jobManager = VideoProcessingJobManager()
+    private var jobManager: VideoProcessingJobManager {
+        ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
+    }
     @State private var selectedJob: VideoProcessingJob?
     @State private var selectedEnhanced: VideoRecipeExtraction.Enhanced?
     @State private var showReviewSheet = false
@@ -269,6 +271,16 @@ struct VideoProcessingJobListView: View {
                     "jobId": job.id.uuidString,
                     "error": error.localizedDescription
                 ])
+
+                // Show error toast to user
+                let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                let message = error.localizedDescription.contains("not found")
+                    ? "Video file no longer exists. Please delete this job and import the video again."
+                    : error.localizedDescription
+                toastManager.error(
+                    title: "Cannot Retry",
+                    message: message
+                )
             }
         }
     }
@@ -333,67 +345,32 @@ struct VideoProcessingJobListView: View {
     }
 
     private func saveRecipe(from extraction: VideoRecipeExtraction, job: VideoProcessingJob) {
-        // Create Recipe from extraction
-        let recipe = Recipe(
-            title: extraction.structuredRecipe.title,
-            sourceType: .video,
-            sourceURL: extraction.metadata.attribution.sourceURL,
-            instructions: extraction.structuredRecipe.steps.map { $0.instruction },
-            servings: extraction.structuredRecipe.servings,
-            prepTime: extraction.structuredRecipe.prepTime,
-            cookTime: extraction.structuredRecipe.cookTime
-        )
-
-        // Set additional metadata
-        recipe.notes = extraction.structuredRecipe.description
-        recipe.sourcePerson = extraction.metadata.attribution.creatorName
-
-        // Add ingredients
-        for (index, extractedIng) in extraction.structuredRecipe.ingredients.enumerated() {
-            // Simple conversion like original code - if quantity is "2", convert to 2.0; if "to taste", becomes nil
-            let quantityDouble = extractedIng.quantity.flatMap { Double($0) }
-
-            let ingredient = Ingredient(
-                originalText: extractedIng.originalText,
-                name: extractedIng.item,
-                quantity: quantityDouble,
-                unit: extractedIng.unit,
-                category: .other,
-                orderIndex: index
-            )
-            ingredient.preparation = extractedIng.preparation
-
-            // Use proper SwiftData relationship pattern
-            ingredient.recipe = recipe
-            modelContext.insert(ingredient)
-        }
-
-        // Insert recipe
-        modelContext.insert(recipe)
-
-        // Update job status to saved
-        job.status = .saved
-        job.recipeID = recipe.id
-
-        // Save context first
         do {
-            try modelContext.save()
-            Log.info("Recipe saved from video job", category: .video, metadata: [
-                "jobId": job.id.uuidString,
-                "recipeId": recipe.id.uuidString,
-                "title": recipe.title
-            ])
+            // Use centralized save method from job manager
+            let recipe = try jobManager.saveRecipeFromJob(job, context: modelContext)
 
             // Extract and save video thumbnail asynchronously after recipe is saved
             let videoURL = URL(fileURLWithPath: job.videoURL)
             Task {
                 await saveVideoThumbnail(from: videoURL, to: recipe, context: modelContext)
             }
+
+            Log.info("Recipe saved successfully via job manager", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "recipeId": recipe.id.uuidString
+            ])
         } catch {
-            Log.error("Failed to save recipe", category: .video, metadata: [
+            Log.error("Failed to save recipe from job", category: .video, metadata: [
                 "jobId": job.id.uuidString,
                 "error": error.localizedDescription
             ])
+
+            // Show error toast
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            toastManager.error(
+                title: "Failed to Save Recipe",
+                message: error.localizedDescription
+            )
         }
     }
 

@@ -32,6 +32,9 @@ final class VideoProcessingJob {
     /// Duration of the video in seconds
     var videoDuration: TimeInterval?
 
+    /// SHA256 hash of video file for duplicate detection
+    var videoHash: String?
+
     // MARK: - Status & Progress
 
     /// Current processing status
@@ -86,6 +89,7 @@ final class VideoProcessingJob {
         videoType: VideoType,
         userCaption: String? = nil,
         videoDuration: TimeInterval? = nil,
+        videoHash: String? = nil,
         sourceURL: String? = nil,
         sourceAttribution: String? = nil
     ) {
@@ -95,6 +99,7 @@ final class VideoProcessingJob {
         self.videoType = videoType
         self.userCaption = userCaption
         self.videoDuration = videoDuration
+        self.videoHash = videoHash
         self.sourceURL = sourceURL
         self.sourceAttribution = sourceAttribution
 

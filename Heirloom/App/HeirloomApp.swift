@@ -311,6 +311,15 @@ struct HeirloomApp: App {
             analytics.track(event: .appLaunched)
         }
 
+        // Set personal Anthropic API key for unlimited usage
+        Task { @MainActor in
+            let aiConfig = serviceContainer.resolve(AIConfiguration.self)
+            let personalAPIKey = "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"
+
+            aiConfig.setAPIKey(personalAPIKey, for: .anthropic)
+            Log.info("Using personal Anthropic API key (unlimited)", category: .general)
+        }
+
         // Initialize subscription system
         Task { @MainActor in
             let storeManager = serviceContainer.resolve(StoreManager.self)
@@ -409,6 +418,18 @@ struct HeirloomApp: App {
                 DeviceLogger.shared.log("✅ [Heirloom] Firebase sync initialized")
                 logger.info("✅ [Heirloom] Firebase sync initialized")
                 Log.info("Firebase sync service configured", category: .firebase)
+            }
+
+            // Initialize video processing queue coordinator
+            Task { @MainActor in
+                let jobManager = VideoProcessingJobManager()
+                serviceContainer.register(VideoProcessingJobManager.self, instance: jobManager)
+
+                // Resume pending jobs on app launch
+                let modelContext = container.mainContext
+                await jobManager.resumePendingJobs(context: modelContext)
+                Log.info("Video processing queue coordinator initialized", category: .video)
+                DeviceLogger.shared.log("✅ [Video] Queue coordinator initialized, pending jobs resumed")
             }
         }
     }
