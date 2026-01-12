@@ -458,6 +458,14 @@ struct ASMRVideoImportView: View {
                 isLoadingVideo = true
             }
 
+            // Show immediate feedback
+            await MainActor.run {
+                toastManager.info(
+                    title: "Loading video...",
+                    message: "Checking video availability from Photos library"
+                )
+            }
+
             // Retry logic for Photos library transient errors
             var lastError: Error?
             let maxAttempts = 2
@@ -532,18 +540,8 @@ struct ASMRVideoImportView: View {
                 isLoadingVideo = false
 
                 // Provide helpful error message based on error type
-                let errorMessage: String
-                if let error = lastError as? CocoaError,
-                   error.code == .fileReadNoSuchFile || error.code == .fileNoSuchFile {
-                    errorMessage = "Video may still be downloading from iCloud. Please ensure it's fully downloaded and try again."
-                } else if let nsError = lastError as NSError?,
-                          nsError.domain.contains("Transferable") {
-                    errorMessage = "Unable to access video from Photos. Check if video is still syncing from iCloud."
-                } else {
-                    errorMessage = "Unable to load video. Please try again or select a different video."
-                }
-
-                toastManager.error(title: "Failed to load video", message: errorMessage)
+                let (title, message) = getErrorMessage(for: lastError)
+                toastManager.error(title: title, message: message)
             }
 
             Log.error("Error loading ASMR video after \(maxAttempts) attempts", category: .video, metadata: [
@@ -556,6 +554,54 @@ struct ASMRVideoImportView: View {
         let minutes = Int(seconds) / 60
         let remainingSeconds = Int(seconds) % 60
         return String(format: "%d:%02d", minutes, remainingSeconds)
+    }
+
+    /// Get user-friendly error message for video loading failures
+    private func getErrorMessage(for error: Error?) -> (title: String, message: String) {
+        guard let error = error else {
+            return ("Failed to load video", "Unknown error occurred. Please try again.")
+        }
+
+        let nsError = error as NSError
+
+        // Check for iCloud Photo Library errors
+        if nsError.domain == "CloudPhotoLibraryErrorDomain" {
+            return (
+                "Video is in iCloud",
+                "This video is still downloading from iCloud. Please wait for the download to finish in the Photos app, then try again."
+            )
+        }
+
+        // Check for Photos export errors
+        if nsError.domain == "PHAssetExportRequestErrorDomain" {
+            return (
+                "Cannot access video",
+                "Unable to export video from Photos library. The video may still be syncing from iCloud or may not be available on this device."
+            )
+        }
+
+        // Check for Transferable errors (usually indicates iCloud sync)
+        if nsError.domain.contains("Transferable") || nsError.domain == "NSItemProviderErrorDomain" {
+            return (
+                "Video not available",
+                "This video cannot be loaded. It may be:\n• Still downloading from iCloud\n• Stored in iCloud and not on this device\n• Try opening Photos app and waiting for download to complete."
+            )
+        }
+
+        // Check for file not found errors
+        if let cocoaError = error as? CocoaError,
+           cocoaError.code == .fileReadNoSuchFile || cocoaError.code == .fileNoSuchFile {
+            return (
+                "Video file not found",
+                "The video file is not available on this device. Please check if it's stored in iCloud and needs to be downloaded first."
+            )
+        }
+
+        // Generic fallback
+        return (
+            "Failed to load video",
+            "Unable to load the selected video. Try selecting a different video or ensure the video is fully downloaded from iCloud."
+        )
     }
 }
 
