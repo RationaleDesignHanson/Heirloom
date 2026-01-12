@@ -559,6 +559,10 @@ extension ServiceContainer {
             )
         }
 
+        // MARK: - Video Processing
+        // Note: VideoProcessing services will be lazily initialized on first use
+        // VideoProcessingJobManager is registered but services will be created when needed
+
         // MARK: - Mixpanel (Optional)
         #if canImport(Mixpanel)
         register(MixpanelService.self, lifecycle: .singleton) { _ in

@@ -15,6 +15,7 @@
 		11E7D54E3CFB003AE848298C /* CategoryDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1545F669D0B3B03A6D19C66D /* CategoryDetectionService.swift */; };
 		14902ECCAAEBB9BA1C553ABD /* ImportAttempt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C14BBA0EAD4B375EA9DC28A /* ImportAttempt.swift */; };
 		14B54EA78DD910B9F98D715B /* UIImage+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6792BAB82019DA7F5BDFA65F /* UIImage+Helpers.swift */; };
+		170FCC7FCA2F497BAD8D4963 /* IngredientDeduplicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8475D1161F4D49D0BBADD10E /* IngredientDeduplicator.swift */; };
 		1833BE419904DE4CDCCA6AC6 /* DinnerPartyEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA433CBD9799D0CB83B81959 /* DinnerPartyEditorView.swift */; };
 		189E866732B2A3EF7F6A0483 /* AIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E7C5CD12705EBAF5390533 /* AIError.swift */; };
 		199F5CD019A20502FDBFEAF9 /* SampleRecipeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85079635380FEC4B62DC52E7 /* SampleRecipeLibrary.swift */; };
@@ -151,7 +152,6 @@
 		C58319732F123CFF0096478E /* ASMRFrameExtractionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319642F123CFF0096478E /* ASMRFrameExtractionService.swift */; };
 		C58319742F123CFF0096478E /* ASMRSoundAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319652F123CFF0096478E /* ASMRSoundAnalysisService.swift */; };
 		C58319752F123CFF0096478E /* ASMRRecipeStructurer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583196B2F123CFF0096478E /* ASMRRecipeStructurer.swift */; };
-		170FCC7FCA2F497BAD8D4963 /* IngredientDeduplicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8475D1161F4D49D0BBADD10E /* IngredientDeduplicator.swift */; };
 		C58319772F123D140096478E /* ASMRRecipeExtraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319762F123D140096478E /* ASMRRecipeExtraction.swift */; };
 		C583197F2F123D280096478E /* ASMRPassProgressCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319782F123D280096478E /* ASMRPassProgressCard.swift */; };
 		C58319802F123D280096478E /* ASMRUsageBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58319792F123D280096478E /* ASMRUsageBadge.swift */; };
@@ -163,6 +163,9 @@
 		C5831EB72F135EE50096478E /* OnboardingCollectionsPreviewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5831EB02F135EE50096478E /* OnboardingCollectionsPreviewScreen.swift */; };
 		C5831EB82F135EE50096478E /* ImportMethodCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5831EAF2F135EE50096478E /* ImportMethodCard.swift */; };
 		C5831EBB2F135F060096478E /* TabNavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5831EB92F135F060096478E /* TabNavigationCoordinator.swift */; };
+		C58324E92F147C640096478E /* VideoProcessingJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324E72F147C640096478E /* VideoProcessingJob.swift */; };
+		C58324EA2F147C640096478E /* ProcessingCheckpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324E62F147C640096478E /* ProcessingCheckpoint.swift */; };
+		C58324ED2F147C810096478E /* VideoProcessingJobManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324EB2F147C810096478E /* VideoProcessingJobManager.swift */; };
 		C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */; };
 		C583F5A12F099E750096478E /* RecipeDetailHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59C2F099E750096478E /* RecipeDetailHeader.swift */; };
 		C583F5A22F099E750096478E /* RecipeInstructionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */; };
@@ -338,6 +341,7 @@
 		82D0F4952274AFF2BFBDEABB /* ImportProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProgressView.swift; sourceTree = "<group>"; };
 		8372FA8022D3000704B35085 /* URLNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLNormalizer.swift; sourceTree = "<group>"; };
 		8425B36BFF674C1DE1995CC5 /* RecipeCardBack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCardBack.swift; sourceTree = "<group>"; };
+		8475D1161F4D49D0BBADD10E /* IngredientDeduplicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientDeduplicator.swift; sourceTree = "<group>"; };
 		85079635380FEC4B62DC52E7 /* SampleRecipeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleRecipeLibrary.swift; sourceTree = "<group>"; };
 		87BD07E6DBCB1BD37C3BEB4E /* AIIngredientParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIIngredientParser.swift; sourceTree = "<group>"; };
 		8BA98B3C07204712DFE0C34D /* ProvenanceMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvenanceMetadata.swift; sourceTree = "<group>"; };
@@ -424,7 +428,6 @@
 		C58319672F123CFF0096478E /* ASMRVideoProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRVideoProcessor.swift; sourceTree = "<group>"; };
 		C58319692F123CFF0096478E /* ASMRProcessingProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRProcessingProtocols.swift; sourceTree = "<group>"; };
 		C583196B2F123CFF0096478E /* ASMRRecipeStructurer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRRecipeStructurer.swift; sourceTree = "<group>"; };
-		8475D1161F4D49D0BBADD10E /* IngredientDeduplicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientDeduplicator.swift; sourceTree = "<group>"; };
 		C583196D2F123CFF0096478E /* ASMRUsageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRUsageManager.swift; sourceTree = "<group>"; };
 		C58319762F123D140096478E /* ASMRRecipeExtraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRRecipeExtraction.swift; sourceTree = "<group>"; };
 		C58319782F123D280096478E /* ASMRPassProgressCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASMRPassProgressCard.swift; sourceTree = "<group>"; };
@@ -437,6 +440,9 @@
 		C5831EB22F135EE50096478E /* OnboardingImportMethodsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingImportMethodsScreen.swift; sourceTree = "<group>"; };
 		C5831EB32F135EE50096478E /* OnboardingRecipeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingRecipeCard.swift; sourceTree = "<group>"; };
 		C5831EB92F135F060096478E /* TabNavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationCoordinator.swift; sourceTree = "<group>"; };
+		C58324E62F147C640096478E /* ProcessingCheckpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingCheckpoint.swift; sourceTree = "<group>"; };
+		C58324E72F147C640096478E /* VideoProcessingJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessingJob.swift; sourceTree = "<group>"; };
+		C58324EB2F147C810096478E /* VideoProcessingJobManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessingJobManager.swift; sourceTree = "<group>"; };
 		C583F59C2F099E750096478E /* RecipeDetailHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailHeader.swift; sourceTree = "<group>"; };
 		C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeIngredientsSection.swift; sourceTree = "<group>"; };
 		C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeInstructionsSection.swift; sourceTree = "<group>"; };
@@ -879,6 +885,7 @@
 		99534F5D5C4435D669F1B56B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C58324E82F147C640096478E /* VideoProcessing */,
 				C58319762F123D140096478E /* ASMRRecipeExtraction.swift */,
 				C58316332F119E7C0096478E /* SimilarRecipeModels.swift */,
 				C58316342F119E7C0096478E /* VideoRecipeModels.swift */,
@@ -1162,6 +1169,7 @@
 		C58316472F119E910096478E /* Video */ = {
 			isa = PBXGroup;
 			children = (
+				C58324EC2F147C810096478E /* Background */,
 				C583196F2F123CFF0096478E /* ASMR */,
 				C58316382F119E910096478E /* Analysis */,
 				C583163A2F119E910096478E /* Audio */,
@@ -1261,6 +1269,23 @@
 				C5831EB92F135F060096478E /* TabNavigationCoordinator.swift */,
 			);
 			path = Navigation;
+			sourceTree = "<group>";
+		};
+		C58324E82F147C640096478E /* VideoProcessing */ = {
+			isa = PBXGroup;
+			children = (
+				C58324E62F147C640096478E /* ProcessingCheckpoint.swift */,
+				C58324E72F147C640096478E /* VideoProcessingJob.swift */,
+			);
+			path = VideoProcessing;
+			sourceTree = "<group>";
+		};
+		C58324EC2F147C810096478E /* Background */ = {
+			isa = PBXGroup;
+			children = (
+				C58324EB2F147C810096478E /* VideoProcessingJobManager.swift */,
+			);
+			path = Background;
 			sourceTree = "<group>";
 		};
 		C583F5A72F09A6B80096478E /* Logging */ = {
@@ -1835,6 +1860,7 @@
 				C583FFE22F0CBE500096478E /* RecipeListToolbarLeading.swift in Sources */,
 				D31562B77568A50A609130FA /* CardStyle.swift in Sources */,
 				11E7D54E3CFB003AE848298C /* CategoryDetectionService.swift in Sources */,
+				C58324ED2F147C810096478E /* VideoProcessingJobManager.swift in Sources */,
 				C5E955352F0553FE006CD3C2 /* FirebaseNotificationService.swift in Sources */,
 				C583FF9D2F0C9CA90096478E /* HeritageRecipeCleanupView.swift in Sources */,
 				C5B317872F00D8330087CF6D /* RecipeVersionService.swift in Sources */,
@@ -1999,6 +2025,8 @@
 				7A04C130200034BA8D0F19C5 /* Sticker.swift in Sources */,
 				227DA999DB569E3826BDF9B1 /* StickerPickerView.swift in Sources */,
 				C5B317662F00C8230087CF6D /* AboutView.swift in Sources */,
+				C58324E92F147C640096478E /* VideoProcessingJob.swift in Sources */,
+				C58324EA2F147C640096478E /* ProcessingCheckpoint.swift in Sources */,
 				C5B317622F00C7F30087CF6D /* NetworkMonitor.swift in Sources */,
 				C583FF992F0C9C860096478E /* FlipAffordanceBadge.swift in Sources */,
 				C583FF9A2F0C9C860096478E /* CustomizationOverlayView.swift in Sources */,

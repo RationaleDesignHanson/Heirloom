@@ -30,7 +30,9 @@ enum SchemaV2: VersionedSchema {
             RecipeComment.self,
             RecipeCardBack.self,
             ImportJob.self,
-            ImportItem.self
+            ImportItem.self,
+            VideoProcessingJob.self,
+            ProcessingCheckpoint.self
         ]
     }
 
