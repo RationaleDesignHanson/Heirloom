@@ -10,7 +10,6 @@ private let logger = Logger(subsystem: "com.matthanson.heirloom", category: "App
 
 // MARK: - Notification Delegate
 
-@MainActor
 class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate, ObservableObject {
     weak var deepLinkHandler: DeepLinkHandler?
 
@@ -72,8 +71,10 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate, Observab
             "url": deepLinkURL.absoluteString
         ])
 
-        // Handle deep link
-        deepLinkHandler?.handle(deepLinkURL)
+        // Handle deep link on main actor
+        Task { @MainActor in
+            deepLinkHandler?.handle(deepLinkURL)
+        }
 
         completionHandler()
     }
@@ -348,12 +349,10 @@ struct HeirloomApp: App {
 
             // Set up notification delegate
             if let deepLinkCoordinator = deepLinkCoordinator {
-                await MainActor.run {
-                    notificationDelegate.deepLinkHandler = deepLinkCoordinator
-                    UNUserNotificationCenter.current().delegate = notificationDelegate
-                    Log.info("Notification delegate configured", category: .video)
-                    DeviceLogger.shared.log("✅ [Notifications] Delegate configured for deep links")
-                }
+                notificationDelegate.deepLinkHandler = deepLinkCoordinator
+                UNUserNotificationCenter.current().delegate = notificationDelegate
+                Log.info("Notification delegate configured", category: .video)
+                DeviceLogger.shared.log("✅ [Notifications] Delegate configured for deep links")
             }
         }
 
