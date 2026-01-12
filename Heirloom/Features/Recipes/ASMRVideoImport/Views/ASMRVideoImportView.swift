@@ -458,56 +458,97 @@ struct ASMRVideoImportView: View {
                 isLoadingVideo = true
             }
 
-            do {
-                guard let movie = try await item.loadTransferable(type: VideoTransferable.self) else {
+            // Retry logic for Photos library transient errors
+            var lastError: Error?
+            let maxAttempts = 2
+
+            for attempt in 1...maxAttempts {
+                do {
+                    guard let movie = try await item.loadTransferable(type: VideoTransferable.self) else {
+                        await MainActor.run {
+                            isLoadingVideo = false
+                            toastManager.error(
+                                title: "Failed to load video",
+                                message: "The video may still be downloading from iCloud. Please try again."
+                            )
+                        }
+                        Log.error("Failed to load video from PhotosPicker", category: .video, metadata: [
+                            "attempt": attempt
+                        ])
+                        return
+                    }
+
+                    await MainActor.run {
+                        selectedVideoURL = movie.url
+                    }
+
+                    // Extract thumbnail and duration
+                    let asset = AVAsset(url: movie.url)
+
+                    // Get duration
+                    if let duration = try? await asset.load(.duration) {
+                        await MainActor.run {
+                            videoDuration = CMTimeGetSeconds(duration)
+                        }
+                    }
+
+                    // Generate thumbnail
+                    let generator = AVAssetImageGenerator(asset: asset)
+                    generator.appliesPreferredTrackTransform = true
+
+                    if let cgImage = try? await generator.image(at: CMTime(seconds: 0, preferredTimescale: 600)).image {
+                        await MainActor.run {
+                            videoThumbnail = UIImage(cgImage: cgImage)
+                        }
+                    }
+
                     await MainActor.run {
                         isLoadingVideo = false
-                        toastManager.error(title: "Failed to load video", message: "Please try another video")
                     }
-                    Log.error("Failed to load video from PhotosPicker", category: .video)
-                    return
-                }
 
-                await MainActor.run {
-                    selectedVideoURL = movie.url
-                }
+                    Log.info("ASMR video loaded successfully", category: .video, metadata: [
+                        "duration": "\(videoDuration ?? 0)",
+                        "attempt": attempt
+                    ])
+                    return  // Success, exit function
 
-                // Extract thumbnail and duration
-                let asset = AVAsset(url: movie.url)
+                } catch {
+                    lastError = error
+                    Log.warning("Video load attempt \(attempt) failed", category: .video, metadata: [
+                        "error": error.localizedDescription,
+                        "attempt": attempt,
+                        "maxAttempts": maxAttempts
+                    ])
 
-                // Get duration
-                if let duration = try? await asset.load(.duration) {
-                    await MainActor.run {
-                        videoDuration = CMTimeGetSeconds(duration)
-                    }
-                }
-
-                // Generate thumbnail
-                let generator = AVAssetImageGenerator(asset: asset)
-                generator.appliesPreferredTrackTransform = true
-
-                if let cgImage = try? await generator.image(at: CMTime(seconds: 0, preferredTimescale: 600)).image {
-                    await MainActor.run {
-                        videoThumbnail = UIImage(cgImage: cgImage)
+                    // If not the last attempt, wait before retrying
+                    if attempt < maxAttempts {
+                        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
                     }
                 }
-
-                await MainActor.run {
-                    isLoadingVideo = false
-                }
-
-                Log.info("ASMR video loaded successfully", category: .video, metadata: [
-                    "duration": "\(videoDuration ?? 0)"
-                ])
-            } catch {
-                await MainActor.run {
-                    isLoadingVideo = false
-                    toastManager.error(title: "Failed to load video", message: error.localizedDescription)
-                }
-                Log.error("Error loading ASMR video", category: .video, metadata: [
-                    "error": error.localizedDescription
-                ])
             }
+
+            // All attempts failed
+            await MainActor.run {
+                isLoadingVideo = false
+
+                // Provide helpful error message based on error type
+                let errorMessage: String
+                if let error = lastError as? CocoaError,
+                   error.code == .fileReadNoSuchFile || error.code == .fileNoSuchFile {
+                    errorMessage = "Video may still be downloading from iCloud. Please ensure it's fully downloaded and try again."
+                } else if let nsError = lastError as NSError?,
+                          nsError.domain.contains("Transferable") {
+                    errorMessage = "Unable to access video from Photos. Check if video is still syncing from iCloud."
+                } else {
+                    errorMessage = "Unable to load video. Please try again or select a different video."
+                }
+
+                toastManager.error(title: "Failed to load video", message: errorMessage)
+            }
+
+            Log.error("Error loading ASMR video after \(maxAttempts) attempts", category: .video, metadata: [
+                "error": lastError?.localizedDescription ?? "unknown"
+            ])
         }
     }
 
