@@ -18,28 +18,51 @@ struct VideoProcessingBottomBanner: View {
     @Query(sort: \VideoProcessingJob.createdAt, order: .forward)
     private var allJobs: [VideoProcessingJob]
 
-    // Filter to active jobs only
+    // Filter to active jobs (processing, pending, or completed)
     private var activeJobs: [VideoProcessingJob] {
+        allJobs.filter { job in
+            job.status == .processing || job.status == .pending || job.status == .completed
+        }
+    }
+
+    // Separate processing and completed jobs
+    private var processingJobs: [VideoProcessingJob] {
         allJobs.filter { job in
             job.status == .processing || job.status == .pending
         }
     }
 
-    var body: some View {
-        if let firstJob = activeJobs.first {
-            bannerContent(for: firstJob)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: firstJob.id)
-                .sheet(isPresented: $showJobList) {
-                    VideoProcessingJobListView()
-                }
-                .onAppear {
-                    initializeJobManager()
-                }
+    private var completedJobs: [VideoProcessingJob] {
+        allJobs.filter { job in
+            job.status == .completed
         }
     }
 
-    private func bannerContent(for job: VideoProcessingJob) -> some View {
+    var body: some View {
+        if !activeJobs.isEmpty {
+            // Show processing job if any, otherwise show completed count
+            if let processingJob = processingJobs.first {
+                bannerContent(for: processingJob, showProcessing: true)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: processingJob.id)
+                    .sheet(isPresented: $showJobList) {
+                        VideoProcessingJobListView()
+                    }
+                    .onAppear {
+                        initializeJobManager()
+                    }
+            } else if !completedJobs.isEmpty {
+                completedBannerContent()
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: completedJobs.count)
+                    .sheet(isPresented: $showJobList) {
+                        VideoProcessingJobListView()
+                    }
+            }
+        }
+    }
+
+    private func bannerContent(for job: VideoProcessingJob, showProcessing: Bool) -> some View {
         Button {
             showJobList = true
         } label: {
@@ -79,14 +102,58 @@ struct VideoProcessingBottomBanner: View {
                             .font(HeirloomFonts.caption1)
                             .foregroundStyle(HeirloomColors.secondaryText)
 
-                        if activeJobs.count > 1 {
+                        if processingJobs.count > 1 {
                             Text("•")
                                 .foregroundStyle(HeirloomColors.secondaryText)
-                            Text("\(activeJobs.count - 1) in queue")
+                            Text("\(processingJobs.count - 1) in queue")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.secondaryText)
                         }
                     }
+                }
+
+                Spacer()
+
+                // Chevron
+                Image(systemName: "chevron.down")
+                    .font(.caption)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+            .padding(HeirloomSpacing.md)
+            .background(.white)
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
+            .padding(.horizontal, HeirloomSpacing.md)
+            .padding(.top, HeirloomSpacing.sm)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func completedBannerContent() -> some View {
+        Button {
+            showJobList = true
+        } label: {
+            HStack(spacing: HeirloomSpacing.md) {
+                // Checkmark Icon
+                ZStack {
+                    Circle()
+                        .fill(HeirloomColors.familyGreen.opacity(0.1))
+                        .frame(width: 40, height: 40)
+
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(HeirloomColors.familyGreen)
+                }
+
+                // Completed Info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(completedJobs.count == 1 ? "Recipe ready to review" : "\(completedJobs.count) recipes ready to review")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("Tap to review and save")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
                 }
 
                 Spacer()
