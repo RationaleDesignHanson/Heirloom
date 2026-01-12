@@ -14,19 +14,32 @@ struct VideoProcessingBottomBanner: View {
     @State private var showJobList = false
     @State private var jobManager: VideoProcessingJobManager?
 
+    // Query for all jobs, sorted by creation date
+    @Query(sort: \VideoProcessingJob.createdAt, order: .forward)
+    private var allJobs: [VideoProcessingJob]
+
+    // Filter to active jobs only
+    private var activeJobs: [VideoProcessingJob] {
+        allJobs.filter { job in
+            job.status == .processing || job.status == .pending
+        }
+    }
+
     var body: some View {
-        if let manager = jobManager,
-           let activeJob = manager.activeJob ?? manager.queuedJobs.first {
-            bannerContent(for: activeJob, manager: manager)
+        if let firstJob = activeJobs.first {
+            bannerContent(for: firstJob)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: activeJob.id)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: firstJob.id)
                 .sheet(isPresented: $showJobList) {
                     VideoProcessingJobListView()
+                }
+                .onAppear {
+                    initializeJobManager()
                 }
         }
     }
 
-    private func bannerContent(for job: VideoProcessingJob, manager: VideoProcessingJobManager) -> some View {
+    private func bannerContent(for job: VideoProcessingJob) -> some View {
         Button {
             showJobList = true
         } label: {
@@ -61,19 +74,17 @@ struct VideoProcessingBottomBanner: View {
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
 
-                    if manager.isProcessing {
-                        HStack(spacing: 6) {
-                            Text("\(Int(job.progress * 100))%")
+                    HStack(spacing: 6) {
+                        Text("\(Int(job.progress * 100))%")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+
+                        if activeJobs.count > 1 {
+                            Text("•")
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                            Text("\(activeJobs.count - 1) in queue")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.secondaryText)
-
-                            if manager.queuedJobs.count > 1 {
-                                Text("•")
-                                    .foregroundStyle(HeirloomColors.secondaryText)
-                                Text("\(manager.queuedJobs.count - 1) in queue")
-                                    .font(HeirloomFonts.caption1)
-                                    .foregroundStyle(HeirloomColors.secondaryText)
-                            }
                         }
                     }
                 }
@@ -93,9 +104,6 @@ struct VideoProcessingBottomBanner: View {
             .padding(.bottom, HeirloomSpacing.sm)
         }
         .buttonStyle(.plain)
-        .onAppear {
-            initializeJobManager()
-        }
     }
 
     private func initializeJobManager() {

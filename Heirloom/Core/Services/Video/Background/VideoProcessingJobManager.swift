@@ -75,9 +75,25 @@ final class VideoProcessingJobManager: ObservableObject {
         sourceAttribution: VideoSourceAttribution?,
         context: ModelContext
     ) throws -> VideoProcessingJob {
-        // Create the job
+        // Copy video to persistent location in app documents directory
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let videosDir = documentsURL.appendingPathComponent("Videos", isDirectory: true)
+
+        // Create Videos directory if needed
+        try? FileManager.default.createDirectory(at: videosDir, withIntermediateDirectories: true)
+
+        // Copy video with unique name
+        let destinationURL = videosDir.appendingPathComponent("\(UUID().uuidString).mov")
+        try FileManager.default.copyItem(at: videoURL, to: destinationURL)
+
+        Log.info("Video copied to persistent location", category: .video, metadata: [
+            "from": videoURL.path,
+            "to": destinationURL.path
+        ])
+
+        // Create the job with persistent URL
         let job = VideoProcessingJob(
-            videoURL: videoURL.path,
+            videoURL: destinationURL.path,
             videoType: videoType,
             userCaption: userCaption,
             videoDuration: videoDuration,
@@ -194,9 +210,12 @@ final class VideoProcessingJobManager: ObservableObject {
             "phase": resumePhase.rawValue
         ])
 
-        // Get video URL
-        guard let videoURL = URL(string: job.videoURL) else {
-            throw VideoProcessingError.invalidVideoURL
+        // Get video URL from stored path
+        let videoURL = URL(fileURLWithPath: job.videoURL)
+
+        // Verify file exists
+        guard FileManager.default.fileExists(atPath: videoURL.path) else {
+            throw VideoProcessingError.videoFileNotFound
         }
 
         // Process based on video type
@@ -557,6 +576,7 @@ final class VideoProcessingJobManager: ObservableObject {
 
 enum VideoProcessingError: LocalizedError {
     case invalidVideoURL
+    case videoFileNotFound
     case maxRetriesExceeded
     case jobNotFound
     case processingInProgress
@@ -565,6 +585,8 @@ enum VideoProcessingError: LocalizedError {
         switch self {
         case .invalidVideoURL:
             return "Invalid video URL"
+        case .videoFileNotFound:
+            return "Video file not found"
         case .maxRetriesExceeded:
             return "Maximum retry attempts exceeded"
         case .jobNotFound:
