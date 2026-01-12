@@ -18,6 +18,8 @@ struct VideoProcessingJobListView: View {
 
     @State private var jobManager = VideoProcessingJobManager()
     @State private var selectedJob: VideoProcessingJob?
+    @State private var selectedExtraction: VideoRecipeExtraction?
+    @State private var showReviewSheet = false
 
     private var processingJobs: [VideoProcessingJob] {
         allJobs.filter { $0.status == .processing }
@@ -118,11 +120,19 @@ struct VideoProcessingJobListView: View {
                     }
                 }
             }
-            .sheet(item: $selectedJob) { job in
-                if job.status == .completed {
-                    // Navigate to review screen
-                    Text("Review Screen Coming Soon")
-                        .font(HeirloomFonts.title2)
+            .sheet(isPresented: $showReviewSheet) {
+                if let extraction = selectedExtraction, let job = selectedJob {
+                    VideoRecipeReviewView(
+                        extraction: extraction,
+                        enhancedExtraction: nil,
+                        onSave: { updatedExtraction in
+                            saveRecipe(from: updatedExtraction, job: job)
+                            showReviewSheet = false
+                        },
+                        onCancel: {
+                            showReviewSheet = false
+                        }
+                    )
                 }
             }
         }
@@ -170,7 +180,7 @@ struct VideoProcessingJobListView: View {
     private func jobRow(for job: VideoProcessingJob) -> some View {
         Button {
             if job.status == .completed {
-                selectedJob = job
+                openReviewScreen(for: job)
             }
         } label: {
             JobRow(
@@ -187,7 +197,7 @@ struct VideoProcessingJobListView: View {
         .contextMenu {
             if job.status == .completed {
                 Button {
-                    selectedJob = job
+                    openReviewScreen(for: job)
                 } label: {
                     Label("Review Recipe", systemImage: "doc.text.magnifyingglass")
                 }
@@ -268,6 +278,85 @@ struct VideoProcessingJobListView: View {
     private func deleteJob(_ job: VideoProcessingJob) {
         modelContext.delete(job)
         try? modelContext.save()
+    }
+
+    private func openReviewScreen(for job: VideoProcessingJob) {
+        guard job.status == .completed,
+              let extractionData = job.extractionJSON else {
+            Log.error("Cannot open review screen - job not completed or no extraction data", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "status": job.status.rawValue
+            ])
+            return
+        }
+
+        do {
+            let extraction = try JSONDecoder().decode(VideoRecipeExtraction.self, from: extractionData)
+            selectedJob = job
+            selectedExtraction = extraction
+            showReviewSheet = true
+        } catch {
+            Log.error("Failed to decode extraction from job", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "error": error.localizedDescription
+            ])
+        }
+    }
+
+    private func saveRecipe(from extraction: VideoRecipeExtraction, job: VideoProcessingJob) {
+        // Create Recipe from extraction
+        let recipe = Recipe(
+            title: extraction.structuredRecipe.title,
+            sourceType: .video,
+            sourceURL: extraction.metadata.attribution.sourceURL,
+            instructions: extraction.structuredRecipe.steps.map { $0.instruction },
+            servings: extraction.structuredRecipe.servings,
+            prepTime: extraction.structuredRecipe.prepTime,
+            cookTime: extraction.structuredRecipe.cookTime
+        )
+
+        // Set additional metadata
+        recipe.notes = extraction.structuredRecipe.description
+        recipe.sourcePerson = extraction.metadata.attribution.creatorName
+
+        // Add ingredients
+        for (index, extractedIng) in extraction.structuredRecipe.ingredients.enumerated() {
+            // Parse quantity from string to Double if possible
+            let quantityValue = Double(extractedIng.quantity ?? "") ?? nil
+
+            let ingredient = Ingredient(
+                originalText: extractedIng.originalText,
+                name: extractedIng.item,
+                quantity: quantityValue,
+                unit: extractedIng.unit,
+                category: .other,
+                orderIndex: index
+            )
+            ingredient.preparation = extractedIng.preparation
+            recipe.ingredients?.append(ingredient)
+        }
+
+        // Insert recipe
+        modelContext.insert(recipe)
+
+        // Update job status to saved
+        job.status = .saved
+        job.recipeID = recipe.id
+
+        // Save context
+        do {
+            try modelContext.save()
+            Log.info("Recipe saved from video job", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "recipeId": recipe.id.uuidString,
+                "title": recipe.title
+            ])
+        } catch {
+            Log.error("Failed to save recipe", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "error": error.localizedDescription
+            ])
+        }
     }
 }
 
