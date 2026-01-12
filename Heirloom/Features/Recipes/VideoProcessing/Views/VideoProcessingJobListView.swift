@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import AVFoundation
 
 /// Full sheet view showing all video processing jobs
 struct VideoProcessingJobListView: View {
@@ -321,8 +322,8 @@ struct VideoProcessingJobListView: View {
 
         // Add ingredients
         for (index, extractedIng) in extraction.structuredRecipe.ingredients.enumerated() {
-            // Parse quantity from string to Double if possible
-            let quantityValue = Double(extractedIng.quantity ?? "") ?? nil
+            // Parse quantity string to extract numeric value
+            let quantityValue = parseQuantity(from: extractedIng.quantity)
 
             let ingredient = Ingredient(
                 originalText: extractedIng.originalText,
@@ -343,7 +344,7 @@ struct VideoProcessingJobListView: View {
         job.status = .saved
         job.recipeID = recipe.id
 
-        // Save context
+        // Save context first
         do {
             try modelContext.save()
             Log.info("Recipe saved from video job", category: .video, metadata: [
@@ -351,9 +352,108 @@ struct VideoProcessingJobListView: View {
                 "recipeId": recipe.id.uuidString,
                 "title": recipe.title
             ])
+
+            // Extract and save video thumbnail asynchronously after recipe is saved
+            let videoURL = URL(fileURLWithPath: job.videoURL)
+            Task {
+                await saveVideoThumbnail(from: videoURL, to: recipe, context: modelContext)
+            }
         } catch {
             Log.error("Failed to save recipe", category: .video, metadata: [
                 "jobId": job.id.uuidString,
+                "error": error.localizedDescription
+            ])
+        }
+    }
+
+    /// Parse quantity string to extract numeric value
+    /// Handles: "2", "1/2", "1 1/2", "2-3", "to taste", etc.
+    private func parseQuantity(from quantityString: String?) -> Double? {
+        guard let str = quantityString?.trimmingCharacters(in: .whitespaces), !str.isEmpty else {
+            return nil
+        }
+
+        // Handle "to taste", "as needed", etc. - return nil
+        let nonNumericPhrases = ["to taste", "as needed", "optional", "pinch", "dash"]
+        if nonNumericPhrases.contains(where: { str.lowercased().contains($0) }) {
+            return nil
+        }
+
+        // Try direct conversion first: "2" → 2.0
+        if let value = Double(str) {
+            return value
+        }
+
+        // Handle fractions: "1/2" → 0.5
+        if str.contains("/") {
+            let parts = str.split(separator: "/").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
+            if parts.count == 2, parts[1] != 0 {
+                return parts[0] / parts[1]
+            }
+        }
+
+        // Handle mixed fractions: "1 1/2" → 1.5
+        let components = str.split(separator: " ")
+        if components.count == 2,
+           let whole = Double(components[0]),
+           components[1].contains("/") {
+            let fractionParts = components[1].split(separator: "/").compactMap { Double($0) }
+            if fractionParts.count == 2, fractionParts[1] != 0 {
+                return whole + (fractionParts[0] / fractionParts[1])
+            }
+        }
+
+        // Handle ranges: "2-3" → 2.0 (use first value)
+        if str.contains("-") {
+            let parts = str.split(separator: "-")
+            if let first = parts.first, let value = Double(first.trimmingCharacters(in: .whitespaces)) {
+                return value
+            }
+        }
+
+        // Extract first number found: "about 2 cups" → 2.0
+        let numbers = str.components(separatedBy: CharacterSet.decimalDigits.inverted).filter { !$0.isEmpty }
+        if let first = numbers.first, let value = Double(first) {
+            return value
+        }
+
+        return nil
+    }
+
+    /// Extract thumbnail from video and save to recipe
+    private func saveVideoThumbnail(from videoURL: URL, to recipe: Recipe, context: ModelContext) async {
+        let asset = AVAsset(url: videoURL)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true
+        imageGenerator.requestedTimeToleranceAfter = .zero
+        imageGenerator.requestedTimeToleranceBefore = .zero
+
+        do {
+            // Load duration asynchronously (iOS 16+)
+            let duration = try await asset.load(.duration).seconds
+            let time = CMTime(seconds: min(2.0, duration * 0.1), preferredTimescale: 600)
+
+            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+            let image = UIImage(cgImage: cgImage)
+
+            // Save via ImageStorageService from ServiceContainer
+            await MainActor.run {
+                let imageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+                Task {
+                    if let fileName = try? await imageService.saveImage(image, recipeId: recipe.id) {
+                        await MainActor.run {
+                            recipe.imageFileName = fileName
+                            try? context.save()
+                            Log.info("Saved video thumbnail as recipe image", category: .video, metadata: [
+                                "recipeId": recipe.id.uuidString,
+                                "fileName": fileName
+                            ])
+                        }
+                    }
+                }
+            }
+        } catch {
+            Log.error("Failed to extract video thumbnail", category: .video, metadata: [
                 "error": error.localizedDescription
             ])
         }
