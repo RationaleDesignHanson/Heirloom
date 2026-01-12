@@ -444,26 +444,49 @@ struct ASMRVideoImportView: View {
 
     private func loadVideo(from item: PhotosPickerItem) {
         Task {
-            guard let movie = try? await item.loadTransferable(type: VideoTransferable.self) else {
-                return
-            }
+            do {
+                guard let movie = try await item.loadTransferable(type: VideoTransferable.self) else {
+                    await MainActor.run {
+                        toastManager.error(title: "Failed to load video", message: "Please try another video")
+                    }
+                    Log.error("Failed to load video from PhotosPicker", category: .video)
+                    return
+                }
 
-            selectedVideoURL = movie.url
+                await MainActor.run {
+                    selectedVideoURL = movie.url
+                }
 
-            // Extract thumbnail and duration
-            let asset = AVAsset(url: movie.url)
+                // Extract thumbnail and duration
+                let asset = AVAsset(url: movie.url)
 
-            // Get duration
-            if let duration = try? await asset.load(.duration) {
-                videoDuration = CMTimeGetSeconds(duration)
-            }
+                // Get duration
+                if let duration = try? await asset.load(.duration) {
+                    await MainActor.run {
+                        videoDuration = CMTimeGetSeconds(duration)
+                    }
+                }
 
-            // Generate thumbnail
-            let generator = AVAssetImageGenerator(asset: asset)
-            generator.appliesPreferredTrackTransform = true
+                // Generate thumbnail
+                let generator = AVAssetImageGenerator(asset: asset)
+                generator.appliesPreferredTrackTransform = true
 
-            if let cgImage = try? await generator.image(at: CMTime(seconds: 0, preferredTimescale: 600)).image {
-                videoThumbnail = UIImage(cgImage: cgImage)
+                if let cgImage = try? await generator.image(at: CMTime(seconds: 0, preferredTimescale: 600)).image {
+                    await MainActor.run {
+                        videoThumbnail = UIImage(cgImage: cgImage)
+                    }
+                }
+
+                Log.info("ASMR video loaded successfully", category: .video, metadata: [
+                    "duration": "\(videoDuration ?? 0)"
+                ])
+            } catch {
+                await MainActor.run {
+                    toastManager.error(title: "Failed to load video", message: error.localizedDescription)
+                }
+                Log.error("Error loading ASMR video", category: .video, metadata: [
+                    "error": error.localizedDescription
+                ])
             }
         }
     }
