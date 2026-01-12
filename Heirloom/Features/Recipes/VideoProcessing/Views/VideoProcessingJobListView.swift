@@ -191,7 +191,10 @@ struct VideoProcessingJobListView: View {
                 } : nil,
                 onCancel: job.canCancel ? {
                     cancelJob(job)
-                } : nil
+                } : nil,
+                onDelete: {
+                    deleteJob(job)
+                }
             )
         }
         .buttonStyle(.plain)

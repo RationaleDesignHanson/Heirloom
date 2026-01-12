@@ -12,6 +12,7 @@ struct JobRow: View {
     let job: VideoProcessingJob
     let onRetry: (() -> Void)?
     let onCancel: (() -> Void)?
+    let onDelete: (() -> Void)?
 
     var body: some View {
         HStack(spacing: HeirloomSpacing.md) {
@@ -143,30 +144,34 @@ struct JobRow: View {
     private var actionContent: some View {
         switch job.status {
         case .failed:
-            if job.canRetry, let onRetry = onRetry {
-                Button {
-                    onRetry()
-                } label: {
-                    Text("Retry")
-                        .font(HeirloomFonts.caption1Bold)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(HeirloomColors.tomato)
-                        .cornerRadius(8)
+            HStack(spacing: 8) {
+                // Delete button (always visible for failed jobs)
+                if let onDelete = onDelete {
+                    Button {
+                        onDelete()
+                    } label: {
+                        Text("Delete")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(Color.red)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(8)
+                    }
                 }
-            } else {
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text("Failed")
-                        .font(HeirloomFonts.caption1Bold)
-                        .foregroundStyle(Color.red)
 
-                    if let error = job.errorMessage {
-                        Text(error)
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.trailing)
+                // Retry button
+                if job.canRetry, let onRetry = onRetry {
+                    Button {
+                        onRetry()
+                    } label: {
+                        Text("Retry")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(HeirloomColors.tomato)
+                            .cornerRadius(8)
                     }
                 }
             }
@@ -212,7 +217,8 @@ struct JobRow: View {
                 return job
             }(),
             onRetry: nil,
-            onCancel: {}
+            onCancel: {},
+            onDelete: nil
         )
 
         // Completed
@@ -224,7 +230,8 @@ struct JobRow: View {
                 return job
             }(),
             onRetry: nil,
-            onCancel: nil
+            onCancel: nil,
+            onDelete: nil
         )
 
         // Failed
@@ -236,7 +243,8 @@ struct JobRow: View {
                 return job
             }(),
             onRetry: {},
-            onCancel: nil
+            onCancel: nil,
+            onDelete: {}
         )
     }
     .padding()
