@@ -292,16 +292,35 @@ struct VideoProcessingJobListView: View {
         }
 
         do {
-            // Decode enhanced extraction (includes augmentation data)
+            // Try to decode enhanced extraction first (new format with augmentation)
             let enhanced = try JSONDecoder().decode(VideoRecipeExtraction.Enhanced.self, from: extractionData)
             selectedJob = job
             selectedEnhanced = enhanced
             showReviewSheet = true
         } catch {
-            Log.error("Failed to decode enhanced extraction from job", category: .video, metadata: [
-                "jobId": job.id.uuidString,
-                "error": error.localizedDescription
-            ])
+            // Fallback: Try decoding old format (base extraction without augmentation)
+            do {
+                let baseExtraction = try JSONDecoder().decode(VideoRecipeExtraction.self, from: extractionData)
+                // Wrap in Enhanced with empty augmentation
+                let enhanced = VideoRecipeExtraction.Enhanced(
+                    original: baseExtraction,
+                    augmentedRecipe: nil,
+                    similarRecipes: [],
+                    webRecipes: []
+                )
+                selectedJob = job
+                selectedEnhanced = enhanced
+                showReviewSheet = true
+
+                Log.info("Loaded old job format without augmentation", category: .video, metadata: [
+                    "jobId": job.id.uuidString
+                ])
+            } catch {
+                Log.error("Failed to decode extraction from job", category: .video, metadata: [
+                    "jobId": job.id.uuidString,
+                    "error": error.localizedDescription
+                ])
+            }
         }
     }
 
