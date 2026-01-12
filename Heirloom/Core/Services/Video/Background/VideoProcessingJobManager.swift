@@ -289,7 +289,15 @@ final class VideoProcessingJobManager: ObservableObject {
         resumePhase: ProcessingPhase,
         context: ModelContext
     ) async throws -> VideoRecipeExtraction.Enhanced {
-        // Get processor instance
+        // Show loading message if model not yet loaded (first video after app launch)
+        if standardProcessor == nil {
+            job.currentPhase = .loadingModel
+            job.progress = 0.02
+            try context.save()
+            Log.info("Loading speech recognition model", category: .video, metadata: ["jobId": job.id.uuidString])
+        }
+
+        // Get processor instance (will load WhisperKit if needed)
         let processor = await getStandardProcessor(context: context)
 
         // Delegate to existing processor and monitor progress
@@ -354,6 +362,14 @@ final class VideoProcessingJobManager: ObservableObject {
         resumePhase: ProcessingPhase,
         context: ModelContext
     ) async throws -> VideoRecipeExtraction.Enhanced {
+        // Show loading message if model not yet loaded (first video after app launch)
+        if asmrProcessor == nil {
+            job.currentPhase = .loadingModel
+            job.progress = 0.02
+            try context.save()
+            Log.info("Loading speech recognition model", category: .video, metadata: ["jobId": job.id.uuidString])
+        }
+
         // Get processor instance
         let processor = getASMRProcessor()
 

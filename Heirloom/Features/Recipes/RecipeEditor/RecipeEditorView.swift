@@ -8,6 +8,7 @@ struct RecipeEditorView: View {
     @Environment(\.firebaseSync) private var firebaseSync
     @Environment(\.firebaseLineage) private var firebaseLineage
     @Environment(\.aiIngredientParser) private var aiIngredientParser
+    @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     @Query(sort: \RecipeCollection.name) private var allCollections: [RecipeCollection]
@@ -103,6 +104,10 @@ struct RecipeEditorView: View {
     var body: some View {
         NavigationStack {
             Form {
+                if shouldShowSignInReminder {
+                    signInReminderSection
+                }
+
                 basicInfoSection
                 imageSection
                 metadataSection
@@ -158,6 +163,11 @@ struct RecipeEditorView: View {
     /// User-created collections (excludes system and heritage collections)
     private var userCollections: [RecipeCollection] {
         allCollections.filter { !$0.isSystemCollection && !$0.isHeritageCollection }
+    }
+
+    /// Show sign-in reminder if creating new manual recipe and not authenticated
+    private var shouldShowSignInReminder: Bool {
+        isNewRecipe && sourceType == .manual && firebaseAuth.currentUser == nil
     }
 
     // MARK: - View Sections
@@ -396,6 +406,46 @@ struct RecipeEditorView: View {
                 .font(HeirloomFonts.body)
                 .lineLimit(3...10)
         }
+    }
+
+    private var signInReminderSection: some View {
+        Section {
+            HStack(spacing: 12) {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .font(.system(size: 20))
+                    .foregroundStyle(HeirloomColors.tomato)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Personalize your recipes")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("Sign in to replace \"My Recipe\" with your name on all recipes you create")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                Button {
+                    // Navigate to settings to sign in
+                    tabCoordinator.selectedTab = TabNavigationCoordinator.Tab.settings.rawValue
+                    dismiss()
+                } label: {
+                    Text("Sign In")
+                        .font(HeirloomFonts.caption1Bold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(HeirloomColors.tomato)
+                        .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.vertical, 8)
+        }
+        .listRowBackground(HeirloomColors.tomato.opacity(0.05))
     }
 
     // MARK: - Actions

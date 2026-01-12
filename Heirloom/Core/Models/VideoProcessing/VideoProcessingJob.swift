@@ -132,6 +132,7 @@ enum VideoType: String, Codable {
 
 enum ProcessingPhase: String, Codable {
     case queued                 // Waiting to start
+    case loadingModel           // Loading speech recognition model (first video only)
     case extractingAudio        // Extracting audio from video
     case transcribing           // Transcribing audio to text
     case analyzingFrames        // Analyzing video frames
@@ -181,9 +182,9 @@ extension VideoProcessingJob {
         guard status == .failed else { return false }
 
         // Only refund if failure occurred BEFORE structuring phase
-        // (i.e., during audio extraction, transcription, or frame analysis)
+        // (i.e., during model loading, audio extraction, transcription, or frame analysis)
         let refundablePhases: [ProcessingPhase] = [
-            .queued, .extractingAudio, .transcribing, .analyzingFrames
+            .queued, .loadingModel, .extractingAudio, .transcribing, .analyzingFrames
         ]
         return refundablePhases.contains(currentPhase)
     }
@@ -195,6 +196,8 @@ extension ProcessingPhase {
         switch self {
         case .queued:
             return "Queued"
+        case .loadingModel:
+            return "Loading speech recognition model..."
         case .extractingAudio:
             return "Extracting audio"
         case .transcribing:
@@ -215,6 +218,8 @@ extension ProcessingPhase {
         switch self {
         case .queued:
             return 0.0
+        case .loadingModel:
+            return 0.02  // Small progress to show it's working
         case .extractingAudio:
             return 0.05
         case .transcribing:
