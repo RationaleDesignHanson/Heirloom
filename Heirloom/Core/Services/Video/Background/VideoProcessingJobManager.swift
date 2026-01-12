@@ -32,16 +32,22 @@ final class VideoProcessingJobManager: ObservableObject {
     }
 
     /// Lazily initialize standard processor when needed
-    private func getStandardProcessor() async -> VideoRecipeProcessor {
+    private func getStandardProcessor(context: ModelContext) async -> VideoRecipeProcessor {
         if let processor = standardProcessor {
             return processor
         }
 
         let transcriptionService = await WhisperKitTranscriptionService()
-        let recipeStructurer = ClaudeRecipeStructurer()
+        let aiService = ServiceContainer.shared.resolve(AnthropicAIService.self)
+        let recipeStructurer = ClaudeRecipeStructurer(aiService: aiService)
         let processor = VideoRecipeProcessor(
             transcriptionService: transcriptionService,
-            recipeStructurer: recipeStructurer
+            recipeStructurer: recipeStructurer,
+            modelContext: context,
+            aiService: aiService,
+            enableFrameAnalysis: true,
+            enableCaching: true,
+            enableAugmentation: true
         )
         self.standardProcessor = processor
         return processor
@@ -240,7 +246,7 @@ final class VideoProcessingJobManager: ObservableObject {
         context: ModelContext
     ) async throws -> VideoRecipeExtraction {
         // Get processor instance
-        let processor = await getStandardProcessor()
+        let processor = await getStandardProcessor(context: context)
 
         // Delegate to existing processor and monitor progress
         let cancellable = processor.$progress.sink { progress in
