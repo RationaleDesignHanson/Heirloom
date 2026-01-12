@@ -15,29 +15,19 @@ struct ASMRVideoImportView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @StateObject private var usageManager = ASMRUsageManager.shared
-
-    // Processor will be initialized in init() with modelContext
-    @StateObject private var processor: ASMRVideoProcessor
-
-    init() {
-        // Capture modelContext is not possible here since @Environment is only available in body
-        // We'll pass it lazily when needed
-        _processor = StateObject(wrappedValue: ASMRVideoProcessor())
-    }
+    @State private var jobManager = VideoProcessingJobManager()
 
     @State private var selectedVideoURL: URL?
     @State private var userCaption = ""
     @State private var showVideoPicker = false
-    @State private var showProcessing = false
     @State private var showPaywall = false
     @State private var showOnboarding = false
     @State private var videoThumbnail: UIImage?
     @State private var videoDuration: TimeInterval?
-    @State private var isPreparingProcessing = false
-    @State private var extractedRecipe: ASMRRecipeExtraction?
-    @State private var showReview = false
 
     @AppStorage("has_seen_asmr_onboarding") private var hasSeenOnboarding = false
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
     var body: some View {
         NavigationStack {
@@ -101,85 +91,12 @@ struct ASMRVideoImportView: View {
                 ),
                 matching: .videos
             )
-            .fullScreenCover(isPresented: $showProcessing) {
-                ASMRProcessingView(
-                    videoURL: selectedVideoURL!,
-                    userCaption: userCaption,
-                    processor: processor,
-                    skipSoundAnalysis: true,  // Always skip for "Video without Instructions" mode
-                    onComplete: { extraction in
-                        print("📊 Received extraction, dismissing processing...")
-                        extractedRecipe = extraction
-                        showProcessing = false
-                        // Note: Review screen will be shown in onDisappear callback below
-                    },
-                    onCancel: {
-                        showProcessing = false
-                        extractedRecipe = nil
-                    }
-                )
-                .onDisappear {
-                    // Wait for dismissal animation to complete before showing review
-                    // This prevents white screen issue caused by rapid sequential presentations
-                    // Increased delay to 1.0s to ensure SwiftUI fully completes dismissal
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        if let _ = extractedRecipe {
-                            print("📊 Processing dismissed, now showing review...")
-                            showReview = true
-                        }
-                    }
-                }
-            }
-            .sheet(isPresented: $showReview) {
-                if let extraction = extractedRecipe {
-                    VideoRecipeReviewView(
-                        extraction: extraction,
-                        enhancedExtraction: processor.enhancedExtraction,
-                        onSave: { updatedExtraction in
-                            print("📊 Saving recipe...")
-                            _ = saveRecipeToSwiftData(updatedExtraction)
-                            showReview = false
-                            // Notify coordinator of recipe creation for cross-tab navigation
-                            tabCoordinator.didCreateRecipe()
-                            dismiss()
-                        },
-                        onCancel: {
-                            showReview = false
-                            extractedRecipe = nil
-                        }
-                    )
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.hidden)
-                }
-            }
             .sheet(isPresented: $showOnboarding) {
                 onboardingSheet
             }
             .sheet(isPresented: $showPaywall) {
                 // TODO: Show subscription paywall
                 Text("Upgrade to Pro for more extractions")
-            }
-            .overlay {
-                if isPreparingProcessing {
-                    ZStack {
-                        Color.black.opacity(0.3)
-                            .ignoresSafeArea()
-
-                        VStack(spacing: 16) {
-                            ProgressView()
-                                .scaleEffect(1.5)
-                                .tint(.white)
-
-                            Text("Preparing video...")
-                                .foregroundStyle(.white)
-                                .font(.headline)
-                        }
-                        .padding(32)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(16)
-                        .shadow(radius: 20)
-                    }
-                }
             }
             .onAppear {
                 if !hasSeenOnboarding {
@@ -458,14 +375,7 @@ struct ASMRVideoImportView: View {
             return
         }
 
-        // Show loading indicator briefly while SwiftUI prepares the processing screen
-        isPreparingProcessing = true
-
-        // Small delay to let UI update, then show processing screen
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            isPreparingProcessing = false
-            showProcessing = true
-        }
+        createJob()
     }
 
     private var canProcess: Bool {
@@ -475,97 +385,48 @@ struct ASMRVideoImportView: View {
         usageManager.canStartExtraction()
     }
 
-    // MARK: - Save to SwiftData
-
-    @discardableResult
-    private func saveRecipeToSwiftData(_ extraction: VideoRecipeExtraction) -> Recipe {
-        let recipe = Recipe(
-            title: extraction.structuredRecipe.title,
-            sourceType: .manual,
-            instructions: extraction.structuredRecipe.steps.map { $0.instruction },
-            servings: extraction.structuredRecipe.servings
-        )
-
-        // Use full attribution data from review screen
-        let attribution = extraction.metadata.attribution
-        let creatorInfo = attribution.creatorName ?? "Unknown Creator"
-        let videoInfo = attribution.videoTitle ?? "ASMR Video"
-        let platformInfo = attribution.platform?.displayName ?? ""
-
-        let attributionText = platformInfo.isEmpty
-            ? "\(creatorInfo) - \(videoInfo)"
-            : "\(creatorInfo) (\(platformInfo)) - \(videoInfo)"
-
-        recipe.provenance = ProvenanceMetadata(
-            sourceType: .imported,
-            sourceURL: attribution.sourceURL ?? selectedVideoURL?.absoluteString,
-            sourceAttribution: attributionText,
-            generation: 0,
-            sharedByName: nil,
-            createdAt: Date()
-        )
-
-        if let description = extraction.structuredRecipe.description {
-            recipe.notes = description
-        }
+    private func createJob() {
+        guard let videoURL = selectedVideoURL else { return }
 
         Task {
-            await extractAndSaveHeroImage(for: recipe, from: selectedVideoURL)
-        }
+            do {
+                // Create attribution
+                let attribution = VideoSourceAttribution(
+                    sourceURL: nil,  // ASMR videos from camera roll don't have source URLs
+                    captionText: userCaption
+                )
 
-        for (index, ingredient) in extraction.structuredRecipe.ingredients.enumerated() {
-            let quantityDouble = ingredient.quantity.flatMap { Double($0) }
+                // Create job
+                let job = try jobManager.createJob(
+                    videoURL: videoURL,
+                    videoType: .asmr,
+                    userCaption: userCaption,
+                    videoDuration: videoDuration,
+                    sourceAttribution: attribution,
+                    context: modelContext
+                )
 
-            let ing = Ingredient(
-                originalText: ingredient.originalText,
-                name: ingredient.item,
-                quantity: quantityDouble,
-                unit: ingredient.unit,
-                orderIndex: index
-            )
-            ing.recipe = recipe
-            modelContext.insert(ing)
-        }
+                // Show success toast
+                toastManager.success(
+                    title: "Video added to queue (5 credits)",
+                    message: "Processing will continue in the background"
+                )
 
-        modelContext.insert(recipe)
+                // Notify coordinator
+                tabCoordinator.didCreateRecipe()
 
-        do {
-            try modelContext.save()
-            print("✅ Saved ASMR recipe: \(recipe.title)")
-        } catch {
-            print("⚠️ Failed to save ASMR recipe: \(error)")
-        }
+                // Dismiss immediately
+                dismiss()
 
-        return recipe
-    }
-
-    private func extractAndSaveHeroImage(for recipe: Recipe, from videoURL: URL?) async {
-        guard let videoURL = videoURL else { return }
-
-        do {
-            let asset = AVAsset(url: videoURL)
-            let captureTime: Double = 1.0
-            let time = CMTime(seconds: captureTime, preferredTimescale: 600)
-
-            let generator = AVAssetImageGenerator(asset: asset)
-            generator.appliesPreferredTrackTransform = true
-            generator.requestedTimeToleranceAfter = .zero
-            generator.requestedTimeToleranceBefore = .zero
-
-            let cgImage = try await generator.image(at: time).image
-            let heroImage = UIImage(cgImage: cgImage)
-
-            let imageCache = ImageCache()
-            let imageService = ImageStorageService(imageCache: imageCache)
-            let fileName = try await imageService.saveImage(heroImage, recipeId: recipe.id)
-
-            await MainActor.run {
-                recipe.imageFileName = fileName
-                try? modelContext.save()
-                print("✅ Saved hero image for ASMR recipe: \(fileName)")
+                Log.info("ASMR video job created successfully", category: .video, metadata: [
+                    "jobId": job.id.uuidString,
+                    "videoType": "asmr"
+                ])
+            } catch {
+                Log.error("Failed to create ASMR video job", category: .video, metadata: [
+                    "error": error.localizedDescription
+                ])
             }
-        } catch {
-            print("⚠️ Failed to extract hero image: \(error)")
         }
     }
 

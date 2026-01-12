@@ -166,6 +166,9 @@
 		C58324E92F147C640096478E /* VideoProcessingJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324E72F147C640096478E /* VideoProcessingJob.swift */; };
 		C58324EA2F147C640096478E /* ProcessingCheckpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324E62F147C640096478E /* ProcessingCheckpoint.swift */; };
 		C58324ED2F147C810096478E /* VideoProcessingJobManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324EB2F147C810096478E /* VideoProcessingJobManager.swift */; };
+		C58324F32F14803C0096478E /* VideoProcessingJobListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324F02F14803C0096478E /* VideoProcessingJobListView.swift */; };
+		C58324F42F14803C0096478E /* JobRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324EE2F14803C0096478E /* JobRow.swift */; };
+		C58324F52F14803C0096478E /* VideoProcessingBottomBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324EF2F14803C0096478E /* VideoProcessingBottomBanner.swift */; };
 		C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */; };
 		C583F5A12F099E750096478E /* RecipeDetailHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59C2F099E750096478E /* RecipeDetailHeader.swift */; };
 		C583F5A22F099E750096478E /* RecipeInstructionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */; };
@@ -443,6 +446,9 @@
 		C58324E62F147C640096478E /* ProcessingCheckpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingCheckpoint.swift; sourceTree = "<group>"; };
 		C58324E72F147C640096478E /* VideoProcessingJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessingJob.swift; sourceTree = "<group>"; };
 		C58324EB2F147C810096478E /* VideoProcessingJobManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessingJobManager.swift; sourceTree = "<group>"; };
+		C58324EE2F14803C0096478E /* JobRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobRow.swift; sourceTree = "<group>"; };
+		C58324EF2F14803C0096478E /* VideoProcessingBottomBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessingBottomBanner.swift; sourceTree = "<group>"; };
+		C58324F02F14803C0096478E /* VideoProcessingJobListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessingJobListView.swift; sourceTree = "<group>"; };
 		C583F59C2F099E750096478E /* RecipeDetailHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailHeader.swift; sourceTree = "<group>"; };
 		C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeIngredientsSection.swift; sourceTree = "<group>"; };
 		C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeInstructionsSection.swift; sourceTree = "<group>"; };
@@ -857,6 +863,7 @@
 		8AC18A265A5E4A850FD25D2C /* Recipes */ = {
 			isa = PBXGroup;
 			children = (
+				C58324F22F14803C0096478E /* VideoProcessing */,
 				C583197E2F123D280096478E /* ASMRVideoImport */,
 				C583162D2F119A030096478E /* VideoImport */,
 				54CFFABBD772A87D0DBB8108 /* BulkImport */,
@@ -1286,6 +1293,24 @@
 				C58324EB2F147C810096478E /* VideoProcessingJobManager.swift */,
 			);
 			path = Background;
+			sourceTree = "<group>";
+		};
+		C58324F12F14803C0096478E /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C58324EE2F14803C0096478E /* JobRow.swift */,
+				C58324EF2F14803C0096478E /* VideoProcessingBottomBanner.swift */,
+				C58324F02F14803C0096478E /* VideoProcessingJobListView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C58324F22F14803C0096478E /* VideoProcessing */ = {
+			isa = PBXGroup;
+			children = (
+				C58324F12F14803C0096478E /* Views */,
+			);
+			path = VideoProcessing;
 			sourceTree = "<group>";
 		};
 		C583F5A72F09A6B80096478E /* Logging */ = {
@@ -1988,6 +2013,9 @@
 				C5B317852F00D80A0087CF6D /* VersionSelectorView.swift in Sources */,
 				B257110A3DC8712C4CA232EA /* RecipeImportView.swift in Sources */,
 				28E4E26F3EBD90318EF438B2 /* RecipeListView.swift in Sources */,
+				C58324F32F14803C0096478E /* VideoProcessingJobListView.swift in Sources */,
+				C58324F42F14803C0096478E /* JobRow.swift in Sources */,
+				C58324F52F14803C0096478E /* VideoProcessingBottomBanner.swift in Sources */,
 				C56F3E742F04AA3C00D19743 /* BackendConfig.swift in Sources */,
 				63134BA2842B383B010D8C02 /* RecipeShareSheet.swift in Sources */,
 				595A6356EEFF0154AED1955E /* RecipeStructureParser.swift in Sources */,

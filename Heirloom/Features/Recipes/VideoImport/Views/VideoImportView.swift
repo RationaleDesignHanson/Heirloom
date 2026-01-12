@@ -19,15 +19,15 @@ struct VideoImportView: View {
     @State private var selectedVideoURL: URL?
     @State private var showVideoPicker = false
     @State private var showSourceDetails = false
-    @State private var showProcessing = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
-    @State private var savedRecipe: Recipe?  // NEW: Recipe to show after save
-    @State private var navigateToRecipe = false  // NEW: Navigation trigger
+    @State private var jobManager = VideoProcessingJobManager()
 
     // Optional source metadata
     @State private var sourceURL: String = ""
     @State private var captionText: String = ""
+
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
     var body: some View {
         NavigationStack {
@@ -135,44 +135,63 @@ struct VideoImportView: View {
                     captionText: $captionText,
                     onContinue: {
                         showSourceDetails = false
-                        showProcessing = true
+                        createJob()
                     },
                     onSkip: {
                         showSourceDetails = false
-                        showProcessing = true
+                        createJob()
                     }
                 )
             }
-            .fullScreenCover(isPresented: $showProcessing) {
-                if let videoURL = selectedVideoURL {
-                    // Pass source metadata to processor
-                    let attribution = VideoSourceAttribution(
-                        sourceURL: sourceURL.isEmpty ? nil : sourceURL,
-                        captionText: captionText.isEmpty ? nil : captionText
-                    )
+        }
+    }
 
-                    VideoProcessingContainerView(
-                        videoURL: videoURL,
-                        sourceAttribution: attribution,
-                        modelContext: modelContext,
-                        onComplete: { recipe in
-                            savedRecipe = recipe
-                            showProcessing = false
-                            navigateToRecipe = true
-                            // Notify coordinator of recipe creation for cross-tab navigation
-                            tabCoordinator.didCreateRecipe()
-                        }
-                    )
-                }
-            }
-            .navigationDestination(isPresented: $navigateToRecipe) {
-                if let recipe = savedRecipe {
-                    RecipeDetailView(recipe: recipe)
-                        .environmentObject(notificationService)
-                        .onDisappear {
-                            dismiss()  // Dismiss VideoImportView when recipe detail is closed
-                        }
-                }
+    // MARK: - Actions
+
+    private func createJob() {
+        guard let videoURL = selectedVideoURL else { return }
+
+        Task {
+            do {
+                // Create attribution
+                let attribution = VideoSourceAttribution(
+                    sourceURL: sourceURL.isEmpty ? nil : sourceURL,
+                    captionText: captionText.isEmpty ? nil : captionText
+                )
+
+                // Create job
+                let job = try jobManager.createJob(
+                    videoURL: videoURL,
+                    videoType: .standard,
+                    userCaption: captionText.isEmpty ? nil : captionText,
+                    videoDuration: nil,
+                    sourceAttribution: attribution,
+                    context: modelContext
+                )
+
+                // Show success toast
+                toastManager.success(
+                    title: "Video added to queue",
+                    message: "Processing will continue in the background"
+                )
+
+                // Notify coordinator
+                tabCoordinator.didCreateRecipe()
+
+                // Dismiss immediately
+                dismiss()
+
+                Log.info("Video job created successfully", category: .video, metadata: [
+                    "jobId": job.id.uuidString,
+                    "videoType": "standard"
+                ])
+            } catch {
+                errorMessage = "Failed to create job: \(error.localizedDescription)"
+                showErrorAlert = true
+
+                Log.error("Failed to create video job", category: .video, metadata: [
+                    "error": error.localizedDescription
+                ])
             }
         }
     }
