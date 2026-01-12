@@ -565,14 +565,14 @@ final class VideoProcessingJobManager: ObservableObject {
         // STEP 3: Create Recipe from extraction
         let recipe = Recipe(
             title: recipeToSave.title,
-            sourceType: .manual,
+            sourceType: .video,
             instructions: recipeToSave.steps.map { $0.instruction },
             servings: recipeToSave.servings
         )
 
         // STEP 4: Set provenance metadata
         recipe.provenance = ProvenanceMetadata(
-            sourceType: .imported,
+            sourceType: .video,
             sourceURL: job.sourceURL,
             sourceAttribution: job.sourceAttribution ?? extraction.metadata.attribution.creatorName,
             generation: 0,

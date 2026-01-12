@@ -281,7 +281,7 @@ extension Recipe {
         case .scan:
             return "Scanned Recipe"
         case .manual:
-            return "My Recipe"
+            return Recipe.currentUserDisplayName()
         case .heritage:
             // For heritage recipes, show the collection name if available
             if let collectionId = heritageCollectionId,
@@ -336,6 +336,30 @@ extension Recipe {
 
         // Default: TikTok format (most common for cooking videos)
         return URL(string: "https://www.tiktok.com/@\(creatorName)")
+    }
+
+    /// Get the current user's display name for recipe attribution
+    /// Falls back to email prefix or "My Recipe" if display name not available
+    static func currentUserDisplayName() -> String {
+        // Access FirebaseAuth via ServiceContainer
+        // Use MainActor.assumeIsolated since ServiceContainer.shared is @MainActor
+        // This is safe because models are typically accessed from SwiftUI views on MainActor
+        guard Thread.isMainThread else {
+            return "My Recipe"
+        }
+
+        return MainActor.assumeIsolated {
+            let container = ServiceContainer.shared
+            let authService = container.resolve(FirebaseAuthService.self)
+            if let displayName = authService.currentUser?.displayName, !displayName.isEmpty {
+                return displayName
+            }
+            if let email = authService.currentUser?.email {
+                // Return first part of email (before @) if display name not set
+                return email.components(separatedBy: "@").first ?? "My Recipe"
+            }
+            return "My Recipe"
+        }
     }
 
     var shouldShowLoveMarks: Bool {

@@ -109,7 +109,7 @@ struct ProvenanceMetadata: Codable, Hashable {
 
         switch sourceType {
         case .userCreated:
-            return "My Recipe"
+            return Recipe.currentUserDisplayName()
         case .imported:
             return sourceURL?.extractDomain() ?? "Imported"
         case .shared:
