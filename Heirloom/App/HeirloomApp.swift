@@ -8,6 +8,77 @@ import FirebaseFirestore
 // Device-visible logging
 private let logger = Logger(subsystem: "com.matthanson.heirloom", category: "App")
 
+// MARK: - Notification Delegate
+
+@MainActor
+class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate, ObservableObject {
+    weak var deepLinkHandler: DeepLinkHandler?
+
+    // Handle notification when app is in foreground
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        // Show banner even when app is in foreground
+        completionHandler([.banner, .sound, .badge])
+    }
+
+    // Handle notification tap or action button
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+        let actionIdentifier = response.actionIdentifier
+
+        // Extract job ID from userInfo
+        guard let jobIdString = userInfo["jobId"] as? String,
+              let jobId = UUID(uuidString: jobIdString) else {
+            Log.warning("No valid jobId in notification", category: .video)
+            completionHandler()
+            return
+        }
+
+        Log.info("Handling notification action", category: .video, metadata: [
+            "jobId": jobIdString,
+            "action": actionIdentifier
+        ])
+
+        // Map action identifier to deep link action
+        let action: String
+        switch actionIdentifier {
+        case "REVIEW_RECIPE":
+            action = "review"
+        case "RETRY_JOB":
+            action = "retry"
+        case "VIEW_ERROR":
+            action = "view-error"
+        case UNNotificationDefaultActionIdentifier:
+            // User tapped notification body - default action
+            let category = response.notification.request.content.categoryIdentifier
+            action = category == "VIDEO_PROCESSING_COMPLETE" ? "review" : "view-error"
+        default:
+            Log.warning("Unknown notification action", category: .video, metadata: ["action": actionIdentifier])
+            completionHandler()
+            return
+        }
+
+        // Create deep link URL
+        let deepLinkURL = URL(string: "heirloom://video-job/\(jobId.uuidString)/\(action)")!
+
+        Log.info("Triggering deep link from notification", category: .video, metadata: [
+            "url": deepLinkURL.absoluteString
+        ])
+
+        // Handle deep link
+        deepLinkHandler?.handle(deepLinkURL)
+
+        completionHandler()
+    }
+}
+
 @main
 struct HeirloomApp: App {
     @State private var modelContainer: ModelContainer?
@@ -21,6 +92,9 @@ struct HeirloomApp: App {
 
     // Deep link coordinator for robust URL handling
     @State private var deepLinkCoordinator: DeepLinkHandler?
+
+    // Notification delegate for handling notification taps
+    @StateObject private var notificationDelegate = NotificationDelegate()
 
     // Test environment detection - computed once at initialization
     private let isRunningTests: Bool
@@ -267,9 +341,20 @@ struct HeirloomApp: App {
             }
         }
 
-        // Request notification permissions for cooking timers
+        // Request notification permissions and register categories
         Task {
             await requestNotificationPermission()
+            registerNotificationCategories()
+
+            // Set up notification delegate
+            if let deepLinkCoordinator = deepLinkCoordinator {
+                await MainActor.run {
+                    notificationDelegate.deepLinkHandler = deepLinkCoordinator
+                    UNUserNotificationCenter.current().delegate = notificationDelegate
+                    Log.info("Notification delegate configured", category: .video)
+                    DeviceLogger.shared.log("✅ [Notifications] Delegate configured for deep links")
+                }
+            }
         }
 
         // Clean up old broken recipe data (one-time migration)
@@ -380,6 +465,51 @@ struct HeirloomApp: App {
         } catch {
             Log.error("Failed to request notification permission", category: .general, metadata: ["error": error.localizedDescription])
         }
+    }
+
+    private func registerNotificationCategories() {
+        // MARK: - Video Processing Complete Category
+        let reviewAction = UNNotificationAction(
+            identifier: "REVIEW_RECIPE",
+            title: "Review Recipe",
+            options: [.foreground]
+        )
+
+        let completeCategory = UNNotificationCategory(
+            identifier: "VIDEO_PROCESSING_COMPLETE",
+            actions: [reviewAction],
+            intentIdentifiers: [],
+            options: []
+        )
+
+        // MARK: - Video Processing Failed Category
+        let retryAction = UNNotificationAction(
+            identifier: "RETRY_JOB",
+            title: "Retry",
+            options: [.foreground]
+        )
+
+        let viewErrorAction = UNNotificationAction(
+            identifier: "VIEW_ERROR",
+            title: "View Details",
+            options: [.foreground]
+        )
+
+        let failedCategory = UNNotificationCategory(
+            identifier: "VIDEO_PROCESSING_FAILED",
+            actions: [retryAction, viewErrorAction],
+            intentIdentifiers: [],
+            options: []
+        )
+
+        // Register all categories
+        UNUserNotificationCenter.current().setNotificationCategories([
+            completeCategory,
+            failedCategory
+        ])
+
+        Log.info("Notification categories registered", category: .video)
+        DeviceLogger.shared.log("✅ [Notifications] Video processing categories registered")
     }
 
     private func cleanupOldRecipeData(container: ModelContainer) {

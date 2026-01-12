@@ -21,6 +21,17 @@ class DeepLinkHandler: ObservableObject {
     @Published var pendingImportURL: URL?
     @Published var showURLImportSheet = false
 
+    // Video job state (for notifications)
+    @Published var pendingVideoJobID: UUID?
+    @Published var pendingVideoJobAction: VideoJobAction?
+    @Published var showVideoJobSheet = false
+
+    enum VideoJobAction: String {
+        case review = "review"
+        case retry = "retry"
+        case viewError = "view-error"
+    }
+
     // MARK: - Private State (for robust handling)
 
     private var isAppReady = false
@@ -199,6 +210,26 @@ class DeepLinkHandler: ObservableObject {
 
             handleURLImport(importURL)
 
+        } else if components.host == "video-job" {
+            // Handle video processing job notification
+            // Format: heirloom://video-job/{jobId}/{action}
+            let pathComponents = components.path.split(separator: "/")
+            guard pathComponents.count == 2,
+                  let jobID = UUID(uuidString: String(pathComponents[0])),
+                  let action = VideoJobAction(rawValue: String(pathComponents[1])) else {
+                Log.error("Invalid video-job URL format", category: .video)
+                DeviceLogger.shared.log("❌ [DeepLink] Invalid video-job URL format")
+                return
+            }
+
+            Log.info("Extracted video job from deep link", category: .video, metadata: [
+                "jobId": jobID.uuidString,
+                "action": action.rawValue
+            ])
+            DeviceLogger.shared.log("✅ [DeepLink] Video job: \(jobID.uuidString) - \(action.rawValue)")
+
+            handleVideoJob(jobID: jobID, action: action)
+
         } else {
             Log.error("Invalid heirloom:// host", category: .general, metadata: ["host": components.host ?? "nil"])
             DeviceLogger.shared.log("❌ [DeepLink] Invalid heirloom:// host: \(components.host ?? "nil")")
@@ -259,6 +290,24 @@ class DeepLinkHandler: ObservableObject {
         DeviceLogger.shared.log("✅ [DeepLink] URL import sheet triggered")
     }
 
+    // MARK: - Video Job Handling (from notifications)
+
+    private func handleVideoJob(jobID: UUID, action: VideoJobAction) {
+        Log.info("Handling video job notification", category: .video, metadata: [
+            "jobId": jobID.uuidString,
+            "action": action.rawValue
+        ])
+        DeviceLogger.shared.log("🎥 [DeepLink] Handling video job: \(jobID.uuidString) - \(action.rawValue)")
+
+        // Store job info for handling
+        pendingVideoJobID = jobID
+        pendingVideoJobAction = action
+        showVideoJobSheet = true
+
+        Log.info("Video job sheet triggered", category: .video)
+        DeviceLogger.shared.log("✅ [DeepLink] Video job sheet triggered")
+    }
+
     // MARK: - Universal Links (heirloom.app)
 
     private func handleUniversalLink(_ url: URL) {
@@ -297,6 +346,15 @@ class DeepLinkHandler: ObservableObject {
         showURLImportSheet = false
     }
 
+    /// Clear pending video job (called after handling)
+    func clearPendingVideoJob() {
+        Log.debug("Clearing pending video job", category: .video)
+        DeviceLogger.shared.log("🧹 [DeepLink] Clearing pending video job")
+        pendingVideoJobID = nil
+        pendingVideoJobAction = nil
+        showVideoJobSheet = false
+    }
+
     /// Check if there's a pending share to accept
     var hasPendingShare: Bool {
         pendingShareURL != nil
@@ -305,6 +363,11 @@ class DeepLinkHandler: ObservableObject {
     /// Check if there's a pending URL import
     var hasPendingImport: Bool {
         pendingImportURL != nil
+    }
+
+    /// Check if there's a pending video job
+    var hasPendingVideoJob: Bool {
+        pendingVideoJobID != nil
     }
 
     /// Reset handler (for testing)
@@ -317,6 +380,7 @@ class DeepLinkHandler: ObservableObject {
         lastProcessedTime = nil
         clearPendingShare()
         clearPendingImport()
+        clearPendingVideoJob()
     }
 }
 
