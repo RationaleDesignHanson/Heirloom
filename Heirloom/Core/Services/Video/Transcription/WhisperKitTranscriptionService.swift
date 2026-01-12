@@ -30,29 +30,64 @@ enum TranscriptionError: LocalizedError {
 @MainActor
 class WhisperKitTranscriptionService: TranscriptionServiceProtocol {
     let provider: TranscriptionProvider = .whisperKit
-    private var whisperKit: WhisperKit?
+
+    // Shared WhisperKit instance (lazy loaded) to prevent race conditions
+    private static var sharedWhisperKit: WhisperKit?
+    private static var loadTask: Task<WhisperKit?, Never>?
+
     private let modelName: String
+
+    /// Get or create shared WhisperKit instance
+    /// Ensures only one download/initialization happens even with concurrent calls
+    private static func getOrCreateWhisperKit(model: String) async -> WhisperKit? {
+        // If already loaded, return it
+        if let existing = sharedWhisperKit {
+            return existing
+        }
+
+        // If currently loading, wait for that task to complete
+        if let existingTask = loadTask {
+            return await existingTask.value
+        }
+
+        // Start new load task
+        let task = Task { @MainActor () -> WhisperKit? in
+            do {
+                Log.info("Loading WhisperKit model", category: .video, metadata: ["model": model])
+                let whisper = try await WhisperKit(model: model)
+                sharedWhisperKit = whisper
+                Log.info("WhisperKit model loaded successfully", category: .video)
+                return whisper
+            } catch {
+                Log.error("Failed to load WhisperKit model", category: .video, metadata: [
+                    "error": error.localizedDescription
+                ])
+                return nil
+            }
+        }
+
+        loadTask = task
+        let result = await task.value
+        loadTask = nil  // Clear task after completion
+        return result
+    }
 
     /// Initialize with device-appropriate model
     init() async {
         let model = Self.selectOptimalModel()
         self.modelName = model
 
-        do {
-            // Initialize WhisperKit with the selected model
-            self.whisperKit = try await WhisperKit(model: model)
-        } catch {
-            print("Failed to load WhisperKit model: \(error)")
-            self.whisperKit = nil
-        }
+        // Use shared instance instead of creating new one
+        // This will wait if another load is in progress (e.g., preloadModel at app launch)
+        _ = await Self.getOrCreateWhisperKit(model: model)
     }
 
     var isAvailable: Bool {
-        whisperKit != nil
+        Self.sharedWhisperKit != nil
     }
 
     func transcribe(audioURL: URL) async throws -> TranscriptionResult {
-        guard let whisper = whisperKit else {
+        guard let whisper = Self.sharedWhisperKit else {
             throw VideoImportError.transcriptionUnavailable
         }
 
@@ -160,18 +195,8 @@ class WhisperKitTranscriptionService: TranscriptionServiceProtocol {
                 "quality": quality
             ])
 
-            do {
-                // Initialize WhisperKit - this downloads the model if needed
-                let _ = try await WhisperKit(model: model)
-                Log.info("WhisperKit model preloaded successfully", category: .video, metadata: [
-                    "model": model
-                ])
-            } catch {
-                Log.error("Failed to preload WhisperKit model", category: .video, metadata: [
-                    "model": model,
-                    "error": error.localizedDescription
-                ])
-            }
+            // Use shared instance getter - this handles concurrent calls gracefully
+            _ = await getOrCreateWhisperKit(model: model)
         }
     }
 
