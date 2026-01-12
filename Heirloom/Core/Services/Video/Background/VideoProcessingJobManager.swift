@@ -545,6 +545,32 @@ final class VideoProcessingJobManager: ObservableObject {
         }
     }
 
+    // MARK: - Badge Management
+
+    /// Get count of jobs that need user attention (completed or failed)
+    private func getJobsNeedingAttentionCount() -> Int {
+        // Fetch all jobs and filter in code (Predicate macro doesn't support enum comparisons well)
+        let descriptor = FetchDescriptor<VideoProcessingJob>()
+
+        do {
+            let container = try ModelContainer(for: VideoProcessingJob.self)
+            let context = ModelContext(container)
+            let allJobs = try context.fetch(descriptor)
+
+            // Filter for jobs needing attention
+            let jobsNeedingAttention = allJobs.filter { job in
+                job.status == .completed || job.status == .failed
+            }
+
+            return jobsNeedingAttention.count
+        } catch {
+            Log.error("Failed to fetch jobs for badge count", category: .video, metadata: [
+                "error": error.localizedDescription
+            ])
+            return 0
+        }
+    }
+
     // MARK: - Notifications
 
     private func scheduleCompletionNotification(_ job: VideoProcessingJob) {
@@ -554,6 +580,9 @@ final class VideoProcessingJobManager: ObservableObject {
         content.sound = .default
         content.categoryIdentifier = "VIDEO_PROCESSING_COMPLETE"
         content.userInfo = ["jobId": job.id.uuidString]
+
+        // Update app badge with count of jobs ready to review
+        content.badge = NSNumber(value: getJobsNeedingAttentionCount())
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
         let request = UNNotificationRequest(
@@ -578,6 +607,9 @@ final class VideoProcessingJobManager: ObservableObject {
         content.sound = .default
         content.categoryIdentifier = "VIDEO_PROCESSING_FAILED"
         content.userInfo = ["jobId": job.id.uuidString]
+
+        // Update app badge with count of jobs needing attention
+        content.badge = NSNumber(value: getJobsNeedingAttentionCount())
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
         let request = UNNotificationRequest(

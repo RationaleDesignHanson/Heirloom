@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import AVFoundation
+import UserNotifications
 
 /// Full sheet view showing all video processing jobs
 struct VideoProcessingJobListView: View {
@@ -114,6 +115,10 @@ struct VideoProcessingJobListView: View {
             .background(HeirloomColors.appBackground)
             .navigationTitle("Video Processing")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                // Clear app badge when user views the job list
+                UNUserNotificationCenter.current().setBadgeCount(0)
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
