@@ -238,7 +238,14 @@ struct RecipeListView: View {
     private var mainContent: some View {
         GeometryReader { geometry in
             ScrollView {
-                contentSwitcher(geometry: geometry)
+                VStack(spacing: 0) {
+                    // Video processing banner at top
+                    VideoProcessingBottomBanner()
+                        .padding(.bottom, 8)
+
+                    // Main content
+                    contentSwitcher(geometry: geometry)
+                }
             }
             .background(HeirloomColors.appBackground)
         }

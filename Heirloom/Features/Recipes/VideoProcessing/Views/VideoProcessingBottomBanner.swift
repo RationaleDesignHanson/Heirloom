@@ -92,16 +92,16 @@ struct VideoProcessingBottomBanner: View {
                 Spacer()
 
                 // Chevron
-                Image(systemName: "chevron.up")
+                Image(systemName: "chevron.down")
                     .font(.caption)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
             .padding(HeirloomSpacing.md)
             .background(.white)
-            .cornerRadius(16)
-            .shadow(color: .black.opacity(0.1), radius: 12, y: -4)
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
             .padding(.horizontal, HeirloomSpacing.md)
-            .padding(.bottom, HeirloomSpacing.sm)
+            .padding(.top, HeirloomSpacing.sm)
         }
         .buttonStyle(.plain)
     }

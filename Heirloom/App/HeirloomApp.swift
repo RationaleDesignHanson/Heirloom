@@ -700,9 +700,6 @@ struct ContentView: View {
             OnboardingContainerView(selectedTab: $tabCoordinator.selectedTab)
                 .environmentObject(notificationService)
         }
-        .overlay(alignment: .bottom) {
-            VideoProcessingBottomBanner()
-        }
         .onAppear {
             // Mark app as ready to process deep links
             Log.info("ContentView appeared - marking app ready for deep links", category: .ui)
