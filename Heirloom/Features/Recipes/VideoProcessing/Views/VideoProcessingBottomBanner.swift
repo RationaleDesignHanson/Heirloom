@@ -18,14 +18,14 @@ struct VideoProcessingBottomBanner: View {
     @Query(sort: \VideoProcessingJob.createdAt, order: .forward)
     private var allJobs: [VideoProcessingJob]
 
-    // Filter to active jobs (processing, pending, or completed)
+    // Filter to active jobs (processing, pending, completed, or failed)
     private var activeJobs: [VideoProcessingJob] {
         allJobs.filter { job in
-            job.status == .processing || job.status == .pending || job.status == .completed
+            job.status == .processing || job.status == .pending || job.status == .completed || job.status == .failed
         }
     }
 
-    // Separate processing and completed jobs
+    // Separate job types
     private var processingJobs: [VideoProcessingJob] {
         allJobs.filter { job in
             job.status == .processing || job.status == .pending
@@ -38,9 +38,15 @@ struct VideoProcessingBottomBanner: View {
         }
     }
 
+    private var failedJobs: [VideoProcessingJob] {
+        allJobs.filter { job in
+            job.status == .failed
+        }
+    }
+
     var body: some View {
         if !activeJobs.isEmpty {
-            // Show processing job if any, otherwise show completed count
+            // Priority: processing > failed > completed
             if let processingJob = processingJobs.first {
                 bannerContent(for: processingJob, showProcessing: true)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -50,6 +56,13 @@ struct VideoProcessingBottomBanner: View {
                     }
                     .onAppear {
                         initializeJobManager()
+                    }
+            } else if !failedJobs.isEmpty {
+                failedBannerContent()
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: failedJobs.count)
+                    .sheet(isPresented: $showJobList) {
+                        VideoProcessingJobListView()
                     }
             } else if !completedJobs.isEmpty {
                 completedBannerContent()
@@ -152,6 +165,50 @@ struct VideoProcessingBottomBanner: View {
                         .foregroundStyle(HeirloomColors.primaryText)
 
                     Text("Tap to review and save")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+
+                Spacer()
+
+                // Chevron
+                Image(systemName: "chevron.down")
+                    .font(.caption)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+            .padding(HeirloomSpacing.md)
+            .background(.white)
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
+            .padding(.horizontal, HeirloomSpacing.md)
+            .padding(.top, HeirloomSpacing.sm)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func failedBannerContent() -> some View {
+        Button {
+            showJobList = true
+        } label: {
+            HStack(spacing: HeirloomSpacing.md) {
+                // Error Icon
+                ZStack {
+                    Circle()
+                        .fill(Color.red.opacity(0.1))
+                        .frame(width: 40, height: 40)
+
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.red)
+                }
+
+                // Failed Info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(failedJobs.count == 1 ? "Video processing failed" : "\(failedJobs.count) videos failed")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("Tap to retry or view error")
                         .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
