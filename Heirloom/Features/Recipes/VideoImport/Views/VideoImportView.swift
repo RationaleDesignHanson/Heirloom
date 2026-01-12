@@ -169,9 +169,18 @@ struct VideoImportView: View {
                     context: modelContext
                 )
 
-                // Show success toast
+                // Get total queue count for toast
+                let descriptor = FetchDescriptor<VideoProcessingJob>(
+                    sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+                )
+                let allJobs = try modelContext.fetch(descriptor)
+                let activeJobs = allJobs.filter { $0.status == .pending || $0.status == .processing }
+                let queuePosition = activeJobs.firstIndex(where: { $0.id == job.id }) ?? 0
+                let totalInQueue = activeJobs.count
+
+                // Show success toast with queue position
                 toastManager.success(
-                    title: "Video added to queue",
+                    title: "Video \(queuePosition + 1) of \(totalInQueue)",
                     message: "Processing will continue in the background"
                 )
 

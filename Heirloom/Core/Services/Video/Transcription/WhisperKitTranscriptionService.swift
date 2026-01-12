@@ -147,6 +147,34 @@ class WhisperKitTranscriptionService: TranscriptionServiceProtocol {
         }
     }
 
+    /// Preload WhisperKit model in the background on app launch
+    /// Call this from app initialization to download model before user needs it
+    static func preloadModel() {
+        Task { @MainActor in
+            let model = selectOptimalModel()
+            let (size, quality) = modelInfo(for: model)
+
+            Log.info("Preloading WhisperKit model", category: .video, metadata: [
+                "model": model,
+                "size": size,
+                "quality": quality
+            ])
+
+            do {
+                // Initialize WhisperKit - this downloads the model if needed
+                let _ = try await WhisperKit(model: model)
+                Log.info("WhisperKit model preloaded successfully", category: .video, metadata: [
+                    "model": model
+                ])
+            } catch {
+                Log.error("Failed to preload WhisperKit model", category: .video, metadata: [
+                    "model": model,
+                    "error": error.localizedDescription
+                ])
+            }
+        }
+    }
+
 
     // MARK: - Memory Monitoring
 
