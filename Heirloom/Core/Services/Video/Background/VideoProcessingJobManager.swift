@@ -219,10 +219,10 @@ final class VideoProcessingJobManager: ObservableObject {
         }
 
         // Process based on video type
-        let extraction: VideoRecipeExtraction
+        let enhanced: VideoRecipeExtraction.Enhanced
 
         if job.videoType == .standard {
-            extraction = try await processStandardVideo(
+            enhanced = try await processStandardVideo(
                 videoURL: videoURL,
                 job: job,
                 checkpoint: checkpoint,
@@ -230,7 +230,7 @@ final class VideoProcessingJobManager: ObservableObject {
                 context: context
             )
         } else {
-            extraction = try await processASMRVideo(
+            enhanced = try await processASMRVideo(
                 videoURL: videoURL,
                 job: job,
                 checkpoint: checkpoint,
@@ -239,8 +239,8 @@ final class VideoProcessingJobManager: ObservableObject {
             )
         }
 
-        // Save extraction result
-        let extractionData = try JSONEncoder().encode(extraction)
+        // Save enhanced extraction result (includes augmentation data)
+        let extractionData = try JSONEncoder().encode(enhanced)
         job.extractionJSON = extractionData
         job.status = .completed
         job.completedAt = Date()
@@ -263,7 +263,7 @@ final class VideoProcessingJobManager: ObservableObject {
         checkpoint: ProcessingCheckpoint,
         resumePhase: ProcessingPhase,
         context: ModelContext
-    ) async throws -> VideoRecipeExtraction {
+    ) async throws -> VideoRecipeExtraction.Enhanced {
         // Get processor instance
         let processor = await getStandardProcessor(context: context)
 
@@ -305,7 +305,19 @@ final class VideoProcessingJobManager: ObservableObject {
         // Process video through existing pipeline
         let extraction = try await processor.process(videoURL: videoURL)
 
-        return extraction
+        // Return enhanced extraction with augmentation data
+        // processor.enhancedExtraction is populated during process() call
+        if let enhanced = processor.enhancedExtraction {
+            return enhanced
+        } else {
+            // Fallback: create Enhanced without augmentation
+            return VideoRecipeExtraction.Enhanced(
+                original: extraction,
+                augmentedRecipe: nil,
+                similarRecipes: [],
+                webRecipes: []
+            )
+        }
     }
 
     // MARK: - ASMR Video Processing
@@ -316,7 +328,7 @@ final class VideoProcessingJobManager: ObservableObject {
         checkpoint: ProcessingCheckpoint,
         resumePhase: ProcessingPhase,
         context: ModelContext
-    ) async throws -> VideoRecipeExtraction {
+    ) async throws -> VideoRecipeExtraction.Enhanced {
         // Get processor instance
         let processor = getASMRProcessor()
 
@@ -342,7 +354,19 @@ final class VideoProcessingJobManager: ObservableObject {
             videoHash: nil
         )
 
-        return extraction
+        // Return enhanced extraction with augmentation data
+        // ASMR processor also populates enhancedExtraction during process()
+        if let enhanced = processor.enhancedExtraction {
+            return enhanced
+        } else {
+            // Fallback: create Enhanced without augmentation
+            return VideoRecipeExtraction.Enhanced(
+                original: extraction,
+                augmentedRecipe: nil,
+                similarRecipes: [],
+                webRecipes: []
+            )
+        }
     }
 
     // MARK: - Error Handling

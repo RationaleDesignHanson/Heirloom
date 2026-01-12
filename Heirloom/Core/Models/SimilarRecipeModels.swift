@@ -19,6 +19,10 @@ struct SimilarRecipeMatch: Identifiable {
     let similarityScore: Double // 0.0 - 1.0
     let matchReasons: [MatchReason]
 
+    // For Codable conformance
+    var recipeId: UUID { recipe.id }
+    var recipeTitle: String { recipe.title }
+
     enum MatchReason: String, CaseIterable {
         case titleSimilarity = "Similar recipe name"
         case ingredientOverlap = "Shared ingredients"
@@ -49,7 +53,7 @@ struct SimilarRecipeMatch: Identifiable {
 // MARK: - Web Recipe Result
 
 /// Result from web recipe search
-struct WebRecipeResult: Identifiable {
+struct WebRecipeResult: Identifiable, Codable {
     let id = UUID()
     let title: String
     let sourceURL: String
@@ -58,7 +62,7 @@ struct WebRecipeResult: Identifiable {
     let servings: String?
     let similarityScore: Double
 
-    struct ImportedIngredient {
+    struct ImportedIngredient: Codable {
         let text: String
         let parsedQuantity: String?
         let parsedUnit: String?
@@ -101,7 +105,7 @@ struct WebRecipeResult: Identifiable {
 // MARK: - Augmented Recipe
 
 /// Recipe with AI-inferred quantities from similar recipes
-struct AugmentedRecipe {
+struct AugmentedRecipe: Codable {
     let original: StructuredRecipe
     let augmentedIngredients: [AugmentedIngredient]
     let metadata: AugmentationMetadata
@@ -146,7 +150,7 @@ struct AugmentedRecipe {
 // MARK: - Augmented Ingredient
 
 /// Ingredient with AI-inferred quantity
-struct AugmentedIngredient: Identifiable {
+struct AugmentedIngredient: Identifiable, Codable {
     let id = UUID()
     let originalIngredient: ExtractedIngredient
     let inferredQuantity: String?
@@ -230,7 +234,7 @@ enum InferenceConfidence: String, Codable, CaseIterable {
 // MARK: - Augmentation Metadata
 
 /// Metadata about the augmentation process
-struct AugmentationMetadata {
+struct AugmentationMetadata: Codable {
     let localRecipesUsed: Int
     let webRecipesUsed: Int
     let totalInferences: Int
@@ -284,7 +288,7 @@ struct AugmentationMetadata {
 
 extension VideoRecipeExtraction {
     /// Enhanced extraction with augmentation data
-    struct Enhanced {
+    struct Enhanced: Codable {
         let original: VideoRecipeExtraction
         let augmentedRecipe: AugmentedRecipe?
         let similarRecipes: [SimilarRecipeMatch]
@@ -298,6 +302,35 @@ extension VideoRecipeExtraction {
         /// Total similar recipes found
         var totalSimilarRecipes: Int {
             similarRecipes.count + webRecipes.count
+        }
+
+        // Custom Codable implementation - only encode essential data
+        enum CodingKeys: String, CodingKey {
+            case original, augmentedRecipe
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(original, forKey: .original)
+            try container.encodeIfPresent(augmentedRecipe, forKey: .augmentedRecipe)
+            // Skip similarRecipes and webRecipes (not needed for persistence)
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            original = try container.decode(VideoRecipeExtraction.self, forKey: .original)
+            augmentedRecipe = try container.decodeIfPresent(AugmentedRecipe.self, forKey: .augmentedRecipe)
+            // Default empty arrays for similarRecipes/webRecipes when decoding
+            similarRecipes = []
+            webRecipes = []
+        }
+
+        // Regular initializer
+        init(original: VideoRecipeExtraction, augmentedRecipe: AugmentedRecipe?, similarRecipes: [SimilarRecipeMatch], webRecipes: [WebRecipeResult]) {
+            self.original = original
+            self.augmentedRecipe = augmentedRecipe
+            self.similarRecipes = similarRecipes
+            self.webRecipes = webRecipes
         }
 
         /// Final recipe to display (augmented if available, otherwise original)

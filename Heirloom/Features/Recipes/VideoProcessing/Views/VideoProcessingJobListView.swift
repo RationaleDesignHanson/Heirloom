@@ -19,7 +19,7 @@ struct VideoProcessingJobListView: View {
 
     @State private var jobManager = VideoProcessingJobManager()
     @State private var selectedJob: VideoProcessingJob?
-    @State private var selectedExtraction: VideoRecipeExtraction?
+    @State private var selectedEnhanced: VideoRecipeExtraction.Enhanced?
     @State private var showReviewSheet = false
 
     private var processingJobs: [VideoProcessingJob] {
@@ -122,10 +122,10 @@ struct VideoProcessingJobListView: View {
                 }
             }
             .sheet(isPresented: $showReviewSheet) {
-                if let extraction = selectedExtraction, let job = selectedJob {
+                if let enhanced = selectedEnhanced, let job = selectedJob {
                     VideoRecipeReviewView(
-                        extraction: extraction,
-                        enhancedExtraction: nil,
+                        extraction: enhanced.original,
+                        enhancedExtraction: enhanced,
                         onSave: { updatedExtraction in
                             saveRecipe(from: updatedExtraction, job: job)
                             showReviewSheet = false
@@ -292,12 +292,13 @@ struct VideoProcessingJobListView: View {
         }
 
         do {
-            let extraction = try JSONDecoder().decode(VideoRecipeExtraction.self, from: extractionData)
+            // Decode enhanced extraction (includes augmentation data)
+            let enhanced = try JSONDecoder().decode(VideoRecipeExtraction.Enhanced.self, from: extractionData)
             selectedJob = job
-            selectedExtraction = extraction
+            selectedEnhanced = enhanced
             showReviewSheet = true
         } catch {
-            Log.error("Failed to decode extraction from job", category: .video, metadata: [
+            Log.error("Failed to decode enhanced extraction from job", category: .video, metadata: [
                 "jobId": job.id.uuidString,
                 "error": error.localizedDescription
             ])
