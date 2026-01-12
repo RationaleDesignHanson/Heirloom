@@ -242,6 +242,7 @@ struct RecipeListView: View {
                     // Video processing banner at top
                     VideoProcessingBottomBanner()
                         .padding(.bottom, 8)
+                        .zIndex(1)
 
                     // Main content
                     contentSwitcher(geometry: geometry)

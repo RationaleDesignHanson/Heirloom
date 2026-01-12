@@ -25,6 +25,7 @@ struct ASMRVideoImportView: View {
     @State private var showOnboarding = false
     @State private var videoThumbnail: UIImage?
     @State private var videoDuration: TimeInterval?
+    @State private var isLoadingVideo = false
 
     @AppStorage("has_seen_asmr_onboarding") private var hasSeenOnboarding = false
 
@@ -145,17 +146,25 @@ struct ASMRVideoImportView: View {
             showVideoPicker = true
         } label: {
             VStack(spacing: 16) {
-                Image(systemName: "video.badge.plus")
-                    .font(.system(size: 48))
-                    .foregroundStyle(.blue)
+                if isLoadingVideo {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .frame(height: 48)
+                } else {
+                    Image(systemName: "video.badge.plus")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.blue)
+                }
 
-                Text("Select Video")
+                Text(isLoadingVideo ? "Loading video..." : "Select Video")
                     .font(.headline)
 
-                Text("Choose an ASMR or silent cooking video from your library")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+                if !isLoadingVideo {
+                    Text("Choose an ASMR or silent cooking video from your library")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
             }
             .frame(maxWidth: .infinity)
             .padding(32)
@@ -168,6 +177,7 @@ struct ASMRVideoImportView: View {
             )
         }
         .buttonStyle(.plain)
+        .disabled(isLoadingVideo)
     }
 
     private var videoPreviewSection: some View {
@@ -444,9 +454,14 @@ struct ASMRVideoImportView: View {
 
     private func loadVideo(from item: PhotosPickerItem) {
         Task {
+            await MainActor.run {
+                isLoadingVideo = true
+            }
+
             do {
                 guard let movie = try await item.loadTransferable(type: VideoTransferable.self) else {
                     await MainActor.run {
+                        isLoadingVideo = false
                         toastManager.error(title: "Failed to load video", message: "Please try another video")
                     }
                     Log.error("Failed to load video from PhotosPicker", category: .video)
@@ -477,11 +492,16 @@ struct ASMRVideoImportView: View {
                     }
                 }
 
+                await MainActor.run {
+                    isLoadingVideo = false
+                }
+
                 Log.info("ASMR video loaded successfully", category: .video, metadata: [
                     "duration": "\(videoDuration ?? 0)"
                 ])
             } catch {
                 await MainActor.run {
+                    isLoadingVideo = false
                     toastManager.error(title: "Failed to load video", message: error.localizedDescription)
                 }
                 Log.error("Error loading ASMR video", category: .video, metadata: [
