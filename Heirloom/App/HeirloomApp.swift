@@ -359,7 +359,9 @@ struct HeirloomApp: App {
         // Preload WhisperKit ML model in background
         // Downloads ~40-250MB model so video import is instant when user needs it
         Task.detached(priority: .background) {
-            WhisperKitTranscriptionService.preloadModel()
+            await MainActor.run {
+                WhisperKitTranscriptionService.preloadModel()
+            }
             await MainActor.run {
                 DeviceLogger.shared.log("✅ [Video] WhisperKit model preload initiated")
             }

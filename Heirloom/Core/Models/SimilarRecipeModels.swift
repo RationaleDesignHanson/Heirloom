@@ -54,7 +54,7 @@ struct SimilarRecipeMatch: Identifiable {
 
 /// Result from web recipe search
 struct WebRecipeResult: Identifiable, Codable {
-    let id = UUID()
+    let id: UUID
     let title: String
     let sourceURL: String
     let ingredients: [ImportedIngredient]
@@ -67,6 +67,31 @@ struct WebRecipeResult: Identifiable, Codable {
         let parsedQuantity: String?
         let parsedUnit: String?
         let parsedName: String?
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case title, sourceURL, ingredients, instructions, servings, similarityScore
+    }
+
+    init(title: String, sourceURL: String, ingredients: [ImportedIngredient], instructions: [String]?, servings: String?, similarityScore: Double) {
+        self.id = UUID()
+        self.title = title
+        self.sourceURL = sourceURL
+        self.ingredients = ingredients
+        self.instructions = instructions
+        self.servings = servings
+        self.similarityScore = similarityScore
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = UUID()
+        self.title = try container.decode(String.self, forKey: .title)
+        self.sourceURL = try container.decode(String.self, forKey: .sourceURL)
+        self.ingredients = try container.decode([ImportedIngredient].self, forKey: .ingredients)
+        self.instructions = try container.decodeIfPresent([String].self, forKey: .instructions)
+        self.servings = try container.decodeIfPresent(String.self, forKey: .servings)
+        self.similarityScore = try container.decode(Double.self, forKey: .similarityScore)
     }
 
     /// Convert to SimilarRecipeMatch for unified processing
@@ -151,13 +176,38 @@ struct AugmentedRecipe: Codable {
 
 /// Ingredient with AI-inferred quantity
 struct AugmentedIngredient: Identifiable, Codable {
-    let id = UUID()
+    let id: UUID
     let originalIngredient: ExtractedIngredient
     let inferredQuantity: String?
     let inferredUnit: String?
     let inferredConfidence: InferenceConfidence
     let reasoning: String
     let sourceRecipes: [String] // Titles of supporting recipes
+
+    enum CodingKeys: String, CodingKey {
+        case originalIngredient, inferredQuantity, inferredUnit, inferredConfidence, reasoning, sourceRecipes
+    }
+
+    init(originalIngredient: ExtractedIngredient, inferredQuantity: String?, inferredUnit: String?, inferredConfidence: InferenceConfidence, reasoning: String, sourceRecipes: [String]) {
+        self.id = UUID()
+        self.originalIngredient = originalIngredient
+        self.inferredQuantity = inferredQuantity
+        self.inferredUnit = inferredUnit
+        self.inferredConfidence = inferredConfidence
+        self.reasoning = reasoning
+        self.sourceRecipes = sourceRecipes
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = UUID()
+        self.originalIngredient = try container.decode(ExtractedIngredient.self, forKey: .originalIngredient)
+        self.inferredQuantity = try container.decodeIfPresent(String.self, forKey: .inferredQuantity)
+        self.inferredUnit = try container.decodeIfPresent(String.self, forKey: .inferredUnit)
+        self.inferredConfidence = try container.decode(InferenceConfidence.self, forKey: .inferredConfidence)
+        self.reasoning = try container.decode(String.self, forKey: .reasoning)
+        self.sourceRecipes = try container.decode([String].self, forKey: .sourceRecipes)
+    }
 
     /// Combined display quantity (prefers inferred if confidence is good)
     var displayQuantity: String? {
