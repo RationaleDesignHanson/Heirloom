@@ -87,6 +87,13 @@
 		BEE02532548CCE013ECE7CC7 /* RecipeExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F87D9E0C89E4D0186A97A4D5 /* RecipeExportService.swift */; };
 		C058535CDD02FAABB4A17CAF /* Ingredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFF2A4FC35D119FCC34DE5BA /* Ingredient.swift */; };
 		C3F4F1430F87ACCB0530FA31 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */; };
+		C513D42C2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42B2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift */; };
+		C513D42D2F15EB0300BFCF7D /* OnboardingConceptScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */; };
+		C513D42E2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */; };
+		C513D4302F15EB1000BFCF7D /* BlindBoxCollectionRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42F2F15EB1000BFCF7D /* BlindBoxCollectionRow.swift */; };
+		C513D4322F15EB1B00BFCF7D /* BlindBoxSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4312F15EB1B00BFCF7D /* BlindBoxSeeder.swift */; };
+		C513D4342F15F10700BFCF7D /* SignInPromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4332F15F10700BFCF7D /* SignInPromptSheet.swift */; };
+		C513D4362F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4352F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift */; };
 		C568873C2F057B02006EA0B1 /* HeirloomShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */; };
 		C568877B2F06B4AE006EA0B1 /* CRDTMergeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */; };
@@ -241,7 +248,6 @@
 		C5E955352F0553FE006CD3C2 /* FirebaseNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E955342F0553FE006CD3C2 /* FirebaseNotificationService.swift */; };
 		C5E955372F055550006CD3C2 /* View+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E955362F055550006CD3C2 /* View+Helpers.swift */; };
 		C5E955392F055F5F006CD3C2 /* AIIngredientSpellChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E955382F055F5F006CD3C2 /* AIIngredientSpellChecker.swift */; };
-		C5E9553B2F056341006CD3C2 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = C5E9553A2F056341006CD3C2 /* Config.xcconfig */; };
 		C5E9553E2F056CA2006CD3C2 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = C5E9553D2F056CA2006CD3C2 /* GoogleSignIn */; };
 		CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC154590CE51056017C5D6 /* CommentService.swift */; };
 		CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD518726BAFEC566E22D0315 /* Tag.swift */; };
@@ -373,6 +379,13 @@
 		BD00B42E170495E57A417ABD /* TagManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementView.swift; sourceTree = "<group>"; };
 		C32C3088D1605B9E79CC42D6 /* ScalingTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingTypes.swift; sourceTree = "<group>"; };
 		C3793A6177FBDB4B932CC837 /* DataErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataErrorView.swift; sourceTree = "<group>"; };
+		C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingConceptScreen.swift; sourceTree = "<group>"; };
+		C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingRecipeSeeder.swift; sourceTree = "<group>"; };
+		C513D42B2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeScreen.swift; sourceTree = "<group>"; };
+		C513D42F2F15EB1000BFCF7D /* BlindBoxCollectionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlindBoxCollectionRow.swift; sourceTree = "<group>"; };
+		C513D4312F15EB1B00BFCF7D /* BlindBoxSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlindBoxSeeder.swift; sourceTree = "<group>"; };
+		C513D4332F15F10700BFCF7D /* SignInPromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPromptSheet.swift; sourceTree = "<group>"; };
+		C513D4352F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFeaturesScreen.swift; sourceTree = "<group>"; };
 		C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HeirloomShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FirebaseSyncService+CRDT.swift"; sourceTree = "<group>"; };
 		C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRDTMergeEngine.swift; sourceTree = "<group>"; };
@@ -638,6 +651,7 @@
 		1AED6E5E3EE7F59B5A26A3B1 /* Collections */ = {
 			isa = PBXGroup;
 			children = (
+				C513D42F2F15EB1000BFCF7D /* BlindBoxCollectionRow.swift */,
 				C583FFD42F0CB81B0096478E /* CollectionDetailView.swift */,
 				C583FFD22F0CB7970096478E /* CollectionsListView.swift */,
 				76EB290EF9B18F2DB16717C5 /* CollectionManagementView.swift */,
@@ -763,6 +777,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C513D4312F15EB1B00BFCF7D /* BlindBoxSeeder.swift */,
 				C58331F42F15D4840096478E /* Photo */,
 				C58316472F119E910096478E /* Video */,
 				C5830E222F103E9C0096478E /* Export */,
@@ -810,6 +825,10 @@
 		7163C016CDBBBFAAE25B1F74 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				C513D4352F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift */,
+				C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */,
+				C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */,
+				C513D42B2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift */,
 				C5831EAF2F135EE50096478E /* ImportMethodCard.swift */,
 				C5831EB02F135EE50096478E /* OnboardingCollectionsPreviewScreen.swift */,
 				C5831EB12F135EE50096478E /* OnboardingDataSelector.swift */,
@@ -1050,6 +1069,7 @@
 		C56F3E7B2F04B67600D19743 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				C513D4332F15F10700BFCF7D /* SignInPromptSheet.swift */,
 				C56F3E7A2F04B67600D19743 /* FirebaseSignInView.swift */,
 			);
 			path = Auth;
@@ -1773,7 +1793,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					8C89A26D541EF27F051E6DC1 = {
 						DevelopmentTeam = Q2HHH2GDN8;
@@ -1837,7 +1857,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C5E9553B2F056341006CD3C2 /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1861,6 +1880,7 @@
 			files = (
 				85E6393EB70C40ABB95B05A7 /* TaskTimeout.swift in Sources */,
 				B99A84751B29D8825814A8E8 /* AIAPITest.swift in Sources */,
+				C513D4302F15EB1000BFCF7D /* BlindBoxCollectionRow.swift in Sources */,
 				473093936E209050DC5888FE /* AIConfiguration.swift in Sources */,
 				189E866732B2A3EF7F6A0483 /* AIError.swift in Sources */,
 				C56F3E772F04AC9800D19743 /* FirebaseSyncService.swift in Sources */,
@@ -1885,6 +1905,7 @@
 				52615A916BAFD2C901496ECA /* AttributionBadge.swift in Sources */,
 				C5831EB42F135EE50096478E /* OnboardingImportMethodsScreen.swift in Sources */,
 				C5831EB52F135EE50096478E /* OnboardingRecipeCard.swift in Sources */,
+				C513D4362F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift in Sources */,
 				C5831EB62F135EE50096478E /* OnboardingDataSelector.swift in Sources */,
 				C5831EB72F135EE50096478E /* OnboardingCollectionsPreviewScreen.swift in Sources */,
 				C5831EB82F135EE50096478E /* ImportMethodCard.swift in Sources */,
@@ -2013,8 +2034,10 @@
 				C58302542F0CDC140096478E /* SchemaV2.swift in Sources */,
 				C583FFB22F0CAB830096478E /* Customization.swift in Sources */,
 				C583FF9F2F0CA51D0096478E /* UndoService.swift in Sources */,
+				C513D4342F15F10700BFCF7D /* SignInPromptSheet.swift in Sources */,
 				C5B317742F00C8500087CF6D /* GestureGuide.swift in Sources */,
 				C583FFE52F0CC00B0096478E /* RecipeSheetModifiers.swift in Sources */,
+				C513D4322F15EB1B00BFCF7D /* BlindBoxSeeder.swift in Sources */,
 				C5B317752F00C8500087CF6D /* HelpArticle.swift in Sources */,
 				C5B317762F00C8500087CF6D /* GestureGuideView.swift in Sources */,
 				C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */,
@@ -2027,6 +2050,9 @@
 				C5B317782F00C8500087CF6D /* HelpContent.swift in Sources */,
 				C568877B2F06B4AE006EA0B1 /* CRDTMergeEngine.swift in Sources */,
 				C5B317852F00D80A0087CF6D /* VersionSelectorView.swift in Sources */,
+				C513D42C2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift in Sources */,
+				C513D42D2F15EB0300BFCF7D /* OnboardingConceptScreen.swift in Sources */,
+				C513D42E2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift in Sources */,
 				B257110A3DC8712C4CA232EA /* RecipeImportView.swift in Sources */,
 				28E4E26F3EBD90318EF438B2 /* RecipeListView.swift in Sources */,
 				C58324F32F14803C0096478E /* VideoProcessingJobListView.swift in Sources */,
@@ -2205,6 +2231,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -2266,6 +2293,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;

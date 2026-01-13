@@ -13,6 +13,11 @@ final class RecipeCollection {
     var isSystemCollection: Bool = false // For built-in collections like "Favorites"
     var heritageCollectionId: String? // ID for founding heritage collections (e.g., "presidential-pantry")
 
+    // Blind Box (Onboarding Feature)
+    var isBlindBox: Bool = false // Indicates this is a blind box collection for post-onboarding reveal
+    var isRevealed: Bool = false // Whether the blind box has been revealed by the user
+    var revealedDate: Date? // When the blind box was revealed
+
     // Relationships
     @Relationship(inverse: \Recipe.collections) var recipes: [Recipe]?
 

@@ -38,6 +38,9 @@ struct RecipeDetailView: View {
     // Language toggle (for multilingual recipes)
     @State private var showOriginalLanguage = false
 
+    // Coach mark for first-time recipe view
+    @State private var showRecipeCoachMark = false
+
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     @State private var isDiffExpanded = false
 
@@ -284,6 +287,13 @@ struct RecipeDetailView: View {
             try? modelContext.save()
 
             analytics.trackRecipeViewed(recipe: recipe)
+
+            // Show coach mark on first recipe view
+            if !UserDefaults.standard.bool(forKey: "hasSeenRecipeDetailCoachMark") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showRecipeCoachMark = true
+                }
+            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -477,6 +487,17 @@ struct RecipeDetailView: View {
         }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe)
+        }
+        .overlay {
+            if showRecipeCoachMark {
+                CoachMarkView(
+                    message: "Tap the menu to edit this recipe or share it with others.\n\nSharing as Heirloom lets you track changes and see how recipes evolve.",
+                    onDismiss: {
+                        showRecipeCoachMark = false
+                        UserDefaults.standard.set(true, forKey: "hasSeenRecipeDetailCoachMark")
+                    }
+                )
+            }
         }
         .task {
             // Load versions when view appears

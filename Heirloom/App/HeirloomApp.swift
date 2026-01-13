@@ -630,7 +630,7 @@ struct RootView: View {
 
 struct ContentView: View {
     @State private var showAddRecipe = false
-    @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     @State private var hasViewedRecipesList = false
 
     // Deep link coordinator (injected via environment)
@@ -643,6 +643,23 @@ struct ContentView: View {
     @ObservedObject var notificationService: FirebaseNotificationService
 
     var body: some View {
+        Group {
+            if hasCompletedOnboarding {
+                mainContent
+            } else {
+                OnboardingContainerView(
+                    selectedTab: $tabCoordinator.selectedTab,
+                    onComplete: {
+                        hasCompletedOnboarding = true
+                    }
+                )
+                .environmentObject(notificationService)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
         TabView(selection: $tabCoordinator.selectedTab) {
             Group {
                 RecipeListView()
@@ -727,10 +744,6 @@ struct ContentView: View {
                         deepLinkCoordinator.clearPendingImport()
                     }
             }
-        }
-        .fullScreenCover(isPresented: $showOnboarding) {
-            OnboardingContainerView(selectedTab: $tabCoordinator.selectedTab)
-                .environmentObject(notificationService)
         }
         .onAppear {
             // Mark app as ready to process deep links

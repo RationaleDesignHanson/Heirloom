@@ -27,6 +27,18 @@ struct CollectionsListView: View {
         allCollections.filter { $0.isHeritageCollection }
     }
 
+    // Filter blind box collections (unrevealed)
+    var blindBoxCollections: [RecipeCollection] {
+        heritageCollections.filter { $0.isBlindBox && !$0.isRevealed }
+    }
+
+    // Filter revealed heritage collections
+    // Only show heritage collections that were marked as blind boxes AND have been revealed
+    // This hides heritage collections that were never part of the blind box experience
+    var revealedHeritageCollections: [RecipeCollection] {
+        heritageCollections.filter { $0.isBlindBox && $0.isRevealed }
+    }
+
     // Filter user collections (non-system, non-heritage)
     var userCollections: [RecipeCollection] {
         allCollections.filter { !$0.isSystemCollection && !$0.isHeritageCollection }
@@ -120,8 +132,15 @@ struct CollectionsListView: View {
                 emptyUserCollectionsView
             } else {
                 LazyVStack(spacing: HeirloomSpacing.sm) {
-                    // Heritage collections first (as rows)
-                    ForEach(heritageCollections, id: \.id) { collection in
+                    // Blind boxes first (if any)
+                    ForEach(blindBoxCollections, id: \.id) { collection in
+                        BlindBoxCollectionRow(collection: collection) {
+                            revealBlindBox(collection)
+                        }
+                    }
+
+                    // Revealed heritage collections (or non-blind-box heritage)
+                    ForEach(revealedHeritageCollections, id: \.id) { collection in
                         CollectionRow(collection: collection)
                             .onTapGesture {
                                 // Show coach mark on first tap if not seen
@@ -236,6 +255,9 @@ struct CollectionsListView: View {
     }
 
     private func handleOnAppear() {
+        // Seed blind boxes if just completed onboarding
+        seedBlindBoxesIfNeeded()
+
         // Show coach mark after 10 seconds if not seen before
         if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
             Task {
@@ -244,6 +266,45 @@ struct CollectionsListView: View {
                     showRecipeCoachMark = true
                 }
             }
+        }
+    }
+
+    private func seedBlindBoxesIfNeeded() {
+        // Only seed if user just completed onboarding
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        let hasSeenBlindBoxes = UserDefaults.standard.bool(forKey: "hasSeenBlindBoxes")
+
+        if hasCompletedOnboarding && !hasSeenBlindBoxes {
+            let seeder = BlindBoxSeeder(modelContext: modelContext)
+            do {
+                try seeder.seedBlindBoxes()
+                Log.info("Blind boxes created after onboarding", category: .ui)
+            } catch {
+                Log.error("Failed to seed blind boxes", category: .ui, metadata: ["error": error.localizedDescription])
+            }
+        }
+    }
+
+    private func revealBlindBox(_ collection: RecipeCollection) {
+        collection.isRevealed = true
+        collection.revealedDate = Date()
+
+        do {
+            try modelContext.save()
+
+            // Show toast
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            toastManager.success(
+                title: "Discovered: \(collection.name)",
+                message: "Explore \(collection.recipeCount) heritage recipes"
+            )
+
+            Log.info("Blind box revealed", category: .ui, metadata: [
+                "collection": collection.name,
+                "recipeCount": collection.recipeCount
+            ])
+        } catch {
+            Log.error("Failed to reveal blind box", category: .ui, metadata: ["error": error.localizedDescription])
         }
     }
 

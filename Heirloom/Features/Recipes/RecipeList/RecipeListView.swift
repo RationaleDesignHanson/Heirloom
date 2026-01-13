@@ -135,6 +135,7 @@ struct RecipeListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.firebaseSync) private var firebaseSync
     @Environment(\.firebaseLineage) private var firebaseLineage
+    @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     // Using concrete type for image storage
@@ -182,6 +183,12 @@ struct RecipeListView: View {
     // Coach mark
     @State private var showToolbarCoachMark = false
 
+    // First-visit entrance animation
+    @State private var showEntranceAnimation = false
+
+    // Sign-in prompt
+    @State private var showSignInPrompt = false
+
     var body: some View {
         NavigationStack {
             mainContent
@@ -204,6 +211,10 @@ struct RecipeListView: View {
                             showASMRVideoImport = true
                         }
                     }
+                }
+                .sheet(isPresented: $showSignInPrompt) {
+                    SignInPromptSheet()
+                        .presentationDetents([.medium])
                 }
                 .onAppear {
                     configureUndoService()
@@ -255,6 +266,19 @@ struct RecipeListView: View {
         .searchable(text: $searchText, prompt: "Search recipes")
         .refreshable {
             await refreshRecipes()
+        }
+        .scaleEffect(showEntranceAnimation ? 1.0 : 0.95)
+        .opacity(showEntranceAnimation ? 1.0 : 0)
+        .onAppear {
+            let hasVisited = UserDefaults.standard.bool(forKey: "hasVisitedRecipesTab")
+            if !hasVisited {
+                withAnimation(.easeOut(duration: 0.4)) {
+                    showEntranceAnimation = true
+                }
+                UserDefaults.standard.set(true, forKey: "hasVisitedRecipesTab")
+            } else {
+                showEntranceAnimation = true
+            }
         }
     }
 
@@ -477,6 +501,11 @@ struct RecipeListView: View {
     private var filteredRecipes: [Recipe] {
         var result = recipes
 
+        // Hide recipes from unrevealed blind box collections
+        result = result.filter { recipe in
+            isRecipeVisible(recipe)
+        }
+
         // Apply search filter
         if !searchText.isEmpty {
             result = result.filter {
@@ -574,9 +603,53 @@ struct RecipeListView: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelectionMode)
     }
 
+    // MARK: - Helper Methods
+
+    /// Check if a recipe should be visible (not hidden by unrevealed blind box)
+    private func isRecipeVisible(_ recipe: Recipe) -> Bool {
+        // If recipe is not in a heritage collection, it's always visible
+        guard let heritageId = recipe.heritageCollectionId else {
+            return true
+        }
+
+        // Fetch all collections and check in-memory
+        let allCollections = (try? modelContext.fetch(FetchDescriptor<RecipeCollection>())) ?? []
+
+        // Find the collection for this recipe
+        guard let recipeCollection = allCollections.first(where: {
+            $0.heritageCollectionId == heritageId
+        }) else {
+            return true
+        }
+
+        // Only show if:
+        // 1. The collection IS a blind box (was part of the blind box experience)
+        // 2. AND it has been revealed
+        if recipeCollection.isBlindBox {
+            return recipeCollection.isRevealed
+        }
+
+        // If not a blind box collection, hide it (shouldn't have recipes seeded)
+        return false
+    }
+
     // MARK: - Actions
 
     private func refreshRecipes() async {
+        // Check if user is authenticated - show sign-in prompt if not
+        if !firebaseAuth.isAuthenticated {
+            // Check if dismissed in last 24 hours
+            let lastDismissed = UserDefaults.standard.object(forKey: "SignInPromptLastDismissed") as? Date
+            let shouldShow = lastDismissed == nil || Date().timeIntervalSince(lastDismissed!) > 24 * 60 * 60
+
+            if shouldShow {
+                await MainActor.run {
+                    showSignInPrompt = true
+                }
+                return // Don't proceed with sync
+            }
+        }
+
         // Track analytics
         await MainActor.run {
             isSyncing = true

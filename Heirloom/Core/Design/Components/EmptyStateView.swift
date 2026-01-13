@@ -77,8 +77,8 @@ extension EmptyStateView {
     static func noRecipes(action: @escaping () -> Void) -> EmptyStateView {
         EmptyStateView(
             icon: "book.closed",
-            title: "No Recipes Yet",
-            message: "Start building your collection by adding your first recipe. Import from the web, scan a cookbook, or type it in.",
+            title: "Add your first recipe",
+            message: "Import from a cooking video, scan a cookbook page, paste a website link, or type it in manually.\n\nYour collection starts here.",
             actionTitle: "Add Recipe",
             action: action
         )
