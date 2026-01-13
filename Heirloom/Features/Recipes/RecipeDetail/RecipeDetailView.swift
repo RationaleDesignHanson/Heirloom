@@ -30,6 +30,7 @@ struct RecipeDetailView: View {
     @State private var isCardFlipped = false
     @State private var showCardBackEditor = false
     @State private var selectedCollection: RecipeCollection?
+    @State private var showVideoAttributionSheet = false
 
     // Version selector
     @StateObject private var versionViewModel = RecipeVersionSelectorViewModel()
@@ -124,6 +125,15 @@ struct RecipeDetailView: View {
         return recipe.sourceLanguage != nil &&
                recipe.sourceLanguage != "en" &&
                recipe.originalTitle != nil
+    }
+
+    /// Whether this video recipe needs attribution
+    private var needsAttribution: Bool {
+        guard recipe.sourceType == .video else { return false }
+        // Check if attribution is missing or empty
+        let hasAttribution = recipe.provenance?.sourceAttribution != nil &&
+                            !recipe.provenance!.sourceAttribution!.isEmpty
+        return !hasAttribution
     }
 
     /// Summary of what changed (for disclosure header)
@@ -223,6 +233,11 @@ struct RecipeDetailView: View {
                         onToggleFavorite: toggleFavorite,
                         onAddToShoppingList: addToShoppingList
                     )
+
+                    // Attribution Banner (for video recipes without attribution)
+                    if needsAttribution {
+                        attributionBanner
+                    }
 
                     // Language Toggle (for multilingual recipes)
                     if hasTranslation {
@@ -409,6 +424,13 @@ struct RecipeDetailView: View {
         .sheet(isPresented: $showCardBackEditor) {
             CardBackEditorView(recipe: recipe)
         }
+        // TODO: Add VideoAttributionSheet.swift to Xcode project target
+        // .sheet(isPresented: $showVideoAttributionSheet) {
+        //     VideoAttributionSheet(recipe: recipe) {
+        //         // Refresh UI after attribution is saved
+        //         // The computed property needsAttribution will automatically update
+        //     }
+        // }
         .sheet(isPresented: $showHeirloomExplanation) {
             HeirloomShareExplanationView()
         }
@@ -1125,6 +1147,53 @@ struct RecipeDetailView: View {
     }
 
     // MARK: - Language Toggle
+    // MARK: - Attribution Banner
+
+    private var attributionBanner: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            HStack(spacing: HeirloomSpacing.md) {
+                Image(systemName: "person.crop.circle.badge.exclamationmark")
+                    .font(.title2)
+                    .foregroundStyle(.orange)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Attribution Missing")
+                        .font(HeirloomFonts.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("Please credit the original creator of this recipe")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+
+                Spacer()
+
+                Button {
+                    showVideoAttributionSheet = true
+                } label: {
+                    Text("Add")
+                        .font(HeirloomFonts.caption1)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(HeirloomColors.tomato)
+                        .cornerRadius(8)
+                }
+            }
+        }
+        .padding(HeirloomSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.orange.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                )
+        )
+    }
+
     private var languageToggle: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             HStack(spacing: HeirloomSpacing.sm) {
