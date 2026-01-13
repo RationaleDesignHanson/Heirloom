@@ -139,7 +139,7 @@ extension FlipCard {
                                 .fontWeight(.bold)
 
                             Text("Ingredients")
-                                .font(.headline)
+                                .font(HeirloomFonts.title3)
 
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("• 2 cups flour")
@@ -147,7 +147,7 @@ extension FlipCard {
                                 Text("• 2 eggs")
                                 Text("• 1 tsp vanilla")
                             }
-                            .font(.subheadline)
+                            .font(HeirloomFonts.subheadline)
 
                             Spacer()
 
@@ -155,7 +155,7 @@ extension FlipCard {
                                 Image(systemName: "book.closed.fill")
                                 Text("Family Recipe")
                             }
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                         }
                         .padding(24)
@@ -176,30 +176,30 @@ extension FlipCard {
                             Divider()
 
                             Text("Note to Friends")
-                                .font(.headline)
+                                .font(HeirloomFonts.title3)
 
                             Text("\"The secret is not to overmix! My grandmother made these every Sunday.\"")
-                                .font(.subheadline)
+                                .font(HeirloomFonts.subheadline)
                                 .italic()
 
                             Divider()
 
                             Text("Top Comments")
-                                .font(.headline)
+                                .font(HeirloomFonts.title3)
 
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
                                     Image(systemName: "star.fill")
                                         .foregroundStyle(.yellow)
                                     Text("Doubled the vanilla - perfect!")
-                                        .font(.caption)
+                                        .font(HeirloomFonts.caption1)
                                 }
 
                                 HStack {
                                     Image(systemName: "star.fill")
                                         .foregroundStyle(.yellow)
                                     Text("Works great with gluten-free flour")
-                                        .font(.caption)
+                                        .font(HeirloomFonts.caption1)
                                 }
                             }
 
@@ -215,7 +215,7 @@ extension FlipCard {
                     isFlipped.toggle()
                 }) {
                     Label(isFlipped ? "Show Front" : "Show Back", systemImage: "arrow.triangle.2.circlepath")
-                        .font(.headline)
+                        .font(HeirloomFonts.title3)
                         .padding()
                         .background(Color.accentColor)
                         .foregroundStyle(.white)
@@ -383,9 +383,9 @@ private struct RecipeCardFrontView: View {
     private var sourceAttribution: some View {
         HStack(spacing: 6) {
             Image(systemName: recipe.sourceType?.iconName ?? "square.and.pencil")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
             Text(recipe.sourceDisplayName)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
         }
         .foregroundStyle(HeirloomColors.secondaryText)
         .padding(.horizontal, 12)
@@ -560,15 +560,15 @@ private struct RecipeCardBackView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: sourceIcon)
-                    .font(.subheadline)
+                    .font(HeirloomFonts.subheadline)
                 Text(sourceText)
-                    .font(.subheadline)
+                    .font(HeirloomFonts.subheadline)
             }
             .foregroundStyle(HeirloomColors.secondaryText)
 
             if let customAttribution = recipe.cardBack?.customAttributionText {
                 Text(customAttribution)
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
                     .italic()
             }
@@ -578,11 +578,11 @@ private struct RecipeCardBackView: View {
     private func noteToFriendsSection(_ note: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("A Note from Me")
-                .font(.headline)
+                .font(HeirloomFonts.title3)
                 .foregroundStyle(HeirloomColors.charcoal)
 
             Text(note)
-                .font(.subheadline)
+                .font(HeirloomFonts.subheadline)
                 .foregroundStyle(HeirloomColors.primaryText)
                 .italic()
         }
@@ -591,14 +591,14 @@ private struct RecipeCardBackView: View {
     private func ratingSection(_ rating: Int) -> some View {
         HStack(spacing: 8) {
             Text("My Rating:")
-                .font(.subheadline)
+                .font(HeirloomFonts.subheadline)
                 .foregroundStyle(HeirloomColors.secondaryText)
 
             HStack(spacing: 4) {
                 ForEach(1...5, id: \.self) { star in
                     Image(systemName: star <= rating ? "star.fill" : "star")
                         .foregroundStyle(.yellow)
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                 }
             }
         }
@@ -607,16 +607,16 @@ private struct RecipeCardBackView: View {
     private func tipsSection(_ tips: [String]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("My Tips")
-                .font(.headline)
+                .font(HeirloomFonts.title3)
                 .foregroundStyle(HeirloomColors.charcoal)
 
             ForEach(Array(tips.enumerated()), id: \.offset) { _, tip in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "lightbulb.fill")
                         .foregroundStyle(.yellow)
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                     Text(tip)
-                        .font(.subheadline)
+                        .font(HeirloomFonts.subheadline)
                         .foregroundStyle(HeirloomColors.primaryText)
                 }
             }
@@ -632,18 +632,18 @@ private struct RecipeCardBackView: View {
             if !pinnedComments.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Highlighted Comments")
-                        .font(.headline)
+                        .font(HeirloomFonts.title3)
                         .foregroundStyle(HeirloomColors.charcoal)
 
                     ForEach(Array(pinnedComments)) { comment in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(comment.text)
-                                .font(.subheadline)
+                                .font(HeirloomFonts.subheadline)
                                 .foregroundStyle(HeirloomColors.primaryText)
 
                             if let author = comment.authorName {
                                 Text("— \(author)")
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .foregroundStyle(HeirloomColors.secondaryText)
                             }
                         }
@@ -663,14 +663,14 @@ private struct RecipeCardBackView: View {
                     .foregroundStyle(HeirloomColors.tomato)
                 Image(systemName: "arrow.right")
                     .foregroundStyle(HeirloomColors.secondaryText)
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                 Image(systemName: "person.fill")
                     .foregroundStyle(HeirloomColors.tomato)
             }
-            .font(.subheadline)
+            .font(HeirloomFonts.subheadline)
 
             Text("Passed down with love")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .italic()
         }

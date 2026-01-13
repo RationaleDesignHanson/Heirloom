@@ -26,8 +26,8 @@ enum VideoImportMode: String, CaseIterable, Identifiable {
 
     var color: Color {
         switch self {
-        case .withInstructions: return .blue
-        case .withoutInstructions: return .purple
+        case .withInstructions: return HeirloomColors.tomato
+        case .withoutInstructions: return HeirloomColors.amber
         }
     }
 }

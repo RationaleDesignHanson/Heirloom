@@ -18,10 +18,10 @@ enum ToastType {
 
     var color: Color {
         switch self {
-        case .success: return .green
-        case .error: return .red
-        case .info: return .blue
-        case .warning: return .orange
+        case .success: return HeirloomColors.success
+        case .error: return HeirloomColors.error
+        case .info: return HeirloomColors.tomato
+        case .warning: return HeirloomColors.warning
         }
     }
 }

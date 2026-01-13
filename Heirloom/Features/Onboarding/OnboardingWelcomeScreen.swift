@@ -27,12 +27,12 @@ struct OnboardingWelcomeScreen: View {
 
                 // App Name
                 Text("Heirloom")
-                    .font(.system(size: 40, weight: .bold, design: .serif))
+                    .font(HeirloomFonts.largeTitle)
                     .foregroundStyle(HeirloomColors.charcoal)
                     .padding(.top, 16)
 
                 // Tagline
-                Text("Your recipes, preserved forever")
+                Text("Keep your favorite recipes and share with your community")
                     .font(HeirloomFonts.title3)
                     .foregroundStyle(HeirloomColors.charcoal)
                     .multilineTextAlignment(.center)

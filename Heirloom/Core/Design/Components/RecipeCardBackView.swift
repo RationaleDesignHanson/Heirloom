@@ -197,11 +197,11 @@ struct AttributionView: View {
         VStack(alignment: .leading, spacing: 4) {
             if let attribution = cardBack.customAttributionText ?? recipe.attribution {
                 Text("From:")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundColor(.secondary)
 
                 Text(attribution)
-                    .font(.subheadline)
+                    .font(HeirloomFonts.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
             }
@@ -221,11 +221,11 @@ struct NoteToFriendsView: View {
                 Image(systemName: "heart.text.square")
                     .foregroundColor(.red)
                 Text("A Note From Me")
-                    .font(.headline)
+                    .font(HeirloomFonts.title3)
             }
 
             Text(note)
-                .font(.body)
+                .font(HeirloomFonts.body)
                 .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -247,7 +247,7 @@ struct UserTipsView: View {
                 Image(systemName: "lightbulb")
                     .foregroundColor(.yellow)
                 Text("My Tips")
-                    .font(.headline)
+                    .font(HeirloomFonts.title3)
             }
 
             ForEach(Array(tips.prefix(3).enumerated()), id: \.offset) { _, tip in
@@ -255,7 +255,7 @@ struct UserTipsView: View {
                     Text("•")
                         .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
                     Text(tip)
-                        .font(.subheadline)
+                        .font(HeirloomFonts.subheadline)
                         .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -275,7 +275,7 @@ struct UserRatingView: View {
             ForEach(1...5, id: \.self) { star in
                 Image(systemName: star <= rating ? "star.fill" : "star")
                     .foregroundColor(star <= rating ? .yellow : .gray)
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
             }
         }
     }
@@ -292,7 +292,7 @@ struct UserTagsView: View {
             HStack(spacing: 8) {
                 ForEach(tags, id: \.self) { tag in
                     Text(tag)
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(Color.accentColor.opacity(0.2))
@@ -316,11 +316,11 @@ struct PinnedCommentsView: View {
                 Image(systemName: "pin")
                     .foregroundColor(.orange)
                 Text("Pinned Comments")
-                    .font(.headline)
+                    .font(HeirloomFonts.title3)
             }
 
             Text("\(commentIDs.count) comment(s) pinned")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundColor(.secondary)
         }
     }
@@ -335,10 +335,10 @@ struct CookingHistoryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Cooking History")
-                .font(.headline)
+                .font(HeirloomFonts.title3)
 
             Text("Made this recipe 3 times")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundColor(.secondary)
         }
     }
@@ -364,12 +364,12 @@ struct HeritageCollectionBadgeView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Heritage Recipe")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundColor(.secondary)
 
                 if let collection = recipe.heritageCollection {
                     Text(collection)
-                        .font(.headline)
+                        .font(HeirloomFonts.title3)
                         .foregroundColor(.brown)
                 }
             }
@@ -400,7 +400,7 @@ struct HeritageProvenanceView: View {
                 Image(systemName: "arrow.triangle.branch")
                     .foregroundColor(.brown)
                 Text("Provenance")
-                    .font(.headline)
+                    .font(HeirloomFonts.title3)
                     .foregroundColor(.brown)
             }
 
@@ -437,11 +437,11 @@ struct HeritageProvenanceView: View {
     private func provenanceRow(icon: String, text: String, isFirst: Bool) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundColor(isFirst ? .brown : .secondary)
 
             Text(text)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundColor(isFirst ? .brown : .secondary)
         }
     }
@@ -459,12 +459,12 @@ struct HistoricalTextView: View {
                 Image(systemName: "scroll")
                     .foregroundColor(.brown)
                 Text("Historical Note")
-                    .font(.headline)
+                    .font(HeirloomFonts.title3)
                     .foregroundColor(.brown)
             }
 
             Text(text)
-                .font(.subheadline)
+                .font(HeirloomFonts.subheadline)
                 .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
                 .italic()
                 .fixedSize(horizontal: false, vertical: true)
