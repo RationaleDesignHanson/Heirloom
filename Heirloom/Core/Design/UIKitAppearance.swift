@@ -15,14 +15,21 @@ enum UIKitAppearance {
 
     private static func configureNavigationBar() {
         let appearance = UINavigationBarAppearance()
+
+        // Start with default opaque background
         appearance.configureWithOpaqueBackground()
 
-        // Light mode colors - cream background with charcoal text
+        // Light mode colors - cream background with dark charcoal text for maximum contrast
         appearance.backgroundColor = UIColor(HeirloomColors.cream)
+        appearance.shadowColor = UIColor.black.withAlphaComponent(0.1)
+
+        // Title attributes with explicit colors
         appearance.titleTextAttributes = [
             .foregroundColor: UIColor(HeirloomColors.charcoal),
             .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
         ]
+
+        // Large title attributes with explicit colors
         appearance.largeTitleTextAttributes = [
             .foregroundColor: UIColor(HeirloomColors.charcoal),
             .font: UIFont.systemFont(ofSize: 34, weight: .bold)
@@ -36,16 +43,23 @@ enum UIKitAppearance {
             .foregroundColor: UIColor(HeirloomColors.familyGreen)
         ]
 
-        // Tint color for SF Symbols and back button chevron
-        UINavigationBar.appearance().tintColor = UIColor(HeirloomColors.familyGreen)
-
-        // CRITICAL: Apply to all navigation bar contexts
-        // Without this, SwiftUI navigation stacks may not show titles
+        // Configure the global navigation bar appearance
         let navBar = UINavigationBar.appearance()
+
+        // Tint color for SF Symbols and back button chevron
+        navBar.tintColor = UIColor(HeirloomColors.familyGreen)
+
+        // Apply appearance to ALL navigation bar states
         navBar.standardAppearance = appearance
         navBar.compactAppearance = appearance
         navBar.scrollEdgeAppearance = appearance
-        navBar.compactScrollEdgeAppearance = appearance
+        if #available(iOS 15.0, *) {
+            navBar.compactScrollEdgeAppearance = appearance
+        }
+
+        // Ensure navigation bar is visible and not translucent
+        navBar.isTranslucent = false
+        navBar.barTintColor = UIColor(HeirloomColors.cream)
 
         // Force light user interface style
         navBar.overrideUserInterfaceStyle = .light

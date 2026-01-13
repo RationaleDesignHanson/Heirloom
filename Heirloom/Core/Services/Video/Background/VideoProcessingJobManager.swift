@@ -396,12 +396,34 @@ final class VideoProcessingJobManager: ObservableObject {
             }
         }
 
+        // Monitor ASMR processing state and map to job phases
+        let stateCancellable = processor.$state.sink { state in
+            Task { @MainActor in
+                switch state {
+                case .idle:
+                    break
+                case .preparingVideo:
+                    job.currentPhase = .extractingAudio
+                case .analyzingSounds:
+                    job.currentPhase = .transcribing
+                case .extractingFrames:
+                    job.currentPhase = .analyzingFrames
+                case .processingPass:
+                    job.currentPhase = .structuringRecipe
+                case .completed, .failed, .cancelled:
+                    break
+                }
+                try? context.save()
+            }
+        }
+
         defer {
             cancellable.cancel()
             subPhaseCancellable.cancel()
+            stateCancellable.cancel()
         }
 
-        job.currentPhase = .transcribing
+        job.currentPhase = .extractingAudio
         try context.save()
 
         // Process through ASMR pipeline
