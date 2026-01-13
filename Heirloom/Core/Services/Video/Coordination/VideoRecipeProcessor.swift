@@ -289,7 +289,7 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
 
                     default:
                         // Other augmentation errors are optional - log but continue
-                        print("⚠️ Augmentation failed, continuing without: \(augmentError.localizedDescription ?? "Unknown error")")
+                        print("⚠️ Augmentation failed, continuing without: \(augmentError.localizedDescription)")
                     }
                 } catch {
                     // Non-augmentation errors - log but continue (augmentation is optional)
