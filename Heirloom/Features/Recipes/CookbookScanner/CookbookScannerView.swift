@@ -22,7 +22,7 @@ struct CookbookScannerView: View {
     @State private var capturedImage: UIImage?
     @State private var isProcessing = false
     @State private var recognizedText: String = ""
-    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedPhotoItems: [PhotosPickerItem] = []  // Changed from single to array
     @State private var showMultiRecipeSheet = false
     @State private var multiRecipeResult: AIRecipeExtractor.MultiRecipeExtractionResult?
     @State private var errorMessage: String?
@@ -31,6 +31,15 @@ struct CookbookScannerView: View {
 
     // Progress tracking
     @State private var processingStep: ProcessingStep = .preparing
+    @StateObject private var progressInterpolator = PhotoProgressInterpolator()
+
+    // Batch processing state
+    @State private var isProcessingBatch = false
+    @State private var totalBatchCount = 0
+    @State private var processedBatchCount = 0
+    @State private var currentBatchStatus = ""
+    @State private var failedItems: [(index: Int, error: String)] = []
+    @State private var showBatchSummary = false
 
     enum ImageSource {
         case camera
@@ -72,81 +81,99 @@ struct CookbookScannerView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                if let image = capturedImage {
-                    // Preview captured image
-                    previewSection(image: image)
-                } else {
-                    // Instructions
-                    instructionsSection
-                }
-            }
-            .navigationTitle("Scan Cookbook")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        // Clear coordinator context on cancel
-                        tabCoordinator.didCancelCreation()
-                        dismiss()
+        ZStack {
+            NavigationStack {
+                VStack(spacing: 0) {
+                    if let image = capturedImage {
+                        // Preview captured image
+                        previewSection(image: image)
+                    } else {
+                        // Instructions
+                        instructionsSection
                     }
                 }
+                .navigationTitle("Scan Cookbook")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            // Clear coordinator context on cancel
+                            tabCoordinator.didCancelCreation()
+                            dismiss()
+                        }
+                    }
 
-                if capturedImage != nil && !isProcessing {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button("Extract Recipe") {
-                            processImage()
+                    if capturedImage != nil && !isProcessing {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button("Extract Recipe") {
+                                processImage()
+                            }
                         }
                     }
                 }
-            }
-            .sheet(isPresented: $showCamera) {
-                CameraView(capturedImage: $capturedImage)
-                    .onDisappear {
-                        if capturedImage != nil {
-                            imageSource = .camera
+                .sheet(isPresented: $showCamera) {
+                    CameraView(capturedImage: $capturedImage)
+                        .onDisappear {
+                            if capturedImage != nil {
+                                imageSource = .camera
+                            }
                         }
+                }
+                .sheet(isPresented: $showMultiRecipeSheet) {
+                    if let result = multiRecipeResult {
+                        RecipeSelectionView(
+                            recipes: result.recipes,
+                            sourceImage: result.sourceImage
+                        )
                     }
-            }
-            .sheet(isPresented: $showMultiRecipeSheet) {
-                if let result = multiRecipeResult {
-                    RecipeSelectionView(
-                        recipes: result.recipes,
-                        sourceImage: result.sourceImage
-                    )
                 }
-            }
-            .alert("Scan Error", isPresented: .constant(errorMessage != nil)) {
-                Button("OK") {
-                    errorMessage = nil
+                .alert("Scan Error", isPresented: .constant(errorMessage != nil)) {
+                    Button("OK") {
+                        errorMessage = nil
+                    }
+                } message: {
+                    if let error = errorMessage {
+                        Text(error)
+                    }
                 }
-            } message: {
-                if let error = errorMessage {
-                    Text(error)
-                }
-            }
-            .onChange(of: selectedPhotoItem) { _, newItem in
-                // Check for premium subscription
-                guard subscriptionManager.isPremium else {
-                    selectedPhotoItem = nil
-                    showSoftWall = true
-                    return
-                }
+                .onChange(of: selectedPhotoItems) { _, newItems in
+                    // Check for premium subscription
+                    guard subscriptionManager.isPremium else {
+                        selectedPhotoItems = []
+                        showSoftWall = true
+                        return
+                    }
 
-                Task {
-                    if let data = try? await newItem?.loadTransferable(type: Data.self),
-                       let image = UIImage(data: data) {
-                        await MainActor.run {
-                            capturedImage = image
-                            imageSource = .photoLibrary
-                            selectedPhotoItem = nil
+                    guard !newItems.isEmpty else { return }
+
+                    Task {
+                        if newItems.count == 1 {
+                            // Single photo mode - use existing behavior
+                            if let data = try? await newItems[0].loadTransferable(type: Data.self),
+                               let image = UIImage(data: data) {
+                                await MainActor.run {
+                                    capturedImage = image
+                                    imageSource = .photoLibrary
+                                    selectedPhotoItems = []
+                                }
+                            }
+                        } else {
+                            // Batch mode - process multiple photos
+                            await processBatch(newItems)
                         }
                     }
                 }
+                .sheet(isPresented: $showSoftWall) {
+                    SoftWallView(trigger: .cookbookScan)
+                }
+                .sheet(isPresented: $showBatchSummary) {
+                    batchSummarySheet
+                }
             }
-            .sheet(isPresented: $showSoftWall) {
-                SoftWallView(trigger: .cookbookScan)
+
+            // Batch processing overlay
+            if isProcessingBatch {
+                batchProgressOverlay
             }
         }
     }
@@ -210,11 +237,15 @@ struct CookbookScannerView: View {
                     .cornerRadius(12)
                 }
 
-                // Photo Library Button
-                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                // Photo Library Button (Multi-Select)
+                PhotosPicker(
+                    selection: $selectedPhotoItems,
+                    maxSelectionCount: 10,
+                    matching: .images
+                ) {
                     HStack {
-                        Image(systemName: "photo.on.rectangle")
-                        Text("Choose from Photos")
+                        Image(systemName: "photo.on.rectangle.angled")
+                        Text("Choose Photos")
                     }
                     .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.tomato)
@@ -329,86 +360,21 @@ struct CookbookScannerView: View {
 
         Task {
             do {
-                // Step 1: Optimizing image (happens in AnthropicAIService)
-                await MainActor.run {
-                    processingStep = .detecting
-                }
-
-                // Step 2: Detect recipes with bounding boxes (vision API)
-                Log.info("Detecting recipes with vision API", category: .ocr)
-                let detected = try await aiRecipeExtractor.detectRecipes(from: image)
-
-                Log.info("Found recipes in image", category: .ocr, metadata: ["count": detected.count])
-                for (index, recipe) in detected.enumerated() {
-                    Log.debug("Detected recipe", category: .ocr, metadata: ["index": index + 1, "title": recipe.title, "confidence": recipe.confidence.rawValue])
-                }
-
-                // Step 3: Extract each recipe using vision API + bounding box
-                await MainActor.run {
-                    processingStep = .extracting
-                }
-
-                Log.info("Extracting recipes with vision API", category: .ocr)
-                let result = try await aiRecipeExtractor.extractRecipesFromImage(
-                    image: image,
-                    detectedRecipes: detected
-                )
+                try await processSingleImage(image)
 
                 await MainActor.run {
-                    processingStep = .complete
                     isProcessing = false
 
                     // Success feedback
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
 
-                    Log.info("Processing complete", category: .ocr, metadata: ["count": result.count])
-
-                    // Route based on recipe count
-                    if result.count == 0 {
-                        // No recipes detected - show error
-                        errorMessage = "No recipes detected in the image. Please try again with a clearer photo."
-                        Log.warning("No recipes found in image", category: .ocr)
-
-                    } else if result.count == 1 {
-                        // Single recipe - auto-import directly (faster UX)
-                        let recipe = result.recipes[0]
-                        createRecipeFromExtraction(recipe, image: image)
-
-                        // Track analytics
-                        analytics.track(event: .recipeImported, properties: [
-                            "source": "cookbook_scan",
-                            "extraction_method": "vision_api",
-                            "used_ai_extraction": true,
-                            "recipe_count": 1,
-                            "ingredient_count": recipe.ingredients.count,
-                            "instruction_count": recipe.instructions.count
-                        ])
-
-                        Log.info("Single recipe auto-imported", category: .ocr, metadata: ["title": recipe.title])
-
-                    } else {
-                        // Multiple recipes - show RecipeSelectionView (matches web demo behavior)
-                        multiRecipeResult = result
-                        showMultiRecipeSheet = true
-
-                        // Track analytics
-                        analytics.track(event: .recipeScanned, properties: [
-                            "source": "cookbook_scan",
-                            "recipe_count": result.count,
-                            "multi_recipe": true
-                        ])
-
-                        Log.info("Multiple recipes extracted", category: .ocr)
-                        for (index, recipe) in result.recipes.enumerated() {
-                            Log.debug("Extracted recipe details", category: .ocr, metadata: [
-                                "index": index + 1,
-                                "title": recipe.title,
-                                "ingredientCount": recipe.ingredients.count,
-                                "instructionCount": recipe.instructions.count
-                            ])
-                        }
-                    }
+                    // Track analytics
+                    analytics.track(event: .recipeImported, properties: [
+                        "source": "cookbook_scan",
+                        "extraction_method": "vision_api",
+                        "used_ai_extraction": true
+                    ])
                 }
 
             } catch {
@@ -670,6 +636,157 @@ struct CookbookScannerView: View {
         return instructions
     }
 
+    // MARK: - Batch Processing
+
+    private func processBatch(_ items: [PhotosPickerItem]) async {
+        await MainActor.run {
+            isProcessingBatch = true
+            totalBatchCount = items.count
+            processedBatchCount = 0
+            currentBatchStatus = ""
+            failedItems = []
+        }
+
+        for (index, item) in items.enumerated() {
+            await MainActor.run {
+                currentBatchStatus = "Processing \(index + 1) of \(items.count)..."
+                processedBatchCount = index
+            }
+
+            guard let data = try? await item.loadTransferable(type: Data.self),
+                  let image = UIImage(data: data) else {
+                await MainActor.run {
+                    failedItems.append((index: index + 1, error: "Failed to load image"))
+                }
+                continue
+            }
+
+            do {
+                try await processSingleImage(image, batchIndex: index + 1)
+            } catch {
+                await MainActor.run {
+                    failedItems.append((index: index + 1, error: error.localizedDescription))
+                }
+            }
+        }
+
+        await MainActor.run {
+            processedBatchCount = items.count
+            isProcessingBatch = false
+            selectedPhotoItems = []
+            showBatchSummary = true
+
+            // Track analytics
+            analytics.track(event: .recipeImported, properties: [
+                "source": "cookbook_scan_batch",
+                "batch_size": items.count,
+                "failed_count": failedItems.count,
+                "success_count": items.count - failedItems.count
+            ])
+        }
+    }
+
+    private func processSingleImage(_ image: UIImage, batchIndex: Int? = nil) async throws {
+        // Step 1: Optimizing - smooth interpolation
+        await MainActor.run {
+            processingStep = .optimizing
+            progressInterpolator.start(
+                from: 0.0,
+                to: 0.33,
+                duration: PhotoProgressInterpolator.PhaseDuration.optimizing
+            )
+        }
+
+        // Optimization happens in the AI service, so we just wait a moment
+        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+        // Step 2: Detecting recipes - smooth interpolation
+        await MainActor.run {
+            progressInterpolator.snap(to: 0.33)
+            processingStep = .detecting
+            progressInterpolator.start(
+                from: 0.33,
+                to: 0.66,
+                duration: PhotoProgressInterpolator.PhaseDuration.detecting
+            )
+        }
+
+        Log.info("Detecting recipes with vision API", category: .ocr)
+        let detected = try await aiRecipeExtractor.detectRecipes(from: image)
+
+        await MainActor.run {
+            progressInterpolator.snap(to: 0.66)
+        }
+
+        Log.info("Found recipes in image", category: .ocr, metadata: ["count": detected.count])
+
+        // Step 3: Extracting - smooth interpolation
+        await MainActor.run {
+            processingStep = .extracting
+            progressInterpolator.start(
+                from: 0.66,
+                to: 1.0,
+                duration: PhotoProgressInterpolator.PhaseDuration.extracting
+            )
+        }
+
+        Log.info("Extracting recipes with vision API", category: .ocr)
+        let result = try await aiRecipeExtractor.extractRecipesFromImage(
+            image: image,
+            detectedRecipes: detected
+        )
+
+        await MainActor.run {
+            progressInterpolator.snap(to: 1.0)
+            processingStep = .complete
+        }
+
+        Log.info("Processing complete", category: .ocr, metadata: ["count": result.count])
+
+        // Handle results based on recipe count
+        if result.count == 0 {
+            throw NSError(
+                domain: "CookbookScanner",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "No recipes detected in image \(batchIndex ?? 0)"]
+            )
+        } else if result.count == 1 {
+            // Single recipe - auto-import
+            let recipe = result.recipes[0]
+            await MainActor.run {
+                createRecipeFromExtraction(recipe, image: image)
+            }
+
+            // In batch mode, give SwiftData a moment to persist
+            if batchIndex != nil {
+                try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+            }
+
+            Log.info("Single recipe auto-imported", category: .ocr, metadata: ["title": recipe.title])
+
+        } else if batchIndex == nil {
+            // Multiple recipes in single-photo mode - show selection UI
+            await MainActor.run {
+                multiRecipeResult = result
+                showMultiRecipeSheet = true
+            }
+
+            Log.info("Multiple recipes extracted", category: .ocr)
+        } else {
+            // Multiple recipes in batch mode - auto-import all
+            for recipe in result.recipes {
+                await MainActor.run {
+                    createRecipeFromExtraction(recipe, image: image)
+                }
+            }
+
+            // Give SwiftData a moment to persist the recipes
+            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+
+            Log.info("Batch: Multiple recipes auto-imported", category: .ocr, metadata: ["count": result.count])
+        }
+    }
+
     enum OCRError: LocalizedError {
         case invalidImage
         case noTextFound
@@ -682,6 +799,201 @@ struct CookbookScannerView: View {
                 return "No text found in image"
             }
         }
+    }
+
+    // MARK: - Batch Progress Overlay
+
+    private var batchProgressOverlay: some View {
+        ZStack {
+            // Semi-transparent background
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+
+            // Progress card
+            VStack(spacing: HeirloomSpacing.lg) {
+                // Header
+                VStack(spacing: HeirloomSpacing.xs) {
+                    Text("Batch Processing")
+                        .font(HeirloomFonts.title3)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("Processing \(processedBatchCount + 1) of \(totalBatchCount) photos")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+
+                Divider()
+
+                // Overall batch progress
+                VStack(spacing: HeirloomSpacing.sm) {
+                    HStack {
+                        Text("Overall Progress")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+
+                        Spacer()
+
+                        Text("\(Int(Double(processedBatchCount) / Double(totalBatchCount) * 100))%")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+
+                    ProgressView(value: Double(processedBatchCount) / Double(totalBatchCount))
+                        .progressViewStyle(.linear)
+                        .tint(HeirloomColors.familyGreen)
+                }
+
+                Divider()
+
+                // Current photo progress
+                VStack(spacing: HeirloomSpacing.sm) {
+                    HStack {
+                        Text("Current Photo")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+
+                        Spacer()
+
+                        Text("\(Int(progressInterpolator.interpolatedProgress * 100))%")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+
+                    ProgressView(value: progressInterpolator.interpolatedProgress)
+                        .progressViewStyle(.linear)
+                        .tint(HeirloomColors.tomato)
+
+                    // Current step description
+                    HStack(spacing: HeirloomSpacing.xs) {
+                        ProgressView()
+                            .scaleEffect(0.7)
+
+                        Text(processingStep.description)
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+
+                        Spacer()
+                    }
+                }
+
+                // Cancel button
+                Button {
+                    cancelBatch()
+                } label: {
+                    Text("Cancel Batch")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.tomato)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(HeirloomColors.tomato, lineWidth: 2)
+                        )
+                }
+            }
+            .padding(HeirloomSpacing.xl)
+            .background(.white)
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.2), radius: 20, y: 10)
+            .padding(HeirloomSpacing.xl)
+        }
+    }
+
+    // MARK: - Batch Summary Sheet
+
+    private var batchSummarySheet: some View {
+        NavigationStack {
+            VStack(spacing: HeirloomSpacing.xl) {
+                // Success icon
+                ZStack {
+                    Circle()
+                        .fill(HeirloomColors.familyGreen.opacity(0.1))
+                        .frame(width: 80, height: 80)
+
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 50))
+                        .foregroundStyle(HeirloomColors.familyGreen)
+                }
+                .padding(.top, HeirloomSpacing.xl)
+
+                // Summary text
+                VStack(spacing: HeirloomSpacing.sm) {
+                    Text("Batch Processing Complete")
+                        .font(HeirloomFonts.title2)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    let successCount = totalBatchCount - failedItems.count
+                    Text("\(successCount) of \(totalBatchCount) photos processed successfully")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.center)
+                }
+
+                // Failed items list (if any)
+                if !failedItems.isEmpty {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                            Text("Failed Photos")
+                                .font(HeirloomFonts.bodyBold)
+                                .foregroundStyle(HeirloomColors.primaryText)
+                        }
+
+                        ForEach(failedItems, id: \.index) { item in
+                            HStack {
+                                Text("Photo \(item.index)")
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(HeirloomColors.secondaryText)
+
+                                Spacer()
+
+                                Text(item.error)
+                                    .font(HeirloomFonts.caption2)
+                                    .foregroundStyle(.red)
+                                    .lineLimit(1)
+                            }
+                            .padding(.vertical, HeirloomSpacing.xs)
+                        }
+                    }
+                    .padding(HeirloomSpacing.md)
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(8)
+                }
+
+                Spacer()
+
+                // Done button
+                Button {
+                    showBatchSummary = false
+                    failedItems = []
+                } label: {
+                    Text("Done")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(HeirloomColors.tomato)
+                        .cornerRadius(12)
+                }
+            }
+            .padding(HeirloomSpacing.xl)
+            .navigationTitle("Batch Complete")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func cancelBatch() {
+        isProcessingBatch = false
+        selectedPhotoItems = []
+        progressInterpolator.stop()
+
+        // Show toast or feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
     }
 }
 

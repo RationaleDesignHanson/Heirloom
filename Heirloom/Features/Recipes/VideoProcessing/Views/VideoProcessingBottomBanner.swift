@@ -113,7 +113,7 @@ struct VideoProcessingBottomBanner: View {
 
                 // Job Info
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(job.statusText)
+                    Text(job.detailedStatusText)
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
 

@@ -18,9 +18,11 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
     @Published var progress: Double = 0.0
     @Published var canCancel: Bool = false
     @Published var enhancedExtraction: VideoRecipeExtraction.Enhanced? = nil  // NEW: Augmentation data
+    @Published var subPhaseProgress: Double = 0.0
 
     private var processingTask: Task<Void, Error>?
     private let cache = VideoProcessingCache.shared
+    private let progressInterpolator = ProgressInterpolator()
 
     // Services
     private let audioExtractor: AudioExtractionServiceProtocol
@@ -36,6 +38,21 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
     private let enableFrameAnalysis: Bool
     private let enableCaching: Bool
     private let enableAugmentation: Bool
+
+    /// Estimated durations for standard video processing phases
+    private enum PhaseDuration {
+        static let extractingAudio: TimeInterval = 8       // 5-10s
+        static let transcribing: TimeInterval = 90         // Default for 10min video
+        static let analyzingFrames: TimeInterval = 20      // 15-30s
+        static let structuringRecipe: TimeInterval = 12    // 5-15s
+        static let augmenting: TimeInterval = 8            // 5-10s
+
+        /// Calculate transcription duration based on video length
+        /// WhisperKit processes at ~0.15x real-time speed
+        static func transcription(videoDuration: TimeInterval) -> TimeInterval {
+            return max(videoDuration * 0.15, 30)  // Minimum 30s
+        }
+    }
 
     init(
         audioExtractor: AudioExtractionServiceProtocol,
@@ -99,19 +116,43 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
             // Step 2: Extract audio
             state = .extractingAudio
             progress = 0.05
+            subPhaseProgress = 0.0
+            progressInterpolator.start(from: 0.05, to: 0.10, duration: PhaseDuration.extractingAudio)
 
             let audioURL = try await audioExtractor.extractAudio(from: videoURL)
             try Task.checkCancellation()
+
+            progressInterpolator.snap(to: 0.10)
+            progress = 0.10
+            subPhaseProgress = 1.0
 
             // Estimate video duration for metadata
             let videoDuration = await audioExtractor.estimateDuration(videoURL) ?? 0
 
             // Step 3: Transcribe (longest step - 70% of processing time)
+            let transcriptionDuration = PhaseDuration.transcription(videoDuration: videoDuration)
+
             state = .transcribing(progress: 0.0)
-            progress = 0.1
+            progress = 0.10
+            subPhaseProgress = 0.0
+            progressInterpolator.start(from: 0.10, to: 0.75, duration: transcriptionDuration)
+
+            // Subscribe to interpolator for smooth updates
+            let interpolatorCancellable = progressInterpolator.$interpolatedProgress.sink { [weak self] interpolated in
+                Task { @MainActor in
+                    guard let self = self else { return }
+                    self.progress = interpolated
+                    // Calculate sub-phase progress (0.0-1.0 within transcription)
+                    self.subPhaseProgress = (interpolated - 0.10) / (0.75 - 0.10)
+                }
+            }
 
             let transcript = try await transcriptionService.transcribe(audioURL: audioURL)
+
+            interpolatorCancellable.cancel()
+            progressInterpolator.snap(to: 0.75)
             progress = 0.75
+            subPhaseProgress = 1.0
             try Task.checkCancellation()
 
             // Cache transcript
@@ -125,7 +166,9 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
 
             if shouldPerformFrameAnalysis(transcriptConfidence: transcript.confidence) {
                 state = .analyzingFrames
-                progress = 0.8
+                progress = 0.75
+                subPhaseProgress = 0.0
+                progressInterpolator.start(from: 0.75, to: 0.80, duration: PhaseDuration.analyzingFrames)
 
                 do {
                     let frames = try await frameAnalyzer.extractKeyFrames(from: videoURL, count: 5)
@@ -150,23 +193,31 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                     print("Frame analysis failed, continuing without visual elements: \(error)")
                 }
 
-                progress = 0.85
+                progressInterpolator.snap(to: 0.80)
+                progress = 0.80
+                subPhaseProgress = 1.0
                 try Task.checkCancellation()
             } else {
                 // Skip frame analysis - transcript is high quality
-                progress = 0.85
+                progressInterpolator.snap(to: 0.80)
+                progress = 0.80
+                subPhaseProgress = 1.0
             }
 
             // Step 5: Structure recipe with AI
             state = .structuringRecipe
-            progress = 0.9
+            progress = 0.80
+            subPhaseProgress = 0.0
+            progressInterpolator.start(from: 0.80, to: 0.90, duration: PhaseDuration.structuringRecipe)
 
             let structuredRecipe = try await recipeStructurer.structure(
                 transcript: transcript,
                 visualElements: visualElements
             )
 
-            progress = 0.92
+            progressInterpolator.snap(to: 0.90)
+            progress = 0.90
+            subPhaseProgress = 1.0
 
             // Step 5.5: Augment with similar recipes (NEW - Week 4)
             var augmentedRecipe: AugmentedRecipe? = nil
@@ -186,7 +237,9 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
             if shouldPerformAugmentation(structuredRecipe: structuredRecipe) {
                 print("✅ Starting augmentation pipeline...")
                 state = .augmentingWithSimilarRecipes
-                progress = 0.93
+                progress = 0.90
+                subPhaseProgress = 0.0
+                progressInterpolator.start(from: 0.90, to: 0.95, duration: PhaseDuration.augmenting)
 
                 do {
                     // Find similar recipes locally
@@ -225,7 +278,9 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                     print("⚠️ Augmentation failed, continuing without: \(error.localizedDescription)")
                 }
 
+                progressInterpolator.snap(to: 0.95)
                 progress = 0.95
+                subPhaseProgress = 1.0
                 try Task.checkCancellation()
             } else {
                 print("❌ SKIPPING AUGMENTATION")
@@ -316,9 +371,11 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
     }
 
     func cancel() {
+        progressInterpolator.stop()
         processingTask?.cancel()
         state = .idle
         progress = 0.0
+        subPhaseProgress = 0.0
     }
 
     // MARK: - Private Helpers

@@ -46,6 +46,9 @@ final class VideoProcessingJob {
     /// Progress from 0.0 to 1.0
     var progress: Double
 
+    /// Sub-phase progress (0.0 to 1.0 within current phase)
+    var subPhaseProgress: Double
+
     /// Error message if status is .failed
     var errorMessage: String?
 
@@ -107,6 +110,7 @@ final class VideoProcessingJob {
         self.status = .pending
         self.currentPhase = .queued
         self.progress = 0.0
+        self.subPhaseProgress = 0.0
         self.retryCount = 0
         self.creditsCharged = 0
         self.creditsRefunded = false
@@ -162,6 +166,19 @@ extension VideoProcessingJob {
         case .cancelled:
             return "Cancelled"
         }
+    }
+
+    /// Detailed status with sub-phase percentage: "Transcribing: 45%"
+    var detailedStatusText: String {
+        guard status == .processing else {
+            return statusText
+        }
+
+        let phasePercent = Int(subPhaseProgress * 100)
+        if phasePercent > 0 && phasePercent < 100 {
+            return "\(currentPhase.displayName): \(phasePercent)%"
+        }
+        return currentPhase.displayName
     }
 
     /// Whether this job can be retried

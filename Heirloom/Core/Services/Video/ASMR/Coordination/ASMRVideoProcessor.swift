@@ -20,6 +20,7 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
     @Published private(set) var state: ASMRProcessingState = .idle
     @Published private(set) var progress: Double = 0.0
     @Published private(set) var currentPass: ASMRProcessingPass?
+    @Published var subPhaseProgress: Double = 0.0
 
     /// Enhanced extraction with augmentation data (for review screen)
     @Published var enhancedExtraction: VideoRecipeExtraction.Enhanced?
@@ -36,6 +37,28 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
     // MARK: - Cancellation
 
     private var processingTask: Task<ASMRRecipeExtraction, Error>?
+    private let progressInterpolator = ProgressInterpolator()
+
+    /// Estimated durations for ASMR processing passes
+    private enum PassDuration {
+        static let soundAnalysis: TimeInterval = 10
+        static let frameExtraction: TimeInterval = 15
+        static let identifying: TimeInterval = 20    // Pass 1: 15%
+        static let detecting: TimeInterval = 30      // Pass 2: 25%
+        static let inferring: TimeInterval = 30      // Pass 3: 25%
+        static let analyzing: TimeInterval = 25      // Pass 4: 20%
+        static let validating: TimeInterval = 20     // Pass 5: 15%
+
+        static func forPass(_ pass: ASMRProcessingPass) -> TimeInterval {
+            switch pass {
+            case .identifying: return identifying
+            case .detecting: return detecting
+            case .inferring: return inferring
+            case .analyzing: return analyzing
+            case .validating: return validating
+            }
+        }
+    }
 
     // MARK: - Initialization
 
@@ -94,9 +117,11 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
     }
 
     func cancel() {
+        progressInterpolator.stop()
         processingTask?.cancel()
         state = .cancelled
         progress = 0.0
+        subPhaseProgress = 0.0
         currentPass = nil
     }
 
@@ -132,6 +157,9 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
 
         // Step 2: Verify suitability (10% or instant if skipped)
         state = .analyzingSounds(progress: 0.0)
+        subPhaseProgress = 0.0
+        progressInterpolator.start(from: 0.05, to: 0.10, duration: PassDuration.soundAnalysis)
+
         let soundAnalysis = try await soundAnalyzer.analyzeSuitability(
             videoURL: videoURL,
             skipAnalysis: skipSoundAnalysis
@@ -141,10 +169,15 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
             throw ASMRProcessingError.unsuitable(reason: soundAnalysis.reasoning)
         }
 
+        progressInterpolator.snap(to: 0.10)
         progress = 0.10
+        subPhaseProgress = 1.0
 
         // Step 3: Extract frames (20%)
         state = .extractingFrames(progress: 0.0)
+        subPhaseProgress = 0.0
+        progressInterpolator.start(from: 0.10, to: 0.20, duration: PassDuration.frameExtraction)
+
         let frames = try await frameExtractor.extractFrames(from: videoURL)
 
         guard frames.totalFrames >= 15 else {
@@ -175,9 +208,13 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
             }
         }
 
+        progressInterpolator.snap(to: 0.20)
         progress = 0.20
+        subPhaseProgress = 1.0
 
         // Step 4: 5-pass processing (20% → 95%)
+        var passCancellables: [AnyCancellable] = []
+
         let extraction = try await structurer.structure(
             frames: frames,
             userCaption: userCaption,
@@ -188,16 +225,41 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
                     self.currentPass = pass
                     self.state = .processingPass(pass, findings: findings)
 
-                    // Calculate progress based on pass weights
-                    let passProgress = ASMRProcessingPass.allCases
-                        .prefix(pass.rawValue + 1)
+                    // Calculate progress range for this pass
+                    let baseProgress = ASMRProcessingPass.allCases
+                        .prefix(pass.rawValue)
                         .reduce(0.0) { $0 + $1.progressWeight }
-                    self.progress = 0.20 + (passProgress * 0.75)
+                    let passStartProgress = 0.20 + baseProgress * 0.75
+                    let passEndProgress = passStartProgress + (pass.progressWeight * 0.75)
+
+                    // Start interpolation for this pass
+                    self.subPhaseProgress = 0.0
+                    self.progressInterpolator.start(
+                        from: passStartProgress,
+                        to: passEndProgress,
+                        duration: PassDuration.forPass(pass)
+                    )
+
+                    // Subscribe to interpolator updates
+                    let cancellable = self.progressInterpolator.$interpolatedProgress
+                        .sink { interpolated in
+                            Task { @MainActor in
+                                self.progress = interpolated
+                                // Calculate sub-phase progress within this pass
+                                let passRange = passEndProgress - passStartProgress
+                                self.subPhaseProgress = (interpolated - passStartProgress) / passRange
+                            }
+                        }
+                    passCancellables.append(cancellable)
                 }
             }
         )
 
+        // Clean up pass cancellables
+        passCancellables.forEach { $0.cancel() }
+        progressInterpolator.snap(to: 0.95)
         progress = 0.95
+        subPhaseProgress = 1.0
 
         // Step 5: Finalize & update metadata (100%)
         // Add sound analysis results to metadata notes

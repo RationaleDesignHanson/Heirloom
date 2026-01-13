@@ -308,6 +308,13 @@ final class VideoProcessingJobManager: ObservableObject {
             }
         }
 
+        let subPhaseCancellable = processor.$subPhaseProgress.sink { subProgress in
+            Task { @MainActor in
+                job.subPhaseProgress = subProgress
+                try? context.save()
+            }
+        }
+
         let cancellable2 = processor.$state.sink { state in
             Task { @MainActor in
                 switch state {
@@ -332,6 +339,7 @@ final class VideoProcessingJobManager: ObservableObject {
 
         defer {
             cancellable.cancel()
+            subPhaseCancellable.cancel()
             cancellable2.cancel()
         }
 
@@ -381,8 +389,16 @@ final class VideoProcessingJobManager: ObservableObject {
             }
         }
 
+        let subPhaseCancellable = processor.$subPhaseProgress.sink { subProgress in
+            Task { @MainActor in
+                job.subPhaseProgress = subProgress
+                try? context.save()
+            }
+        }
+
         defer {
             cancellable.cancel()
+            subPhaseCancellable.cancel()
         }
 
         job.currentPhase = .transcribing

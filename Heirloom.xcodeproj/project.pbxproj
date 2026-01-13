@@ -169,6 +169,8 @@
 		C58324F32F14803C0096478E /* VideoProcessingJobListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324F02F14803C0096478E /* VideoProcessingJobListView.swift */; };
 		C58324F42F14803C0096478E /* JobRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324EE2F14803C0096478E /* JobRow.swift */; };
 		C58324F52F14803C0096478E /* VideoProcessingBottomBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58324EF2F14803C0096478E /* VideoProcessingBottomBanner.swift */; };
+		C5832FE32F15CD3A0096478E /* ProgressInterpolator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5832FE22F15CD3A0096478E /* ProgressInterpolator.swift */; };
+		C58331F52F15D4840096478E /* PhotoProgressInterpolator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58331F32F15D4840096478E /* PhotoProgressInterpolator.swift */; };
 		C583F5A02F099E750096478E /* RecipeIngredientsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */; };
 		C583F5A12F099E750096478E /* RecipeDetailHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59C2F099E750096478E /* RecipeDetailHeader.swift */; };
 		C583F5A22F099E750096478E /* RecipeInstructionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */; };
@@ -449,6 +451,8 @@
 		C58324EE2F14803C0096478E /* JobRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobRow.swift; sourceTree = "<group>"; };
 		C58324EF2F14803C0096478E /* VideoProcessingBottomBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessingBottomBanner.swift; sourceTree = "<group>"; };
 		C58324F02F14803C0096478E /* VideoProcessingJobListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessingJobListView.swift; sourceTree = "<group>"; };
+		C5832FE22F15CD3A0096478E /* ProgressInterpolator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressInterpolator.swift; sourceTree = "<group>"; };
+		C58331F32F15D4840096478E /* PhotoProgressInterpolator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoProgressInterpolator.swift; sourceTree = "<group>"; };
 		C583F59C2F099E750096478E /* RecipeDetailHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailHeader.swift; sourceTree = "<group>"; };
 		C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeIngredientsSection.swift; sourceTree = "<group>"; };
 		C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeInstructionsSection.swift; sourceTree = "<group>"; };
@@ -759,6 +763,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C58331F42F15D4840096478E /* Photo */,
 				C58316472F119E910096478E /* Video */,
 				C5830E222F103E9C0096478E /* Export */,
 				C5830E0A2F103A3D0096478E /* Store */,
@@ -1144,6 +1149,7 @@
 		C58316402F119E910096478E /* Coordination */ = {
 			isa = PBXGroup;
 			children = (
+				C5832FE22F15CD3A0096478E /* ProgressInterpolator.swift */,
 				C583163F2F119E910096478E /* VideoRecipeProcessor.swift */,
 			);
 			path = Coordination;
@@ -1311,6 +1317,14 @@
 				C58324F12F14803C0096478E /* Views */,
 			);
 			path = VideoProcessing;
+			sourceTree = "<group>";
+		};
+		C58331F42F15D4840096478E /* Photo */ = {
+			isa = PBXGroup;
+			children = (
+				C58331F32F15D4840096478E /* PhotoProgressInterpolator.swift */,
+			);
+			path = Photo;
 			sourceTree = "<group>";
 		};
 		C583F5A72F09A6B80096478E /* Logging */ = {
@@ -1923,6 +1937,7 @@
 				8ADFA5839933EC3D8374AFB5 /* EnhancedOCRService.swift in Sources */,
 				C58309142F0FD6510096478E /* DinnerPartyShoppingSync.swift in Sources */,
 				C5B317832F00D71E0087CF6D /* ConfettiView.swift in Sources */,
+				C58331F52F15D4840096478E /* PhotoProgressInterpolator.swift in Sources */,
 				52CD3F9F7C8F07B305AFE900 /* EnhancedScannerView.swift in Sources */,
 				C5B317682F00C8310087CF6D /* WhatsNewView.swift in Sources */,
 				B2C81AF6BEE1E3C6FB9AAE7E /* FlipCard.swift in Sources */,
@@ -1942,6 +1957,7 @@
 				08DCE55BE7C9B5B087D88C4D /* ImportProgressView.swift in Sources */,
 				8382C45014984CD39A6F2149 /* ImportReviewView.swift in Sources */,
 				C058535CDD02FAABB4A17CAF /* Ingredient.swift in Sources */,
+				C5832FE32F15CD3A0096478E /* ProgressInterpolator.swift in Sources */,
 				77F45D61EB2A03C59BE9C93F /* IngredientParser.swift in Sources */,
 				C5B317892F00D89A0087CF6D /* RecipeSelectionView.swift in Sources */,
 				F338CD690F1EB5301AC2C49A /* LoadingViews.swift in Sources */,
@@ -2289,7 +2305,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2329,7 +2345,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2364,7 +2380,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2395,7 +2411,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2422,7 +2438,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = G6Q28X9VJR;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2453,7 +2469,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = G6Q28X9VJR;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
