@@ -40,17 +40,16 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
         // Store transcript for validation
         self.currentTranscript = transcript
 
-        // Validate transcript has sufficient content
+        // Validate transcript has some content (very permissive for short-form videos)
         let transcriptLength = transcript.text.trimmingCharacters(in: .whitespacesAndNewlines).count
-        if transcriptLength < 50 {
+        if transcriptLength < 20 {
             Log.warning("Transcript too short for recipe extraction", category: .video, metadata: [
                 "transcriptLength": transcriptLength,
-                "minimumRequired": 50
+                "minimumRequired": 20
             ])
             throw RecipeParsingError.insufficientContent(
-                "This video is too short to extract a complete recipe. " +
-                "Please use a video with full cooking instructions, including ingredients and steps. " +
-                "Minimum: ~30 seconds of narration."
+                "Could not extract enough narration from this video. " +
+                "For best results, use videos with clear verbal instructions describing ingredients and cooking steps."
             )
         }
 
@@ -243,10 +242,16 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
         }
 
         // Dynamic confidence threshold based on transcript length
-        // Short videos (< 200 chars) get more lenient threshold to support TikTok/Reels/Shorts
-        // Normal videos maintain original 0.3 threshold to preserve quality
+        // Graduated thresholds to support very short videos (15-30 seconds)
         let transcriptLength = currentTranscript?.text.count ?? 0
-        let confidenceThreshold: Double = transcriptLength < 200 ? 0.15 : 0.30
+        let confidenceThreshold: Double
+        if transcriptLength < 100 {
+            confidenceThreshold = 0.10  // Ultra-short TikToks/Reels (15-20 seconds)
+        } else if transcriptLength < 200 {
+            confidenceThreshold = 0.15  // Short-form content (30-45 seconds)
+        } else {
+            confidenceThreshold = 0.30  // Normal/long-form (maintains original quality bar)
+        }
 
         if recipe.overallConfidence < confidenceThreshold {
             Log.warning("Recipe extraction confidence too low", category: .video, metadata: [
