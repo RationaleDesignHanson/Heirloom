@@ -95,6 +95,7 @@
 		C513D4342F15F10700BFCF7D /* SignInPromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4332F15F10700BFCF7D /* SignInPromptSheet.swift */; };
 		C513D4362F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4352F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift */; };
 		C513D8542F16123800BFCF7D /* VideoAttributionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D8532F16123800BFCF7D /* VideoAttributionSheet.swift */; };
+		C513D8562F16223A00BFCF7D /* JobRecoverySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D8552F16223A00BFCF7D /* JobRecoverySheet.swift */; };
 		C568873C2F057B02006EA0B1 /* HeirloomShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */; };
 		C568877B2F06B4AE006EA0B1 /* CRDTMergeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */; };
@@ -388,6 +389,7 @@
 		C513D4332F15F10700BFCF7D /* SignInPromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPromptSheet.swift; sourceTree = "<group>"; };
 		C513D4352F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFeaturesScreen.swift; sourceTree = "<group>"; };
 		C513D8532F16123800BFCF7D /* VideoAttributionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoAttributionSheet.swift; sourceTree = "<group>"; };
+		C513D8552F16223A00BFCF7D /* JobRecoverySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobRecoverySheet.swift; sourceTree = "<group>"; };
 		C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HeirloomShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FirebaseSyncService+CRDT.swift"; sourceTree = "<group>"; };
 		C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRDTMergeEngine.swift; sourceTree = "<group>"; };
@@ -1327,6 +1329,7 @@
 		C58324F12F14803C0096478E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C513D8552F16223A00BFCF7D /* JobRecoverySheet.swift */,
 				C58324EE2F14803C0096478E /* JobRow.swift */,
 				C58324EF2F14803C0096478E /* VideoProcessingBottomBanner.swift */,
 				C58324F02F14803C0096478E /* VideoProcessingJobListView.swift */,
@@ -1989,6 +1992,7 @@
 				C583FFA52F0CAA610096478E /* FirebaseImageService.swift in Sources */,
 				455227C53BB8C306AE866038 /* MixpanelService.swift in Sources */,
 				C5830E0B2F103A3D0096478E /* PaywallManager.swift in Sources */,
+				C513D8562F16223A00BFCF7D /* JobRecoverySheet.swift in Sources */,
 				C5830E0C2F103A3D0096478E /* SubscriptionManager.swift in Sources */,
 				C5830E0D2F103A3D0096478E /* StoreManager.swift in Sources */,
 				56B7410AFE53DF464D867AED /* OCRReviewView.swift in Sources */,

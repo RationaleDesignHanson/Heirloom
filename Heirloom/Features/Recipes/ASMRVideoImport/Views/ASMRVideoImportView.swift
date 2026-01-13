@@ -614,8 +614,23 @@ struct VideoTransferable: Transferable {
         FileRepresentation(contentType: .movie) { video in
             SentTransferredFile(video.url)
         } importing: { received in
-            let copy = URL.documentsDirectory.appending(path: "imported_video_\(UUID().uuidString).mov")
+            // Use persistent VideoProcessing directory (consistent with VideoImportView)
+            let processingDir = FileManager.default
+                .urls(for: .documentDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("VideoProcessing", isDirectory: true)
+
+            try FileManager.default.createDirectory(at: processingDir, withIntermediateDirectories: true)
+
+            let copy = processingDir
+                .appendingPathComponent(UUID().uuidString)
+                .appendingPathExtension("mov")
+
             try FileManager.default.copyItem(at: received.file, to: copy)
+
+            Log.info("ASMR video saved to persistent storage", category: .video, metadata: [
+                "path": copy.path
+            ])
+
             return Self(url: copy)
         }
     }

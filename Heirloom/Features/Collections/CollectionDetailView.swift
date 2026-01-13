@@ -15,8 +15,6 @@ struct CollectionDetailView: View {
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
     @State private var showASMRVideoImport = false
-    @State private var showVideoImportModeSheet = false
-    @State private var selectedImportMode: VideoImportMode?
     @State private var showDeleteConfirmation = false
 
     @Query private var allRecipes: [Recipe]
@@ -88,9 +86,13 @@ struct CollectionDetailView: View {
                         tabCoordinator.willCreateRecipe(from: .collectionDetail)
                         showCookbookScanner = true
                     },
-                    onVideoImport: {
+                    onNarratedVideoImport: {
                         tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                        showVideoImportModeSheet = true
+                        showVideoImport = true
+                    },
+                    onSilentVideoImport: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showASMRVideoImport = true
                     },
                     onAddCollection: {}, // Not applicable within a collection detail view
                     onAddNormalSample: addNormalSampleRecipe,
@@ -125,18 +127,6 @@ struct CollectionDetailView: View {
         .sheet(isPresented: $showCookbookScanner) {
             CookbookScannerView()
                 .environmentObject(tabCoordinator)
-        }
-        .sheet(isPresented: $showVideoImportModeSheet) {
-            VideoImportModeSheet { mode in
-                selectedImportMode = mode
-                // Show appropriate import view based on mode
-                switch mode {
-                case .withInstructions:
-                    showVideoImport = true
-                case .withoutInstructions:
-                    showASMRVideoImport = true
-                }
-            }
         }
         .sheet(isPresented: $showVideoImport) {
             VideoImportView()

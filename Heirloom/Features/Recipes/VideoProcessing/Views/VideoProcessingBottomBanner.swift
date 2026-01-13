@@ -12,6 +12,7 @@ import SwiftData
 struct VideoProcessingBottomBanner: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showJobList = false
+    @State private var selectedFailedJob: VideoProcessingJob?
     @State private var jobManager: VideoProcessingJobManager?
 
     // Query for all jobs, sorted by creation date
@@ -52,32 +53,40 @@ struct VideoProcessingBottomBanner: View {
     }
 
     var body: some View {
-        if !activeJobs.isEmpty {
-            // Priority: processing > failed > completed
-            if let processingJob = processingJobs.first {
-                bannerContent(for: processingJob, showProcessing: true)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: processingJob.id)
-                    .sheet(isPresented: $showJobList) {
-                        VideoProcessingJobListView()
-                    }
-                    .onAppear {
-                        initializeJobManager()
-                    }
-            } else if !failedJobs.isEmpty {
-                failedBannerContent()
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: failedJobs.count)
-                    .sheet(isPresented: $showJobList) {
-                        VideoProcessingJobListView()
-                    }
-            } else if !completedJobs.isEmpty {
-                completedBannerContent()
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: completedJobs.count)
-                    .sheet(isPresented: $showJobList) {
-                        VideoProcessingJobListView()
-                    }
+        Group {
+            if !activeJobs.isEmpty {
+                // Priority: processing > failed > completed
+                if let processingJob = processingJobs.first {
+                    bannerContent(for: processingJob, showProcessing: true)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: processingJob.id)
+                        .sheet(isPresented: $showJobList) {
+                            VideoProcessingJobListView()
+                        }
+                        .onAppear {
+                            initializeJobManager()
+                        }
+                } else if !failedJobs.isEmpty {
+                    failedBannerContent()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: failedJobs.count)
+                        .sheet(isPresented: $showJobList) {
+                            VideoProcessingJobListView()
+                        }
+                } else if !completedJobs.isEmpty {
+                    completedBannerContent()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: completedJobs.count)
+                        .sheet(isPresented: $showJobList) {
+                            VideoProcessingJobListView()
+                        }
+                }
+            }
+        }
+        .sheet(item: $selectedFailedJob) { (job: VideoProcessingJob) in
+            JobRecoverySheet(job: job) { action in
+                let manager = ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
+                try await manager.handleRecoveryAction(for: job, action: action, context: modelContext)
             }
         }
     }
@@ -86,49 +95,44 @@ struct VideoProcessingBottomBanner: View {
         Button {
             showJobList = true
         } label: {
-            HStack(spacing: HeirloomSpacing.md) {
-                // Progress Circle
+            HStack(spacing: 12) {
+                // Progress Circle (smaller)
                 ZStack {
                     Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 3)
-                        .frame(width: 40, height: 40)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 2.5)
+                        .frame(width: 36, height: 36)
 
                     Circle()
                         .trim(from: 0, to: job.progress)
-                        .stroke(HeirloomColors.tomato, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                        .frame(width: 40, height: 40)
+                        .stroke(HeirloomColors.tomato, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                        .frame(width: 36, height: 36)
                         .rotationEffect(.degrees(-90))
                         .animation(.linear(duration: 0.3), value: job.progress)
 
                     if job.progress < 1.0 {
                         Image(systemName: "video.fill")
-                            .font(.system(size: 14))
+                            .font(.system(size: 12))
                             .foregroundStyle(HeirloomColors.tomato)
                     } else {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(HeirloomColors.familyGreen)
                     }
                 }
 
-                // Job Info
-                VStack(alignment: .leading, spacing: 4) {
+                // Job Info - Single line when possible
+                HStack(spacing: 6) {
                     Text(job.detailedStatusText)
-                        .font(HeirloomFonts.bodyBold)
+                        .font(HeirloomFonts.body)
                         .foregroundStyle(HeirloomColors.primaryText)
 
-                    HStack(spacing: 6) {
-                        Text("\(Int(job.progress * 100))%")
+                    if !queuedJobs.isEmpty {
+                        Text("•")
                             .font(HeirloomFonts.caption1)
                             .foregroundStyle(HeirloomColors.secondaryText)
-
-                        if !queuedJobs.isEmpty {
-                            Text("•")
-                                .foregroundStyle(HeirloomColors.secondaryText)
-                            Text("\(queuedJobs.count) in queue")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(HeirloomColors.secondaryText)
-                        }
+                        Text("\(queuedJobs.count) in queue")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
                     }
                 }
 
@@ -139,12 +143,13 @@ struct VideoProcessingBottomBanner: View {
                     .font(.caption)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
-            .padding(HeirloomSpacing.md)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
             .background(.white)
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
             .padding(.horizontal, HeirloomSpacing.md)
-            .padding(.top, HeirloomSpacing.sm)
+            .padding(.top, 8)
         }
         .buttonStyle(.plain)
     }
@@ -153,27 +158,23 @@ struct VideoProcessingBottomBanner: View {
         Button {
             showJobList = true
         } label: {
-            HStack(spacing: HeirloomSpacing.md) {
-                // Checkmark Icon
+            HStack(spacing: 12) {
+                // Checkmark Icon (smaller)
                 ZStack {
                     Circle()
                         .fill(HeirloomColors.familyGreen.opacity(0.1))
-                        .frame(width: 40, height: 40)
+                        .frame(width: 36, height: 36)
 
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 20))
+                        .font(.system(size: 18))
                         .foregroundStyle(HeirloomColors.familyGreen)
                 }
 
-                // Completed Info
-                VStack(alignment: .leading, spacing: 4) {
+                // Completed Info - Single line
+                HStack(spacing: 6) {
                     Text(completedJobs.count == 1 ? "Recipe ready to review" : "\(completedJobs.count) recipes ready to review")
-                        .font(HeirloomFonts.bodyBold)
+                        .font(HeirloomFonts.body)
                         .foregroundStyle(HeirloomColors.primaryText)
-
-                    Text("Tap to review and save")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
                 }
 
                 Spacer()
@@ -183,47 +184,53 @@ struct VideoProcessingBottomBanner: View {
                     .font(.caption)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
-            .padding(HeirloomSpacing.md)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
             .background(.white)
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
             .padding(.horizontal, HeirloomSpacing.md)
-            .padding(.top, HeirloomSpacing.sm)
+            .padding(.top, 8)
         }
         .buttonStyle(.plain)
     }
 
     private func failedBannerContent() -> some View {
         Button {
-            showJobList = true
+            // If only one failed job, show recovery sheet directly for better UX
+            if failedJobs.count == 1, let failedJob = failedJobs.first {
+                selectedFailedJob = failedJob
+            } else {
+                // Multiple failed jobs, show full list
+                showJobList = true
+            }
         } label: {
-            HStack(spacing: HeirloomSpacing.md) {
-                // Error Icon
+            HStack(spacing: 12) {
+                // Error Icon (smaller)
                 ZStack {
                     Circle()
                         .fill(Color.red.opacity(0.1))
-                        .frame(width: 40, height: 40)
+                        .frame(width: 36, height: 36)
 
                     Image(systemName: "exclamationmark.circle.fill")
-                        .font(.system(size: 20))
+                        .font(.system(size: 18))
                         .foregroundStyle(.red)
                 }
 
-                // Failed Info
-                VStack(alignment: .leading, spacing: 4) {
+                // Failed Info - Single line when possible
+                HStack(spacing: 6) {
                     Text(failedJobs.count == 1 ? "Video processing failed" : "\(failedJobs.count) videos failed")
-                        .font(HeirloomFonts.bodyBold)
+                        .font(HeirloomFonts.body)
                         .foregroundStyle(HeirloomColors.primaryText)
 
                     // Show context if there are also completed jobs
                     if !completedJobs.isEmpty {
-                        Text("\(completedJobs.count) ready to review")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.familyGreen)
-                    } else {
-                        Text("Tap to retry or view error")
+                        Text("•")
                             .font(HeirloomFonts.caption1)
                             .foregroundStyle(HeirloomColors.secondaryText)
+                        Text("\(completedJobs.count) ready")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.familyGreen)
                     }
                 }
 
@@ -234,12 +241,13 @@ struct VideoProcessingBottomBanner: View {
                     .font(.caption)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
-            .padding(HeirloomSpacing.md)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
             .background(.white)
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
             .padding(.horizontal, HeirloomSpacing.md)
-            .padding(.top, HeirloomSpacing.sm)
+            .padding(.top, 8)
         }
         .buttonStyle(.plain)
     }

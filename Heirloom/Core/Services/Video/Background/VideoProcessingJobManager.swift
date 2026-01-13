@@ -433,9 +433,20 @@ final class VideoProcessingJobManager: ObservableObject {
         error: Error,
         context: ModelContext
     ) async {
+        // Classify error type for smart recovery
+        let errorType = classifyError(error)
+
+        // Set error info on job
         job.status = .failed
-        job.errorMessage = error.localizedDescription
+        job.errorType = errorType
+        job.errorMessage = getErrorMessage(for: errorType, baseError: error)
         job.completedAt = Date()
+
+        Log.error("Job processing failed", category: .video, metadata: [
+            "jobId": job.id.uuidString,
+            "errorType": errorType.rawValue,
+            "errorMessage": job.errorMessage ?? "unknown"
+        ])
 
         // Refund credits if applicable
         if job.shouldRefundCredits {
@@ -453,6 +464,134 @@ final class VideoProcessingJobManager: ObservableObject {
 
         // Schedule failure notification
         scheduleFailureNotification(job, context: context)
+    }
+
+    /// Classify error type for contextual recovery options
+    private func classifyError(_ error: Error) -> ProcessingErrorType {
+        let description = error.localizedDescription.lowercased()
+
+        // Check for audio/transcription errors
+        if description.contains("missing") ||
+           description.contains("no audio") ||
+           description.contains("transcription failed") ||
+           description.contains("insufficient data") ||
+           description.contains("silent") ||
+           description.contains("no speech") {
+            return .insufficientAudioData
+        }
+
+        // Check for file not found errors
+        if description.contains("not found") ||
+           description.contains("no such file") ||
+           description.contains("file does not exist") ||
+           error is VideoProcessingError && error as? VideoProcessingError == .videoFileNotFound {
+            return .fileNotFound
+        }
+
+        // Check for permission errors
+        if description.contains("permission") ||
+           description.contains("not authorized") ||
+           description.contains("access denied") {
+            return .permissionDenied
+        }
+
+        // Default to generic error
+        return .other
+    }
+
+    /// Generate user-friendly error message based on error type
+    private func getErrorMessage(for errorType: ProcessingErrorType, baseError: Error) -> String {
+        switch errorType {
+        case .insufficientAudioData:
+            return "Could not extract audio from video. This video appears to be silent or have unclear narration."
+
+        case .fileNotFound:
+            return "Video file could not be accessed. It may be stored in iCloud and not downloaded."
+
+        case .permissionDenied:
+            return "Permission denied accessing video. Please check app permissions in Settings."
+
+        case .other:
+            return baseError.localizedDescription
+        }
+    }
+
+    /// Handle recovery action from JobRecoverySheet
+    func handleRecoveryAction(for job: VideoProcessingJob, action: RecoveryAction, context: ModelContext) async throws {
+        switch action {
+        case .tryASMRMode:
+            // Verify error type is audio-related
+            guard job.errorType == .insufficientAudioData else {
+                throw RecoveryError.invalidRecoveryAction
+            }
+
+            // Check ASMR credits
+            guard usageManager.canStartExtraction() else {
+                throw RecoveryError.insufficientCredits
+            }
+
+            // Get video URL
+            let videoURL = URL(fileURLWithPath: job.videoURL)
+
+            // Re-queue as ASMR job
+            let attribution = VideoSourceAttribution(
+                sourceURL: job.sourceURL,
+                captionText: job.userCaption
+            )
+
+            _ = try createJob(
+                videoURL: videoURL,
+                videoType: .asmr,
+                userCaption: job.userCaption ?? "Recipe from failed narrated video (retry)",
+                videoDuration: job.videoDuration,
+                sourceAttribution: attribution,
+                context: context
+            )
+
+            // Delete old failed job
+            context.delete(job)
+            try context.save()
+
+            // Show success toast
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            toastManager.info(
+                title: "Retrying with ASMR Mode",
+                message: "Using vision-based analysis (5 credits)"
+            )
+
+            Log.info("Job converted to ASMR mode", category: .video, metadata: [
+                "originalJobId": job.id.uuidString
+            ])
+
+        case .retry:
+            // Reset job status and retry with same mode
+            job.status = .pending
+            job.errorMessage = nil
+            job.errorType = nil
+            job.progress = 0.0
+            job.currentPhase = .queued
+            try context.save()
+
+            refreshQueue(context: context)
+
+            // Re-process job
+            try await startNextJob(context: context)
+
+            Log.info("Job retry initiated from recovery", category: .video, metadata: [
+                "jobId": job.id.uuidString
+            ])
+
+        case .cancel:
+            // Delete job
+            context.delete(job)
+            try context.save()
+
+            refreshQueue(context: context)
+
+            Log.info("User cancelled failed job", category: .video, metadata: [
+                "jobId": job.id.uuidString
+            ])
+        }
     }
 
     // MARK: - Credit Management
@@ -829,6 +968,26 @@ enum VideoProcessingError: LocalizedError {
             return "Job is not in completed state"
         case .noExtractionData:
             return "No extraction data available for this job"
+        }
+    }
+}
+
+enum RecoveryAction {
+    case tryASMRMode
+    case retry
+    case cancel
+}
+
+enum RecoveryError: LocalizedError {
+    case insufficientCredits
+    case invalidRecoveryAction
+
+    var errorDescription: String? {
+        switch self {
+        case .insufficientCredits:
+            return "You need 5 credits to use ASMR mode."
+        case .invalidRecoveryAction:
+            return "This recovery action is not available for this error type."
         }
     }
 }

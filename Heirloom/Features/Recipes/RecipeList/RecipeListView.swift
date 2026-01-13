@@ -156,8 +156,6 @@ struct RecipeListView: View {
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
     @State private var showASMRVideoImport = false
-    @State private var showVideoImportModeSheet = false
-    @State private var selectedImportMode: VideoImportMode?
     @State private var showCreateCollection = false
     @State private var showFilters = false
     @State private var filters = RecipeFilters()
@@ -200,18 +198,6 @@ struct RecipeListView: View {
                     RecipeDetailView(recipe: recipe)
                 }
                 .modifier(sheetModifiers)
-                .sheet(isPresented: $showVideoImportModeSheet) {
-                    VideoImportModeSheet { mode in
-                        selectedImportMode = mode
-                        // Show appropriate import view based on mode
-                        switch mode {
-                        case .withInstructions:
-                            showVideoImport = true
-                        case .withoutInstructions:
-                            showASMRVideoImport = true
-                        }
-                    }
-                }
                 .sheet(isPresented: $showSignInPrompt) {
                     SignInPromptSheet()
                         .presentationDetents([.medium])
@@ -332,9 +318,13 @@ struct RecipeListView: View {
                     tabCoordinator.willCreateRecipe(from: .recipesTab)
                     showCookbookScanner = true
                 },
-                onVideoImport: {
+                onNarratedVideoImport: {
                     tabCoordinator.willCreateRecipe(from: .recipesTab)
-                    showVideoImportModeSheet = true
+                    showVideoImport = true
+                },
+                onSilentVideoImport: {
+                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    showASMRVideoImport = true
                 },
                 onAddCollection: {
                     tabCoordinator.willCreateCollection(from: .recipesTab)

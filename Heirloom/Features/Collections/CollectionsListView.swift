@@ -15,8 +15,6 @@ struct CollectionsListView: View {
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
     @State private var showASMRVideoImport = false
-    @State private var showVideoImportModeSheet = false
-    @State private var selectedImportMode: VideoImportMode?
     @State private var selectedCollection: RecipeCollection?
     @State private var showRecipeCoachMark = false
     @State private var collectionToDelete: RecipeCollection?
@@ -82,18 +80,6 @@ struct CollectionsListView: View {
             .sheet(isPresented: $showCookbookScanner) {
                 CookbookScannerView()
                     .environmentObject(tabCoordinator)
-            }
-            .sheet(isPresented: $showVideoImportModeSheet) {
-                VideoImportModeSheet { mode in
-                    selectedImportMode = mode
-                    // Show appropriate import view based on mode
-                    switch mode {
-                    case .withInstructions:
-                        showVideoImport = true
-                    case .withoutInstructions:
-                        showASMRVideoImport = true
-                    }
-                }
             }
             .sheet(isPresented: $showVideoImport) {
                 VideoImportView()
@@ -201,7 +187,8 @@ struct CollectionsListView: View {
                 onImportRecipe: handleImportRecipe,
                 onBulkImport: handleBulkImport,
                 onCookbookScanner: handleCookbookScanner,
-                onVideoImport: handleVideoImport,
+                onNarratedVideoImport: handleNarratedVideoImport,
+                onSilentVideoImport: handleSilentVideoImport,
                 onAddCollection: handleAddCollection,
                 onAddNormalSample: {},
                 onAddHeritageSample: {}
@@ -488,9 +475,14 @@ struct CollectionsListView: View {
         showCookbookScanner = true
     }
 
-    private func handleVideoImport() {
+    private func handleNarratedVideoImport() {
         tabCoordinator.willCreateRecipe(from: .collectionsTab)
-        showVideoImportModeSheet = true
+        showVideoImport = true
+    }
+
+    private func handleSilentVideoImport() {
+        tabCoordinator.willCreateRecipe(from: .collectionsTab)
+        showASMRVideoImport = true
     }
 
     private func handleAddCollection() {

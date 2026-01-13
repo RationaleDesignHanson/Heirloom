@@ -24,6 +24,7 @@ struct VideoProcessingJobListView: View {
     @State private var selectedJob: VideoProcessingJob?
     @State private var selectedEnhanced: VideoRecipeExtraction.Enhanced?
     @State private var showReviewSheet = false
+    @State private var showRecoverySheet = false
 
     private var processingJobs: [VideoProcessingJob] {
         allJobs.filter { $0.status == .processing }
@@ -143,6 +144,13 @@ struct VideoProcessingJobListView: View {
                     )
                 }
             }
+            .sheet(isPresented: $showRecoverySheet) {
+                if let job = selectedJob {
+                    JobRecoverySheet(job: job) { action in
+                        try await jobManager.handleRecoveryAction(for: job, action: action, context: modelContext)
+                    }
+                }
+            }
         }
     }
 
@@ -189,6 +197,8 @@ struct VideoProcessingJobListView: View {
         Button {
             if job.status == .completed {
                 openReviewScreen(for: job)
+            } else if job.status == .failed {
+                openRecoverySheet(for: job)
             }
         } label: {
             JobRow(
@@ -342,6 +352,19 @@ struct VideoProcessingJobListView: View {
                 ])
             }
         }
+    }
+
+    private func openRecoverySheet(for job: VideoProcessingJob) {
+        guard job.status == .failed else {
+            Log.error("Cannot open recovery sheet - job is not failed", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "status": job.status.rawValue
+            ])
+            return
+        }
+
+        selectedJob = job
+        showRecoverySheet = true
     }
 
     private func saveRecipe(from extraction: VideoRecipeExtraction, job: VideoProcessingJob) {

@@ -52,6 +52,9 @@ final class VideoProcessingJob {
     /// Error message if status is .failed
     var errorMessage: String?
 
+    /// Classified error type for smart recovery
+    var errorType: ProcessingErrorType?
+
     /// Number of times this job has been retried
     var retryCount: Int
 
@@ -132,6 +135,13 @@ enum VideoProcessingStatus: String, Codable {
 enum VideoType: String, Codable {
     case standard       // Regular video processing
     case asmr           // ASMR video with 5-pass processing
+}
+
+enum ProcessingErrorType: String, Codable {
+    case insufficientAudioData  // Triggers ASMR recommendation
+    case fileNotFound           // iCloud or temp file cleanup
+    case permissionDenied       // Permissions issue
+    case other                  // Generic error
 }
 
 enum ProcessingPhase: String, Codable {

@@ -256,6 +256,30 @@ struct VideoPickerView: UIViewControllerRepresentable {
             self.parent = parent
         }
 
+        // Save video data to persistent processing storage
+        private func saveToProcessingStorage(_ data: Data) throws -> URL {
+            // Create processing directory if needed
+            let processingDir = FileManager.default
+                .urls(for: .documentDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("VideoProcessing", isDirectory: true)
+
+            try FileManager.default.createDirectory(at: processingDir, withIntermediateDirectories: true)
+
+            // Create unique file path
+            let destinationURL = processingDir
+                .appendingPathComponent(UUID().uuidString)
+                .appendingPathExtension("mov")
+
+            // Write video data
+            try data.write(to: destinationURL)
+
+            Log.info("Video saved to persistent storage", category: .video, metadata: [
+                "path": destinationURL.path
+            ])
+
+            return destinationURL
+        }
+
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             parent.dismiss()
 
@@ -283,15 +307,11 @@ struct VideoPickerView: UIViewControllerRepresentable {
                     return
                 }
 
-                // Write data to temp file
-                let tempURL = FileManager.default.temporaryDirectory
-                    .appendingPathComponent(UUID().uuidString)
-                    .appendingPathExtension("mov")
-
+                // Write data to persistent processing directory
                 do {
-                    try data.write(to: tempURL)
+                    let persistentURL = try self.saveToProcessingStorage(data)
                     DispatchQueue.main.async {
-                        self.parent.selectedURL = tempURL
+                        self.parent.selectedURL = persistentURL
                     }
                 } catch {
                     DispatchQueue.main.async {

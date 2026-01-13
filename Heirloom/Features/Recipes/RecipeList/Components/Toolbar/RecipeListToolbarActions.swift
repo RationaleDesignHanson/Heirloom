@@ -18,7 +18,8 @@ struct RecipeListToolbarActions: View {
     let onImportRecipe: () -> Void
     let onBulkImport: () -> Void
     let onCookbookScanner: () -> Void
-    let onVideoImport: () -> Void
+    let onNarratedVideoImport: () -> Void
+    let onSilentVideoImport: () -> Void
     let onAddCollection: () -> Void
     let onAddNormalSample: () -> Void
     let onAddHeritageSample: () -> Void
@@ -64,21 +65,40 @@ struct RecipeListToolbarActions: View {
                 .accessibilityHint("Scan a recipe from a cookbook page")
 
                 Button {
-                    onVideoImport()
+                    onNarratedVideoImport()
                 } label: {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Video to Recipe")
-                            Text("From cooking videos")
+                            Text("Narrated Video")
+                            Text("With spoken instructions")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
                     } icon: {
                         Image(systemName: "video.badge.waveform")
+                            .foregroundStyle(.blue)
                     }
                 }
-                .accessibilityLabel("Import recipe from cooking video")
-                .accessibilityHint("Extract recipes from cooking videos with or without narration")
+                .accessibilityLabel("Import recipe from narrated cooking video")
+                .accessibilityHint("Extract recipes from videos with spoken instructions")
+
+                Button {
+                    onSilentVideoImport()
+                } label: {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Silent Video (ASMR)")
+                            Text("Visual cooking steps")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "eye.circle.fill")
+                            .foregroundStyle(.purple)
+                    }
+                }
+                .accessibilityLabel("Import recipe from silent cooking video")
+                .accessibilityHint("Extract recipes from silent videos using visual analysis")
 
                 Divider()
 
