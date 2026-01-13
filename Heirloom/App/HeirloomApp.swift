@@ -123,6 +123,16 @@ struct HeirloomApp: App {
         logger.info("🚀 [Heirloom] HeirloomApp.init() called - starting initialization")
         Log.info("HeirloomApp initialization started", category: .general)
 
+        // CONFIGURE UIKIT APPEARANCE
+        // Must happen early to ensure all UIKit components render correctly
+        // Skip in test environment to avoid affecting test execution
+        if !isRunningTests {
+            print("🎨 [INIT] Configuring UIKit appearance for forced light mode...")
+            UIKitAppearance.configure()
+            print("✅ [INIT] UIKit appearance configured")
+            DeviceLogger.shared.log("✅ [Heirloom] UIKit appearance configured for light mode")
+        }
+
         // FIREBASE INITIALIZATION - Phase 1 of migration
         // Skip Firebase initialization in test environment to prevent crashes
         DeviceLogger.shared.log("🧪 [Heirloom] Test detection - XCTestConfigurationFilePath: \(ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil ? "YES" : "NO"), XCTestCase class: \(NSClassFromString("XCTestCase") != nil ? "YES" : "NO")")

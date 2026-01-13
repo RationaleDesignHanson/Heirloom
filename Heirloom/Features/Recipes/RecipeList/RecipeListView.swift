@@ -148,6 +148,7 @@ struct RecipeListView: View {
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
     private var crdtMergeEngine: CRDTMergeEngine { ServiceContainer.shared.resolve(CRDTMergeEngine.self) }
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
+    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
     // Heritage unlock tracking for progressive unlock system
     @State private var unlockTracker: HeritageUnlockTracker?
@@ -190,6 +191,9 @@ struct RecipeListView: View {
     // Sign-in prompt
     @State private var showSignInPrompt = false
 
+    // Heritage unlock
+    @State private var showHeritageUnlock = false
+
     var body: some View {
         NavigationStack {
             mainContent
@@ -204,6 +208,10 @@ struct RecipeListView: View {
                 .sheet(isPresented: $showSignInPrompt) {
                     SignInPromptSheet()
                         .presentationDetents([.medium])
+                }
+                .sheet(isPresented: $showHeritageUnlock) {
+                    HeritageUnlockView()
+                        .presentationDetents([.large])
                 }
                 .onAppear {
                     configureUndoService()
@@ -300,6 +308,27 @@ struct RecipeListView: View {
 
     @ToolbarContentBuilder
     private var toolbarActions: some ToolbarContent {
+        // Heritage unlock icon with trial countdown
+        ToolbarItem(placement: .topBarTrailing) {
+            if let tracker = unlockTracker, (tracker.totalRecipesRemaining > 0 || tracker.unlockedRecipeIds.count > 0) {
+                Button {
+                    showHeritageUnlock = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(.orange)
+
+                        if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining, daysRemaining > 0 {
+                            Text("\(daysRemaining)d")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                        }
+                    }
+                }
+                .accessibilityLabel("Heritage Collection - \(subscriptionManager.isInTrial ? "\(subscriptionManager.daysRemaining ?? 0) days remaining" : "")")
+            }
+        }
+
         ToolbarItem(placement: .primaryAction) {
             RecipeListToolbarActions(
                 isSelectionMode: isSelectionMode,

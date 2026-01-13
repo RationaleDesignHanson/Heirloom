@@ -153,7 +153,8 @@ struct JobRecoverySheet: View {
         // Infer error type from message text
         let msgLower = errorMsg.lowercased()
         if msgLower.contains("audio") || msgLower.contains("silent") ||
-           msgLower.contains("data couldn't be read") || msgLower.contains("missing") {
+           msgLower.contains("data couldn't be read") || msgLower.contains("missing") ||
+           msgLower.contains("confidence") || msgLower.contains("extraction") {
             return .insufficientAudioData
         } else if msgLower.contains("not found") || msgLower.contains("icloud") {
             return .fileNotFound

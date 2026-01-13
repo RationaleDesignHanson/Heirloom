@@ -24,6 +24,9 @@ struct RecipeListToolbarActions: View {
     let onAddNormalSample: () -> Void
     let onAddHeritageSample: () -> Void
 
+    // Track menu presentation state for shimmer control
+    @State private var isMenuPresented = false
+
     var body: some View {
         if isSelectionMode {
             Button(selectedCount == filteredCount ? "Deselect All" : "Select All") {
@@ -135,6 +138,22 @@ struct RecipeListToolbarActions: View {
                 .accessibilityHint("Generate a sample recipe for testing")
             } label: {
                 Image(systemName: "plus")
+                    .holographicShimmer(
+                        isActive: !isMenuPresented,
+                        shimmerInterval: 12.0
+                    )
+            }
+            .onTapGesture {
+                // Track menu presentation for shimmer control
+                isMenuPresented = true
+            }
+            .onChange(of: isMenuPresented) { _, newValue in
+                // Reset after menu closes (approximate - Menu doesn't expose state)
+                if newValue {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        isMenuPresented = false
+                    }
+                }
             }
             .accessibilityLabel("Add Recipe")
             .accessibilityHint("Opens menu to add or import recipes")

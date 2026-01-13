@@ -15,6 +15,7 @@ import Foundation
 @MainActor
 class ClaudeRecipeStructurer: RecipeStructurerProtocol {
     private let aiService: AIServiceProtocol
+    private var currentTranscript: TranscriptionResult?
 
     /// Initialize with AI service (will use AnthropicAIService from main app)
     init(aiService: AIServiceProtocol) {
@@ -36,11 +37,14 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
         visualElements: [String]
     ) async throws -> StructuredRecipe {
 
+        // Store transcript for validation
+        self.currentTranscript = transcript
+
         let prompt = buildPrompt(transcript: transcript, visualElements: visualElements)
 
         let options = AICompletionOptions(
             model: "claude-sonnet-4-20250514",  // Claude Sonnet 4 with vision
-            temperature: 0.3,  // Lower temperature for structured extraction
+            temperature: 0.1,  // Very low temperature for consistent structured extraction
             maxTokens: 2048,
             systemMessage: systemPrompt,
             stopSequences: nil
@@ -71,6 +75,12 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
     private var systemPrompt: String {
         """
         You are a recipe extraction specialist. Your task is to extract structured recipe data from cooking video transcripts.
+
+        VIDEO FORMAT SUPPORT:
+        - Videos may range from short-form (15-60 seconds, TikTok/Reels/Shorts) to long-form (5+ minutes)
+        - Short videos often focus on a single technique or quick recipe - this is valid
+        - Extract what information is available, even if brief
+        - Don't penalize confidence for conciseness - some recipes are naturally simple
 
         RECIPE TITLE GUIDELINES:
         - Extract the recipe title EXACTLY as the narrator describes it
@@ -124,6 +134,14 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
         \(transcript.text)
         </transcript>
         """
+
+        // Log transcript details for debugging
+        Log.info("Structuring recipe from transcript", category: .video, metadata: [
+            "transcriptLength": transcript.text.count,
+            "transcriptConfidence": transcript.confidence,
+            "hasVisualElements": !visualElements.isEmpty,
+            "visualElementCount": visualElements.count
+        ])
 
         if !visualElements.isEmpty {
             prompt += """
@@ -210,8 +228,21 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
             throw RecipeParsingError.noRecipeContent
         }
 
-        // Check for suspiciously low confidence
-        if recipe.overallConfidence < 0.3 {
+        // Dynamic confidence threshold based on transcript length
+        // Short videos (< 200 chars) get more lenient threshold to support TikTok/Reels/Shorts
+        // Normal videos maintain original 0.3 threshold to preserve quality
+        let transcriptLength = currentTranscript?.text.count ?? 0
+        let confidenceThreshold: Double = transcriptLength < 200 ? 0.15 : 0.30
+
+        if recipe.overallConfidence < confidenceThreshold {
+            Log.warning("Recipe extraction confidence too low", category: .video, metadata: [
+                "confidence": recipe.overallConfidence,
+                "threshold": confidenceThreshold,
+                "transcriptLength": transcriptLength,
+                "title": recipe.title,
+                "ingredientCount": recipe.ingredients.count,
+                "stepCount": recipe.steps.count
+            ])
             throw RecipeParsingError.confidenceTooLow(recipe.overallConfidence)
         }
     }
