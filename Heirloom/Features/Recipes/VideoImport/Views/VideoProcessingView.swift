@@ -97,7 +97,22 @@ struct VideoProcessingView: View {
                     // Wait a moment to show 100% before dismissing
                     try? await Task.sleep(nanoseconds: 1_000_000_000)
 
-                    showReview = true
+                    // Phase 3.1: Confidence-based auto-save
+                    let confidence = result.metadata.transcriptionConfidence
+                    let isComplete = result.structuredRecipe.isComplete
+
+                    if confidence > 0.85 && isComplete {
+                        // High confidence: Auto-save and dismiss
+                        let savedRecipe = saveToSwiftData(result)
+                        onComplete(savedRecipe)
+
+                        // TODO: Phase 3.3 - Show rich summary toast with "View Extraction Details"
+                        // For now, recipe saved and user sees it in list
+                        dismiss()
+                    } else {
+                        // Low confidence: Show review screen for manual validation
+                        showReview = true
+                    }
                 } catch {
                     errorMessage = error.localizedDescription
                     showError = true
