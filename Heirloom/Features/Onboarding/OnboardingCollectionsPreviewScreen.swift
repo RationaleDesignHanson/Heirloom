@@ -127,12 +127,12 @@ struct OnboardingCollectionsPreviewScreen: View {
             .padding(.horizontal, HeirloomSpacing.lg)
 
             // Bottom Half - 2 Collection Cards
-            HStack(spacing: HeirloomSpacing.md) {
+            VStack(spacing: HeirloomSpacing.sm) {
                 if let primary = displayedCollections.primary {
                     Button {
                         selectedCollection = primary
                     } label: {
-                        HeritageCollectionCard(collection: primary)
+                        CollectionRow(collection: primary)
                     }
                     .buttonStyle(.plain)
                 }
@@ -141,7 +141,7 @@ struct OnboardingCollectionsPreviewScreen: View {
                     Button {
                         selectedCollection = secondary
                     } label: {
-                        HeritageCollectionCard(collection: secondary)
+                        CollectionRow(collection: secondary)
                     }
                     .buttonStyle(.plain)
                 }

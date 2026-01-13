@@ -41,13 +41,8 @@ struct CollectionsListView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: HeirloomSpacing.xl) {
-                    // Heritage Collections Section
-                    if !heritageCollections.isEmpty {
-                        heritageCollectionsSection
-                    }
-
-                    // My Collections Section
-                    myCollectionsSection
+                    // Unified Collections Section
+                    unifiedCollectionsSection
                 }
                 .padding(.vertical, HeirloomSpacing.lg)
             }
@@ -119,68 +114,44 @@ struct CollectionsListView: View {
 
     // MARK: - View Components
 
-    private var heritageCollectionsSection: some View {
+    private var unifiedCollectionsSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            Text("Heritage Collections")
-                .font(HeirloomFonts.title3)
-                .foregroundStyle(HeirloomColors.primaryText)
-                .padding(.horizontal, HeirloomSpacing.md)
-
-            Text("Historic recipes from America's culinary past")
-                .font(HeirloomFonts.caption1)
-                .foregroundStyle(HeirloomColors.secondaryText)
-                .padding(.horizontal, HeirloomSpacing.md)
-
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: HeirloomSpacing.md),
-                GridItem(.flexible(), spacing: HeirloomSpacing.md)
-            ], spacing: HeirloomSpacing.md) {
-                ForEach(heritageCollections, id: \.id) { collection in
-                    HeritageCollectionCard(collection: collection)
-                        .onTapGesture {
-                            // Show coach mark on first tap if not seen
-                            if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
-                                showRecipeCoachMark = true
-                            } else {
-                                selectedCollection = collection
-                            }
-                        }
-                        .contextMenu {
-                            Button(role: .destructive) {
-                                collectionToDelete = collection
-                                showDeleteConfirmation = true
-                            } label: {
-                                Label("Delete Collection", systemImage: "trash")
-                            }
-                        }
-                }
-            }
-            .padding(.horizontal, HeirloomSpacing.md)
-        }
-    }
-
-    private var myCollectionsSection: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            Text("My Collections")
-                .font(HeirloomFonts.title3)
-                .foregroundStyle(HeirloomColors.primaryText)
-                .padding(.horizontal, HeirloomSpacing.md)
-
-            if systemCollections.isEmpty && userCollections.isEmpty {
+            if heritageCollections.isEmpty && systemCollections.isEmpty && userCollections.isEmpty {
                 emptyUserCollectionsView
             } else {
                 LazyVStack(spacing: HeirloomSpacing.sm) {
-                    // System collections first (Favorites, Quick Meals, etc.)
+                    // Heritage collections first (as rows)
+                    ForEach(heritageCollections, id: \.id) { collection in
+                        CollectionRow(collection: collection)
+                            .onTapGesture {
+                                // Show coach mark on first tap if not seen
+                                if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
+                                    showRecipeCoachMark = true
+                                } else {
+                                    selectedCollection = collection
+                                }
+                            }
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    collectionToDelete = collection
+                                    showDeleteConfirmation = true
+                                } label: {
+                                    Label("Delete Collection", systemImage: "trash")
+                                }
+                            }
+                    }
+
+                    // System collections (Favorites, Quick Meals, etc.)
                     ForEach(systemCollections, id: \.id) { collection in
-                        UserCollectionRow(collection: collection)
+                        CollectionRow(collection: collection)
                             .onTapGesture {
                                 selectedCollection = collection
                             }
                     }
 
-                    // User collections after system collections
+                    // User collections (with delete context menu)
                     ForEach(userCollections, id: \.id) { collection in
-                        UserCollectionRow(collection: collection)
+                        CollectionRow(collection: collection)
                             .onTapGesture {
                                 selectedCollection = collection
                             }
@@ -467,65 +438,17 @@ struct CollectionsListView: View {
     }
 }
 
-// MARK: - Heritage Collection Card
+// MARK: - Collection Row
 
-struct HeritageCollectionCard: View {
-    let collection: RecipeCollection
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            // Icon and badge
-            HStack {
-                Image(systemName: collection.iconName)
-                    .font(.title2)
-                    .foregroundStyle(collection.swiftUIColor)
-
-                Spacer()
-
-                // Heritage badge
-                Text("HERITAGE")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(collection.swiftUIColor.opacity(0.8))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(collection.swiftUIColor.opacity(0.15))
-                    .cornerRadius(4)
-            }
-
-            Spacer()
-
-            // Collection name
-            Text(collection.name)
-                .font(HeirloomFonts.body)
-                .foregroundStyle(HeirloomColors.primaryText)
-                .lineLimit(2)
-
-            // Recipe count
-            Text("\(collection.recipeCount) recipe\(collection.recipeCount == 1 ? "" : "s")")
-                .font(HeirloomFonts.caption2)
-                .foregroundStyle(HeirloomColors.secondaryText)
-        }
-        .padding(HeirloomSpacing.md)
-        .frame(height: 140)
-        .background(Color(hex: "#F8F8F8"))
-        .overlay(
-            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
-                .strokeBorder(collection.swiftUIColor.opacity(0.2), lineWidth: 1)
-        )
-        .cornerRadius(HeirloomSpacing.cardCornerRadius)
-    }
-}
-
-// MARK: - User Collection Row
-
-struct UserCollectionRow: View {
+struct CollectionRow: View {
     let collection: RecipeCollection
 
     var body: some View {
         HStack(spacing: HeirloomSpacing.md) {
-            // Icon
+            // Icon (with subtle distinction for heritage)
             Image(systemName: collection.iconName)
                 .font(.title3)
+                .fontWeight(collection.isHeritageCollection ? .semibold : .regular)
                 .foregroundStyle(collection.swiftUIColor)
                 .frame(width: 32)
 
@@ -548,7 +471,12 @@ struct UserCollectionRow: View {
                 .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
         }
         .padding(HeirloomSpacing.md)
-        .background(Color(hex: "#F8F8F8"))
+        .background(
+            // Subtle background tint for heritage collections
+            collection.isHeritageCollection
+                ? collection.swiftUIColor.opacity(0.03)
+                : Color(hex: "#F8F8F8")
+        )
         .cornerRadius(HeirloomSpacing.cardCornerRadius)
     }
 }
