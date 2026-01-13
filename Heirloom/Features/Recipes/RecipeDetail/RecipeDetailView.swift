@@ -424,13 +424,12 @@ struct RecipeDetailView: View {
         .sheet(isPresented: $showCardBackEditor) {
             CardBackEditorView(recipe: recipe)
         }
-        // TODO: Add VideoAttributionSheet.swift to Xcode project target
-        // .sheet(isPresented: $showVideoAttributionSheet) {
-        //     VideoAttributionSheet(recipe: recipe) {
-        //         // Refresh UI after attribution is saved
-        //         // The computed property needsAttribution will automatically update
-        //     }
-        // }
+        .sheet(isPresented: $showVideoAttributionSheet) {
+            VideoAttributionSheet(recipe: recipe) {
+                // Refresh UI after attribution is saved
+                // The computed property needsAttribution will automatically update
+            }
+        }
         .sheet(isPresented: $showHeirloomExplanation) {
             HeirloomShareExplanationView()
         }

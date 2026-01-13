@@ -94,6 +94,7 @@
 		C513D4322F15EB1B00BFCF7D /* BlindBoxSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4312F15EB1B00BFCF7D /* BlindBoxSeeder.swift */; };
 		C513D4342F15F10700BFCF7D /* SignInPromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4332F15F10700BFCF7D /* SignInPromptSheet.swift */; };
 		C513D4362F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4352F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift */; };
+		C513D8542F16123800BFCF7D /* VideoAttributionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D8532F16123800BFCF7D /* VideoAttributionSheet.swift */; };
 		C568873C2F057B02006EA0B1 /* HeirloomShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */; };
 		C568877B2F06B4AE006EA0B1 /* CRDTMergeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */; };
@@ -386,6 +387,7 @@
 		C513D4312F15EB1B00BFCF7D /* BlindBoxSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlindBoxSeeder.swift; sourceTree = "<group>"; };
 		C513D4332F15F10700BFCF7D /* SignInPromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPromptSheet.swift; sourceTree = "<group>"; };
 		C513D4352F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFeaturesScreen.swift; sourceTree = "<group>"; };
+		C513D8532F16123800BFCF7D /* VideoAttributionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoAttributionSheet.swift; sourceTree = "<group>"; };
 		C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HeirloomShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FirebaseSyncService+CRDT.swift"; sourceTree = "<group>"; };
 		C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRDTMergeEngine.swift; sourceTree = "<group>"; };
@@ -1122,6 +1124,7 @@
 		C583162C2F119A030096478E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C513D8532F16123800BFCF7D /* VideoAttributionSheet.swift */,
 				C58316272F119A030096478E /* AugmentedIngredientEditRow.swift */,
 				C58316282F119A030096478E /* SimilarRecipesInfoView.swift */,
 				C58316292F119A030096478E /* VideoImportView.swift */,
@@ -1940,6 +1943,7 @@
 				C58319742F123CFF0096478E /* ASMRSoundAnalysisService.swift in Sources */,
 				C58319752F123CFF0096478E /* ASMRRecipeStructurer.swift in Sources */,
 				170FCC7FCA2F497BAD8D4963 /* IngredientDeduplicator.swift in Sources */,
+				C513D8542F16123800BFCF7D /* VideoAttributionSheet.swift in Sources */,
 				5D4AB08420CFFF166E649998 /* CookbookScannerView.swift in Sources */,
 				FBC3DAB4D681A708C08D2CF1 /* CookingModeView.swift in Sources */,
 				3CD1A2F75968D634EC4A16A8 /* DataErrorView.swift in Sources */,
