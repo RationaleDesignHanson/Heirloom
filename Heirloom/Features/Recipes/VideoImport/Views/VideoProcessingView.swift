@@ -25,6 +25,8 @@ struct VideoProcessingView: View {
     @State private var errorMessage: String?
     @State private var recipeImage: Data?
 
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -106,8 +108,16 @@ struct VideoProcessingView: View {
                         let savedRecipe = saveToSwiftData(result)
                         onComplete(savedRecipe)
 
-                        // TODO: Phase 3.3 - Show rich summary toast with "View Extraction Details"
-                        // For now, recipe saved and user sees it in list
+                        // Phase 3.3: Show rich summary toast with extraction stats
+                        let ingredientCount = result.structuredRecipe.ingredients.count
+                        let stepCount = result.structuredRecipe.steps.count
+                        let confidencePercent = Int(confidence * 100)
+
+                        toastManager.success(
+                            title: "Recipe saved from video!",
+                            message: "\(ingredientCount) ingredients • \(stepCount) steps • \(confidencePercent)% confidence"
+                        )
+
                         dismiss()
                     } else {
                         // Low confidence: Show review screen for manual validation
