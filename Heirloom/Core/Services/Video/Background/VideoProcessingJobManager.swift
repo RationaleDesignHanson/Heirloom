@@ -476,7 +476,9 @@ final class VideoProcessingJobManager: ObservableObject {
            description.contains("transcription failed") ||
            description.contains("insufficient data") ||
            description.contains("silent") ||
-           description.contains("no speech") {
+           description.contains("no speech") ||
+           description.contains("confidence") ||
+           description.contains("extraction") {
             return .insufficientAudioData
         }
 

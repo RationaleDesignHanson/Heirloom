@@ -47,9 +47,6 @@ enum UIKitAppearance {
         navBar.scrollEdgeAppearance = appearance
         navBar.compactScrollEdgeAppearance = appearance
 
-        // Ensure titles are always visible
-        navBar.prefersLargeTitles = true
-
         // Force light user interface style
         navBar.overrideUserInterfaceStyle = .light
     }

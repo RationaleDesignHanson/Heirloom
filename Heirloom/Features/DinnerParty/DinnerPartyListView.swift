@@ -62,7 +62,7 @@ struct DinnerPartyListView: View {
                 }
             }
             .background(HeirloomColors.appBackground)
-            .navigationTitle("Dinner Parties")
+            .navigationTitle("Meal Planning")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
