@@ -1,0 +1,382 @@
+//
+//  HeritageUnlockView.swift
+//  Heirloom
+//
+//  Created by Claude Code on 2026-01-13.
+//
+
+import SwiftUI
+import SwiftData
+
+/// UI for managing daily heritage recipe unlocks during trial period
+struct HeritageUnlockView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    @Query(filter: #Predicate<RecipeCollection> { $0.heritageCollectionId != nil && $0.isBlindBox == true })
+    private var blindBoxes: [RecipeCollection]
+
+    @State private var unlockTracker: HeritageUnlockTracker?
+    @State private var subscriptionManager: SubscriptionManager?
+    @State private var showConfetti = false
+    @State private var isUnlocking = false
+    @State private var errorMessage: String?
+
+    private var allBlindBoxesRevealed: Bool {
+        let revealedCount = blindBoxes.filter { $0.isRevealed }.count
+        return revealedCount == blindBoxes.count && blindBoxes.count > 0
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: HeirloomSpacing.xl) {
+                    // Hero Section
+                    heroSection
+
+                    // Progress Bar
+                    if let tracker = unlockTracker {
+                        progressBar(tracker: tracker)
+                    }
+
+                    // Unlock Button
+                    unlockButton
+
+                    // Collections Grid
+                    collectionsGrid
+                }
+                .padding()
+            }
+            .background(HeirloomColors.appBackground)
+            .navigationTitle("Heritage Collection")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                }
+            }
+            .onAppear {
+                initializeServices()
+            }
+            .alert("Error", isPresented: .constant(errorMessage != nil)) {
+                Button("OK") {
+                    errorMessage = nil
+                }
+            } message: {
+                if let error = errorMessage {
+                    Text(error)
+                }
+            }
+            .overlay {
+                if showConfetti {
+                    ConfettiView()
+                        .allowsHitTesting(false)
+                }
+            }
+        }
+    }
+
+    // MARK: - Hero Section
+
+    private var heroSection: some View {
+        VStack(spacing: HeirloomSpacing.md) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 64))
+                .foregroundStyle(.orange.gradient)
+
+            Text("Heritage Collection")
+                .font(HeirloomFonts.title2)
+
+            if let tracker = unlockTracker {
+                Text("\(tracker.unlockedRecipeIds.count) of 100 unlocked")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+        }
+    }
+
+    // MARK: - Progress Bar
+
+    private func progressBar(tracker: HeritageUnlockTracker) -> some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                // Background
+                Rectangle()
+                    .fill(Color.gray.opacity(0.2))
+                    .frame(height: 8)
+                    .cornerRadius(4)
+
+                // Progress
+                Rectangle()
+                    .fill(.orange.gradient)
+                    .frame(
+                        width: geometry.size.width * CGFloat(tracker.unlockedRecipeIds.count) / 100,
+                        height: 8
+                    )
+                    .cornerRadius(4)
+                    .animation(.spring(), value: tracker.unlockedRecipeIds.count)
+            }
+        }
+        .frame(height: 8)
+        .padding(.horizontal)
+    }
+
+    // MARK: - Unlock Button
+
+    private var unlockButton: some View {
+        Group {
+            if !allBlindBoxesRevealed {
+                // Blind boxes need to be revealed first
+                blindBoxMessage
+            } else if let tracker = unlockTracker {
+                if tracker.hasUnlocksAvailableToday && tracker.recipesToUnlockToday > 0 {
+                    // Unlock button
+                    Button {
+                        unlockDaily()
+                    } label: {
+                        HStack(spacing: HeirloomSpacing.sm) {
+                            Image(systemName: "gift.fill")
+                            Text("Unlock Today's Recipes (\(tracker.recipesToUnlockToday))")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(.orange.gradient)
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
+                    }
+                    .disabled(isUnlocking)
+                    .padding(.horizontal)
+                } else if tracker.totalRecipesRemaining == 0 {
+                    // All unlocked
+                    completionMessage
+                } else {
+                    // Already unlocked today
+                    comeLaterMessage
+                }
+            }
+        }
+    }
+
+    private var blindBoxMessage: some View {
+        VStack(spacing: HeirloomSpacing.sm) {
+            Image(systemName: "gift")
+                .font(.system(size: 32))
+                .foregroundStyle(.orange)
+
+            Text("Reveal Collections First")
+                .font(HeirloomFonts.body)
+                .fontWeight(.semibold)
+
+            Text("Go to Collections tab and tap the mystery boxes to begin your heritage recipe journey")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(.orange.opacity(0.1))
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+
+    private var completionMessage: some View {
+        VStack(spacing: HeirloomSpacing.sm) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(.green)
+
+            Text("All 100 recipes unlocked!")
+                .font(HeirloomFonts.body)
+                .fontWeight(.semibold)
+
+            Text("Enjoy the complete Heritage Collection")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(.green.opacity(0.1))
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+
+    private var comeLaterMessage: some View {
+        VStack(spacing: HeirloomSpacing.sm) {
+            Image(systemName: "calendar.badge.clock")
+                .font(.system(size: 32))
+                .foregroundStyle(.orange)
+
+            Text("Come back tomorrow!")
+                .font(HeirloomFonts.body)
+                .fontWeight(.semibold)
+
+            Text("More recipes will be available")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(.gray.opacity(0.1))
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+
+    // MARK: - Collections Grid
+
+    private var collectionsGrid: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: HeirloomSpacing.md) {
+            CollectionCard(
+                id: "presidential-pantry",
+                name: "Presidential Pantry",
+                icon: "flag.fill",
+                color: .blue
+            )
+            CollectionCard(
+                id: "literary-kitchen",
+                name: "Literary Kitchen",
+                icon: "book.fill",
+                color: .purple
+            )
+            CollectionCard(
+                id: "ancient-table",
+                name: "Ancient Table",
+                icon: "scroll.fill",
+                color: .brown
+            )
+            CollectionCard(
+                id: "american-foundation",
+                name: "American Foundation",
+                icon: "star.fill",
+                color: .red
+            )
+        }
+        .padding(.horizontal)
+    }
+
+    // MARK: - Actions
+
+    private func initializeServices() {
+        if unlockTracker == nil {
+            unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
+        }
+        if subscriptionManager == nil {
+            subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+        }
+
+        // Initialize trial tracking if needed
+        if let tracker = unlockTracker, tracker.trialStartDate == nil {
+            tracker.startTrialPeriod()
+        }
+    }
+
+    private func unlockDaily() {
+        guard let tracker = unlockTracker else { return }
+
+        isUnlocking = true
+
+        Task {
+            do {
+                try await tracker.unlockDailyBatch(context: modelContext)
+
+                await MainActor.run {
+                    isUnlocking = false
+                    showConfetti = true
+
+                    // Hide confetti after 2 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        showConfetti = false
+                    }
+
+                    // Show success toast
+                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                    toastManager.success(
+                        title: "Recipes Unlocked!",
+                        message: "Explore \(tracker.recipesToUnlockToday) new heritage recipes"
+                    )
+                }
+            } catch {
+                await MainActor.run {
+                    isUnlocking = false
+                    errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Collection Card
+
+struct CollectionCard: View {
+    let id: String
+    let name: String
+    let icon: String
+    let color: Color
+
+    @Query private var recipes: [Recipe]
+    @State private var unlockTracker: HeritageUnlockTracker?
+
+    init(id: String, name: String, icon: String, color: Color) {
+        self.id = id
+        self.name = name
+        self.icon = icon
+        self.color = color
+
+        _recipes = Query(
+            filter: #Predicate<Recipe> { recipe in
+                recipe.heritageCollectionId == id
+            }
+        )
+    }
+
+    private var unlockedCount: Int {
+        guard let tracker = unlockTracker else { return 0 }
+        return recipes.filter { tracker.isUnlocked($0) }.count
+    }
+
+    var body: some View {
+        VStack(spacing: HeirloomSpacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 32))
+                .foregroundStyle(color)
+
+            Text(name)
+                .font(HeirloomFonts.caption1)
+                .fontWeight(.bold)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text("\(unlockedCount) unlocked")
+                .font(HeirloomFonts.caption2)
+                .foregroundStyle(HeirloomColors.secondaryText)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(color.opacity(0.1))
+        .cornerRadius(12)
+        .onAppear {
+            if unlockTracker == nil {
+                unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
+            }
+        }
+    }
+}
+
+// MARK: - Preview
+
+#Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Recipe.self, RecipeCollection.self, configurations: config)
+
+    // Create sample heritage recipes
+    let recipe1 = Recipe(title: "Test Recipe 1", sourceType: .heritage, instructions: [], servings: nil)
+    recipe1.isHeritageRecipe = true
+    recipe1.heritageCollectionId = "presidential-pantry"
+    container.mainContext.insert(recipe1)
+
+    return HeritageUnlockView()
+        .modelContainer(container)
+}

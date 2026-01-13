@@ -312,6 +312,11 @@ extension ServiceContainer {
             HeritageRecipeCleanupService()
         }
 
+        // HeritageUnlockTracker - Manages progressive unlock of heritage recipes during trial
+        register(HeritageUnlockTracker.self, lifecycle: .singleton) { _ in
+            HeritageUnlockTracker()
+        }
+
         // MARK: - AI Services
 
         // Keychain

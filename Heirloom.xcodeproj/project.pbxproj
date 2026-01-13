@@ -96,6 +96,10 @@
 		C513D4362F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4352F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift */; };
 		C513D8542F16123800BFCF7D /* VideoAttributionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D8532F16123800BFCF7D /* VideoAttributionSheet.swift */; };
 		C513D8562F16223A00BFCF7D /* JobRecoverySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D8552F16223A00BFCF7D /* JobRecoverySheet.swift */; };
+		C513D8592F163AE700BFCF7D /* HeritageUnlockTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D8572F163AE700BFCF7D /* HeritageUnlockTracker.swift */; };
+		C513D85C2F163AFD00BFCF7D /* HeritageUnlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D85A2F163AFD00BFCF7D /* HeritageUnlockView.swift */; };
+		C513D85F2F163B0500BFCF7D /* RecipeExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D85D2F163B0500BFCF7D /* RecipeExportView.swift */; };
+		C513D8602F163B0500BFCF7D /* TrialExpiredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D85E2F163B0500BFCF7D /* TrialExpiredView.swift */; };
 		C568873C2F057B02006EA0B1 /* HeirloomShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */; };
 		C568877B2F06B4AE006EA0B1 /* CRDTMergeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */; };
@@ -390,6 +394,10 @@
 		C513D4352F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFeaturesScreen.swift; sourceTree = "<group>"; };
 		C513D8532F16123800BFCF7D /* VideoAttributionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoAttributionSheet.swift; sourceTree = "<group>"; };
 		C513D8552F16223A00BFCF7D /* JobRecoverySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobRecoverySheet.swift; sourceTree = "<group>"; };
+		C513D8572F163AE700BFCF7D /* HeritageUnlockTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageUnlockTracker.swift; sourceTree = "<group>"; };
+		C513D85A2F163AFD00BFCF7D /* HeritageUnlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageUnlockView.swift; sourceTree = "<group>"; };
+		C513D85D2F163B0500BFCF7D /* RecipeExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeExportView.swift; sourceTree = "<group>"; };
+		C513D85E2F163B0500BFCF7D /* TrialExpiredView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialExpiredView.swift; sourceTree = "<group>"; };
 		C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HeirloomShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FirebaseSyncService+CRDT.swift"; sourceTree = "<group>"; };
 		C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRDTMergeEngine.swift; sourceTree = "<group>"; };
@@ -781,6 +789,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C513D8582F163AE700BFCF7D /* Heritage */,
 				C513D4312F15EB1B00BFCF7D /* BlindBoxSeeder.swift */,
 				C58331F42F15D4840096478E /* Photo */,
 				C58316472F119E910096478E /* Video */,
@@ -1011,6 +1020,22 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		C513D8582F163AE700BFCF7D /* Heritage */ = {
+			isa = PBXGroup;
+			children = (
+				C513D8572F163AE700BFCF7D /* HeritageUnlockTracker.swift */,
+			);
+			path = Heritage;
+			sourceTree = "<group>";
+		};
+		C513D85B2F163AFD00BFCF7D /* Heritage */ = {
+			isa = PBXGroup;
+			children = (
+				C513D85A2F163AFD00BFCF7D /* HeritageUnlockView.swift */,
+			);
+			path = Heritage;
+			sourceTree = "<group>";
+		};
 		C568877A2F06B4AE006EA0B1 /* CRDT */ = {
 			isa = PBXGroup;
 			children = (
@@ -1109,6 +1134,8 @@
 		C5830E1A2F103AAE0096478E /* Subscription */ = {
 			isa = PBXGroup;
 			children = (
+				C513D85D2F163B0500BFCF7D /* RecipeExportView.swift */,
+				C513D85E2F163B0500BFCF7D /* TrialExpiredView.swift */,
 				C5830E182F103AAE0096478E /* PaywallView.swift */,
 				C5830E192F103AAE0096478E /* SoftWallView.swift */,
 			);
@@ -1540,6 +1567,7 @@
 		CC9AF2BB0CC0DBBEC558EC0F /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				C513D85B2F163AFD00BFCF7D /* Heritage */,
 				C5830E1A2F103AAE0096478E /* Subscription */,
 				C56F3E7B2F04B67600D19743 /* Auth */,
 				C5B317722F00C8500087CF6D /* Help */,
@@ -1968,7 +1996,10 @@
 				C58331F52F15D4840096478E /* PhotoProgressInterpolator.swift in Sources */,
 				52CD3F9F7C8F07B305AFE900 /* EnhancedScannerView.swift in Sources */,
 				C5B317682F00C8310087CF6D /* WhatsNewView.swift in Sources */,
+				C513D8592F163AE700BFCF7D /* HeritageUnlockTracker.swift in Sources */,
 				B2C81AF6BEE1E3C6FB9AAE7E /* FlipCard.swift in Sources */,
+				C513D85F2F163B0500BFCF7D /* RecipeExportView.swift in Sources */,
+				C513D8602F163B0500BFCF7D /* TrialExpiredView.swift in Sources */,
 				3A7C46360FC8CC6F799C7A30 /* HeirloomApp.swift in Sources */,
 				418BD47FE9CBC3220C0CBA23 /* ImageCache.swift in Sources */,
 				C583FFD12F0CB7830096478E /* HeritageRecipeSeeder.swift in Sources */,
@@ -2094,6 +2125,7 @@
 				1086A03B0F949141C61B5D54 /* ServingSelector.swift in Sources */,
 				218A8EDAF2DFA141EFA33091 /* SettingsView.swift in Sources */,
 				A41FEDF5357B4C3BBA121A88 /* MigrationTestView.swift in Sources */,
+				C513D85C2F163AFD00BFCF7D /* HeritageUnlockView.swift in Sources */,
 				C56F3DCF2F02285600D19743 /* DebugLogView.swift in Sources */,
 				3815ADF1F8A3B87269E3F76B /* ShareOptions.swift in Sources */,
 				3DC4370D13356E958ECE4985 /* SharePreviewCard.swift in Sources */,

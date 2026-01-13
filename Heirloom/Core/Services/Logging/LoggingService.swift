@@ -59,6 +59,8 @@ enum LogCategory: String, CustomStringConvertible {
     case database = "Database"
     case store = "Store"
     case video = "Video"
+    case heritage = "Heritage"
+    case migration = "Migration"
     case general = "General"
 
     var description: String { rawValue }
@@ -77,6 +79,8 @@ enum LogCategory: String, CustomStringConvertible {
         case .database: return "🗄️"
         case .store: return "💳"
         case .video: return "🎥"
+        case .heritage: return "🏛️"
+        case .migration: return "🚀"
         case .general: return "ℹ️"
         }
     }

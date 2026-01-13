@@ -14,7 +14,7 @@ struct RecipeIngredientsSection: View {
 
     let recipe: Recipe
     let ingredients: [Ingredient]
-    let targetServings: Int
+    @Binding var targetServings: Int
 
     // MARK: - Body
 
@@ -29,9 +29,9 @@ struct RecipeIngredientsSection: View {
             VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                 ForEach(ingredients.sorted(by: { $0.orderIndex < $1.orderIndex })) { ingredient in
                     ingredientRow(ingredient)
+                        .id("\(ingredient.id)-\(targetServings)") // Force unique ID per serving size
                 }
             }
-            .id(targetServings) // Force refresh when servings change
             .padding(HeirloomSpacing.md)
             .background(
                 RoundedRectangle(cornerRadius: 12)
@@ -141,8 +141,25 @@ struct RecipeIngredientsSection: View {
         let wholePart = Int(value)
         let fractionalPart = value - Double(wholePart)
 
+        // First pass: exact matches (within 0.01)
         for (decimalValue, fractionSymbol) in fractions {
             if abs(fractionalPart - decimalValue) < 0.01 {
+                if wholePart > 0 {
+                    return "\(wholePart) \(fractionSymbol)"
+                } else {
+                    return fractionSymbol
+                }
+            }
+        }
+
+        // Second pass: snap to nearest common fraction (within 0.12)
+        let commonFractions: [(Double, String)] = [
+            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
+            (0.5, "½"), (0.666, "⅔"), (0.75, "¾")
+        ]
+
+        for (decimalValue, fractionSymbol) in commonFractions {
+            if abs(fractionalPart - decimalValue) < 0.12 {
                 if wholePart > 0 {
                     return "\(wholePart) \(fractionSymbol)"
                 } else {
@@ -162,6 +179,8 @@ struct RecipeIngredientsSection: View {
 // MARK: - Preview
 
 #Preview {
+    @Previewable @State var targetServings = 48
+
     let recipe = Recipe(
         title: "Classic Chocolate Chip Cookies",
         sourceType: .manual,
@@ -181,7 +200,7 @@ struct RecipeIngredientsSection: View {
     RecipeIngredientsSection(
         recipe: recipe,
         ingredients: ingredients,
-        targetServings: 48 // Double the recipe
+        targetServings: $targetServings
     )
     .padding()
     .background(HeirloomColors.cream)

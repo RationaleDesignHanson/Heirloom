@@ -16,6 +16,7 @@ struct CollectionDetailView: View {
     @State private var showVideoImport = false
     @State private var showASMRVideoImport = false
     @State private var showDeleteConfirmation = false
+    @State private var unlockTracker: HeritageUnlockTracker?
 
     @Query private var allRecipes: [Recipe]
 
@@ -27,9 +28,17 @@ struct CollectionDetailView: View {
 
     // Recipes in this collection
     var recipes: [Recipe] {
-        allRecipes.filter { recipe in
+        let collectionRecipes = allRecipes.filter { recipe in
             recipe.collections?.contains(where: { $0.id == collection.id }) ?? false
         }
+
+        // Filter out locked heritage recipes
+        if collection.isHeritageCollection {
+            guard let tracker = unlockTracker else { return collectionRecipes }
+            return collectionRecipes.filter { tracker.isUnlocked($0) }
+        }
+
+        return collectionRecipes
     }
 
     var body: some View {
@@ -156,6 +165,11 @@ struct CollectionDetailView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Choose what to delete:\n• Collection Only: Recipes remain in your library\n• Collection & Recipes: Removes everything")
+        }
+        .onAppear {
+            if unlockTracker == nil {
+                unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
+            }
         }
     }
 

@@ -149,6 +149,9 @@ struct RecipeListView: View {
     private var crdtMergeEngine: CRDTMergeEngine { ServiceContainer.shared.resolve(CRDTMergeEngine.self) }
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
+    // Heritage unlock tracking for progressive unlock system
+    @State private var unlockTracker: HeritageUnlockTracker?
+
     @State private var searchText = ""
     @State private var showAddRecipe = false
     @State private var showImportRecipe = false
@@ -204,6 +207,7 @@ struct RecipeListView: View {
                 }
                 .onAppear {
                     configureUndoService()
+                    initializeUnlockTracker()
                     // Show toolbar coach mark on first visit
                     if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenToolbarCoachMark) {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -377,6 +381,12 @@ struct RecipeListView: View {
         undoService.configure(modelContext: modelContext)
     }
 
+    private func initializeUnlockTracker() {
+        if unlockTracker == nil {
+            unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
+        }
+    }
+
     // MARK: - Conflict Resolution Sheet
     @ViewBuilder
     private var conflictResolutionSheet: some View {
@@ -494,6 +504,11 @@ struct RecipeListView: View {
         // Hide recipes from unrevealed blind box collections
         result = result.filter { recipe in
             isRecipeVisible(recipe)
+        }
+
+        // Hide locked heritage recipes (not yet unlocked during trial)
+        result = result.filter { recipe in
+            !isRecipeLocked(recipe)
         }
 
         // Apply search filter
@@ -621,6 +636,21 @@ struct RecipeListView: View {
 
         // If not a blind box collection, hide it (shouldn't have recipes seeded)
         return false
+    }
+
+    /// Check if a heritage recipe is locked (not yet unlocked during trial)
+    private func isRecipeLocked(_ recipe: Recipe) -> Bool {
+        // Only heritage recipes can be locked
+        guard recipe.isHeritageRecipe else {
+            return false
+        }
+
+        // Check unlock status via HeritageUnlockTracker
+        guard let tracker = unlockTracker else {
+            return false
+        }
+
+        return !tracker.isUnlocked(recipe)
     }
 
     // MARK: - Actions

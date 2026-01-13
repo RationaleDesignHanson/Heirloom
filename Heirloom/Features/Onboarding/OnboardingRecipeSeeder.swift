@@ -73,14 +73,18 @@ class OnboardingRecipeSeeder {
         ]
 
         for (index, text) in grilledCheeseIngredients.enumerated() {
+            // Parse ingredient to extract quantity, unit, and name
+            let parsed = IngredientParser.parse(text)
+
             let ingredient = Ingredient(
                 originalText: text,
-                name: text,
-                quantity: nil,
-                unit: nil,
-                category: .other,
+                name: parsed.name.isEmpty ? text : parsed.name,
+                quantity: parsed.quantity,
+                unit: parsed.unit,
+                category: GroceryCategory.categorize(parsed.name.isEmpty ? text : parsed.name),
                 orderIndex: index
             )
+            ingredient.quantityMax = parsed.quantityMax
             ingredient.recipe = grilledCheese
             modelContext.insert(ingredient)
         }
@@ -130,14 +134,18 @@ class OnboardingRecipeSeeder {
         ]
 
         for (index, text) in tomatoSoupIngredients.enumerated() {
+            // Parse ingredient to extract quantity, unit, and name
+            let parsed = IngredientParser.parse(text)
+
             let ingredient = Ingredient(
                 originalText: text,
-                name: text,
-                quantity: nil,
-                unit: nil,
-                category: .other,
+                name: parsed.name.isEmpty ? text : parsed.name,
+                quantity: parsed.quantity,
+                unit: parsed.unit,
+                category: GroceryCategory.categorize(parsed.name.isEmpty ? text : parsed.name),
                 orderIndex: index
             )
+            ingredient.quantityMax = parsed.quantityMax
             ingredient.recipe = tomatoSoup
             modelContext.insert(ingredient)
         }
@@ -165,6 +173,68 @@ class OnboardingRecipeSeeder {
         Log.info("Onboarding recipes seeded successfully (2 recipes)", category: .storage, metadata: [
             "recipe1": "Classic Grilled Cheese",
             "recipe2": "Tomato Soup"
+        ])
+    }
+
+    // MARK: - Migration
+
+    /// Migrate existing onboarding recipes to have parsed ingredients
+    /// Call this to fix existing grilled cheese and tomato soup recipes
+    func migrateOnboardingIngredients() async throws {
+        // Check if migration already done
+        guard !UserDefaults.standard.bool(forKey: "OnboardingIngredientsMigrated") else {
+            Log.info("Onboarding ingredients already migrated", category: .storage)
+            return
+        }
+
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { recipe in
+                recipe.title == "Classic Grilled Cheese" || recipe.title == "Tomato Soup"
+            }
+        )
+
+        let recipes = try modelContext.fetch(descriptor)
+        var migratedCount = 0
+
+        Log.info("Starting onboarding ingredient migration", category: .storage, metadata: [
+            "recipesFound": recipes.count
+        ])
+
+        for recipe in recipes {
+            guard let ingredients = recipe.ingredients else { continue }
+
+            for ingredient in ingredients {
+                // Only migrate if missing quantity/unit
+                if ingredient.quantity == nil && ingredient.unit == nil && !ingredient.originalText.isEmpty {
+                    let parsed = IngredientParser.parse(ingredient.originalText)
+
+                    // Update ingredient with parsed values
+                    ingredient.name = parsed.name.isEmpty ? ingredient.originalText : parsed.name
+                    ingredient.quantity = parsed.quantity
+                    ingredient.quantityMax = parsed.quantityMax
+                    ingredient.unit = parsed.unit
+                    ingredient.category = GroceryCategory.categorize(parsed.name.isEmpty ? ingredient.originalText : parsed.name)
+
+                    migratedCount += 1
+
+                    Log.debug("Migrated onboarding ingredient", category: .storage, metadata: [
+                        "recipe": recipe.title,
+                        "originalText": ingredient.originalText,
+                        "quantity": parsed.quantity ?? 0,
+                        "unit": parsed.unit ?? "none"
+                    ])
+                }
+            }
+        }
+
+        try modelContext.save()
+
+        // Mark migration as complete
+        UserDefaults.standard.set(true, forKey: "OnboardingIngredientsMigrated")
+        UserDefaults.standard.set(Date(), forKey: "OnboardingIngredientsMigrationDate")
+
+        Log.info("Onboarding ingredient migration completed", category: .storage, metadata: [
+            "migratedCount": migratedCount
         ])
     }
 

@@ -19,6 +19,8 @@ struct CollectionsListView: View {
     @State private var showRecipeCoachMark = false
     @State private var collectionToDelete: RecipeCollection?
     @State private var showDeleteConfirmation = false
+    @State private var showHeritageUnlock = false
+    @State private var unlockTracker: HeritageUnlockTracker?
 
     // Filter heritage collections (founding collections)
     var heritageCollections: [RecipeCollection] {
@@ -31,10 +33,27 @@ struct CollectionsListView: View {
     }
 
     // Filter revealed heritage collections
-    // Only show heritage collections that were marked as blind boxes AND have been revealed
-    // This hides heritage collections that were never part of the blind box experience
+    // Show collections that are either:
+    // 1. Part of the blind box system and revealed
+    // 2. Have at least 1 unlocked recipe (discovered through daily unlocks)
     var revealedHeritageCollections: [RecipeCollection] {
-        heritageCollections.filter { $0.isBlindBox && $0.isRevealed }
+        guard let tracker = unlockTracker else {
+            return heritageCollections.filter { $0.isBlindBox && $0.isRevealed }
+        }
+
+        return heritageCollections.filter { collection in
+            // Show if it's a revealed blind box AND has unlocked recipes
+            if collection.isBlindBox && collection.isRevealed {
+                let recipes = collection.recipes ?? []
+                let unlockedCount = recipes.filter { tracker.isUnlocked($0) }.count
+                return unlockedCount > 0
+            }
+
+            // Show if it has at least 1 unlocked recipe (non-blind box heritage collections)
+            let recipes = collection.recipes ?? []
+            let unlockedCount = recipes.filter { tracker.isUnlocked($0) }.count
+            return unlockedCount > 0
+        }
     }
 
     // Filter user collections (non-system, non-heritage)
@@ -91,6 +110,10 @@ struct CollectionsListView: View {
                     .environmentObject(notificationService)
                     .environmentObject(tabCoordinator)
             }
+            .sheet(isPresented: $showHeritageUnlock) {
+                HeritageUnlockView()
+                    .presentationDetents([.large])
+            }
             .navigationDestination(item: $selectedCollection) { collection in
                 CollectionDetailView(collection: collection)
                     .environmentObject(notificationService)
@@ -118,14 +141,38 @@ struct CollectionsListView: View {
                 emptyUserCollectionsView
             } else {
                 LazyVStack(spacing: HeirloomSpacing.sm) {
-                    // Blind boxes first (if any)
-                    ForEach(blindBoxCollections, id: \.id) { collection in
-                        BlindBoxCollectionRow(collection: collection) {
-                            revealBlindBox(collection)
+                    // System collections (Favorites, Quick Meals, etc.) - shown first
+                    ForEach(systemCollections, id: \.id) { collection in
+                        CollectionRow(collection: collection)
+                            .onTapGesture {
+                                selectedCollection = collection
+                            }
+                    }
+
+                    // User collections (with delete context menu) - shown second
+                    ForEach(userCollections, id: \.id) { collection in
+                        CollectionRow(collection: collection)
+                            .onTapGesture {
+                                selectedCollection = collection
+                            }
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    collectionToDelete = collection
+                                    showDeleteConfirmation = true
+                                } label: {
+                                    Label("Delete Collection", systemImage: "trash")
+                                }
+                            }
+                    }
+
+                    // Show single mystery collection button that reveals all blind boxes
+                    if let firstBlindBox = blindBoxCollections.first {
+                        BlindBoxCollectionRow(collection: firstBlindBox) {
+                            revealBlindBox(firstBlindBox)
                         }
                     }
 
-                    // Revealed heritage collections (or non-blind-box heritage)
+                    // Revealed heritage collections - shown last
                     ForEach(revealedHeritageCollections, id: \.id) { collection in
                         CollectionRow(collection: collection)
                             .onTapGesture {
@@ -145,30 +192,6 @@ struct CollectionsListView: View {
                                 }
                             }
                     }
-
-                    // System collections (Favorites, Quick Meals, etc.)
-                    ForEach(systemCollections, id: \.id) { collection in
-                        CollectionRow(collection: collection)
-                            .onTapGesture {
-                                selectedCollection = collection
-                            }
-                    }
-
-                    // User collections (with delete context menu)
-                    ForEach(userCollections, id: \.id) { collection in
-                        CollectionRow(collection: collection)
-                            .onTapGesture {
-                                selectedCollection = collection
-                            }
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    collectionToDelete = collection
-                                    showDeleteConfirmation = true
-                                } label: {
-                                    Label("Delete Collection", systemImage: "trash")
-                                }
-                            }
-                    }
                 }
                 .padding(.horizontal, HeirloomSpacing.md)
             }
@@ -177,6 +200,19 @@ struct CollectionsListView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        // Heritage unlock icon
+        ToolbarItem(placement: .topBarTrailing) {
+            if let tracker = unlockTracker, (tracker.totalRecipesRemaining > 0 || tracker.unlockedRecipeIds.count > 0) {
+                Button {
+                    showHeritageUnlock = true
+                } label: {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(.orange)
+                }
+                .accessibilityLabel("Heritage Collection")
+            }
+        }
+
         ToolbarItem(placement: .primaryAction) {
             RecipeListToolbarActions(
                 isSelectionMode: false,
@@ -242,6 +278,11 @@ struct CollectionsListView: View {
     }
 
     private func handleOnAppear() {
+        // Initialize heritage unlock tracker
+        if unlockTracker == nil {
+            unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
+        }
+
         // Seed blind boxes if just completed onboarding
         seedBlindBoxesIfNeeded()
 
@@ -273,25 +314,46 @@ struct CollectionsListView: View {
     }
 
     private func revealBlindBox(_ collection: RecipeCollection) {
-        collection.isRevealed = true
-        collection.revealedDate = Date()
+        // Reveal ALL blind boxes at once with a single tap
+        let allBlindBoxes = heritageCollections.filter { $0.isBlindBox }
+
+        for blindBox in allBlindBoxes {
+            blindBox.isRevealed = true
+            blindBox.revealedDate = Date()
+        }
 
         do {
             try modelContext.save()
 
-            // Show toast
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-            toastManager.success(
-                title: "Discovered: \(collection.name)",
-                message: "Explore \(collection.recipeCount) heritage recipes"
-            )
+            // Initialize heritage unlock tracker
+            let unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
 
-            Log.info("Blind box revealed", category: .ui, metadata: [
-                "collection": collection.name,
-                "recipeCount": collection.recipeCount
-            ])
+            // Start trial period if not started
+            if unlockTracker.trialStartDate == nil {
+                unlockTracker.startTrialPeriod()
+            }
+
+            // Unlock recipes immediately after revealing both boxes
+            if unlockTracker.unlockedRecipeIds.isEmpty {
+                Task {
+                    do {
+                        try await unlockTracker.unlockDailyBatch(context: modelContext)
+
+                        await MainActor.run {
+                            Log.info("Both blind boxes revealed and recipes unlocked", category: .ui, metadata: [
+                                "unlockedCount": unlockTracker.unlockedRecipeIds.count,
+                                "revealedCollections": allBlindBoxes.map { $0.name }.joined(separator: ", ")
+                            ])
+                        }
+                    } catch {
+                        await MainActor.run {
+                            Log.error("Failed to unlock recipes after blind box reveal", category: .ui, metadata: ["error": error.localizedDescription])
+                        }
+                    }
+                }
+            }
         } catch {
-            Log.error("Failed to reveal blind box", category: .ui, metadata: ["error": error.localizedDescription])
+            Log.error("Failed to reveal blind boxes", category: .ui, metadata: ["error": error.localizedDescription])
         }
     }
 
@@ -495,6 +557,18 @@ struct CollectionsListView: View {
 
 struct CollectionRow: View {
     let collection: RecipeCollection
+    @State private var unlockTracker: HeritageUnlockTracker?
+
+    private var displayCount: Int {
+        // For heritage collections, show unlocked count only
+        if collection.isHeritageCollection {
+            guard let tracker = unlockTracker else { return 0 }
+            let recipes = collection.recipes ?? []
+            return recipes.filter { tracker.isUnlocked($0) }.count
+        }
+        // For user collections, show total count
+        return collection.recipeCount
+    }
 
     var body: some View {
         HStack(spacing: HeirloomSpacing.md) {
@@ -511,7 +585,7 @@ struct CollectionRow: View {
                     .font(HeirloomFonts.body)
                     .foregroundStyle(HeirloomColors.primaryText)
 
-                Text("\(collection.recipeCount) recipe\(collection.recipeCount == 1 ? "" : "s")")
+                Text("\(displayCount) recipe\(displayCount == 1 ? "" : "s")")
                     .font(HeirloomFonts.caption2)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
@@ -531,6 +605,11 @@ struct CollectionRow: View {
                 : Color(hex: "#F8F8F8")
         )
         .cornerRadius(HeirloomSpacing.cardCornerRadius)
+        .onAppear {
+            if unlockTracker == nil {
+                unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
+            }
+        }
     }
 }
 

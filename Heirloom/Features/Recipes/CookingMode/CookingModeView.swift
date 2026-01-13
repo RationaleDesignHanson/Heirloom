@@ -4,6 +4,7 @@ import UserNotifications
 
 struct CookingModeView: View {
     let recipe: Recipe
+    let targetServings: Int
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
@@ -184,7 +185,7 @@ struct CookingModeView: View {
                                         .font(.system(size: 4))
                                         .foregroundStyle(HeirloomColors.tomato)
 
-                                    Text(ingredient.displayText)
+                                    Text(scaledIngredientText(ingredient))
                                         .font(HeirloomFonts.caption1)
                                         .foregroundStyle(HeirloomColors.secondaryText)
                                 }
@@ -531,6 +532,94 @@ struct CookingModeView: View {
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
+    // MARK: - Ingredient Scaling
+
+    private func scaledIngredientText(_ ingredient: Ingredient) -> String {
+        // Calculate scale factor from target servings
+        let originalServings = recipe.parsedServingCount
+        let scaleFactor = Double(targetServings) / Double(originalServings)
+
+        // If scaling is 1.0, just show original text
+        guard scaleFactor != 1.0 else {
+            return ingredient.displayText
+        }
+
+        // If ingredient has no quantity, can't scale it
+        guard let quantity = ingredient.quantity else {
+            return ingredient.displayText
+        }
+
+        // Scale the quantity
+        let scaledQty = quantity * scaleFactor
+        let scaledQtyMax = ingredient.quantityMax.map { $0 * scaleFactor }
+
+        // Build scaled display text
+        var parts: [String] = []
+
+        // Format quantity with fractions
+        parts.append(formatQuantity(scaledQty))
+
+        if let max = scaledQtyMax {
+            parts.append("-\(formatQuantity(max))")
+        }
+
+        if let unit = ingredient.unit {
+            parts.append(unit)
+        }
+
+        parts.append(ingredient.name)
+
+        if let prep = ingredient.preparation {
+            parts.append("(\(prep))")
+        }
+
+        return parts.joined(separator: " ")
+    }
+
+    private func formatQuantity(_ value: Double) -> String {
+        let fractions: [(Double, String)] = [
+            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
+            (0.375, "⅜"), (0.5, "½"), (0.625, "⅝"),
+            (0.666, "⅔"), (0.75, "¾"), (0.875, "⅞")
+        ]
+
+        let wholePart = Int(value)
+        let fractionalPart = value - Double(wholePart)
+
+        // First pass: exact matches (within 0.01)
+        for (decimalValue, fractionSymbol) in fractions {
+            if abs(fractionalPart - decimalValue) < 0.01 {
+                if wholePart > 0 {
+                    return "\(wholePart) \(fractionSymbol)"
+                } else {
+                    return fractionSymbol
+                }
+            }
+        }
+
+        // Second pass: snap to nearest common fraction (within 0.12)
+        let commonFractions: [(Double, String)] = [
+            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
+            (0.5, "½"), (0.666, "⅔"), (0.75, "¾")
+        ]
+
+        for (decimalValue, fractionSymbol) in commonFractions {
+            if abs(fractionalPart - decimalValue) < 0.12 {
+                if wholePart > 0 {
+                    return "\(wholePart) \(fractionSymbol)"
+                } else {
+                    return fractionSymbol
+                }
+            }
+        }
+
+        if fractionalPart < 0.01 {
+            return "\(wholePart)"
+        }
+
+        return String(format: "%.1f", value)
+    }
+
     // MARK: - Actions
 
     private func toggleStepComplete() {
@@ -603,6 +692,6 @@ struct CookingModeView: View {
         return container
     }()
 
-    CookingModeView(recipe: Recipe.example)
+    CookingModeView(recipe: Recipe.example, targetServings: Recipe.example.parsedServingCount)
         .modelContainer(container)
 }

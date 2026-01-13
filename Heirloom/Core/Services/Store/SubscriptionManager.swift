@@ -230,6 +230,12 @@ final class SubscriptionManager {
 
     /// Initialize trial on first launch
     private func initializeTrialIfNeeded() {
+        // Skip trial initialization if in debug non-premium mode
+        let debugForceNonPremium = UserDefaults.standard.object(forKey: "debug_force_non_premium") as? Bool ?? true
+        if debugForceNonPremium {
+            return
+        }
+
         // Check if already initialized
         if UserDefaults.standard.object(forKey: Keys.firstLaunchDate) != nil {
             return

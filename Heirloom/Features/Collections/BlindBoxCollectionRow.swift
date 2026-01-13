@@ -52,12 +52,12 @@ struct BlindBoxCollectionRow: View {
 
                 // Mystery text
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Mystery Collection")
+                    Text("Heritage Collection")
                         .font(HeirloomFonts.body)
                         .foregroundStyle(HeirloomColors.primaryText)
                         .blur(radius: isRevealing ? 0 : 1.5)
 
-                    Text("Tap to reveal")
+                    Text("Tap to unlock")
                         .font(HeirloomFonts.caption2)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }

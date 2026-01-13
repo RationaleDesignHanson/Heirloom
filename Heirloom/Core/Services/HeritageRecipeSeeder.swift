@@ -3,22 +3,10 @@ import SwiftData
 import UIKit
 
 /// Service for seeding heritage collections on first launch
-/// Implements personalized distribution (8-12 recipes per user from pool)
+/// Implements progressive unlock system - all 100 recipes seeded as locked
 @MainActor
 class HeritageRecipeSeeder {
     private let modelContext: ModelContext
-
-    // MARK: - Configuration
-
-    /// Number of recipes each user receives (randomized within range)
-    private let recipesPerUser = (min: 8, max: 12)
-
-    /// Returns minimum recipes for a given collection ID
-    /// Literary Kitchen gets 4 minimum to ensure adequate onboarding preview
-    /// Other collections get 2 minimum for variety
-    private func minimumRecipes(for collectionId: String) -> Int {
-        return collectionId == "literary-kitchen" ? 4 : 2
-    }
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -62,7 +50,7 @@ class HeritageRecipeSeeder {
         return count > 0
     }
 
-    /// Seed personalized heritage recipes for this user
+    /// Seed all 100 heritage recipes as locked for progressive unlock system
     /// Returns number of recipes seeded
     func seedHeritageRecipes() async throws -> Int {
         // Don't seed if already seeded
@@ -90,10 +78,10 @@ class HeritageRecipeSeeder {
         // Ensure heritage collections exist
         RecipeCollection.createHeritageCollections(context: modelContext)
 
-        // Randomly select recipes for this user
-        let selectedRecipes = selectRandomRecipes(from: heritageData.recipes)
+        // Seed ALL 100 recipes (not random selection)
+        let selectedRecipes = heritageData.recipes
 
-        Log.info("Selected personalized recipes", category: .storage, metadata: [
+        Log.info("Seeding all heritage recipes for progressive unlock", category: .storage, metadata: [
             "count": selectedRecipes.count
         ])
 
@@ -140,17 +128,21 @@ class HeritageRecipeSeeder {
                 recipe.collections = [collection]
             }
 
-            // Create ingredients
+            // Create ingredients with proper parsing for scaling support
             var ingredients: [Ingredient] = []
             for (index, ingredientText) in recipeJSON.ingredients.enumerated() {
+                // Parse ingredient to extract quantity, unit, and name
+                let parsed = IngredientParser.parse(ingredientText)
+
                 let ingredient = Ingredient(
                     originalText: ingredientText,
-                    name: ingredientText,
-                    quantity: nil,
-                    unit: nil,
+                    name: parsed.name.isEmpty ? ingredientText : parsed.name,
+                    quantity: parsed.quantity,
+                    unit: parsed.unit,
                     category: .other,
                     orderIndex: index
                 )
+                ingredient.quantityMax = parsed.quantityMax
                 ingredient.recipe = recipe
                 ingredients.append(ingredient)
             }
@@ -204,54 +196,12 @@ class HeritageRecipeSeeder {
         // Track seeding in UserDefaults
         UserDefaults.standard.set(true, forKey: "HeritageRecipesSeeded")
         UserDefaults.standard.set(Date(), forKey: "HeritageRecipesSeedDate")
-        UserDefaults.standard.set(selectedRecipes.map { $0.id }, forKey: "HeritageRecipesSelected")
 
-        Log.info("Heritage recipes seeded successfully", category: .storage, metadata: [
+        Log.info("Heritage recipes seeded successfully - all 100 recipes available for progressive unlock", category: .storage, metadata: [
             "count": seededCount
         ])
 
         return seededCount
-    }
-
-    // MARK: - Random Selection
-
-    /// Select random recipes ensuring variety across collections
-    private func selectRandomRecipes(from allRecipes: [HeritageRecipeJSON]) -> [HeritageRecipeJSON] {
-        // Group recipes by collection
-        let recipesByCollection = Dictionary(grouping: allRecipes) { $0.heritageCollectionId }
-
-        // Determine how many recipes to select
-        let totalToSelect = Int.random(in: recipesPerUser.min...recipesPerUser.max)
-
-        var selected: [HeritageRecipeJSON] = []
-        var remaining = allRecipes.shuffled()
-
-        // First pass: Ensure minimum recipes per collection
-        for (collectionId, recipes) in recipesByCollection {
-            let minimum = minimumRecipes(for: collectionId)
-            let collectionRecipes = recipes.shuffled().prefix(minimum)
-            selected.append(contentsOf: collectionRecipes)
-
-            // Remove selected from remaining
-            let selectedIds = Set(collectionRecipes.map { $0.id })
-            remaining.removeAll { selectedIds.contains($0.id) }
-        }
-
-        // Second pass: Fill remaining slots randomly
-        let remainingSlots = totalToSelect - selected.count
-        if remainingSlots > 0 {
-            let additionalRecipes = remaining.prefix(remainingSlots)
-            selected.append(contentsOf: additionalRecipes)
-        }
-
-        Log.info("Recipe selection complete", category: .storage, metadata: [
-            "total": selected.count,
-            "perCollection": selected.reduce(into: [String: Int]()) { counts, recipe in
-                counts[recipe.heritageCollectionId, default: 0] += 1
-            }
-        ])
-
-        return selected.shuffled() // Shuffle final list
     }
 
     /// Parse source date string to Date (best effort)
@@ -276,6 +226,57 @@ class HeritageRecipeSeeder {
     }
 
     // MARK: - Migration & Repair
+
+    /// Re-parse ingredients for existing heritage recipes that were seeded before parser was added
+    /// This ensures all heritage recipes have proper quantities and units for scaling
+    func migrateHeritageIngredients() async throws {
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { $0.isHeritageRecipe == true }
+        )
+
+        let heritageRecipes = try modelContext.fetch(descriptor)
+        var migratedCount = 0
+
+        Log.info("Starting heritage ingredient migration", category: .storage, metadata: [
+            "totalRecipes": heritageRecipes.count
+        ])
+
+        for recipe in heritageRecipes {
+            guard let ingredients = recipe.ingredients else { continue }
+
+            for ingredient in ingredients {
+                // Only migrate if missing quantity/unit
+                if ingredient.quantity == nil && ingredient.unit == nil && !ingredient.originalText.isEmpty {
+                    let parsed = IngredientParser.parse(ingredient.originalText)
+
+                    // Update ingredient with parsed values
+                    ingredient.name = parsed.name.isEmpty ? ingredient.originalText : parsed.name
+                    ingredient.quantity = parsed.quantity
+                    ingredient.quantityMax = parsed.quantityMax
+                    ingredient.unit = parsed.unit
+
+                    migratedCount += 1
+
+                    Log.debug("Migrated heritage ingredient", category: .storage, metadata: [
+                        "recipe": recipe.title,
+                        "originalText": ingredient.originalText,
+                        "quantity": parsed.quantity ?? 0,
+                        "unit": parsed.unit ?? "none"
+                    ])
+                }
+            }
+        }
+
+        try modelContext.save()
+
+        // Mark migration as complete
+        UserDefaults.standard.set(true, forKey: "HeritageIngredientsMigrated")
+        UserDefaults.standard.set(Date(), forKey: "HeritageIngredientsMigrationDate")
+
+        Log.info("Heritage ingredient migration completed", category: .storage, metadata: [
+            "migratedCount": migratedCount
+        ])
+    }
 
     /// Ensure all heritage recipes have card backs configured
     /// Call this to repair existing installations where card backs were added later

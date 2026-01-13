@@ -377,6 +377,27 @@ struct SettingsView: View {
 
     private var developerSection: some View {
         Section {
+            // Premium Mode Toggle (defaults to ON for testing)
+            Toggle(isOn: Binding(
+                get: {
+                    UserDefaults.standard.object(forKey: "debug_force_non_premium") as? Bool ?? true
+                },
+                set: { newValue in
+                    UserDefaults.standard.set(newValue, forKey: "debug_force_non_premium")
+                }
+            )) {
+                HStack {
+                    Image(systemName: "crown.fill")
+                        .foregroundStyle((UserDefaults.standard.object(forKey: "debug_force_non_premium") as? Bool ?? true) ? .gray : .orange)
+                    VStack(alignment: .leading) {
+                        Text("Force Non-Premium Mode")
+                        Text((UserDefaults.standard.object(forKey: "debug_force_non_premium") as? Bool ?? true) ? "Testing progressive unlock" : "Premium access enabled")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
             // Debug Log Viewer - FILE-BASED LOGGING FOR DEVICE VISIBILITY
             NavigationLink {
                 DebugLogView()
@@ -393,7 +414,7 @@ struct SettingsView: View {
         } header: {
             Text("Developer Testing")
         } footer: {
-            Text("View detailed debug logs for troubleshooting.")
+            Text("Enable 'Force Non-Premium Mode' to test the progressive heritage unlock flow (7 recipes per day). View debug logs for troubleshooting.")
         }
     }
 

@@ -266,7 +266,7 @@ struct RecipeDetailView: View {
                         RecipeIngredientsSection(
                             recipe: recipe,
                             ingredients: ingredients,
-                            targetServings: targetServings
+                            targetServings: $targetServings
                         )
                     }
 
@@ -507,7 +507,7 @@ struct RecipeDetailView: View {
             FirebaseSignInView()
         }
         .fullScreenCover(isPresented: $showCookingMode) {
-            CookingModeView(recipe: recipe)
+            CookingModeView(recipe: recipe, targetServings: targetServings)
         }
         .overlay {
             if showRecipeCoachMark {
@@ -1064,8 +1064,25 @@ struct RecipeDetailView: View {
         let wholePart = Int(value)
         let fractionalPart = value - Double(wholePart)
 
+        // First pass: exact matches (within 0.01)
         for (decimalValue, fractionSymbol) in fractions {
             if abs(fractionalPart - decimalValue) < 0.01 {
+                if wholePart > 0 {
+                    return "\(wholePart) \(fractionSymbol)"
+                } else {
+                    return fractionSymbol
+                }
+            }
+        }
+
+        // Second pass: snap to nearest common fraction (within 0.12)
+        let commonFractions: [(Double, String)] = [
+            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
+            (0.5, "½"), (0.666, "⅔"), (0.75, "¾")
+        ]
+
+        for (decimalValue, fractionSymbol) in commonFractions {
+            if abs(fractionalPart - decimalValue) < 0.12 {
                 if wholePart > 0 {
                     return "\(wholePart) \(fractionSymbol)"
                 } else {
@@ -1462,13 +1479,15 @@ struct RecipeDetailView: View {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
 
-        exportService.shareRecipe(recipe, as: format, from: window)
+        exportService.shareRecipe(recipe, as: format, from: window, targetServings: targetServings)
 
         // Track analytics
         analytics.track(event: .recipeShared, properties: [
             "recipe_id": recipe.id.uuidString,
             "recipe_title": recipe.title,
-            "share_format": String(describing: format)
+            "share_format": String(describing: format),
+            "target_servings": targetServings,
+            "original_servings": recipe.parsedServingCount
         ])
     }
 

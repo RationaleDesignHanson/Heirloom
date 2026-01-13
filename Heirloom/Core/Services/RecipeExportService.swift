@@ -16,10 +16,10 @@ class RecipeExportService {
 
     // MARK: - Share Methods
 
-    func shareRecipe(_ recipe: Recipe, as format: ShareFormat, from view: UIView) {
+    func shareRecipe(_ recipe: Recipe, as format: ShareFormat, from view: UIView, targetServings: Int? = nil) {
         Task {
             do {
-                let items = try await prepareShareItems(for: recipe, format: format)
+                let items = try await prepareShareItems(for: recipe, format: format, targetServings: targetServings)
                 presentShareSheet(items: items, from: view)
             } catch {
                 toastManager.error(
@@ -41,20 +41,20 @@ class RecipeExportService {
 
     // MARK: - Share Item Preparation
 
-    private func prepareShareItems(for recipe: Recipe, format: ShareFormat) async throws -> [Any] {
+    private func prepareShareItems(for recipe: Recipe, format: ShareFormat, targetServings: Int?) async throws -> [Any] {
         switch format {
         case .text:
-            return [formatRecipeAsText(recipe)]
+            return [formatRecipeAsText(recipe, targetServings: targetServings)]
 
         case .pdf:
-            let pdfData = try await generatePDF(for: recipe)
+            let pdfData = try await generatePDF(for: recipe, targetServings: targetServings)
             let tempURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("\(recipe.title).pdf")
             try pdfData.write(to: tempURL)
             return [tempURL]
 
         case .json:
-            let jsonData = try formatRecipeAsJSON(recipe)
+            let jsonData = try formatRecipeAsJSON(recipe, targetServings: targetServings)
             let tempURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("\(recipe.title).json")
             try jsonData.write(to: tempURL)
@@ -62,13 +62,13 @@ class RecipeExportService {
 
         case .url:
             // TODO: Implement CloudKit sharing
-            return [formatRecipeAsText(recipe)]
+            return [formatRecipeAsText(recipe, targetServings: targetServings)]
         }
     }
 
     // MARK: - Text Formatting
 
-    private func formatRecipeAsText(_ recipe: Recipe) -> String {
+    private func formatRecipeAsText(_ recipe: Recipe, targetServings: Int?) -> String {
         var text = ""
 
         // Title
@@ -84,7 +84,9 @@ class RecipeExportService {
 
         // Metadata
         var metadata: [String] = []
-        if let servings = recipe.servings {
+        if let targetServings = targetServings {
+            metadata.append("Servings: \(targetServings)")
+        } else if let servings = recipe.servings {
             metadata.append("Servings: \(servings)")
         }
         if let prepTime = recipe.prepTime {
@@ -102,7 +104,8 @@ class RecipeExportService {
             text += "INGREDIENTS\n"
             text += "-----------\n"
             for ingredient in ingredients.sorted(by: { $0.orderIndex < $1.orderIndex }) {
-                text += "• \(ingredient.displayText)\n"
+                let ingredientText = scaledIngredientText(ingredient, recipe: recipe, targetServings: targetServings)
+                text += "• \(ingredientText)\n"
             }
             text += "\n"
         }
@@ -132,7 +135,7 @@ class RecipeExportService {
 
     // MARK: - JSON Formatting
 
-    private func formatRecipeAsJSON(_ recipe: Recipe) throws -> Data {
+    private func formatRecipeAsJSON(_ recipe: Recipe, targetServings: Int?) throws -> Data {
         // Create exportable dictionary
         var recipeDict: [String: Any] = [
             "id": recipe.id.uuidString,
@@ -209,19 +212,38 @@ class RecipeExportService {
             recipeDict["recipeCategory"] = category.rawValue
         }
 
-        // Add ingredients
+        // Add ingredients (scaled if targetServings provided)
         if let ingredients = recipe.ingredients {
+            // Calculate scale factor if target servings specified
+            let scaleFactor: Double? = if let targetServings = targetServings {
+                Double(targetServings) / Double(recipe.parsedServingCount)
+            } else {
+                nil
+            }
+
             let ingredientsArray = ingredients.sorted(by: { $0.orderIndex < $1.orderIndex }).map { ingredient -> [String: Any] in
                 var ingredientDict: [String: Any] = [
                     "name": ingredient.name,
                     "originalText": ingredient.originalText,
                     "orderIndex": ingredient.orderIndex
                 ]
+
+                // Scale quantities if factor provided
                 if let quantity = ingredient.quantity {
-                    ingredientDict["quantity"] = quantity
+                    let scaledQty = if let factor = scaleFactor {
+                        quantity * factor
+                    } else {
+                        quantity
+                    }
+                    ingredientDict["quantity"] = scaledQty
                 }
                 if let quantityMax = ingredient.quantityMax {
-                    ingredientDict["quantityMax"] = quantityMax
+                    let scaledMax = if let factor = scaleFactor {
+                        quantityMax * factor
+                    } else {
+                        quantityMax
+                    }
+                    ingredientDict["quantityMax"] = scaledMax
                 }
                 if let unit = ingredient.unit {
                     ingredientDict["unit"] = unit
@@ -235,6 +257,13 @@ class RecipeExportService {
                 return ingredientDict
             }
             recipeDict["ingredients"] = ingredientsArray
+
+            // Add scale metadata if scaled
+            if let targetServings = targetServings, let scaleFactor = scaleFactor {
+                recipeDict["scaledToServings"] = targetServings
+                recipeDict["scaleFactor"] = scaleFactor
+                recipeDict["originalServings"] = recipe.parsedServingCount
+            }
         }
 
         // Add export metadata
@@ -249,7 +278,7 @@ class RecipeExportService {
 
     // MARK: - PDF Generation
 
-    private func generatePDF(for recipe: Recipe) async throws -> Data {
+    private func generatePDF(for recipe: Recipe, targetServings: Int?) async throws -> Data {
         let pdfMetaData = [
             kCGPDFContextTitle: recipe.title,
             kCGPDFContextCreator: "Heirloom"
@@ -297,7 +326,9 @@ class RecipeExportService {
 
             // Metadata
             var metadata: [String] = []
-            if let servings = recipe.servings {
+            if let targetServings = targetServings {
+                metadata.append("Servings: \(targetServings)")
+            } else if let servings = recipe.servings {
                 metadata.append("Servings: \(servings)")
             }
             if let prepTime = recipe.prepTime {
@@ -335,8 +366,9 @@ class RecipeExportService {
                         yPosition = padding
                     }
 
+                    let ingredientText = scaledIngredientText(ingredient, recipe: recipe, targetServings: targetServings)
                     yPosition = drawText(
-                        "• \(ingredient.displayText)",
+                        "• \(ingredientText)",
                         at: CGPoint(x: padding, y: yPosition),
                         width: pageRect.width - (padding * 2),
                         font: .systemFont(ofSize: 12, weight: .regular),
@@ -608,6 +640,99 @@ class RecipeExportService {
         }
 
         return recipe
+    }
+
+    // MARK: - Ingredient Scaling
+
+    private func scaledIngredientText(_ ingredient: Ingredient, recipe: Recipe, targetServings: Int?) -> String {
+        // If no target servings specified, return original text
+        guard let targetServings = targetServings else {
+            return ingredient.displayText
+        }
+
+        // Calculate scale factor from target servings
+        let originalServings = recipe.parsedServingCount
+        let scaleFactor = Double(targetServings) / Double(originalServings)
+
+        // If scaling is 1.0, just show original text
+        guard scaleFactor != 1.0 else {
+            return ingredient.displayText
+        }
+
+        // If ingredient has no quantity, can't scale it
+        guard let quantity = ingredient.quantity else {
+            return ingredient.displayText
+        }
+
+        // Scale the quantity
+        let scaledQty = quantity * scaleFactor
+        let scaledQtyMax = ingredient.quantityMax.map { $0 * scaleFactor }
+
+        // Build scaled display text
+        var parts: [String] = []
+
+        // Format quantity with fractions
+        parts.append(formatQuantity(scaledQty))
+
+        if let max = scaledQtyMax {
+            parts.append("-\(formatQuantity(max))")
+        }
+
+        if let unit = ingredient.unit {
+            parts.append(unit)
+        }
+
+        parts.append(ingredient.name)
+
+        if let prep = ingredient.preparation {
+            parts.append("(\(prep))")
+        }
+
+        return parts.joined(separator: " ")
+    }
+
+    private func formatQuantity(_ value: Double) -> String {
+        let fractions: [(Double, String)] = [
+            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
+            (0.375, "⅜"), (0.5, "½"), (0.625, "⅝"),
+            (0.666, "⅔"), (0.75, "¾"), (0.875, "⅞")
+        ]
+
+        let wholePart = Int(value)
+        let fractionalPart = value - Double(wholePart)
+
+        // First pass: exact matches (within 0.01)
+        for (decimalValue, fractionSymbol) in fractions {
+            if abs(fractionalPart - decimalValue) < 0.01 {
+                if wholePart > 0 {
+                    return "\(wholePart) \(fractionSymbol)"
+                } else {
+                    return fractionSymbol
+                }
+            }
+        }
+
+        // Second pass: snap to nearest common fraction (within 0.12)
+        let commonFractions: [(Double, String)] = [
+            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
+            (0.5, "½"), (0.666, "⅔"), (0.75, "¾")
+        ]
+
+        for (decimalValue, fractionSymbol) in commonFractions {
+            if abs(fractionalPart - decimalValue) < 0.12 {
+                if wholePart > 0 {
+                    return "\(wholePart) \(fractionSymbol)"
+                } else {
+                    return fractionSymbol
+                }
+            }
+        }
+
+        if fractionalPart < 0.01 {
+            return "\(wholePart)"
+        }
+
+        return String(format: "%.1f", value)
     }
 
     // MARK: - Import Errors

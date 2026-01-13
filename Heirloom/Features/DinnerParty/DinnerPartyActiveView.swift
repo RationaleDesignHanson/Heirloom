@@ -203,7 +203,7 @@ struct RecipeCookingSheetView: View {
 
     var body: some View {
         NavigationStack {
-            CookingModeView(recipe: recipe)
+            CookingModeView(recipe: recipe, targetServings: recipe.parsedServingCount)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Done") {
