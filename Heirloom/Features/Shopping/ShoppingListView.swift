@@ -14,6 +14,7 @@ struct ShoppingListView: View {
     @Query private var cartRecipes: [ShoppingCartRecipe]
 
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
     private var remindersService: RemindersService { ServiceContainer.shared.resolve(RemindersService.self) }
@@ -93,10 +94,7 @@ struct ShoppingListView: View {
     private var emptyState: some View {
         EmptyStateView.emptyShoppingList {
             // Switch to Recipes tab
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let tabBar = windowScene.windows.first?.rootViewController as? UITabBarController {
-                tabBar.selectedIndex = 0
-            }
+            tabCoordinator.selectedTab = TabNavigationCoordinator.Tab.recipes.rawValue
         }
     }
 
@@ -1027,9 +1025,11 @@ struct IngredientRecipeListView: View {
 
     return ShoppingListView()
         .modelContainer(container)
+        .environmentObject(TabNavigationCoordinator())
 }
 
 #Preview("Empty") {
     ShoppingListView()
         .modelContainer(for: Recipe.self, inMemory: true)
+        .environmentObject(TabNavigationCoordinator())
 }

@@ -695,6 +695,7 @@ struct ContentView: View {
                 .accessibilityHint("View heritage and user collections")
 
             ShoppingListView()
+                .environmentObject(tabCoordinator)
                 .tabItem {
                     Label("Shopping", systemImage: "cart.fill")
                 }
@@ -722,7 +723,7 @@ struct ContentView: View {
                 .accessibilityHint("App settings and preferences")
         }
         .preferredColorScheme(.light)
-        .tint(HeirloomColors.tomato)
+        .tint(HeirloomColors.familyGreen)
         .toastContainer()
         .milestonesCelebration()
         .sheet(isPresented: $showAddRecipe) {
