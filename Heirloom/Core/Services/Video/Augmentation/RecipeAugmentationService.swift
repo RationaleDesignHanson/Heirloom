@@ -447,15 +447,22 @@ class RecipeAugmentationService {
         print("   Similarity score: \(String(format: "%.2f", bestMatch.similarityScore))")
         print("   Source: \(bestMatch.sourceURL)")
         print("   Ingredients: \(bestMatch.ingredients.count)")
-        print("   Instructions: \(bestMatch.instructions.count) steps")
+        print("   Instructions: \(bestMatch.instructions?.count ?? 0) steps")
 
         // Convert web recipe ingredients to augmented format
         let augmentedIngredients = bestMatch.ingredients.map { webIngredient -> AugmentedIngredient in
-            AugmentedIngredient(
-                originalText: webIngredient.text,
+            // Create ExtractedIngredient from web data
+            let extractedIngredient = ExtractedIngredient(
+                quantity: webIngredient.parsedQuantity,
+                unit: webIngredient.parsedUnit,
+                item: webIngredient.parsedName ?? webIngredient.text,
+                confidence: .medium
+            )
+
+            return AugmentedIngredient(
+                originalIngredient: extractedIngredient,
                 inferredQuantity: webIngredient.parsedQuantity,
                 inferredUnit: webIngredient.parsedUnit,
-                inferredIngredient: webIngredient.parsedName ?? webIngredient.text,
                 inferredConfidence: .medium, // Web recipes are medium confidence
                 reasoning: "Enriched from web search: \(bestMatch.title)",
                 sourceRecipes: [bestMatch.title]

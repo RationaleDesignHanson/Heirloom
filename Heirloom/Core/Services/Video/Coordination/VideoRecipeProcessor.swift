@@ -284,8 +284,8 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                         print("   Web search: no matches found")
                         print("💡 User should try ASMR mode for vision-based extraction")
 
-                        // Throw as ProcessingError so user sees proper error message
-                        throw VideoProcessingError.insufficientAudioData(augmentError.localizedDescription ?? "Insufficient audio data")
+                        // Re-throw the augmentation error directly
+                        throw augmentError
 
                     default:
                         // Other augmentation errors are optional - log but continue

@@ -34,9 +34,10 @@ extension ServiceContainer {
         }
 
         // MARK: - Feature Management
-        register(FeatureFlagManager.self, lifecycle: .singleton) { _ in
-            FeatureFlagManager.shared
-        }
+        // TODO: Re-enable after fixing module visibility
+        // register(FeatureFlagManager.self, lifecycle: .singleton) { _ in
+        //     FeatureFlagManager.shared
+        // }
 
         // MARK: - Firebase Core
         register(FirebaseConfiguration.self, lifecycle: .singleton) { container in
