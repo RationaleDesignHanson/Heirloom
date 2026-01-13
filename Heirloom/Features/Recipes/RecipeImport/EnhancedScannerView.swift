@@ -7,7 +7,7 @@ struct EnhancedScannerView: View {
     @Environment(\.modelContext) private var modelContext
 
     // Using concrete type for now since view calls implementation-specific methods
-    private var aiRecipeExtractor: AIRecipeExtractor { ServiceContainer.shared.resolve(AIRecipeExtractor.self) }
+    private var importManager: ImportJobManager { ServiceContainer.shared.resolve(ImportJobManager.self) }
 
     @StateObject private var cameraManager = CameraManager()
     @State private var capturedImage: UIImage?
@@ -15,6 +15,8 @@ struct EnhancedScannerView: View {
     @State private var showMultiRecipeSheet = false
     @State private var multiRecipeResult: AIRecipeExtractor.MultiRecipeExtractionResult?
     @State private var errorMessage: String?
+    @State private var showPDFImport = false
+    @State private var showProgressView = false
 
     var body: some View {
         NavigationStack {
@@ -44,6 +46,14 @@ struct EnhancedScannerView: View {
                         dismiss()
                     }
                 }
+
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showPDFImport = true
+                    } label: {
+                        Image(systemName: "doc.fill")
+                    }
+                }
             }
             .sheet(isPresented: $showMultiRecipeSheet, onDismiss: {
                 // After user finishes with recipe selection, dismiss the entire scanner
@@ -54,6 +64,17 @@ struct EnhancedScannerView: View {
                         recipes: result.recipes,
                         sourceImage: result.sourceImage
                     )
+                }
+            }
+            .sheet(isPresented: $showPDFImport) {
+                PDFImportView()
+            }
+            .sheet(isPresented: $showProgressView) {
+                if let job = importManager.activeJob {
+                    NavigationStack {
+                        ImportProgressView(manager: importManager, job: job)
+                            .navigationBarTitleDisplayMode(.inline)
+                    }
                 }
             }
             .alert("Scan Error", isPresented: .constant(errorMessage != nil)) {
@@ -271,21 +292,20 @@ struct EnhancedScannerView: View {
 
         Task {
             do {
-                // Step 1: Detect recipes with bounding boxes (vision API)
-                Log.info("Detecting recipes with vision API", category: .ocr)
-                let detected = try await aiRecipeExtractor.detectRecipes(from: image)
+                Log.info("Creating camera import job", category: .import)
 
-                Log.info("Found recipes in image", category: .ocr, metadata: ["count": detected.count])
-                for (index, recipe) in detected.enumerated() {
-                    Log.debug("Detected recipe", category: .ocr, metadata: ["index": index + 1, "title": recipe.title, "confidence": recipe.confidence.rawValue])
-                }
-
-                // Step 2: Extract each recipe using vision API + bounding box
-                Log.info("Extracting recipes with vision API", category: .ocr)
-                let result = try await aiRecipeExtractor.extractRecipesFromImage(
-                    image: image,
-                    detectedRecipes: detected
+                // Create import job with captured image
+                let job = try await importManager.createCameraImportJob(
+                    images: [image],
+                    context: modelContext
                 )
+
+                Log.info("Starting camera import job", category: .import, metadata: [
+                    "jobId": job.id.uuidString
+                ])
+
+                // Start processing
+                try await importManager.startJob(job, context: modelContext)
 
                 await MainActor.run {
                     isProcessing = false
@@ -294,29 +314,10 @@ struct EnhancedScannerView: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
 
-                    Log.info("Recipe extraction complete", category: .ocr, metadata: ["extractedCount": result.count])
+                    // Show progress view
+                    showProgressView = true
 
-                    // Route based on recipe count
-                    if result.count == 0 {
-                        // No recipes detected - show error
-                        errorMessage = "No recipes detected in the image. Please try again with a clearer photo."
-                        Log.warning("No recipes found in image", category: .ocr)
-
-                    } else {
-                        // 1+ recipes - use RecipeSelectionView (matches web demo behavior)
-                        multiRecipeResult = result
-                        showMultiRecipeSheet = true
-
-                        Log.info("Recipes extracted successfully", category: .ocr, metadata: ["count": result.recipes.count])
-                        for (index, recipe) in result.recipes.enumerated() {
-                            Log.debug("Extracted recipe details", category: .ocr, metadata: [
-                                "index": index + 1,
-                                "title": recipe.title,
-                                "ingredientCount": recipe.ingredients.count,
-                                "instructionCount": recipe.instructions.count
-                            ])
-                        }
-                    }
+                    Log.info("Camera import job started successfully", category: .import)
                 }
 
             } catch {
@@ -328,7 +329,9 @@ struct EnhancedScannerView: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.error)
 
-                    Log.error("Recipe processing failed", category: .ocr, metadata: ["error": error.localizedDescription])
+                    Log.error("Camera import failed", category: .import, metadata: [
+                        "error": error.localizedDescription
+                    ])
                 }
             }
         }

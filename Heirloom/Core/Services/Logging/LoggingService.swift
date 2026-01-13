@@ -61,6 +61,7 @@ enum LogCategory: String, CustomStringConvertible {
     case video = "Video"
     case heritage = "Heritage"
     case migration = "Migration"
+    case `import` = "Import"
     case general = "General"
 
     var description: String { rawValue }
@@ -76,6 +77,7 @@ enum LogCategory: String, CustomStringConvertible {
         case .storage: return "💾"
         case .ocr: return "📸"
         case .performance: return "⚡️"
+        case .import: return "📥"
         case .database: return "🗄️"
         case .store: return "💳"
         case .video: return "🎥"

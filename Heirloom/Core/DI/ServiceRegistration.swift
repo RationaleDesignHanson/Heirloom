@@ -558,13 +558,30 @@ extension ServiceContainer {
             return ShortURLService(analytics: analytics)
         }
 
+        // MARK: - PDF Import Services
+        register(PDFProcessor.self, lifecycle: .singleton) { container in
+            let subscriptionManager = container.resolve(SubscriptionManager.self)
+            let analytics = container.resolve(AnalyticsService.self)
+            return PDFProcessor(subscriptionManager: subscriptionManager, analytics: analytics)
+        }
+
+        register(MultiPageRecipeAnalyzer.self, lifecycle: .singleton) { container in
+            let aiService = container.resolve(AIServiceProtocol.self)
+            let analytics = container.resolve(AnalyticsService.self)
+            return MultiPageRecipeAnalyzer(aiService: aiService, analytics: analytics)
+        }
+
         // MARK: - Bulk Import
         register(ImportJobManager.self, lifecycle: .singleton) { container in
             let importService = container.resolve(RecipeImportService.self)
+            let aiRecipeExtractor = container.resolve(AIRecipeExtractor.self)
+            let multiPageAnalyzer = container.resolve(MultiPageRecipeAnalyzer.self)
             let firebaseSync = container.resolve(FirebaseSyncService.self)
             let backendConfig = container.resolve(BackendConfig.self)
             return ImportJobManager(
                 importService: importService,
+                aiRecipeExtractor: aiRecipeExtractor,
+                multiPageAnalyzer: multiPageAnalyzer,
                 firebaseSync: firebaseSync,
                 backendConfig: backendConfig
             )

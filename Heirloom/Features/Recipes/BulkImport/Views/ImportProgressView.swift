@@ -53,6 +53,19 @@ struct ImportProgressView: View {
                 }
             }
 
+            // Item List (if there are items to show)
+            if let items = job.items, !items.isEmpty {
+                ScrollView {
+                    VStack(spacing: HeirloomSpacing.sm) {
+                        ForEach(items) { item in
+                            itemRow(item)
+                        }
+                    }
+                    .padding(.horizontal, HeirloomSpacing.lg)
+                }
+                .frame(maxHeight: 200)
+            }
+
             // Stats
             HStack(spacing: HeirloomSpacing.xl) {
                 statColumn("Success", job.successfulItems, .green)
@@ -161,6 +174,136 @@ struct ImportProgressView: View {
         case .failed:
             return "Import Failed"
         }
+    }
+
+    // MARK: - Item Row
+
+    private func itemRow(_ item: ImportItem) -> some View {
+        HStack(spacing: HeirloomSpacing.md) {
+            // Source icon
+            sourceIcon(for: item.source)
+                .foregroundStyle(sourceIconColor(for: item.source))
+                .font(.system(size: 20))
+
+            // Item description
+            VStack(alignment: .leading, spacing: 4) {
+                Text(itemTitle(for: item))
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.primaryText)
+                    .lineLimit(1)
+
+                if let pageInfo = pageInfo(for: item) {
+                    Text(pageInfo)
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
+
+            Spacer()
+
+            // Status indicator
+            statusIndicator(for: item.status)
+        }
+        .padding(HeirloomSpacing.md)
+        .background(HeirloomColors.cardBackground)
+        .cornerRadius(8)
+    }
+
+    private func sourceIcon(for source: ImportSource) -> Image {
+        switch source {
+        case .url:
+            return Image(systemName: "link.circle.fill")
+        case .pdf:
+            return Image(systemName: "doc.fill")
+        case .camera:
+            return Image(systemName: "camera.fill")
+        case .photoLibrary:
+            return Image(systemName: "photo.fill")
+        }
+    }
+
+    private func sourceIconColor(for source: ImportSource) -> Color {
+        switch source {
+        case .url:
+            return .blue
+        case .pdf:
+            return .red
+        case .camera:
+            return .purple
+        case .photoLibrary:
+            return .orange
+        }
+    }
+
+    private func itemTitle(for item: ImportItem) -> String {
+        switch item.source {
+        case .url:
+            if let urlString = item.urlString {
+                // Extract domain or show abbreviated URL
+                if let url = URL(string: urlString),
+                   let host = url.host {
+                    return host
+                }
+                return urlString
+            }
+            return "Video Recipe"
+
+        case .pdf:
+            if let pageNumber = item.pageNumber {
+                if let isMulti = item.isMultiPageRecipe, isMulti, let totalPages = item.totalPages {
+                    return "Pages \(pageNumber)-\(pageNumber + totalPages - 1)"
+                }
+                return "Page \(pageNumber)"
+            }
+            return "PDF Recipe"
+
+        case .camera:
+            return "Camera Capture"
+
+        case .photoLibrary:
+            return "Photo Import"
+        }
+    }
+
+    private func pageInfo(for item: ImportItem) -> String? {
+        guard item.source == .pdf else { return nil }
+
+        if let totalPages = item.totalPages, totalPages > 1 {
+            if let isMulti = item.isMultiPageRecipe, isMulti {
+                return "Multi-page recipe"
+            } else {
+                return "of \(totalPages) pages"
+            }
+        }
+
+        return nil
+    }
+
+    private func statusIndicator(for status: ImportItemStatus) -> some View {
+        Group {
+            switch status {
+            case .pending:
+                Image(systemName: "clock.fill")
+                    .foregroundStyle(.gray)
+
+            case .processing:
+                ProgressView()
+                    .tint(HeirloomColors.tomato)
+
+            case .success:
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+
+            case .failed:
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.red)
+
+            case .skipped:
+                Image(systemName: "forward.circle.fill")
+                    .foregroundStyle(.orange)
+            }
+        }
+        .font(.system(size: 20))
     }
 
     private func statColumn(_ label: String, _ value: Int, _ color: Color) -> some View {

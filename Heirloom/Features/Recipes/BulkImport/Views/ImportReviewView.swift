@@ -253,7 +253,7 @@ struct SuccessRowView: View {
                 .font(.title3)
 
             VStack(alignment: .leading, spacing: 4) {
-                if let domain = URLNormalizer.extractDomain(item.urlString) {
+                if let urlString = item.urlString, let domain = URLNormalizer.extractDomain(urlString) {
                     Text(domain)
                         .font(HeirloomFonts.body)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -298,7 +298,7 @@ struct FailedRowView: View {
                 .font(.title3)
 
             VStack(alignment: .leading, spacing: 4) {
-                if let domain = URLNormalizer.extractDomain(item.urlString) {
+                if let urlString = item.urlString, let domain = URLNormalizer.extractDomain(urlString) {
                     Text(domain)
                         .font(HeirloomFonts.body)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -338,7 +338,7 @@ struct SkippedRowView: View {
                 .font(.title3)
 
             VStack(alignment: .leading, spacing: 4) {
-                if let domain = URLNormalizer.extractDomain(item.urlString) {
+                if let urlString = item.urlString, let domain = URLNormalizer.extractDomain(urlString) {
                     Text(domain)
                         .font(HeirloomFonts.body)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -364,7 +364,8 @@ struct SkippedRowView: View {
 
 extension ImportItem {
     var displayURL: String {
-        urlString.count > 60 ? urlString.prefix(57) + "..." : urlString
+        guard let urlString = urlString else { return "" }
+        return urlString.count > 60 ? String(urlString.prefix(57)) + "..." : urlString
     }
 }
 

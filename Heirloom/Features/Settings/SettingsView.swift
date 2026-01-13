@@ -9,19 +9,16 @@ struct SettingsView: View {
     @Environment(\.firebaseAuth) private var firebaseAuth
     @Query private var recipes: [Recipe]
 
-    // Using concrete type for image storage
-    private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
-
-    // Using concrete type for toast notifications
-    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
-
-    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
-    private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
-    private var aiConfig: AIConfiguration { ServiceContainer.shared.resolve(AIConfiguration.self) }
-    private var firebaseSyncService: FirebaseSyncService { ServiceContainer.shared.resolve(FirebaseSyncService.self) }
-    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
-    private var storeManager: StoreManager { ServiceContainer.shared.resolve(StoreManager.self) }
-    private var recipeExporter: RecipeExporter { ServiceContainer.shared.resolve(RecipeExporter.self) }
+    // Services resolved at view initialization - prevents lazy evaluation crashes
+    @State private var imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+    @State private var toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+    @State private var analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+    @State private var backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
+    @State private var aiConfig = ServiceContainer.shared.resolve(AIConfiguration.self)
+    @State private var firebaseSyncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+    @State private var subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+    @State private var storeManager = ServiceContainer.shared.resolve(StoreManager.self)
+    @State private var recipeExporter = ServiceContainer.shared.resolve(RecipeExporter.self)
 
     @State private var showClearDataConfirmation = false
     @State private var showSignOutConfirmation = false

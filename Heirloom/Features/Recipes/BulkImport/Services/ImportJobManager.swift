@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import UIKit
 
 /// Actor-based manager for processing bulk import jobs
 /// Handles rate limiting, concurrency control, and state persistence
@@ -19,11 +20,21 @@ final class ImportJobManager: ObservableObject {
 
     // MARK: - Dependencies
     private let importService: RecipeImportService
+    private let aiRecipeExtractor: AIRecipeExtractor
+    private let multiPageAnalyzer: MultiPageRecipeAnalyzer
     private let firebaseSync: FirebaseSyncService
     private let backendConfig: BackendConfig
 
-    init(importService: RecipeImportService, firebaseSync: FirebaseSyncService, backendConfig: BackendConfig) {
+    init(
+        importService: RecipeImportService,
+        aiRecipeExtractor: AIRecipeExtractor,
+        multiPageAnalyzer: MultiPageRecipeAnalyzer,
+        firebaseSync: FirebaseSyncService,
+        backendConfig: BackendConfig
+    ) {
         self.importService = importService
+        self.aiRecipeExtractor = aiRecipeExtractor
+        self.multiPageAnalyzer = multiPageAnalyzer
         self.firebaseSync = firebaseSync
         self.backendConfig = backendConfig
         setupRateLimiter()
@@ -76,6 +87,147 @@ final class ImportJobManager: ObservableObject {
 
         try context.save()
 
+        return job
+    }
+
+    /// Create a new import job from PDF pages with intelligent multi-page grouping
+    /// - Parameters:
+    ///   - pdfPages: Array of page images from PDF
+    ///   - fileName: PDF file name for job naming
+    ///   - context: SwiftData ModelContext for persistence
+    /// - Returns: The created ImportJob
+    func createPDFImportJob(
+        pdfPages: [(pageNumber: Int, image: UIImage)],
+        fileName: String,
+        context: ModelContext
+    ) async throws -> ImportJob {
+        Log.info("Creating PDF import job with multi-page analysis", category: .import, metadata: [
+            "file": fileName,
+            "pages": pdfPages.count
+        ])
+
+        // STEP 1: Analyze page boundaries to detect multi-page recipes
+        let recipeGroups = try await multiPageAnalyzer.analyzePageBoundaries(pages: pdfPages)
+
+        Log.info("Multi-page analysis complete", category: .import, metadata: [
+            "file": fileName,
+            "total_pages": pdfPages.count,
+            "recipe_groups": recipeGroups.count,
+            "multi_page_recipes": recipeGroups.filter { $0.isMultiPage }.count
+        ])
+
+        // STEP 2: Create job with one item per recipe (not per page!)
+        let job = ImportJob(
+            jobName: "Import \(fileName)",
+            continueOnError: true
+        )
+        job.totalItems = recipeGroups.count
+        context.insert(job)
+
+        // STEP 3: Create ImportItem for each recipe group
+        for group in recipeGroups {
+            // For multi-page recipes, combine pages into single tall image
+            let combinedImage = group.pageCount == 1 ? group.pages[0] : group.combinedImage()
+
+            guard let imageData = combinedImage.jpegData(compressionQuality: 0.9) else {
+                Log.warning("Failed to create image data for recipe group", category: .import, metadata: [
+                    "file": fileName,
+                    "pages": group.pageRange
+                ])
+                continue
+            }
+
+            let item = ImportItem(
+                source: .pdf,
+                imageData: imageData,
+                pageNumber: group.startPage,
+                totalPages: group.pageCount,
+                isMultiPageRecipe: group.isMultiPage
+            )
+            item.job = job
+            context.insert(item)
+
+            Log.info("Created import item for recipe group", category: .import, metadata: [
+                "file": fileName,
+                "title": group.title,
+                "pages": group.pageRange,
+                "is_multi_page": group.isMultiPage
+            ])
+        }
+
+        try context.save()
+
+        Log.info("PDF import job created successfully", category: .import, metadata: [
+            "file": fileName,
+            "recipe_count": recipeGroups.count
+        ])
+
+        return job
+    }
+
+    /// Create a new import job from camera captures
+    /// - Parameters:
+    ///   - images: Array of captured images
+    ///   - context: SwiftData ModelContext for persistence
+    /// - Returns: The created ImportJob
+    func createCameraImportJob(
+        images: [UIImage],
+        context: ModelContext
+    ) async throws -> ImportJob {
+        let job = ImportJob(
+            jobName: "Camera Scan",
+            continueOnError: true
+        )
+        job.totalItems = images.count
+        context.insert(job)
+
+        for image in images {
+            guard let imageData = image.jpegData(compressionQuality: 0.9) else {
+                continue
+            }
+
+            let item = ImportItem(
+                source: .camera,
+                imageData: imageData
+            )
+            item.job = job
+            context.insert(item)
+        }
+
+        try context.save()
+        return job
+    }
+
+    /// Create a new import job from photo library selections
+    /// - Parameters:
+    ///   - images: Array of selected images
+    ///   - context: SwiftData ModelContext for persistence
+    /// - Returns: The created ImportJob
+    func createPhotoLibraryImportJob(
+        images: [UIImage],
+        context: ModelContext
+    ) async throws -> ImportJob {
+        let job = ImportJob(
+            jobName: "Photo Library Import",
+            continueOnError: true
+        )
+        job.totalItems = images.count
+        context.insert(job)
+
+        for image in images {
+            guard let imageData = image.jpegData(compressionQuality: 0.9) else {
+                continue
+            }
+
+            let item = ImportItem(
+                source: .photoLibrary,
+                imageData: imageData
+            )
+            item.job = job
+            context.insert(item)
+        }
+
+        try context.save()
         return job
     }
 
@@ -177,30 +329,18 @@ final class ImportJobManager: ObservableObject {
         try? context.save()
 
         do {
-            // Import recipe
-            let importedRecipe = try await importService.importRecipe(from: item.urlString)
+            let recipe: Recipe
 
-            // Create Recipe object
-            let recipe = Recipe(
-                title: importedRecipe.title,
-                sourceType: .url,
-                sourceURL: item.urlString,
-                instructions: importedRecipe.instructions,
-                servings: importedRecipe.servings,
-                prepTime: importedRecipe.prepTime,
-                cookTime: importedRecipe.cookTime
-            )
+            // Process based on source type
+            switch item.source {
+            case .url:
+                recipe = try await processURLImport(item)
 
-            // Add ingredients
-            for ingredientText in importedRecipe.ingredients {
-                let ingredient = Ingredient(
-                    originalText: ingredientText,
-                    name: ingredientText,
-                    quantity: nil,
-                    unit: nil
-                )
-                ingredient.recipe = recipe
-                recipe.ingredients?.append(ingredient)
+            case .pdf:
+                recipe = try await processPDFPage(item)
+
+            case .camera, .photoLibrary:
+                recipe = try await processImageImport(item)
             }
 
             // Save recipe
@@ -211,7 +351,7 @@ final class ImportJobManager: ObservableObject {
             if backendConfig.isFirebaseActive {
                 do {
                     try await firebaseSync.uploadRecipe(recipe)
-                    Log.info("Bulk import recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title])
+                    Log.info("Bulk import recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title, "source": item.source.rawValue])
                 } catch {
                     Log.warning("Failed to sync bulk import recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "title": recipe.title])
                     // Continue with next recipe
@@ -238,6 +378,140 @@ final class ImportJobManager: ObservableObject {
                 activeJob = nil
             }
         }
+    }
+
+    // MARK: - Source-Specific Processing
+
+    /// Process URL-based import (video/recipe URL)
+    private func processURLImport(_ item: ImportItem) async throws -> Recipe {
+        guard let urlString = item.urlString else {
+            throw ImportJobError.missingURLString
+        }
+
+        // Import recipe from URL
+        let importedRecipe = try await importService.importRecipe(from: urlString)
+
+        // Create Recipe object
+        let recipe = Recipe(
+            title: importedRecipe.title,
+            sourceType: .url,
+            sourceURL: urlString,
+            instructions: importedRecipe.instructions,
+            servings: importedRecipe.servings,
+            prepTime: importedRecipe.prepTime,
+            cookTime: importedRecipe.cookTime
+        )
+
+        // Add ingredients
+        for ingredientText in importedRecipe.ingredients {
+            let ingredient = Ingredient(
+                originalText: ingredientText,
+                name: ingredientText,
+                quantity: nil,
+                unit: nil
+            )
+            ingredient.recipe = recipe
+            recipe.ingredients?.append(ingredient)
+        }
+
+        return recipe
+    }
+
+    /// Process PDF page import
+    private func processPDFPage(_ item: ImportItem) async throws -> Recipe {
+        guard let imageData = item.imageData else {
+            throw ImportJobError.missingImageData
+        }
+
+        guard let image = UIImage(data: imageData) else {
+            throw ImportJobError.invalidImageData
+        }
+
+        // Detect recipes in the image
+        let detected = try await aiRecipeExtractor.detectRecipes(from: image)
+
+        // Extract recipe(s) from image
+        let result = try await aiRecipeExtractor.extractRecipesFromImage(
+            image: image,
+            detectedRecipes: detected
+        )
+
+        // Get first recipe (multi-page analysis should have grouped properly)
+        guard let extractedRecipe = result.recipes.first else {
+            throw ImportJobError.noRecipeFound
+        }
+
+        // Convert to Recipe model
+        let recipe = createRecipe(from: extractedRecipe, sourceImage: image, sourceType: .scan)
+
+        return recipe
+    }
+
+    /// Process camera/photo library import
+    private func processImageImport(_ item: ImportItem) async throws -> Recipe {
+        guard let imageData = item.imageData else {
+            throw ImportJobError.missingImageData
+        }
+
+        guard let image = UIImage(data: imageData) else {
+            throw ImportJobError.invalidImageData
+        }
+
+        // Detect recipes in the image
+        let detected = try await aiRecipeExtractor.detectRecipes(from: image)
+
+        // Extract recipe(s) from image
+        let result = try await aiRecipeExtractor.extractRecipesFromImage(
+            image: image,
+            detectedRecipes: detected
+        )
+
+        // Get first recipe
+        guard let extractedRecipe = result.recipes.first else {
+            throw ImportJobError.noRecipeFound
+        }
+
+        // Convert to Recipe model
+        let sourceType: RecipeSourceType = item.source == .camera ? .scan : .scan
+        let recipe = createRecipe(from: extractedRecipe, sourceImage: image, sourceType: sourceType)
+
+        return recipe
+    }
+
+    /// Convert ExtractedRecipe to Recipe model
+    private func createRecipe(
+        from extracted: AIRecipeExtractor.ExtractedRecipe,
+        sourceImage: UIImage?,
+        sourceType: RecipeSourceType
+    ) -> Recipe {
+        let recipe = Recipe(
+            title: extracted.title,
+            sourceType: sourceType,
+            sourceURL: nil,
+            instructions: extracted.instructions,
+            servings: extracted.servings,
+            prepTime: extracted.prepTime,
+            cookTime: extracted.cookTime
+        )
+
+        // Add ingredients
+        for ingredientText in extracted.ingredients {
+            let ingredient = Ingredient(
+                originalText: ingredientText,
+                name: ingredientText,
+                quantity: nil,
+                unit: nil
+            )
+            ingredient.recipe = recipe
+            recipe.ingredients?.append(ingredient)
+        }
+
+        // Add notes if present
+        if let notes = extracted.notes, !notes.isEmpty {
+            recipe.setNotes(notes)
+        }
+
+        return recipe
     }
 
     // MARK: - Job Completion
@@ -293,6 +567,10 @@ enum ImportJobError: LocalizedError {
     case alreadyProcessing
     case noItemsToProcess
     case jobNotFound
+    case missingURLString
+    case missingImageData
+    case invalidImageData
+    case noRecipeFound
 
     var errorDescription: String? {
         switch self {
@@ -302,6 +580,14 @@ enum ImportJobError: LocalizedError {
             return "No items found to process"
         case .jobNotFound:
             return "Import job not found"
+        case .missingURLString:
+            return "URL string is missing for URL import"
+        case .missingImageData:
+            return "Image data is missing for image/PDF import"
+        case .invalidImageData:
+            return "Could not create image from image data"
+        case .noRecipeFound:
+            return "No recipe could be extracted from the image"
         }
     }
 }

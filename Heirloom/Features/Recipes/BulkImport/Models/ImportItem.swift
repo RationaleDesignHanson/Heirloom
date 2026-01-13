@@ -1,7 +1,16 @@
 import Foundation
 import SwiftData
 
-/// Represents a single URL to import within a bulk import job
+/// Import source type for unified queue processing
+enum ImportSource: String, Codable {
+    case url           // Video/recipe URL (existing)
+    case pdf           // PDF document
+    case camera        // Camera capture
+    case photoLibrary  // Photo library import
+}
+
+/// Represents a single item to import within a bulk import job
+/// Supports URL-based imports (video/recipe) and image-based imports (PDF/camera/photo)
 @Model
 final class ImportItem {
     // MARK: - Identity
@@ -9,9 +18,19 @@ final class ImportItem {
     var createdAt: Date = Date()
     var processedAt: Date?
 
-    // MARK: - URL Information
-    var urlString: String = ""
+    // MARK: - Source Type
+    var source: ImportSource = ImportSource.url
+
+    // MARK: - URL Information (for .url source)
+    var urlString: String? // Optional: only used for URL imports
     var normalizedURL: String? // For duplicate detection
+
+    // MARK: - Image Information (for .pdf, .camera, .photoLibrary sources)
+    var imageData: Data?          // Stored image for processing
+    var pdfURL: String?           // Original PDF file path (if applicable)
+    var pageNumber: Int?          // PDF page number (for progress tracking)
+    var totalPages: Int?          // Total pages in group (for multi-page recipes)
+    var isMultiPageRecipe: Bool?  // True if recipe spans multiple pages
 
     // MARK: - Status
     var status: ImportItemStatus = ImportItemStatus.pending
@@ -35,9 +54,29 @@ final class ImportItem {
     var suggestionConfidence: Double?
 
     // MARK: - Initialization
+
+    /// Initialize for URL-based import (video/recipe)
     init(urlString: String, normalizedURL: String? = nil) {
+        self.source = .url
         self.urlString = urlString
         self.normalizedURL = normalizedURL
+    }
+
+    /// Initialize for image-based import (PDF/camera/photo)
+    init(
+        source: ImportSource,
+        imageData: Data,
+        pdfURL: String? = nil,
+        pageNumber: Int? = nil,
+        totalPages: Int? = nil,
+        isMultiPageRecipe: Bool? = nil
+    ) {
+        self.source = source
+        self.imageData = imageData
+        self.pdfURL = pdfURL
+        self.pageNumber = pageNumber
+        self.totalPages = totalPages
+        self.isMultiPageRecipe = isMultiPageRecipe
     }
 }
 

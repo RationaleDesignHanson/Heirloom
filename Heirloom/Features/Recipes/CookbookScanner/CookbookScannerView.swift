@@ -10,6 +10,7 @@ struct CookbookScannerView: View {
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     // Using concrete types for now since views call implementation-specific methods
+    private var importManager: ImportJobManager { ServiceContainer.shared.resolve(ImportJobManager.self) }
     private var aiRecipeExtractor: AIRecipeExtractor { ServiceContainer.shared.resolve(AIRecipeExtractor.self) }
     private var aiIngredientParser: AIIngredientParser { ServiceContainer.shared.resolve(AIIngredientParser.self) }
     private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
@@ -40,6 +41,8 @@ struct CookbookScannerView: View {
     @State private var currentBatchStatus = ""
     @State private var failedItems: [(index: Int, error: String)] = []
     @State private var showBatchSummary = false
+    @State private var showPDFImport = false
+    @State private var showProgressView = false
 
     enum ImageSource {
         case camera
@@ -106,7 +109,7 @@ struct CookbookScannerView: View {
                     if capturedImage != nil && !isProcessing {
                         ToolbarItem(placement: .primaryAction) {
                             Button("Extract Recipe") {
-                                processImage()
+                                processImageWithQueue()
                             }
                         }
                     }
@@ -125,6 +128,17 @@ struct CookbookScannerView: View {
                             recipes: result.recipes,
                             sourceImage: result.sourceImage
                         )
+                    }
+                }
+                .sheet(isPresented: $showPDFImport) {
+                    PDFImportView()
+                }
+                .sheet(isPresented: $showProgressView) {
+                    if let job = importManager.activeJob {
+                        NavigationStack {
+                            ImportProgressView(manager: importManager, job: job)
+                                .navigationBarTitleDisplayMode(.inline)
+                        }
                     }
                 }
                 .alert("Scan Error", isPresented: .constant(errorMessage != nil)) {
@@ -258,6 +272,26 @@ struct CookbookScannerView: View {
                             .stroke(HeirloomColors.tomato, lineWidth: 2)
                     )
                 }
+
+                // PDF Import Button
+                Button {
+                    showPDFImport = true
+                } label: {
+                    HStack {
+                        Image(systemName: "doc.fill")
+                        Text("Import PDF")
+                    }
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(HeirloomColors.tomato)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(HeirloomColors.tomato, lineWidth: 2)
+                    )
+                }
             }
             .padding(.horizontal, HeirloomSpacing.lg)
             .padding(.bottom, HeirloomSpacing.xl)
@@ -352,47 +386,35 @@ struct CookbookScannerView: View {
 
     // MARK: - Vision API Processing
 
-    private func processImage() {
+    /// Process image using queue-based ImportJobManager
+    private func processImageWithQueue() {
         guard let image = capturedImage else { return }
-
-        isProcessing = true
-        processingStep = .optimizing
 
         Task {
             do {
-                try await processSingleImage(image)
+                // Create import job with single image
+                let job = try await importManager.createCameraImportJob(
+                    images: [image],
+                    context: modelContext
+                )
 
+                // Start processing
+                try await importManager.startJob(job, context: modelContext)
+
+                // Show progress view
                 await MainActor.run {
-                    isProcessing = false
-
-                    // Success feedback
-                    let generator = UINotificationFeedbackGenerator()
-                    generator.notificationOccurred(.success)
-
-                    // Track analytics
-                    analytics.track(event: .recipeImported, properties: [
-                        "source": "cookbook_scan",
-                        "extraction_method": "vision_api",
-                        "used_ai_extraction": true
-                    ])
+                    showProgressView = true
                 }
 
             } catch {
                 await MainActor.run {
-                    processingStep = .preparing
-                    isProcessing = false
-
-                    // Error feedback
-                    let generator = UINotificationFeedbackGenerator()
-                    generator.notificationOccurred(.error)
-
                     errorMessage = error.localizedDescription
-
-                    Log.error("Processing failed", category: .ocr, error: error)
+                    Log.error("Failed to create import job", category: .import, error: error)
                 }
             }
         }
     }
+
 
     private func recognizeText(in image: UIImage) async throws -> String {
         guard let cgImage = image.cgImage else {
@@ -417,112 +439,6 @@ struct CookbookScannerView: View {
         return recognizedStrings.joined(separator: "\n")
     }
 
-    // MARK: - Recipe Creation
-
-    private func createRecipeFromExtraction(_ extracted: AIRecipeExtractor.ExtractedRecipe, image: UIImage) {
-        // Create Recipe object
-        let recipe = Recipe(
-            title: extracted.title,
-            sourceType: .cookbook,
-            instructions: extracted.instructions,
-            servings: extracted.servings,
-            prepTime: extracted.prepTime,
-            cookTime: extracted.cookTime
-        )
-
-        if let notes = extracted.notes {
-            recipe.notes = notes
-        }
-
-        // Set provenance metadata for scanned recipes
-        recipe.provenance = ProvenanceMetadata(
-            sourceType: .scanned,
-            sourceAttribution: "Scanned from cookbook",
-            generation: 0
-        )
-
-        // Insert recipe first
-        modelContext.insert(recipe)
-
-        // Parse and create ingredients with AI
-        Task {
-            await createIngredients(for: recipe, ingredientTexts: extracted.ingredients)
-
-            // Save the image
-            await saveRecipeImage(image, for: recipe)
-
-            // Save to database
-            do {
-                try modelContext.save()
-
-                // Sync to Firebase if active
-                if backendConfig.isFirebaseActive {
-                    do {
-                        try await firebaseSync.uploadRecipe(recipe)
-
-                        // Upload scanned image if exists
-                        if recipe.imageFileName != nil {
-                            if let imageURL = try await firebaseSync.uploadImage(for: recipe) {
-                                recipe.firebaseImageURL = imageURL
-                                try? modelContext.save()
-                            }
-                        }
-
-                        Log.info("Scanned recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title])
-                    } catch {
-                        Log.warning("Failed to sync scanned recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
-                        // Don't fail - local save succeeded
-                    }
-                }
-
-                toastManager.success(
-                    title: "Recipe Added!",
-                    message: "'\(recipe.title)' has been added to your collection"
-                )
-
-                // Notify coordinator of recipe creation for cross-tab navigation
-                tabCoordinator.didCreateRecipe()
-
-                // Dismiss scanner
-                dismiss()
-
-            } catch {
-                toastManager.error(
-                    title: "Failed to save recipe",
-                    message: error.localizedDescription
-                )
-            }
-        }
-    }
-
-    private func createIngredients(for recipe: Recipe, ingredientTexts: [String]) async {
-        // Use AI batch parsing for better accuracy
-        let parsedIngredients: [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)]
-
-        do {
-            parsedIngredients = try await aiIngredientParser.parseBatchToTuple(ingredientTexts)
-        } catch {
-            Log.warning("AI ingredient parsing failed, using fallback", category: .general, metadata: ["error": error.localizedDescription])
-            parsedIngredients = ingredientTexts.map { IngredientParser.parse($0) }
-        }
-
-        // Create Ingredient objects
-        for (index, text) in ingredientTexts.enumerated() {
-            let parsed = parsedIngredients[index]
-
-            let ingredient = Ingredient(
-                originalText: text,
-                name: parsed.name,
-                quantity: parsed.quantity,
-                unit: parsed.unit,
-                category: GroceryCategory.categorize(parsed.name),
-                orderIndex: index
-            )
-            ingredient.quantityMax = parsed.quantityMax
-            ingredient.recipe = recipe
-            modelContext.insert(ingredient)
-        }
-    }
 
     private func saveRecipeImage(_ image: UIImage, for recipe: Recipe) async {
         do {
@@ -636,156 +552,69 @@ struct CookbookScannerView: View {
         return instructions
     }
 
-    // MARK: - Batch Processing
+    // MARK: - Batch Processing (Queue-Based)
 
     private func processBatch(_ items: [PhotosPickerItem]) async {
-        await MainActor.run {
-            isProcessingBatch = true
-            totalBatchCount = items.count
-            processedBatchCount = 0
-            currentBatchStatus = ""
-            failedItems = []
+        Log.info("Starting batch import via queue", category: .import, metadata: [
+            "count": items.count
+        ])
+
+        // Load all images first
+        var images: [UIImage] = []
+
+        for item in items {
+            if let data = try? await item.loadTransferable(type: Data.self),
+               let image = UIImage(data: data) {
+                images.append(image)
+            }
         }
 
-        for (index, item) in items.enumerated() {
+        guard !images.isEmpty else {
             await MainActor.run {
-                currentBatchStatus = "Processing \(index + 1) of \(items.count)..."
-                processedBatchCount = index
+                errorMessage = "Failed to load images from photo library"
             }
-
-            guard let data = try? await item.loadTransferable(type: Data.self),
-                  let image = UIImage(data: data) else {
-                await MainActor.run {
-                    failedItems.append((index: index + 1, error: "Failed to load image"))
-                }
-                continue
-            }
-
-            do {
-                try await processSingleImage(image, batchIndex: index + 1)
-            } catch {
-                await MainActor.run {
-                    failedItems.append((index: index + 1, error: error.localizedDescription))
-                }
-            }
+            return
         }
 
-        await MainActor.run {
-            processedBatchCount = items.count
-            isProcessingBatch = false
-            selectedPhotoItems = []
-            showBatchSummary = true
+        do {
+            // Create photo library import job
+            let job = try await importManager.createPhotoLibraryImportJob(
+                images: images,
+                context: modelContext
+            )
 
-            // Track analytics
-            analytics.track(event: .recipeImported, properties: [
-                "source": "cookbook_scan_batch",
-                "batch_size": items.count,
-                "failed_count": failedItems.count,
-                "success_count": items.count - failedItems.count
+            Log.info("Starting photo library import job", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "imageCount": images.count
             ])
+
+            // Start processing
+            try await importManager.startJob(job, context: modelContext)
+
+            await MainActor.run {
+                selectedPhotoItems = []
+                showProgressView = true
+
+                // Track analytics
+                analytics.track(event: .recipeImported, properties: [
+                    "source": "cookbook_scan_batch_queue",
+                    "batch_size": images.count
+                ])
+
+                Log.info("Photo library batch import job started successfully", category: .import)
+            }
+
+        } catch {
+            await MainActor.run {
+                errorMessage = error.localizedDescription
+
+                Log.error("Photo library batch import failed", category: .import, metadata: [
+                    "error": error.localizedDescription
+                ])
+            }
         }
     }
 
-    private func processSingleImage(_ image: UIImage, batchIndex: Int? = nil) async throws {
-        // Step 1: Optimizing - smooth interpolation
-        await MainActor.run {
-            processingStep = .optimizing
-            progressInterpolator.start(
-                from: 0.0,
-                to: 0.33,
-                duration: PhotoProgressInterpolator.PhaseDuration.optimizing
-            )
-        }
-
-        // Optimization happens in the AI service, so we just wait a moment
-        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-
-        // Step 2: Detecting recipes - smooth interpolation
-        await MainActor.run {
-            progressInterpolator.snap(to: 0.33)
-            processingStep = .detecting
-            progressInterpolator.start(
-                from: 0.33,
-                to: 0.66,
-                duration: PhotoProgressInterpolator.PhaseDuration.detecting
-            )
-        }
-
-        Log.info("Detecting recipes with vision API", category: .ocr)
-        let detected = try await aiRecipeExtractor.detectRecipes(from: image)
-
-        await MainActor.run {
-            progressInterpolator.snap(to: 0.66)
-        }
-
-        Log.info("Found recipes in image", category: .ocr, metadata: ["count": detected.count])
-
-        // Step 3: Extracting - smooth interpolation
-        await MainActor.run {
-            processingStep = .extracting
-            progressInterpolator.start(
-                from: 0.66,
-                to: 1.0,
-                duration: PhotoProgressInterpolator.PhaseDuration.extracting
-            )
-        }
-
-        Log.info("Extracting recipes with vision API", category: .ocr)
-        let result = try await aiRecipeExtractor.extractRecipesFromImage(
-            image: image,
-            detectedRecipes: detected
-        )
-
-        await MainActor.run {
-            progressInterpolator.snap(to: 1.0)
-            processingStep = .complete
-        }
-
-        Log.info("Processing complete", category: .ocr, metadata: ["count": result.count])
-
-        // Handle results based on recipe count
-        if result.count == 0 {
-            throw NSError(
-                domain: "CookbookScanner",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "No recipes detected in image \(batchIndex ?? 0)"]
-            )
-        } else if result.count == 1 {
-            // Single recipe - auto-import
-            let recipe = result.recipes[0]
-            await MainActor.run {
-                createRecipeFromExtraction(recipe, image: image)
-            }
-
-            // In batch mode, give SwiftData a moment to persist
-            if batchIndex != nil {
-                try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
-            }
-
-            Log.info("Single recipe auto-imported", category: .ocr, metadata: ["title": recipe.title])
-
-        } else if batchIndex == nil {
-            // Multiple recipes in single-photo mode - show selection UI
-            await MainActor.run {
-                multiRecipeResult = result
-                showMultiRecipeSheet = true
-            }
-
-            Log.info("Multiple recipes extracted", category: .ocr)
-        } else {
-            // Multiple recipes in batch mode - auto-import all
-            for recipe in result.recipes {
-                await MainActor.run {
-                    createRecipeFromExtraction(recipe, image: image)
-                }
-            }
-
-            // Give SwiftData a moment to persist the recipes
-            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
-
-            Log.info("Batch: Multiple recipes auto-imported", category: .ocr, metadata: ["count": result.count])
-        }
-    }
 
     enum OCRError: LocalizedError {
         case invalidImage

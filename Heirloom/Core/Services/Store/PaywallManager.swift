@@ -17,6 +17,7 @@ enum PaywallTrigger {
     case urlImport                  // Hard wall - URL import feature
     case cookbookScan               // Hard wall - cookbook scan feature
     case sync                       // Hard wall - sync feature
+    case largePDFImport(pageCount: Int)  // Hard wall - PDF import 50+ pages
 
     var displayName: String {
         switch self {
@@ -26,6 +27,7 @@ enum PaywallTrigger {
         case .urlImport: return "URL Import"
         case .cookbookScan: return "Cookbook Scan"
         case .sync: return "Sync"
+        case .largePDFImport: return "Large PDF Import"
         }
     }
 
@@ -33,7 +35,7 @@ enum PaywallTrigger {
         switch self {
         case .firstRecipeAdded, .fiveRecipesOrDay7, .day13Urgency:
             return true
-        case .urlImport, .cookbookScan, .sync:
+        case .urlImport, .cookbookScan, .sync, .largePDFImport:
             return false
         }
     }
@@ -42,7 +44,7 @@ enum PaywallTrigger {
         switch self {
         case .firstRecipeAdded: return 48
         case .fiveRecipesOrDay7: return 72
-        case .day13Urgency, .urlImport, .cookbookScan, .sync: return nil
+        case .day13Urgency, .urlImport, .cookbookScan, .sync, .largePDFImport: return nil
         }
     }
 }
@@ -157,7 +159,7 @@ final class PaywallManager {
         case .day13Urgency:
             return canTriggerDay13()
 
-        case .urlImport, .cookbookScan, .sync:
+        case .urlImport, .cookbookScan, .sync, .largePDFImport:
             return true // Hard walls always pass
         }
     }
@@ -348,7 +350,7 @@ final class PaywallManager {
         case .day13Urgency:
             UserDefaults.standard.set(true, forKey: Keys.hasTriggeredDay13)
 
-        case .urlImport, .cookbookScan, .sync:
+        case .urlImport, .cookbookScan, .sync, .largePDFImport:
             break // Hard walls don't track trigger date
         }
     }

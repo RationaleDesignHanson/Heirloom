@@ -49,6 +49,16 @@ enum AnalyticsEvent: String {
     case recipeExported = "Recipe Exported"
     case recipeShared = "Recipe Shared"
 
+    // PDF Import (Phase 7.3)
+    case pdfImportStarted = "PDF Import Started"
+    case pdfImportCompleted = "PDF Import Completed"
+    case pdfImportFailed = "PDF Import Failed"
+    case pdfValidationFailed = "PDF Validation Failed"
+    case largePDFPaywallShown = "Large PDF Paywall Shown"
+    case multiPageRecipeDetected = "Multi-Page Recipe Detected"
+    case multiPageAnalysisComplete = "Multi-Page Analysis Complete"
+    case pdfPageRendered = "PDF Page Rendered"
+
     // Cooking
     case cookingStarted = "Cooking Started"
     case cookingCompleted = "Cooking Completed"
