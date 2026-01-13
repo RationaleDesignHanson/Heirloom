@@ -69,7 +69,7 @@ struct VideoRecipeReviewView: View {
                     }
                     .padding(.vertical, 4)
 
-                    TextField("Creator Name *", text: $creatorName)
+                    TextField("Creator Name (optional)", text: $creatorName)
                         .textContentType(.name)
 
                     TextField("Video Title (optional)", text: $videoTitle)
@@ -84,12 +84,10 @@ struct VideoRecipeReviewView: View {
                     TextField("Additional Notes (optional)", text: $attributionNotes, axis: .vertical)
                         .lineLimit(2...4)
                 } header: {
-                    Text("Attribution")
+                    Text("Attribution (Optional)")
                 } footer: {
-                    if creatorName.isEmpty {
-                        Text("Creator name is required to save")
-                            .foregroundStyle(.orange)
-                    }
+                    Text("You can add attribution now or later from the recipe detail page")
+                        .foregroundStyle(.secondary)
                 }
 
 
@@ -249,8 +247,8 @@ struct VideoRecipeReviewView: View {
     }
 
     private var isValid: Bool {
+        // Phase 2.1: Remove creatorName requirement - attribution now optional
         !editedTitle.trimmingCharacters(in: .whitespaces).isEmpty &&
-        !creatorName.trimmingCharacters(in: .whitespaces).isEmpty &&
         !editedIngredients.isEmpty &&
         !editedSteps.isEmpty
     }
@@ -344,7 +342,7 @@ struct VideoRecipeReviewView: View {
     private func saveRecipe() {
         // Update attribution
         let updatedAttribution = VideoSourceAttribution(
-            creatorName: creatorName.trimmingCharacters(in: .whitespaces),
+            creatorName: creatorName.isEmpty ? nil : creatorName.trimmingCharacters(in: .whitespaces),
             videoTitle: videoTitle.isEmpty ? nil : videoTitle.trimmingCharacters(in: .whitespaces),
             platform: selectedPlatform,
             sourceURL: extraction.metadata.attribution.sourceURL,
