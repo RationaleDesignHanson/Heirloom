@@ -30,9 +30,13 @@ struct PaywallView: View {
     init(trigger: PaywallTrigger? = nil) {
         self.trigger = trigger
         let container = ServiceContainer.shared
+        let subManager = container.resolve(SubscriptionManager.self)
         _storeManager = State(initialValue: container.resolve(StoreManager.self))
-        _subscriptionManager = State(initialValue: container.resolve(SubscriptionManager.self))
+        _subscriptionManager = State(initialValue: subManager)
         _paywallManager = State(initialValue: container.resolve(PaywallManager.self))
+
+        // Default to Annual plan (especially for upgraders)
+        _selectedProduct = State(initialValue: .annual)
     }
 
     var body: some View {
@@ -40,13 +44,19 @@ struct PaywallView: View {
             VStack(spacing: 32) {
                 // Header
                 VStack(spacing: 16) {
-                    Image(systemName: "book.closed.fill")
+                    Image(systemName: subscriptionManager.canUpgrade ? "arrow.up.circle.fill" : "book.closed.fill")
                         .font(.system(size: 64))
-                        .foregroundStyle(HeirloomColors.tomato)
+                        .foregroundStyle(subscriptionManager.canUpgrade ? .green : HeirloomColors.tomato)
 
-                    Text("Heirloom Premium")
+                    Text(subscriptionManager.canUpgrade ? "Upgrade to Annual" : "Heirloom Premium")
                         .font(HeirloomFonts.title1)
                         .foregroundStyle(HeirloomColors.charcoal)
+
+                    if subscriptionManager.canUpgrade {
+                        Text("Save over 50% with Annual billing")
+                            .font(HeirloomFonts.body)
+                            .foregroundStyle(.green)
+                    }
                 }
                 .padding(.top, 40)
 
@@ -61,26 +71,44 @@ struct PaywallView: View {
 
                 // Plan Selection
                 VStack(spacing: 12) {
-                    planOption(
-                        productID: .annual,
-                        price: "$29.99/year",
-                        trial: "14-day free trial",
-                        badge: "BEST VALUE"
-                    )
+                    // Show all plans if not upgrading, or only Annual if upgrading from Monthly
+                    if !subscriptionManager.canUpgrade {
+                        planOption(
+                            productID: .annual,
+                            price: "$29.99/year",
+                            trial: "14-day free trial",
+                            badge: "BEST VALUE"
+                        )
 
-                    planOption(
-                        productID: .monthly,
-                        price: "$4.99/month",
-                        trial: "7-day free trial",
-                        badge: nil
-                    )
+                        planOption(
+                            productID: .monthly,
+                            price: "$4.99/month",
+                            trial: "7-day free trial",
+                            badge: nil
+                        )
 
-                    planOption(
-                        productID: .lifetime,
-                        price: "$99 once",
-                        trial: "No subscription",
-                        badge: "FOUNDING MEMBER • LIMITED"
-                    )
+                        planOption(
+                            productID: .lifetime,
+                            price: "$99 once",
+                            trial: "No subscription",
+                            badge: "FOUNDING MEMBER • LIMITED"
+                        )
+                    } else {
+                        // Upgrading from Monthly to Annual
+                        planOption(
+                            productID: .annual,
+                            price: "$29.99/year",
+                            trial: "Save over 50%",
+                            badge: "RECOMMENDED"
+                        )
+
+                        planOption(
+                            productID: .lifetime,
+                            price: "$99 once",
+                            trial: "No subscription",
+                            badge: "ONE-TIME PAYMENT"
+                        )
+                    }
                 }
                 .padding(.horizontal, 32)
 
@@ -221,6 +249,12 @@ struct PaywallView: View {
     // MARK: - CTA Text
 
     private var ctaText: String {
+        // If user is upgrading
+        if subscriptionManager.canUpgrade {
+            return selectedProduct == .annual ? "Upgrade to Annual" : "Change Plan"
+        }
+
+        // Default CTA for new subscribers
         switch selectedProduct {
         case .annual:
             return "Start 14-Day Free Trial"

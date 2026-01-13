@@ -32,6 +32,7 @@ struct SettingsView: View {
     @State private var isClearingData = false // Show loading indicator while clearing
     @State private var isExporting = false
     @State private var isRestoringPurchases = false
+    @State private var showDowngradeAlert = false
 
     var body: some View {
         NavigationStack {
@@ -91,6 +92,17 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("You'll need to sign in again to access your recipes.")
+            }
+            .alert(
+                "Switch to Monthly Plan",
+                isPresented: $showDowngradeAlert
+            ) {
+                Button("Cancel", role: .cancel) {}
+                Button("Continue") {
+                    openManageSubscription()
+                }
+            } message: {
+                Text("To switch from Annual to Monthly, you'll need to manage your subscription in iOS Settings. Your Annual subscription will remain active until it expires, then you can subscribe to Monthly.")
             }
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
@@ -166,6 +178,12 @@ struct SettingsView: View {
             LabeledContent("Status", value: subscriptionStatusText)
                 .foregroundStyle(subscriptionStatusColor)
 
+            // Current plan row (if subscribed)
+            if subscriptionManager.isPremium, let planName = subscriptionManager.currentPlanName {
+                LabeledContent("Current Plan", value: planName)
+                    .font(HeirloomFonts.body)
+            }
+
             // Renewal/Expiry date row (if applicable)
             if let dateText = subscriptionDateText {
                 LabeledContent(subscriptionDateLabel, value: dateText)
@@ -173,8 +191,33 @@ struct SettingsView: View {
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
 
-            // Manage Subscription button (for active subscriptions)
+            // Change Plan button (for subscribers who can upgrade/downgrade)
             if subscriptionManager.isPremium && subscriptionManager.status != .lifetime {
+                if subscriptionManager.canUpgrade {
+                    NavigationLink {
+                        PaywallView()
+                    } label: {
+                        HStack {
+                            Label("Upgrade to Annual", systemImage: "arrow.up.circle.fill")
+                                .foregroundStyle(.green)
+                            Spacer()
+                            Text("Save 50%")
+                                .font(.caption)
+                                .foregroundStyle(.green)
+                        }
+                    }
+                } else if subscriptionManager.canDowngrade {
+                    Button {
+                        showDowngradeAlert = true
+                    } label: {
+                        Label("Switch to Monthly", systemImage: "arrow.down.circle")
+                            .foregroundStyle(HeirloomColors.primaryText)
+                    }
+                }
+
+                Divider()
+
+                // Manage Subscription button (cancel, etc.)
                 Button {
                     openManageSubscription()
                 } label: {
@@ -184,11 +227,33 @@ struct SettingsView: View {
 
             // Upgrade button (for free users)
             if !subscriptionManager.isPremium {
-                NavigationLink {
-                    PaywallView()
-                } label: {
-                    Label("Upgrade to Premium", systemImage: "crown.fill")
-                        .foregroundStyle(HeirloomColors.tomato)
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                    // Trial countdown badge
+                    if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining {
+                        HStack {
+                            Image(systemName: "clock.fill")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+
+                            Text("\(daysRemaining) day\(daysRemaining == 1 ? "" : "s") left in trial")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(.orange)
+
+                            Spacer()
+                        }
+                        .padding(HeirloomSpacing.sm)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(.orange.opacity(0.1))
+                        )
+                    }
+
+                    NavigationLink {
+                        PaywallView()
+                    } label: {
+                        Label("Upgrade to Premium", systemImage: "crown.fill")
+                            .foregroundStyle(HeirloomColors.tomato)
+                    }
                 }
             }
 
@@ -411,10 +476,46 @@ struct SettingsView: View {
                         .font(.caption)
                 }
             }
+
+            // Trial Debug View - TEST TRIAL PERIOD SCENARIOS
+            NavigationLink {
+                TrialDebugView()
+            } label: {
+                HStack {
+                    Image(systemName: "calendar.badge.clock")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Trial Debug")
+                    Spacer()
+                    Text("🔬")
+                        .font(.caption)
+                }
+            }
+
+            // RevenueCat Toggle - STUB FOR PHASE 3
+            Toggle(isOn: Binding(
+                get: {
+                    UserDefaults.standard.bool(forKey: "feature_revenuecat_enabled")
+                },
+                set: { newValue in
+                    UserDefaults.standard.set(newValue, forKey: "feature_revenuecat_enabled")
+                }
+            )) {
+                HStack {
+                    Image(systemName: "creditcard.fill")
+                        .foregroundStyle(.gray)
+                    VStack(alignment: .leading) {
+                        Text("Enable RevenueCat (Stub)")
+                        Text("Not yet implemented")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .disabled(true) // Disabled until Phase 3 implementation
         } header: {
             Text("Developer Testing")
         } footer: {
-            Text("Enable 'Force Non-Premium Mode' to test the progressive heritage unlock flow (7 recipes per day). View debug logs for troubleshooting.")
+            Text("Enable 'Force Non-Premium Mode' to test the progressive heritage unlock flow (7 recipes per day). RevenueCat integration will be implemented in Phase 3.")
         }
     }
 

@@ -97,8 +97,41 @@ struct ASMRVideoImportView: View {
                 onboardingSheet
             }
             .sheet(isPresented: $showPaywall) {
-                // TODO: Show subscription paywall
-                Text("Upgrade to Pro for more extractions")
+                NavigationStack {
+                    VStack(spacing: 24) {
+                        Image(systemName: "waveform.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.orange.gradient)
+
+                        VStack(spacing: 8) {
+                            Text("No ASMR Credits Remaining")
+                                .font(.title2.bold())
+
+                            let summary = usageManager.getUsageSummary()
+                            Text("You've used \(summary.extractionsUsed) of \(summary.extractionsTotal) monthly extractions.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+
+                        Text("Upgrade to Premium for unlimited ASMR video imports.")
+                            .font(.body)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+
+                        Spacer()
+
+                        PaywallView()
+                    }
+                    .padding()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") {
+                                showPaywall = false
+                            }
+                        }
+                    }
+                }
             }
             .onAppear {
                 if !hasSeenOnboarding {

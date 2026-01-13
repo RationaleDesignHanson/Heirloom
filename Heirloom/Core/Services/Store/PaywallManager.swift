@@ -377,4 +377,29 @@ final class PaywallManager {
 
         logger.log("Paywall state reset", category: .store, level: .info, metadata: nil)
     }
+
+    /// Print debug status for troubleshooting
+    func printDebugStatus() {
+        print("=== PAYWALL MANAGER DEBUG ===")
+        print("Soft Wall Dismiss Count: \(softWallDismissCount) / 3")
+        print("Strike Rule Active: \(isStrikeRuleActive)")
+        print("Should Show Paywall: \(shouldShowPaywall)")
+        print("Current Trigger: \(currentTrigger?.displayName ?? "none")")
+
+        let recipeCount = UserDefaults.standard.integer(forKey: Keys.recipeCount)
+        print("Recipe Count: \(recipeCount)")
+
+        if let firstRecipeDate = UserDefaults.standard.object(forKey: Keys.firstRecipeTriggerDate) as? Date {
+            print("First Recipe Date: \(firstRecipeDate.description)")
+        } else {
+            print("First Recipe Date: none")
+        }
+
+        if let fiveRecipesDate = UserDefaults.standard.object(forKey: Keys.fiveRecipesTriggerDate) as? Date {
+            print("Five Recipes Date: \(fiveRecipesDate.description)")
+        } else {
+            print("Five Recipes Date: none")
+        }
+        print("===========================")
+    }
 }

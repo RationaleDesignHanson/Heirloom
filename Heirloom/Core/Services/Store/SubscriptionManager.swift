@@ -37,13 +37,49 @@ final class SubscriptionManager {
 
     /// Computed: is user in trial?
     var isInTrial: Bool {
-        status == .trial
+        // Check if status is trial AND not expired
+        guard status == .trial else { return false }
+
+        // If we have an expiry date, check it
+        if let expiryDate = trialExpiryDate {
+            return Date() <= expiryDate
+        }
+
+        // No expiry date but status is trial - assume in trial
+        return true
     }
 
     /// Computed: is trial expired?
     var isTrialExpired: Bool {
         guard let expiryDate = trialExpiryDate else { return false }
         return Date() > expiryDate
+    }
+
+    /// Current product ID (monthly, annual, or lifetime)
+    var currentProductID: ProductIdentifier? {
+        guard let productIDString = UserDefaults.standard.string(forKey: Keys.cachedProductID),
+              let productID = ProductIdentifier(rawValue: productIDString) else {
+            return nil
+        }
+        return productID
+    }
+
+    /// Current plan display name
+    var currentPlanName: String? {
+        guard let productID = currentProductID else { return nil }
+        return productID.displayName
+    }
+
+    /// Can user upgrade to a better plan?
+    var canUpgrade: Bool {
+        guard let currentID = currentProductID else { return false }
+        return currentID == .monthly // Monthly can upgrade to Annual
+    }
+
+    /// Can user downgrade to a cheaper plan?
+    var canDowngrade: Bool {
+        guard let currentID = currentProductID else { return false }
+        return currentID == .annual // Annual can downgrade to Monthly
     }
 
     // MARK: - Dependencies
@@ -148,6 +184,9 @@ final class SubscriptionManager {
             return
         }
 
+        // Store current product ID for plan management
+        UserDefaults.standard.set(productID.rawValue, forKey: Keys.cachedProductID)
+
         // Check expiration date for subscriptions
         if productID.isSubscription {
             if let expirationDate = transaction.expirationDate {
@@ -227,6 +266,39 @@ final class SubscriptionManager {
     }
 
     // MARK: - Trial Management
+
+    /// Initialize trial when blind boxes are revealed (forces trial to start)
+    func initializeTrialOnBlindBoxReveal() {
+        // Check if already initialized
+        if UserDefaults.standard.object(forKey: Keys.firstLaunchDate) != nil {
+            return
+        }
+
+        // Start trial now
+        let now = Date()
+        UserDefaults.standard.set(now, forKey: Keys.firstLaunchDate)
+
+        // Default to annual trial (14 days)
+        let trialExpiry = Calendar.current.date(byAdding: .day, value: trialDaysAnnual, to: now)!
+        UserDefaults.standard.set(trialExpiry, forKey: Keys.trialExpiryDate)
+
+        trialExpiryDate = trialExpiry
+        updateStatus(.trial)
+        calculateDaysRemaining()
+
+        logger.log(
+            "Trial started on blind box reveal: \(trialDaysAnnual) days",
+            category: .store,
+            level: .info,
+            metadata: nil
+        )
+
+        analytics.track(event: .trialStarted, properties: [
+            "trial_days": trialDaysAnnual,
+            "expiry_date": trialExpiry.ISO8601Format(),
+            "trigger": "blind_box_reveal"
+        ])
+    }
 
     /// Initialize trial on first launch
     private func initializeTrialIfNeeded() {
@@ -387,5 +459,23 @@ final class SubscriptionManager {
                 await self?.refreshStatus(force: true)
             }
         }
+    }
+
+    // MARK: - Debug
+
+    func printTrialStatus() {
+        print("=== TRIAL STATUS DEBUG ===")
+        if let firstLaunch = UserDefaults.standard.object(forKey: Keys.firstLaunchDate) as? Date {
+            print("First Launch Date: \(firstLaunch.description)")
+        } else {
+            print("First Launch Date: Not set")
+        }
+        print("Trial Expiry Date: \(trialExpiryDate?.description ?? "Not set")")
+        print("Days Remaining: \(daysRemaining ?? 0)")
+        print("Is In Trial: \(isInTrial)")
+        print("Is Trial Expired: \(isTrialExpired)")
+        print("Is Premium: \(isPremium)")
+        print("Subscription Status: \(status.rawValue)")
+        print("========================")
     }
 }

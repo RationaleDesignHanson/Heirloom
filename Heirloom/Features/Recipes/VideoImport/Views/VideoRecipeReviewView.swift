@@ -26,6 +26,9 @@ struct VideoRecipeReviewView: View {
     @State private var attributionNotes: String
 
     @State private var showTranscript = false
+    @State private var showPaywall = false
+
+    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
     init(
         extraction: VideoRecipeExtraction,
@@ -202,6 +205,26 @@ struct VideoRecipeReviewView: View {
                     .fontWeight(.semibold)
                     .disabled(!isValid)
                 }
+
+                // Trial upgrade CTA
+                if subscriptionManager.isInTrial {
+                    ToolbarItem(placement: .bottomBar) {
+                        VStack(spacing: 4) {
+                            Text("✨ Video import is a Premium feature")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            Button("Upgrade to Keep Using After Trial") {
+                                showPaywall = true
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
             }
             .onAppear {
                 // DEBUG: Log augmentation status

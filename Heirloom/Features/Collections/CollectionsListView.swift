@@ -21,6 +21,7 @@ struct CollectionsListView: View {
     @State private var showDeleteConfirmation = false
     @State private var showHeritageUnlock = false
     @State private var unlockTracker: HeritageUnlockTracker?
+    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
     // Filter heritage collections (founding collections)
     var heritageCollections: [RecipeCollection] {
@@ -165,6 +166,12 @@ struct CollectionsListView: View {
                             }
                     }
 
+                    // Post-trial banner (if trial expired and has heritage content)
+                    if subscriptionManager.isTrialExpired && !subscriptionManager.isPremium && !heritageCollections.isEmpty,
+                       let tracker = unlockTracker {
+                        postTrialBanner(unlockedCount: tracker.totalUnlockedCount)
+                    }
+
                     // Show single mystery collection button that reveals all blind boxes
                     if let firstBlindBox = blindBoxCollections.first {
                         BlindBoxCollectionRow(collection: firstBlindBox) {
@@ -198,18 +205,81 @@ struct CollectionsListView: View {
         }
     }
 
+    // MARK: - Post-Trial Banner
+
+    @ViewBuilder
+    private func postTrialBanner(unlockedCount: Int) -> some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+
+                Text("You unlocked \(unlockedCount) heritage recipes")
+                    .font(HeirloomFonts.body)
+                    .fontWeight(.semibold)
+            }
+
+            Text("They're yours forever! Upgrade to unlock the remaining \(100 - unlockedCount) recipes or continue discovering them at $0.99 each.")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: HeirloomSpacing.sm) {
+                Button {
+                    // Show PaywallView
+                    showHeritageUnlock = true
+                } label: {
+                    Text("Upgrade to Premium")
+                        .font(HeirloomFonts.caption1)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, HeirloomSpacing.md)
+                        .padding(.vertical, HeirloomSpacing.sm)
+                        .background(HeirloomColors.tomato)
+                        .cornerRadius(8)
+                }
+
+                Button {
+                    // Show individual purchase option
+                    showHeritageUnlock = true
+                } label: {
+                    Text("Buy Individually")
+                        .font(HeirloomFonts.caption1)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(HeirloomColors.tomato)
+                        .padding(.horizontal, HeirloomSpacing.md)
+                        .padding(.vertical, HeirloomSpacing.sm)
+                        .background(HeirloomColors.cream)
+                        .cornerRadius(8)
+                }
+            }
+        }
+        .padding(HeirloomSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.orange.opacity(0.1))
+        )
+    }
+
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        // Heritage unlock icon
+        // Heritage unlock icon with trial countdown
         ToolbarItem(placement: .topBarTrailing) {
             if let tracker = unlockTracker, (tracker.totalRecipesRemaining > 0 || tracker.unlockedRecipeIds.count > 0) {
                 Button {
                     showHeritageUnlock = true
                 } label: {
-                    Image(systemName: "sparkles")
-                        .foregroundStyle(.orange)
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(.orange)
+
+                        if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining, daysRemaining > 0 {
+                            Text("\(daysRemaining)d")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                        }
+                    }
                 }
-                .accessibilityLabel("Heritage Collection")
+                .accessibilityLabel("Heritage Collection - \(subscriptionManager.isInTrial ? "\(subscriptionManager.daysRemaining ?? 0) days remaining" : "")")
             }
         }
 
@@ -324,6 +394,10 @@ struct CollectionsListView: View {
 
         do {
             try modelContext.save()
+
+            // Initialize SubscriptionManager's trial (if not already started)
+            let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+            subscriptionManager.initializeTrialOnBlindBoxReveal()
 
             // Initialize heritage unlock tracker
             let unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)

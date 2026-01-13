@@ -10,46 +10,54 @@ import SwiftUI
 /// Shows current ASMR usage and credits remaining
 struct ASMRUsageBadge: View {
     @StateObject private var usageManager = ASMRUsageManager.shared
+    @State private var showPaywall = false
+
+    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
     var body: some View {
         let summary = usageManager.getUsageSummary()
 
         HStack(spacing: 12) {
-            // Star icon
-            Image(systemName: "star.circle.fill")
+            // Waveform icon for ASMR
+            Image(systemName: "waveform.circle.fill")
                 .font(.title2)
-                .foregroundStyle(.yellow.gradient)
+                .foregroundStyle(
+                    summary.extractionsRemaining > 0
+                        ? Color.orange.gradient
+                        : Color.gray.gradient
+                )
 
             // Usage info
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text("\(summary.extractionsRemaining)")
+                if subscriptionManager.isPremium {
+                    Text("Unlimited")
                         .font(.title3.bold())
-                    Text("/ \(summary.extractionsTotal) left")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.orange)
+                } else {
+                    HStack(spacing: 4) {
+                        Text("\(summary.extractionsRemaining)")
+                            .font(.title3.bold())
+                            .foregroundStyle(summary.extractionsRemaining > 0 ? .primary : .secondary)
+                        Text("/ \(summary.extractionsTotal) left this month")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
-                Text("Resets \(summary.resetDate, format: .dateTime.month().day())")
+                Text(subscriptionManager.isPremium ? "Premium ASMR access" : "Resets \(summary.resetDate, format: .dateTime.month().day())")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            // Upgrade button for free users
-            if !summary.isProUser {
-                Button {
-                    // TODO: Show subscription paywall
-                } label: {
-                    Text("Upgrade")
-                        .font(.caption.bold())
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.blue)
-                        .foregroundStyle(.white)
-                        .cornerRadius(8)
-                }
+            // Upgrade button / Info button
+            Button {
+                showPaywall = true
+            } label: {
+                Image(systemName: subscriptionManager.isPremium ? "checkmark.circle.fill" : "arrow.up.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(subscriptionManager.isPremium ? .green : .orange)
             }
         }
         .padding()
@@ -57,6 +65,9 @@ struct ASMRUsageBadge: View {
         .cornerRadius(12)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("ASMR extractions: \(summary.extractionsRemaining) of \(summary.extractionsTotal) remaining")
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
     }
 }
 

@@ -38,6 +38,7 @@ enum StoreError: LocalizedError {
     case purchaseCancelled
     case verificationFailed
     case networkUnavailable
+    case notImplemented(String)
     case unknownError(Error)
 
     var errorDescription: String? {
@@ -52,6 +53,8 @@ enum StoreError: LocalizedError {
             return "Could not verify purchase"
         case .networkUnavailable:
             return "Network connection required"
+        case .notImplemented(let feature):
+            return "\(feature) is not yet implemented"
         case .unknownError(let error):
             return "An unexpected error occurred: \(error.localizedDescription)"
         }
@@ -88,6 +91,19 @@ final class StoreManager {
 
     private let logger: LoggingService
     private let analytics: AnalyticsService
+
+    // MARK: - RevenueCat Integration (STUBBED)
+    // TODO: Implement RevenueCat SDK integration in Phase 3
+    // - Install RevenueCat SDK via SPM: https://github.com/RevenueCat/purchases-ios
+    // - Configure API key in app initialization
+    // - Replace StoreKit 2 purchase flows with RevenueCat equivalents
+    // - Implement receipt validation via RevenueCat backend
+    // - Set up webhook handlers for subscription events
+
+    /// Feature flag to enable/disable RevenueCat (disabled by default)
+    private var isRevenueCatEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "feature_revenuecat_enabled")
+    }
 
     // MARK: - Initialization
 
@@ -180,6 +196,41 @@ final class StoreManager {
     /// - Parameter productID: Product to purchase
     /// - Returns: Purchase result with transaction details
     func purchase(_ productID: ProductIdentifier) async -> PurchaseResult {
+        // Check if RevenueCat is enabled
+        if isRevenueCatEnabled {
+            return await purchaseViaRevenueCat(productID)
+        }
+
+        // Otherwise use StoreKit 2
+        return await purchaseViaStoreKit(productID)
+    }
+
+    /// RevenueCat purchase stub (not yet implemented)
+    /// - Parameter productID: Product to purchase
+    /// - Returns: Purchase result
+    private func purchaseViaRevenueCat(_ productID: ProductIdentifier) async -> PurchaseResult {
+        let error = StoreError.notImplemented("RevenueCat purchase flow")
+        currentError = error
+
+        logger.log(
+            "RevenueCat purchase attempted but not implemented",
+            category: .store,
+            level: .warning,
+            metadata: ["product": productID.rawValue]
+        )
+
+        analytics.track(event: .purchaseFailed, properties: [
+            "product": productID.rawValue,
+            "reason": "revenuecat_not_implemented"
+        ])
+
+        return .failed(error)
+    }
+
+    /// StoreKit 2 purchase implementation
+    /// - Parameter productID: Product to purchase
+    /// - Returns: Purchase result with transaction details
+    private func purchaseViaStoreKit(_ productID: ProductIdentifier) async -> PurchaseResult {
         guard let product = products[productID] else {
             let error = StoreError.productNotFound(productID)
             currentError = error

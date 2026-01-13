@@ -18,9 +18,11 @@ struct HeritageUnlockView: View {
 
     @State private var unlockTracker: HeritageUnlockTracker?
     @State private var subscriptionManager: SubscriptionManager?
+    @State private var paywallManager: PaywallManager?
     @State private var showConfetti = false
     @State private var isUnlocking = false
     @State private var errorMessage: String?
+    @State private var showTrialExpired = false
 
     private var allBlindBoxesRevealed: Bool {
         let revealedCount = blindBoxes.filter { $0.isRevealed }.count
@@ -75,6 +77,9 @@ struct HeritageUnlockView: View {
                         .allowsHitTesting(false)
                 }
             }
+            .sheet(isPresented: $showTrialExpired) {
+                TrialExpiredView()
+            }
         }
     }
 
@@ -93,6 +98,25 @@ struct HeritageUnlockView: View {
                 Text("\(tracker.unlockedRecipeIds.count) of 100 unlocked")
                     .font(HeirloomFonts.body)
                     .foregroundStyle(HeirloomColors.secondaryText)
+            }
+
+            // Trial countdown badge
+            if let manager = subscriptionManager, manager.isInTrial, let daysRemaining = manager.daysRemaining, daysRemaining > 0 {
+                HStack(spacing: HeirloomSpacing.xs) {
+                    Image(systemName: "clock.fill")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+
+                    Text("\(daysRemaining) day\(daysRemaining == 1 ? "" : "s") left in trial")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(.orange)
+                }
+                .padding(.horizontal, HeirloomSpacing.md)
+                .padding(.vertical, HeirloomSpacing.sm)
+                .background(
+                    Capsule()
+                        .fill(.orange.opacity(0.15))
+                )
             }
         }
     }
@@ -130,6 +154,9 @@ struct HeritageUnlockView: View {
             if !allBlindBoxesRevealed {
                 // Blind boxes need to be revealed first
                 blindBoxMessage
+            } else if let manager = subscriptionManager, manager.isTrialExpired && !manager.isPremium {
+                // Trial expired - show post-trial options
+                trialExpiredMessage
             } else if let tracker = unlockTracker {
                 if tracker.hasUnlocksAvailableToday && tracker.recipesToUnlockToday > 0 {
                     // Unlock button
@@ -224,6 +251,42 @@ struct HeritageUnlockView: View {
         .padding(.horizontal)
     }
 
+    private var trialExpiredMessage: some View {
+        VStack(spacing: HeirloomSpacing.md) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(.green)
+
+            Text("Trial Complete!")
+                .font(HeirloomFonts.body)
+                .fontWeight(.semibold)
+
+            if let tracker = unlockTracker {
+                Text("You unlocked \(tracker.unlockedRecipeIds.count) recipes — they're yours forever!")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+
+            Button {
+                showTrialExpired = true
+            } label: {
+                Text("See Your Options")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.blue.gradient)
+                    .foregroundStyle(.white)
+                    .cornerRadius(12)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(.blue.opacity(0.1))
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+
     // MARK: - Collections Grid
 
     private var collectionsGrid: some View {
@@ -265,6 +328,9 @@ struct HeritageUnlockView: View {
         if subscriptionManager == nil {
             subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
         }
+        if paywallManager == nil {
+            paywallManager = ServiceContainer.shared.resolve(PaywallManager.self)
+        }
 
         // Initialize trial tracking if needed
         if let tracker = unlockTracker, tracker.trialStartDate == nil {
@@ -296,6 +362,16 @@ struct HeritageUnlockView: View {
                         title: "Recipes Unlocked!",
                         message: "Explore \(tracker.recipesToUnlockToday) new heritage recipes"
                     )
+
+                    // Show soft wall after positive moment (if eligible)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                        if let manager = subscriptionManager, !manager.isPremium,
+                           let paywall = paywallManager {
+                            if paywall.shouldShow(for: .fiveRecipesOrDay7) {
+                                paywall.show(for: .fiveRecipesOrDay7)
+                            }
+                        }
+                    }
                 }
             } catch {
                 await MainActor.run {

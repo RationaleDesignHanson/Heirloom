@@ -24,21 +24,37 @@ struct VideoProcessingView: View {
     @State private var showError = false
     @State private var errorMessage: String?
     @State private var recipeImage: Data?
+    @State private var showPaywall = false
+    @State private var hasCheckedPremium = false
 
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
+    private var paywallManager: PaywallManager { ServiceContainer.shared.resolve(PaywallManager.self) }
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Gradient background
-                LinearGradient(
-                    colors: [Color.blue.opacity(0.05), Color.purple.opacity(0.05)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+            if showPaywall {
+                SoftWallView(trigger: .urlImport)
+            } else {
+                processingContent
+                    .onAppear {
+                        checkPremiumAccess()
+                    }
+            }
+        }
+    }
 
-                ScrollView {
+    private var processingContent: some View {
+        ZStack {
+            // Gradient background
+            LinearGradient(
+                colors: [Color.blue.opacity(0.05), Color.purple.opacity(0.05)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            ScrollView {
                     VStack(spacing: 32) {
                         // Large progress ring
                         progressRingSection
@@ -66,7 +82,6 @@ struct VideoProcessingView: View {
                     }
                     .padding()
                 }
-            }
             .navigationTitle("Extracting Recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -366,6 +381,21 @@ struct VideoProcessingView: View {
             return "~\(minutes)m \(seconds)s remaining"
         } else {
             return "~\(seconds)s remaining"
+        }
+    }
+
+    // MARK: - Premium Access Check
+
+    private func checkPremiumAccess() {
+        guard !hasCheckedPremium else { return }
+        hasCheckedPremium = true
+
+        if !subscriptionManager.isPremium {
+            if paywallManager.shouldShow(for: .urlImport) {
+                paywallManager.show(for: .urlImport)
+                showPaywall = true
+            }
+            // If shouldShow returns false, 3-strike rule is active - allow access
         }
     }
 

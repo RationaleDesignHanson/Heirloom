@@ -49,6 +49,11 @@ class HeritageUnlockTracker: ObservableObject {
         return max(0, expectedUnlockedByNow - currentlyUnlocked)
     }
 
+    /// Total recipes unlocked so far
+    var totalUnlockedCount: Int {
+        return unlockedRecipeIds.count
+    }
+
     /// Total recipes remaining to unlock
     var totalRecipesRemaining: Int {
         return max(0, 100 - unlockedRecipeIds.count)
@@ -56,6 +61,13 @@ class HeritageUnlockTracker: ObservableObject {
 
     /// Unlock daily batch of heritage recipes
     func unlockDailyBatch(context: ModelContext) async throws {
+        // Check if premium or in trial
+        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+        guard subscriptionManager.isPremium || subscriptionManager.isInTrial else {
+            Log.info("Trial expired - no daily unlocks", category: .heritage)
+            return
+        }
+
         guard hasUnlocksAvailableToday else {
             Log.info("No unlocks available today", category: .heritage)
             return
