@@ -429,22 +429,6 @@ class RecipeAugmentationService {
             return .unknown
         }
     }
-}
-
-// MARK: - Response Models
-
-private struct AugmentationResult: Codable {
-    let augmentedIngredients: [RawAugmentedIngredient]
-}
-
-private struct RawAugmentedIngredient: Codable {
-    let originalText: String
-    let inferredQuantity: String?
-    let inferredUnit: String?
-    let confidence: String
-    let reasoning: String
-    let sourceRecipes: [String]
-}
 
     // MARK: - Web Recipe Enrichment
 
@@ -496,6 +480,21 @@ private struct RawAugmentedIngredient: Codable {
             )
         )
     }
+}
+
+// MARK: - Response Models
+
+private struct AugmentationResult: Codable {
+    let augmentedIngredients: [RawAugmentedIngredient]
+}
+
+private struct RawAugmentedIngredient: Codable {
+    let originalText: String
+    let inferredQuantity: String?
+    let inferredUnit: String?
+    let confidence: String
+    let reasoning: String
+    let sourceRecipes: [String]
 }
 
 // MARK: - Errors
