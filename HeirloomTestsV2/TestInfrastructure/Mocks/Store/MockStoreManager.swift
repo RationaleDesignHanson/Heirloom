@@ -53,12 +53,11 @@ final class MockStoreManager {
     // MARK: - Initialization
 
     init(
-        logger: LoggingService =
-MockLoggingService(),
-        analytics: AnalyticsService = MockAnalyticsService()
+        logger: LoggingService? = nil,
+        analytics: AnalyticsService? = nil
     ) {
-        self.logger = logger
-        self.analytics = analytics
+        self.logger = logger ?? MockLoggingService()
+        self.analytics = analytics ?? AnalyticsService()
     }
 
     // MARK: - Product Loading
@@ -78,7 +77,7 @@ MockLoggingService(),
         products = [:]
 
         isLoading = false
-        logger.log("Mock: Loaded products", category: .store, level: .debug)
+        logger.log("Mock: Loaded products", category: .store, level: .debug, metadata: nil)
     }
 
     // MARK: - Purchase Flow
@@ -90,7 +89,7 @@ MockLoggingService(),
         purchaseCallCount += 1
         lastPurchasedProduct = productID
 
-        logger.log("Mock: Purchasing \(productID.displayName)", category: .store, level: .debug)
+        logger.log("Mock: Purchasing \(productID.displayName)", category: .store, level: .debug, metadata: nil)
 
         // Simulate delay
         if purchaseDelay > 0 {
@@ -99,18 +98,18 @@ MockLoggingService(),
 
         // Simulate different outcomes
         if shouldCancelPurchase {
-            logger.log("Mock: Purchase cancelled", category: .store, level: .debug)
+            logger.log("Mock: Purchase cancelled", category: .store, level: .debug, metadata: nil)
             return .cancelled
         }
 
         if shouldPendPurchase {
-            logger.log("Mock: Purchase pending", category: .store, level: .debug)
+            logger.log("Mock: Purchase pending", category: .store, level: .debug, metadata: nil)
             return .pending
         }
 
         if shouldFailPurchase {
             let error = StoreError.purchaseFailed("Mock purchase failure")
-            logger.log("Mock: Purchase failed", category: .store, level: .error)
+            logger.log("Mock: Purchase failed", category: .store, level: .error, metadata: nil)
             return .failed(error)
         }
 
@@ -119,14 +118,14 @@ MockLoggingService(),
         mockTransactionHistory.append(mockTransaction)
         activePurchases.insert(productID)
 
-        logger.log("Mock: Purchase succeeded", category: .store, level: .debug)
+        logger.log("Mock: Purchase succeeded", category: .store, level: .debug, metadata: nil)
         return .success
     }
 
     /// Mock restore purchases
     func restorePurchases() async throws {
         restoreCallCount += 1
-        logger.log("Mock: Restored purchases", category: .store, level: .debug)
+        logger.log("Mock: Restored purchases", category: .store, level: .debug, metadata: nil)
 
         // Mock: Return existing transaction history
         // In real tests, this would sync with StoreKit
@@ -134,7 +133,7 @@ MockLoggingService(),
 
     /// Mock current entitlements
     func currentEntitlements() async -> Set<ProductIdentifier> {
-        logger.log("Mock: Current entitlements: \(activePurchases)", category: .store, level: .debug)
+        logger.log("Mock: Current entitlements: \(activePurchases)", category: .store, level: .debug, metadata: nil)
         return activePurchases
     }
 
@@ -146,7 +145,7 @@ MockLoggingService(),
         let transaction = MockTransaction(productID: productID)
         mockTransactionHistory.append(transaction)
         activePurchases.insert(productID)
-        logger.log("Mock: Simulated purchase of \(productID.displayName)", category: .store, level: .debug)
+        logger.log("Mock: Simulated purchase of \(productID.displayName)", category: .store, level: .debug, metadata: nil)
     }
 
     /// Clear all mock state for test isolation

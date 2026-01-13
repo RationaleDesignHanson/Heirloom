@@ -13,12 +13,12 @@ import UIKit
 // MARK: - Mock ASMR Sound Analysis Service
 
 @MainActor
-class MockASMRSoundAnalysisService: ASMRSoundAnalysisService {
+class MockASMRSoundAnalysisService {
     var mockResult: SoundAnalysisResult?
     var shouldThrowError = false
     var analyzeCallCount = 0
 
-    override func analyzeSuitability(videoURL: URL) async throws -> SoundAnalysisResult {
+    func analyzeSuitability(videoURL: URL, skipAnalysis: Bool = false) async throws -> SoundAnalysisResult {
         analyzeCallCount += 1
 
         if shouldThrowError {

@@ -236,9 +236,23 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
             throw RecipeParsingError.missingTitle
         }
 
-        // Should have at least one ingredient or step
-        guard !recipe.ingredients.isEmpty || !recipe.steps.isEmpty else {
-            throw RecipeParsingError.noRecipeContent
+        // ENHANCED VALIDATION: Allow recipes with just a title
+        // If we have a title but no ingredients/steps, we can use web search to fill them in
+        let hasContent = !recipe.ingredients.isEmpty || !recipe.steps.isEmpty
+
+        if !hasContent {
+            // Log transcript for debugging
+            let transcript = currentTranscript?.text ?? ""
+            let transcriptPreview = String(transcript.prefix(500))
+
+            Log.warning("Recipe extracted with title only - will use web search fallback", category: .video, metadata: [
+                "title": recipe.title,
+                "transcriptLength": transcript.count,
+                "transcriptPreview": transcriptPreview,
+                "confidence": recipe.overallConfidence
+            ])
+
+            // Don't throw error - allow it to proceed to web search enrichment
         }
 
         // Dynamic confidence threshold based on transcript length
@@ -253,7 +267,9 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
             confidenceThreshold = 0.30  // Normal/long-form (maintains original quality bar)
         }
 
-        if recipe.overallConfidence < confidenceThreshold {
+        // Only enforce confidence threshold if we have content
+        // If no content, we'll rely on web search fallback (enforced later)
+        if hasContent && recipe.overallConfidence < confidenceThreshold {
             Log.warning("Recipe extraction confidence too low", category: .video, metadata: [
                 "confidence": recipe.overallConfidence,
                 "threshold": confidenceThreshold,

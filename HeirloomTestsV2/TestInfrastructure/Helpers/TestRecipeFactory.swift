@@ -22,25 +22,33 @@ final class TestRecipeFactory {
         title: String = "Test Heritage Recipe",
         collectionId: String = "literary_kitchen",
         context: ModelContext
-    ) -> Recipe {
-        let recipe = Recipe()
+    ) -> Heirloom.Recipe {
+        // Create recipe using Heirloom module's custom init
+        let recipe = Heirloom.Recipe(
+            title: title,
+            sourceType: .heritage,
+            instructions: ["Mix ingredients", "Bake until done"],
+            servings: "4",
+            cookTime: "30"
+        )
+
         if let id = id {
             recipe.id = UUID(uuidString: id) ?? UUID()
         }
-        recipe.title = title
         recipe.isHeritageRecipe = true
         recipe.heritageCollectionId = collectionId
-        recipe.servings = 4
-        recipe.cookTime = 30
-        recipe.ingredients = [
-            Ingredient(quantity: "2", unit: "cups", name: "flour"),
-            Ingredient(quantity: "1", unit: "tsp", name: "salt")
-        ]
-        recipe.instructions = [
-            Instruction(text: "Mix ingredients", order: 0)
-        ]
 
+        // Create ingredients using Heirloom module's init
+        let ing1 = Heirloom.Ingredient(name: "flour", quantity: 2.0, unit: "cups")
+        let ing2 = Heirloom.Ingredient(name: "salt", quantity: 1.0, unit: "tsp")
+
+        // Insert into context first, then establish relationships
         context.insert(recipe)
+        context.insert(ing1)
+        context.insert(ing2)
+
+        recipe.ingredients = [ing1, ing2]
+
         return recipe
     }
 
@@ -48,7 +56,7 @@ final class TestRecipeFactory {
     static func createLiteraryKitchenRecipes(
         count: Int,
         context: ModelContext
-    ) -> [Recipe] {
+    ) -> [Heirloom.Recipe] {
         return (0..<count).map { index in
             createHeritageRecipe(
                 title: "Literary Kitchen Recipe \(index + 1)",
@@ -63,7 +71,7 @@ final class TestRecipeFactory {
         count: Int,
         collectionId: String = "regional_001",
         context: ModelContext
-    ) -> [Recipe] {
+    ) -> [Heirloom.Recipe] {
         return (0..<count).map { index in
             createHeritageRecipe(
                 title: "Regional Recipe \(index + 1)",
@@ -79,20 +87,24 @@ final class TestRecipeFactory {
     static func createRegularRecipe(
         title: String = "Test Recipe",
         context: ModelContext
-    ) -> Recipe {
-        let recipe = Recipe()
-        recipe.title = title
+    ) -> Heirloom.Recipe {
+        let recipe = Heirloom.Recipe(
+            title: title,
+            sourceType: .manual,
+            instructions: ["Boil water"],
+            servings: "4",
+            cookTime: "30"
+        )
         recipe.isHeritageRecipe = false
-        recipe.servings = 4
-        recipe.cookTime = 30
-        recipe.ingredients = [
-            Ingredient(quantity: "1", unit: "cup", name: "water")
-        ]
-        recipe.instructions = [
-            Instruction(text: "Boil water", order: 0)
-        ]
 
+        let ing = Heirloom.Ingredient(name: "water", quantity: 1.0, unit: "cup")
+
+        // Insert into context first, then establish relationships
         context.insert(recipe)
+        context.insert(ing)
+
+        recipe.ingredients = [ing]
+
         return recipe
     }
 
@@ -100,7 +112,7 @@ final class TestRecipeFactory {
     static func createRegularRecipes(
         count: Int,
         context: ModelContext
-    ) -> [Recipe] {
+    ) -> [Heirloom.Recipe] {
         return (0..<count).map { index in
             createRegularRecipe(title: "Recipe \(index + 1)", context: context)
         }
@@ -114,10 +126,11 @@ final class TestRecipeFactory {
         title: String = "Literary Kitchen",
         isRevealed: Bool = false,
         context: ModelContext
-    ) -> RecipeCollection {
-        let collection = RecipeCollection()
-        collection.title = title
-        collection.heritageCollectionId = heritageId
+    ) -> Heirloom.RecipeCollection {
+        let collection = RecipeCollection(
+            name: title,
+            heritageCollectionId: heritageId
+        )
         collection.isBlindBox = true
         collection.isRevealed = isRevealed
 
@@ -130,7 +143,7 @@ final class TestRecipeFactory {
         count: Int,
         revealed: Bool = false,
         context: ModelContext
-    ) -> [RecipeCollection] {
+    ) -> [Heirloom.RecipeCollection] {
         let collectionIds = [
             "literary_kitchen",
             "regional_001",
@@ -153,9 +166,8 @@ final class TestRecipeFactory {
     static func createRegularCollection(
         title: String = "My Collection",
         context: ModelContext
-    ) -> RecipeCollection {
-        let collection = RecipeCollection()
-        collection.title = title
+    ) -> Heirloom.RecipeCollection {
+        let collection = RecipeCollection(name: title)
         collection.isBlindBox = false
 
         context.insert(collection)
@@ -168,7 +180,7 @@ final class TestRecipeFactory {
     /// - Returns: Tuple of (blind box collections, onboarding recipe)
     static func setupOnboardingScenario(
         context: ModelContext
-    ) -> (collections: [RecipeCollection], onboardingRecipe: Recipe) {
+    ) -> (collections: [Heirloom.RecipeCollection], onboardingRecipe: Heirloom.Recipe) {
         // Create 5 blind box collections (not revealed yet)
         let collections = createBlindBoxCollections(count: 5, revealed: false, context: context)
 
@@ -183,7 +195,7 @@ final class TestRecipeFactory {
     static func setupTrialScenario(
         day: Int,
         context: ModelContext
-    ) -> (collections: [RecipeCollection], heritageRecipes: [Recipe], regularRecipes: [Recipe]) {
+    ) -> (collections: [Heirloom.RecipeCollection], heritageRecipes: [Heirloom.Recipe], regularRecipes: [Heirloom.Recipe]) {
         // Create revealed blind box collections
         let collections = createBlindBoxCollections(count: 5, revealed: true, context: context)
 
@@ -210,21 +222,13 @@ extension TestRecipeFactory {
     /// Create an in-memory SwiftData ModelContext for testing
     /// - Returns: ModelContext configured for testing
     static func createTestModelContext() throws -> ModelContext {
-        let schema = Schema([
-            Recipe.self,
-            RecipeCollection.self,
-            Ingredient.self,
-            Instruction.self
-        ])
-
         let modelConfiguration = ModelConfiguration(
-            schema: schema,
             isStoredInMemoryOnly: true
         )
 
         let container = try ModelContainer(
-            for: schema,
-            configurations: [modelConfiguration]
+            for: Heirloom.Recipe.self, Heirloom.RecipeCollection.self, Heirloom.Ingredient.self,
+            configurations: modelConfiguration
         )
 
         return ModelContext(container)

@@ -94,21 +94,26 @@ final class TrialStateBuilder {
             UserDefaults.standard.set("monthly", forKey: "subscription_status") // Will be overridden by manager
         }
 
-        // Create mock dependencies
-        let mockStoreManager = MockStoreManager()
+        // Create dependencies
         let mockLogger = MockLoggingService()
-        let mockAnalytics = MockAnalyticsService()
+        let analytics = AnalyticsService()
+        // Note: Using real StoreManager since it's final and can't be mocked
+        // It won't actually make purchases in tests
+        let storeManager = StoreManager(logger: mockLogger, analytics: analytics)
 
-        // If subscription configured, simulate purchase
+        // Simulate subscription state via UserDefaults if needed
         if let productID = productID {
-            mockStoreManager.simulateSuccessfulPurchase(productID)
+            UserDefaults.standard.set(productID.rawValue, forKey: "subscription_current_product_id")
+            // Set subscription status based on product type
+            let status: String = productID == .lifetime ? "lifetime" : productID.rawValue
+            UserDefaults.standard.set(status, forKey: "subscription_status")
         }
 
         // Create SubscriptionManager
         let manager = SubscriptionManager(
-            storeManager: mockStoreManager,
+            storeManager: storeManager,
             logger: mockLogger,
-            analytics: mockAnalytics
+            analytics: analytics
         )
 
         return manager

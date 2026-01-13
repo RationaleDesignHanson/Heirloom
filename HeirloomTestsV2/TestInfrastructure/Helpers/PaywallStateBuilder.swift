@@ -154,13 +154,14 @@ final class PaywallStateBuilder {
 
         // Create mock dependencies
         let mockLogger = MockLoggingService()
-        let mockAnalytics = MockAnalyticsService()
+        // Use real AnalyticsService for tests (falls back to console logging)
+        let analytics = AnalyticsService()
 
         // Create PaywallManager
         let manager = PaywallManager(
             subscriptionManager: subscriptionManager,
             logger: mockLogger,
-            analytics: mockAnalytics
+            analytics: analytics
         )
 
         return manager

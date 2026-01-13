@@ -273,8 +273,26 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                     } else {
                         print("⚠️ AI service not available - skipping augmentation")
                     }
+                } catch let augmentError as AugmentationError {
+                    // Handle augmentation errors specifically
+                    switch augmentError {
+                    case .noWebRecipesForEmptyExtraction(let title):
+                        // CRITICAL: This is a hard failure - we have no content and no fallback
+                        print("❌ CRITICAL: Empty extraction with no web fallback")
+                        print("   Recipe title: \"\(title)\"")
+                        print("   Audio transcription: insufficient")
+                        print("   Web search: no matches found")
+                        print("💡 User should try ASMR mode for vision-based extraction")
+
+                        // Throw as ProcessingError so user sees proper error message
+                        throw VideoProcessingError.insufficientAudioData(augmentError.localizedDescription ?? "Insufficient audio data")
+
+                    default:
+                        // Other augmentation errors are optional - log but continue
+                        print("⚠️ Augmentation failed, continuing without: \(augmentError.localizedDescription ?? "Unknown error")")
+                    }
                 } catch {
-                    // Augmentation is optional - log error but continue
+                    // Non-augmentation errors - log but continue (augmentation is optional)
                     print("⚠️ Augmentation failed, continuing without: \(error.localizedDescription)")
                 }
 
@@ -396,7 +414,15 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
             return false
         }
 
-        // Only augment if there are low-confidence ingredients
+        // CRITICAL: Run augmentation if recipe has NO ingredients or steps
+        // This triggers web search fallback to find the recipe by name
+        let hasNoContent = structuredRecipe.ingredients.isEmpty && structuredRecipe.steps.isEmpty
+        if hasNoContent {
+            print("🔍 Recipe has no content - MUST augment via web search")
+            return true
+        }
+
+        // Also augment if there are low-confidence ingredients
         let lowConfidenceIngredients = structuredRecipe.ingredients.filter { ingredient in
             ingredient.confidence == .approximate ||
             ingredient.confidence == .unknown ||

@@ -29,52 +29,15 @@ final class MockServiceContainer {
 
     /// Register all test mocks in the container
     private static func registerTestMocks(in container: ServiceContainer) {
-        // Store Services (for subscription testing)
-        container.register(StoreManager.self) { _ in
-            MockStoreManager()
-        }
-
-        container.register(SubscriptionManager.self) { container in
-            let storeManager = container.resolve(StoreManager.self)
-            let logger = container.resolve(LoggingService.self)
-            let analytics = container.resolve(AnalyticsService.self)
-            return SubscriptionManager(
-                storeManager: storeManager,
-                logger: logger,
-                analytics: analytics
-            )
-        }
-
-        container.register(PaywallManager.self) { container in
-            let subscriptionManager = container.resolve(SubscriptionManager.self)
-            let logger = container.resolve(LoggingService.self)
-            let analytics = container.resolve(AnalyticsService.self)
-            return PaywallManager(
-                subscriptionManager: subscriptionManager,
-                logger: logger,
-                analytics: analytics
-            )
-        }
-
         // Core Services (mocked for testing)
         container.register(LoggingService.self) { _ in
             MockLoggingService()
         }
 
-        container.register(AnalyticsService.self) { _ in
-            MockAnalyticsService()
-        }
-
-        // Firebase Services (if needed)
-        container.register(FirebaseAuthService.self) { _ in
-            MockFirebaseAuth()
-        }
-
-        container.register(FirebaseSyncService.self) { container in
-            let auth = container.resolve(FirebaseAuthService.self)
-            let logger = container.resolve(LoggingService.self)
-            return MockFirebaseSyncService(auth: auth, logger: logger)
-        }
+        // Note: AnalyticsService not registered - tests use real AnalyticsService (console logging)
+        // Note: StoreManager, SubscriptionManager, PaywallManager, and Firebase services
+        // are NOT registered here. Tests create real instances directly when needed.
+        // State builders (TrialStateBuilder, PaywallStateBuilder) handle test setup.
     }
 
     // MARK: - Reset
@@ -92,65 +55,42 @@ final class MockServiceContainer {
 @MainActor
 final class MockLoggingService: LoggingService {
     var loggedMessages: [(message: String, category: LogCategory, level: LogLevel)] = []
+    var minimumLevel: LogLevel = .debug
+    var enabledCategories: Set<LogCategory> = []
 
-    override func log(_ message: String, category: LogCategory, level: LogLevel) {
+    func debug(_ message: String, category: LogCategory, metadata: LogMetadata?, file: String, function: String, line: Int) {
+        loggedMessages.append((message, category, .debug))
+    }
+
+    func info(_ message: String, category: LogCategory, metadata: LogMetadata?, file: String, function: String, line: Int) {
+        loggedMessages.append((message, category, .info))
+    }
+
+    func warning(_ message: String, category: LogCategory, metadata: LogMetadata?, file: String, function: String, line: Int) {
+        loggedMessages.append((message, category, .warning))
+    }
+
+    func error(_ message: String, category: LogCategory, error: Error?, metadata: LogMetadata?, file: String, function: String, line: Int) {
+        loggedMessages.append((message, category, .error))
+    }
+
+    func critical(_ message: String, category: LogCategory, error: Error?, metadata: LogMetadata?, file: String, function: String, line: Int) {
+        loggedMessages.append((message, category, .critical))
+    }
+
+    func log(_ message: String, category: LogCategory, level: LogLevel, metadata: LogMetadata?, file: String, function: String, line: Int) {
         loggedMessages.append((message, category, level))
+    }
+
+    func log(_ message: String, category: LogCategory, level: LogLevel, metadata: LogMetadata?) {
+        loggedMessages.append((message, category, level))
+    }
+
+    func measure<T>(_ label: String, category: LogCategory, metadata: LogMetadata?, file: String, function: String, line: Int, block: () throws -> T) rethrows -> T {
+        try block()
     }
 
     func reset() {
         loggedMessages.removeAll()
-    }
-}
-
-/// Mock AnalyticsService for testing
-@MainActor
-final class MockAnalyticsService: AnalyticsService {
-    var trackedEvents: [(name: String, params: [String: Any]?)] = []
-
-    override func track(_ event: AnalyticsEvent) {
-        switch event {
-        case .custom(let name, let params):
-            trackedEvents.append((name, params))
-        default:
-            trackedEvents.append((event.name, event.properties))
-        }
-    }
-
-    func reset() {
-        trackedEvents.removeAll()
-    }
-}
-
-/// Mock FirebaseSyncService for testing
-@MainActor
-final class MockFirebaseSyncService: FirebaseSyncService {
-    var syncCalled = false
-
-    init(auth: FirebaseAuthService, logger: LoggingService) {
-        // Mock initialization
-    }
-
-    func sync() async throws {
-        syncCalled = true
-    }
-
-    func reset() {
-        syncCalled = false
-    }
-}
-
-// MARK: - XCTestCase Extension
-
-extension XCTestCase {
-    /// Create a test container with mocks
-    @MainActor
-    func createTestContainer() -> ServiceContainer {
-        return MockServiceContainer.create()
-    }
-
-    /// Reset container for test isolation
-    @MainActor
-    func resetTestContainer(_ container: ServiceContainer) {
-        MockServiceContainer.resetForTest(container)
     }
 }
