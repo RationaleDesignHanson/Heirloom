@@ -40,6 +40,20 @@ class ClaudeRecipeStructurer: RecipeStructurerProtocol {
         // Store transcript for validation
         self.currentTranscript = transcript
 
+        // Validate transcript has sufficient content
+        let transcriptLength = transcript.text.trimmingCharacters(in: .whitespacesAndNewlines).count
+        if transcriptLength < 50 {
+            Log.warning("Transcript too short for recipe extraction", category: .video, metadata: [
+                "transcriptLength": transcriptLength,
+                "minimumRequired": 50
+            ])
+            throw RecipeParsingError.insufficientContent(
+                "This video is too short to extract a complete recipe. " +
+                "Please use a video with full cooking instructions, including ingredients and steps. " +
+                "Minimum: ~30 seconds of narration."
+            )
+        }
+
         let prompt = buildPrompt(transcript: transcript, visualElements: visualElements)
 
         let options = AICompletionOptions(
@@ -342,6 +356,7 @@ enum RecipeParsingError: LocalizedError {
     case missingTitle
     case noRecipeContent
     case confidenceTooLow(Double)
+    case insufficientContent(String)
 
     var errorDescription: String? {
         switch self {
@@ -353,6 +368,8 @@ enum RecipeParsingError: LocalizedError {
             return "No ingredients or steps could be extracted"
         case .confidenceTooLow(let confidence):
             return "Extraction confidence too low (\(Int(confidence * 100))%). Please try a different video."
+        case .insufficientContent(let message):
+            return message
         }
     }
 }
