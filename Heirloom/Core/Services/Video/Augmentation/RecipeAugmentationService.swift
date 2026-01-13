@@ -453,17 +453,19 @@ class RecipeAugmentationService {
         let augmentedIngredients = bestMatch.ingredients.map { webIngredient -> AugmentedIngredient in
             // Create ExtractedIngredient from web data
             let extractedIngredient = ExtractedIngredient(
+                originalText: webIngredient.text,
+                item: webIngredient.parsedName ?? webIngredient.text,
                 quantity: webIngredient.parsedQuantity,
                 unit: webIngredient.parsedUnit,
-                item: webIngredient.parsedName ?? webIngredient.text,
-                confidence: .medium
+                preparation: nil, // Web recipes typically don't separate preparation
+                confidence: .inferred
             )
 
             return AugmentedIngredient(
                 originalIngredient: extractedIngredient,
                 inferredQuantity: webIngredient.parsedQuantity,
                 inferredUnit: webIngredient.parsedUnit,
-                inferredConfidence: .medium, // Web recipes are medium confidence
+                inferredConfidence: .medium, // Web recipes have medium confidence
                 reasoning: "Enriched from web search: \(bestMatch.title)",
                 sourceRecipes: [bestMatch.title]
             )
