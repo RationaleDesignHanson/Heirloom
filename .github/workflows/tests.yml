@@ -91,7 +91,8 @@ jobs:
 
     - name: Check Coverage Threshold
       run: |
-        # Extract overall coverage percentage
-        # Fail if below 60% threshold
-        # (Script to be implemented based on coverage.json format)
-        echo "Coverage check: See uploaded artifacts for detailed report"
+        swift scripts/check-coverage.swift coverage.json
+
+    - name: Check Feature Lifecycle Gates
+      run: |
+        swift scripts/check-feature-gates.swift
