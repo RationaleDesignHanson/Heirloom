@@ -491,6 +491,20 @@ struct SettingsView: View {
                 }
             }
 
+            // Feature Flags Debug - VIEW AND TOGGLE FEATURE FLAGS
+            NavigationLink {
+                FeatureFlagsDebugView()
+            } label: {
+                HStack {
+                    Image(systemName: "flag.checkered")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Feature Flags")
+                    Spacer()
+                    Text("🚩")
+                        .font(.caption)
+                }
+            }
+
             // RevenueCat Toggle - STUB FOR PHASE 3
             Toggle(isOn: Binding(
                 get: {

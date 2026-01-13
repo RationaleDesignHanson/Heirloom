@@ -33,6 +33,11 @@ extension ServiceContainer {
             BackendConfig()
         }
 
+        // MARK: - Feature Management
+        register(FeatureFlagManager.self, lifecycle: .singleton) { _ in
+            FeatureFlagManager.shared
+        }
+
         // MARK: - Firebase Core
         register(FirebaseConfiguration.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
