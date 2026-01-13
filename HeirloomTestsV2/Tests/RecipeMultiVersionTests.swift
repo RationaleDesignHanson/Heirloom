@@ -27,7 +27,7 @@ struct RecipeMultiVersionTests {
     @Test("SharingPermissionLevel enum has all expected cases")
     func testSharingPermissionLevel_AllCases() {
         // Arrange & Act
-        let allCases = Recipe.SharingPermissionLevel.allCases
+        let allCases = Heirloom.Recipe.SharingPermissionLevel.allCases
 
         // Assert
         #expect(allCases.count == 2)

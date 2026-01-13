@@ -583,7 +583,7 @@ extension Recipe {
 // MARK: - Multi-Version Support
 extension Recipe {
     /// Sharing permission level enum
-    enum SharingPermissionLevel: String, Codable {
+    enum SharingPermissionLevel: String, Codable, CaseIterable {
         case regular = "regular"       // View-only sharing
         case heirloom = "heirloom"     // Edit + lineage tracking
     }

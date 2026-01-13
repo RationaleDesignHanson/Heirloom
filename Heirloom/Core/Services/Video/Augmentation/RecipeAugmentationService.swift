@@ -32,7 +32,29 @@ class RecipeAugmentationService {
     ) async throws -> AugmentedRecipe {
         print("🔮 Augmenting recipe with AI inference...")
 
-        // 1. Identify ingredients needing augmentation
+        // CRITICAL: Handle empty extraction case (title-only)
+        // If we have NO ingredients AND NO steps, use web search results directly
+        let hasNoContent = extractedRecipe.ingredients.isEmpty && extractedRecipe.steps.isEmpty
+
+        if hasNoContent {
+            print("🔍 EMPTY EXTRACTION DETECTED - Recipe has title only: \"\(extractedRecipe.title)\"")
+            print("🔍 Attempting web search fallback enrichment...")
+
+            // Require web recipes for empty extraction
+            guard !webRecipes.isEmpty else {
+                print("❌ No web recipes found - cannot enrich empty extraction")
+                print("💡 User should try ASMR mode for vision-based extraction")
+                throw AugmentationError.noWebRecipesForEmptyExtraction(title: extractedRecipe.title)
+            }
+
+            print("✅ Found \(webRecipes.count) web recipes - using best match to fill content")
+            return try await enrichFromWebRecipes(
+                extractedRecipe: extractedRecipe,
+                webRecipes: webRecipes
+            )
+        }
+
+        // 1. Identify ingredients needing augmentation (normal flow)
         let needsAugmentation = extractedRecipe.ingredients.filter { ingredient in
             ingredient.confidence == .approximate ||
             ingredient.confidence == .unknown ||
@@ -424,12 +446,65 @@ private struct RawAugmentedIngredient: Codable {
     let sourceRecipes: [String]
 }
 
+    // MARK: - Web Recipe Enrichment
+
+    /// Enrich empty extraction using web recipe results
+    /// Used when transcript extraction yields title-only (no ingredients/steps)
+    private func enrichFromWebRecipes(
+        extractedRecipe: StructuredRecipe,
+        webRecipes: [WebRecipeResult]
+    ) async throws -> AugmentedRecipe {
+        let startTime = Date()
+
+        // Use the best match (highest similarity score)
+        let bestMatch = webRecipes.max(by: { $0.similarityScore < $1.similarityScore })!
+
+        print("🌐 Using web recipe as fallback: \(bestMatch.title)")
+        print("   Similarity score: \(String(format: "%.2f", bestMatch.similarityScore))")
+        print("   Source: \(bestMatch.sourceURL)")
+        print("   Ingredients: \(bestMatch.ingredients.count)")
+        print("   Instructions: \(bestMatch.instructions.count) steps")
+
+        // Convert web recipe ingredients to augmented format
+        let augmentedIngredients = bestMatch.ingredients.map { webIngredient -> AugmentedIngredient in
+            AugmentedIngredient(
+                originalText: webIngredient.text,
+                inferredQuantity: webIngredient.parsedQuantity,
+                inferredUnit: webIngredient.parsedUnit,
+                inferredIngredient: webIngredient.parsedName ?? webIngredient.text,
+                inferredConfidence: .medium, // Web recipes are medium confidence
+                reasoning: "Enriched from web search: \(bestMatch.title)",
+                sourceRecipes: [bestMatch.title]
+            )
+        }
+
+        let processingTime = Date().timeIntervalSince(startTime)
+
+        print("✅ Successfully enriched recipe from web search")
+        print("   Added \(augmentedIngredients.count) ingredients")
+        print("   Processing time: \(String(format: "%.2f", processingTime))s")
+
+        return AugmentedRecipe(
+            original: extractedRecipe,
+            augmentedIngredients: augmentedIngredients,
+            metadata: AugmentationMetadata(
+                localRecipesUsed: 0,
+                webRecipesUsed: 1,
+                totalInferences: augmentedIngredients.count,
+                averageConfidence: .medium,
+                processingTime: processingTime
+            )
+        )
+    }
+}
+
 // MARK: - Errors
 
 enum AugmentationError: LocalizedError {
     case invalidJSON
     case parsingFailed
     case noSimilarRecipes
+    case noWebRecipesForEmptyExtraction(title: String)
 
     var errorDescription: String? {
         switch self {
@@ -439,6 +514,8 @@ enum AugmentationError: LocalizedError {
             return "Failed to process augmentation data"
         case .noSimilarRecipes:
             return "No similar recipes found to infer from"
+        case .noWebRecipesForEmptyExtraction(let title):
+            return "Could not find web recipes for \"\(title)\". Audio transcription was insufficient and web search found no matches. Try ASMR mode for vision-based extraction."
         }
     }
 }

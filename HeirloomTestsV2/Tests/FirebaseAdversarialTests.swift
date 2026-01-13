@@ -12,7 +12,7 @@ struct FirebaseAdversarialTests {
     func createTestContext() -> ModelContext {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try! ModelContainer(
-            for: [Heirloom.Recipe.self, Heirloom.Ingredient.self, Heirloom.Tag.self, Heirloom.RecipeCollection.self],
+            for: Heirloom.Recipe.self, Heirloom.Ingredient.self, Heirloom.Tag.self, Heirloom.RecipeCollection.self,
             configurations: config
         )
         return ModelContext(container)

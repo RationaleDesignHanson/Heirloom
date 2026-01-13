@@ -81,17 +81,20 @@ struct BoundaryAdversarialTests {
         // Arrange - Create recipe that approaches Firestore 1MB limit
         let context = createTestContext()
         let recipe = Heirloom.Recipe(title: "Large Recipe")
+        recipe.ingredients = []
 
         // Add massive notes field (500KB)
         recipe.notes = String(repeating: "X", count: 512_000)
 
         // Add 100 ingredients with long names (100 * 1KB = 100KB)
         for i in 0..<100 {
-            let ingredient = Ingredient(
+            let ingredient = Heirloom.Ingredient(
                 name: String(repeating: "Ingredient\(i)", count: 100),
-                quantity: "1 cup"
+                quantity: 1.0,
+                unit: "cup"
             )
-            recipe.ingredients.append(ingredient)
+            context.insert(ingredient)
+            recipe.ingredients?.append(ingredient)
         }
 
         // Add 100 instructions with long text (100 * 1KB = 100KB)
@@ -104,7 +107,7 @@ struct BoundaryAdversarialTests {
 
         // Assert - Recipe created successfully
         #expect(recipe.notes!.count == 512_000)
-        #expect(recipe.ingredients.count == 100)
+        #expect(recipe.ingredients?.count == 100)
         #expect(recipe.instructions.count == 100)
 
         // Documents: No serialization size validation
@@ -131,21 +134,24 @@ struct BoundaryAdversarialTests {
         // Arrange - Create recipe with absurdly large ingredient list
         let context = createTestContext()
         let recipe = Heirloom.Recipe(title: "Massive Recipe")
+        recipe.ingredients = []
 
         // Act - Add 10,000 ingredients
         for i in 0..<10_000 {
-            let ingredient = Ingredient(
+            let ingredient = Heirloom.Ingredient(
                 name: "Ingredient \(i)",
-                quantity: "1 unit"
+                quantity: 1.0,
+                unit: "unit"
             )
-            recipe.ingredients.append(ingredient)
+            context.insert(ingredient)
+            recipe.ingredients?.append(ingredient)
         }
 
         context.insert(recipe)
         try? context.save()
 
         // Assert - All ingredients added
-        #expect(recipe.ingredients.count == 10_000)
+        #expect(recipe.ingredients?.count == 10_000)
 
         // Performance concerns:
         // - SwiftData fetch of 10K related objects
@@ -191,9 +197,10 @@ struct BoundaryAdversarialTests {
     func testBoundary_Ingredient_NegativeQuantity() {
         // Arrange - Create ingredient with negative quantity
         let context = createTestContext()
-        let ingredient = Ingredient(
+        let ingredient = Heirloom.Ingredient(
             name: "Salt",
-            quantity: "-5 cups"
+            quantity: -5.0,
+            unit: "cups"
         )
 
         // Act
@@ -201,7 +208,7 @@ struct BoundaryAdversarialTests {
         try? context.save()
 
         // Assert - Negative quantity accepted
-        #expect(ingredient.quantity == "-5 cups")
+        #expect(ingredient.quantity == -5.0)
 
         // Documents: No validation on quantity values
         // Negative quantities are nonsensical but allowed
@@ -369,19 +376,19 @@ struct BoundaryAdversarialTests {
         let context = createTestContext()
         let recipe = Heirloom.Recipe(title: "Special Numbers Recipe")
 
-        // Note: Recipe model uses Int16 for servings, not Float
+        // Note: Recipe model uses Int for servings, not Float
         // But parsed values could theoretically be extreme
 
-        // Test with extreme Int16 values
-        recipe.minimumServings = Int16.min  // -32,768
-        recipe.maximumServings = Int16.max  // 32,767
+        // Test with extreme Int values
+        recipe.minimumServings = Int.min
+        recipe.maximumServings = Int.max
 
         context.insert(recipe)
         try? context.save()
 
         // Assert - Extreme values accepted
-        #expect(recipe.minimumServings == Int16.min)
-        #expect(recipe.maximumServings == Int16.max)
+        #expect(recipe.minimumServings == Int.min)
+        #expect(recipe.maximumServings == Int.max)
 
         // Documents: Int16 overflow is possible
         // Int16.min = -32,768

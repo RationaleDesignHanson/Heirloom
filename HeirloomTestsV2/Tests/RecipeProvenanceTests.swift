@@ -208,8 +208,8 @@ struct RecipeProvenanceTests {
         let recipe = Heirloom.Recipe(title: "Test Recipe")
         recipe.provenance = ProvenanceMetadata(
             sourceType: .shared,
-            sharedByName: "Sarah M.",
-            generation: 1
+            generation: 1,
+            sharedByName: "Sarah M."
         )
 
         // Act & Assert
