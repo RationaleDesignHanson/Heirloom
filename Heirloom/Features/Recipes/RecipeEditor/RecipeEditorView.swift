@@ -565,6 +565,24 @@ struct RecipeEditorView: View {
                         ))
                     }
 
+                    // Track ingredient changes
+                    let newIngredients = ingredientInputs.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+                    if originalIngredients != newIngredients {
+                        operations.append(RecipeOperation(
+                            recipeId: recipe.id,
+                            deviceId: deviceId,
+                            vectorClock: emptyVectorClock,
+                            operationType: .update,
+                            fieldPath: "ingredients",
+                            oldValue: .stringArray(originalIngredients),
+                            newValue: .stringArray(newIngredients)
+                        ))
+                        Log.debug("Created CRDT operation for ingredient change", category: .crdt, metadata: [
+                            "oldCount": originalIngredients.count,
+                            "newCount": newIngredients.count
+                        ])
+                    }
+
                     // Add operations to recipe (they'll be uploaded with the recipe)
                     if !operations.isEmpty {
                         Log.info("Created CRDT operations for recipe edit", category: .crdt, metadata: ["operationCount": operations.count])

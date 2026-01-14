@@ -308,13 +308,38 @@ class CRDTMergeEngine {
                 Log.debug("Applied instructions CRDT operation", category: .crdt, metadata: ["count": instructions.count])
             }
         case "ingredients":
-            // Note: Ingredients are complex relationship objects
-            // Full automatic merge requires model context and parsing
-            // For now, this ensures the operation is tracked and conflicts are detected
-            // The user will resolve conflicts via the conflict resolution UI
-            Log.info("Ingredients CRDT operation detected - conflict resolution required", category: .crdt, metadata: [
-                "operationId": operation.id.uuidString
-            ])
+            // Apply ingredient changes by re-parsing the ingredient strings
+            if case .stringArray(let ingredientTexts) = newValue {
+                // Delete existing ingredients
+                if let existingIngredients = recipe.ingredients {
+                    for ingredient in existingIngredients {
+                        // Note: We can't delete from modelContext here as we don't have access
+                        // The ingredients will be replaced by the new parsed ones
+                    }
+                }
+
+                // Create new ingredients from strings
+                var newIngredients: [Ingredient] = []
+                for (index, ingredientText) in ingredientTexts.enumerated() {
+                    let parsed = IngredientParser.parse(ingredientText)
+                    let ingredient = Ingredient(
+                        originalText: ingredientText,
+                        name: parsed.name.isEmpty ? ingredientText : parsed.name,
+                        quantity: parsed.quantity,
+                        unit: parsed.unit,
+                        category: .other,
+                        orderIndex: index
+                    )
+                    ingredient.quantityMax = parsed.quantityMax
+                    ingredient.recipe = recipe
+                    newIngredients.append(ingredient)
+                }
+                recipe.ingredients = newIngredients
+
+                Log.debug("Applied ingredients CRDT operation", category: .crdt, metadata: [
+                    "count": ingredientTexts.count
+                ])
+            }
         default:
             Log.warning("Unknown field path for CRDT update", category: .crdt, metadata: ["fieldPath": operation.fieldPath])
         }
