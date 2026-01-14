@@ -63,10 +63,43 @@ final class OperationLog: Codable {
     // MARK: - Operation Management
 
     /// Append a new operation to the log
+    /// IMPORTANT: Operation MUST have a valid vector clock assigned
     func append(_ operation: RecipeOperation) {
+        // Validate operation has a clock assigned
+        guard !operation.vectorClock.clocks.isEmpty else {
+            Log.error("CRDT Invariant Violation: Attempted to append operation without vector clock",
+                     category: .crdt,
+                     metadata: ["operationId": operation.id.uuidString, "fieldPath": operation.fieldPath])
+            assertionFailure("CRDT Invariant Violation: Operation must have vector clock before appending")
+            return
+        }
+
+        // Validate clock is monotonic (new operation's clock >= log's clock for this device)
+        let operationClock = operation.vectorClock.value(for: operation.deviceId)
+        let logClock = vectorClock.value(for: operation.deviceId)
+
+        guard operationClock >= logClock else {
+            Log.error("CRDT Clock Violation: operation clock < log clock",
+                     category: .crdt,
+                     metadata: [
+                        "operationClock": operationClock,
+                        "logClock": logClock,
+                        "deviceId": operation.deviceId,
+                        "fieldPath": operation.fieldPath
+                     ])
+            assertionFailure("CRDT Invariant Violation: Clock must be monotonically increasing")
+            return
+        }
+
         operations.append(operation)
         vectorClock.merge(with: operation.vectorClock)
         lastUpdated = Date()
+
+        Log.debug("Operation appended to log", category: .crdt, metadata: [
+            "operationId": operation.id.uuidString,
+            "clockValue": operationClock,
+            "totalOperations": operations.count
+        ])
     }
 
     /// Append multiple operations at once

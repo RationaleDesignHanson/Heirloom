@@ -574,40 +574,89 @@ struct RecipeEditorView: View {
                     }
                 }
 
-            // Delete old ingredients when editing
-            if let oldIngredients = recipe.ingredients {
-                for oldIngredient in oldIngredients {
-                    modelContext.delete(oldIngredient)
+            // TRANSACTION: Delete old ingredients and create new ones atomically
+            // This prevents partial deletion if save fails mid-operation
+            do {
+                // Phase 1: Delete old ingredients in batch
+                if let oldIngredients = recipe.ingredients, !oldIngredients.isEmpty {
+                    Log.info("Deleting old ingredients for re-parse",
+                            category: .database,
+                            metadata: ["count": oldIngredients.count, "recipeId": recipe.id.uuidString])
+
+                    // Delete all old ingredients
+                    for oldIngredient in oldIngredients {
+                        modelContext.delete(oldIngredient)
+                    }
+
+                    // Clear the relationship immediately
+                    recipe.ingredients = nil
+
+                    // Commit deletion before proceeding (transaction checkpoint)
+                    try modelContext.save()
+
+                    Log.debug("Old ingredients deleted successfully", category: .database)
                 }
+
+                // Phase 2: Parse and create new ingredients
+                let filteredIngredients = ingredientInputs.filter { !$0.isEmpty }
+
+                guard !filteredIngredients.isEmpty else {
+                    // No new ingredients - keep recipe.ingredients = nil
+                    Log.debug("No ingredients to add", category: .database)
+                    // Skip to end
+                    recipe.ingredients = nil
+                    try modelContext.save()
+                    return
+                }
+
+                Log.info("Parsing new ingredients",
+                        category: .database,
+                        metadata: ["count": filteredIngredients.count, "recipeId": recipe.id.uuidString])
+
+                // Parse all ingredients in batch for efficiency
+                let parsedResults = try await aiIngredientParser.parseBatch(filteredIngredients)
+
+                var newIngredients: [Ingredient] = []
+
+                // Phase 3: Create new ingredient models
+                for (index, ingredientText) in filteredIngredients.enumerated() {
+                    let parsed = parsedResults[index]
+
+                    // Categorize based on ingredient name
+                    let category = GroceryCategory.categorize(parsed.name)
+
+                    let ingredient = Ingredient(
+                        originalText: ingredientText,
+                        name: parsed.name,
+                        quantity: parsed.quantity,
+                        unit: parsed.unit,
+                        category: category,
+                        orderIndex: index
+                    )
+                    ingredient.recipe = recipe
+                    newIngredients.append(ingredient)
+                    modelContext.insert(ingredient)
+                }
+
+                // Phase 4: Update recipe relationship
+                recipe.ingredients = newIngredients
+
+                // Commit new ingredients (transaction complete)
+                try modelContext.save()
+
+                Log.info("New ingredients created successfully",
+                        category: .database,
+                        metadata: ["count": newIngredients.count, "recipeId": recipe.id.uuidString])
+
+            } catch {
+                // Rollback on any failure
+                Log.error("Failed to update ingredients",
+                         category: .database,
+                         metadata: ["error": error.localizedDescription, "recipeId": recipe.id.uuidString])
+
+                // Re-throw to fail the save
+                throw error
             }
-
-            // Create and parse ingredients
-            let filteredIngredients = ingredientInputs.filter { !$0.isEmpty }
-            var newIngredients: [Ingredient] = []
-
-            // Parse all ingredients in batch for efficiency
-            let parsedResults = try await aiIngredientParser.parseBatch(filteredIngredients)
-
-            for (index, ingredientText) in filteredIngredients.enumerated() {
-                let parsed = parsedResults[index]
-
-                // Categorize based on ingredient name
-                let category = GroceryCategory.categorize(parsed.name)
-
-                let ingredient = Ingredient(
-                    originalText: ingredientText,
-                    name: parsed.name,
-                    quantity: parsed.quantity,
-                    unit: parsed.unit,
-                    category: category,
-                    orderIndex: index
-                )
-                ingredient.recipe = recipe
-                newIngredients.append(ingredient)
-                modelContext.insert(ingredient)
-            }
-
-            recipe.ingredients = newIngredients.isEmpty ? nil : newIngredients
 
             // Auto-detect recipe category for smart serving presets
             recipe.detectAndApplyCategory()
