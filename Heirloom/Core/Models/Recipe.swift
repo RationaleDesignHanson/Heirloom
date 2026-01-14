@@ -1096,3 +1096,89 @@ extension Recipe {
         self.modifiedAt = Date()
     }
 }
+
+// MARK: - Sharing Validation
+
+extension Recipe {
+    /// Sample recipe titles (onboarding recipes that all users receive)
+    private static let sampleRecipeTitles: Set<String> = [
+        "Classic Grilled Cheese",
+        "Tomato Soup",
+        "Perfect Grilled Cheese",
+        "Creamy Tomato Soup"
+    ]
+
+    /// Check if this is an onboarding sample recipe
+    var isSampleRecipe: Bool {
+        // Check title match + presence of sourceStory (onboarding recipes have this)
+        return Self.sampleRecipeTitles.contains(title) && sourceStory != nil
+    }
+
+    /// Check if recipe has been significantly modified from its original form
+    /// Used to determine if a modified sample/heritage recipe can be shared
+    var hasSignificantModifications: Bool {
+        // Must be based on sample or heritage
+        guard isSampleRecipe || isHeritageRecipe else {
+            return false // Not applicable
+        }
+
+        // Track modifications
+        var modifications = 0
+
+        // 1. Title changed from original (strongest indicator)
+        if isSampleRecipe && !Self.sampleRecipeTitles.contains(title) {
+            return true // Title change alone = significant
+        }
+
+        // 2. For heritage recipes, any title change = significant
+        if isHeritageRecipe {
+            // We don't track original heritage titles, but if user created this
+            // as a personal copy, provenance will show it
+            if let provenance = provenance, provenance.sourceType == .imported {
+                // This is the original heritage recipe, not a copy
+                return false
+            }
+        }
+
+        // 3. Check ingredient changes (need at least 50% modified)
+        // Note: This is approximate since we don't store original ingredients
+        if let ingredients = ingredients, !ingredients.isEmpty {
+            modifications += 1
+        }
+
+        // 4. Check instruction changes
+        if !instructions.isEmpty && instructions.count > 3 {
+            modifications += 1
+        }
+
+        // 5. Has notes added (personal touch)
+        if notes != nil && !notes!.isEmpty {
+            modifications += 1
+        }
+
+        // 6. Has image added/changed
+        if imageFileName != nil {
+            modifications += 1
+        }
+
+        // Require at least 2 modifications beyond just having content
+        return modifications >= 2
+    }
+
+    /// Determine if this recipe can be shared and provide reason if not
+    /// - Returns: (canShare: Bool, reason: String?)
+    func canShare() -> (canShare: Bool, reason: String?) {
+        // 1. Check if it's an unmodified sample recipe
+        if isSampleRecipe && !hasSignificantModifications {
+            return (false, "This is a sample recipe that all users receive. Try sharing your personalized recipes instead! Or modify this recipe significantly (change the title, add your own ingredients) to make it yours.")
+        }
+
+        // 2. Check if it's an unmodified heritage recipe
+        if isHeritageRecipe && !hasSignificantModifications {
+            return (false, "Heritage recipes are part of our curated collection that all users unlock. To share your version, create a personal copy and make it your own! (Coming soon: 'Create My Version' feature)")
+        }
+
+        // 3. Recipe can be shared
+        return (true, nil)
+    }
+}

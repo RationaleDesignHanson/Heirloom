@@ -23,9 +23,9 @@ struct SampleRecipeLibrary {
             chickenStirFry,
             classicPancakes,
             tacos,
-            tomatoSoup,
+            // Removed: tomatoSoup - onboarding sample, not for generator
             caesarSalad,
-            grilledCheese,
+            // Removed: grilledCheese - onboarding sample, not for generator
             beefStew,
             bananaBread,
             lasagna,

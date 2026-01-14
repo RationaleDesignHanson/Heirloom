@@ -287,6 +287,13 @@ struct RecipeShareSheet: View {
     }
 
     private func createShare() {
+        // Validate recipe can be shared
+        let (canShare, reason) = recipe.canShare()
+        guard canShare else {
+            errorMessage = reason ?? "This recipe cannot be shared"
+            return
+        }
+
         Task {
             isSharing = true
             errorMessage = nil
