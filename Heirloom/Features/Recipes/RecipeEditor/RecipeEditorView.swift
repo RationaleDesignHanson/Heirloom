@@ -474,6 +474,7 @@ struct RecipeEditorView: View {
                 let originalCookTime = recipe.cookTime
                 let originalNotes = recipe.notes
                 let originalInstructions = recipe.instructions
+                let originalIngredients = recipe.ingredients?.map { $0.originalText } ?? []
 
                 // Update recipe properties
                 recipe.title = title
@@ -656,6 +657,46 @@ struct RecipeEditorView: View {
 
                 // Re-throw to fail the save
                 throw error
+            }
+
+            // Track ingredient changes for CRDT (after transaction completes)
+            if !isNewRecipe && recipe.usesCRDT {
+                let currentIngredients = recipe.ingredients?.map { $0.originalText } ?? []
+
+                // Check if ingredients changed
+                if originalIngredients != currentIngredients {
+                    Log.debug("Ingredients changed, creating CRDT operation", category: .crdt, metadata: [
+                        "originalCount": originalIngredients.count,
+                        "currentCount": currentIngredients.count
+                    ])
+
+                    let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? "unknown-ios"
+                    let emptyVectorClock = VectorClock()
+
+                    let ingredientOperation = RecipeOperation(
+                        recipeId: recipe.id,
+                        deviceId: deviceId,
+                        vectorClock: emptyVectorClock,
+                        operationType: .update,
+                        fieldPath: "ingredients",
+                        oldValue: .stringArray(originalIngredients),
+                        newValue: .stringArray(currentIngredients)
+                    )
+
+                    // Append to existing pending operations (if any)
+                    var allOperations: [RecipeOperation] = []
+                    if let existingData = recipe.pendingOperationsData,
+                       let existingOps = try? JSONDecoder().decode([RecipeOperation].self, from: existingData) {
+                        allOperations = existingOps
+                    }
+                    allOperations.append(ingredientOperation)
+
+                    if let operationsData = try? JSONEncoder().encode(allOperations) {
+                        recipe.pendingOperationsData = operationsData
+                    }
+
+                    Log.info("Created CRDT operation for ingredient changes", category: .crdt)
+                }
             }
 
             // Auto-detect recipe category for smart serving presets

@@ -16,7 +16,7 @@ class CRDTMergeEngine {
 
     /// Valid field paths that can be modified via CRDT operations
     private let validFieldPaths: Set<String> = [
-        "title", "notes", "prepTime", "cookTime", "servings"
+        "title", "notes", "prepTime", "cookTime", "servings", "ingredients", "instructions"
     ]
 
     /// Validates a CRDT field path to prevent injection attacks
@@ -302,6 +302,19 @@ class CRDTMergeEngine {
             } else if case .null = newValue {
                 recipe.servings = nil
             }
+        case "instructions":
+            if case .stringArray(let instructions) = newValue {
+                recipe.instructions = instructions
+                Log.debug("Applied instructions CRDT operation", category: .crdt, metadata: ["count": instructions.count])
+            }
+        case "ingredients":
+            // Note: Ingredients are complex relationship objects
+            // Full automatic merge requires model context and parsing
+            // For now, this ensures the operation is tracked and conflicts are detected
+            // The user will resolve conflicts via the conflict resolution UI
+            Log.info("Ingredients CRDT operation detected - conflict resolution required", category: .crdt, metadata: [
+                "operationId": operation.id.uuidString
+            ])
         default:
             Log.warning("Unknown field path for CRDT update", category: .crdt, metadata: ["fieldPath": operation.fieldPath])
         }
