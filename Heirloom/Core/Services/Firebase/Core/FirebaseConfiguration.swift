@@ -32,18 +32,34 @@ class FirebaseConfiguration: FirebaseConfigurationProtocol {
     // MARK: - Dependencies
 
     /// Shared Firestore instance (settings configured in HeirloomApp.init)
+    /// CRITICAL: Ensures Firebase is configured before accessing
     lazy var db: Firestore = {
-        Firestore.firestore()
+        // Defensive check - ensure Firebase is configured
+        if FirebaseApp.app() == nil {
+            logger.log("CRITICAL: Firebase not configured when accessing Firestore - configuring now", category: .firebase, level: .error, metadata: nil)
+            FirebaseApp.configure()
+        }
+        return Firestore.firestore()
     }()
 
     /// Firebase Auth instance
+    /// CRITICAL: Ensures Firebase is configured before accessing
     var auth: Auth {
-        Auth.auth()
+        if FirebaseApp.app() == nil {
+            logger.log("CRITICAL: Firebase not configured when accessing Auth - configuring now", category: .firebase, level: .error, metadata: nil)
+            FirebaseApp.configure()
+        }
+        return Auth.auth()
     }
 
     /// Firebase Storage instance
+    /// CRITICAL: Ensures Firebase is configured before accessing
     var storage: Storage {
-        Storage.storage()
+        if FirebaseApp.app() == nil {
+            logger.log("CRITICAL: Firebase not configured when accessing Storage - configuring now", category: .firebase, level: .error, metadata: nil)
+            FirebaseApp.configure()
+        }
+        return Storage.storage()
     }
 
     // MARK: - State

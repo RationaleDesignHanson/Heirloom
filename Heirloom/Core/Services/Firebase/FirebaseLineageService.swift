@@ -28,10 +28,22 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
     }
 
     private var db: Firestore {
-        // Access through firebase sync configuration
-        Firestore.firestore()
+        // CRITICAL: Ensure Firebase is configured before accessing
+        if FirebaseApp.app() == nil {
+            logger.log("CRITICAL: Firebase not configured in LineageService - configuring now", category: .firebase, level: .error, metadata: nil)
+            FirebaseApp.configure()
+        }
+        return Firestore.firestore()
     }
-    private var auth: Auth { Auth.auth() }
+
+    private var auth: Auth {
+        // CRITICAL: Ensure Firebase is configured before accessing
+        if FirebaseApp.app() == nil {
+            logger.log("CRITICAL: Firebase not configured in LineageService - configuring now", category: .firebase, level: .error, metadata: nil)
+            FirebaseApp.configure()
+        }
+        return Auth.auth()
+    }
 
     // MARK: - Lineage Creation
 
