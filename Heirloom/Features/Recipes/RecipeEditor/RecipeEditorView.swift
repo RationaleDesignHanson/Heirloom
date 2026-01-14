@@ -55,6 +55,10 @@ struct RecipeEditorView: View {
     @State private var spellCheckResults: [Int: AIIngredientSpellChecker.SpellingResult] = [:]
     @State private var spellCheckTask: Task<Void, Never>?
 
+    // Version creation prompt
+    @State private var showVersionPrompt = false
+    @State private var shouldCreateNewVersion = false
+
     init(
         recipe: Recipe? = nil,
         initialImage: UIImage? = nil,
@@ -131,7 +135,7 @@ struct RecipeEditorView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
-                        saveRecipe()
+                        handleSaveButton()
                     } label: {
                         if isSaving {
                             ProgressView()
@@ -154,6 +158,21 @@ struct RecipeEditorView: View {
                         Log.warning("Failed to load recipe image", category: .storage, metadata: ["fileName": imageFileName])
                     }
                 }
+            }
+            .alert("Create New Version?", isPresented: $showVersionPrompt) {
+                Button("Save Changes") {
+                    shouldCreateNewVersion = false
+                    saveRecipe()
+                }
+                Button("Create New Version") {
+                    shouldCreateNewVersion = true
+                    saveRecipe()
+                }
+                Button("Cancel", role: .cancel) {
+                    // Do nothing
+                }
+            } message: {
+                Text("You've made changes to this recipe. Would you like to save over the current version, or create a new version to keep both?")
             }
         }
     }
@@ -450,6 +469,130 @@ struct RecipeEditorView: View {
 
     // MARK: - Actions
 
+    /// Handle Save button tap - check if changes exist and show version prompt if editing
+    private func handleSaveButton() {
+        // For new recipes, just save directly
+        guard !isNewRecipe else {
+            saveRecipe()
+            return
+        }
+
+        // For existing recipes, check if changes were made
+        if hasChanges() {
+            // Show version creation prompt
+            showVersionPrompt = true
+        } else {
+            // No changes, just save
+            saveRecipe()
+        }
+    }
+
+    /// Check if user has made any changes to the recipe
+    private func hasChanges() -> Bool {
+        // Compare current form values to original recipe values
+        if title != recipe.title { return true }
+        if (sourceURL.isEmpty ? nil : sourceURL) != recipe.sourceURL { return true }
+        if (servings.isEmpty ? nil : servings) != recipe.servings { return true }
+        if (prepTime.isEmpty ? nil : prepTime) != recipe.prepTime { return true }
+        if (cookTime.isEmpty ? nil : cookTime) != recipe.cookTime { return true }
+        if (notes.isEmpty ? nil : notes) != recipe.notes { return true }
+
+        // Check instructions
+        let currentInstructions = instructions.filter { !$0.isEmpty }
+        if currentInstructions != recipe.instructions { return true }
+
+        // Check ingredients
+        let currentIngredients = ingredientInputs.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        let originalIngredients = recipe.ingredients?.map { $0.originalText } ?? []
+        if currentIngredients != originalIngredients { return true }
+
+        // Check collections
+        let currentCollectionIDs = selectedCollectionIDs
+        let originalCollectionIDs = Set(recipe.collections?.map { $0.id } ?? [])
+        if currentCollectionIDs != originalCollectionIDs { return true }
+
+        // Check image
+        if recipeImage != nil && recipe.imageFileName == nil { return true }
+
+        return false
+    }
+
+    /// Create a new version of the recipe (duplicate with changes)
+    private func createNewVersion() async throws {
+        // Create new recipe with new ID
+        let newRecipe = Recipe(
+            title: title,
+            sourceType: sourceType,
+            instructions: instructions.filter { !$0.isEmpty },
+            servings: servings.isEmpty ? nil : servings,
+            prepTime: prepTime.isEmpty ? nil : prepTime,
+            cookTime: cookTime.isEmpty ? nil : cookTime
+        )
+
+        // Copy additional properties
+        try newRecipe.setSourceURL(sourceURL.isEmpty ? nil : sourceURL)
+        newRecipe.setNotes(notes.isEmpty ? nil : notes)
+        newRecipe.lastModified = Date()
+        newRecipe.modifiedAt = Date()
+
+        // Copy collections
+        let selectedCollections = allCollections.filter { selectedCollectionIDs.contains($0.id) }
+        newRecipe.collections = selectedCollections.isEmpty ? nil : selectedCollections
+
+        // Create ingredients
+        let currentIngredients = ingredientInputs.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        for (index, ingredientText) in currentIngredients.enumerated() {
+            let parsed = IngredientParser.parse(ingredientText)
+            let ingredient = Ingredient(
+                originalText: ingredientText,
+                name: parsed.name.isEmpty ? ingredientText : parsed.name,
+                quantity: parsed.quantity,
+                unit: parsed.unit,
+                category: GroceryCategory.categorize(parsed.name.isEmpty ? ingredientText : parsed.name),
+                orderIndex: index
+            )
+            ingredient.quantityMax = parsed.quantityMax
+            ingredient.recipe = newRecipe
+            modelContext.insert(ingredient)
+        }
+
+        // Save new recipe image if present
+        if let image = recipeImage {
+            do {
+                let fileName = try await imageStorageService.saveImage(image, recipeId: newRecipe.id)
+                newRecipe.imageFileName = fileName
+                Log.info("Saved new version image", category: .storage, metadata: ["fileName": fileName])
+            } catch {
+                Log.error("Failed to save new version image", category: .storage, metadata: ["error": error.localizedDescription])
+            }
+        }
+
+        // Insert new recipe into context
+        modelContext.insert(newRecipe)
+        try modelContext.save()
+
+        Log.info("Created new recipe version", category: .storage, metadata: [
+            "originalId": recipe.id.uuidString,
+            "newId": newRecipe.id.uuidString,
+            "title": newRecipe.title
+        ])
+
+        // Sync to Firebase if authenticated
+        if firebaseAuth.currentUser != nil {
+            do {
+                try await firebaseSync.uploadRecipe(newRecipe)
+                Log.info("New recipe version synced to Firebase", category: .firebase)
+            } catch {
+                Log.warning("Failed to sync new version to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
+            }
+        }
+
+        // Reset state and dismiss
+        isSaving = false
+        shouldCreateNewVersion = false
+        dismiss()
+    }
+
     private func toggleCollection(_ collection: RecipeCollection) {
         // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .light)
@@ -467,6 +610,12 @@ struct RecipeEditorView: View {
 
         Task {
             do {
+                // If user chose to create new version, duplicate the recipe
+                if shouldCreateNewVersion {
+                    try await createNewVersion()
+                    return
+                }
+
                 // Capture original state for CRDT operation tracking
                 let originalTitle = recipe.title
                 let originalServings = recipe.servings
