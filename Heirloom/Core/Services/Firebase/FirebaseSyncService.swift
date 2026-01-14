@@ -808,8 +808,14 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
         logger.log("🔍 [Firebase] Found \(allRecipes.count) total recipes", category: .sync, level: .info, metadata: nil)
 
-        // Filter for unsynced recipes
+        // Filter for unsynced recipes (EXCLUDING heritage recipes)
         let unsynced = allRecipes.filter { recipe in
+            // CRITICAL: Never sync heritage recipes to Firebase
+            // Heritage recipes are read-only system content
+            guard !recipe.isHeritageRecipe else {
+                return false
+            }
+
             let needsSync = recipe.lastSyncedAt == nil || recipe.modifiedAt > recipe.lastSyncedAt!
             if needsSync {
                 logger.log("📝 [Firebase] Recipe '\(recipe.title)' needs sync", category: .sync, level: .info, metadata: nil)
