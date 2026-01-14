@@ -17,8 +17,7 @@ struct SharePreviewView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(\.deepLinkHandler) private var deepLinkHandler
-    
-    @StateObject private var shareService = PublicShareService.shared
+    @Environment(\.firebaseShare) private var shareService
     
     // State
     @State private var sharedData: SharedRecipeData?
@@ -81,8 +80,8 @@ struct SharePreviewView: View {
             Text("Loading recipe...")
                 .font(.headline)
                 .foregroundStyle(.secondary)
-            
-            Text("Fetching from iCloud...")
+
+            Text("Fetching share details...")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
@@ -432,55 +431,80 @@ struct SharePreviewView: View {
         Log.debug("Loading share preview from URL", category: .firebase, metadata: ["shareURL": shareURL.absoluteString])
 
         do {
-            sharedData = try await shareService.previewShare(from: shareURL)
+            // Extract shareId from URL
+            // URL format: heirloom://share/{shareId} or https://heirloom.app/share/{shareId}
+            let shareId = shareURL.lastPathComponent
+
+            guard !shareId.isEmpty else {
+                throw FirebaseShareService.ShareError.invalidShareData
+            }
+
+            Log.debug("Fetching share metadata", category: .firebase, metadata: ["shareId": shareId])
+
+            // Fetch metadata from Firebase
+            let metadata = try await shareService.fetchShareMetadata(shareId: shareId)
+
+            // Convert to SharedRecipeData
+            sharedData = try SharedRecipeData.from(shareMetadata: metadata)
+
             Log.info("Successfully loaded share preview", category: .firebase, metadata: ["shareURL": shareURL.absoluteString])
         } catch {
             Log.error("Failed to load share preview", category: .firebase, metadata: ["error": error.localizedDescription, "shareURL": shareURL.absoluteString])
             // Show more detailed error
-            if let shareError = error as? ShareError {
+            if let shareError = error as? FirebaseShareService.ShareError {
                 switch shareError {
-                case .notFound:
-                    errorMessage = "This shared recipe no longer exists.\n\nThis could mean:\n• The record wasn't saved to CloudKit\n• Different iCloud accounts are being used\n• The share ID doesn't match"
-                case .expired:
+                case .shareNotFound:
+                    errorMessage = "This shared recipe no longer exists or has been revoked"
+                case .shareExpired:
                     errorMessage = "This share link has expired"
-                case .invalidURL:
-                    errorMessage = "Invalid share URL format"
-                case .invalidData:
-                    errorMessage = "The shared data is corrupted"
-                case .saveFailed(let underlying):
-                    errorMessage = "Save failed: \(underlying.localizedDescription)"
-                case .fetchFailed(let underlying):
-                    errorMessage = "Fetch failed: \(underlying.localizedDescription)"
+                case .notAuthenticated:
+                    errorMessage = "You must sign in to view shared recipes"
+                case .invalidShareData:
+                    errorMessage = "The shared data is corrupted or invalid"
+                default:
+                    errorMessage = "Failed to load share: \(error.localizedDescription)"
+                }
+            } else if let dataError = error as? SharedRecipeDataError {
+                switch dataError {
+                case .invalidMetadata:
+                    errorMessage = "Invalid share metadata - missing required fields"
                 }
             } else {
                 errorMessage = error.localizedDescription
             }
         }
-        
+
         isLoading = false
     }
     
     private func importRecipe(_ data: SharedRecipeData) async {
         isImporting = true
         errorMessage = nil
-        
+
+        Log.info("Importing shared recipe", category: .firebase, metadata: ["shareId": data.shareId, "title": data.title])
+
         do {
-            let recipe = try shareService.importSharedRecipe(data, into: modelContext)
+            // Accept the share using Firebase service
+            let recipe = try await shareService.acceptShare(shareId: data.shareId, context: modelContext)
             importedRecipe = recipe
-            
+
+            Log.info("Successfully imported shared recipe", category: .firebase, metadata: ["recipeId": recipe.id.uuidString, "title": recipe.title])
+
             // Haptic feedback
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
-            
+
             showSuccessAlert = true
         } catch {
+            Log.error("Failed to import shared recipe", category: .firebase, metadata: ["error": error.localizedDescription, "shareId": data.shareId])
+
             errorMessage = error.localizedDescription
-            
+
             // Haptic feedback
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.error)
         }
-        
+
         isImporting = false
     }
 }
