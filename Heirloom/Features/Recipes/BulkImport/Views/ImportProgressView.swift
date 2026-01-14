@@ -119,6 +119,10 @@ struct ImportProgressView: View {
 
                 if job.isComplete {
                     Button {
+                        // Clear activeJob when user dismisses completed job
+                        if manager.activeJob?.status == .completed {
+                            manager.activeJob = nil
+                        }
                         dismiss()
                     } label: {
                         HStack {

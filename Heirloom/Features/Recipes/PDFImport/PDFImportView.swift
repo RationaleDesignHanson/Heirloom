@@ -131,6 +131,7 @@ import SwiftData
 struct PDFImportView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.firebaseAuth) private var firebaseAuth
 
     @StateObject private var importManager = ServiceContainer.shared.resolve(ImportJobManager.self)
 
@@ -145,6 +146,8 @@ struct PDFImportView: View {
     @State private var isProcessing = false
     @State private var errorMessage: String?
     @State private var validationResults: [URL: PDFValidationResult] = [:]
+    @State private var showAuthRequiredAlert = false
+    @State private var showSignIn = false
 
     var body: some View {
         NavigationStack {
@@ -189,6 +192,17 @@ struct PDFImportView: View {
                 if let error = errorMessage {
                     Text(error)
                 }
+            }
+            .alert("Sign In Required", isPresented: $showAuthRequiredAlert) {
+                Button("Sign In") {
+                    showSignIn = true
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Sign in to import PDF recipes and keep them backed up safely.")
+            }
+            .sheet(isPresented: $showSignIn) {
+                FirebaseSignInView()
             }
             .onChange(of: selectedPDFs) { _, newValue in
                 if !newValue.isEmpty {
@@ -434,6 +448,14 @@ struct PDFImportView: View {
     }
 
     private func processPDFs() async {
+        // Check authentication before processing
+        guard firebaseAuth.isAuthenticated else {
+            await MainActor.run {
+                showAuthRequiredAlert = true
+            }
+            return
+        }
+
         isProcessing = true
         defer { isProcessing = false }
 
@@ -451,6 +473,11 @@ struct PDFImportView: View {
         }
 
         do {
+            // STEP 1: Batch all PDFs into single combined job
+            var allItems: [ImportItem] = []
+            var totalRecipeCount = 0
+            let multiPageAnalyzer = ServiceContainer.shared.resolve(MultiPageRecipeAnalyzer.self)
+
             for pdfURL in selectedPDFs {
                 // Check validation result
                 guard let result = validationResults[pdfURL] else {
@@ -483,32 +510,81 @@ struct PDFImportView: View {
 
                 let pages = try await pdfProcessor.renderPDFPages(from: pdfURL)
 
-                // Create import job (with multi-page analysis)
-                Log.info("Creating import job with multi-page analysis", category: .import, metadata: [
+                // Analyze and group pages
+                Log.info("Analyzing page boundaries", category: .import, metadata: [
                     "file": pdfURL.lastPathComponent,
                     "pages": pages.count
                 ])
 
-                let job = try await importManager.createPDFImportJob(
-                    pdfPages: pages,
-                    fileName: pdfURL.lastPathComponent,
-                    context: modelContext
-                )
+                let recipeGroups = try await multiPageAnalyzer.analyzePageBoundaries(pages: pages)
+                totalRecipeCount += recipeGroups.count
 
-                // Start processing
-                try await importManager.startJob(job, context: modelContext)
+                Log.info("Multi-page analysis complete", category: .import, metadata: [
+                    "file": pdfURL.lastPathComponent,
+                    "recipe_groups": recipeGroups.count,
+                    "multi_page_recipes": recipeGroups.filter { $0.isMultiPage }.count
+                ])
 
-                // Show progress view
-                await MainActor.run {
-                    showProgressView = true
+                // Create ImportItems for this PDF
+                for group in recipeGroups {
+                    let combinedImage = group.pageCount == 1 ? group.pages[0] : group.combinedImage()
+                    guard let imageData = combinedImage.jpegData(compressionQuality: 0.9) else {
+                        Log.warning("Failed to create image data for recipe group", category: .import, metadata: [
+                            "file": pdfURL.lastPathComponent,
+                            "pages": group.pageRange
+                        ])
+                        continue
+                    }
+
+                    let item = ImportItem(
+                        source: .pdf,
+                        imageData: imageData,
+                        pageNumber: group.startPage,
+                        totalPages: group.pageCount,
+                        isMultiPageRecipe: group.isMultiPage
+                    )
+                    allItems.append(item)
+
+                    Log.info("Created import item for recipe group", category: .import, metadata: [
+                        "file": pdfURL.lastPathComponent,
+                        "title": group.title,
+                        "pages": group.pageRange,
+                        "is_multi_page": group.isMultiPage
+                    ])
                 }
             }
+
+            // STEP 2: Create SINGLE job with all items
+            let jobName = selectedPDFs.count == 1
+                ? "Import \(selectedPDFs[0].lastPathComponent)"
+                : "Import \(selectedPDFs.count) PDFs (\(totalRecipeCount) recipes)"
+
+            let job = ImportJob(jobName: jobName, continueOnError: true)
+            job.items = allItems
+            job.totalItems = allItems.count
+
+            modelContext.insert(job)
+            try modelContext.save()
+
+            Log.info("PDF import job created successfully", category: .import, metadata: [
+                "pdf_count": selectedPDFs.count,
+                "recipe_count": totalRecipeCount
+            ])
+
+            // STEP 3: Show progress view BEFORE starting job
+            await MainActor.run {
+                showProgressView = true
+            }
+
+            // STEP 4: Start single job
+            try await importManager.startJob(job, context: modelContext)
 
             // Track analytics: PDF import completed
             await MainActor.run {
                 analytics.track(event: AnalyticsEvent.pdfImportCompleted, properties: [
                     "pdf_count": selectedPDFs.count,
-                    "total_pages": totalPages
+                    "total_pages": totalPages,
+                    "recipe_count": totalRecipeCount
                 ])
             }
 

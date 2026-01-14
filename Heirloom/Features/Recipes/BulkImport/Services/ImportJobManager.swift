@@ -345,6 +345,32 @@ final class ImportJobManager: ObservableObject {
 
             // Save recipe
             context.insert(recipe)
+
+            // Save source image if available
+            if let imageData = item.imageData,
+               let sourceImage = UIImage(data: imageData) {
+                do {
+                    let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+                    let fileName = try await imageStorageService.saveImage(
+                        sourceImage,
+                        recipeId: recipe.id
+                    )
+                    await MainActor.run {
+                        recipe.imageFileName = fileName
+                        Log.info("Saved recipe image from bulk import", category: .import, metadata: [
+                            "recipeId": recipe.id.uuidString,
+                            "fileName": fileName,
+                            "source": item.source.rawValue
+                        ])
+                    }
+                } catch {
+                    Log.warning("Failed to save image for bulk import recipe", category: .import, metadata: [
+                        "recipeId": recipe.id.uuidString,
+                        "error": error.localizedDescription
+                    ])
+                }
+            }
+
             try context.save()
 
             // Sync to Firebase if active
@@ -520,7 +546,8 @@ final class ImportJobManager: ObservableObject {
         job.status = .completed
         job.completedAt = Date()
         isProcessing = false
-        activeJob = nil
+        // Don't clear activeJob - let UI dismiss sheet explicitly
+        // activeJob will be cleared when user taps "Done" button in ImportProgressView
 
         try? context.save()
     }
