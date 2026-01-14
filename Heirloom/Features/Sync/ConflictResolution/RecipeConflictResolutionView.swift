@@ -293,11 +293,12 @@ struct RecipeConflictResolutionView: View {
         do {
             try modelContext.save()
 
-            // Sync to Firebase
+            // Sync to Firebase with CRDT operation log
             if backendConfig.isFirebaseActive {
-                // Note: Firebase sync will be updated in Phase 4 to use CRDT
-                // For now, just upload the resolved recipe
-                try await FirebaseSyncService.shared.uploadRecipe(recipeCRDT.recipe)
+                try await FirebaseSyncService.shared.uploadRecipeWithCRDT(
+                    recipeCRDT.recipe,
+                    deviceId: recipeCRDT.deviceId
+                )
             }
 
             // Show success

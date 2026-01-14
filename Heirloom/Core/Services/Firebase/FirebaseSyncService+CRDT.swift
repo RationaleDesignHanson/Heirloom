@@ -65,25 +65,25 @@ extension FirebaseSyncService {
             Log.info("Found pending operations from edit", category: .crdt, metadata: ["count": pendingOps.count])
 
             // Add operations to CRDT log and update their vector clocks
-            // CRITICAL: Append operation BEFORE incrementing clock to prevent race condition
+            // CRITICAL: Assign vector clock BEFORE appending to pass validation
             for op in pendingOps {
-                // Step 1: Append operation to log FIRST (this is our commit point)
-                // If we crash here, operation is logged but clock hasn't advanced - safe
-                crdt.operationLog.operations.append(op)
-
-                // Step 2: THEN increment the vector clock (safe now that operation is committed)
+                // Step 1: Increment the log's vector clock for this device
                 crdt.operationLog.vectorClock.increment(deviceId: op.deviceId)
 
-                // Step 3: Create snapshot of current clock state
+                // Step 2: Create snapshot of current clock state
                 let clockSnapshot = VectorClock(clocks: crdt.operationLog.vectorClock.clocks)
                 clockSnapshot.lastUpdated = crdt.operationLog.vectorClock.lastUpdated
 
-                // Step 4: Assign clock to the already-appended operation
+                // Step 3: Assign clock to operation (BEFORE appending)
                 op.vectorClock = clockSnapshot
 
-                Log.debug("Operation atomically committed with vector clock", category: .crdt, metadata: [
+                // Step 4: Append operation to log (now it has a valid clock and will pass validation)
+                crdt.operationLog.append(op)
+
+                Log.debug("Operation committed with vector clock", category: .crdt, metadata: [
                     "fieldPath": op.fieldPath,
-                    "clockValue": crdt.operationLog.vectorClock.value(for: op.deviceId)
+                    "clockValue": crdt.operationLog.vectorClock.value(for: op.deviceId),
+                    "operationId": op.id.uuidString
                 ])
             }
 
