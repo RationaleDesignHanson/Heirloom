@@ -21,6 +21,7 @@ struct SharePreviewView: View {
     
     // State
     @State private var sharedData: SharedRecipeData?
+    @State private var recipeImage: UIImage?
     @State private var isLoading = true
     @State private var isImporting = false
     @State private var errorMessage: String?
@@ -99,29 +100,32 @@ struct SharePreviewView: View {
             VStack(spacing: 24) {
                 // Header with recipe info
                 headerCard(data: data)
-                
+
                 // Lineage visualization
                 lineageCard(data: data)
-                
+
                 // Recipe preview
                 recipePreviewCard(data: data)
-                
+
                 // Personal message
                 if let message = data.personalMessage, !message.isEmpty {
                     messageCard(message: message, from: data.sharerName)
                 }
-                
+
                 // Expiration warning
                 if let expiresAt = data.expiresAt {
                     expirationBanner(expiresAt: expiresAt, isExpired: data.isExpired)
                 }
-                
+
                 // Import button
                 importButton(data: data)
-                
+
                 Spacer(minLength: 20)
             }
             .padding()
+        }
+        .task(id: data.imageURL) {
+            await loadImage(from: data.imageURL)
         }
     }
     
@@ -129,20 +133,29 @@ struct SharePreviewView: View {
     
     private func headerCard(data: SharedRecipeData) -> some View {
         VStack(alignment: .leading, spacing: 16) {
+            // Recipe image (if available)
+            if let image = recipeImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: 180)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+
             // Recipe title
             HStack(spacing: 12) {
                 Image(systemName: "doc.text.fill")
                     .font(.title2)
                     .foregroundStyle(HeirloomColors.accent)
-                
+
                 Text(data.title)
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundStyle(HeirloomColors.primaryText)
             }
-            
+
             Divider()
-            
+
             // Sharer info
             HStack(spacing: 12) {
                 Circle()
@@ -153,17 +166,17 @@ struct SharePreviewView: View {
                             .font(.title3)
                             .foregroundStyle(HeirloomColors.amber)
                     }
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(data.sharerName)
                         .font(.headline)
                         .foregroundStyle(HeirloomColors.primaryText)
-                    
+
                     Text("shared this recipe with you")
                         .font(.subheadline)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
-                
+
                 Spacer()
             }
         }
@@ -512,6 +525,30 @@ struct SharePreviewView: View {
         }
 
         isImporting = false
+    }
+
+    private func loadImage(from urlString: String?) async {
+        guard let urlString = urlString,
+              let url = URL(string: urlString) else {
+            Log.debug("No image URL to load", category: .firebase)
+            return
+        }
+
+        Log.debug("Loading image from Firebase", category: .firebase, metadata: ["url": urlString])
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            if let image = UIImage(data: data) {
+                await MainActor.run {
+                    self.recipeImage = image
+                }
+                Log.debug("Image loaded successfully", category: .firebase)
+            } else {
+                Log.warning("Failed to decode image data", category: .firebase)
+            }
+        } catch {
+            Log.error("Failed to load image", category: .firebase, metadata: ["error": error.localizedDescription])
+        }
     }
 }
 
