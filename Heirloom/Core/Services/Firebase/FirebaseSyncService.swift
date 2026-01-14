@@ -808,11 +808,18 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
         logger.log("🔍 [Firebase] Found \(allRecipes.count) total recipes", category: .sync, level: .info, metadata: nil)
 
-        // Filter for unsynced recipes (EXCLUDING heritage recipes)
+        // Filter for unsynced recipes (EXCLUDING heritage and onboarding recipes)
         let unsynced = allRecipes.filter { recipe in
             // CRITICAL: Never sync heritage recipes to Firebase
             // Heritage recipes are read-only system content
             guard !recipe.isHeritageRecipe else {
+                return false
+            }
+
+            // CRITICAL: Never sync onboarding sample recipes
+            // These are local tutorial recipes, each device gets their own copy
+            let onboardingTitles = ["Classic Grilled Cheese", "Tomato Soup", "Perfect Grilled Cheese", "Creamy Tomato Soup"]
+            if onboardingTitles.contains(recipe.title) && recipe.sourceStory != nil {
                 return false
             }
 

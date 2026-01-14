@@ -30,20 +30,25 @@ extension FirebaseSyncService {
         if !hasPendingOperations && recipe.lastSyncedAt != nil {
             Log.debug("No pending operations, checking if upload needed", category: .crdt)
 
-            // Download remote to compare
-            let recipeRef = try recipeDocument(id: recipe.id.uuidString)
-            let remoteDoc = try await recipeRef.getDocument()
+            do {
+                // Download remote to compare (with timeout protection)
+                let recipeRef = try recipeDocument(id: recipe.id.uuidString)
+                let remoteDoc = try await recipeRef.getDocument()
 
-            if remoteDoc.exists, let remoteData = remoteDoc.data() {
-                let remoteModifiedAt = remoteData["modifiedAt"] as? Date
+                if remoteDoc.exists, let remoteData = remoteDoc.data() {
+                    let remoteModifiedAt = remoteData["modifiedAt"] as? Date
 
-                // If remote is newer or same, skip upload to avoid overwriting
-                if let remoteModified = remoteModifiedAt, remoteModified >= recipe.modifiedAt {
-                    Log.info("Remote is up-to-date, skipping upload", category: .crdt)
-                    recipe.lastSyncedAt = Date()
-                    try? modelContext?.save()
-                    return
+                    // If remote is newer or same, skip upload to avoid overwriting
+                    if let remoteModified = remoteModifiedAt, remoteModified >= recipe.modifiedAt {
+                        Log.info("Remote is up-to-date, skipping upload", category: .crdt)
+                        recipe.lastSyncedAt = Date()
+                        try? modelContext?.save()
+                        return
+                    }
                 }
+            } catch {
+                // If remote fetch fails, continue with upload to be safe
+                Log.warning("Failed to fetch remote for comparison, continuing with upload", category: .crdt, metadata: ["error": error.localizedDescription])
             }
         }
 

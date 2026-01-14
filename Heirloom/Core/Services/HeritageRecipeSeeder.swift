@@ -42,11 +42,27 @@ class HeritageRecipeSeeder {
 
     /// Check if heritage recipes have already been seeded
     func isSeeded() -> Bool {
+        // Check UserDefaults first (more reliable than database count)
+        let hasSeededBefore = UserDefaults.standard.bool(forKey: "heritage_recipes_seeded_v1")
+        if hasSeededBefore {
+            Log.debug("Heritage recipes marked as seeded in UserDefaults", category: .storage)
+            return true
+        }
+
+        // Fallback: Check database count
         let descriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { $0.isHeritageRecipe == true }
         )
 
         let count = (try? modelContext.fetchCount(descriptor)) ?? 0
+
+        // If recipes exist but UserDefaults not set, update UserDefaults
+        if count > 0 {
+            UserDefaults.standard.set(true, forKey: "heritage_recipes_seeded_v1")
+            UserDefaults.standard.set(Date(), forKey: "heritage_recipes_seeded_date")
+            Log.info("Found existing heritage recipes, marking as seeded", category: .storage, metadata: ["count": count])
+        }
+
         return count > 0
     }
 
@@ -193,9 +209,9 @@ class HeritageRecipeSeeder {
         // Save context
         try modelContext.save()
 
-        // Track seeding in UserDefaults
-        UserDefaults.standard.set(true, forKey: "HeritageRecipesSeeded")
-        UserDefaults.standard.set(Date(), forKey: "HeritageRecipesSeedDate")
+        // Track seeding in UserDefaults (prevents re-seeding across devices)
+        UserDefaults.standard.set(true, forKey: "heritage_recipes_seeded_v1")
+        UserDefaults.standard.set(Date(), forKey: "heritage_recipes_seeded_date")
 
         Log.info("Heritage recipes seeded successfully - all 100 recipes available for progressive unlock", category: .storage, metadata: [
             "count": seededCount
