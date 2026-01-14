@@ -153,7 +153,10 @@ final class MultiPageRecipeAnalyzer {
     /// Analyze PDF pages to detect recipe boundaries and group multi-page recipes
     /// - Parameter pages: Array of (pageNumber, image) tuples from PDF
     /// - Returns: Array of RecipePageGroup objects representing distinct recipes
-    func analyzePageBoundaries(pages: [(pageNumber: Int, image: UIImage)]) async throws -> [RecipePageGroup] {
+    func analyzePageBoundaries(
+        pages: [(pageNumber: Int, image: UIImage)],
+        progressCallback: ((Int) async -> Void)? = nil
+    ) async throws -> [RecipePageGroup] {
         guard !pages.isEmpty else {
             return []
         }
@@ -168,6 +171,9 @@ final class MultiPageRecipeAnalyzer {
         for (pageNum, image) in pages {
             // Analyze this page's role
             let analysis = try await analyzePage(image, pageNumber: pageNum)
+
+            // Report progress
+            await progressCallback?(pageNum)
 
             Log.info("Page analysis result", category: .import, metadata: [
                 "page": pageNum,

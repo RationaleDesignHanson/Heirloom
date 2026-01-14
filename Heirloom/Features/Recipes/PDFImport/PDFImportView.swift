@@ -148,6 +148,9 @@ struct PDFImportView: View {
     @State private var validationResults: [URL: PDFValidationResult] = [:]
     @State private var showAuthRequiredAlert = false
     @State private var showSignIn = false
+    @State private var isAnalyzing = false
+    @State private var currentAnalysisProgress = 0
+    @State private var totalPagesToAnalyze = 0
 
     var body: some View {
         NavigationStack {
@@ -171,6 +174,36 @@ struct PDFImportView: View {
                     Spacer(minLength: HeirloomSpacing.xl)
                 }
                 .padding(HeirloomSpacing.lg)
+            }
+            .overlay {
+                // Analysis progress overlay
+                if isAnalyzing {
+                    ZStack {
+                        Color.black.opacity(0.4)
+                            .ignoresSafeArea()
+
+                        VStack(spacing: 20) {
+                            ProgressView(value: Double(currentAnalysisProgress), total: Double(totalPagesToAnalyze))
+                                .progressViewStyle(.linear)
+                                .frame(width: 200)
+                                .tint(HeirloomColors.tomato)
+
+                            Text("Analyzing pages...")
+                                .font(HeirloomFonts.body)
+                                .foregroundColor(.white)
+
+                            Text("\(currentAnalysisProgress) / \(totalPagesToAnalyze)")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                        .padding(30)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(.ultraThinMaterial)
+                        )
+                    }
+                    .transition(.opacity)
+                }
             }
             .navigationTitle("Import PDFs")
             .navigationBarTitleDisplayMode(.large)
@@ -473,6 +506,13 @@ struct PDFImportView: View {
         }
 
         do {
+            // Initialize progress tracking
+            await MainActor.run {
+                isAnalyzing = true
+                totalPagesToAnalyze = validationResults.values.compactMap { $0.pageCount }.reduce(0, +)
+                currentAnalysisProgress = 0
+            }
+
             // STEP 1: Batch all PDFs into single combined job
             var allItems: [ImportItem] = []
             var totalRecipeCount = 0
@@ -510,13 +550,20 @@ struct PDFImportView: View {
 
                 let pages = try await pdfProcessor.renderPDFPages(from: pdfURL)
 
-                // Analyze and group pages
+                // Analyze and group pages with progress tracking
                 Log.info("Analyzing page boundaries", category: .import, metadata: [
                     "file": pdfURL.lastPathComponent,
                     "pages": pages.count
                 ])
 
-                let recipeGroups = try await multiPageAnalyzer.analyzePageBoundaries(pages: pages)
+                let recipeGroups = try await multiPageAnalyzer.analyzePageBoundaries(
+                    pages: pages,
+                    progressCallback: { pageNumber in
+                        await MainActor.run {
+                            currentAnalysisProgress += 1
+                        }
+                    }
+                )
                 totalRecipeCount += recipeGroups.count
 
                 Log.info("Multi-page analysis complete", category: .import, metadata: [
@@ -571,8 +618,9 @@ struct PDFImportView: View {
                 "recipe_count": totalRecipeCount
             ])
 
-            // STEP 3: Show progress view BEFORE starting job
+            // Hide analysis overlay and show progress view
             await MainActor.run {
+                isAnalyzing = false
                 showProgressView = true
             }
 
@@ -589,6 +637,11 @@ struct PDFImportView: View {
             }
 
         } catch {
+            // Hide analysis overlay on error
+            await MainActor.run {
+                isAnalyzing = false
+            }
+
             // Track analytics: PDF import failed
             await MainActor.run {
                 analytics.track(event: AnalyticsEvent.pdfImportFailed, properties: [
