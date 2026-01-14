@@ -310,13 +310,8 @@ class CRDTMergeEngine {
         case "ingredients":
             // Apply ingredient changes by re-parsing the ingredient strings
             if case .stringArray(let ingredientTexts) = newValue {
-                // Delete existing ingredients
-                if let existingIngredients = recipe.ingredients {
-                    for ingredient in existingIngredients {
-                        // Note: We can't delete from modelContext here as we don't have access
-                        // The ingredients will be replaced by the new parsed ones
-                    }
-                }
+                // Note: Existing ingredients will be replaced by the new parsed ones
+                // We can't delete from modelContext here as we don't have access to it
 
                 // Create new ingredients from strings
                 var newIngredients: [Ingredient] = []
