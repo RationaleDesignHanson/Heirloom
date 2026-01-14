@@ -232,6 +232,10 @@
 		C583FFE22F0CBE500096478E /* RecipeListToolbarLeading.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFDC2F0CBE500096478E /* RecipeListToolbarLeading.swift */; };
 		C583FFE52F0CC00B0096478E /* RecipeSheetModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFE32F0CC00A0096478E /* RecipeSheetModifiers.swift */; };
 		C583FFE72F0CC1740096478E /* BatchTagCollectionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFE62F0CC1740096478E /* BatchTagCollectionPickerView.swift */; };
+		C5A7BDAF2F1713FA00D99B07 /* PDFProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDAD2F1713FA00D99B07 /* PDFProcessor.swift */; };
+		C5A7BDB02F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDAC2F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift */; };
+		C5A7BDB42F1714B100D99B07 /* PDFDocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDB12F1714B100D99B07 /* PDFDocumentPicker.swift */; };
+		C5A7BDB52F1714B100D99B07 /* PDFImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDB22F1714B100D99B07 /* PDFImportView.swift */; };
 		C5B317602F00C7E40087CF6D /* RecipeVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */; };
 		C5B317622F00C7F30087CF6D /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */; };
 		C5B317662F00C8230087CF6D /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317652F00C8230087CF6D /* AboutView.swift */; };
@@ -529,6 +533,10 @@
 		C583FFDE2F0CBE500096478E /* SelectionActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionActionBar.swift; sourceTree = "<group>"; };
 		C583FFE32F0CC00A0096478E /* RecipeSheetModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeSheetModifiers.swift; sourceTree = "<group>"; };
 		C583FFE62F0CC1740096478E /* BatchTagCollectionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchTagCollectionPickerView.swift; sourceTree = "<group>"; };
+		C5A7BDAC2F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiPageRecipeAnalyzer.swift; sourceTree = "<group>"; };
+		C5A7BDAD2F1713FA00D99B07 /* PDFProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFProcessor.swift; sourceTree = "<group>"; };
+		C5A7BDB12F1714B100D99B07 /* PDFDocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentPicker.swift; sourceTree = "<group>"; };
+		C5A7BDB22F1714B100D99B07 /* PDFImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImportView.swift; sourceTree = "<group>"; };
 		C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersion.swift; sourceTree = "<group>"; };
 		C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		C5B317652F00C8230087CF6D /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
@@ -796,6 +804,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5A7BDAE2F1713FA00D99B07 /* PDF */,
 				C513D8582F163AE700BFCF7D /* Heritage */,
 				C513D4312F15EB1B00BFCF7D /* BlindBoxSeeder.swift */,
 				C58331F42F15D4840096478E /* Photo */,
@@ -908,6 +917,7 @@
 		8AC18A265A5E4A850FD25D2C /* Recipes */ = {
 			isa = PBXGroup;
 			children = (
+				C5A7BDB32F1714B100D99B07 /* PDFImport */,
 				C58324F22F14803C0096478E /* VideoProcessing */,
 				C583197E2F123D280096478E /* ASMRVideoImport */,
 				C583162D2F119A030096478E /* VideoImport */,
@@ -1494,6 +1504,24 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
+		C5A7BDAE2F1713FA00D99B07 /* PDF */ = {
+			isa = PBXGroup;
+			children = (
+				C5A7BDAC2F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift */,
+				C5A7BDAD2F1713FA00D99B07 /* PDFProcessor.swift */,
+			);
+			path = PDF;
+			sourceTree = "<group>";
+		};
+		C5A7BDB32F1714B100D99B07 /* PDFImport */ = {
+			isa = PBXGroup;
+			children = (
+				C5A7BDB12F1714B100D99B07 /* PDFDocumentPicker.swift */,
+				C5A7BDB22F1714B100D99B07 /* PDFImportView.swift */,
+			);
+			path = PDFImport;
+			sourceTree = "<group>";
+		};
 		C5B3176B2F00C8500087CF6D /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -1956,6 +1984,8 @@
 				ED52F1487AEF53834790D891 /* BulkImportView.swift in Sources */,
 				C583FFD52F0CB81B0096478E /* CollectionDetailView.swift in Sources */,
 				965A8945B59A7B82DD91939D /* ButtonStyles.swift in Sources */,
+				C5A7BDB42F1714B100D99B07 /* PDFDocumentPicker.swift in Sources */,
+				C5A7BDB52F1714B100D99B07 /* PDFImportView.swift in Sources */,
 				38CA24AAE112792C5AEBCF83 /* CardBackEditorView.swift in Sources */,
 				B909B5726C4D6D07CA115B68 /* CardPersonalizationView.swift in Sources */,
 				C583FFE02F0CBE500096478E /* SelectionActionBar.swift in Sources */,
@@ -2054,6 +2084,8 @@
 				C583070F2F0EC5480096478E /* FilePathValidator.swift in Sources */,
 				C583162E2F119A030096478E /* VideoProcessingView.swift in Sources */,
 				C583162F2F119A030096478E /* SimilarRecipesInfoView.swift in Sources */,
+				C5A7BDAF2F1713FA00D99B07 /* PDFProcessor.swift in Sources */,
+				C5A7BDB02F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift in Sources */,
 				C58316302F119A030096478E /* AugmentedIngredientEditRow.swift in Sources */,
 				C58316312F119A030096478E /* VideoImportView.swift in Sources */,
 				C5831EBB2F135F060096478E /* TabNavigationCoordinator.swift in Sources */,
@@ -2385,7 +2417,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2425,7 +2457,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2460,7 +2492,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2491,7 +2523,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2518,7 +2550,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = G6Q28X9VJR;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2549,7 +2581,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = G6Q28X9VJR;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
