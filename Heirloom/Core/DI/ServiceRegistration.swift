@@ -281,6 +281,9 @@ extension ServiceContainer {
             RecipeLineageService()
         }
 
+        // HeritageUnlockService - Note: Requires modelContext at init, instantiate directly where needed
+        // Example: HeritageUnlockService(modelContext: modelContext, firebaseAuth: authService)
+
         register(RecipeStructureParser.self, lifecycle: .singleton) { _ in
             RecipeStructureParser()
         }
