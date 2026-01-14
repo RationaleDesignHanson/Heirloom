@@ -486,6 +486,7 @@ struct RecipeEditorView: View {
                 recipe.setNotes(notes.isEmpty ? nil : notes)
                 recipe.instructions = instructions.filter { !$0.isEmpty }
                 recipe.lastModified = Date()
+                recipe.modifiedAt = Date()  // CRITICAL: Update modifiedAt to trigger sync
 
                 // Apply selected collections
                 let selectedCollections = allCollections.filter { selectedCollectionIDs.contains($0.id) }
