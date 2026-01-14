@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import FirebaseFirestore
 
 /// Service for managing user-specific heritage recipe unlock state
 /// Ensures same user gets same recipes across all devices using deterministic pseudo-random ordering
@@ -228,21 +229,79 @@ class HeritageUnlockService {
 
     /// Fetch heritage state from Firebase
     private func fetchHeritageState(userId: String) async throws -> UserHeritageState? {
-        // TODO: Implement Firebase fetch
-        // For now, check UserDefaults for local testing
-        if let data = UserDefaults.standard.data(forKey: "heritage_state_\(userId)"),
-           let state = try? JSONDecoder().decode(UserHeritageState.self, from: data) {
-            return state
+        let db = Firestore.firestore()
+        let docRef = db.collection("users").document(userId).collection("heritageState").document("current")
+
+        do {
+            let document = try await docRef.getDocument()
+
+            guard document.exists, let data = document.data() else {
+                Log.debug("No heritage state found in Firebase", category: .firebase, metadata: ["userId": userId])
+                return nil
+            }
+
+            // Parse from Firestore document
+            let unlockedRecipeIds = data["unlockedRecipeIds"] as? [String] ?? []
+            let unlockSchedule = data["unlockSchedule"] as? [String] ?? []
+            let currentBatch = data["currentBatch"] as? Int ?? 0
+            let lastDailyUnlock = (data["lastDailyUnlock"] as? Timestamp)?.dateValue()
+            let trialEndsAt = (data["trialEndsAt"] as? Timestamp)?.dateValue()
+            let hasCompletedTrial = data["hasCompletedTrial"] as? Bool ?? false
+
+            Log.debug("Fetched heritage state from Firebase", category: .firebase, metadata: [
+                "userId": userId,
+                "unlockedCount": unlockedRecipeIds.count,
+                "currentBatch": currentBatch
+            ])
+
+            return UserHeritageState(
+                userId: userId,
+                unlockedRecipeIds: unlockedRecipeIds,
+                unlockSchedule: unlockSchedule,
+                currentBatch: currentBatch,
+                lastDailyUnlock: lastDailyUnlock,
+                trialEndsAt: trialEndsAt,
+                hasCompletedTrial: hasCompletedTrial
+            )
+        } catch {
+            Log.error("Failed to fetch heritage state from Firebase", category: .firebase, metadata: [
+                "userId": userId,
+                "error": error.localizedDescription
+            ])
+            throw error
         }
-        return nil
     }
 
     /// Save heritage state to Firebase
     private func saveHeritageState(_ state: UserHeritageState, userId: String) async throws {
-        // TODO: Implement Firebase save
-        // For now, save to UserDefaults for local testing
-        if let data = try? JSONEncoder().encode(state) {
-            UserDefaults.standard.set(data, forKey: "heritage_state_\(userId)")
+        let db = Firestore.firestore()
+        let docRef = db.collection("users").document(userId).collection("heritageState").document("current")
+
+        let data: [String: Any] = [
+            "userId": state.userId,
+            "unlockedRecipeIds": state.unlockedRecipeIds,
+            "unlockSchedule": state.unlockSchedule,
+            "currentBatch": state.currentBatch,
+            "lastDailyUnlock": state.lastDailyUnlock != nil ? Timestamp(date: state.lastDailyUnlock!) : NSNull(),
+            "trialEndsAt": state.trialEndsAt != nil ? Timestamp(date: state.trialEndsAt!) : NSNull(),
+            "hasCompletedTrial": state.hasCompletedTrial,
+            "updatedAt": FieldValue.serverTimestamp()
+        ]
+
+        do {
+            try await docRef.setData(data, merge: true)
+
+            Log.info("Saved heritage state to Firebase", category: .firebase, metadata: [
+                "userId": userId,
+                "unlockedCount": state.unlockedRecipeIds.count,
+                "currentBatch": state.currentBatch
+            ])
+        } catch {
+            Log.error("Failed to save heritage state to Firebase", category: .firebase, metadata: [
+                "userId": userId,
+                "error": error.localizedDescription
+            ])
+            throw error
         }
     }
 }
