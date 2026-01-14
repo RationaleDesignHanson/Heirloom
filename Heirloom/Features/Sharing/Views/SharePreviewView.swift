@@ -26,6 +26,7 @@ struct SharePreviewView: View {
     @State private var errorMessage: String?
     @State private var importedRecipe: Recipe?
     @State private var showSuccessAlert = false
+    @State private var showSignInPrompt = false
     
     var body: some View {
         NavigationStack {
@@ -64,6 +65,9 @@ struct SharePreviewView: View {
                     Text("\(recipe.title) has been added to your collection!")
                 }
             }
+        }
+        .sheet(isPresented: $showSignInPrompt) {
+            SignInPromptSheet()
         }
         .task {
             await loadSharePreview()
@@ -458,7 +462,9 @@ struct SharePreviewView: View {
                 case .shareExpired:
                     errorMessage = "This share link has expired"
                 case .notAuthenticated:
-                    errorMessage = "You must sign in to view shared recipes"
+                    // Show sign-in prompt instead of error message
+                    showSignInPrompt = true
+                    errorMessage = "Authentication required"
                 case .invalidShareData:
                     errorMessage = "The shared data is corrupted or invalid"
                 default:
