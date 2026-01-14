@@ -608,7 +608,15 @@ struct RootView: View {
                     // Check for premium subscription (sync is premium-only)
                     let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
 
-                    if subscriptionManager.isPremium {
+                    #if DEBUG
+                    // DEVELOPMENT BYPASS: Enable sync for testing without premium
+                    let shouldEnableSync = true
+                    Log.warning("DEBUG MODE: Bypassing premium check for sync testing", category: .sync)
+                    #else
+                    let shouldEnableSync = subscriptionManager.isPremium
+                    #endif
+
+                    if shouldEnableSync {
                         // Resolve sync service now (after Firebase is initialized)
                         let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
                         syncService.startAutomaticSync()
@@ -626,7 +634,15 @@ struct RootView: View {
                     // Check for premium subscription (sync is premium-only)
                     let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
 
-                    if subscriptionManager.isPremium {
+                    #if DEBUG
+                    // DEVELOPMENT BYPASS: Enable sync for testing without premium
+                    let shouldEnableSync = true
+                    Log.warning("DEBUG MODE: Bypassing premium check for sync testing", category: .sync)
+                    #else
+                    let shouldEnableSync = subscriptionManager.isPremium
+                    #endif
+
+                    if shouldEnableSync {
                         // Resolve sync service now (after Firebase is initialized)
                         let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
                         syncService.startAutomaticSync()
