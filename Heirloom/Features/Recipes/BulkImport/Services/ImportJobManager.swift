@@ -552,6 +552,11 @@ final class ImportJobManager: ObservableObject {
         try? context.save()
     }
 
+    /// Clear the active job (called from UI when user dismisses)
+    func clearActiveJob() {
+        activeJob = nil
+    }
+
     // MARK: - Rate Limiting
 
     private func setupRateLimiter() {

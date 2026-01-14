@@ -121,7 +121,7 @@ struct ImportProgressView: View {
                     Button {
                         // Clear activeJob when user dismisses completed job
                         if manager.activeJob?.status == .completed {
-                            manager.activeJob = nil
+                            manager.clearActiveJob()
                         }
                         dismiss()
                     } label: {
