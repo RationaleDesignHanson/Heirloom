@@ -46,7 +46,7 @@ struct RecipeShareSheet: View {
                     }
                 }
             }
-            .sheet(isPresented: $showSuccessMessage) {
+            .fullScreenCover(isPresented: $showSuccessMessage) {
                 if let url = shareURL {
                     shareSuccessView(url: url)
                 }
@@ -118,7 +118,7 @@ struct RecipeShareSheet: View {
                 .background(options.shareType == .heirloom ? HeirloomColors.tomato : HeirloomColors.familyGreen)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .buttonStyle(.plain) // Use plain style to avoid interaction issues
+            .buttonStyle(.borderless) // Changed from .plain to .borderless for better tap response
             .disabled(isSharing)
 
             // Share type description
@@ -337,6 +337,11 @@ struct RecipeShareSheet: View {
                     shareURL = url
                     showSuccessMessage = true
                     isSharing = false
+
+                    Log.info("✅ Setting showSuccessMessage = true", category: .firebase, metadata: [
+                        "shareURL": url.absoluteString,
+                        "showSuccessMessage": showSuccessMessage
+                    ])
                 }
 
                 Log.info("Share created successfully", category: .firebase, metadata: [
