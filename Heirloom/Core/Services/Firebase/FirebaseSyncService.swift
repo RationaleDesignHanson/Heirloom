@@ -129,6 +129,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         logger.log("Converting recipe to Firestore", category: .sync, level: .debug, metadata: nil)
 
         // Timestamps
+        data["dateAdded"] = Timestamp(date: recipe.dateAdded)
         data["createdAt"] = Timestamp(date: recipe.createdAt)
         data["modifiedAt"] = Timestamp(date: recipe.modifiedAt)
 
@@ -194,6 +195,9 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         recipe.firebaseImageURL = data["firebaseImageURL"] as? String
 
         // Timestamps
+        if let dateAdded = (data["dateAdded"] as? Timestamp)?.dateValue() {
+            recipe.dateAdded = dateAdded
+        }
         if let createdAt = (data["createdAt"] as? Timestamp)?.dateValue() {
             recipe.createdAt = createdAt
         }
