@@ -92,25 +92,27 @@ struct OnboardingImportMethodsScreen: View {
             }
 
             VStack(spacing: 0) {
-                // App Icon & Title
-                VStack(spacing: 16) {
+                Spacer()
+                    .frame(minHeight: 30, maxHeight: 50)
+
+                // App Icon & Title (more compact)
+                VStack(spacing: 12) {
                     Image("ceramic-hero-book")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 140, height: 140)
+                        .frame(width: 100, height: 100)
 
                     Text("Heirloom")
-                        .font(.system(size: 40, weight: .bold, design: .serif))
+                        .font(.system(size: 34, weight: .bold, design: .serif))
                         .foregroundStyle(HeirloomColors.charcoal)
                 }
-                .padding(.top, 60)
 
                 // Headline
-                Text("Import recipes from anywhere")
+                Text("Import recipes from a...")
                     .font(HeirloomFonts.title1)
                     .foregroundStyle(HeirloomColors.charcoal)
                     .multilineTextAlignment(.center)
-                    .padding(.top, 32)
+                    .padding(.top, 20)
                     .padding(.horizontal, 32)
 
                 // 2x2 Grid of Import Method Cards
@@ -131,9 +133,10 @@ struct OnboardingImportMethodsScreen: View {
                     }
                 }
                 .padding(.horizontal, HeirloomSpacing.lg)
-                .padding(.top, 40)
+                .padding(.top, 24)
 
                 Spacer()
+                    .frame(minHeight: 20, maxHeight: 40)
 
                 // Continue Button
                 Button {
@@ -148,7 +151,9 @@ struct OnboardingImportMethodsScreen: View {
                         .cornerRadius(12)
                 }
                 .padding(.horizontal, 32)
-                .padding(.bottom, 40)
+
+                Spacer()
+                    .frame(minHeight: 30, maxHeight: 50)
             }
 
             // Preview overlay

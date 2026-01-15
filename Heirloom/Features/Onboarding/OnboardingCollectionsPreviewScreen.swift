@@ -89,8 +89,9 @@ struct OnboardingCollectionsPreviewScreen: View {
     // MARK: - Preview Content
 
     private var previewContent: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 24) {
             Spacer()
+                .frame(minHeight: 30, maxHeight: 50)
 
             // Message
             VStack(spacing: 8) {
@@ -149,6 +150,7 @@ struct OnboardingCollectionsPreviewScreen: View {
             .padding(.horizontal, HeirloomSpacing.lg)
 
             Spacer()
+                .frame(minHeight: 20, maxHeight: 40)
 
             // Get Started Button
             Button {
@@ -163,14 +165,16 @@ struct OnboardingCollectionsPreviewScreen: View {
                     .cornerRadius(12)
             }
             .padding(.horizontal, 32)
-            .padding(.bottom, 40)
+
+            Spacer()
+                .frame(minHeight: 30, maxHeight: 50)
         }
     }
 
     // MARK: - Fallback Content
 
     private var fallbackContent: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 24) {
             Spacer()
 
             VStack(spacing: 16) {
@@ -203,7 +207,9 @@ struct OnboardingCollectionsPreviewScreen: View {
                     .cornerRadius(12)
             }
             .padding(.horizontal, 32)
-            .padding(.bottom, 40)
+
+            Spacer()
+                .frame(minHeight: 40, maxHeight: 60)
         }
     }
 

@@ -415,6 +415,8 @@ struct RecipeDetailView: View {
         }
         .sheet(isPresented: $showCloudKitShare) {
             RecipeShareSheet(recipe: recipe)
+                .presentationDetents(UIDevice.current.userInterfaceIdiom == .pad ? [.medium, .large] : [.large])
+                .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showComments) {
             NavigationStack {

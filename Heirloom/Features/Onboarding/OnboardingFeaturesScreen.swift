@@ -15,7 +15,10 @@ struct OnboardingFeaturesScreen: View {
         ZStack {
             HeirloomColors.cream.ignoresSafeArea()
 
-            VStack(spacing: 32) {
+            VStack(spacing: 24) {
+                Spacer()
+                    .frame(minHeight: 40, maxHeight: 60)
+
                 // Title
                 VStack(spacing: 8) {
                     Text("What you can do")
@@ -28,13 +31,13 @@ struct OnboardingFeaturesScreen: View {
                         .foregroundStyle(HeirloomColors.secondaryText)
                         .multilineTextAlignment(.center)
                 }
-                .padding(.top, 60)
                 .padding(.horizontal, 32)
 
                 Spacer()
+                    .frame(minHeight: 20, maxHeight: 40)
 
                 // Feature cards
-                VStack(spacing: 24) {
+                VStack(spacing: 20) {
                     featureCard(
                         icon: "person.2.fill",
                         title: "Share with friends",
@@ -59,6 +62,7 @@ struct OnboardingFeaturesScreen: View {
                 .padding(.horizontal, 32)
 
                 Spacer()
+                    .frame(minHeight: 30, maxHeight: 50)
 
                 // Continue Button
                 Button {
@@ -73,7 +77,9 @@ struct OnboardingFeaturesScreen: View {
                         .cornerRadius(12)
                 }
                 .padding(.horizontal, 32)
-                .padding(.bottom, 40)
+
+                Spacer()
+                    .frame(minHeight: 40, maxHeight: 60)
             }
         }
     }

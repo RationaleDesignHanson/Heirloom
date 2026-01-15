@@ -59,13 +59,15 @@ struct OnboardingConceptScreen: View {
         ZStack {
             HeirloomColors.cream.ignoresSafeArea()
 
-            VStack(spacing: 32) {
+            VStack(spacing: 24) {
+                Spacer()
+                    .frame(minHeight: 30, maxHeight: 50)
+
                 // Title
                 Text("Organize recipes you love")
                     .font(HeirloomFonts.title1)
                     .foregroundStyle(HeirloomColors.charcoal)
                     .multilineTextAlignment(.center)
-                    .padding(.top, 60)
                     .padding(.horizontal, 32)
 
                 // Recipe Cards (static, non-tappable) - Match Recipes tab layout
@@ -96,6 +98,7 @@ struct OnboardingConceptScreen: View {
                 .allowsHitTesting(false) // Disable taps
 
                 Spacer()
+                    .frame(minHeight: 20, maxHeight: 40)
 
                 // Continue Button
                 Button {
@@ -110,7 +113,9 @@ struct OnboardingConceptScreen: View {
                         .cornerRadius(12)
                 }
                 .padding(.horizontal, 32)
-                .padding(.bottom, 40)
+
+                Spacer()
+                    .frame(minHeight: 30, maxHeight: 50)
             }
         }
         .onAppear {

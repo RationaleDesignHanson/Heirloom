@@ -18,38 +18,39 @@ struct OnboardingWelcomeScreen: View {
 
             VStack(spacing: 0) {
                 Spacer()
+                    .frame(minHeight: 50, maxHeight: 80)
 
-                // App Icon
+                // App Icon (more compact)
                 Image("ceramic-hero-book")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 140, height: 140)
+                    .frame(width: 110, height: 110)
 
                 // App Name
                 Text("Heirloom")
                     .font(HeirloomFonts.largeTitle)
                     .foregroundStyle(HeirloomColors.charcoal)
-                    .padding(.top, 16)
+                    .padding(.top, 12)
 
                 // Tagline
                 Text("Keep your favorite recipes and share with your community")
                     .font(HeirloomFonts.title3)
                     .foregroundStyle(HeirloomColors.charcoal)
                     .multilineTextAlignment(.center)
-                    .padding(.top, 12)
+                    .padding(.top, 8)
                     .padding(.horizontal, 32)
 
-                // Value Props
-                VStack(alignment: .leading, spacing: 12) {
+                // Value Props (more compact)
+                VStack(alignment: .leading, spacing: 10) {
                     valueProposition(icon: "arrow.down.doc.fill", text: "Import from anywhere - videos, websites, photos")
                     valueProposition(icon: "square.grid.2x2.fill", text: "Organize with beautiful collections")
                     valueProposition(icon: "person.2.fill", text: "Share with your community")
                 }
-                .padding(.top, 40)
+                .padding(.top, 32)
                 .padding(.horizontal, 40)
 
                 Spacer()
-                Spacer()
+                    .frame(minHeight: 40, maxHeight: 80)
 
                 // Get Started Button
                 Button {
@@ -64,7 +65,9 @@ struct OnboardingWelcomeScreen: View {
                         .cornerRadius(12)
                 }
                 .padding(.horizontal, 32)
-                .padding(.bottom, 40)
+
+                Spacer()
+                    .frame(minHeight: 40, maxHeight: 60)
             }
         }
     }

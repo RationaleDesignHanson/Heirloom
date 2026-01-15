@@ -794,6 +794,7 @@ struct ContentView: View {
                 .accessibilityHint("Plan and manage dinner parties")
 
             SettingsView()
+                .environmentObject(tabCoordinator)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }

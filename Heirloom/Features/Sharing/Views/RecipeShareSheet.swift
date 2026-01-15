@@ -35,7 +35,8 @@ struct RecipeShareSheet: View {
                     // Advanced settings (COLLAPSED)
                     advancedSettingsSection
                 }
-                .padding(.vertical)
+                .padding(.top)
+                .padding(.bottom, 40)
             }
             .navigationTitle("Share Recipe")
             .navigationBarTitleDisplayMode(.inline)
@@ -98,27 +99,39 @@ struct RecipeShareSheet: View {
 
     private var primaryShareButton: some View {
         VStack(spacing: 8) {
-            Button(action: createShare) {
-                HStack(spacing: 12) {
-                    if isSharing {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .tint(.white)
-                    } else {
-                        Image(systemName: options.shareType == .heirloom ? "arrow.triangle.branch" : "square.and.arrow.up.fill")
-                            .font(.system(size: 18, weight: .semibold))
-                        Text("Create \(options.shareType.displayName) Share")
-                            .font(HeirloomFonts.bodyBold)
-                    }
+            Button {
+                Log.info("🔴 BUTTON TAPPED - iPhone Debug", category: .firebase)
+                print("🔴🔴🔴 BUTTON TAPPED")
+                guard !isSharing else {
+                    Log.info("🔴 Button tap ignored - already sharing", category: .firebase)
+                    return
                 }
-                .foregroundStyle(.white)
+                createShare()
+            } label: {
+                ZStack {
+                    // Background
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(options.shareType == .heirloom ? HeirloomColors.tomato : HeirloomColors.familyGreen)
+                        .frame(height: 56)
+
+                    // Content
+                    HStack(spacing: 12) {
+                        if isSharing {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                                .tint(.white)
+                        } else {
+                            Image(systemName: options.shareType == .heirloom ? "arrow.triangle.branch" : "square.and.arrow.up.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                            Text("Create \(options.shareType.displayName) Share")
+                                .font(HeirloomFonts.bodyBold)
+                        }
+                    }
+                    .foregroundStyle(.white)
+                }
                 .frame(maxWidth: .infinity)
-                .frame(minHeight: 44) // Ensure minimum tap target
-                .padding(.vertical, 16)
-                .background(options.shareType == .heirloom ? HeirloomColors.tomato : HeirloomColors.familyGreen)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .buttonStyle(.borderless) // Changed from .plain to .borderless for better tap response
+            .buttonStyle(.plain)
             .disabled(isSharing)
 
             // Share type description

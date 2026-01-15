@@ -28,44 +28,45 @@ struct FirebaseSignInView: View {
             HeirloomColors.appBackground
                 .ignoresSafeArea()
 
-            VStack(spacing: 40) {
+            VStack(spacing: 0) {
                 Spacer()
+                    .frame(minHeight: 40, maxHeight: 60)
 
-                // App Icon/Logo
+                // App Icon/Logo (smaller on iPad)
                 ZStack {
                     Circle()
                         .fill(HeirloomColors.tomato.opacity(0.15))
-                        .frame(width: 120, height: 120)
+                        .frame(width: 100, height: 100)
 
                     Image(systemName: "book.closed.fill")
-                        .font(.system(size: 60))
+                        .font(.system(size: 50))
                         .foregroundColor(HeirloomColors.tomato)
                 }
 
                 // Title
-                VStack(spacing: 12) {
+                VStack(spacing: 8) {
                     Text("Welcome to Heirloom")
                         .font(HeirloomFonts.title1)
                         .foregroundColor(HeirloomColors.primaryText)
 
-                    Text("Sign in to sync your recipes\nacross all your devices")
+                    Text("Sign in to sync your recipes...")
                         .font(HeirloomFonts.body)
                         .foregroundColor(HeirloomColors.secondaryText)
                         .multilineTextAlignment(.center)
-                        .lineSpacing(4)
                 }
+                .padding(.top, 20)
 
-                Spacer()
-
-                // Features list
-                VStack(alignment: .leading, spacing: 16) {
+                // Features list (more compact)
+                VStack(alignment: .leading, spacing: 12) {
                     featureRow(icon: "icloud", text: "Automatic cloud sync")
                     featureRow(icon: "arrow.triangle.2.circlepath", text: "Share recipes with family")
                     featureRow(icon: "shield.checkered", text: "Secure and private")
                 }
                 .padding(.horizontal, 40)
+                .padding(.top, 32)
 
                 Spacer()
+                    .frame(minHeight: 20, maxHeight: 40)
 
                 // Sign in buttons
                 if authService.isAuthenticating {
@@ -76,7 +77,7 @@ struct FirebaseSignInView: View {
                 } else if showEmailSignIn {
                     emailSignInView
                 } else {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 12) {
                         // Sign in with Apple button
                         Button {
                             guard !hasAttemptedSignIn else { return }
@@ -147,12 +148,12 @@ struct FirebaseSignInView: View {
                             Text("or")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundColor(HeirloomColors.secondaryText)
-                                .padding(.horizontal, 12)
+                                .padding(.horizontal, 8)
                             Rectangle()
                                 .fill(HeirloomColors.charcoal.opacity(0.2))
                                 .frame(height: 1)
                         }
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 4)
 
                         // Sign in with Email button
                         Button {
@@ -179,7 +180,7 @@ struct FirebaseSignInView: View {
                 }
 
                 Spacer()
-                    .frame(height: 60)
+                    .frame(minHeight: 30, maxHeight: 50)
             }
         }
         .alert("Sign In Error", isPresented: $showError) {
