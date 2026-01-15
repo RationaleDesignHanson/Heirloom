@@ -550,18 +550,49 @@ struct HeirloomApp: App {
         Task { @MainActor in
             let context = container.mainContext
 
-            // Delete all existing recipes (they don't have proper ingredients)
+            // CRITICAL FIX: Only delete user-created recipes with broken data
+            // NEVER delete Heritage recipes, shared recipes, or any system recipes
             let fetchDescriptor = FetchDescriptor<Recipe>()
             if let oldRecipes = try? context.fetch(fetchDescriptor) {
-                Log.info("Cleaning up old recipes with broken data", category: .database, metadata: ["count": oldRecipes.count])
-                for recipe in oldRecipes {
+                // Filter to ONLY user-created recipes (exclude Heritage, shared, system recipes)
+                let recipesToDelete = oldRecipes.filter { recipe in
+                    // NEVER delete Heritage recipes
+                    guard !recipe.isHeritageRecipe else {
+                        Log.info("🛡️ PROTECTED: Skipping Heritage recipe from cleanup", category: .database, metadata: ["title": recipe.title])
+                        return false
+                    }
+
+                    // NEVER delete shared recipes
+                    if let provenance = recipe.provenance, provenance.sourceType == .shared {
+                        Log.info("🛡️ PROTECTED: Skipping shared recipe from cleanup", category: .database, metadata: ["title": recipe.title])
+                        return false
+                    }
+
+                    // NEVER delete sample recipes
+                    if recipe.isSampleRecipe {
+                        Log.info("🛡️ PROTECTED: Skipping sample recipe from cleanup", category: .database, metadata: ["title": recipe.title])
+                        return false
+                    }
+
+                    // Only delete plain user-created recipes
+                    return true
+                }
+
+                Log.info("Cleaning up old user recipes with broken data", category: .database, metadata: [
+                    "total": oldRecipes.count,
+                    "toDelete": recipesToDelete.count,
+                    "protected": oldRecipes.count - recipesToDelete.count
+                ])
+
+                for recipe in recipesToDelete {
+                    Log.debug("Deleting old recipe", category: .database, metadata: ["title": recipe.title])
                     context.delete(recipe)
                 }
                 try? context.save()
             }
 
             // Sample recipe auto-population disabled - users can manually add via "Add Sample Recipe" button
-            Log.info("Recipe data cleanup complete - starting with clean slate", category: .database)
+            Log.info("Recipe data cleanup complete", category: .database)
             UserDefaults.standard.set(true, forKey: hasCleanedKey)
         }
     }
