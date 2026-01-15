@@ -22,6 +22,7 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
 
     private let configuration: FirebaseConfiguration
     private let logger: LoggingService
+    private var userProfileService: FirebaseUserProfileService?
 
     // MARK: - Initialization
 
@@ -33,6 +34,13 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         // IMPORTANT: Delay auth access until Firebase is fully configured
         // This prevents crashes when service is instantiated before Firebase.configure()
         logger.log("FirebaseAuthService initialized (auth listener setup deferred)", category: .auth, level: .info, metadata: nil)
+    }
+
+    /// Set user profile service for syncing display names
+    /// Call this after initialization to enable profile syncing
+    func setUserProfileService(_ service: FirebaseUserProfileService) {
+        self.userProfileService = service
+        logger.log("User profile service connected to auth", category: .auth, level: .info, metadata: nil)
     }
 
     /// Setup auth listener after Firebase is fully configured
@@ -65,6 +73,18 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
 
                 if let user = user {
                     self.logger.log("User signed in: \(user.uid)", category: .auth, level: .info, metadata: nil)
+
+                    // Sync user profile to Firestore for display names in lineage
+                    if let profileService = self.userProfileService {
+                        Task {
+                            do {
+                                try await profileService.syncCurrentUserProfile()
+                                self.logger.log("User profile synced to Firestore", category: .auth, level: .info, metadata: nil)
+                            } catch {
+                                self.logger.log("Failed to sync user profile: \(error.localizedDescription)", category: .auth, level: .warning, metadata: nil)
+                            }
+                        }
+                    }
                 } else {
                     self.logger.log("User signed out", category: .auth, level: .info, metadata: nil)
                 }

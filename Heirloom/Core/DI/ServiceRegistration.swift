@@ -65,7 +65,13 @@ extension ServiceContainer {
         register(FirebaseAuthService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
             let config = container.resolve(FirebaseConfiguration.self)
-            return FirebaseAuthService(configuration: config, logger: logger)
+            let authService = FirebaseAuthService(configuration: config, logger: logger)
+
+            // Connect user profile service for display name syncing
+            let profileService = container.resolve(FirebaseUserProfileService.self)
+            authService.setUserProfileService(profileService)
+
+            return authService
         }
 
         register((any FirebaseAuthServiceProtocol).self, lifecycle: .singleton) { container in
@@ -173,10 +179,16 @@ extension ServiceContainer {
             container.resolve(FirebaseNotificationService.self) as any FirebaseNotificationServiceProtocol
         }
 
+        // FirebaseUserProfileService
+        register(FirebaseUserProfileService.self, lifecycle: .singleton) { _ in
+            FirebaseUserProfileService()
+        }
+
         // FirebaseLineageService
         register(FirebaseLineageService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
-            return FirebaseLineageService(logger: logger)
+            let profileService = container.resolve(FirebaseUserProfileService.self)
+            return FirebaseLineageService(logger: logger, userProfileService: profileService)
         }
 
         register((any FirebaseLineageServiceProtocol).self, lifecycle: .singleton) { container in

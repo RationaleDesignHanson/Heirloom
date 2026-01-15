@@ -20,11 +20,13 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
     // MARK: - Dependencies
 
     private let logger: LoggingService
+    private let userProfileService: FirebaseUserProfileService
 
     // MARK: - Initialization
 
-    init(logger: LoggingService) {
+    init(logger: LoggingService, userProfileService: FirebaseUserProfileService) {
         self.logger = logger
+        self.userProfileService = userProfileService
     }
 
     private var db: Firestore {
@@ -144,11 +146,14 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
             return
         }
 
+        // Fetch user display name
+        let displayName = try? await userProfileService.fetchDisplayName(for: userId)
+
         // Create modification record
         let modification = ModificationRecord(
             timestamp: Date(),
             modifiedBy: userId,
-            modifiedByName: nil, // TODO: Fetch from user profile
+            modifiedByName: displayName,
             changeType: changeType,
             changeDescription: changeDescription,
             fieldChanged: fieldChanged
