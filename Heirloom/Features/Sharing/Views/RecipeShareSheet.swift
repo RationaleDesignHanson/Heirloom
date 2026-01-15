@@ -20,23 +20,30 @@ struct RecipeShareSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Share type selector (PROMINENT)
-                    shareTypeSelector
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Share type selector (PROMINENT)
+                        shareTypeSelector
 
-                    // Primary action (IMMEDIATE)
-                    primaryShareButton
+                        // Preview card
+                        SharePreviewCard(recipe: recipe, options: options)
+                            .padding(.horizontal)
 
-                    // Preview card
-                    SharePreviewCard(recipe: recipe, options: options)
-                        .padding(.horizontal)
-
-                    // Advanced settings (COLLAPSED)
-                    advancedSettingsSection
+                        // Advanced settings (COLLAPSED)
+                        advancedSettingsSection
+                    }
+                    .padding(.top)
                 }
-                .padding(.top)
-                .padding(.bottom, 40)
+
+                // Primary action OUTSIDE ScrollView (pinned to bottom)
+                VStack(spacing: 0) {
+                    Divider()
+                    primaryShareButton
+                        .padding(.horizontal)
+                        .padding(.vertical, 16)
+                        .background(HeirloomColors.cream)
+                }
             }
             .navigationTitle("Share Recipe")
             .navigationBarTitleDisplayMode(.inline)
@@ -99,40 +106,25 @@ struct RecipeShareSheet: View {
 
     private var primaryShareButton: some View {
         VStack(spacing: 8) {
-            Button {
-                Log.info("🔴 BUTTON TAPPED - iPhone Debug", category: .firebase)
-                print("🔴🔴🔴 BUTTON TAPPED")
-                guard !isSharing else {
-                    Log.info("🔴 Button tap ignored - already sharing", category: .firebase)
-                    return
-                }
-                createShare()
-            } label: {
-                ZStack {
-                    // Background
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(options.shareType == .heirloom ? HeirloomColors.tomato : HeirloomColors.familyGreen)
-                        .frame(height: 56)
-
-                    // Content
-                    HStack(spacing: 12) {
-                        if isSharing {
-                            ProgressView()
-                                .progressViewStyle(.circular)
-                                .tint(.white)
-                        } else {
-                            Image(systemName: options.shareType == .heirloom ? "arrow.triangle.branch" : "square.and.arrow.up.fill")
-                                .font(.system(size: 18, weight: .semibold))
-                            Text("Create \(options.shareType.displayName) Share")
-                                .font(HeirloomFonts.bodyBold)
-                        }
+            Button(action: isSharing ? {} : createShare) {
+                HStack(spacing: 12) {
+                    if isSharing {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(.white)
+                    } else {
+                        Image(systemName: options.shareType == .heirloom ? "arrow.triangle.branch" : "square.and.arrow.up.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                        Text("Create \(options.shareType.displayName) Share")
+                            .font(HeirloomFonts.bodyBold)
                     }
-                    .foregroundStyle(.white)
                 }
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(options.shareType == .heirloom ? HeirloomColors.tomato : HeirloomColors.familyGreen)
+                .cornerRadius(12)
             }
-            .buttonStyle(.plain)
-            .disabled(isSharing)
 
             // Share type description
             Text(options.shareType.description)
@@ -487,13 +479,17 @@ struct ShareTypeCard: View {
     let isSelected: Bool
     let action: () -> Void
 
+    private var selectedColor: Color {
+        type == .heirloom ? HeirloomColors.tomato : HeirloomColors.familyGreen
+    }
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 12) {
                 // Icon
                 Image(systemName: type.iconName)
                     .font(.system(size: 32, weight: .medium))
-                    .foregroundStyle(isSelected ? .white : HeirloomColors.tomato)
+                    .foregroundStyle(isSelected ? .white : selectedColor)
 
                 // Title
                 Text(type.displayName)
@@ -512,15 +508,16 @@ struct ShareTypeCard: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
-            .background(isSelected ? HeirloomColors.tomato : Color(.systemGray6))
+            .padding(.vertical, 28)
+            .padding(.horizontal, 12)
+            .background(isSelected ? selectedColor : Color(.systemGray6))
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(isSelected ? HeirloomColors.tomato : Color.clear, lineWidth: 2)
+                    .strokeBorder(isSelected ? selectedColor : Color.clear, lineWidth: 2)
             )
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
     }
 }
 
