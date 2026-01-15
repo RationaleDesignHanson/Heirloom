@@ -239,6 +239,7 @@
 		C5A7C0432F1810F800D99B07 /* HeritageUnlockService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7C0422F1810F800D99B07 /* HeritageUnlockService.swift */; };
 		C5A7C0452F18120B00D99B07 /* DailyUnlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7C0442F18120B00D99B07 /* DailyUnlockView.swift */; };
 		C5A7C0472F187FB400D99B07 /* HeritageOnDemandService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7C0462F187FB400D99B07 /* HeritageOnDemandService.swift */; };
+		C5A7C0492F189BC700D99B07 /* FirebaseUserProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7C0482F189BC700D99B07 /* FirebaseUserProfileService.swift */; };
 		C5B317602F00C7E40087CF6D /* RecipeVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */; };
 		C5B317622F00C7F30087CF6D /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */; };
 		C5B317662F00C8230087CF6D /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317652F00C8230087CF6D /* AboutView.swift */; };
@@ -543,6 +544,7 @@
 		C5A7C0422F1810F800D99B07 /* HeritageUnlockService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageUnlockService.swift; sourceTree = "<group>"; };
 		C5A7C0442F18120B00D99B07 /* DailyUnlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyUnlockView.swift; sourceTree = "<group>"; };
 		C5A7C0462F187FB400D99B07 /* HeritageOnDemandService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageOnDemandService.swift; sourceTree = "<group>"; };
+		C5A7C0482F189BC700D99B07 /* FirebaseUserProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseUserProfileService.swift; sourceTree = "<group>"; };
 		C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersion.swift; sourceTree = "<group>"; };
 		C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		C5B317652F00C8230087CF6D /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
@@ -1108,6 +1110,7 @@
 		C56F3E762F04AC9800D19743 /* Firebase */ = {
 			isa = PBXGroup;
 			children = (
+				C5A7C0482F189BC700D99B07 /* FirebaseUserProfileService.swift */,
 				C583FFA82F0CAA6E0096478E /* Core */,
 				C583FFAB2F0CAA6E0096478E /* Sync */,
 				C583FFA42F0CAA610096478E /* Storage */,
@@ -1960,6 +1963,7 @@
 			files = (
 				85E6393EB70C40ABB95B05A7 /* TaskTimeout.swift in Sources */,
 				B99A84751B29D8825814A8E8 /* AIAPITest.swift in Sources */,
+				C5A7C0492F189BC700D99B07 /* FirebaseUserProfileService.swift in Sources */,
 				C513D4302F15EB1000BFCF7D /* BlindBoxCollectionRow.swift in Sources */,
 				473093936E209050DC5888FE /* AIConfiguration.swift in Sources */,
 				189E866732B2A3EF7F6A0483 /* AIError.swift in Sources */,

@@ -1,12 +1,19 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import FirebaseFirestore
 
 /// Service for fetching and managing recipe lineage trees
 @MainActor
 final class RecipeLineageService {
 
-    init() {}
+    // MARK: - Dependencies
+
+    private let firebaseLineageService: FirebaseLineageService?
+
+    init(firebaseLineageService: FirebaseLineageService? = nil) {
+        self.firebaseLineageService = firebaseLineageService
+    }
 
     // MARK: - Fetch Lineage Tree
 
@@ -56,14 +63,121 @@ final class RecipeLineageService {
         return tree
     }
 
-    /// Fetch lineage tree from CloudKit for shared recipes
+    /// Fetch lineage tree from Firebase for shared recipes
+    /// Queries global lineages collection for all recipes in the same family tree
     func fetchRemoteLineageTree(
         provenanceHash: String,
         maxDepth: Int = 3
     ) async throws -> LineageTree {
-        // TODO: Implement CloudKit query for lineage
-        // This would query the public database for all recipes with matching rootProvenanceHash
-        throw LineageError.notImplemented
+        guard firebaseLineageService != nil else {
+            Log.warning("No Firebase lineage service available for remote fetch", category: .firebase)
+            throw LineageError.notImplemented
+        }
+
+        Log.info("Fetching remote lineage tree from Firebase", category: .firebase, metadata: [
+            "provenanceHash": provenanceHash,
+            "maxDepth": maxDepth
+        ])
+
+        // Query global lineages collection for matching rootProvenanceHash
+        let db = Firestore.firestore()
+        let query = db.collection("lineages")
+            .whereField("rootProvenanceHash", isEqualTo: provenanceHash)
+            .limit(to: 100) // Safety limit
+
+        let snapshot = try await query.getDocuments()
+
+        Log.info("Fetched remote lineages", category: .firebase, metadata: ["count": snapshot.documents.count])
+
+        // Convert Firestore documents to lightweight recipe representations
+        var recipes: [Recipe] = []
+        var edges: [LineageEdge] = []
+
+        for doc in snapshot.documents {
+            let data = doc.data()
+
+            // Extract basic recipe info from lineage document
+            guard let recipeIdString = data["currentRecipeId"] as? String,
+                  let recipeId = UUID(uuidString: recipeIdString),
+                  let recipeTitle = data["recipeTitle"] as? String,
+                  let generation = data["generation"] as? Int else {
+                Log.warning("Invalid lineage data in remote document", category: .firebase, metadata: ["docId": doc.documentID])
+                continue
+            }
+
+            // Create lightweight Recipe object for visualization
+            // Note: This is a partial recipe with just enough info for lineage display
+            let recipe = Recipe()
+            recipe.id = recipeId
+            recipe.title = recipeTitle
+
+            // Create provenance metadata
+            let parentShareId = data["parentShareId"] as? String
+            let sharedByName = data["sharedByName"] as? String
+
+            let provenance = ProvenanceMetadata(
+                sourceType: generation == 0 ? .userCreated : .shared,
+                rootProvenanceHash: provenanceHash,
+                generation: generation,
+                parentShareID: parentShareId,
+                sharedByName: sharedByName
+            )
+            recipe.provenance = provenance
+
+            recipes.append(recipe)
+
+            // Edge creation will be done after we have all recipes parsed
+
+            Log.debug("Parsed remote recipe", category: .firebase, metadata: [
+                "title": recipeTitle,
+                "generation": generation
+            ])
+        }
+
+        // Find the root recipe (generation 0)
+        guard let root = recipes.first(where: { $0.provenance?.generation == 0 }) else {
+            Log.error("No root recipe found in remote lineage", category: .firebase)
+            throw LineageError.invalidProvenance
+        }
+
+        // Build edges by connecting generations
+        // Each recipe at generation N+1 connects to a recipe at generation N
+        for recipe in recipes where (recipe.provenance?.generation ?? 0) > 0 {
+            let currentGen = recipe.provenance?.generation ?? 0
+            let parentGen = currentGen - 1
+
+            // Find any recipe from the previous generation (simplified - assumes single parent)
+            if let parent = recipes.first(where: { ($0.provenance?.generation ?? 0) == parentGen }) {
+                let edge = LineageEdge(
+                    fromID: parent.id,
+                    toID: recipe.id,
+                    label: recipe.provenance?.sharedByName.map { "Shared by \($0)" },
+                    createdAt: recipe.provenance?.createdAt ?? Date()
+                )
+                edges.append(edge)
+            }
+        }
+
+        // Create nodes with positions and stats (placeholder values for remote recipes)
+        let nodes = recipes.map { recipe in
+            LineageNode(
+                recipe: recipe,
+                generation: recipe.provenance?.generation ?? 0,
+                position: .zero, // Will be calculated by layout engine
+                stats: NodeStats(cookCount: 0, shareCount: 0, viewCount: 0, rating: nil),
+                isCurrentUser: false // Remote recipes are never the current user's
+            )
+        }
+
+        let tree = LineageTree(root: root, nodes: nodes, edges: edges)
+
+        Log.info("Built remote lineage tree", category: .firebase, metadata: [
+            "nodeCount": nodes.count,
+            "edgeCount": edges.count,
+            "rootTitle": root.title
+        ])
+
+        return tree
     }
 
     // MARK: - Fetch Ancestors
