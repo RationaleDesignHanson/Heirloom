@@ -70,19 +70,22 @@ extension FirebaseSyncService {
             Log.info("Found pending operations from edit", category: .crdt, metadata: ["count": pendingOps.count])
 
             // Add operations to CRDT log and update their vector clocks
-            // CRITICAL: Assign vector clock BEFORE appending to pass validation
+            // CRITICAL FIX: Create incremented clock snapshot BEFORE modifying log's clock
+            // This ensures atomicity - if append() fails, the log's clock remains unchanged
             for op in pendingOps {
-                // Step 1: Increment the log's vector clock for this device
-                crdt.operationLog.vectorClock.increment(deviceId: op.deviceId)
-
-                // Step 2: Create snapshot of current clock state
+                // Step 1: Create snapshot of CURRENT clock state (before increment)
                 let clockSnapshot = VectorClock(clocks: crdt.operationLog.vectorClock.clocks)
                 clockSnapshot.lastUpdated = crdt.operationLog.vectorClock.lastUpdated
 
-                // Step 3: Assign clock to operation (BEFORE appending)
+                // Step 2: Increment the SNAPSHOT (not the log's clock yet)
+                clockSnapshot.increment(deviceId: op.deviceId)
+
+                // Step 3: Assign incremented clock snapshot to operation
                 op.vectorClock = clockSnapshot
 
-                // Step 4: Append operation to log (now it has a valid clock and will pass validation)
+                // Step 4: Append operation to log
+                // append() validates the operation, then merges the clock (which increments the log's clock)
+                // If append() fails validation, the log's clock is never touched - no race condition
                 crdt.operationLog.append(op)
 
                 Log.debug("Operation committed with vector clock", category: .crdt, metadata: [

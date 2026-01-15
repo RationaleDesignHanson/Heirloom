@@ -59,6 +59,10 @@ struct RecipeEditorView: View {
     @State private var showVersionPrompt = false
     @State private var shouldCreateNewVersion = false
 
+    // Permission validation
+    @State private var hasEditPermission = true
+    @State private var permissionCheckReason: String?
+
     init(
         recipe: Recipe? = nil,
         initialImage: UIImage? = nil,
@@ -105,6 +109,65 @@ struct RecipeEditorView: View {
         }
     }
 
+    // MARK: - Permission Validation
+
+    /// Validates whether the current user has permission to edit this recipe
+    /// Security layer to prevent unauthorized modifications
+    private func validateEditPermission() {
+        // New recipes can always be edited
+        guard !isNewRecipe else {
+            hasEditPermission = true
+            permissionCheckReason = nil
+            Log.info("Edit permission granted: new recipe", category: .auth)
+            return
+        }
+
+        // Check if user is signed in
+        guard firebaseAuth.currentUser?.uid != nil else {
+            // Not signed in - allow editing local recipes for now
+            // TODO: Consider blocking edits for shared recipes when not signed in
+            hasEditPermission = true
+            permissionCheckReason = nil
+            Log.warning("Edit permission granted: no auth (local recipe)", category: .auth)
+            return
+        }
+
+        // Check provenance metadata for ownership
+        if let provenance = recipe.provenance {
+            if provenance.isOriginal {
+                // User created this recipe - full edit permission
+                hasEditPermission = true
+                permissionCheckReason = nil
+                Log.info("Edit permission granted: recipe owner", category: .auth, metadata: [
+                    "recipeId": recipe.id.uuidString,
+                    "generation": provenance.generation
+                ])
+                return
+            } else if provenance.isShared {
+                // Recipe was shared to this user
+                // TODO: Check shareType in provenance to distinguish heirloom (editable) vs generic (read-only)
+                // For now, assume all shared recipes are heirloom (editable) to match current behavior
+                hasEditPermission = true
+                permissionCheckReason = "Shared recipe (assumed heirloom)"
+                Log.warning("Edit permission granted: shared recipe (TODO: check shareType)", category: .auth, metadata: [
+                    "recipeId": recipe.id.uuidString,
+                    "generation": provenance.generation,
+                    "sharedBy": provenance.sharedByName ?? "unknown"
+                ])
+                return
+            }
+        }
+
+        // Legacy recipes without provenance - allow editing for backward compatibility
+        // TODO: Consider adding provenance to all existing recipes during migration
+        hasEditPermission = true
+        permissionCheckReason = "Legacy recipe (no provenance)"
+        Log.warning("Edit permission granted: legacy recipe without provenance", category: .auth, metadata: [
+            "recipeId": recipe.id.uuidString,
+            "hasSharedBy": recipe.sharedBy != nil
+        ])
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -147,6 +210,10 @@ struct RecipeEditorView: View {
                     }
                     .disabled(title.isEmpty || isSaving)
                 }
+            }
+            .onAppear {
+                // Validate edit permissions on appear
+                validateEditPermission()
             }
             .task {
                 // Load existing recipe image when editing
@@ -606,6 +673,18 @@ struct RecipeEditorView: View {
     }
 
     private func saveRecipe() {
+        // SECURITY: Revalidate edit permissions before saving
+        validateEditPermission()
+
+        guard hasEditPermission else {
+            Log.error("Save blocked: no edit permission", category: .auth, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "reason": permissionCheckReason ?? "unknown"
+            ])
+            toastManager.show(type: .error, title: "Permission Denied", message: "You don't have permission to edit this recipe")
+            return
+        }
+
         isSaving = true
 
         Task {
