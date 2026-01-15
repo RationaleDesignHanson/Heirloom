@@ -113,10 +113,12 @@ struct RecipeShareSheet: View {
                 }
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
+                .frame(minHeight: 44) // Ensure minimum tap target
                 .padding(.vertical, 16)
-                .background(options.shareType == .heirloom ? HeirloomColors.tomato : HeirloomColors.warmGray)
+                .background(options.shareType == .heirloom ? HeirloomColors.tomato : HeirloomColors.familyGreen)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
+            .buttonStyle(.plain) // Use plain style to avoid interaction issues
             .disabled(isSharing)
 
             // Share type description
@@ -308,10 +310,15 @@ struct RecipeShareSheet: View {
     }
 
     private func createShare() {
+        Log.info("Share button tapped", category: .firebase)
+
         // Validate recipe can be shared
         let (canShare, reason) = recipe.canShare()
+        Log.info("Can share validation", category: .firebase, metadata: ["canShare": canShare, "reason": reason ?? "none"])
+
         guard canShare else {
             errorMessage = reason ?? "This recipe cannot be shared"
+            Log.warning("Share blocked by validation", category: .firebase, metadata: ["reason": reason ?? "unknown"])
             return
         }
 
