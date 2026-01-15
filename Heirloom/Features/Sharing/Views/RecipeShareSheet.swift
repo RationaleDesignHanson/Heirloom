@@ -484,39 +484,40 @@ struct ShareTypeCard: View {
     }
 
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 12) {
-                // Icon
-                Image(systemName: type.iconName)
-                    .font(.system(size: 32, weight: .medium))
-                    .foregroundStyle(isSelected ? .white : selectedColor)
+        VStack(spacing: 12) {
+            // Icon
+            Image(systemName: type.iconName)
+                .font(.system(size: 32, weight: .medium))
+                .foregroundStyle(isSelected ? .white : selectedColor)
 
-                // Title
-                Text(type.displayName)
-                    .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(isSelected ? .white : HeirloomColors.primaryText)
+            // Title
+            Text(type.displayName)
+                .font(HeirloomFonts.bodyBold)
+                .foregroundStyle(isSelected ? .white : HeirloomColors.primaryText)
 
-                // Badge
-                if type == .heirloom {
-                    Text("Recommended")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(isSelected ? HeirloomColors.tomato : .white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(isSelected ? .white : HeirloomColors.tomato)
-                        .clipShape(Capsule())
-                }
+            // Badge
+            if type == .heirloom {
+                Text("Recommended")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(isSelected ? HeirloomColors.tomato : .white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(isSelected ? .white : HeirloomColors.tomato)
+                    .clipShape(Capsule())
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 28)
-            .padding(.horizontal, 12)
-            .background(isSelected ? selectedColor : Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(isSelected ? selectedColor : Color.clear, lineWidth: 2)
-            )
-            .contentShape(Rectangle())
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+        .padding(.horizontal, 12)
+        .background(isSelected ? selectedColor : Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(isSelected ? selectedColor : Color.clear, lineWidth: 2)
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            action()
         }
     }
 }
