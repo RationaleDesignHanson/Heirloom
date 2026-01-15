@@ -236,6 +236,9 @@
 		C5A7BDB02F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDAC2F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift */; };
 		C5A7BDB42F1714B100D99B07 /* PDFDocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDB12F1714B100D99B07 /* PDFDocumentPicker.swift */; };
 		C5A7BDB52F1714B100D99B07 /* PDFImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDB22F1714B100D99B07 /* PDFImportView.swift */; };
+		C5A7C0432F1810F800D99B07 /* HeritageUnlockService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7C0422F1810F800D99B07 /* HeritageUnlockService.swift */; };
+		C5A7C0452F18120B00D99B07 /* DailyUnlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7C0442F18120B00D99B07 /* DailyUnlockView.swift */; };
+		C5A7C0472F187FB400D99B07 /* HeritageOnDemandService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7C0462F187FB400D99B07 /* HeritageOnDemandService.swift */; };
 		C5B317602F00C7E40087CF6D /* RecipeVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */; };
 		C5B317622F00C7F30087CF6D /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */; };
 		C5B317662F00C8230087CF6D /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317652F00C8230087CF6D /* AboutView.swift */; };
@@ -537,6 +540,9 @@
 		C5A7BDAD2F1713FA00D99B07 /* PDFProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFProcessor.swift; sourceTree = "<group>"; };
 		C5A7BDB12F1714B100D99B07 /* PDFDocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentPicker.swift; sourceTree = "<group>"; };
 		C5A7BDB22F1714B100D99B07 /* PDFImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImportView.swift; sourceTree = "<group>"; };
+		C5A7C0422F1810F800D99B07 /* HeritageUnlockService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageUnlockService.swift; sourceTree = "<group>"; };
+		C5A7C0442F18120B00D99B07 /* DailyUnlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyUnlockView.swift; sourceTree = "<group>"; };
+		C5A7C0462F187FB400D99B07 /* HeritageOnDemandService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageOnDemandService.swift; sourceTree = "<group>"; };
 		C5B3175F2F00C7E40087CF6D /* RecipeVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersion.swift; sourceTree = "<group>"; };
 		C5B317612F00C7F30087CF6D /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		C5B317652F00C8230087CF6D /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
@@ -804,6 +810,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5A7C0422F1810F800D99B07 /* HeritageUnlockService.swift */,
 				C5A7BDAE2F1713FA00D99B07 /* PDF */,
 				C513D8582F163AE700BFCF7D /* Heritage */,
 				C513D4312F15EB1B00BFCF7D /* BlindBoxSeeder.swift */,
@@ -1041,6 +1048,7 @@
 		C513D8582F163AE700BFCF7D /* Heritage */ = {
 			isa = PBXGroup;
 			children = (
+				C5A7C0462F187FB400D99B07 /* HeritageOnDemandService.swift */,
 				C513D8572F163AE700BFCF7D /* HeritageUnlockTracker.swift */,
 			);
 			path = Heritage;
@@ -1049,6 +1057,7 @@
 		C513D85B2F163AFD00BFCF7D /* Heritage */ = {
 			isa = PBXGroup;
 			children = (
+				C5A7C0442F18120B00D99B07 /* DailyUnlockView.swift */,
 				C513D85A2F163AFD00BFCF7D /* HeritageUnlockView.swift */,
 			);
 			path = Heritage;
@@ -2053,6 +2062,7 @@
 				C5830E202F103B500096478E /* HeirloomSubscriptionStatus.swift in Sources */,
 				C5B317BD2F00DC010087CF6D /* RecipeMigrationService.swift in Sources */,
 				08DCE55BE7C9B5B087D88C4D /* ImportProgressView.swift in Sources */,
+				C5A7C0432F1810F800D99B07 /* HeritageUnlockService.swift in Sources */,
 				8382C45014984CD39A6F2149 /* ImportReviewView.swift in Sources */,
 				C058535CDD02FAABB4A17CAF /* Ingredient.swift in Sources */,
 				C5832FE32F15CD3A0096478E /* ProgressInterpolator.swift in Sources */,
@@ -2093,6 +2103,7 @@
 				C58307102F0EC5480096478E /* URLValidator.swift in Sources */,
 				C5E955322F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift in Sources */,
 				C5E955332F054271006CD3C2 /* RecipeDiffView.swift in Sources */,
+				C5A7C0452F18120B00D99B07 /* DailyUnlockView.swift in Sources */,
 				6324B79E6EFC901B6632E832 /* RecipeComment.swift in Sources */,
 				DDAF9A9C8E26B1C62A7A5BD6 /* RecipeCommentListView.swift in Sources */,
 				73FBB8E6B4F0A1D404C8DE55 /* RecipeCommentView.swift in Sources */,
@@ -2139,6 +2150,7 @@
 				C58324F32F14803C0096478E /* VideoProcessingJobListView.swift in Sources */,
 				C58324F42F14803C0096478E /* JobRow.swift in Sources */,
 				C58324F52F14803C0096478E /* VideoProcessingBottomBanner.swift in Sources */,
+				C5A7C0472F187FB400D99B07 /* HeritageOnDemandService.swift in Sources */,
 				C56F3E742F04AA3C00D19743 /* BackendConfig.swift in Sources */,
 				63134BA2842B383B010D8C02 /* RecipeShareSheet.swift in Sources */,
 				595A6356EEFF0154AED1955E /* RecipeStructureParser.swift in Sources */,

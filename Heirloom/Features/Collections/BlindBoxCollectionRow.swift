@@ -14,6 +14,7 @@ struct BlindBoxCollectionRow: View {
     let onReveal: () -> Void
 
     @State private var isRevealing = false
+    @State private var unlockTracker: HeritageUnlockTracker?
 
     var body: some View {
         if collection.isRevealed {
@@ -22,11 +23,18 @@ struct BlindBoxCollectionRow: View {
         } else {
             // Show wrapped blind box
             wrappedBox
+                .onAppear {
+                    if unlockTracker == nil {
+                        unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
+                    }
+                }
         }
     }
 
     private var wrappedBox: some View {
         Button {
+            // Only allow reveal if seeding is complete
+            guard unlockTracker?.isSeedingInProgress != true else { return }
             revealBox()
         } label: {
             HStack(spacing: HeirloomSpacing.md) {
@@ -57,9 +65,21 @@ struct BlindBoxCollectionRow: View {
                         .foregroundStyle(HeirloomColors.primaryText)
                         .blur(radius: isRevealing ? 0 : 1.5)
 
-                    Text("Tap to unlock")
-                        .font(HeirloomFonts.caption2)
-                        .foregroundStyle(HeirloomColors.secondaryText)
+                    // Show loading message if seeding, otherwise normal tap message
+                    if unlockTracker?.isSeedingInProgress == true {
+                        HStack(spacing: 4) {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                                .tint(HeirloomColors.tomato)
+                            Text("Preparing some recipes so you're not starting empty-handed")
+                                .font(HeirloomFonts.caption2)
+                                .foregroundStyle(HeirloomColors.tomato)
+                        }
+                    } else {
+                        Text("Tap to unlock")
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
                 }
 
                 Spacer()

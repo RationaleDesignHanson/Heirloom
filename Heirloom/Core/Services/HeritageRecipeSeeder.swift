@@ -75,6 +75,12 @@ class HeritageRecipeSeeder {
             return 0
         }
 
+        // Notify UI that seeding is starting
+        let tracker = ServiceContainer.shared.resolveOptional(HeritageUnlockTracker.self)
+        await MainActor.run {
+            tracker?.isSeedingInProgress = true
+        }
+
         // Load JSON from bundle
         guard let url = Bundle.main.url(forResource: "heritage-recipes", withExtension: "json"),
               let data = try? Data(contentsOf: url) else {
@@ -125,6 +131,7 @@ class HeritageRecipeSeeder {
 
             // Set heritage fields
             recipe.isHeritageRecipe = true
+            recipe.heritageRecipeId = recipeJSON.id  // Store unique ID for unlock tracking
             recipe.heritageCollectionId = recipeJSON.heritageCollectionId
             recipe.historicalText = recipeJSON.historicalText
             recipe.historicalContext = recipeJSON.historicalContext
@@ -212,6 +219,11 @@ class HeritageRecipeSeeder {
         // Track seeding in UserDefaults (prevents re-seeding across devices)
         UserDefaults.standard.set(true, forKey: "heritage_recipes_seeded_v1")
         UserDefaults.standard.set(Date(), forKey: "heritage_recipes_seeded_date")
+
+        // Notify UI that seeding is complete
+        await MainActor.run {
+            tracker?.isSeedingInProgress = false
+        }
 
         Log.info("Heritage recipes seeded successfully - all 100 recipes available for progressive unlock", category: .storage, metadata: [
             "count": seededCount
@@ -340,6 +352,73 @@ class HeritageRecipeSeeder {
         } catch {
             Log.error("Failed to migrate heritage card backs", category: .storage, metadata: ["error": error.localizedDescription])
         }
+    }
+
+    /// Backfill heritageRecipeId for existing heritage recipes
+    /// This migration adds the unique recipe ID field that was added for proper unlock tracking
+    func migrateHeritageRecipeIds() async throws {
+        // Check if migration already completed
+        if UserDefaults.standard.bool(forKey: "HeritageRecipeIdsMigrated") {
+            Log.info("Heritage recipe IDs already migrated", category: .migration)
+            return
+        }
+
+        // Load JSON to get recipe ID mappings
+        guard let url = Bundle.main.url(forResource: "heritage-recipes", withExtension: "json"),
+              let data = try? Data(contentsOf: url) else {
+            Log.error("Failed to load heritage recipes JSON for migration", category: .migration)
+            throw HeritageSeederError.jsonNotFound
+        }
+
+        let decoder = JSONDecoder()
+        let heritageData = try decoder.decode(HeritageRecipeData.self, from: data)
+
+        // Create mapping: title -> recipe ID
+        let titleToId = Dictionary(uniqueKeysWithValues: heritageData.recipes.map { ($0.title, $0.id) })
+
+        // Fetch existing heritage recipes
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { $0.isHeritageRecipe == true }
+        )
+        let heritageRecipes = try modelContext.fetch(descriptor)
+
+        var migratedCount = 0
+        var missingCount = 0
+
+        for recipe in heritageRecipes {
+            // Skip if already has heritageRecipeId
+            if recipe.heritageRecipeId != nil {
+                continue
+            }
+
+            // Look up ID by title
+            if let recipeId = titleToId[recipe.title] {
+                recipe.heritageRecipeId = recipeId
+                migratedCount += 1
+
+                Log.debug("Backfilled heritage recipe ID", category: .migration, metadata: [
+                    "title": recipe.title,
+                    "recipeId": recipeId
+                ])
+            } else {
+                missingCount += 1
+                Log.warning("Could not find heritage recipe ID for title", category: .migration, metadata: [
+                    "title": recipe.title
+                ])
+            }
+        }
+
+        try modelContext.save()
+
+        // Mark migration as complete
+        UserDefaults.standard.set(true, forKey: "HeritageRecipeIdsMigrated")
+        UserDefaults.standard.set(Date(), forKey: "HeritageRecipeIdsMigrationDate")
+
+        Log.info("Heritage recipe ID migration completed", category: .migration, metadata: [
+            "migratedCount": migratedCount,
+            "missingCount": missingCount,
+            "totalRecipes": heritageRecipes.count
+        ])
     }
 }
 

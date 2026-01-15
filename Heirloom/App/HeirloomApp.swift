@@ -397,24 +397,10 @@ struct HeirloomApp: App {
                 // Create heritage collections on first launch
                 RecipeCollection.createHeritageCollections(context: container.mainContext)
 
-                // Seed heritage recipes if needed (personalized 8-12 recipes)
-                let seeder = HeritageRecipeSeeder(modelContext: container.mainContext)
-                if !seeder.isSeeded() {
-                    do {
-                        let count = try await seeder.seedHeritageRecipes()
-                        Log.info("Heritage recipes seeded", category: .storage, metadata: ["count": count])
-                        DeviceLogger.shared.log("✅ [Heritage] Seeded \(count) personalized heritage recipes")
-                        let analytics = serviceContainer.resolve(AnalyticsService.self)
-                        analytics.track(event: .appLaunched, properties: ["heritage_recipes_seeded": count])
-                    } catch {
-                        Log.error("Failed to seed heritage recipes", category: .storage, metadata: ["error": error.localizedDescription])
-                        DeviceLogger.shared.log("❌ [Heritage] Failed to seed recipes: \(error.localizedDescription)")
-                    }
-                }
-
-                // Ensure all heritage recipes have card backs (migration for existing installations)
-                seeder.ensureHeritageCardBacks()
-                DeviceLogger.shared.log("✅ [Heritage] Verified/repaired card backs for heritage recipes")
+                // CRITICAL: DO NOT seed heritage recipes here!
+                // Heritage seeding now happens AFTER sign-in to ensure Firebase state syncs properly
+                // See: preOnboardingSignInView.onChange and OnboardingContainerView.onAppear
+                DeviceLogger.shared.log("✅ [Heritage] Collections created - recipes will seed after auth")
             }
 
             // Firebase sync configuration
@@ -599,6 +585,7 @@ struct RootView: View {
             notificationService: notificationService
         )
             .modelContainer(modelContainer)
+            .environment(\.firebaseAuth, authService)
             .onAppear {
                 // Start automatic sync if already authenticated on app launch
                 if authService.isAuthenticated {
@@ -623,6 +610,9 @@ struct RootView: View {
                     } else {
                         Log.info("Sync requires premium subscription - not starting automatic sync", category: .sync)
                     }
+
+                    // Heritage sync moved to AFTER recipe seeding (in ContentView and OnboardingContainerView)
+                    // This ensures recipes are seeded before creating the unlock schedule
                 }
             }
             .onChange(of: authService.isAuthenticated) { oldValue, newValue in
@@ -649,6 +639,9 @@ struct RootView: View {
                     } else {
                         Log.info("Sync requires premium subscription - not starting automatic sync", category: .sync)
                     }
+
+                    // Heritage sync moved to AFTER recipe seeding (in ContentView and OnboardingContainerView)
+                    // This ensures recipes are seeded before creating the unlock schedule
                 }
             }
     }
@@ -658,15 +651,26 @@ struct ContentView: View {
     @State private var showAddRecipe = false
     @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     @State private var hasViewedRecipesList = false
+    @State private var showSignInSheet = false
+    @State private var needsHeritageSeeding = false
 
     // Deep link coordinator (injected via environment)
     @EnvironmentObject private var deepLinkCoordinator: DeepLinkCoordinator
+
+    // Firebase auth (injected via environment)
+    @Environment(\.firebaseAuth) private var firebaseAuth
 
     // Tab navigation coordinator (injected from DI container)
     @ObservedObject var tabCoordinator: TabNavigationCoordinator
 
     // Notification service (injected from DI container)
     @ObservedObject var notificationService: FirebaseNotificationService
+
+    // Daily unlock state
+    @State private var showDailyUnlock = false
+    @State private var unlockedRecipeIds: [String] = []
+    @State private var currentBatch = 0
+    @State private var totalBatches = 20
 
     var body: some View {
         Group {
@@ -680,6 +684,25 @@ struct ContentView: View {
                     }
                 )
                 .environmentObject(notificationService)
+            }
+        }
+        .sheet(isPresented: $showSignInSheet) {
+            FirebaseSignInView()
+        }
+        .onAppear {
+            // CRITICAL: On first launch, require sign-in before onboarding
+            if !hasCompletedOnboarding && !firebaseAuth.isAuthenticated {
+                showSignInSheet = true
+                needsHeritageSeeding = true
+            }
+        }
+        .onChange(of: firebaseAuth.isAuthenticated) { oldValue, newValue in
+            if newValue && needsHeritageSeeding {
+                // User just signed in - seed heritage recipes
+                Task { @MainActor in
+                    await seedHeritageRecipesAfterAuth()
+                    needsHeritageSeeding = false
+                }
             }
         }
     }
@@ -772,11 +795,219 @@ struct ContentView: View {
                     }
             }
         }
+        .sheet(isPresented: $showDailyUnlock) {
+            DailyUnlockView(
+                unlockedRecipeIds: unlockedRecipeIds,
+                currentBatch: currentBatch,
+                totalBatches: totalBatches,
+                onDismiss: {
+                    showDailyUnlock = false
+                }
+            )
+        }
         .onAppear {
             // Mark app as ready to process deep links
             Log.info("ContentView appeared - marking app ready for deep links", category: .ui)
             DeviceLogger.shared.log("✅ [App] ContentView appeared - marking app as ready for deep links")
             deepLinkCoordinator.markAppReady()
+
+            // Set up notification observer for premium unlock
+            setupPremiumUnlockObserver()
+
+            // Check for daily unlocks
+            checkForDailyUnlock()
+        }
+    }
+
+    // MARK: - Daily Unlock Logic
+
+    private func checkForDailyUnlock() {
+        Task {
+            do {
+                // Get auth service and model container
+                guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+                      authService.isAuthenticated else {
+                    Log.info("Not authenticated, skipping daily unlock check", category: .firebase)
+                    return
+                }
+
+                guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
+                    Log.warning("ModelContainer not available, skipping daily unlock check", category: .firebase)
+                    return
+                }
+
+                // Create unlock service
+                let unlockService = HeritageUnlockService(
+                    modelContext: modelContainer.mainContext,
+                    firebaseAuth: authService
+                )
+
+                // Try to unlock daily batch
+                let newlyUnlocked = try await unlockService.unlockDailyBatch()
+
+                if !newlyUnlocked.isEmpty {
+                    // Get user state for progress display
+                    let userState = try await unlockService.getUserHeritageState()
+
+                    // Show unlock UI
+                    unlockedRecipeIds = newlyUnlocked
+                    currentBatch = userState.currentBatch
+                    totalBatches = userState.totalBatches
+                    showDailyUnlock = true
+
+                    Log.info("Daily unlock triggered", category: .firebase, metadata: [
+                        "newlyUnlocked": newlyUnlocked.count,
+                        "currentBatch": userState.currentBatch
+                    ])
+                }
+            } catch {
+                // Silent fail - don't interrupt user experience
+                Log.warning("Daily unlock check failed", category: .firebase, metadata: ["error": error.localizedDescription])
+            }
+        }
+    }
+
+    // MARK: - Premium Unlock Observer
+
+    /// Set up observer for premium status changes to unlock all heritage recipes
+    private func setupPremiumUnlockObserver() {
+        NotificationCenter.default.addObserver(
+            forName: .userBecamePremium,
+            object: nil,
+            queue: .main
+        ) { _ in
+            Task { @MainActor in
+                Log.info("User became premium - unlocking all heritage recipes", category: .store)
+                DeviceLogger.shared.log("✅ [Premium] User became premium - unlocking all heritage recipes")
+
+                do {
+                    // Get auth service and model container
+                    guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+                          authService.isAuthenticated else {
+                        Log.warning("Not authenticated, cannot unlock heritage recipes", category: .store)
+                        return
+                    }
+
+                    guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
+                        Log.warning("ModelContainer not available, cannot unlock heritage recipes", category: .store)
+                        return
+                    }
+
+                    // Create unlock service
+                    let unlockService = HeritageUnlockService(
+                        modelContext: modelContainer.mainContext,
+                        firebaseAuth: authService
+                    )
+
+                    // Unlock all heritage recipes
+                    try await unlockService.unlockAllRecipes()
+
+                    Log.info("All heritage recipes unlocked successfully", category: .store)
+                    DeviceLogger.shared.log("✅ [Premium] All heritage recipes unlocked")
+
+                    // Note: User will see unlocked recipes next time they browse collections
+                } catch {
+                    Log.error("Failed to unlock all heritage recipes", category: .store, metadata: [
+                        "error": error.localizedDescription
+                    ])
+                    DeviceLogger.shared.log("❌ [Premium] Failed to unlock heritage recipes: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    // MARK: - Heritage Recipe Seeding
+
+    /// Setup heritage collections after user authentication
+    /// NOTE: Recipes are NOT seeded here - they download on-demand when blind boxes are revealed
+    private func seedHeritageRecipesAfterAuth() async {
+        guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
+            Log.warning("ModelContainer not available, cannot setup heritage collections", category: .storage)
+            return
+        }
+
+        do {
+            // Create heritage collections (but NO recipes)
+            RecipeCollection.createHeritageCollections(context: modelContainer.mainContext)
+
+            // Create blind boxes for onboarding
+            let blindBoxSeeder = BlindBoxSeeder(modelContext: modelContainer.mainContext)
+            if !blindBoxSeeder.isSeeded() {
+                try blindBoxSeeder.seedBlindBoxes()
+                Log.info("Heritage blind boxes created", category: .storage)
+                DeviceLogger.shared.log("✅ [Heritage] Blind boxes created (no recipes downloaded)")
+            }
+
+            // CRITICAL: Check if blind boxes were already revealed on another device
+            // If downloadedRecipeIds exist in Firebase, auto-reveal blind boxes and download recipes
+            await autoRevealBlindBoxesIfNeeded(modelContext: modelContainer.mainContext)
+
+            // Analytics tracking for heritage setup
+            let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+            analytics.track(event: .appLaunched, properties: ["heritage_setup": "collections_created"])
+        } catch {
+            Log.error("Failed to setup heritage collections", category: .storage, metadata: ["error": error.localizedDescription])
+            DeviceLogger.shared.log("❌ [Heritage] Failed to setup collections: \(error.localizedDescription)")
+        }
+    }
+
+    /// Check Firebase heritageState and auto-reveal blind boxes if already revealed on another device
+    private func autoRevealBlindBoxesIfNeeded(modelContext: ModelContext) async {
+        guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+              let userId = authService.currentUser?.uid else {
+            Log.info("Not authenticated, skipping auto-reveal check", category: .heritage)
+            return
+        }
+
+        do {
+            let db = Firestore.firestore()
+            let heritageStateDoc = try await db.collection("users").document(userId)
+                .collection("heritageState").document("current").getDocument()
+
+            guard heritageStateDoc.exists,
+                  let data = heritageStateDoc.data(),
+                  let downloadedRecipeIds = data["downloadedRecipeIds"] as? [String],
+                  !downloadedRecipeIds.isEmpty else {
+                Log.info("No existing heritage state found - blind boxes not yet revealed", category: .heritage)
+                return
+            }
+
+            // Blind boxes were already revealed on another device!
+            Log.info("Found existing heritage state - auto-revealing blind boxes", category: .heritage, metadata: [
+                "downloadedRecipeCount": downloadedRecipeIds.count
+            ])
+
+            // Reveal all blind boxes
+            let descriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate { $0.isBlindBox == true }
+            )
+            let blindBoxes = try modelContext.fetch(descriptor)
+
+            for blindBox in blindBoxes {
+                blindBox.isRevealed = true
+                blindBox.revealedDate = Date()
+            }
+
+            try modelContext.save()
+
+            // Download recipes that should already exist
+            let onDemandService = HeritageOnDemandService(
+                modelContext: modelContext,
+                firebaseAuth: authService
+            )
+
+            let schedule = try await onDemandService.getUserSchedule()
+            let recipes = try await onDemandService.downloadRecipesForDay(day: 1, schedule: schedule)
+
+            Log.info("Auto-downloaded heritage recipes for revealed blind boxes", category: .heritage, metadata: [
+                "recipeCount": recipes.count
+            ])
+            DeviceLogger.shared.log("✅ [Heritage] Auto-revealed blind boxes and downloaded \(recipes.count) recipes from other device")
+
+        } catch {
+            Log.error("Failed to auto-reveal blind boxes", category: .heritage, metadata: [
+                "error": error.localizedDescription
+            ])
         }
     }
 }

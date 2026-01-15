@@ -104,10 +104,9 @@ struct SettingsView: View {
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
             }
-            // TODO: Re-enable once HeritageRecipeCleanupView is added to Xcode project
-            // .sheet(isPresented: $showHeritageCleanup) {
-            //     HeritageRecipeCleanupView()
-            // }
+            .sheet(isPresented: $showHeritageCleanup) {
+                HeritageRecipeCleanupView()
+            }
             .onChange(of: firebaseAuth.isAuthenticated) { _, _ in
                 // Toggle state to force view refresh when auth state changes
                 authStateChanged.toggle()

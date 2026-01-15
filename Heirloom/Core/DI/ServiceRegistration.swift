@@ -326,6 +326,9 @@ extension ServiceContainer {
             HeritageUnlockTracker()
         }
 
+        // HeritageOnDemandService - Note: Requires modelContext at init, instantiate directly where needed
+        // Example: HeritageOnDemandService(modelContext: modelContext, firebaseAuth: authService)
+
         // MARK: - AI Services
 
         // Keychain

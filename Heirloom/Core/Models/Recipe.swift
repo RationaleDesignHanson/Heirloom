@@ -35,6 +35,10 @@ final class Recipe {
     /// Flag indicating this is a heritage recipe from founding collections
     var isHeritageRecipe: Bool = false
 
+    /// Unique heritage recipe ID from JSON (e.g., "presidential-001", "literary-002")
+    /// Used for progressive unlock tracking to identify individual recipes
+    var heritageRecipeId: String?
+
     /// ID of the founding heritage collection this recipe belongs to
     var heritageCollectionId: String?
 

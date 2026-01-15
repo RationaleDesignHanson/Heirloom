@@ -15,6 +15,7 @@ class HeritageUnlockTracker: ObservableObject {
     @Published var unlockedRecipeIds: Set<String> = []
     @Published var lastUnlockDate: Date?
     @Published var trialStartDate: Date?
+    @Published var isSeedingInProgress: Bool = false
 
     private let userDefaults = UserDefaults.standard
     private let unlockedRecipesKey = "heritageUnlockedRecipeIds"
@@ -61,6 +62,45 @@ class HeritageUnlockTracker: ObservableObject {
 
     /// Unlock daily batch of heritage recipes
     func unlockDailyBatch(context: ModelContext) async throws {
+        // CRITICAL: Check if user is authenticated - if so, use Firebase-backed unlock system
+        let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self)
+        if let authService = authService, authService.isAuthenticated {
+            Log.info("User authenticated - using Firebase-backed unlock system", category: .heritage)
+            try await unlockViaFirebase(context: context)
+            return
+        }
+
+        // Fallback to local-only unlock for unauthenticated users
+        Log.info("User not authenticated - using local-only unlock", category: .heritage)
+        try await unlockLocally(context: context)
+    }
+
+    /// Unlock via Firebase-backed HeritageUnlockService (syncs across devices)
+    private func unlockViaFirebase(context: ModelContext) async throws {
+        guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self) else {
+            Log.warning("Firebase auth service not available, falling back to local unlock", category: .heritage)
+            try await unlockLocally(context: context)
+            return
+        }
+
+        let unlockService = HeritageUnlockService(modelContext: context, firebaseAuth: authService)
+        let unlockedRecipeIds = try await unlockService.unlockDailyBatch()
+
+        // Update local state to match Firebase
+        for recipeId in unlockedRecipeIds {
+            self.unlockedRecipeIds.insert(recipeId)
+        }
+        lastUnlockDate = Date()
+        saveToStorage()
+
+        Log.info("Unlocked \(unlockedRecipeIds.count) heritage recipes via Firebase", category: .heritage, metadata: [
+            "totalUnlocked": self.unlockedRecipeIds.count,
+            "remaining": 100 - self.unlockedRecipeIds.count
+        ])
+    }
+
+    /// Local-only unlock (for unauthenticated users)
+    private func unlockLocally(context: ModelContext) async throws {
         // Check if premium or in trial
         let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
         guard subscriptionManager.isPremium || subscriptionManager.isInTrial else {

@@ -11,8 +11,10 @@ import SwiftData
 /// Container view that manages the 3-screen onboarding flow
 struct OnboardingContainerView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var notificationService: FirebaseNotificationService
     @State private var currentScreen: OnboardingScreen = .welcome
+    @State private var hasSeededHeritage = false
 
     /// Binding to control which tab should be selected after onboarding
     @Binding var selectedTab: Int
@@ -75,6 +77,22 @@ struct OnboardingContainerView: View {
             }
             }
         }
+        .task {
+            // Seed heritage recipes if user is already authenticated
+            // (e.g., returning user who went through sign-in before onboarding)
+            await seedHeritageRecipesIfNeeded()
+        }
+        .onChange(of: firebaseAuth.isAuthenticated) { oldValue, newValue in
+            // CRITICAL: Watch for auth changes during onboarding
+            // Firebase Auth takes ~15 seconds to hydrate from Keychain
+            // This ensures we seed heritage recipes even if auth becomes true
+            // after the initial .task {} has finished
+            if newValue && !hasSeededHeritage {
+                Task {
+                    await seedHeritageRecipesIfNeeded()
+                }
+            }
+        }
     }
 
     // MARK: - Private Methods
@@ -98,6 +116,44 @@ struct OnboardingContainerView: View {
 
         // Notify parent that onboarding is complete
         onComplete()
+    }
+
+    private func seedHeritageRecipesIfNeeded() async {
+        // Prevent duplicate seeding
+        guard !hasSeededHeritage else {
+            Log.info("Heritage recipes already seeded in this onboarding session", category: .storage)
+            return
+        }
+
+        // Check if user is authenticated via FirebaseAuthService
+        guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+              authService.isAuthenticated else {
+            Log.info("Not authenticated during onboarding - heritage seeding will happen after sign-in", category: .storage)
+            return
+        }
+
+        do {
+            // Create heritage collections (but NO recipes)
+            RecipeCollection.createHeritageCollections(context: modelContext)
+
+            // Create blind boxes for onboarding
+            let blindBoxSeeder = BlindBoxSeeder(modelContext: modelContext)
+            if !blindBoxSeeder.isSeeded() {
+                try blindBoxSeeder.seedBlindBoxes()
+                Log.info("Heritage blind boxes created during onboarding", category: .storage)
+                DeviceLogger.shared.log("✅ [Heritage] Blind boxes created during onboarding (no recipes downloaded)")
+            }
+
+            // Analytics tracking for heritage setup during onboarding
+            let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+            analytics.track(event: .appLaunched, properties: ["heritage_setup": "collections_created"])
+
+            // Mark as complete to prevent duplicate attempts
+            hasSeededHeritage = true
+        } catch {
+            Log.error("Failed to setup heritage collections during onboarding", category: .storage, metadata: ["error": error.localizedDescription])
+            DeviceLogger.shared.log("❌ [Heritage] Failed to setup collections during onboarding: \(error.localizedDescription)")
+        }
     }
 }
 

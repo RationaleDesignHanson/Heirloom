@@ -47,7 +47,7 @@ class HeritageUnlockService {
         return newState
     }
 
-    /// Sync local recipe unlock status with Firebase state
+    /// Sync local HeritageUnlockTracker with Firebase state
     /// Call this on app launch and after sign-in
     func syncLocalRecipesWithUserState() async throws {
         guard firebaseAuth.currentUser != nil else {
@@ -57,36 +57,39 @@ class HeritageUnlockService {
 
         let userState = try await getUserHeritageState()
 
-        // Fetch all heritage recipes
+        // Get the HeritageUnlockTracker
+        let tracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
+
+        // Sync unlocked recipe IDs to the tracker
+        // Convert heritageRecipeId-based IDs to recipe UUID strings
         let descriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { $0.isHeritageRecipe == true }
         )
         let heritageRecipes = try modelContext.fetch(descriptor)
 
-        Log.info("Syncing local recipes with user state", category: .storage, metadata: [
+        Log.info("Syncing HeritageUnlockTracker with Firebase state", category: .firebase, metadata: [
             "totalHeritage": heritageRecipes.count,
-            "userUnlocked": userState.unlockedRecipeIds.count
+            "firebaseUnlocked": userState.unlockedRecipeIds.count
         ])
 
+        // Build map of heritageRecipeId to recipe UUIDs
         var syncedCount = 0
         for recipe in heritageRecipes {
-            guard let heritageId = recipe.heritageCollectionId else { continue }
+            guard let heritageId = recipe.heritageRecipeId else { continue }
 
-            // Unlock if in user's unlocked set
-            let shouldBeUnlocked = userState.unlockedRecipeIds.contains(heritageId)
-
-            // Update if state differs
-            if recipe.isLocked != !shouldBeUnlocked {
-                recipe.isLocked = !shouldBeUnlocked
-                syncedCount += 1
+            // If this recipe's heritage recipe ID is in the unlocked set, unlock it in tracker
+            if userState.unlockedRecipeIds.contains(heritageId) {
+                let wasAlreadyUnlocked = tracker.unlockedRecipeIds.contains(recipe.id.uuidString)
+                if !wasAlreadyUnlocked {
+                    tracker.unlockedRecipeIds.insert(recipe.id.uuidString)
+                    syncedCount += 1
+                }
             }
         }
 
-        try modelContext.save()
-
-        Log.info("Heritage recipe sync complete", category: .storage, metadata: [
+        Log.info("Heritage recipe sync complete", category: .firebase, metadata: [
             "syncedCount": syncedCount,
-            "nowUnlocked": userState.unlockedRecipeIds.count
+            "totalUnlockedInTracker": tracker.unlockedRecipeIds.count
         ])
     }
 
@@ -111,18 +114,30 @@ class HeritageUnlockService {
             return []
         }
 
-        // Get next batch
-        let startIndex = userState.unlockedRecipeIds.count
-        let endIndex = min(startIndex + recipesPerBatch, userState.unlockSchedule.count)
+        // SPECIAL CASE: First unlock (blind box reveal)
+        // Select 5 from Literary Kitchen + 3 from other revealed collection
+        let newlyUnlocked: [String]
+        if userState.unlockedRecipeIds.isEmpty {
+            newlyUnlocked = try await unlockInitialBlindBoxRecipes()
 
-        guard startIndex < endIndex else {
-            // No more recipes to unlock
-            userState.hasCompletedTrial = true
-            try await saveHeritageState(userState, userId: userId)
-            return []
+            if newlyUnlocked.isEmpty {
+                Log.warning("No recipes unlocked on first unlock", category: .firebase)
+                return []
+            }
+        } else {
+            // NORMAL CASE: Subsequent unlocks use deterministic schedule
+            let startIndex = userState.unlockedRecipeIds.count
+            let endIndex = min(startIndex + recipesPerBatch, userState.unlockSchedule.count)
+
+            guard startIndex < endIndex else {
+                // No more recipes to unlock
+                userState.hasCompletedTrial = true
+                try await saveHeritageState(userState, userId: userId)
+                return []
+            }
+
+            newlyUnlocked = Array(userState.unlockSchedule[startIndex..<endIndex])
         }
-
-        let newlyUnlocked = Array(userState.unlockSchedule[startIndex..<endIndex])
 
         // Update state
         userState.unlockedRecipeIds.append(contentsOf: newlyUnlocked)
@@ -147,6 +162,77 @@ class HeritageUnlockService {
         ])
 
         return newlyUnlocked
+    }
+
+    /// Unlock initial recipes from revealed blind boxes (5 from Literary, 3 from other)
+    /// This ensures first unlock respects the blind box reveal UX
+    private func unlockInitialBlindBoxRecipes() async throws -> [String] {
+        // Fetch revealed heritage collections (blind boxes that have been opened)
+        let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate { collection in
+                collection.heritageCollectionId != nil &&
+                collection.isBlindBox == true &&
+                collection.isRevealed == true
+            }
+        )
+        let revealedCollections = try modelContext.fetch(collectionDescriptor)
+        let revealedCollectionIds = Set(revealedCollections.compactMap { $0.heritageCollectionId })
+
+        guard !revealedCollectionIds.isEmpty else {
+            Log.warning("No revealed collections found for initial unlock", category: .firebase)
+            return []
+        }
+
+        Log.info("Unlocking initial blind box recipes", category: .firebase, metadata: [
+            "revealedCollections": revealedCollectionIds.joined(separator: ", ")
+        ])
+
+        // Fetch all heritage recipes
+        let recipeDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { $0.isHeritageRecipe == true }
+        )
+        let allHeritage = try modelContext.fetch(recipeDescriptor)
+
+        // Group by collection
+        let grouped = Dictionary(grouping: allHeritage, by: { $0.heritageCollectionId ?? "" })
+
+        var selected: [String] = []
+        let literaryKitchenId = "literary-kitchen"
+
+        // Allocate 5 to Literary Kitchen, 3 to the other collection
+        for collectionId in revealedCollectionIds.sorted() {
+            let targetCount = collectionId == literaryKitchenId ? 5 : 3
+
+            guard let collectionRecipes = grouped[collectionId] else {
+                Log.warning("No recipes found for revealed collection", category: .firebase, metadata: [
+                    "collection": collectionId
+                ])
+                continue
+            }
+
+            // Randomly select the target number of recipes
+            let selectedFromCollection = collectionRecipes
+                .shuffled()
+                .prefix(targetCount)
+                .compactMap { $0.heritageRecipeId }  // Use unique recipe IDs
+
+            selected.append(contentsOf: selectedFromCollection)
+
+            Log.debug("Selected recipes from collection for initial unlock", category: .firebase, metadata: [
+                "collection": collectionId,
+                "selected": selectedFromCollection.count,
+                "target": targetCount,
+                "recipeIds": selectedFromCollection.joined(separator: ", ")
+            ])
+        }
+
+        Log.info("Initial blind box unlock complete", category: .firebase, metadata: [
+            "total": selected.count,
+            "expected": 8,
+            "collections": revealedCollectionIds.joined(separator: ", ")
+        ])
+
+        return selected
     }
 
     /// Unlock all heritage recipes (e.g., after trial ends or user subscribes)
@@ -182,7 +268,7 @@ class HeritageUnlockService {
         )
 
         let heritageRecipes = (try? modelContext.fetch(descriptor)) ?? []
-        let allRecipeIds = heritageRecipes.compactMap { $0.heritageCollectionId }
+        let allRecipeIds = heritageRecipes.compactMap { $0.heritageRecipeId }  // Use unique recipe IDs
 
         // Create deterministic shuffle using user ID as seed
         let shuffled = deterministicShuffle(allRecipeIds, seed: userId)
@@ -310,8 +396,8 @@ class HeritageUnlockService {
 
 struct UserHeritageState: Codable {
     let userId: String
-    var unlockedRecipeIds: [String]     // Heritage recipe IDs user has unlocked
-    let unlockSchedule: [String]        // Full 100-recipe unlock order (deterministic)
+    var unlockedRecipeIds: [String]     // Individual heritage recipe IDs unlocked (e.g., "presidential-001", "literary-005")
+    let unlockSchedule: [String]        // Full 100-recipe unlock order (deterministic, individual recipe IDs)
     var currentBatch: Int               // Which batch they're on (0-based)
     var lastDailyUnlock: Date?          // Last daily unlock timestamp
     var trialEndsAt: Date?              // Trial expiration (optional)

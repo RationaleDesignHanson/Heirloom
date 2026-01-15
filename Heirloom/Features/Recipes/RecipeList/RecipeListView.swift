@@ -646,25 +646,22 @@ struct RecipeListView: View {
             return true
         }
 
-        // Fetch all collections and check in-memory
+        // UPDATED LOGIC: With on-demand downloads, heritage recipes are only created when unlocked
+        // If the recipe exists in the database, it's been unlocked and should be visible
+        // No need to check blind box status - the existence of the recipe IS the unlock signal
+
+        // However, for backward compatibility with blind box UI, still respect unrevealed blind boxes
         let allCollections = (try? modelContext.fetch(FetchDescriptor<RecipeCollection>())) ?? []
 
-        // Find the collection for this recipe
-        guard let recipeCollection = allCollections.first(where: {
-            $0.heritageCollectionId == heritageId
-        }) else {
-            return true
+        if let recipeCollection = allCollections.first(where: { $0.heritageCollectionId == heritageId }) {
+            // If it's a blind box that hasn't been revealed, hide the recipe
+            if recipeCollection.isBlindBox && !recipeCollection.isRevealed {
+                return false
+            }
         }
 
-        // Only show if:
-        // 1. The collection IS a blind box (was part of the blind box experience)
-        // 2. AND it has been revealed
-        if recipeCollection.isBlindBox {
-            return recipeCollection.isRevealed
-        }
-
-        // If not a blind box collection, hide it (shouldn't have recipes seeded)
-        return false
+        // All other heritage recipes are visible (they only exist if downloaded/unlocked)
+        return true
     }
 
     /// Check if a heritage recipe is locked (not yet unlocked during trial)

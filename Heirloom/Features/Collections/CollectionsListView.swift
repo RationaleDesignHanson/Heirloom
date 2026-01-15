@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import FirebaseFirestore
 
 /// Main Collections tab view showing heritage and user collections
 struct CollectionsListView: View {
@@ -21,6 +22,8 @@ struct CollectionsListView: View {
     @State private var showDeleteConfirmation = false
     @State private var showHeritageUnlock = false
     @State private var unlockTracker: HeritageUnlockTracker?
+    @State private var isDownloadingRecipes = false
+    @State private var downloadProgress: String = ""
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
     // Filter heritage collections (founding collections)
@@ -122,6 +125,9 @@ struct CollectionsListView: View {
             }
             .overlay {
                 coachMarkOverlay
+            }
+            .overlay {
+                downloadingRecipesOverlay
             }
             .confirmationDialog(
                 "Delete \(collectionToDelete?.name ?? "Collection")?",
@@ -316,6 +322,35 @@ struct CollectionsListView: View {
     }
 
     @ViewBuilder
+    private var downloadingRecipesOverlay: some View {
+        if isDownloadingRecipes {
+            ZStack {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+
+                VStack(spacing: HeirloomSpacing.lg) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.5)
+
+                    Text(downloadProgress)
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(HeirloomSpacing.xl)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.ultraThinMaterial)
+                )
+                .padding(HeirloomSpacing.xl)
+            }
+            .transition(.opacity)
+            .animation(.easeInOut(duration: 0.3), value: isDownloadingRecipes)
+        }
+    }
+
+    @ViewBuilder
     private func deleteConfirmationActions() -> some View {
         Button("Delete Collection Only", role: .destructive) {
             if let collection = collectionToDelete {
@@ -407,22 +442,99 @@ struct CollectionsListView: View {
                 unlockTracker.startTrialPeriod()
             }
 
-            // Unlock recipes immediately after revealing both boxes
-            if unlockTracker.unlockedRecipeIds.isEmpty {
-                Task {
-                    do {
-                        try await unlockTracker.unlockDailyBatch(context: modelContext)
+            // Download initial recipes (Day 1: 8 recipes)
+            Task {
+                // Show loading indicator
+                await MainActor.run {
+                    isDownloadingRecipes = true
+                    downloadProgress = "Preparing your heritage recipes..."
+                }
 
+                do {
+                    guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+                          authService.isAuthenticated else {
                         await MainActor.run {
-                            Log.info("Both blind boxes revealed and recipes unlocked", category: .ui, metadata: [
-                                "unlockedCount": unlockTracker.unlockedRecipeIds.count,
-                                "revealedCollections": allBlindBoxes.map { $0.name }.joined(separator: ", ")
-                            ])
+                            isDownloadingRecipes = false
+                            Log.warning("User not authenticated, cannot download heritage recipes", category: .heritage)
                         }
-                    } catch {
-                        await MainActor.run {
-                            Log.error("Failed to unlock recipes after blind box reveal", category: .ui, metadata: ["error": error.localizedDescription])
-                        }
+                        return
+                    }
+
+                    // Initialize on-demand service
+                    let onDemandService = HeritageOnDemandService(
+                        modelContext: modelContext,
+                        firebaseAuth: authService
+                    )
+
+                    await MainActor.run {
+                        downloadProgress = "Loading your recipe collection..."
+                    }
+
+                    // Get user's schedule
+                    let schedule = try await onDemandService.getUserSchedule()
+
+                    Log.info("Retrieved user schedule", category: .heritage, metadata: [
+                        "scheduleId": schedule.scheduleId,
+                        "revealedCollections": schedule.revealedCollections.joined(separator: ", ")
+                    ])
+
+                    await MainActor.run {
+                        downloadProgress = "Downloading 8 recipes..."
+                    }
+
+                    // Download Day 1 recipes (initial unlock)
+                    let downloadedRecipes = try await onDemandService.downloadRecipesForDay(day: 1, schedule: schedule)
+
+                    // Update tracker with downloaded recipe IDs
+                    for recipe in downloadedRecipes {
+                        unlockTracker.unlockedRecipeIds.insert(recipe.id.uuidString)
+                    }
+                    unlockTracker.lastUnlockDate = Date()
+
+                    // Save to Firebase heritageState
+                    let db = Firestore.firestore()
+                    guard let userId = authService.currentUser?.uid else { return }
+
+                    let downloadedRecipeIds = downloadedRecipes.compactMap { $0.heritageRecipeId }
+                    try await db.collection("users").document(userId)
+                        .collection("heritageState").document("current")
+                        .setData([
+                            "downloadedRecipeIds": downloadedRecipeIds,
+                            "currentDay": 1,
+                            "lastUnlockDate": FieldValue.serverTimestamp()
+                        ], merge: true)
+
+                    await MainActor.run {
+                        // Force refresh the modelContext to ensure UI updates
+                        try? modelContext.save()
+
+                        // Log collection recipe counts for debugging
+                        let collectionCounts = allBlindBoxes.map { collection -> String in
+                            let recipeCount = collection.recipes?.count ?? 0
+                            return "\(collection.name): \(recipeCount) recipes"
+                        }.joined(separator: ", ")
+
+                        Log.info("Downloaded initial heritage recipes", category: .heritage, metadata: [
+                            "count": downloadedRecipes.count,
+                            "revealedCollections": allBlindBoxes.map { $0.name }.joined(separator: ", "),
+                            "scheduleId": schedule.scheduleId,
+                            "recipesInContext": (try? modelContext.fetchCount(FetchDescriptor<Recipe>())) ?? 0,
+                            "collectionRecipeCounts": collectionCounts
+                        ])
+
+                        // Hide loading indicator
+                        isDownloadingRecipes = false
+                        downloadProgress = ""
+                    }
+                } catch {
+                    await MainActor.run {
+                        Log.error("Failed to download recipes after blind box reveal", category: .heritage, metadata: [
+                            "error": error.localizedDescription
+                        ])
+
+                        // Hide loading indicator on error
+                        isDownloadingRecipes = false
+                        downloadProgress = ""
                     }
                 }
             }

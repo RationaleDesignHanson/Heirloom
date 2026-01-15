@@ -11,9 +11,10 @@ import SwiftData
 
 struct TrialDebugView: View {
     @Environment(\.modelContext) private var modelContext
-    private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
+    @State private var subscriptionManager: SubscriptionManager?
     @State private var heritageUnlockTracker: HeritageUnlockTracker?
     @State private var paywallManager: PaywallManager?
+    @State private var refreshTrigger = false // Force view refresh
 
     var body: some View {
         List {
@@ -25,22 +26,23 @@ struct TrialDebugView: View {
         .onAppear {
             setupServices()
         }
+        .id(refreshTrigger) // Force view refresh when trigger changes
     }
 
     // MARK: - Sections
 
     private var trialPeriodSection: some View {
         let startDateText = (UserDefaults.standard.object(forKey: "first_launch_date") as? Date)?.description ?? "Not set"
-        let expiryDateText = subscriptionManager.trialExpiryDate?.description ?? "Not set"
+        let expiryDateText = subscriptionManager?.trialExpiryDate?.description ?? "Not set"
 
         return Section("Trial Period") {
             LabeledContent("Start Date", value: startDateText)
             LabeledContent("Expiry Date", value: expiryDateText)
-            LabeledContent("Days Remaining", value: "\(subscriptionManager.daysRemaining ?? 0)")
-            LabeledContent("Status", value: subscriptionManager.status.rawValue)
-            LabeledContent("Is In Trial", value: subscriptionManager.isInTrial ? "Yes" : "No")
-            LabeledContent("Is Trial Expired", value: subscriptionManager.isTrialExpired ? "Yes" : "No")
-            LabeledContent("Is Premium", value: subscriptionManager.isPremium ? "Yes" : "No")
+            LabeledContent("Days Remaining", value: "\(subscriptionManager?.daysRemaining ?? 0)")
+            LabeledContent("Status", value: subscriptionManager?.status.rawValue ?? "Unknown")
+            LabeledContent("Is In Trial", value: subscriptionManager?.isInTrial ?? false ? "Yes" : "No")
+            LabeledContent("Is Trial Expired", value: subscriptionManager?.isTrialExpired ?? false ? "Yes" : "No")
+            LabeledContent("Is Premium", value: subscriptionManager?.isPremium ?? false ? "Yes" : "No")
 
             Button("Reset Trial (Day 1)") {
                 resetTrial()
@@ -73,6 +75,11 @@ struct TrialDebugView: View {
                         do {
                             try await tracker.unlockDailyBatch(context: modelContext)
                             Log.info("Manually triggered unlock", category: .general)
+
+                            // Force view refresh
+                            await MainActor.run {
+                                refreshTrigger.toggle()
+                            }
                         } catch {
                             Log.error("Failed to unlock", category: .general, metadata: ["error": error.localizedDescription])
                         }
@@ -82,6 +89,7 @@ struct TrialDebugView: View {
 
                 Button("Reset Unlock Tracking") {
                     tracker.resetTrialTracking()
+                    refreshTrigger.toggle()
                 }
                 .foregroundStyle(.orange)
             } else {
@@ -116,7 +124,9 @@ struct TrialDebugView: View {
     // MARK: - Actions
 
     private func setupServices() {
-        heritageUnlockTracker = HeritageUnlockTracker()
+        // CRITICAL: Use singleton from ServiceContainer, not new instance
+        subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+        heritageUnlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
         paywallManager = ServiceContainer.shared.resolve(PaywallManager.self)
     }
 
@@ -126,7 +136,12 @@ struct TrialDebugView: View {
         UserDefaults.standard.set(now.addingTimeInterval(14 * 24 * 60 * 60), forKey: "trial_expiry_date")
 
         Task {
-            await subscriptionManager.refreshStatus(force: true)
+            await subscriptionManager?.refreshStatus(force: true)
+
+            // Force view refresh
+            await MainActor.run {
+                refreshTrigger.toggle()
+            }
         }
 
         Log.info("Trial reset to Day 1", category: .general)
@@ -138,7 +153,12 @@ struct TrialDebugView: View {
         UserDefaults.standard.set(startDate.addingTimeInterval(14 * 24 * 60 * 60), forKey: "trial_expiry_date")
 
         Task {
-            await subscriptionManager.refreshStatus(force: true)
+            await subscriptionManager?.refreshStatus(force: true)
+
+            // Force view refresh
+            await MainActor.run {
+                refreshTrigger.toggle()
+            }
         }
 
         Log.info("Trial skipped to Day \(day)", category: .general)

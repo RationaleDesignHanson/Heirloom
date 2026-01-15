@@ -263,6 +263,21 @@ final class SubscriptionManager {
             "old_status": oldStatus.rawValue,
             "new_status": newStatus.rawValue
         ])
+
+        // Post notification if user just became premium (trial completed with purchase or direct purchase)
+        let wasPremium = oldStatus.isPremium
+        let isPremiumNow = newStatus.isPremium
+
+        if !wasPremium && isPremiumNow {
+            logger.log(
+                "User became premium - posting heritage unlock notification",
+                category: .store,
+                level: .info,
+                metadata: nil
+            )
+
+            NotificationCenter.default.post(name: .userBecamePremium, object: nil)
+        }
     }
 
     // MARK: - Trial Management
