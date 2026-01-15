@@ -688,6 +688,10 @@ struct RecipeEditorView: View {
         isSaving = true
 
         Task {
+            // DIAGNOSTIC: Count Heritage recipes BEFORE save
+            let heritageCountBefore = (try? modelContext.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isHeritageRecipe }.count ?? 0
+            Log.info("🔍 SAVE START - Heritage recipes BEFORE save", category: .database, metadata: ["count": heritageCountBefore])
+
             do {
                 // If user chose to create new version, duplicate the recipe
                 if shouldCreateNewVersion {
@@ -1050,6 +1054,18 @@ struct RecipeEditorView: View {
                 } catch {
                     throw error
                 }
+            }
+
+            // DIAGNOSTIC: Count Heritage recipes AFTER save
+            let heritageCountAfter = (try? modelContext.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isHeritageRecipe }.count ?? 0
+            Log.info("🔍 SAVE END - Heritage recipes AFTER save", category: .database, metadata: ["count": heritageCountAfter])
+
+            if heritageCountBefore != heritageCountAfter {
+                Log.error("🚨 HERITAGE RECIPES CHANGED DURING SAVE!", category: .database, metadata: [
+                    "before": heritageCountBefore,
+                    "after": heritageCountAfter,
+                    "delta": heritageCountAfter - heritageCountBefore
+                ])
             }
 
             await MainActor.run {

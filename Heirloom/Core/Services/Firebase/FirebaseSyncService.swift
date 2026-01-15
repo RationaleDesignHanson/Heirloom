@@ -589,8 +589,26 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             return
         }
 
+        // DIAGNOSTIC: Count Heritage recipes BEFORE sync
+        let heritageCountBefore = (try? context.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isHeritageRecipe }.count ?? 0
+        Log.info("🔍 SYNC START - Heritage recipes BEFORE sync", category: .sync, metadata: ["count": heritageCountBefore])
+
         isSyncing = true
-        defer { isSyncing = false }
+        defer {
+            isSyncing = false
+
+            // DIAGNOSTIC: Count Heritage recipes AFTER sync
+            let heritageCountAfter = (try? context.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isHeritageRecipe }.count ?? 0
+            Log.info("🔍 SYNC END - Heritage recipes AFTER sync", category: .sync, metadata: ["count": heritageCountAfter])
+
+            if heritageCountBefore != heritageCountAfter {
+                Log.error("🚨 HERITAGE RECIPES CHANGED DURING SYNC!", category: .sync, metadata: [
+                    "before": heritageCountBefore,
+                    "after": heritageCountAfter,
+                    "delta": heritageCountAfter - heritageCountBefore
+                ])
+            }
+        }
 
         logger.log("🔄 [Firebase] Starting full sync...", category: .sync, level: .info, metadata: nil)
         logger.log("🔄 [Firebase] Starting full sync...", category: .sync, level: .info, metadata: nil)
@@ -812,11 +830,16 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
         logger.log("🔍 [Firebase] Found \(allRecipes.count) total recipes", category: .sync, level: .info, metadata: nil)
 
+        // Count Heritage recipes for diagnostic
+        let heritageCount = allRecipes.filter { $0.isHeritageRecipe }.count
+        logger.log("🔍 [Firebase] Heritage recipes in database: \(heritageCount)", category: .sync, level: .info, metadata: nil)
+
         // Filter for unsynced recipes (EXCLUDING heritage and onboarding recipes)
         let unsynced = allRecipes.filter { recipe in
             // CRITICAL: Never sync heritage recipes to Firebase
             // Heritage recipes are read-only system content
             guard !recipe.isHeritageRecipe else {
+                Log.debug("Skipping Heritage recipe from sync", category: .sync, metadata: ["title": recipe.title])
                 return false
             }
 
