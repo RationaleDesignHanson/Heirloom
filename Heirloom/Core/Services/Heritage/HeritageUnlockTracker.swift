@@ -86,6 +86,11 @@ class HeritageUnlockTracker: ObservableObject {
         let unlockService = HeritageUnlockService(modelContext: context, firebaseAuth: authService)
         let unlockedRecipeIds = try await unlockService.unlockDailyBatch()
 
+        // CRITICAL: Download the specific recipes from Firebase by their heritage IDs
+        if !unlockedRecipeIds.isEmpty {
+            try await downloadSpecificRecipes(recipeIds: unlockedRecipeIds, context: context, authService: authService)
+        }
+
         // Update local state to match Firebase
         for recipeId in unlockedRecipeIds {
             self.unlockedRecipeIds.insert(recipeId)
@@ -118,6 +123,9 @@ class HeritageUnlockTracker: ObservableObject {
             Log.info("No recipes to unlock (quota already met)", category: .heritage)
             return
         }
+
+        // CRITICAL: Download recipes from Firebase if needed (ensures recipes exist before unlocking)
+        try await downloadRecipesIfNeeded(count: count, context: context)
 
         // Fetch revealed heritage collections (blind boxes that have been opened)
         let collectionDescriptor = FetchDescriptor<RecipeCollection>(
@@ -169,6 +177,101 @@ class HeritageUnlockTracker: ObservableObject {
             "totalUnlocked": unlockedRecipeIds.count,
             "remaining": 100 - unlockedRecipeIds.count,
             "revealedCollections": revealedCollectionIds.joined(separator: ", ")
+        ])
+    }
+
+    /// Download specific recipes by their heritage IDs from Firebase
+    private func downloadSpecificRecipes(recipeIds: [String], context: ModelContext, authService: FirebaseAuthService) async throws {
+        // Check which recipes we already have
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { $0.isHeritageRecipe == true }
+        )
+        let existingRecipes = try context.fetch(descriptor)
+        let existingIds = Set(existingRecipes.compactMap { $0.heritageRecipeId })
+
+        // Filter to only recipes we don't have yet
+        let missingRecipeIds = recipeIds.filter { !existingIds.contains($0) }
+
+        guard !missingRecipeIds.isEmpty else {
+            Log.debug("All recipes already downloaded", category: .heritage, metadata: [
+                "requestedCount": recipeIds.count
+            ])
+            return
+        }
+
+        Log.info("Downloading \(missingRecipeIds.count) specific recipes from Firebase", category: .heritage, metadata: [
+            "recipeIds": missingRecipeIds.joined(separator: ", ")
+        ])
+
+        // Download each recipe individually
+        let onDemandService = HeritageOnDemandService(
+            modelContext: context,
+            firebaseAuth: authService
+        )
+
+        var downloadedCount = 0
+        for recipeId in missingRecipeIds {
+            do {
+                _ = try await onDemandService.downloadRecipe(recipeId: recipeId)
+                downloadedCount += 1
+            } catch {
+                Log.error("Failed to download recipe \(recipeId)", category: .heritage, error: error)
+            }
+        }
+
+        Log.info("Downloaded \(downloadedCount)/\(missingRecipeIds.count) recipes", category: .heritage)
+    }
+
+    /// Download recipes from Firebase if we don't have enough in the database
+    private func downloadRecipesIfNeeded(count: Int, context: ModelContext) async throws {
+        // Check how many recipes we currently have
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { $0.isHeritageRecipe == true }
+        )
+        let existingRecipes = try context.fetch(descriptor)
+
+        // If we have enough recipes, no need to download
+        let neededCount = unlockedRecipeIds.count + count
+        if existingRecipes.count >= neededCount {
+            Log.debug("Enough recipes in database, skipping download", category: .heritage, metadata: [
+                "existing": existingRecipes.count,
+                "needed": neededCount
+            ])
+            return
+        }
+
+        // Download more recipes using HeritageOnDemandService
+        guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+              authService.isAuthenticated else {
+            Log.warning("Not authenticated - cannot download recipes", category: .heritage)
+            return
+        }
+
+        let onDemandService = HeritageOnDemandService(
+            modelContext: context,
+            firebaseAuth: authService
+        )
+
+        // Get user's schedule
+        let schedule = try await onDemandService.getUserSchedule()
+
+        // Calculate which day we're on
+        guard let trialStart = trialStartDate else {
+            Log.warning("No trial start date", category: .heritage)
+            return
+        }
+
+        let daysSinceStart = Calendar.current.dateComponents([.day], from: trialStart, to: Date()).day ?? 0
+        let currentDay = daysSinceStart + 1
+
+        Log.info("Downloading recipes for day \(currentDay)", category: .heritage)
+
+        // Download recipes for current day
+        let newRecipes = try await onDemandService.downloadRecipesForDay(day: currentDay, schedule: schedule)
+
+        Log.info("Downloaded \(newRecipes.count) recipes from Firebase", category: .heritage, metadata: [
+            "day": currentDay,
+            "totalRecipes": existingRecipes.count + newRecipes.count
         ])
     }
 
@@ -338,9 +441,10 @@ class HeritageUnlockTracker: ObservableObject {
         trialStartDate = userDefaults.object(forKey: trialStartDateKey) as? Date
     }
 
-    private func saveToStorage() {
+    func saveToStorage() {
         userDefaults.set(Array(unlockedRecipeIds), forKey: unlockedRecipesKey)
         userDefaults.set(lastUnlockDate, forKey: lastUnlockDateKey)
         userDefaults.set(trialStartDate, forKey: trialStartDateKey)
+        userDefaults.synchronize() // Force immediate write for durability
     }
 }

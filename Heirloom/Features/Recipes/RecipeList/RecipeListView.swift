@@ -1423,10 +1423,11 @@ struct RecipeCardView: View {
             ZStack {
                 AsyncRecipeImage(
                     imageFileName: recipe.imageFileName,
+                    firebaseImageURL: recipe.firebaseImageURL,
                     placeholder: recipe.sourceType?.iconName ?? "fork.knife"
                 )
-                .aspectRatio(4/3, contentMode: .fit)
                 .frame(maxWidth: .infinity)
+                .aspectRatio(4/3, contentMode: .fill)
                 .clipped()
                 .cornerRadius(12)
                 .accessibilityHidden(true) // Hide image from VoiceOver, recipe title is more important
@@ -1578,6 +1579,7 @@ struct RecipeCardView: View {
         .padding(HeirloomSpacing.sm)
         .frame(maxWidth: .infinity)
         .background(HeirloomColors.cream)
+        .contentShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
         .cornerRadius(HeirloomSpacing.cardCornerRadius)
         .shadow(
             color: HeirloomShadows.card.color,

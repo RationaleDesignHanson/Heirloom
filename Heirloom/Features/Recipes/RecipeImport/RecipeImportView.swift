@@ -110,11 +110,11 @@ struct RecipeImportView: View {
                 .padding(.top, HeirloomSpacing.xxl)
 
             VStack(spacing: HeirloomSpacing.sm) {
-                Text("Import from URL")
+                Text("Recipe Website Link")
                     .font(HeirloomFonts.title2)
                     .foregroundStyle(HeirloomColors.primaryText)
 
-                Text("Paste a recipe URL from your favorite cooking website")
+                Text("Paste a URL from recipe websites like AllRecipes, NYT Cooking, or food blogs. Not for video links.")
                     .font(HeirloomFonts.body)
                     .foregroundStyle(HeirloomColors.secondaryText)
                     .multilineTextAlignment(.center)

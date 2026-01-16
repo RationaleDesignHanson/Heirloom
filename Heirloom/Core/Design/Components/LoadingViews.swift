@@ -161,10 +161,12 @@ extension View {
 // MARK: - Async Image with Loading
 struct AsyncRecipeImage: View {
     let imageFileName: String?
+    let firebaseImageURL: String?  // NEW: Firebase Storage URL
     let placeholder: String
 
-    init(imageFileName: String?, placeholder: String = "photo") {
+    init(imageFileName: String?, firebaseImageURL: String? = nil, placeholder: String = "photo") {
         self.imageFileName = imageFileName
+        self.firebaseImageURL = firebaseImageURL
         self.placeholder = placeholder
     }
 
@@ -223,27 +225,48 @@ struct AsyncRecipeImage: View {
     }
 
     private func loadImage() async {
-        guard let fileName = imageFileName else {
-            Log.debug("AsyncRecipeImage: No imageFileName provided", category: .ui)
-            await MainActor.run {
-                isLoading = false
+        // Priority 1: Try loading from local file storage
+        if let fileName = imageFileName {
+            Log.debug("AsyncRecipeImage: Loading from local file", category: .storage, metadata: ["fileName": fileName])
+
+            if let image = await imageStorageService.loadImage(fileName: fileName) {
+                Log.debug("AsyncRecipeImage: Successfully loaded from local", category: .storage, metadata: ["fileName": fileName])
+                await MainActor.run {
+                    loadedImage = image
+                    isLoading = false
+                }
+                return
+            } else {
+                Log.debug("AsyncRecipeImage: Local file not found, trying Firebase URL", category: .storage)
             }
-            return
         }
 
-        Log.debug("AsyncRecipeImage: Loading image", category: .storage, metadata: ["fileName": fileName])
+        // Priority 2: Try loading from Firebase URL
+        if let urlString = firebaseImageURL,
+           let url = URL(string: urlString) {
+            Log.debug("AsyncRecipeImage: Loading from Firebase URL", category: .storage, metadata: ["url": urlString])
 
-        if let image = await imageStorageService.loadImage(fileName: fileName) {
-            Log.debug("AsyncRecipeImage: Successfully loaded image", category: .storage, metadata: ["fileName": fileName])
-            await MainActor.run {
-                loadedImage = image
-                isLoading = false
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    Log.debug("AsyncRecipeImage: Successfully loaded from Firebase", category: .storage)
+                    await MainActor.run {
+                        loadedImage = image
+                        isLoading = false
+                    }
+                    return
+                }
+            } catch {
+                Log.warning("AsyncRecipeImage: Failed to load from Firebase URL", category: .storage, metadata: [
+                    "error": error.localizedDescription
+                ])
             }
-        } else {
-            Log.warning("AsyncRecipeImage: Failed to load image", category: .storage, metadata: ["fileName": fileName])
-            await MainActor.run {
-                isLoading = false
-            }
+        }
+
+        // Priority 3: Show placeholder (no image found)
+        Log.debug("AsyncRecipeImage: No image source available, showing placeholder", category: .storage)
+        await MainActor.run {
+            isLoading = false
         }
     }
 }

@@ -145,17 +145,18 @@ class UndoService: ObservableObject {
 
 // MARK: - Toast Manager Extension
 extension ToastManager {
-    /// Show undo toast for recipe deletion
+    /// Show undo toast for recipe deletion with countdown
     /// - Parameters:
     ///   - undoItem: The undo item
     ///   - onUndo: Closure to execute when undo is tapped
     func showUndoToast(for undoItem: UndoService.UndoItem, onUndo: @escaping () -> Void) {
-        // Note: Current Toast system doesn't support action buttons
-        // Show a simple info toast instead
-        // TODO: Enhance Toast to support undo action buttons
-        info(
+        let toast = Toast(
+            type: .warning,
             title: "Recipe Deleted",
-            message: undoItem.description
+            message: undoItem.description,
+            duration: UndoService.defaultUndoWindow,
+            undoAction: onUndo
         )
+        show(toast)
     }
 }

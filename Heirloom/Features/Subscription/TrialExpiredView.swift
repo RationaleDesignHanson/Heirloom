@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-/// Post-trial experience view offering upgrade, pay-per-recipe, export, or free tier options
+/// Post-trial experience view offering upgrade, video credits, export, or free tier options
 struct TrialExpiredView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -16,8 +16,8 @@ struct TrialExpiredView: View {
     @State private var unlockTracker: HeritageUnlockTracker?
     @State private var subscriptionManager: SubscriptionManager?
     @State private var showPaywall = false
-    @State private var showHeritageUnlock = false
     @State private var showExportSheet = false
+    @State private var showVideoCredits = false
 
     var body: some View {
         NavigationStack {
@@ -29,8 +29,8 @@ struct TrialExpiredView: View {
                     // Option 1: Upgrade to Premium
                     premiumOptionCard
 
-                    // Option 2: Buy Recipes Individually
-                    payPerRecipeCard
+                    // Option 2: Buy Video Translation Credits
+                    videoCreditsCard
 
                     // Option 3: Export Your Recipes
                     exportDataCard
@@ -56,11 +56,14 @@ struct TrialExpiredView: View {
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }
-            .sheet(isPresented: $showHeritageUnlock) {
-                HeritageUnlockView()
-            }
             .sheet(isPresented: $showExportSheet) {
                 RecipeExportView()
+            }
+            .sheet(isPresented: $showVideoCredits) {
+                // TODO: Create VideoCreditsPurchaseView
+                Text("Video Credits Purchase - Coming Soon")
+                    .font(HeirloomFonts.title2)
+                    .padding()
             }
         }
     }
@@ -156,32 +159,32 @@ struct TrialExpiredView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Option 2: Pay Per Recipe
+    // MARK: - Option 2: Video Translation Credits
 
-    private var payPerRecipeCard: some View {
+    private var videoCreditsCard: some View {
         Button {
-            showHeritageUnlock = true
+            showVideoCredits = true
         } label: {
             HStack(spacing: HeirloomSpacing.md) {
                 // Icon
                 ZStack {
                     Circle()
-                        .fill(.green.opacity(0.15))
+                        .fill(.purple.opacity(0.15))
                         .frame(width: 56, height: 56)
 
-                    Image(systemName: "dollarsign.circle.fill")
+                    Image(systemName: "video.badge.waveform")
                         .font(.title2)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(.purple)
                 }
 
                 // Content
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Buy Recipes Individually")
+                    Text("Buy Video Translation Credits")
                         .font(HeirloomFonts.body)
                         .fontWeight(.semibold)
                         .foregroundStyle(HeirloomColors.primaryText)
 
-                    Text("Unlock heritage recipes for $0.99 each")
+                    Text("$0.99 per video-to-recipe conversion")
                         .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
@@ -197,7 +200,7 @@ struct TrialExpiredView: View {
             .cornerRadius(HeirloomSpacing.cardCornerRadius)
             .overlay(
                 RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
-                    .stroke(.green, lineWidth: 2)
+                    .stroke(.purple, lineWidth: 2)
             )
         }
         .buttonStyle(.plain)

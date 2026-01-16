@@ -153,7 +153,8 @@ class HeritageOnDemandService {
     }
 
     /// Download and insert a single recipe from Firestore
-    private func downloadRecipe(recipeId: String) async throws -> Recipe {
+    /// Made internal for cache promotion from CollectionsListView
+    func downloadRecipe(recipeId: String) async throws -> Recipe {
         // Check if recipe already exists locally
         let descriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { $0.heritageRecipeId == recipeId }
@@ -272,6 +273,11 @@ class HeritageOnDemandService {
 
         // Insert recipe into context
         modelContext.insert(recipe)
+
+        // CRITICAL: Cache immediately to UserDefaults (survives force-quit)
+        // This ensures recipe persists even if SwiftData WAL doesn't checkpoint
+        let cache = ServiceContainer.shared.resolve(HeritageRecipeCache.self)
+        cache.cache(recipe)
 
         Log.info("Downloaded and created heritage recipe", category: .heritage, metadata: [
             "recipeId": recipeId,

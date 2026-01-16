@@ -1172,14 +1172,14 @@ extension Recipe {
     /// Determine if this recipe can be shared and provide reason if not
     /// - Returns: (canShare: Bool, reason: String?)
     func canShare() -> (canShare: Bool, reason: String?) {
-        // 1. Check if it's an unmodified sample recipe
-        if isSampleRecipe && !hasSignificantModifications {
-            return (false, "This is a sample recipe that all users receive. Try sharing your personalized recipes instead! Or modify this recipe significantly (change the title, add your own ingredients) to make it yours.")
+        // 1. Sample recipes can never be shared - everyone already has them
+        if isSampleRecipe {
+            return (false, "Sample recipes can't be shared - everyone already has this recipe.")
         }
 
-        // 2. Check if it's an unmodified heritage recipe
-        if isHeritageRecipe && !hasSignificantModifications {
-            return (false, "Heritage recipes are part of our curated collection that all users unlock. To share your version, create a personal copy and make it your own! (Coming soon: 'Create My Version' feature)")
+        // 2. Heritage recipes can never be shared - all users receive them automatically
+        if isHeritageRecipe {
+            return (false, "Heritage recipes can't be shared - all users receive these automatically through the heritage system.")
         }
 
         // 3. Recipe can be shared

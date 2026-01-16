@@ -205,9 +205,15 @@ struct CookbookScannerView: View {
 
             // Instructions
             VStack(spacing: HeirloomSpacing.md) {
-                Text("Capture Recipe Pages")
+                Text("Scan Recipe Images")
                     .font(HeirloomFonts.title2)
                     .foregroundStyle(HeirloomColors.primaryText)
+
+                Text("For images only - use camera, camera roll photos, or PDFs")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, HeirloomSpacing.lg)
 
                 VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                     instructionRow(

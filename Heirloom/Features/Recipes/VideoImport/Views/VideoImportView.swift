@@ -40,7 +40,7 @@ struct VideoImportView: View {
                             .font(.title.bold())
 
                         // Mode indicator badge
-                        Text("Video with Instructions")
+                        Text("From Camera Roll")
                             .font(.caption.bold())
                             .foregroundStyle(.white)
                             .padding(.horizontal, 12)
@@ -49,7 +49,7 @@ struct VideoImportView: View {
                             .cornerRadius(12)
                     }
 
-                    Text("Extract a recipe from a cooking video. Works best with clear audio narration.")
+                    Text("Select a video from your camera roll with spoken cooking instructions. Works best with clear narration.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)

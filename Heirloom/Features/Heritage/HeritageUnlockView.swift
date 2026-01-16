@@ -41,6 +41,9 @@ struct HeritageUnlockView: View {
                         progressBar(tracker: tracker)
                     }
 
+                    // Subscription Info
+                    subscriptionInfoCard
+
                     // Unlock Button
                     unlockButton
 
@@ -145,6 +148,91 @@ struct HeritageUnlockView: View {
         }
         .frame(height: 8)
         .padding(.horizontal)
+    }
+
+    // MARK: - Subscription Info Card
+
+    @ViewBuilder
+    private var subscriptionInfoCard: some View {
+        if let manager = subscriptionManager {
+            VStack(spacing: HeirloomSpacing.md) {
+                // Status header
+                HStack {
+                    Image(systemName: manager.isPremium ? "checkmark.circle.fill" : "clock.fill")
+                        .foregroundStyle(manager.isPremium ? .green : .orange)
+
+                    Text(manager.isPremium ? "Premium Member" : "Trial")
+                        .font(HeirloomFonts.body)
+                        .fontWeight(.bold)
+
+                    Spacer()
+
+                    if manager.isInTrial, let daysRemaining = manager.daysRemaining {
+                        Text("\(daysRemaining)d left")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.orange)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Capsule().fill(.orange.opacity(0.2)))
+                    }
+                }
+
+                // Benefits / CTA
+                if manager.isInTrial {
+                    Text("Subscribe to keep all 100 recipes forever + unlock new features")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button {
+                        showTrialExpired = true
+                    } label: {
+                        HStack {
+                            Text("View Plans")
+                                .fontWeight(.semibold)
+                            Image(systemName: "arrow.right")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(.blue.gradient)
+                        .foregroundStyle(.white)
+                        .cornerRadius(10)
+                    }
+                } else if manager.isPremium {
+                    Text("You have full access to all 100 heritage recipes")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    Text("Trial expired • Subscribe to unlock remaining recipes")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button {
+                        showTrialExpired = true
+                    } label: {
+                        HStack {
+                            Text("Subscribe Now")
+                                .fontWeight(.semibold)
+                            Image(systemName: "arrow.right")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(.blue.gradient)
+                        .foregroundStyle(.white)
+                        .cornerRadius(10)
+                    }
+                }
+            }
+            .padding()
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(12)
+            .padding(.horizontal)
+        }
     }
 
     // MARK: - Unlock Button

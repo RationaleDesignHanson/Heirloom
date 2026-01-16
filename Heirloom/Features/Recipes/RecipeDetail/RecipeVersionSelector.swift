@@ -13,97 +13,100 @@ struct RecipeVersionSelector: View {
         VStack(alignment: .leading, spacing: 0) {
             // Only show if we have multiple versions
             if viewModel.versions.count > 1 {
-                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                    // Version Selector Section
-                    Menu {
-                        ForEach(viewModel.versions) { version in
+                VStack(alignment: .leading, spacing: 0) {
+                    // Badge + Version Selector Row
+                    HStack(spacing: HeirloomSpacing.sm) {
+                        // Change badge (only show for modified versions)
+                        if changeSummary != nil,
+                           let selected = selectedVersion,
+                           selected.generation > 0 {
                             Button {
-                                selectedVersion = version
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    isDiffExpanded.toggle()
+                                }
                             } label: {
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text(version.displayName)
-                                            .font(.body)
-
-                                        if version.generation > 0 {
-                                            Text(version.modifiedAt, style: .relative)
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                    }
-
-                                    Spacer()
-
-                                    if version.id == selectedVersion?.id {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    } label: {
-                        HStack(spacing: HeirloomSpacing.sm) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Viewing")
-                                    .font(HeirloomFonts.caption2)
-                                    .foregroundStyle(HeirloomColors.secondaryText)
-
-                                HStack(spacing: HeirloomSpacing.xs) {
-                                    Image(systemName: "arrow.triangle.branch")
-                                        .font(.caption)
-
-                                    Text(selectedVersion?.displayName ?? "Select Version")
-                                        .font(HeirloomFonts.bodyBold)
-
-                                    Image(systemName: "chevron.down")
-                                        .font(.caption2)
-                                }
-                                .foregroundStyle(HeirloomColors.charcoal)
-                            }
-
-                            Spacer()
-                        }
-                        .padding(HeirloomSpacing.md)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(HeirloomColors.cream)
-                        )
-                    }
-
-                    // Change Summary Section (only for non-original versions)
-                    if let summary = changeSummary,
-                       let selected = selectedVersion,
-                       selected.generation > 0 {
-                        Divider()
-                            .padding(.horizontal, HeirloomSpacing.md)
-
-                        // Expandable change summary
-                        Button {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                isDiffExpanded.toggle()
-                            }
-                        } label: {
-                            HStack(spacing: HeirloomSpacing.sm) {
                                 Image(systemName: isDiffExpanded ? "chevron.down.circle.fill" : "chevron.right.circle.fill")
                                     .font(.title3)
                                     .foregroundStyle(HeirloomColors.success)
+                                    .rotationEffect(.degrees(isDiffExpanded ? 0 : 0))
+                                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isDiffExpanded)
+                            }
+                            .buttonStyle(.plain)
+                        }
 
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("What Changed")
-                                        .font(HeirloomFonts.caption1Bold)
-                                        .foregroundStyle(HeirloomColors.charcoal)
+                        // Version Selector Dropdown
+                        Menu {
+                            ForEach(viewModel.versions) { version in
+                                Button {
+                                    selectedVersion = version
+                                } label: {
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            Text(version.displayName)
+                                                .font(.body)
 
-                                    Text(summary)
+                                            if version.generation > 0 {
+                                                Text(version.modifiedAt, style: .relative)
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                            }
+                                        }
+
+                                        Spacer()
+
+                                        if version.id == selectedVersion?.id {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: HeirloomSpacing.sm) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Viewing")
                                         .font(HeirloomFonts.caption2)
                                         .foregroundStyle(HeirloomColors.secondaryText)
+
+                                    HStack(spacing: HeirloomSpacing.xs) {
+                                        Image(systemName: "arrow.triangle.branch")
+                                            .font(.caption)
+
+                                        Text(selectedVersion?.displayName ?? "Select Version")
+                                            .font(HeirloomFonts.bodyBold)
+
+                                        Image(systemName: "chevron.down")
+                                            .font(.caption2)
+                                    }
+                                    .foregroundStyle(HeirloomColors.charcoal)
                                 }
 
                                 Spacer()
                             }
-                            .padding(HeirloomSpacing.md)
                         }
+                    }
+                    .padding(HeirloomSpacing.md)
 
-                        // Expanded diff view
-                        if isDiffExpanded, let original = originalVersion {
+                    // Expanded "What Changed" Section
+                    if isDiffExpanded,
+                       let summary = changeSummary,
+                       let selected = selectedVersion,
+                       let original = originalVersion,
+                       selected.generation > 0 {
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                            Divider()
+                                .padding(.horizontal, HeirloomSpacing.md)
+
+                            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                                Text("What Changed")
+                                    .font(HeirloomFonts.caption1Bold)
+                                    .foregroundStyle(HeirloomColors.charcoal)
+
+                                Text(summary)
+                                    .font(HeirloomFonts.caption2)
+                                    .foregroundStyle(HeirloomColors.secondaryText)
+                            }
+                            .padding(.horizontal, HeirloomSpacing.md)
+
                             Divider()
                                 .padding(.horizontal, HeirloomSpacing.md)
 
@@ -113,6 +116,7 @@ struct RecipeVersionSelector: View {
                             )
                             .padding(HeirloomSpacing.md)
                         }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
                 .background(

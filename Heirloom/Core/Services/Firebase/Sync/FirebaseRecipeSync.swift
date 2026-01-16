@@ -277,6 +277,14 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
                 let data = document.data()
                 let firebaseId = document.documentID
 
+                // CHECK: Is this a Heritage reference? If so, skip it - Heritage recipes managed separately
+                if let isHeritageReference = data["isHeritageReference"] as? Bool, isHeritageReference {
+                    Log.debug("Skipping Heritage reference in sync (managed separately)", category: .sync, metadata: [
+                        "heritageRecipeId": data["heritageRecipeId"] as? String ?? "unknown"
+                    ])
+                    continue
+                }
+
                 // Check if recipe already exists locally by UUID
                 let recipeUUID = UUID(uuidString: firebaseId) ?? UUID()
                 let descriptor = FetchDescriptor<Recipe>(

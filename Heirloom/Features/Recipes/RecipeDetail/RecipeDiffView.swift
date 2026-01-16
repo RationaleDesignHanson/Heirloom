@@ -163,18 +163,33 @@ struct RecipeDiffView: View {
         let comparedIngredients: [String]
         if let recipe = compared.recipe, let ingredients = recipe.ingredients {
             comparedIngredients = ingredients.map { $0.originalText }
-            Log.debug("Using compared recipe ingredients for diff", category: .ui, metadata: ["count": comparedIngredients.count, "source": "recipe"])
+            Log.debug("Using compared recipe ingredients for diff", category: .ui, metadata: [
+                "count": comparedIngredients.count,
+                "source": "recipe",
+                "generation": compared.generation,
+                "ingredients": comparedIngredients.joined(separator: " | ")
+            ])
         } else if let data = compared.recipeData,
                   let ingredientsData = data["ingredients"] as? [[String: Any]] {
             comparedIngredients = ingredientsData.compactMap { $0["originalText"] as? String }
-            Log.debug("Using compared recipe data ingredients for diff", category: .ui, metadata: ["count": comparedIngredients.count, "source": "recipeData"])
+            Log.debug("Using compared recipe data ingredients for diff", category: .ui, metadata: [
+                "count": comparedIngredients.count,
+                "source": "recipeData",
+                "generation": compared.generation,
+                "ingredients": comparedIngredients.joined(separator: " | ")
+            ])
         } else {
             comparedIngredients = []
-            Log.warning("No ingredient data found in compared version, showing all as added", category: .ui)
+            Log.warning("No ingredient data found in compared version, showing all as added", category: .ui, metadata: ["generation": compared.generation])
         }
 
         let currentTexts = current.map { $0.originalText }
-        Log.debug("Comparing recipe ingredients", category: .ui, metadata: ["currentCount": currentTexts.count, "comparedCount": comparedIngredients.count])
+        Log.debug("Comparing recipe ingredients", category: .ui, metadata: [
+            "currentCount": currentTexts.count,
+            "comparedCount": comparedIngredients.count,
+            "currentIngredients": currentTexts.joined(separator: " | "),
+            "comparedIngredients": comparedIngredients.joined(separator: " | ")
+        ])
 
         // Find added ingredients
         for text in currentTexts where !comparedIngredients.contains(text) {

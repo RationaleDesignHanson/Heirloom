@@ -623,6 +623,10 @@ struct RootView: View {
                     Log.info("User already authenticated on launch - starting automatic sync", category: .sync)
                     DeviceLogger.shared.log("✅ [Auth] User already authenticated - starting automatic sync")
 
+                    // CRITICAL: Start notification listener for real-time badge updates
+                    notificationService.startListening()
+                    Log.info("Started notification listener on authenticated app launch", category: .firebase)
+
                     // Check for premium subscription (sync is premium-only)
                     let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
 
@@ -651,6 +655,10 @@ struct RootView: View {
                 if !oldValue && newValue {
                     Log.info("User authenticated - starting automatic Firebase sync", category: .sync)
                     DeviceLogger.shared.log("✅ [Auth] User authenticated - starting automatic sync")
+
+                    // CRITICAL: Start notification listener for real-time badge updates
+                    notificationService.startListening()
+                    Log.info("Started notification listener after user sign-in", category: .firebase)
 
                     // Check for premium subscription (sync is premium-only)
                     let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
@@ -684,6 +692,7 @@ struct ContentView: View {
     @State private var hasViewedRecipesList = false
     @State private var showSignInSheet = false
     @State private var needsHeritageSeeding = false
+    @State private var isDownloadingHeritageAfterSignIn = false
 
     // Deep link coordinator (injected via environment)
     @EnvironmentObject private var deepLinkCoordinator: DeepLinkCoordinator
@@ -726,14 +735,33 @@ struct ContentView: View {
                 showSignInSheet = true
                 needsHeritageSeeding = true
             }
+
+            // CRITICAL: Auto-recover Heritage recipes on every app launch if user is already authenticated
+            // This handles case where recipes were lost between sessions (SwiftData WAL not checkpointed)
+            if firebaseAuth.isAuthenticated && hasCompletedOnboarding {
+                Task { @MainActor in
+                    guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
+                        return
+                    }
+                    await autoRevealBlindBoxesIfNeeded(modelContext: modelContainer.mainContext)
+                }
+            }
         }
         .onChange(of: firebaseAuth.isAuthenticated) { oldValue, newValue in
             if newValue && needsHeritageSeeding {
-                // User just signed in - seed heritage recipes
+                // CRITICAL: Download Heritage recipes BEFORE allowing access to main app
+                // This ensures recipes persist because download completes before user can quit
+                isDownloadingHeritageAfterSignIn = true
                 Task { @MainActor in
                     await seedHeritageRecipesAfterAuth()
                     needsHeritageSeeding = false
+                    isDownloadingHeritageAfterSignIn = false
                 }
+            }
+        }
+        .overlay {
+            if isDownloadingHeritageAfterSignIn {
+                heritageDownloadLoadingScreen
             }
         }
     }
@@ -991,6 +1019,25 @@ struct ContentView: View {
             return
         }
 
+        // CRITICAL: Request background time to complete recovery downloads/saves
+        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+        await MainActor.run {
+            backgroundTaskID = UIApplication.shared.beginBackgroundTask {
+                if backgroundTaskID != .invalid {
+                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                    backgroundTaskID = .invalid
+                }
+            }
+        }
+
+        defer {
+            if backgroundTaskID != .invalid {
+                Task { @MainActor in
+                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                }
+            }
+        }
+
         do {
             let db = Firestore.firestore()
             let heritageStateDoc = try await db.collection("users").document(userId)
@@ -1036,10 +1083,62 @@ struct ContentView: View {
             ])
             DeviceLogger.shared.log("✅ [Heritage] Auto-revealed blind boxes and downloaded \(recipes.count) recipes from other device")
 
+            // CRITICAL: Triple-save with delays to force WAL checkpoint
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            try modelContext.save()
+            Log.debug("First auto-reveal save complete", category: .heritage)
+
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            try modelContext.save()
+            Log.debug("Second auto-reveal save complete", category: .heritage)
+
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            try modelContext.save()
+            Log.info("✅ Heritage auto-reveal saved to disk (3x saves)", category: .heritage)
+
+            // Wait 3 seconds for iOS to checkpoint WAL
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            Log.info("✅ Heritage auto-reveal complete - safe to continue", category: .heritage)
+
         } catch {
             Log.error("Failed to auto-reveal blind boxes", category: .heritage, metadata: [
                 "error": error.localizedDescription
             ])
+        }
+    }
+
+    /// Elegant loading screen shown during Heritage recipe download after sign-in
+    /// This blocks access to main app until recipes are downloaded and saved
+    @ViewBuilder
+    private var heritageDownloadLoadingScreen: some View {
+        ZStack {
+            // Semi-transparent background
+            Color.black.opacity(0.7)
+                .ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                // Heritage icon
+                Image(systemName: "books.vertical.fill")
+                    .font(.system(size: 56))
+                    .foregroundStyle(HeirloomColors.tomato)
+
+                VStack(spacing: 8) {
+                    Text("Setting up your Heritage recipes")
+                        .font(HeirloomFonts.title3)
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+
+                    Text("This will only take a moment")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(.white.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                }
+
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.3)
+            }
+            .padding(40)
         }
     }
 }

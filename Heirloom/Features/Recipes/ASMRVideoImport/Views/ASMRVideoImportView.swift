@@ -155,7 +155,7 @@ struct ASMRVideoImportView: View {
                     .font(.title2.bold())
 
                 // Mode indicator badge
-                Text("Video without Instructions")
+                Text("From Camera Roll")
                     .font(.caption.bold())
                     .foregroundStyle(.white)
                     .padding(.horizontal, 12)
@@ -164,7 +164,7 @@ struct ASMRVideoImportView: View {
                     .cornerRadius(12)
             }
 
-            Text("Extract recipes from ASMR or cooking videos without narration")
+            Text("Select a video without narration from your camera roll. No spoken instructions needed - extracts recipe visually.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

@@ -383,6 +383,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             existingRecipe.sharedDate = Date()
             existingRecipe.generationCount = generation + 1
             existingRecipe.modifiedAt = Date()
+            existingRecipe.dateAdded = Date() // Update so recipe appears at top of list
 
             sharedRecipe = existingRecipe // Use existing recipe for subsequent operations
         } else {

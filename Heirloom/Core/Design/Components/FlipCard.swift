@@ -344,6 +344,7 @@ private struct RecipeCardFrontView: View {
                 // Actual recipe image using AsyncRecipeImage component
                 AsyncRecipeImage(
                     imageFileName: recipe.imageFileName,
+                    firebaseImageURL: recipe.firebaseImageURL,
                     placeholder: recipe.sourceType?.iconName ?? "fork.knife"
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 12))

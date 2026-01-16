@@ -69,18 +69,119 @@ struct RecipeDetailView: View {
         return selectedVersion?.title ?? recipe.title
     }
 
-    /// The ingredients to display (always show current recipe's ingredients)
+    /// The ingredients to display (from selected version or local recipe)
     private var displayIngredients: [Ingredient]? {
-        recipe.ingredients
+        // If viewing a non-current version, try to get its ingredients
+        if let selected = selectedVersion, !selected.isCurrent {
+            // Try local recipe first
+            if let versionRecipe = selected.recipe {
+                return versionRecipe.ingredients
+            }
+            // Fall back to parsing Firebase data
+            if let recipeData = selected.recipeData,
+               let ingredientsData = recipeData["ingredients"] as? [[String: Any]] {
+                // Convert Firebase ingredient data to Ingredient objects for display
+                let ingredients = ingredientsData.compactMap { data -> Ingredient? in
+                    guard let originalText = data["originalText"] as? String else { return nil }
+                    let ingredient = Ingredient(
+                        originalText: originalText,
+                        name: data["name"] as? String ?? originalText,
+                        quantity: data["quantity"] as? Double,
+                        unit: data["unit"] as? String,
+                        category: GroceryCategory(rawValue: data["category"] as? String ?? "") ?? .other,
+                        orderIndex: data["orderIndex"] as? Int ?? 0  // Use actual orderIndex from Firebase
+                    )
+                    // Set additional properties
+                    ingredient.preparation = data["preparation"] as? String
+                    ingredient.size = data["size"] as? String
+                    ingredient.quantityMax = data["quantityMax"] as? Double
+                    ingredient.normalizedUnit = data["normalizedUnit"] as? String
+                    ingredient.isOptional = data["isOptional"] as? Bool ?? false
+                    return ingredient
+                }
+                // Sort by orderIndex to preserve original order
+                return ingredients.sorted { $0.orderIndex < $1.orderIndex }
+            }
+        }
+        // Default: show local recipe's ingredients
+        return recipe.ingredients
     }
 
-    /// The instructions to display (always show current recipe's instructions)
+    /// The instructions to display (from selected version or local recipe)
     private var displayInstructions: [String] {
-        // Show original language if toggle is on and original exists
+        // If viewing a non-current version, get its instructions
+        if let selected = selectedVersion, !selected.isCurrent {
+            // Try local recipe first
+            if let versionRecipe = selected.recipe {
+                // Show original language if toggle is on and available
+                if showOriginalLanguage, let originalInstructions = versionRecipe.originalInstructions {
+                    return originalInstructions
+                }
+                return versionRecipe.instructions
+            }
+            // Fall back to Firebase data
+            if let recipeData = selected.recipeData,
+               let instructions = recipeData["instructions"] as? [String] {
+                return instructions
+            }
+        }
+        // Default: show local recipe's instructions
         if showOriginalLanguage, let originalInstructions = recipe.originalInstructions {
             return originalInstructions
         }
         return recipe.instructions
+    }
+
+    /// The servings to display (from selected version or local recipe)
+    private var displayServings: String? {
+        if let selected = selectedVersion, !selected.isCurrent {
+            if let versionRecipe = selected.recipe {
+                return versionRecipe.servings
+            }
+            if let recipeData = selected.recipeData {
+                return recipeData["servings"] as? String
+            }
+        }
+        return recipe.servings
+    }
+
+    /// The prep time to display (from selected version or local recipe)
+    private var displayPrepTime: String? {
+        if let selected = selectedVersion, !selected.isCurrent {
+            if let versionRecipe = selected.recipe {
+                return versionRecipe.prepTime
+            }
+            if let recipeData = selected.recipeData {
+                return recipeData["prepTime"] as? String
+            }
+        }
+        return recipe.prepTime
+    }
+
+    /// The cook time to display (from selected version or local recipe)
+    private var displayCookTime: String? {
+        if let selected = selectedVersion, !selected.isCurrent {
+            if let versionRecipe = selected.recipe {
+                return versionRecipe.cookTime
+            }
+            if let recipeData = selected.recipeData {
+                return recipeData["cookTime"] as? String
+            }
+        }
+        return recipe.cookTime
+    }
+
+    /// The notes to display (from selected version or local recipe)
+    private var displayNotes: String? {
+        if let selected = selectedVersion, !selected.isCurrent {
+            if let versionRecipe = selected.recipe {
+                return versionRecipe.notes
+            }
+            if let recipeData = selected.recipeData {
+                return recipeData["notes"] as? String
+            }
+        }
+        return recipe.notes
     }
 
     /// The image filename to display (from selected version or base recipe)
@@ -257,12 +358,12 @@ struct RecipeDetailView: View {
                     )
 
                     // Start Cooking Button
-                    if !recipe.instructions.isEmpty {
+                    if !displayInstructions.isEmpty {
                         startCookingButton
                     }
 
                     // Ingredients Section
-                    if let ingredients = recipe.ingredients, !ingredients.isEmpty {
+                    if let ingredients = displayIngredients, !ingredients.isEmpty {
                         RecipeIngredientsSection(
                             recipe: recipe,
                             ingredients: ingredients,
@@ -271,12 +372,12 @@ struct RecipeDetailView: View {
                     }
 
                     // Instructions Section
-                    if !recipe.instructions.isEmpty {
+                    if !displayInstructions.isEmpty {
                         RecipeInstructionsSection(instructions: displayInstructions)
                     }
 
                     // Notes Section
-                    if let notes = recipe.notes {
+                    if let notes = displayNotes {
                         notesSection(notes)
                     }
 
@@ -314,15 +415,11 @@ struct RecipeDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button {
-                        // Check if user is authenticated before sharing
-                        if firebaseAuth.isAuthenticated {
-                            showCloudKitShare = true
-                        } else {
-                            showSignInPrompt = true
-                        }
+                        handleShareTapped()
                     } label: {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }
+                    .disabled(recipe.isSampleRecipe || recipe.isHeritageRecipe)
 
                     Button {
                         handleEditTapped()
@@ -388,7 +485,7 @@ struct RecipeDetailView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This action cannot be undone.")
+            Text("You'll have 5 seconds to undo this action.")
         }
         .sheet(isPresented: $showEditSheet) {
             if let recipeToEdit = recipeToEdit {
@@ -526,12 +623,36 @@ struct RecipeDetailView: View {
             // Load versions when view appears
             await versionViewModel.loadVersions(for: recipe, context: modelContext)
 
+            // DEBUG: Log version loading results
+            Log.info("Version loading complete", category: .ui, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "title": recipe.title,
+                "versionsCount": versionViewModel.versions.count,
+                "hasMultipleVersions": versionViewModel.versions.count > 1,
+                "error": versionViewModel.error ?? "none"
+            ])
+
             // Mark notifications as read for this recipe
             do {
                 try await notificationService.markAllAsRead(for: recipe.id)
                 Log.info("Marked all notifications as read for recipe", category: .ui, metadata: ["title": recipe.title])
             } catch {
                 Log.error("Failed to mark notifications as read", category: .firebase, metadata: ["error": error.localizedDescription])
+            }
+        }
+        .onChange(of: notificationService.unreadCount(for: recipe.id)) { oldValue, newValue in
+            // Reload versions when new notifications arrive while view is open
+            if newValue > 0 {
+                Log.info("New notification arrived while recipe open - reloading versions", category: .ui, metadata: [
+                    "recipeId": recipe.id.uuidString,
+                    "unreadCount": newValue
+                ])
+                Task {
+                    await versionViewModel.loadVersions(for: recipe, context: modelContext)
+
+                    // Mark new notifications as read
+                    try? await notificationService.markAllAsRead(for: recipe.id)
+                }
             }
         }
         .onChange(of: selectedVersion) { oldValue, newValue in
@@ -551,6 +672,7 @@ struct RecipeDetailView: View {
             front: {
                 AsyncRecipeImage(
                     imageFileName: displayImageFileName,
+                    firebaseImageURL: recipe.firebaseImageURL,
                     placeholder: recipe.sourceType?.iconName ?? "fork.knife"
                 )
             },
@@ -787,11 +909,11 @@ struct RecipeDetailView: View {
             // Servings with dropdown
             servingsMetadataItem
 
-            if let prepTime = recipe.prepTime {
+            if let prepTime = displayPrepTime {
                 metadataItem(icon: "clock.fill", label: "Prep", value: prepTime)
             }
 
-            if let cookTime = recipe.cookTime {
+            if let cookTime = displayCookTime {
                 metadataItem(icon: "flame.fill", label: "Cook", value: cookTime)
             }
         }
@@ -877,7 +999,7 @@ struct RecipeDetailView: View {
     }
 
     private func servingUnitText(_ count: Int) -> String {
-        if let servings = recipe.servings {
+        if let servings = displayServings {
             // Try to extract unit from original servings string
             let lowercased = servings.lowercased()
             if lowercased.contains("cookie") {
@@ -989,7 +1111,7 @@ struct RecipeDetailView: View {
     }
 
     private var scaledServings: String {
-        guard let servings = recipe.servings else { return "1" }
+        guard let servings = displayServings else { return "1" }
 
         // Try to extract a number from servings string
         let numbers = servings.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
@@ -1471,6 +1593,32 @@ struct RecipeDetailView: View {
 
     // MARK: - Actions
 
+    private func handleShareTapped() {
+        // Check if recipe can be shared
+        if recipe.isSampleRecipe {
+            toastManager.info(
+                title: "Sample recipes can't be shared",
+                message: "Everyone already has this recipe"
+            )
+            return
+        }
+
+        if recipe.isHeritageRecipe {
+            toastManager.info(
+                title: "Heritage recipes can't be shared",
+                message: "All users receive these automatically"
+            )
+            return
+        }
+
+        // Check if user is authenticated before sharing
+        if firebaseAuth.isAuthenticated {
+            showCloudKitShare = true
+        } else {
+            showSignInPrompt = true
+        }
+    }
+
     private func shareRecipe(as format: RecipeExportService.ShareFormat) {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first else {
@@ -1621,64 +1769,48 @@ struct RecipeDetailView: View {
         isDeleting = true
 
         // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.warning)
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
 
-        // Store title and ID before deletion
-        let recipeTitle = recipe.title
-        let recipeId = recipe.id.uuidString
-
-        // Track analytics before deletion
-        analytics.trackRecipeDeleted(recipeTitle: recipeTitle)
-
-        // Delete from context
-        modelContext.delete(recipe)
-
-        do {
-            try modelContext.save()
-
-            // Delete from Firebase if active
-            if backendConfig.isFirebaseActive {
-                Task {
-                    do {
-                        // Delete recipe document from Firestore
-                        let db = FirebaseFirestore.Firestore.firestore()
-                        guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else { return }
-                        try await db.collection("users/\(userId)/recipes").document(recipeId).delete()
-                        Log.info("Recipe deleted from Firestore", category: .firebase, metadata: ["recipeId": recipeId])
-
-                        // Delete recipe image from Firebase Storage
-                        if let recipeUUID = UUID(uuidString: recipeId) {
-                            do {
-                                try await firebaseSync.deleteImage(for: recipeUUID)
-                                Log.info("Recipe image deleted from Firebase Storage", category: .firebase, metadata: ["recipeId": recipeId])
-                            } catch {
-                                Log.warning("Failed to delete image from Firebase Storage", category: .firebase, metadata: ["error": error.localizedDescription])
-                            }
-                        }
-                    } catch {
-                        Log.warning("Failed to delete recipe from Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
-                        // Don't fail the deletion - local deletion succeeded
-                    }
+        // Delete from Firebase if active
+        if backendConfig.isFirebaseActive {
+            Task {
+                do {
+                    try await firebaseSync.deleteRecipe(recipe.id)
+                    Log.info("Recipe deleted from Firebase", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
+                } catch {
+                    Log.error("Failed to delete recipe from Firebase", category: .firebase, error: error, metadata: ["recipeId": recipe.id.uuidString])
                 }
             }
+        }
 
-            // Success haptic
-            let successGenerator = UINotificationFeedbackGenerator()
-            successGenerator.notificationOccurred(.success)
+        // Use UndoService for soft delete with undo capability
+        let undoService = ServiceContainer.shared.resolve(UndoService.self)
+        undoService.deleteRecipe(recipe, context: modelContext)
 
-            toastManager.success(title: "Recipe deleted")
+        // Show undo toast with countdown
+        toastManager.showUndoToast(for: undoService.pendingUndos.last!) {
+            // Undo action
+            if let undoItem = undoService.pendingUndos.last {
+                undoService.undoDelete(undoItem)
 
-            // TODO: Add VoiceOver announcement once AccessibilityAnnouncementService is added to Xcode project
-            // AccessibilityAnnouncementService.shared.announceRecipeDeleted(title: recipeTitle)
+                // Success haptic for undo
+                let successGenerator = UINotificationFeedbackGenerator()
+                successGenerator.notificationOccurred(.success)
 
+                toastManager.success(title: "Recipe restored")
+
+                // Update UI state
+                isDeleting = false
+            }
+        }
+
+        // Track analytics
+        analytics.trackRecipeDeleted(recipeTitle: recipe.title)
+
+        // Dismiss view after short delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             dismiss()
-        } catch {
-            isDeleting = false
-            toastManager.error(
-                title: "Failed to delete recipe",
-                message: error.localizedDescription
-            )
         }
     }
 

@@ -46,10 +46,19 @@ struct RecipeListToolbarActions: View {
                 Button {
                     onImportRecipe()
                 } label: {
-                    Label("Import from URL", systemImage: "link")
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Recipe Website Link")
+                            Text("Paste URL from recipe website")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "link")
+                    }
                 }
-                .accessibilityLabel("Import from URL")
-                .accessibilityHint("Import a recipe from a website URL")
+                .accessibilityLabel("Import from recipe website")
+                .accessibilityHint("Paste a URL from a recipe website like AllRecipes or NYT Cooking")
 
                 Button {
                     onBulkImport()
@@ -62,10 +71,19 @@ struct RecipeListToolbarActions: View {
                 Button {
                     onCookbookScanner()
                 } label: {
-                    Label("Scan Cookbook", systemImage: "book.pages")
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Scan Cookbook Page")
+                            Text("Camera, PDF, or photo from camera roll")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "book.pages")
+                    }
                 }
-                .accessibilityLabel("Scan Cookbook")
-                .accessibilityHint("Scan a recipe from a cookbook page")
+                .accessibilityLabel("Scan cookbook page with camera or photo")
+                .accessibilityHint("Scan recipe images using camera, PDF, or photos from camera roll")
 
                 Button {
                     onNarratedVideoImport()
@@ -73,7 +91,7 @@ struct RecipeListToolbarActions: View {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Narrated Video")
-                            Text("With spoken instructions")
+                            Text("From camera roll • Spoken instructions")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -82,8 +100,8 @@ struct RecipeListToolbarActions: View {
                             .foregroundStyle(.blue)
                     }
                 }
-                .accessibilityLabel("Import recipe from narrated cooking video")
-                .accessibilityHint("Extract recipes from videos with spoken instructions")
+                .accessibilityLabel("Import recipe from narrated video in camera roll")
+                .accessibilityHint("Select a video from camera roll with spoken cooking instructions")
 
                 Button {
                     onSilentVideoImport()
@@ -91,7 +109,7 @@ struct RecipeListToolbarActions: View {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Silent Video (ASMR)")
-                            Text("Visual cooking steps")
+                            Text("From camera roll • Visual cooking only")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -100,8 +118,8 @@ struct RecipeListToolbarActions: View {
                             .foregroundStyle(.purple)
                     }
                 }
-                .accessibilityLabel("Import recipe from silent cooking video")
-                .accessibilityHint("Extract recipes from silent videos using visual analysis")
+                .accessibilityLabel("Import recipe from silent video in camera roll")
+                .accessibilityHint("Select a silent ASMR video from camera roll to extract recipe visually")
 
                 Divider()
 

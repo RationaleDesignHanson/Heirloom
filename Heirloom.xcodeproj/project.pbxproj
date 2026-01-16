@@ -102,6 +102,7 @@
 		C513D85F2F163B0500BFCF7D /* RecipeExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D85D2F163B0500BFCF7D /* RecipeExportView.swift */; };
 		C513D8602F163B0500BFCF7D /* TrialExpiredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D85E2F163B0500BFCF7D /* TrialExpiredView.swift */; };
 		C513E3B02F168E8C00BFCF7D /* ButtonEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513E3AF2F168E8C00BFCF7D /* ButtonEffects.swift */; };
+		C523BEF02F19AD1B00080AEB /* HeritageRecipeCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = C523BEEF2F19AD1B00080AEB /* HeritageRecipeCache.swift */; };
 		C568873C2F057B02006EA0B1 /* HeirloomShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */; };
 		C568877B2F06B4AE006EA0B1 /* CRDTMergeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */; };
@@ -411,6 +412,7 @@
 		C513D85D2F163B0500BFCF7D /* RecipeExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeExportView.swift; sourceTree = "<group>"; };
 		C513D85E2F163B0500BFCF7D /* TrialExpiredView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialExpiredView.swift; sourceTree = "<group>"; };
 		C513E3AF2F168E8C00BFCF7D /* ButtonEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonEffects.swift; sourceTree = "<group>"; };
+		C523BEEF2F19AD1B00080AEB /* HeritageRecipeCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageRecipeCache.swift; sourceTree = "<group>"; };
 		C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HeirloomShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FirebaseSyncService+CRDT.swift"; sourceTree = "<group>"; };
 		C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRDTMergeEngine.swift; sourceTree = "<group>"; };
@@ -1050,6 +1052,7 @@
 		C513D8582F163AE700BFCF7D /* Heritage */ = {
 			isa = PBXGroup;
 			children = (
+				C523BEEF2F19AD1B00080AEB /* HeritageRecipeCache.swift */,
 				C5A7C0462F187FB400D99B07 /* HeritageOnDemandService.swift */,
 				C513D8572F163AE700BFCF7D /* HeritageUnlockTracker.swift */,
 			);
@@ -2218,6 +2221,7 @@
 				C583164B2F119E910096478E /* ClaudeRecipeStructurer.swift in Sources */,
 				C583164C2F119E910096478E /* LocalRecipeSimilarityService.swift in Sources */,
 				C583164D2F119E910096478E /* VideoRecipeProcessor.swift in Sources */,
+				C523BEF02F19AD1B00080AEB /* HeritageRecipeCache.swift in Sources */,
 				C583164E2F119E910096478E /* WebRecipeSearchService.swift in Sources */,
 				C583164F2F119E910096478E /* WhisperKitTranscriptionService.swift in Sources */,
 				C58316502F119E910096478E /* FrameAnalysisService.swift in Sources */,

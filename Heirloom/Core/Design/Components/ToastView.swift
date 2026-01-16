@@ -33,12 +33,14 @@ struct Toast: Identifiable, Equatable {
     let title: String
     let message: String?
     let duration: TimeInterval
+    let undoAction: (() -> Void)?
 
-    init(type: ToastType, title: String, message: String? = nil, duration: TimeInterval = 3.0) {
+    init(type: ToastType, title: String, message: String? = nil, duration: TimeInterval = 3.0, undoAction: (() -> Void)? = nil) {
         self.type = type
         self.title = title
         self.message = message
         self.duration = duration
+        self.undoAction = undoAction
     }
 
     static func == (lhs: Toast, rhs: Toast) -> Bool {
@@ -53,6 +55,14 @@ struct ToastView: View {
 
     @State private var offset: CGFloat = -100
     @State private var opacity: Double = 0
+    @State private var remainingTime: TimeInterval
+    @State private var timer: Timer?
+
+    init(toast: Toast, onDismiss: @escaping () -> Void) {
+        self.toast = toast
+        self.onDismiss = onDismiss
+        self._remainingTime = State(initialValue: toast.duration)
+    }
 
     var body: some View {
         HStack(spacing: HeirloomSpacing.md) {
@@ -75,12 +85,35 @@ struct ToastView: View {
 
             Spacer()
 
-            Button {
-                dismissToast()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
+            // Show undo button with countdown if undo action exists
+            if toast.undoAction != nil {
+                Button {
+                    handleUndo()
+                } label: {
+                    HStack(spacing: 6) {
+                        Text("Undo")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(.white)
+
+                        Text("\(Int(remainingTime))")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(.white.opacity(0.8))
+                            .monospacedDigit()
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(HeirloomColors.tomato)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+            } else {
+                Button {
+                    dismissToast()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
+                }
             }
         }
         .padding(HeirloomSpacing.md)
@@ -100,6 +133,17 @@ struct ToastView: View {
         .onAppear {
             showToast()
         }
+        .onDisappear {
+            timer?.invalidate()
+            timer = nil
+        }
+    }
+
+    private func handleUndo() {
+        timer?.invalidate()
+        timer = nil
+        toast.undoAction?()
+        dismissToast()
     }
 
     private func showToast() {
@@ -108,8 +152,21 @@ struct ToastView: View {
             opacity = 1
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + toast.duration) {
-            dismissToast()
+        // If undo action exists, start countdown timer
+        if toast.undoAction != nil {
+            timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+                remainingTime -= 0.1
+                if remainingTime <= 0 {
+                    timer?.invalidate()
+                    timer = nil
+                    dismissToast()
+                }
+            }
+        } else {
+            // Standard dismiss after duration
+            DispatchQueue.main.asyncAfter(deadline: .now() + toast.duration) {
+                dismissToast()
+            }
         }
     }
 

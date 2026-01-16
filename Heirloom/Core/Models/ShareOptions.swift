@@ -99,9 +99,9 @@ extension ShareOptions {
         var description: String {
             switch self {
             case .heirloom:
-                return "Recipient can modify the recipe. You'll be able to see their changes and choose which version to use. Perfect for family recipes that evolve."
+                return "Share with history and see variations as your friends make edits"
             case .generic:
-                return "Recipient gets a one-time copy. No modification tracking or version history."
+                return "Share with no history—you won't see any edits they make"
             }
         }
 

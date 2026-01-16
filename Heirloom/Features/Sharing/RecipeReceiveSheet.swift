@@ -173,6 +173,39 @@ struct RecipeReceiveSheet: View {
 
     private func recipePreviewCard(preview: RecipePreview) -> some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            // Recipe thumbnail
+            if let imageURLString = preview.imageURL, let imageURL = URL(string: imageURLString) {
+                AsyncImage(url: imageURL) { phase in
+                    switch phase {
+                    case .empty:
+                        Rectangle()
+                            .fill(HeirloomColors.warmGray.opacity(0.2))
+                            .aspectRatio(4/3, contentMode: .fill)
+                            .overlay {
+                                ProgressView()
+                            }
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(maxHeight: 200)
+                            .clipped()
+                    case .failure:
+                        Rectangle()
+                            .fill(HeirloomColors.warmGray.opacity(0.2))
+                            .aspectRatio(4/3, contentMode: .fill)
+                            .overlay {
+                                Image(systemName: "photo")
+                                    .font(.largeTitle)
+                                    .foregroundStyle(HeirloomColors.warmGray)
+                            }
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+                .cornerRadius(12)
+            }
+
             Text(preview.title)
                 .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.primaryText)
@@ -294,7 +327,8 @@ struct RecipeReceiveSheet: View {
                 instructionCount: (metadata["instructionCount"] as? Int) ?? 0,
                 sharerName: metadata["ownerName"] as? String,
                 personalMessage: metadata["personalMessage"] as? String,
-                generation: metadata["generation"] as? Int
+                generation: metadata["generation"] as? Int,
+                imageURL: metadata["firebaseImageURL"] as? String
             )
 
             await MainActor.run {
@@ -312,7 +346,8 @@ struct RecipeReceiveSheet: View {
                 instructionCount: 0,
                 sharerName: "Someone",
                 personalMessage: nil,
-                generation: nil
+                generation: nil,
+                imageURL: nil
             )
 
             await MainActor.run {
@@ -414,6 +449,7 @@ struct RecipePreview {
     let sharerName: String?
     let personalMessage: String?
     let generation: Int?
+    let imageURL: String? // Firebase image URL for thumbnail
 }
 
 // MARK: - Preview

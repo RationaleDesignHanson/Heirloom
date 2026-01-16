@@ -142,6 +142,12 @@ final class SubscriptionManager {
 
         isRefreshing = true
 
+        // CRITICAL: Reload trial expiry date from UserDefaults (for debug UI)
+        if force {
+            trialExpiryDate = UserDefaults.standard.object(forKey: Keys.trialExpiryDate) as? Date
+            subscriptionExpiryDate = UserDefaults.standard.object(forKey: Keys.subscriptionExpiryDate) as? Date
+        }
+
         logger.log("Refreshing subscription status...", category: .store, level: .info, metadata: nil)
 
         // Check for lifetime purchase first

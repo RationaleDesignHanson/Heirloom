@@ -22,10 +22,26 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         error = nil
 
         do {
-            // 1. Check if this recipe has lineage tracking
-            guard let lineage = try? await fetchLineage(for: recipe.id) else {
+            // 1. First check local SwiftData for lineage
+            let recipeId = recipe.id
+            let descriptor = FetchDescriptor<RecipeLineage>(
+                predicate: #Predicate { $0.currentRecipeId == recipeId }
+            )
+            let localLineage = try? context.fetch(descriptor).first
+
+            if localLineage != nil {
+                Log.debug("Found lineage in local SwiftData", category: .firebase)
+            }
+
+            // 2. If no local lineage, try Firebase
+            var lineage = localLineage
+            if lineage == nil {
+                lineage = try? await fetchLineage(for: recipe.id)
+            }
+
+            guard let lineage = lineage else {
                 // No lineage tracking - this is a standalone recipe
-                Log.debug("No lineage found, treating as standalone recipe", category: .firebase)
+                Log.debug("No lineage found (checked local SwiftData and Firebase)", category: .firebase)
                 let currentVersion = RecipeLineageVersion(
                     recipe: recipe,
                     generation: 0,
@@ -87,22 +103,40 @@ class RecipeVersionSelectorViewModel: ObservableObject {
     // MARK: - Private Helpers
 
     private func fetchLineage(for recipeId: UUID) async throws -> RecipeLineage? {
-        guard Auth.auth().currentUser?.uid != nil else { return nil }
+        guard let userId = Auth.auth().currentUser?.uid else { return nil }
 
         Log.debug("Fetching lineage for recipe", category: .firebase, metadata: ["recipeId": recipeId.uuidString])
 
-        // Query Firebase for lineage
-        let snapshot = try await db.collection("lineages")
+        // First try: User's own lineages collection
+        let userSnapshot = try await db.collection("users/\(userId)/lineages")
             .whereField("currentRecipeId", isEqualTo: recipeId.uuidString)
             .limit(to: 1)
             .getDocuments()
 
-        guard let doc = snapshot.documents.first else {
-            Log.debug("No lineage document found in Firebase", category: .firebase)
+        var doc = userSnapshot.documents.first
+
+        if doc != nil {
+            Log.debug("Found lineage in user's collection", category: .firebase)
+        } else {
+            // Second try: Global lineages index
+            Log.debug("Checking global lineages collection", category: .firebase)
+            let globalSnapshot = try await db.collection("lineages")
+                .whereField("currentRecipeId", isEqualTo: recipeId.uuidString)
+                .limit(to: 1)
+                .getDocuments()
+            doc = globalSnapshot.documents.first
+
+            if doc != nil {
+                Log.debug("Found lineage in global collection", category: .firebase)
+            }
+        }
+
+        guard let lineageDoc = doc else {
+            Log.debug("No lineage document found in Firebase (checked both user and global collections)", category: .firebase)
             return nil
         }
 
-        let data = doc.data()
+        let data = lineageDoc.data()
         Log.debug("Found lineage for recipe", category: .firebase, metadata: ["generation": data["generation"] as? Int ?? 0])
 
         // Create RecipeLineage from Firebase data
@@ -113,7 +147,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             rootOwnerId: data["rootOwnerId"] as? String ?? "",
             generation: data["generation"] as? Int ?? 0
         )
-        lineage.firebaseId = doc.documentID
+        lineage.firebaseId = lineageDoc.documentID
         lineage.sharedByName = data["sharedByName"] as? String
 
         return lineage
@@ -123,32 +157,91 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         rootRecipeId: UUID,
         currentRecipeId: UUID
     ) async throws -> [RecipeLineageVersion] {
-        guard Auth.auth().currentUser?.uid != nil else { return [] }
+        guard let userId = Auth.auth().currentUser?.uid else { return [] }
 
-        Log.debug("Fetching versions for root recipe", category: .firebase, metadata: ["rootRecipeId": rootRecipeId.uuidString])
+        Log.debug("Fetching versions for root recipe", category: .firebase, metadata: [
+            "rootRecipeId": rootRecipeId.uuidString,
+            "currentRecipeId": currentRecipeId.uuidString,
+            "userId": userId
+        ])
 
-        // Query all lineages with this root
-        let snapshot = try await db.collection("lineages")
+        // Try both global lineages and user-specific lineages
+        // First query: Global lineages collection
+        let globalSnapshot = try await db.collection("lineages")
             .whereField("rootRecipeId", isEqualTo: rootRecipeId.uuidString)
             .getDocuments()
 
+        Log.debug("Global lineages query result", category: .firebase, metadata: [
+            "documentCount": globalSnapshot.documents.count
+        ])
+
+        // Second query: Check if root owner has their lineage in users collection
+        // We need to get the rootOwnerId first from our own lineage
+        let ownLineageSnapshot = try await db.collection("users/\(userId)/lineages")
+            .whereField("currentRecipeId", isEqualTo: currentRecipeId.uuidString)
+            .limit(to: 1)
+            .getDocuments()
+
+        var rootOwnerId: String? = nil
+        if let ownDoc = ownLineageSnapshot.documents.first {
+            rootOwnerId = ownDoc.data()["rootOwnerId"] as? String
+            Log.debug("Found own lineage", category: .firebase, metadata: [
+                "rootOwnerId": rootOwnerId ?? "nil",
+                "generation": ownDoc.data()["generation"] as? Int ?? 0
+            ])
+        }
+
+        // Query root owner's lineages collection if we have their ID
+        var rootOwnerSnapshot: QuerySnapshot? = nil
+        if let rootOwnerId = rootOwnerId {
+            rootOwnerSnapshot = try? await db.collection("users/\(rootOwnerId)/lineages")
+                .whereField("currentRecipeId", isEqualTo: rootRecipeId.uuidString)
+                .limit(to: 1)
+                .getDocuments()
+
+            Log.debug("Root owner lineages query result", category: .firebase, metadata: [
+                "documentCount": rootOwnerSnapshot?.documents.count ?? 0
+            ])
+        }
+
         var versions: [RecipeLineageVersion] = []
 
-        for doc in snapshot.documents {
+        // Process global lineages
+        for doc in globalSnapshot.documents {
             let data = doc.data()
             let recipeIdString = data["currentRecipeId"] as? String ?? ""
-
-            guard let recipeId = UUID(uuidString: recipeIdString),
-                  recipeId != currentRecipeId else { continue }
-
             let ownerId = data["ownerId"] as? String ?? ""
             let generation = data["generation"] as? Int ?? 0
+
+            // FIXED: Use ownerId filtering instead of recipeId to handle immutable IDs
+            // When immutable IDs are used, multiple devices can have recipes with the same ID
+            // but different owners. We want to include all other owners' versions.
+            guard let recipeId = UUID(uuidString: recipeIdString) else { continue }
+
+            // Skip our own lineage (but include all other owners, even with same recipe ID)
+            guard ownerId != userId else {
+                Log.debug("Skipping own lineage", category: .firebase, metadata: [
+                    "ownerId": ownerId,
+                    "generation": generation
+                ])
+                continue
+            }
+
+            Log.debug("Processing global lineage", category: .firebase, metadata: [
+                "ownerId": ownerId,
+                "recipeId": recipeId.uuidString,
+                "generation": generation
+            ])
 
             // Fetch the actual recipe data from Firebase
             if let recipeData = try? await fetchRecipeFromFirebase(
                 ownerId: ownerId,
                 recipeId: recipeId
             ) {
+                // Extract ingredients for logging
+                let ingredientsData = recipeData["ingredients"] as? [[String: Any]] ?? []
+                let ingredientTexts = ingredientsData.compactMap { $0["originalText"] as? String }
+
                 let version = RecipeLineageVersion(
                     recipeData: recipeData,
                     generation: generation,
@@ -158,6 +251,79 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                     isCurrent: false
                 )
                 versions.append(version)
+                Log.debug("Added version from global lineage", category: .firebase, metadata: [
+                    "generation": generation,
+                    "ownerId": ownerId,
+                    "ingredientCount": ingredientTexts.count,
+                    "ingredients": ingredientTexts.joined(separator: " | ")
+                ])
+            } else {
+                Log.warning("Failed to fetch recipe data for version", category: .firebase, metadata: [
+                    "ownerId": ownerId,
+                    "recipeId": recipeId.uuidString
+                ])
+            }
+        }
+
+        // Process root owner's lineage if found
+        if let rootOwnerSnapshot = rootOwnerSnapshot {
+            for doc in rootOwnerSnapshot.documents {
+                let data = doc.data()
+                let recipeIdString = data["currentRecipeId"] as? String ?? ""
+                let ownerId = data["ownerId"] as? String ?? ""
+                let generation = data["generation"] as? Int ?? 0
+
+                // FIXED: Use ownerId filtering to handle immutable IDs
+                guard let recipeId = UUID(uuidString: recipeIdString) else { continue }
+
+                // Skip if this is our own lineage (shouldn't happen here since we're querying root owner)
+                guard ownerId != userId else {
+                    Log.debug("Skipping own lineage in root owner query", category: .firebase, metadata: [
+                        "ownerId": ownerId,
+                        "generation": generation
+                    ])
+                    continue
+                }
+
+                // Only include if this is the root recipe (generation 0)
+                guard recipeId == rootRecipeId else {
+                    Log.debug("Skipping non-root recipe", category: .firebase, metadata: [
+                        "recipeId": recipeId.uuidString,
+                        "rootRecipeId": rootRecipeId.uuidString
+                    ])
+                    continue
+                }
+
+                Log.debug("Processing root owner lineage", category: .firebase, metadata: [
+                    "ownerId": ownerId,
+                    "recipeId": recipeId.uuidString,
+                    "generation": generation
+                ])
+
+                // Fetch the actual recipe data from Firebase
+                if let recipeData = try? await fetchRecipeFromFirebase(
+                    ownerId: ownerId,
+                    recipeId: recipeId
+                ) {
+                    let version = RecipeLineageVersion(
+                        recipeData: recipeData,
+                        generation: generation,
+                        modifiedBy: ownerId,
+                        modifiedByName: data["sharedByName"] as? String,
+                        modifiedAt: (data["lastModified"] as? Timestamp)?.dateValue() ?? Date(),
+                        isCurrent: false
+                    )
+                    versions.append(version)
+                    Log.debug("Added root owner version", category: .firebase, metadata: [
+                        "generation": generation,
+                        "ownerId": ownerId
+                    ])
+                } else {
+                    Log.warning("Failed to fetch root recipe data", category: .firebase, metadata: [
+                        "ownerId": ownerId,
+                        "recipeId": recipeId.uuidString
+                    ])
+                }
             }
         }
 
@@ -169,9 +335,11 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         ownerId: String,
         recipeId: UUID
     ) async throws -> [String: Any] {
+        // CRITICAL: Use .server source to get fresh data, not stale cache
+        // This ensures we see the latest edits from other devices
         let doc = try await db.collection("users/\(ownerId)/recipes")
             .document(recipeId.uuidString)
-            .getDocument()
+            .getDocument(source: .server)
 
         guard doc.exists, var data = doc.data() else {
             throw NSError(domain: "RecipeVersions", code: 404, userInfo: [
@@ -179,11 +347,11 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             ])
         }
 
-        // Fetch ingredients subcollection
+        // Fetch ingredients subcollection (also from server, not cache)
         let ingredientsSnapshot = try await db.collection("users/\(ownerId)/recipes")
             .document(recipeId.uuidString)
             .collection("ingredients")
-            .getDocuments()
+            .getDocuments(source: .server)
 
         let ingredients = ingredientsSnapshot.documents.map { $0.data() }
         if !ingredients.isEmpty {

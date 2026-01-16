@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import FirebaseAuth
 
 /// Complete sheet for sharing a recipe with customization options via Firebase
 /// Redesigned for clarity: Share type and button prominent, advanced settings collapsed
@@ -17,6 +18,7 @@ struct RecipeShareSheet: View {
     @State private var errorMessage: String?
     @State private var showSuccessMessage = false
     @State private var showAdvancedSettings = false
+    @State private var versionCount: Int = 1 // Number of versions available (1 = original only)
 
     var body: some View {
         NavigationStack {
@@ -83,21 +85,15 @@ struct RecipeShareSheet: View {
                 .foregroundStyle(HeirloomColors.primaryText)
                 .padding(.horizontal)
 
-            HStack(spacing: 12) {
-                // Heirloom option
-                ShareTypeCard(
-                    type: .heirloom,
-                    isSelected: options.shareType == .heirloom,
-                    action: { options.shareType = .heirloom }
-                )
-
-                // Generic option
-                ShareTypeCard(
-                    type: .generic,
-                    isSelected: options.shareType == .generic,
-                    action: { options.shareType = .generic }
-                )
-            }
+            // SIMPLIFIED: Only heirloom (editable) shares allowed
+            // Generic (frozen/read-only) shares removed per product decision
+            // This encourages collaboration and simplifies UX
+            ShareTypeCard(
+                type: .heirloom,
+                isSelected: true, // Always selected
+                versionCount: versionCount,
+                action: {} // No action needed - always heirloom
+            )
             .padding(.horizontal)
         }
     }
@@ -310,8 +306,63 @@ struct RecipeShareSheet: View {
     // MARK: - Actions
 
     private func setupDefaultOptions() {
-        // Pre-fill sharer name from user defaults or Firebase auth
-        options.sharerName = "You"
+        // CRITICAL: Always use heirloom share type (generic/frozen shares disabled)
+        options.shareType = .heirloom
+
+        // Load user display name and version count
+        Task {
+            await loadUserDisplayName()
+            await loadVersionCount()
+        }
+    }
+
+    private func loadUserDisplayName() async {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            await MainActor.run {
+                options.sharerName = "You"
+            }
+            return
+        }
+
+        // Try to get display name from Firebase User Profile Service
+        let userProfileService = ServiceContainer.shared.resolve(FirebaseUserProfileService.self)
+
+        do {
+            if let displayName = try await userProfileService.fetchDisplayName(for: userId) {
+                await MainActor.run {
+                    options.sharerName = displayName
+                    Log.debug("Loaded user display name for share sheet", category: .firebase, metadata: [
+                        "displayName": displayName
+                    ])
+                }
+            } else {
+                // Fallback to "You" if no display name found
+                await MainActor.run {
+                    options.sharerName = "You"
+                }
+            }
+        } catch {
+            Log.warning("Failed to load user display name, using 'You'", category: .firebase, metadata: [
+                "error": error.localizedDescription
+            ])
+            await MainActor.run {
+                options.sharerName = "You"
+            }
+        }
+    }
+
+    private func loadVersionCount() async {
+        // Count how many versions exist for this recipe
+        let viewModel = RecipeVersionSelectorViewModel()
+        await viewModel.loadVersions(for: recipe, context: modelContext)
+
+        await MainActor.run {
+            versionCount = viewModel.versions.count
+            Log.debug("Loaded version count for share sheet", category: .firebase, metadata: [
+                "recipeTitle": recipe.title,
+                "versionCount": versionCount
+            ])
+        }
     }
 
     private func createShare() {
@@ -477,6 +528,7 @@ struct RecipeShareSheet: View {
 struct ShareTypeCard: View {
     let type: ShareOptions.ShareType
     let isSelected: Bool
+    let versionCount: Int // Number of versions available (for Heirloom badge)
     let action: () -> Void
 
     private var selectedColor: Color {
@@ -484,41 +536,59 @@ struct ShareTypeCard: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            // Icon
-            Image(systemName: type.iconName)
-                .font(.system(size: 32, weight: .medium))
-                .foregroundStyle(isSelected ? .white : selectedColor)
+        Button(action: action) {
+            VStack(spacing: 12) {
+                // Icon
+                Image(systemName: type.iconName)
+                    .font(.system(size: 32, weight: .medium))
+                    .foregroundStyle(isSelected ? .white : selectedColor)
 
-            // Title
-            Text(type.displayName)
-                .font(HeirloomFonts.bodyBold)
-                .foregroundStyle(isSelected ? .white : HeirloomColors.primaryText)
+                // Title
+                Text(type.displayName)
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(isSelected ? .white : HeirloomColors.primaryText)
 
-            // Badge
-            if type == .heirloom {
-                Text("Recommended")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(isSelected ? HeirloomColors.tomato : .white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(isSelected ? .white : HeirloomColors.tomato)
-                    .clipShape(Capsule())
+                // Description
+                Text(type.description)
+                    .font(.system(size: 11))
+                    .foregroundStyle(isSelected ? .white.opacity(0.9) : HeirloomColors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Badge (always present for consistent height)
+                Group {
+                    if type == .heirloom {
+                        Text("\(versionCount) \(versionCount == 1 ? "version" : "versions")")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(isSelected ? HeirloomColors.tomato : .white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(isSelected ? .white : HeirloomColors.tomato)
+                            .clipShape(Capsule())
+                    } else {
+                        // Generic badge - distinct visual identity
+                        Text("Frozen")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(isSelected ? HeirloomColors.familyGreen : .white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(isSelected ? .white : HeirloomColors.familyGreen)
+                            .clipShape(Capsule())
+                    }
+                }
             }
+            .frame(maxWidth: .infinity, minHeight: 180)
+            .padding(.vertical, 20)
+            .padding(.horizontal, 12)
+            .background(isSelected ? selectedColor : Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(isSelected ? selectedColor : Color.clear, lineWidth: 2)
+            )
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 28)
-        .padding(.horizontal, 12)
-        .background(isSelected ? selectedColor : Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(isSelected ? selectedColor : Color.clear, lineWidth: 2)
-        )
-        .contentShape(Rectangle())
-        .onTapGesture {
-            action()
-        }
+        .buttonStyle(.plain)
     }
 }
 

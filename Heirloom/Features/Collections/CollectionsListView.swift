@@ -140,6 +140,145 @@ struct CollectionsListView: View {
         }
     }
 
+    // MARK: - Heritage Schedule Metadata Helper
+
+    /// Download Heritage recipes using the EXACT same persistence logic as autoRevealBlindBoxesIfNeeded (which works)
+    /// This is the shared code path for both blind box unlock and recovery
+    private func downloadHeritageRecipesWithPersistence() async {
+        // Show loading
+        await MainActor.run {
+            isDownloadingRecipes = true
+            downloadProgress = "Preparing your heritage recipes..."
+        }
+
+        do {
+            guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+                  authService.isAuthenticated else {
+                await MainActor.run {
+                    isDownloadingRecipes = false
+                    Log.warning("User not authenticated, cannot download heritage recipes", category: .heritage)
+                }
+                return
+            }
+
+            // Initialize on-demand service
+            let onDemandService = HeritageOnDemandService(
+                modelContext: modelContext,
+                firebaseAuth: authService
+            )
+
+            await MainActor.run {
+                downloadProgress = "Loading your recipe collection..."
+            }
+
+            // Get user's schedule
+            let schedule = try await onDemandService.getUserSchedule()
+
+            Log.info("Retrieved user schedule", category: .heritage, metadata: [
+                "scheduleId": schedule.scheduleId,
+                "revealedCollections": schedule.revealedCollections.joined(separator: ", ")
+            ])
+
+            await MainActor.run {
+                downloadProgress = "Downloading recipes..."
+            }
+
+            // Download Day 1 recipes
+            let recipes = try await onDemandService.downloadRecipesForDay(day: 1, schedule: schedule)
+
+            Log.info("Downloaded heritage recipes", category: .heritage, metadata: [
+                "recipeCount": recipes.count
+            ])
+            DeviceLogger.shared.log("✅ [Heritage] Downloaded \(recipes.count) recipes from blind box reveal")
+
+            // CRITICAL: Mark recipes as unlocked in HeritageUnlockTracker
+            // This ensures the UI shows them as unlocked
+            await MainActor.run {
+                let tracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
+                for recipe in recipes {
+                    tracker.unlockedRecipeIds.insert(recipe.id.uuidString)
+                }
+                tracker.lastUnlockDate = Date()
+                tracker.saveToStorage()
+
+                Log.info("Marked recipes as unlocked in tracker", category: .heritage, metadata: [
+                    "unlockedCount": tracker.unlockedRecipeIds.count
+                ])
+            }
+
+            // CRITICAL: Store heritage schedule metadata locally for recovery system
+            let downloadedRecipeIds = recipes.compactMap { $0.heritageRecipeId }
+            await MainActor.run {
+                updateHeritageScheduleMetadata(
+                    scheduleId: schedule.scheduleId,
+                    newRecipeIds: downloadedRecipeIds,
+                    currentDay: 1
+                )
+            }
+
+            // CRITICAL: Triple-save with delays to force WAL checkpoint (EXACT copy from autoRevealBlindBoxesIfNeeded)
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            try modelContext.save()
+            Log.debug("First save complete", category: .heritage)
+
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            try modelContext.save()
+            Log.debug("Second save complete", category: .heritage)
+
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            try modelContext.save()
+            Log.info("✅ Heritage recipes saved to disk (3x saves)", category: .heritage)
+
+            await MainActor.run {
+                downloadProgress = "Securing your recipes..."
+            }
+
+            // Wait 3 seconds for iOS to checkpoint WAL (EXACT copy from autoRevealBlindBoxesIfNeeded)
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            Log.info("✅ Heritage setup complete - safe to continue", category: .heritage)
+
+            await MainActor.run {
+                isDownloadingRecipes = false
+                downloadProgress = ""
+            }
+        } catch {
+            await MainActor.run {
+                Log.error("Failed to download heritage recipes", category: .heritage, metadata: [
+                    "error": error.localizedDescription
+                ])
+                isDownloadingRecipes = false
+                downloadProgress = ""
+            }
+        }
+    }
+
+    /// Update heritage schedule metadata whenever recipes are downloaded
+    /// This ensures recovery system knows which recipes should exist
+    private func updateHeritageScheduleMetadata(scheduleId: String, newRecipeIds: [String], currentDay: Int) {
+        // Get existing expected IDs
+        var expectedIds = UserDefaults.standard.array(forKey: "heritageExpectedRecipeIds") as? [String] ?? []
+
+        // Add new recipe IDs (avoiding duplicates)
+        for recipeId in newRecipeIds where !expectedIds.contains(recipeId) {
+            expectedIds.append(recipeId)
+        }
+
+        // Update UserDefaults
+        UserDefaults.standard.set(scheduleId, forKey: "heritageScheduleId")
+        UserDefaults.standard.set(expectedIds, forKey: "heritageExpectedRecipeIds")
+        UserDefaults.standard.set(currentDay, forKey: "heritageCurrentDay")
+        UserDefaults.standard.set(Date(), forKey: "heritageLastDownloadDate")
+        UserDefaults.standard.synchronize()
+
+        Log.info("Updated heritage schedule metadata", category: .heritage, metadata: [
+            "scheduleId": scheduleId,
+            "totalExpectedRecipes": expectedIds.count,
+            "currentDay": currentDay,
+            "newlyAdded": newRecipeIds.count
+        ])
+        DeviceLogger.shared.log("✅ [Heritage] Schedule updated: \(expectedIds.count) total recipes expected")
+    }
+
     // MARK: - View Components
 
     private var unifiedCollectionsSection: some View {
@@ -321,6 +460,8 @@ struct CollectionsListView: View {
         }
     }
 
+    /// Overlay shown during Heritage recipe downloads (daily drops, blind box reveals)
+    /// For initial sign-in downloads, the blocking overlay in ContentView is used instead
     @ViewBuilder
     private var downloadingRecipesOverlay: some View {
         if isDownloadingRecipes {
@@ -391,6 +532,9 @@ struct CollectionsListView: View {
         // Seed blind boxes if just completed onboarding
         seedBlindBoxesIfNeeded()
 
+        // CRITICAL: Verify Heritage recipes exist if they should
+        verifyHeritageRecipes()
+
         // Show coach mark after 10 seconds if not seen before
         if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
             Task {
@@ -398,6 +542,133 @@ struct CollectionsListView: View {
                 if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
                     showRecipeCoachMark = true
                 }
+            }
+        }
+    }
+
+    /// Verify Heritage recipes exist in database, promote from cache if missing
+    /// This checks the durable UserDefaults cache which survives force-quit
+    private func verifyHeritageRecipes() {
+        // Only verify if user has completed onboarding (otherwise they haven't downloaded Heritage yet)
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        guard hasCompletedOnboarding else {
+            Log.debug("Skipping Heritage verification - onboarding not complete", category: .heritage)
+            return
+        }
+
+        // Check immediately (no delay needed - cache is instant)
+        Task {
+            await checkAndPromoteFromCache()
+        }
+    }
+
+    /// Check durable cache vs SwiftData and promote missing recipes
+    /// The cache survives force-quit because it's stored in UserDefaults with synchronize()
+    private func checkAndPromoteFromCache() async {
+        guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+              authService.isAuthenticated else {
+            Log.debug("Cannot verify Heritage - not authenticated", category: .heritage)
+            return
+        }
+
+        // Load cached recipes from durable storage
+        let cache = ServiceContainer.shared.resolve(HeritageRecipeCache.self)
+        let cachedRecipes = cache.getCachedRecipes()
+
+        guard !cachedRecipes.isEmpty else {
+            Log.debug("No cached recipes found - user hasn't downloaded Heritage yet", category: .heritage)
+            return
+        }
+
+        // Count local Heritage recipes in SwiftData
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { $0.isHeritageRecipe == true }
+        )
+        let localCount = (try? modelContext.fetchCount(descriptor)) ?? 0
+        let cachedCount = cachedRecipes.count
+
+        Log.info("Heritage cache verification", category: .heritage, metadata: [
+            "cachedCount": cachedCount,
+            "localCount": localCount
+        ])
+        DeviceLogger.shared.log("📊 [Heritage] Cache: \(cachedCount), SwiftData: \(localCount)")
+
+        // If SwiftData has fewer recipes than cache, promote missing ones
+        if localCount < cachedCount {
+            Log.warning("🚨 Heritage recipes missing from SwiftData! Promoting from cache...", category: .heritage, metadata: [
+                "cached": cachedCount,
+                "found": localCount,
+                "missing": cachedCount - localCount
+            ])
+            DeviceLogger.shared.log("🚨 [Heritage] \(cachedCount - localCount) recipes missing! Promoting from cache...")
+
+            await promoteCachedRecipes(cachedRecipes)
+        } else {
+            Log.info("✅ Heritage recipes intact", category: .heritage, metadata: ["count": localCount])
+            DeviceLogger.shared.log("✅ [Heritage] All \(localCount) recipes present")
+        }
+    }
+
+    /// Promote cached recipes to SwiftData by re-downloading from Firebase
+    /// Uses cache metadata to identify which recipes to download
+    private func promoteCachedRecipes(_ cachedRecipes: [String: HeritageRecipeCache.CachedRecipe]) async {
+        guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+              authService.isAuthenticated else {
+            Log.error("Cannot promote recipes - not authenticated", category: .heritage)
+            return
+        }
+
+        // Get existing recipe IDs in SwiftData
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { $0.isHeritageRecipe == true }
+        )
+        let existingRecipes = (try? modelContext.fetch(descriptor)) ?? []
+        let existingIds = Set(existingRecipes.compactMap { $0.heritageRecipeId })
+
+        // Find missing recipes (in cache but not in SwiftData)
+        let missingRecipes = cachedRecipes.values.filter { !existingIds.contains($0.heritageRecipeId) }
+
+        Log.info("Promoting missing recipes from cache", category: .heritage, metadata: [
+            "missingCount": missingRecipes.count
+        ])
+
+        // Re-download missing recipes using HeritageOnDemandService
+        let onDemandService = HeritageOnDemandService(
+            modelContext: modelContext,
+            firebaseAuth: authService
+        )
+
+        var promotedCount = 0
+        for cachedRecipe in missingRecipes {
+            do {
+                // Download recipe from Firebase using its heritageRecipeId
+                let recipe = try await onDemandService.downloadRecipe(recipeId: cachedRecipe.heritageRecipeId)
+                promotedCount += 1
+
+                Log.debug("Promoted recipe from cache", category: .heritage, metadata: [
+                    "heritageRecipeId": cachedRecipe.heritageRecipeId,
+                    "title": recipe.title
+                ])
+            } catch {
+                Log.error("Failed to promote recipe from cache", category: .heritage, metadata: [
+                    "heritageRecipeId": cachedRecipe.heritageRecipeId,
+                    "error": error.localizedDescription
+                ])
+            }
+        }
+
+        // Save all promoted recipes
+        await MainActor.run {
+            do {
+                try modelContext.save()
+                Log.info("✅ Promoted recipes from cache", category: .heritage, metadata: [
+                    "promotedCount": promotedCount,
+                    "expectedCount": missingRecipes.count
+                ])
+                DeviceLogger.shared.log("✅ [Heritage] Promoted \(promotedCount)/\(missingRecipes.count) recipes from cache")
+            } catch {
+                Log.error("Failed to save promoted recipes", category: .heritage, error: error)
+                DeviceLogger.shared.log("❌ [Heritage] Promotion save failed: \(error.localizedDescription)")
             }
         }
     }
@@ -442,101 +713,9 @@ struct CollectionsListView: View {
                 unlockTracker.startTrialPeriod()
             }
 
-            // Download initial recipes (Day 1: 8 recipes)
+            // Download initial recipes using the EXACT same code path as autoRevealBlindBoxesIfNeeded (which WORKS)
             Task {
-                // Show loading indicator
-                await MainActor.run {
-                    isDownloadingRecipes = true
-                    downloadProgress = "Preparing your heritage recipes..."
-                }
-
-                do {
-                    guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
-                          authService.isAuthenticated else {
-                        await MainActor.run {
-                            isDownloadingRecipes = false
-                            Log.warning("User not authenticated, cannot download heritage recipes", category: .heritage)
-                        }
-                        return
-                    }
-
-                    // Initialize on-demand service
-                    let onDemandService = HeritageOnDemandService(
-                        modelContext: modelContext,
-                        firebaseAuth: authService
-                    )
-
-                    await MainActor.run {
-                        downloadProgress = "Loading your recipe collection..."
-                    }
-
-                    // Get user's schedule
-                    let schedule = try await onDemandService.getUserSchedule()
-
-                    Log.info("Retrieved user schedule", category: .heritage, metadata: [
-                        "scheduleId": schedule.scheduleId,
-                        "revealedCollections": schedule.revealedCollections.joined(separator: ", ")
-                    ])
-
-                    await MainActor.run {
-                        downloadProgress = "Downloading 8 recipes..."
-                    }
-
-                    // Download Day 1 recipes (initial unlock)
-                    let downloadedRecipes = try await onDemandService.downloadRecipesForDay(day: 1, schedule: schedule)
-
-                    // Update tracker with downloaded recipe IDs
-                    for recipe in downloadedRecipes {
-                        unlockTracker.unlockedRecipeIds.insert(recipe.id.uuidString)
-                    }
-                    unlockTracker.lastUnlockDate = Date()
-
-                    // Save to Firebase heritageState
-                    let db = Firestore.firestore()
-                    guard let userId = authService.currentUser?.uid else { return }
-
-                    let downloadedRecipeIds = downloadedRecipes.compactMap { $0.heritageRecipeId }
-                    try await db.collection("users").document(userId)
-                        .collection("heritageState").document("current")
-                        .setData([
-                            "downloadedRecipeIds": downloadedRecipeIds,
-                            "currentDay": 1,
-                            "lastUnlockDate": FieldValue.serverTimestamp()
-                        ], merge: true)
-
-                    await MainActor.run {
-                        // Force refresh the modelContext to ensure UI updates
-                        try? modelContext.save()
-
-                        // Log collection recipe counts for debugging
-                        let collectionCounts = allBlindBoxes.map { collection -> String in
-                            let recipeCount = collection.recipes?.count ?? 0
-                            return "\(collection.name): \(recipeCount) recipes"
-                        }.joined(separator: ", ")
-
-                        Log.info("Downloaded initial heritage recipes", category: .heritage, metadata: [
-                            "count": downloadedRecipes.count,
-                            "revealedCollections": allBlindBoxes.map { $0.name }.joined(separator: ", "),
-                            "scheduleId": schedule.scheduleId,
-                            "recipesInContext": (try? modelContext.fetchCount(FetchDescriptor<Recipe>())) ?? 0,
-                            "collectionRecipeCounts": collectionCounts
-                        ])
-
-                        // Hide loading indicator
-                        isDownloadingRecipes = false
-                        downloadProgress = ""
-                    }
-                } catch {
-                    await MainActor.run {
-                        Log.error("Failed to download recipes after blind box reveal", category: .heritage, metadata: [
-                            "error": error.localizedDescription
-                        ])
-
-                        // Hide loading indicator on error
-                        isDownloadingRecipes = false
-                        downloadProgress = ""
-                    }
-                }
+                await downloadHeritageRecipesWithPersistence()
             }
         } catch {
             Log.error("Failed to reveal blind boxes", category: .ui, metadata: ["error": error.localizedDescription])

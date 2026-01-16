@@ -339,6 +339,11 @@ extension ServiceContainer {
             HeritageUnlockTracker()
         }
 
+        // HeritageRecipeCache - Durable cache for heritage recipes (survives force-quit)
+        register(HeritageRecipeCache.self, lifecycle: .singleton) { _ in
+            HeritageRecipeCache()
+        }
+
         // HeritageOnDemandService - Note: Requires modelContext at init, instantiate directly where needed
         // Example: HeritageOnDemandService(modelContext: modelContext, firebaseAuth: authService)
 

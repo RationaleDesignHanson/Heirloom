@@ -85,7 +85,46 @@ struct RecipeEditorView: View {
             _instructions = State(initialValue: recipe.instructions.isEmpty ? [""] : recipe.instructions)
 
             if let ingredients = recipe.ingredients, !ingredients.isEmpty {
-                _ingredientInputs = State(initialValue: ingredients.map { $0.originalText })
+                // Build full ingredient string from fields for editor display
+                // For video-imported recipes, originalText may not include quantity/unit
+                _ingredientInputs = State(initialValue: ingredients.map { ingredient in
+                    // If originalText already includes quantity, use it as-is
+                    // Otherwise, reconstruct from fields
+                    if let quantity = ingredient.quantity, quantity > 0 {
+                        // Reconstruct: "2 cups flour, sifted"
+                        var parts: [String] = []
+
+                        // Add quantity
+                        if let quantityMax = ingredient.quantityMax, quantityMax != quantity {
+                            parts.append("\(Int(quantity))-\(Int(quantityMax))")
+                        } else {
+                            // Format nicely: "2" for whole numbers, "0.5" for fractions
+                            if quantity.truncatingRemainder(dividingBy: 1) == 0 {
+                                parts.append("\(Int(quantity))")
+                            } else {
+                                parts.append("\(quantity)")
+                            }
+                        }
+
+                        // Add unit
+                        if let unit = ingredient.unit {
+                            parts.append(unit)
+                        }
+
+                        // Add ingredient name (from originalText)
+                        parts.append(ingredient.originalText)
+
+                        // Add preparation
+                        if let prep = ingredient.preparation {
+                            parts.append(prep)
+                        }
+
+                        return parts.joined(separator: " ")
+                    } else {
+                        // No quantity - use originalText as-is
+                        return ingredient.originalText
+                    }
+                })
             }
 
             // Initialize selected collections

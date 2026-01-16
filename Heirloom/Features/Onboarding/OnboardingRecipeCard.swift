@@ -20,6 +20,7 @@ struct OnboardingRecipeCard: View {
             ZStack(alignment: .topTrailing) {
                 AsyncRecipeImage(
                     imageFileName: recipe.imageFileName,
+                    firebaseImageURL: recipe.firebaseImageURL,
                     placeholder: recipe.sourceType?.iconName ?? "fork.knife"
                 )
                 .aspectRatio(4/3, contentMode: .fill)
