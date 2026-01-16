@@ -255,10 +255,23 @@ struct SettingsView: View {
                 Divider()
 
                 // Manage Subscription button (cancel, etc.)
-                Button {
-                    openManageSubscription()
-                } label: {
-                    Label("Manage Subscription", systemImage: "gearshape")
+                // ⭐ MODIFIED: Disable when fake payments active (no real subscription to manage)
+                VStack(alignment: .leading, spacing: 4) {
+                    Button {
+                        openManageSubscription()
+                    } label: {
+                        Label("Manage Subscription", systemImage: "gearshape")
+                    }
+                    .disabled(ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled)
+                    .opacity(ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled ? 0.5 : 1.0)
+
+                    // Show hint when disabled
+                    if ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled {
+                        Text("Only available for real subscriptions")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .padding(.leading, 32)
+                    }
                 }
             }
 
