@@ -42,6 +42,21 @@ struct PaywallView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
+                // ⭐ NEW: Debug badge when fake payments are active
+                if storeManager.isFakePaymentsEnabled {
+                    HStack {
+                        Image(systemName: "theatermasks.fill")
+                        Text("FAKE PAYMENTS ACTIVE")
+                            .font(.caption.bold())
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.purple)
+                    .cornerRadius(8)
+                    .padding(.top, 8)
+                }
+
                 // Header
                 VStack(spacing: 16) {
                     Image(systemName: subscriptionManager.canUpgrade ? "arrow.up.circle.fill" : "book.closed.fill")

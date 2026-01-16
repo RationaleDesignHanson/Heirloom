@@ -222,6 +222,15 @@ struct SettingsView: View {
                 }
             }
 
+            // ⭐ NEW: Cancel Fake Subscription (DEBUG ONLY)
+            if subscriptionManager.isPremium && ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled {
+                Button(role: .destructive) {
+                    cancelFakeSubscription()
+                } label: {
+                    Label("Cancel Fake Subscription", systemImage: "xmark.circle.fill")
+                }
+            }
+
             // Upgrade button (for free users)
             if !subscriptionManager.isPremium {
                 VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
@@ -633,10 +642,50 @@ struct SettingsView: View {
                 }
             }
             .disabled(true) // Disabled until Phase 3 implementation
+
+            // ⭐ NEW: Fake Payments Toggle (DEBUG ONLY)
+            Divider()
+
+            Toggle(isOn: Binding(
+                get: {
+                    ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled
+                },
+                set: { enabled in
+                    UserDefaults.standard.set(enabled, forKey: "debug_fake_payments_enabled")
+
+                    Log.info("Fake payments: \(enabled ? "ENABLED" : "DISABLED")", category: .store)
+
+                    // Show toast notification
+                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                    if enabled {
+                        toastManager.info(
+                            title: "Fake Payments Enabled",
+                            message: "Subscribe buttons will grant premium without payment"
+                        )
+                    } else {
+                        toastManager.info(
+                            title: "Fake Payments Disabled",
+                            message: "Real StoreKit purchases will be used"
+                        )
+                    }
+                }
+            )) {
+                HStack {
+                    Image(systemName: "theatermasks.fill")
+                        .foregroundStyle(.purple)
+                    VStack(alignment: .leading) {
+                        Text("Fake Payments (Debug)")
+                        Text("Grants premium without real transactions")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.purple)
         } header: {
             Text("Developer Testing")
         } footer: {
-            Text("Enable 'Force Non-Premium Mode' to test the progressive heritage unlock flow (7 recipes per day). RevenueCat integration will be implemented in Phase 3.")
+            Text("Enable 'Force Non-Premium Mode' to test the progressive heritage unlock flow (7 recipes per day). Enable 'Fake Payments' to test premium features without real purchases. RevenueCat integration will be implemented in Phase 3.")
         }
     }
 
@@ -957,6 +1006,34 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    // ⭐ NEW: Cancel Fake Subscription (DEBUG ONLY)
+    private func cancelFakeSubscription() {
+        // Reset to trial state
+        UserDefaults.standard.removeObject(forKey: "subscription_status")
+        UserDefaults.standard.removeObject(forKey: "subscription_expiry_date")
+        UserDefaults.standard.removeObject(forKey: "cached_product_id")
+
+        // Re-enable trial
+        let now = Date()
+        let trialExpiry = Calendar.current.date(byAdding: .day, value: 14, to: now)!
+        UserDefaults.standard.set(now, forKey: "first_launch_date")
+        UserDefaults.standard.set(trialExpiry, forKey: "trial_expiry_date")
+        UserDefaults.standard.set("trial", forKey: "subscription_status")
+        UserDefaults.standard.synchronize()
+
+        // Trigger refresh
+        Task {
+            await subscriptionManager.refreshStatus(force: true)
+        }
+
+        toastManager.success(
+            title: "Fake Subscription Cancelled",
+            message: "Restored to 14-day trial period"
+        )
+
+        Log.info("Cancelled fake subscription, restored trial", category: .store)
     }
 
     private func calculateStorageSize() async {

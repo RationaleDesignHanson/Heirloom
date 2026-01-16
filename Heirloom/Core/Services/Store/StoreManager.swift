@@ -105,6 +105,18 @@ final class StoreManager {
         UserDefaults.standard.bool(forKey: "feature_revenuecat_enabled")
     }
 
+    // ⭐ NEW: Fake Payments (DEBUG ONLY - Remove before production)
+    // MARK: - Fake Payments (Temporary Debug Feature)
+    // TODO: Remove this entire section when real payment system is ready
+
+    /// Debug flag to enable fake payments (grants premium without StoreKit transactions)
+    private let debugFakePaymentsKey = "debug_fake_payments_enabled"
+
+    /// Check if fake payments are enabled
+    var isFakePaymentsEnabled: Bool {
+        UserDefaults.standard.bool(forKey: debugFakePaymentsKey)
+    }
+
     // MARK: - Initialization
 
     init(logger: LoggingService, analytics: AnalyticsService) {
@@ -196,6 +208,11 @@ final class StoreManager {
     /// - Parameter productID: Product to purchase
     /// - Returns: Purchase result with transaction details
     func purchase(_ productID: ProductIdentifier) async -> PurchaseResult {
+        // ⭐ NEW: Check if fake payments are enabled (DEBUG ONLY)
+        if isFakePaymentsEnabled {
+            return await purchaseViaFake(productID)
+        }
+
         // Check if RevenueCat is enabled
         if isRevenueCatEnabled {
             return await purchaseViaRevenueCat(productID)
@@ -225,6 +242,59 @@ final class StoreManager {
         ])
 
         return .failed(error)
+    }
+
+    // ⭐ NEW: Fake purchase handler (DEBUG ONLY)
+    /// Simulate a purchase without StoreKit transaction
+    /// - Parameter productID: Product to "purchase"
+    /// - Returns: Always succeeds with fake transaction
+    private func purchaseViaFake(_ productID: ProductIdentifier) async -> PurchaseResult {
+        logger.log("🎭 FAKE PURCHASE: \(productID.rawValue)", category: .store, level: .info, metadata: nil)
+
+        // Simulate realistic purchase delay
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+        // Update subscription status directly in UserDefaults
+        let status: HeirloomSubscriptionStatus = switch productID {
+        case .monthly: .monthly
+        case .annual: .annual
+        case .lifetime: .lifetime
+        }
+
+        // Persist fake subscription state
+        UserDefaults.standard.set(status.rawValue, forKey: "subscription_status")
+        UserDefaults.standard.set(productID.rawValue, forKey: "cached_product_id")
+
+        // Set expiry dates for subscriptions (1 year from now for testing)
+        if productID.isSubscription {
+            let expiryDate = Calendar.current.date(byAdding: .year, value: 1, to: Date())!
+            UserDefaults.standard.set(expiryDate, forKey: "subscription_expiry_date")
+        }
+
+        // Clear trial dates (now premium)
+        UserDefaults.standard.removeObject(forKey: "trial_expiry_date")
+
+        UserDefaults.standard.synchronize()
+
+        // Post notification to trigger UI updates
+        NotificationCenter.default.post(name: .subscriptionStatusChanged, object: nil)
+
+        // Track fake purchase in analytics
+        analytics.track(event: .purchaseSuccess, properties: [
+            "product_id": productID.rawValue,
+            "fake_purchase": true,
+            "price": 0
+        ])
+
+        logger.log(
+            "🎭 Fake purchase completed: \(productID.displayName)",
+            category: .store,
+            level: .info,
+            metadata: nil
+        )
+
+        // Return success (no actual transaction object, but that's okay for fake flow)
+        return .pending // Using .pending as success indicator without transaction
     }
 
     /// StoreKit 2 purchase implementation
@@ -375,6 +445,27 @@ final class StoreManager {
     /// Restore previous purchases
     /// - Returns: Array of restored transactions
     func restorePurchases() async throws -> [Transaction] {
+        // ⭐ NEW: Handle fake restore (DEBUG ONLY)
+        if isFakePaymentsEnabled {
+            logger.log("🎭 FAKE RESTORE: Checking fake subscription status", category: .store, level: .info, metadata: nil)
+
+            // Check if user has fake subscription active
+            if let statusRaw = UserDefaults.standard.string(forKey: "subscription_status"),
+               let status = HeirloomSubscriptionStatus(rawValue: statusRaw),
+               status.isPremium {
+
+                // Post notification to trigger refresh (fake subscription already in UserDefaults)
+                NotificationCenter.default.post(name: .subscriptionStatusChanged, object: nil)
+
+                logger.log("🎭 Fake restore: Found active subscription", category: .store, level: .info, metadata: nil)
+            } else {
+                logger.log("🎭 Fake restore: No active subscription", category: .store, level: .info, metadata: nil)
+            }
+
+            // Return empty array (no real transactions)
+            return []
+        }
+
         logger.log("Restoring purchases...", category: .store, level: .info, metadata: nil)
 
         analytics.track(event: .restoreStarted)
