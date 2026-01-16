@@ -32,6 +32,12 @@ struct SettingsView: View {
     @State private var isRestoringPurchases = false
     @State private var showDowngradeAlert = false
 
+    // ⚠️ NEW: Firebase Nuke (EXTREMELY DANGEROUS)
+    @State private var showNukePasswordAlert = false
+    @State private var nukePassword = ""
+    @State private var showNukeFinalConfirm = false
+    @State private var isNuking = false
+
     var body: some View {
         NavigationStack {
             List {
@@ -101,6 +107,35 @@ struct SettingsView: View {
                 }
             } message: {
                 Text("To switch from Annual to Monthly, you'll need to manage your subscription in iOS Settings. Your Annual subscription will remain active until it expires, then you can subscribe to Monthly.")
+            }
+            // ⚠️ NEW: Nuke password alert
+            .alert(
+                "☢️ NUCLEAR OPTION",
+                isPresented: $showNukePasswordAlert
+            ) {
+                TextField("Enter Password", text: $nukePassword)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                Button("Cancel", role: .cancel) {
+                    nukePassword = ""
+                }
+                Button("Continue", role: .destructive) {
+                    validateNukePassword()
+                }
+            } message: {
+                Text("⚠️ WARNING: This will DELETE ALL user data from Firebase (users, shares, lineage). Preserves only heritage_recipes and heritage_schedules. Enter password to continue.")
+            }
+            // ⚠️ NEW: Final nuke confirmation
+            .alert(
+                "🔥 FINAL CONFIRMATION",
+                isPresented: $showNukeFinalConfirm
+            ) {
+                Button("Cancel", role: .cancel) {}
+                Button("DELETE EVERYTHING", role: .destructive) {
+                    executeNuke()
+                }
+            } message: {
+                Text("This is your LAST CHANCE. This action will PERMANENTLY DELETE all users, shares, and lineage from Firebase. This CANNOT be undone. Are you absolutely sure?")
             }
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
@@ -695,10 +730,30 @@ struct SettingsView: View {
                 }
             }
             .disabled(true) // Disabled until Phase 3 implementation
+
+            // ⚠️ NEW: NUCLEAR OPTION - DELETE ALL USER DATA FROM FIREBASE
+            Divider()
+
+            Button(role: .destructive) {
+                showNukePasswordAlert = true
+            } label: {
+                HStack {
+                    Image(systemName: "flame.fill")
+                        .foregroundStyle(.red)
+                    VStack(alignment: .leading) {
+                        Text("☢️ Nuke Firebase User Data")
+                            .fontWeight(.bold)
+                        Text("⚠️ DANGER: Deletes all users, shares, lineage")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .disabled(isNuking)
         } header: {
             Text("Developer Testing")
         } footer: {
-            Text("Enable 'Force Non-Premium Mode' to test the progressive heritage unlock flow (7 recipes per day). Fake Payments toggle is now in the Subscription section above. RevenueCat integration will be implemented in Phase 3.")
+            Text("Enable 'Force Non-Premium Mode' to test the progressive heritage unlock flow (7 recipes per day). Fake Payments toggle is now in the Subscription section above. RevenueCat integration will be implemented in Phase 3.\n\n⚠️ NUKE WARNING: The nuclear button deletes ALL user data from Firebase (users, shares, lineage). Preserves only heritage_recipes and heritage_schedules. Password required.")
         }
     }
 
@@ -1047,6 +1102,60 @@ struct SettingsView: View {
         )
 
         Log.info("Cancelled fake subscription, restored trial", category: .store)
+    }
+
+    // ⚠️ NEW: Nuke Firebase user data (EXTREMELY DANGEROUS)
+    private func validateNukePassword() {
+        let nukeService = FirebaseNukeService()
+
+        if nukeService.validatePassword(nukePassword) {
+            nukePassword = "" // Clear password
+            showNukeFinalConfirm = true
+        } else {
+            nukePassword = ""
+            toastManager.error(
+                title: "Incorrect Password",
+                message: "Access denied"
+            )
+        }
+    }
+
+    private func executeNuke() {
+        isNuking = true
+
+        Task {
+            let nukeService = FirebaseNukeService()
+
+            do {
+                try await nukeService.nukeUserData()
+
+                await MainActor.run {
+                    isNuking = false
+                    toastManager.success(
+                        title: "🔥 Firebase Nuked",
+                        message: "All user data deleted. App state reset."
+                    )
+
+                    // Refresh subscription status to reflect cleared state
+                    Task {
+                        await subscriptionManager.refreshStatus(force: true)
+                    }
+                }
+
+                Log.warning("Firebase nuke completed successfully", category: .store)
+
+            } catch {
+                await MainActor.run {
+                    isNuking = false
+                    toastManager.error(
+                        title: "Nuke Failed",
+                        message: error.localizedDescription
+                    )
+                }
+
+                Log.error("Firebase nuke failed", category: .store, error: error)
+            }
+        }
     }
 
     private func calculateStorageSize() async {
