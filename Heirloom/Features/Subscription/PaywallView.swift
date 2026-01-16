@@ -301,8 +301,14 @@ struct PaywallView: View {
                 break
 
             case .pending:
-                errorMessage = "Your purchase is pending approval. You'll be notified when it's complete."
-                showError = true
+                // ⭐ NEW: If fake payments enabled, treat pending as success
+                if storeManager.isFakePaymentsEnabled {
+                    await subscriptionManager.refreshStatus(force: true)
+                    dismiss()
+                } else {
+                    errorMessage = "Your purchase is pending approval. You'll be notified when it's complete."
+                    showError = true
+                }
 
             case .failed(let error):
                 errorMessage = error.localizedDescription
