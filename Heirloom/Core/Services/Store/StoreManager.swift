@@ -112,9 +112,14 @@ final class StoreManager {
     /// Debug flag to enable fake payments (grants premium without StoreKit transactions)
     private let debugFakePaymentsKey = "debug_fake_payments_enabled"
 
-    /// Check if fake payments are enabled
+    /// Check if fake payments are enabled (defaults to TRUE for easy testing)
     var isFakePaymentsEnabled: Bool {
-        UserDefaults.standard.bool(forKey: debugFakePaymentsKey)
+        // If key has never been set, default to true for testing convenience
+        if UserDefaults.standard.object(forKey: debugFakePaymentsKey) == nil {
+            return true
+        }
+        // Otherwise respect user's toggle choice
+        return UserDefaults.standard.bool(forKey: debugFakePaymentsKey)
     }
 
     // MARK: - Initialization
