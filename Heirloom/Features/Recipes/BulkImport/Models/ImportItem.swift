@@ -32,6 +32,10 @@ final class ImportItem {
     var totalPages: Int?          // Total pages in group (for multi-page recipes)
     var isMultiPageRecipe: Bool?  // True if recipe spans multiple pages
 
+    // MARK: - Cookbook Metadata (extracted from PDF front matter)
+    var cookbookTitle: String?    // Extracted cookbook title
+    var cookbookAuthor: String?   // Extracted cookbook author
+
     // MARK: - Status
     var status: ImportItemStatus = ImportItemStatus.pending
     var errorMessage: String?

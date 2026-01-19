@@ -161,28 +161,73 @@ final class MultiPageRecipeAnalyzer {
             return []
         }
 
-        Log.info("Starting multi-page recipe analysis", category: .import, metadata: [
-            "total_pages": pages.count
+        Log.info("Starting multi-page recipe analysis with BATCH PROCESSING", category: .import, metadata: [
+            "total_pages": pages.count,
+            "batch_size": 5
         ])
 
         var groups: [RecipePageGroup] = []
         var currentGroup: RecipePageGroup?
 
-        for (pageNum, image) in pages {
-            // Analyze this page's role
-            let analysis = try await analyzePage(image, pageNumber: pageNum)
+        // Process pages in batches of 5 for concurrent API calls
+        let batchSize = 5
+        let batches = pages.chunked(into: batchSize)
 
-            // Report progress
-            await progressCallback?(pageNum)
+        Log.info("PDF pages split into batches", category: .import, metadata: [
+            "batch_count": batches.count,
+            "batch_size": batchSize
+        ])
 
-            Log.info("Page analysis result", category: .import, metadata: [
-                "page": pageNum,
-                "type": analysis.type.rawValue,
-                "confidence": analysis.confidence,
-                "title": analysis.title ?? "none"
+        for (batchIndex, batch) in batches.enumerated() {
+            let batchStartTime = Date()
+            Log.info("Starting batch processing", category: .import, metadata: [
+                "batch_index": batchIndex + 1,
+                "batch_total": batches.count,
+                "pages_in_batch": batch.count
             ])
 
-            switch analysis.type {
+            // Analyze all pages in this batch concurrently
+            let batchResults = try await withThrowingTaskGroup(
+                of: (pageNumber: Int, image: UIImage, analysis: PageAnalysis).self
+            ) { group in
+                for (pageNum, image) in batch {
+                    group.addTask {
+                        let analysis = try await self.analyzePage(image, pageNumber: pageNum)
+                        return (pageNumber: pageNum, image: image, analysis: analysis)
+                    }
+                }
+
+                // Collect results
+                var results: [(pageNumber: Int, image: UIImage, analysis: PageAnalysis)] = []
+                for try await result in group {
+                    results.append(result)
+                }
+
+                // Sort by page number to maintain order
+                return results.sorted { $0.pageNumber < $1.pageNumber }
+            }
+
+            let batchDuration = Date().timeIntervalSince(batchStartTime)
+            Log.info("Batch processing completed", category: .import, metadata: [
+                "batch_index": batchIndex + 1,
+                "duration_seconds": String(format: "%.1f", batchDuration),
+                "pages_processed": batchResults.count,
+                "seconds_per_page": String(format: "%.1f", batchDuration / Double(batchResults.count))
+            ])
+
+            // Process batch results sequentially to maintain state machine logic
+            for (pageNum, image, analysis) in batchResults {
+                // Report progress
+                await progressCallback?(pageNum)
+
+                Log.info("Page analysis result", category: .import, metadata: [
+                    "page": pageNum,
+                    "type": analysis.type.rawValue,
+                    "confidence": analysis.confidence,
+                    "title": analysis.title ?? "none"
+                ])
+
+                switch analysis.type {
             case .recipeStart:
                 // New recipe begins - save any existing group first
                 if let existing = currentGroup {
@@ -274,6 +319,7 @@ final class MultiPageRecipeAnalyzer {
                     "reasoning": analysis.reasoning
                 ])
             }
+            }
         }
 
         // Append final group if exists
@@ -356,7 +402,7 @@ final class MultiPageRecipeAnalyzer {
         """
 
         let options = AICompletionOptions(
-            model: "claude-3-5-sonnet-20241022",  // Use Sonnet for vision tasks
+            model: "claude-sonnet-4-5-20250929",  // Claude Sonnet 4.5 (latest, active model)
             temperature: 0.3,  // Lower for more consistent classification
             maxTokens: 500
         )
@@ -449,6 +495,17 @@ struct RecipePageGroup: Identifiable {
                 image.draw(at: CGPoint(x: 0, y: yOffset))
                 yOffset += image.size.height
             }
+        }
+    }
+}
+
+// MARK: - Array Extension for Batching
+
+extension Array {
+    /// Split array into chunks of specified size
+    func chunked(into size: Int) -> [[Element]] {
+        stride(from: 0, to: count, by: size).map {
+            Array(self[$0..<Swift.min($0 + size, count)])
         }
     }
 }

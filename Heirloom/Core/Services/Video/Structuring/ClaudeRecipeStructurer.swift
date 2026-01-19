@@ -322,11 +322,70 @@ private struct RawExtractedRecipe: Codable {
             servings: servings,
             prepTime: prepTime,
             cookTime: cookTime,
-            ingredients: ingredients.map { $0.toExtractedIngredient() },
+            ingredients: deduplicateIngredients(ingredients.map { $0.toExtractedIngredient() }),
             steps: steps.map { $0.toExtractedStep() },
             overallConfidence: overallConfidence,
             warnings: warnings
         )
+    }
+
+    /// Deduplicate ingredients and clean up redundant words
+    private func deduplicateIngredients(_ ingredients: [ExtractedIngredient]) -> [ExtractedIngredient] {
+        var seen = Set<String>()
+        var deduplicated: [ExtractedIngredient] = []
+
+        for ingredient in ingredients {
+            // Clean up redundant words in the item name
+            let cleanedItem = cleanupIngredientItem(ingredient.item)
+
+            // Create normalized key for deduplication (case-insensitive)
+            let normalizedKey = cleanedItem.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // Skip if we've already seen this ingredient
+            guard !seen.contains(normalizedKey) else {
+                continue
+            }
+
+            seen.insert(normalizedKey)
+
+            // Create cleaned ingredient with updated item name
+            deduplicated.append(ExtractedIngredient(
+                originalText: ingredient.originalText,
+                item: cleanedItem,
+                quantity: ingredient.quantity,
+                unit: ingredient.unit,
+                preparation: ingredient.preparation,
+                confidence: ingredient.confidence
+            ))
+        }
+
+        return deduplicated
+    }
+
+    /// Remove redundant repeated words from ingredient item names
+    /// Example: "tortillas corn tortillas" → "tortillas corn"
+    private func cleanupIngredientItem(_ item: String) -> String {
+        let words = item.components(separatedBy: " ")
+        guard words.count > 1 else { return item }
+
+        var cleaned: [String] = []
+        var seenWords = Set<String>()
+
+        for word in words {
+            let normalized = word.lowercased()
+
+            // Check for exact match or singular/plural variants
+            let isDuplicate = seenWords.contains(normalized) ||
+                              seenWords.contains(normalized + "s") ||
+                              (normalized.hasSuffix("s") && seenWords.contains(String(normalized.dropLast())))
+
+            if !isDuplicate {
+                cleaned.append(word)
+                seenWords.insert(normalized)
+            }
+        }
+
+        return cleaned.joined(separator: " ")
     }
 }
 

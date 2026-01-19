@@ -120,21 +120,26 @@ class FirebaseNukeService {
         return deletedCount
     }
 
-    /// Recursively delete subcollections
+    /// Delete known subcollections (e.g., users/{userId}/heritageState)
     private func deleteSubcollections(of docRef: DocumentReference) async {
-        do {
-            let subcollections = try await docRef.listCollections()
+        // Known subcollections under user documents
+        let knownSubcollections = ["heritageState"]
 
-            for subcollection in subcollections {
+        for subcollectionName in knownSubcollections {
+            do {
+                let subcollection = docRef.collection(subcollectionName)
                 let snapshot = try await subcollection.getDocuments()
 
                 for doc in snapshot.documents {
                     try await doc.reference.delete()
-                    await deleteSubcollections(of: doc.reference)
                 }
+
+                if !snapshot.documents.isEmpty {
+                    Log.debug("Deleted \(snapshot.documents.count) documents from subcollection: \(subcollectionName)", category: .store)
+                }
+            } catch {
+                Log.error("Failed to delete subcollection \(subcollectionName)", category: .store, error: error)
             }
-        } catch {
-            Log.error("Failed to delete subcollections", category: .store, error: error)
         }
     }
 

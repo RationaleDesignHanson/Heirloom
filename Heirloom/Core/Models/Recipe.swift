@@ -283,6 +283,13 @@ extension Recipe {
             }
             return "Family Recipe"
         case .scan:
+            // For scanned recipes, show cookbook info if available (from PDF imports)
+            if let title = sourceBookTitle {
+                if let page = sourceBookPage {
+                    return "\(title), p. \(page)"
+                }
+                return title
+            }
             return "Scanned Recipe"
         case .manual:
             return Recipe.currentUserDisplayName()
@@ -330,7 +337,13 @@ extension Recipe {
         // Check sourceURL for platform hints or construct generic search
         if let sourceURL = provenance?.sourceURL, !sourceURL.isEmpty {
             if sourceURL.contains("tiktok.com") {
-                return URL(string: "https://www.tiktok.com/@\(creatorName)")
+                // Use TikTok deep link scheme for proper in-app navigation
+                // Format: tiktok://user/profile?username=creatorname (without @)
+                let cleanUsername = creatorName.replacingOccurrences(of: "@", with: "")
+                guard let encodedUsername = cleanUsername.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+                    return nil
+                }
+                return URL(string: "tiktok://user/profile?username=\(encodedUsername)")
             } else if sourceURL.contains("youtube.com") || sourceURL.contains("youtu.be") {
                 return URL(string: "https://www.youtube.com/@\(creatorName)")
             } else if sourceURL.contains("instagram.com") {

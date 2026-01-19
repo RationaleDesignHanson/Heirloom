@@ -107,14 +107,14 @@ final class PDFProcessor {
     /// - Returns: Array of (pageNumber, image) tuples
     /// - Throws: PDFError for various failure modes
     func renderPDFPages(from url: URL) async throws -> [(pageNumber: Int, image: UIImage)] {
-        // Start accessing security-scoped resource
-        guard url.startAccessingSecurityScopedResource() else {
-            Log.warning("Failed to access security-scoped PDF", category: .import, metadata: [
-                "file": url.lastPathComponent
-            ])
-            throw PDFImportError.unreadable(fileName: url.lastPathComponent)
+        // Try to access security-scoped resource if needed
+        // Files from document picker with asCopy: true don't need this
+        let needsSecurityScope = url.startAccessingSecurityScopedResource()
+        defer {
+            if needsSecurityScope {
+                url.stopAccessingSecurityScopedResource()
+            }
         }
-        defer { url.stopAccessingSecurityScopedResource() }
 
         // Load PDF document
         guard let document = PDFDocument(url: url) else {
@@ -207,10 +207,13 @@ final class PDFProcessor {
     /// - Parameter url: URL to PDF file
     /// - Returns: Page count or nil if unreadable
     func getPageCount(_ url: URL) -> Int? {
-        guard url.startAccessingSecurityScopedResource() else {
-            return nil
+        // Try to access security-scoped resource if needed
+        let needsSecurityScope = url.startAccessingSecurityScopedResource()
+        defer {
+            if needsSecurityScope {
+                url.stopAccessingSecurityScopedResource()
+            }
         }
-        defer { url.stopAccessingSecurityScopedResource() }
 
         guard let document = PDFDocument(url: url) else {
             return nil
@@ -228,19 +231,14 @@ final class PDFProcessor {
     /// - Parameter url: URL to PDF file
     /// - Returns: Validation result with page count or error
     func validatePDF(_ url: URL) async -> PDFValidationResult {
-        guard url.startAccessingSecurityScopedResource() else {
-            let error = PDFImportError.unreadable(fileName: url.lastPathComponent)
-
-            // Track analytics: PDF validation failed
-            analytics.track(event: AnalyticsEvent.pdfValidationFailed, properties: [
-                "file_name": url.lastPathComponent,
-                "error_type": "unreadable",
-                "error": error.localizedDescription
-            ])
-
-            return .failure(error)
+        // Try to access security-scoped resource if needed
+        // Files from document picker with asCopy: true don't need this
+        let needsSecurityScope = url.startAccessingSecurityScopedResource()
+        defer {
+            if needsSecurityScope {
+                url.stopAccessingSecurityScopedResource()
+            }
         }
-        defer { url.stopAccessingSecurityScopedResource() }
 
         guard let document = PDFDocument(url: url) else {
             let error = PDFImportError.unreadable(fileName: url.lastPathComponent)

@@ -95,61 +95,57 @@ struct VideoProcessingBottomBanner: View {
         Button {
             showJobList = true
         } label: {
-            HStack(spacing: 12) {
-                // Progress Circle (smaller)
-                ZStack {
-                    Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 2.5)
-                        .frame(width: 36, height: 36)
+            VStack(spacing: 0) {
+                // Linear progress bar at top (matching PDF banner)
+                ProgressView(value: job.progress)
+                    .progressViewStyle(.linear)
+                    .tint(HeirloomColors.tomato)
 
-                    Circle()
-                        .trim(from: 0, to: job.progress)
-                        .stroke(HeirloomColors.tomato, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-                        .frame(width: 36, height: 36)
-                        .rotationEffect(.degrees(-90))
-                        .animation(.linear(duration: 0.3), value: job.progress)
+                HStack(spacing: 12) {
+                    // Phase icon
+                    Image(systemName: phaseIcon(for: job))
+                        .font(.title3)
+                        .foregroundStyle(HeirloomColors.tomato)
 
+                    // Two-line text layout (matching PDF banner)
+                    VStack(alignment: .leading, spacing: 2) {
+                        // Title: Status text
+                        Text(job.detailedStatusText)
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.charcoal)
+
+                        // Subtitle: Queue info or video name
+                        if !queuedJobs.isEmpty {
+                            Text("\(queuedJobs.count) in queue")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                        } else {
+                            Text(job.userCaption ?? "Processing video")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                                .lineLimit(1)
+                        }
+                    }
+
+                    Spacer()
+
+                    // Percentage (matching PDF banner)
                     if job.progress < 1.0 {
-                        Image(systemName: "video.fill")
-                            .font(.system(size: 12))
+                        Text("\(Int(job.progress * 100))%")
+                            .font(HeirloomFonts.caption1Bold)
                             .foregroundStyle(HeirloomColors.tomato)
                     } else {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(HeirloomColors.familyGreen)
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .font(.title3)
                     }
                 }
-
-                // Job Info - Single line when possible
-                HStack(spacing: 6) {
-                    Text(job.detailedStatusText)
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.primaryText)
-
-                    if !queuedJobs.isEmpty {
-                        Text("•")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                        Text("\(queuedJobs.count) in queue")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-                }
-
-                Spacer()
-
-                // Chevron
-                Image(systemName: "chevron.down")
-                    .font(.caption)
-                    .foregroundStyle(HeirloomColors.secondaryText)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(.white)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
-            .padding(.horizontal, HeirloomSpacing.md)
-            .padding(.top, 8)
+            .background(Color(.systemBackground))
+            .shadow(color: .black.opacity(0.1), radius: 8, y: -4)
         }
         .buttonStyle(.plain)
     }
@@ -158,39 +154,41 @@ struct VideoProcessingBottomBanner: View {
         Button {
             showJobList = true
         } label: {
-            HStack(spacing: 12) {
-                // Checkmark Icon (smaller)
-                ZStack {
-                    Circle()
-                        .fill(HeirloomColors.familyGreen.opacity(0.1))
-                        .frame(width: 36, height: 36)
+            VStack(spacing: 0) {
+                // Full progress bar (completed)
+                ProgressView(value: 1.0)
+                    .progressViewStyle(.linear)
+                    .tint(.green)
+
+                HStack(spacing: 12) {
+                    // Checkmark icon
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.green)
+
+                    // Two-line text layout
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Processing complete")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.charcoal)
+
+                        Text(completedJobs.count == 1 ? "1 recipe ready" : "\(completedJobs.count) recipes ready")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+
+                    Spacer()
 
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(HeirloomColors.familyGreen)
+                        .foregroundStyle(.green)
+                        .font(.title3)
                 }
-
-                // Completed Info - Single line
-                HStack(spacing: 6) {
-                    Text(completedJobs.count == 1 ? "Recipe ready to review" : "\(completedJobs.count) recipes ready to review")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.primaryText)
-                }
-
-                Spacer()
-
-                // Chevron
-                Image(systemName: "chevron.down")
-                    .font(.caption)
-                    .foregroundStyle(HeirloomColors.secondaryText)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(.white)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
-            .padding(.horizontal, HeirloomSpacing.md)
-            .padding(.top, 8)
+            .background(Color(.systemBackground))
+            .shadow(color: .black.opacity(0.1), radius: 8, y: -4)
         }
         .buttonStyle(.plain)
     }
@@ -205,51 +203,70 @@ struct VideoProcessingBottomBanner: View {
                 showJobList = true
             }
         } label: {
-            HStack(spacing: 12) {
-                // Error Icon (smaller)
-                ZStack {
-                    Circle()
-                        .fill(Color.red.opacity(0.1))
-                        .frame(width: 36, height: 36)
+            VStack(spacing: 0) {
+                // Error indicator progress bar
+                ProgressView(value: 1.0)
+                    .progressViewStyle(.linear)
+                    .tint(.red)
+
+                HStack(spacing: 12) {
+                    // Error icon
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.red)
+
+                    // Two-line text layout
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Processing failed")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.charcoal)
+
+                        if !completedJobs.isEmpty {
+                            Text("\(failedJobs.count) failed, \(completedJobs.count) ready")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                        } else {
+                            Text(failedJobs.count == 1 ? "Tap to retry" : "\(failedJobs.count) videos")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                        }
+                    }
+
+                    Spacer()
 
                     Image(systemName: "exclamationmark.circle.fill")
-                        .font(.system(size: 18))
                         .foregroundStyle(.red)
+                        .font(.title3)
                 }
-
-                // Failed Info - Single line when possible
-                HStack(spacing: 6) {
-                    Text(failedJobs.count == 1 ? "Video processing failed" : "\(failedJobs.count) videos failed")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.primaryText)
-
-                    // Show context if there are also completed jobs
-                    if !completedJobs.isEmpty {
-                        Text("•")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                        Text("\(completedJobs.count) ready")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.familyGreen)
-                    }
-                }
-
-                Spacer()
-
-                // Chevron
-                Image(systemName: "chevron.down")
-                    .font(.caption)
-                    .foregroundStyle(HeirloomColors.secondaryText)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(.white)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
-            .padding(.horizontal, HeirloomSpacing.md)
-            .padding(.top, 8)
+            .background(Color(.systemBackground))
+            .shadow(color: .black.opacity(0.1), radius: 8, y: -4)
         }
         .buttonStyle(.plain)
+    }
+
+    private func phaseIcon(for job: VideoProcessingJob) -> String {
+        switch job.currentPhase {
+        case .queued:
+            return "clock"
+        case .loadingModel:
+            return "arrow.down.circle"
+        case .extractingAudio:
+            return "waveform"
+        case .transcribing:
+            return "text.bubble"
+        case .analyzingFrames:
+            return "photo.on.rectangle"
+        case .structuringRecipe:
+            return "text.badge.checkmark"
+        case .augmenting:
+            return "sparkles"
+        case .complete:
+            return "checkmark.circle.fill"
+        }
     }
 
     private func initializeJobManager() {

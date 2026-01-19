@@ -57,7 +57,7 @@ class AIRecipeDetector {
         """
 
         let options = AICompletionOptions(
-            model: aiConfig.model(for: .vision),
+            model: aiConfig.model(for: .pdfVision),
             temperature: 0.3, // Lower temperature for more consistent detection
             maxTokens: 1000
         )

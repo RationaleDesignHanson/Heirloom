@@ -45,11 +45,9 @@ class ProgressInterpolator: ObservableObject {
     }
 
     /// Stop interpolation
-    nonisolated func stop() {
-        MainActor.assumeIsolated {
-            timer?.invalidate()
-            timer = nil
-        }
+    func stop() {
+        timer?.invalidate()
+        timer = nil
     }
 
     private func updateProgress() {
@@ -67,7 +65,14 @@ class ProgressInterpolator: ObservableObject {
         interpolatedProgress = min(interpolatedProgress, targetProgress * 0.95)
     }
 
-    deinit {
-        stop()
+    nonisolated deinit {
+        // Timer invalidation must happen on main thread, but deinit can be called from any thread
+        // Use detached task to safely invalidate on MainActor if needed
+        let timerToInvalidate = timer
+        if let timer = timerToInvalidate {
+            Task { @MainActor in
+                timer.invalidate()
+            }
+        }
     }
 }

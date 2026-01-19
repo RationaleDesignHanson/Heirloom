@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import UIKit
+import PDFKit
 
 /// Actor-based manager for processing bulk import jobs
 /// Handles rate limiting, concurrency control, and state persistence
@@ -55,6 +56,7 @@ final class ImportJobManager: ObservableObject {
     ) throws -> ImportJob {
         // Create job
         let job = ImportJob(jobName: jobName)
+        job.status = .processing  // Set to processing immediately so banner shows it
         context.insert(job)
 
         // Create items with duplicate detection
@@ -90,76 +92,144 @@ final class ImportJobManager: ObservableObject {
         return job
     }
 
-    /// Create a new import job from PDF pages with intelligent multi-page grouping
+    /// Create and analyze PDF import job from PDF URLs
+    /// This is the RESILIENT method that creates the job FIRST, then analyzes
     /// - Parameters:
-    ///   - pdfPages: Array of page images from PDF
-    ///   - fileName: PDF file name for job naming
+    ///   - pdfURLs: Array of PDF file URLs
+    ///   - jobName: Name for the job
+    ///   - cookbookName: Optional cookbook name for auto-categorization
     ///   - context: SwiftData ModelContext for persistence
-    /// - Returns: The created ImportJob
-    func createPDFImportJob(
-        pdfPages: [(pageNumber: Int, image: UIImage)],
-        fileName: String,
+    /// - Returns: The created ImportJob (already inserted and saved)
+    func createAndAnalyzePDFJob(
+        pdfURLs: [URL],
+        jobName: String,
+        cookbookName: String?,
         context: ModelContext
     ) async throws -> ImportJob {
-        Log.info("Creating PDF import job with multi-page analysis", category: .import, metadata: [
-            "file": fileName,
-            "pages": pdfPages.count
-        ])
-
-        // STEP 1: Analyze page boundaries to detect multi-page recipes
-        let recipeGroups = try await multiPageAnalyzer.analyzePageBoundaries(pages: pdfPages)
-
-        Log.info("Multi-page analysis complete", category: .import, metadata: [
-            "file": fileName,
-            "total_pages": pdfPages.count,
-            "recipe_groups": recipeGroups.count,
-            "multi_page_recipes": recipeGroups.filter { $0.isMultiPage }.count
-        ])
-
-        // STEP 2: Create job with one item per recipe (not per page!)
-        let job = ImportJob(
-            jobName: "Import \(fileName)",
-            continueOnError: true
-        )
-        job.totalItems = recipeGroups.count
+        // STEP 1: Create job immediately (so banner appears)
+        let job = ImportJob(jobName: jobName, continueOnError: true)
+        job.status = .processing  // Set to processing immediately so banner shows it
+        job.phase = .validation
+        job.phaseProgress = 0.0
+        job.totalItems = 0 // Will be updated as we discover recipes
+        job.cookbookName = cookbookName
         context.insert(job)
-
-        // STEP 3: Create ImportItem for each recipe group
-        for group in recipeGroups {
-            // For multi-page recipes, combine pages into single tall image
-            let combinedImage = group.pageCount == 1 ? group.pages[0] : group.combinedImage()
-
-            guard let imageData = combinedImage.jpegData(compressionQuality: 0.9) else {
-                Log.warning("Failed to create image data for recipe group", category: .import, metadata: [
-                    "file": fileName,
-                    "pages": group.pageRange
-                ])
-                continue
-            }
-
-            let item = ImportItem(
-                source: .pdf,
-                imageData: imageData,
-                pageNumber: group.startPage,
-                totalPages: group.pageCount,
-                isMultiPageRecipe: group.isMultiPage
-            )
-            item.job = job
-            context.insert(item)
-
-            Log.info("Created import item for recipe group", category: .import, metadata: [
-                "file": fileName,
-                "title": group.title,
-                "pages": group.pageRange,
-                "is_multi_page": group.isMultiPage
-            ])
-        }
-
         try context.save()
 
-        Log.info("PDF import job created successfully", category: .import, metadata: [
-            "file": fileName,
-            "recipe_count": recipeGroups.count
+        Log.info("PDF import job created (analyzing...)", category: .import, metadata: [
+            "pdf_count": pdfURLs.count
+        ])
+
+        // STEP 2: Validate PDFs quickly
+        job.phase = .validation
+        job.phaseProgress = 1.0
+        try context.save()
+
+        // STEP 3: Analyze pages and create items (this is the long operation)
+        job.phase = .analysis
+        job.phaseProgress = 0.0
+        try context.save()
+
+        var allItems: [ImportItem] = []
+        var totalPagesProcessed = 0
+        var totalPagesAcrossAllPDFs = 0
+
+        // Count total pages first for accurate progress
+        for pdfURL in pdfURLs {
+            guard let pdfDocument = PDFDocument(url: pdfURL) else { continue }
+            totalPagesAcrossAllPDFs += pdfDocument.pageCount
+        }
+
+        // Process each PDF
+        for pdfURL in pdfURLs {
+            // Extract cookbook metadata from front matter
+            let metadataExtractor = PDFMetadataExtractor()
+            let cookbookMetadata = await metadataExtractor.extractMetadata(from: pdfURL)
+
+            if let metadata = cookbookMetadata {
+                Log.info("Extracted cookbook metadata", category: .import, metadata: [
+                    "file": pdfURL.lastPathComponent,
+                    "title": metadata.title ?? "nil",
+                    "author": metadata.author ?? "nil"
+                ])
+            }
+
+            // Render PDF pages
+            Log.info("Rendering PDF pages", category: .import, metadata: [
+                "file": pdfURL.lastPathComponent
+            ])
+
+            let pdfProcessor = ServiceContainer.shared.resolve(PDFProcessor.self)
+            let pages = try await pdfProcessor.renderPDFPages(from: pdfURL)
+
+            // Analyze page boundaries with progress callback
+            Log.info("Analyzing page boundaries", category: .import, metadata: [
+                "file": pdfURL.lastPathComponent,
+                "pages": pages.count
+            ])
+
+            let recipeGroups = try await multiPageAnalyzer.analyzePageBoundaries(
+                pages: pages,
+                progressCallback: { currentPage in
+                    Task { @MainActor in
+                        totalPagesProcessed += 1
+                        job.phaseProgress = Double(totalPagesProcessed) / Double(totalPagesAcrossAllPDFs)
+                        try? context.save()
+                    }
+                }
+            )
+
+            Log.info("Multi-page analysis complete", category: .import, metadata: [
+                "file": pdfURL.lastPathComponent,
+                "recipe_groups": recipeGroups.count,
+                "multi_page_recipes": recipeGroups.filter { $0.isMultiPage }.count
+            ])
+
+            // Create ImportItems for this PDF
+            for group in recipeGroups {
+                let combinedImage = group.pageCount == 1 ? group.pages[0] : group.combinedImage()
+                guard let imageData = combinedImage.jpegData(compressionQuality: 0.9) else {
+                    Log.warning("Failed to create image data for recipe group", category: .import, metadata: [
+                        "file": pdfURL.lastPathComponent,
+                        "pages": group.pageRange
+                    ])
+                    continue
+                }
+
+                let item = ImportItem(
+                    source: .pdf,
+                    imageData: imageData,
+                    pageNumber: group.startPage,
+                    totalPages: group.pageCount,
+                    isMultiPageRecipe: group.isMultiPage
+                )
+
+                // Apply cookbook metadata
+                item.cookbookTitle = cookbookMetadata?.title
+                item.cookbookAuthor = cookbookMetadata?.author
+
+                item.job = job
+                context.insert(item)
+                allItems.append(item)
+
+                Log.info("Created import item for recipe group", category: .import, metadata: [
+                    "file": pdfURL.lastPathComponent,
+                    "title": group.title,
+                    "pages": group.pageRange,
+                    "is_multi_page": group.isMultiPage
+                ])
+            }
+        }
+
+        // STEP 4: Update job with all items
+        job.items = allItems
+        job.totalItems = allItems.count
+        job.phaseProgress = 1.0
+        try context.save()
+
+        Log.info("PDF analysis complete - job ready for extraction", category: .import, metadata: [
+            "pdf_count": pdfURLs.count,
+            "recipe_count": allItems.count
         ])
 
         return job
@@ -178,6 +248,7 @@ final class ImportJobManager: ObservableObject {
             jobName: "Camera Scan",
             continueOnError: true
         )
+        job.status = .processing  // Set to processing immediately so banner shows it
         job.totalItems = images.count
         context.insert(job)
 
@@ -211,6 +282,7 @@ final class ImportJobManager: ObservableObject {
             jobName: "Photo Library Import",
             continueOnError: true
         )
+        job.status = .processing  // Set to processing immediately so banner shows it
         job.totalItems = images.count
         context.insert(job)
 
@@ -253,6 +325,26 @@ final class ImportJobManager: ObservableObject {
             await completeJob(job, context: context)
             return
         }
+
+        // PHASE 1: Validation (quick - mostly already done in PDFImportView)
+        job.phase = .validation
+        job.phaseProgress = 1.0 // Complete instantly (validation already done)
+        try context.save()
+
+        // PHASE 2: Analysis (extract food images from PDF pages)
+        job.phase = .analysis
+        job.phaseProgress = 0.0
+        try context.save()
+
+        await analyzeAndExtractImages(job: job, items: items, context: context)
+
+        job.phaseProgress = 1.0
+        try context.save()
+
+        // PHASE 3: Extraction (AI recipe extraction)
+        job.phase = .extraction
+        job.phaseProgress = 0.0
+        try context.save()
 
         // Process items with concurrency control
         await withTaskGroup(of: Void.self) { group in
@@ -321,6 +413,23 @@ final class ImportJobManager: ObservableObject {
         try await startJob(job, context: context)
     }
 
+    // MARK: - Analysis Phase
+
+    /// Placeholder for analysis phase (currently minimal since analysis happens in PDFImportView)
+    /// In the future, this could include additional preprocessing steps
+    private func analyzeAndExtractImages(job: ImportJob, items: [ImportItem], context: ModelContext) async {
+        // Analysis phase is currently very quick since page boundary detection
+        // already happened in PDFImportView before creating the job.
+        // Image extraction will happen during processItem for each recipe.
+
+        Log.info("Analysis phase (placeholder)", category: .import, metadata: [
+            "item_count": items.count
+        ])
+
+        // Simulate brief analysis delay for UX purposes
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+    }
+
     // MARK: - Item Processing
 
     private func processItem(_ item: ImportItem, job: ImportJob, context: ModelContext) async {
@@ -341,6 +450,14 @@ final class ImportJobManager: ObservableObject {
 
             case .camera, .photoLibrary:
                 recipe = try await processImageImport(item)
+            }
+
+            // Apply cookbook metadata if available (from PDF front matter)
+            if let cookbookTitle = item.cookbookTitle {
+                recipe.sourceBookTitle = cookbookTitle
+            }
+            if let cookbookAuthor = item.cookbookAuthor {
+                recipe.sourceBookAuthor = cookbookAuthor
             }
 
             // Save recipe
@@ -394,6 +511,20 @@ final class ImportJobManager: ObservableObject {
             // Mark item as failed
             item.markFailed(error: error.localizedDescription)
             job.updateProgress(success: false)
+
+            // Log detailed error information for debugging
+            Log.error("❌ RECIPE EXTRACTION FAILED", category: .import, metadata: [
+                "job_id": job.id.uuidString,
+                "item_id": item.id.uuidString,
+                "source": item.source.rawValue,
+                "page_number": item.pageNumber ?? -1,
+                "pdf_url": item.pdfURL ?? "unknown",
+                "error_message": error.localizedDescription,
+                "error_type": "\(type(of: error))",
+                "is_multi_page": item.isMultiPageRecipe ?? false,
+                "total_pages": item.totalPages ?? 0,
+                "retry_count": item.retryCount
+            ])
 
             try? context.save()
 
@@ -470,6 +601,9 @@ final class ImportJobManager: ObservableObject {
         // Convert to Recipe model
         let recipe = createRecipe(from: extractedRecipe, sourceImage: image, sourceType: .scan)
 
+        // Extract food image from PDF page (if present)
+        await extractFoodImage(from: image, for: recipe)
+
         return recipe
     }
 
@@ -540,16 +674,129 @@ final class ImportJobManager: ObservableObject {
         return recipe
     }
 
+    /// Extract food image from page image using Vision framework
+    private func extractFoodImage(from pageImage: UIImage, for recipe: Recipe) async {
+        let imageStorage = ServiceContainer.shared.resolve(ImageStorageService.self)
+        let imageExtractor = PDFImageExtractor(imageStorage: imageStorage)
+
+        let extracted = await imageExtractor.extractAndSaveImage(
+            from: pageImage,
+            for: recipe
+        )
+
+        if extracted {
+            Log.info("Extracted food image for recipe", category: .import, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "title": recipe.title
+            ])
+        } else {
+            Log.debug("No food image found in page", category: .import, metadata: [
+                "recipeId": recipe.id.uuidString
+            ])
+        }
+    }
+
     // MARK: - Job Completion
 
     private func completeJob(_ job: ImportJob, context: ModelContext) async {
         job.status = .completed
+        job.phase = .completed
+        job.phaseProgress = 1.0
         job.completedAt = Date()
         isProcessing = false
         // Don't clear activeJob - let UI dismiss sheet explicitly
         // activeJob will be cleared when user taps "Done" button in ImportProgressView
 
+        // Auto-create collection and add successful recipes if cookbook name exists
+        if let cookbookName = job.cookbookName, !cookbookName.isEmpty {
+            await createOrAddToCollection(
+                cookbookName: cookbookName,
+                job: job,
+                context: context
+            )
+        }
+
         try? context.save()
+    }
+
+    /// Create or find collection and add successful recipes
+    private func createOrAddToCollection(
+        cookbookName: String,
+        job: ImportJob,
+        context: ModelContext
+    ) async {
+        // Get all successful recipe IDs from job items
+        guard let items = job.items else { return }
+
+        let successfulRecipeIDs = items
+            .filter { $0.status == .success && $0.recipeID != nil }
+            .compactMap { $0.recipeID }
+
+        guard !successfulRecipeIDs.isEmpty else {
+            Log.info("No successful recipes to add to collection", category: .import)
+            return
+        }
+
+        // Fetch recipes
+        let recipeDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { recipe in
+                successfulRecipeIDs.contains(recipe.id)
+            }
+        )
+
+        guard let recipes = try? context.fetch(recipeDescriptor) else {
+            Log.error("Failed to fetch recipes for collection", category: .import)
+            return
+        }
+
+        // Find or create collection
+        let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate<RecipeCollection> { collection in
+                collection.name == cookbookName
+            }
+        )
+
+        let existingCollection = try? context.fetch(collectionDescriptor).first
+
+        let collection: RecipeCollection
+        if let existing = existingCollection {
+            collection = existing
+            Log.info("Adding recipes to existing collection", category: .import, metadata: [
+                "collection": cookbookName,
+                "recipe_count": recipes.count
+            ])
+        } else {
+            collection = RecipeCollection(
+                name: cookbookName,
+                description: "Imported from \(cookbookName)",
+                iconName: "book.fill",
+                color: "#FF6B6B",
+                isSystemCollection: false
+            )
+            context.insert(collection)
+            Log.info("Created new collection for cookbook", category: .import, metadata: [
+                "collection": cookbookName,
+                "recipe_count": recipes.count
+            ])
+        }
+
+        // Add collection to recipes
+        for recipe in recipes {
+            if recipe.collections == nil {
+                recipe.collections = [collection]
+            } else if let collections = recipe.collections,
+                      !collections.contains(where: { $0.id == collection.id }) {
+                recipe.collections?.append(collection)
+            }
+        }
+
+        try? context.save()
+
+        Log.info("Successfully added recipes to collection", category: .import, metadata: [
+            "collection": cookbookName,
+            "successful_recipes": recipes.count,
+            "failed_recipes": job.failedItems
+        ])
     }
 
     /// Clear the active job (called from UI when user dismisses)

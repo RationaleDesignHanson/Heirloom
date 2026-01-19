@@ -259,6 +259,10 @@
 		C5B317872F00D8330087CF6D /* RecipeVersionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317862F00D8330087CF6D /* RecipeVersionService.swift */; };
 		C5B317892F00D89A0087CF6D /* RecipeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317882F00D89A0087CF6D /* RecipeSelectionView.swift */; };
 		C5B317BD2F00DC010087CF6D /* RecipeMigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317BC2F00DC010087CF6D /* RecipeMigrationService.swift */; };
+		C5DBE4A92F1A774F00C1B6BA /* FirebaseNukeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4A82F1A774F00C1B6BA /* FirebaseNukeService.swift */; };
+		C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */; };
+		C5DBE4AD2F1A7EEE00C1B6BA /* PDFImageExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */; };
+		C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */; };
 		C5E955312F054271006CD3C2 /* RecipeVersionSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E9552F2F054271006CD3C2 /* RecipeVersionSelector.swift */; };
 		C5E955322F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E955302F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift */; };
 		C5E955332F054271006CD3C2 /* RecipeDiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E9552E2F054271006CD3C2 /* RecipeDiffView.swift */; };
@@ -283,9 +287,7 @@
 		F338CD690F1EB5301AC2C49A /* LoadingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD53FA904E346EB035D7A30 /* LoadingViews.swift */; };
 		F4B1A0AFB96B040047C28032 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A9B3D94D12C38881E14669 /* Colors.swift */; };
 		FBC3DAB4D681A708C08D2CF1 /* CookingModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30A306DE6CE42AEC0FAFE3D2 /* CookingModeView.swift */; };
-
-		BF1DB50BE06D4FA980731512 /* FirebaseNukeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07AE4137C42A41FCAAD2CD34 /* FirebaseNukeService.swift */; };
-		/* End PBXBuildFile section */
+/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		C568873A2F057B02006EA0B1 /* PBXContainerItemProxy */ = {
@@ -568,6 +570,10 @@
 		C5B317882F00D89A0087CF6D /* RecipeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeSelectionView.swift; sourceTree = "<group>"; };
 		C5B3178E2F00DB6A0087CF6D /* HeirloomTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HeirloomTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5B317BC2F00DC010087CF6D /* RecipeMigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeMigrationService.swift; sourceTree = "<group>"; };
+		C5DBE4A82F1A774F00C1B6BA /* FirebaseNukeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseNukeService.swift; sourceTree = "<group>"; };
+		C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProgressBottomBanner.swift; sourceTree = "<group>"; };
+		C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImageExtractor.swift; sourceTree = "<group>"; };
+		C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFMetadataExtractor.swift; sourceTree = "<group>"; };
 		C5E9552E2F054271006CD3C2 /* RecipeDiffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDiffView.swift; sourceTree = "<group>"; };
 		C5E9552F2F054271006CD3C2 /* RecipeVersionSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersionSelector.swift; sourceTree = "<group>"; };
 		C5E955302F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersionSelectorViewModel.swift; sourceTree = "<group>"; };
@@ -601,9 +607,7 @@
 		F648661A8E5481059D02F626 /* RecipeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailView.swift; sourceTree = "<group>"; };
 		F87D9E0C89E4D0186A97A4D5 /* RecipeExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeExportService.swift; sourceTree = "<group>"; };
 		FD518726BAFEC566E22D0315 /* Tag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tag.swift; sourceTree = "<group>"; };
-
-		07AE4137C42A41FCAAD2CD34 /* FirebaseNukeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseNukeService.swift; sourceTree = "<group>"; };
-		/* End PBXFileReference section */
+/* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		C568873D2F057B02006EA0B1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
@@ -886,6 +890,8 @@
 		7C93A24360293511E207D285 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */,
+				C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */,
 				67D3BB4E09807D97D8F0A339 /* ImportJobManager.swift */,
 			);
 			path = Services;
@@ -894,6 +900,7 @@
 		82DB2D05EA149582BC4C7525 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				C5DBE4A82F1A774F00C1B6BA /* FirebaseNukeService.swift */,
 				C583FF9C2F0C9CA90096478E /* HeritageRecipeCleanupView.swift */,
 				C56F3DCE2F02285600D19743 /* DebugLogView.swift */,
 				C5B317672F00C8310087CF6D /* WhatsNewView.swift */,
@@ -1743,6 +1750,7 @@
 		ED54D1099972D4E6640D917F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */,
 				CD892928C21467099E4A3651 /* BulkImportView.swift */,
 				CB41B3CAD1F6A114B845E5B7 /* ImportPreviewView.swift */,
 				82D0F4952274AFF2BFBDEABB /* ImportProgressView.swift */,
@@ -2048,6 +2056,7 @@
 				C583FFAE2F0CAA6E0096478E /* FirebaseConfiguration.swift in Sources */,
 				C583FFAF2F0CAA6E0096478E /* FirebaseRecordConverter.swift in Sources */,
 				2F46430BA53D29AE89C05522 /* EmptyStateView.swift in Sources */,
+				C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */,
 				C5B3177C2F00D6570087CF6D /* ShortURLService.swift in Sources */,
 				8ADFA5839933EC3D8374AFB5 /* EnhancedOCRService.swift in Sources */,
 				C58309142F0FD6510096478E /* DinnerPartyShoppingSync.swift in Sources */,
@@ -2089,6 +2098,7 @@
 				56B7410AFE53DF464D867AED /* OCRReviewView.swift in Sources */,
 				554881423D4F45E10725AC6D /* ProvenanceMetadata.swift in Sources */,
 				C583FFC32F0CB3860096478E /* DinnerPartySummaryService.swift in Sources */,
+				C5DBE4A92F1A774F00C1B6BA /* FirebaseNukeService.swift in Sources */,
 				C583FFC42F0CB3860096478E /* RecipeTimelineCalculator.swift in Sources */,
 				C583FFC52F0CB3860096478E /* AIRecipeDetector.swift in Sources */,
 				C583FFC62F0CB3860096478E /* ShoppingListSummaryService.swift in Sources */,
@@ -2226,11 +2236,13 @@
 				C583164C2F119E910096478E /* LocalRecipeSimilarityService.swift in Sources */,
 				C583164D2F119E910096478E /* VideoRecipeProcessor.swift in Sources */,
 				C523BEF02F19AD1B00080AEB /* HeritageRecipeCache.swift in Sources */,
+				C5DBE4AD2F1A7EEE00C1B6BA /* PDFImageExtractor.swift in Sources */,
 				C583164E2F119E910096478E /* WebRecipeSearchService.swift in Sources */,
 				C583164F2F119E910096478E /* WhisperKitTranscriptionService.swift in Sources */,
 				C58316502F119E910096478E /* FrameAnalysisService.swift in Sources */,
 				C56F3EEF2F0528F200D19743 /* FirebaseLineageService.swift in Sources */,
 				D0F80C3F0014086C6080ABEE /* URLNormalizer.swift in Sources */,
+				C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */,
 				A892587ADBCD4FCA80189C9E /* UIKitAppearance.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

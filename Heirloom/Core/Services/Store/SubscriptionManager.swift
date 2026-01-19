@@ -150,6 +150,46 @@ final class SubscriptionManager {
 
         logger.log("Refreshing subscription status...", category: .store, level: .info, metadata: nil)
 
+        // ⭐ NEW: Check for fake payments first (DEBUG ONLY)
+        if storeManager.isFakePaymentsEnabled {
+            // Read subscription status directly from UserDefaults
+            if let statusRaw = UserDefaults.standard.string(forKey: Keys.subscriptionStatus),
+               let fakeStatus = HeirloomSubscriptionStatus(rawValue: statusRaw),
+               fakeStatus.isPremium {
+
+                logger.log("🎭 Using fake subscription status: \(fakeStatus.displayName)", category: .store, level: .info, metadata: nil)
+
+                // Update to fake status
+                updateStatus(fakeStatus)
+
+                // Load expiry date if subscription
+                if fakeStatus == .monthly || fakeStatus == .annual {
+                    subscriptionExpiryDate = UserDefaults.standard.object(forKey: Keys.subscriptionExpiryDate) as? Date
+                    calculateDaysRemaining()
+                }
+
+                // Update cache timestamp
+                UserDefaults.standard.set(Date(), forKey: Keys.lastStatusRefresh)
+
+                isRefreshing = false
+
+                logger.log(
+                    "Subscription status: \(status.displayName)",
+                    category: .store,
+                    level: .info,
+                    metadata: nil
+                )
+
+                analytics.track(event: .subscriptionStatusChecked, properties: [
+                    "status": status.rawValue,
+                    "is_premium": isPremium,
+                    "fake_subscription": true
+                ])
+
+                return
+            }
+        }
+
         // Check for lifetime purchase first
         let hasLifetime = await storeManager.hasLifetimePurchase()
         if hasLifetime {

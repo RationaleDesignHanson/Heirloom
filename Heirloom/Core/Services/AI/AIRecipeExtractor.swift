@@ -170,7 +170,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         """
 
         let options = AICompletionOptions(
-            model: configuration.model(for: .vision),
+            model: configuration.model(for: .pdfVision),
             temperature: 0.3, // Lower temperature for more consistent detection
             maxTokens: 1000
         )
@@ -343,7 +343,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         }
 
         let prompt = buildVisionExtractionPrompt(boundingBox: boundingBox)
-        let model = configuration.model(for: .vision)
+        let model = configuration.model(for: .pdfVision)
 
         let recipe = try await aiService.completeWithVisionStructured(
             image: image,
@@ -454,7 +454,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     // MARK: - AI Extraction (Text-Based - Legacy)
 
     private func extractWithAI(_ ocrText: String) async throws -> ExtractedRecipe {
-        let model = configuration.model(for: .enhancement)
+        let model = configuration.model(for: .pdfEnhancement)
 
         let prompt = buildExtractionPrompt(for: ocrText)
 
@@ -586,7 +586,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     }
 
     private func extractMultipleRecipesWithAI(_ ocrText: String) async throws -> [ExtractedRecipe] {
-        let model = configuration.model(for: .enhancement)
+        let model = configuration.model(for: .pdfEnhancement)
 
         let prompt = buildMultiRecipeExtractionPrompt(for: ocrText)
 

@@ -131,7 +131,11 @@ struct CookbookScannerView: View {
                     }
                 }
                 .sheet(isPresented: $showPDFImport) {
-                    PDFImportView()
+                    PDFImportView(onJobCreated: {
+                        // Dismiss CookbookScannerView when PDF job is created
+                        // This allows user to see ImportProgressBottomBanner
+                        dismiss()
+                    })
                 }
                 .sheet(isPresented: $showProgressView) {
                     if let job = importManager.activeJob {

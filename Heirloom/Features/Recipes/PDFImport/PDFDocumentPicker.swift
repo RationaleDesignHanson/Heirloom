@@ -122,15 +122,83 @@ struct PDFDocumentPicker: UIViewControllerRepresentable {
                 return
             }
 
+            // Clean and normalize URLs to handle problematic filenames
+            let cleanedURLs = urls.compactMap { url -> URL? in
+                return cleanPDFURL(url)
+            }
+
             // Set selected PDFs
-            parent.selectedPDFs = urls
+            parent.selectedPDFs = cleanedURLs
 
             Log.info("PDFs selected for import", category: .import, metadata: [
-                "count": urls.count,
-                "files": urls.map { $0.lastPathComponent }.joined(separator: ", ")
+                "count": cleanedURLs.count,
+                "files": cleanedURLs.map { $0.lastPathComponent }.joined(separator: ", ")
             ])
 
             parent.dismiss()
+        }
+
+        /// Clean and normalize PDF URL to handle problematic filenames
+        /// Handles URL encoding issues, special characters, and copies to a clean filename if needed
+        private func cleanPDFURL(_ url: URL) -> URL? {
+            // With asCopy: true, files are already copied to app's temporary directory
+            // and don't need security-scoped resource access
+
+            // Verify file exists
+            guard FileManager.default.fileExists(atPath: url.path) else {
+                Log.warning("PDF file does not exist", category: .import, metadata: [
+                    "file": url.lastPathComponent,
+                    "path": url.path
+                ])
+                return nil
+            }
+
+            // Get original filename and decode URL encoding
+            let originalFilename = url.lastPathComponent
+            let decodedFilename = originalFilename
+                .removingPercentEncoding ?? originalFilename
+                .replacingOccurrences(of: "+", with: " ")  // Handle plus signs
+                .replacingOccurrences(of: "\\'", with: "'")  // Handle escaped apostrophes
+                .replacingOccurrences(of: "\\", with: "")     // Remove backslashes
+
+            // If filename is already clean, return original URL
+            if originalFilename == decodedFilename {
+                return url
+            }
+
+            Log.info("Cleaning PDF filename", category: .import, metadata: [
+                "original": originalFilename,
+                "cleaned": decodedFilename
+            ])
+
+            // Create temporary directory for cleaned file
+            let tempDir = FileManager.default.temporaryDirectory
+            let cleanedURL = tempDir.appendingPathComponent(decodedFilename)
+
+            // Copy file to cleaned filename
+            do {
+                // Remove existing file if present
+                if FileManager.default.fileExists(atPath: cleanedURL.path) {
+                    try FileManager.default.removeItem(at: cleanedURL)
+                }
+
+                // Copy to cleaned filename
+                try FileManager.default.copyItem(at: url, to: cleanedURL)
+
+                Log.info("PDF filename cleaned successfully", category: .import, metadata: [
+                    "original": originalFilename,
+                    "cleaned": decodedFilename
+                ])
+
+                return cleanedURL
+            } catch {
+                Log.error("Failed to clean PDF filename", category: .import, error: error, metadata: [
+                    "original": originalFilename,
+                    "cleaned": decodedFilename
+                ])
+                // Return original URL as fallback
+                return url
+            }
         }
 
         func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {

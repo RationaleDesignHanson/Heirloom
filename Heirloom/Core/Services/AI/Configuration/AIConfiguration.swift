@@ -186,11 +186,26 @@ class AIConfiguration: ObservableObject, AIConfigurationProtocol {
         switch (selectedProvider, task) {
         case (.anthropic, .parsing), (.anthropic, .categorization):
             return "claude-3-haiku-20240307" // Fast, cheap for simple tasks
+
+        // PDF tasks - use Claude Sonnet 4.5 (latest, best quality)
+        case (.anthropic, .pdfVision), (.anthropic, .pdfEnhancement):
+            return "claude-sonnet-4-5-20250929"
+
+        // Video tasks - use Claude Sonnet 4 (May 2025 version, still active)
+        case (.anthropic, .videoVision), (.anthropic, .videoEnhancement):
+            return "claude-sonnet-4-20250514"
+
+        // Legacy tasks (fallback to Claude Sonnet 4.5)
         case (.anthropic, .enhancement), (.anthropic, .vision):
-            return "claude-sonnet-4-20250514" // Latest model with vision capabilities
+            return "claude-sonnet-4-5-20250929"
+
         case (.openai, .parsing), (.openai, .categorization):
             return "gpt-4o-mini" // Fast, cheap
-        case (.openai, .enhancement), (.openai, .vision):
+
+        // OpenAI - all vision/enhancement tasks use GPT-4o
+        case (.openai, .enhancement), (.openai, .vision),
+             (.openai, .pdfVision), (.openai, .pdfEnhancement),
+             (.openai, .videoVision), (.openai, .videoEnhancement):
             return "gpt-4o" // Smarter with vision
         }
     }
@@ -268,6 +283,12 @@ enum AITask {
     case categorization // Recipe categorization
     case enhancement   // Full recipe enhancement (text-based)
     case vision        // Vision API tasks (image analysis, OCR, recipe extraction)
+
+    // Source-specific tasks for independent model control
+    case pdfVision        // PDF image analysis, OCR, recipe extraction
+    case pdfEnhancement   // PDF recipe enhancement
+    case videoVision      // Video frame analysis
+    case videoEnhancement // Video recipe enhancement and structuring
 }
 
 // MARK: - Keychain Helper (Adapted from Zero's secure storage pattern)

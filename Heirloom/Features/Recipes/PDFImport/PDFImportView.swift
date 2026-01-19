@@ -139,18 +139,22 @@ struct PDFImportView: View {
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
     private var paywallManager: PaywallManager { ServiceContainer.shared.resolve(PaywallManager.self) }
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
     @State private var selectedPDFs: [URL] = []
     @State private var showDocumentPicker = false
-    @State private var showProgressView = false
     @State private var isProcessing = false
     @State private var errorMessage: String?
     @State private var validationResults: [URL: PDFValidationResult] = [:]
     @State private var showAuthRequiredAlert = false
     @State private var showSignIn = false
-    @State private var isAnalyzing = false
-    @State private var currentAnalysisProgress = 0
-    @State private var totalPagesToAnalyze = 0
+    @State private var showCookbookNamePrompt = false
+    @State private var cookbookNameInput = ""
+    @State private var pendingValidPDFs: [URL] = []
+
+    /// Optional callback to dismiss parent view (e.g., CookbookScannerView)
+    /// Called after job creation to allow parent to dismiss itself
+    var onJobCreated: (() -> Void)?
 
     var body: some View {
         NavigationStack {
@@ -175,47 +179,10 @@ struct PDFImportView: View {
                 }
                 .padding(HeirloomSpacing.lg)
             }
-            .overlay {
-                // Analysis progress overlay
-                if isAnalyzing {
-                    ZStack {
-                        Color.black.opacity(0.4)
-                            .ignoresSafeArea()
-
-                        VStack(spacing: 20) {
-                            ProgressView(value: Double(currentAnalysisProgress), total: Double(totalPagesToAnalyze))
-                                .progressViewStyle(.linear)
-                                .frame(width: 200)
-                                .tint(HeirloomColors.tomato)
-
-                            Text("Analyzing pages...")
-                                .font(HeirloomFonts.body)
-                                .foregroundColor(.white)
-
-                            Text("\(currentAnalysisProgress) / \(totalPagesToAnalyze)")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundColor(.white.opacity(0.8))
-                        }
-                        .padding(30)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(.ultraThinMaterial)
-                        )
-                    }
-                    .transition(.opacity)
-                }
-            }
             .navigationTitle("Import PDFs")
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showDocumentPicker) {
                 PDFDocumentPicker(selectedPDFs: $selectedPDFs)
-            }
-            .sheet(isPresented: $showProgressView) {
-                if let job = importManager.activeJob {
-                    NavigationStack {
-                        ImportProgressView(manager: importManager, job: job)
-                    }
-                }
             }
             .alert("Error", isPresented: .constant(errorMessage != nil)) {
                 Button("OK") {
@@ -236,6 +203,21 @@ struct PDFImportView: View {
             }
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
+            }
+            .alert("Cookbook Name", isPresented: $showCookbookNamePrompt) {
+                TextField("Enter cookbook name", text: $cookbookNameInput)
+                Button("Continue") {
+                    Task {
+                        await continueImportWithCookbookName(cookbookNameInput)
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    isProcessing = false
+                    pendingValidPDFs = []
+                    cookbookNameInput = ""
+                }
+            } message: {
+                Text("What's the name of this cookbook? This will help organize your recipes.")
             }
             .onChange(of: selectedPDFs) { _, newValue in
                 if !newValue.isEmpty {
@@ -405,10 +387,12 @@ struct PDFImportView: View {
                 await processPDFs()
             }
         } label: {
-            HStack {
+            HStack(spacing: 8) {
                 if isProcessing {
                     ProgressView()
                         .tint(.white)
+                    Text("Starting import...")
+                        .fontWeight(.semibold)
                 } else {
                     Image(systemName: "arrow.down.doc")
                     Text("Import Recipes")
@@ -490,7 +474,6 @@ struct PDFImportView: View {
         }
 
         isProcessing = true
-        defer { isProcessing = false }
 
         // Track analytics: PDF import started
         let totalPages = validationResults.values.compactMap { $0.pageCount }.reduce(0, +)
@@ -505,157 +488,161 @@ struct PDFImportView: View {
             ])
         }
 
-        do {
-            // Initialize progress tracking
-            await MainActor.run {
-                isAnalyzing = true
-                totalPagesToAnalyze = validationResults.values.compactMap { $0.pageCount }.reduce(0, +)
-                currentAnalysisProgress = 0
-            }
-
-            // STEP 1: Batch all PDFs into single combined job
-            var allItems: [ImportItem] = []
-            var totalRecipeCount = 0
-            let multiPageAnalyzer = ServiceContainer.shared.resolve(MultiPageRecipeAnalyzer.self)
-
+        // Check for premium requirement
             for pdfURL in selectedPDFs {
-                // Check validation result
-                guard let result = validationResults[pdfURL] else {
-                    continue
-                }
+                guard let result = validationResults[pdfURL] else { continue }
 
-                // Handle premium requirement
                 if case .requiresPremium(let fileName, let pageCount) = result {
                     await MainActor.run {
-                        // Track analytics: Large PDF paywall shown
                         analytics.track(event: AnalyticsEvent.largePDFPaywallShown, properties: [
                             "file_name": fileName,
                             "page_count": pageCount
                         ])
-
                         paywallManager.show(for: .largePDFImport(pageCount: pageCount))
+                        isProcessing = false
                     }
                     return
                 }
+            }
 
-                // Skip failures
-                if case .failure = result {
-                    continue
+            // Filter to only valid PDFs
+            let validPDFs = selectedPDFs.filter { pdfURL in
+                if let result = validationResults[pdfURL], case .success = result {
+                    return true
                 }
+                return false
+            }
 
-                // Render PDF pages
-                Log.info("Rendering PDF pages", category: .import, metadata: [
-                    "file": pdfURL.lastPathComponent
-                ])
+            guard !validPDFs.isEmpty else {
+                Log.warning("No valid PDFs to import", category: .import)
+                await MainActor.run {
+                    isProcessing = false
+                }
+                return
+            }
 
-                let pages = try await pdfProcessor.renderPDFPages(from: pdfURL)
+            // Check if we need to prompt for cookbook name
+            // Try to extract cookbook metadata from first PDF
+            let metadataExtractor = PDFMetadataExtractor()
+            let firstPDFMetadata = await metadataExtractor.extractMetadata(from: validPDFs[0])
 
-                // Analyze and group pages with progress tracking
-                Log.info("Analyzing page boundaries", category: .import, metadata: [
-                    "file": pdfURL.lastPathComponent,
-                    "pages": pages.count
-                ])
+            let cookbookName: String?
+            if let extractedTitle = firstPDFMetadata?.title, !extractedTitle.isEmpty {
+                // Use extracted title
+                cookbookName = extractedTitle
+            } else if validPDFs.count == 1 {
+                // Single PDF with no title - prompt user
+                await MainActor.run {
+                    pendingValidPDFs = validPDFs
+                    cookbookNameInput = ""
+                    showCookbookNamePrompt = true
+                }
+                return // Exit early, will continue in continueImportWithCookbookName()
+            } else {
+                // Multiple PDFs with no title - skip auto-categorization
+                cookbookName = nil
+            }
 
-                let recipeGroups = try await multiPageAnalyzer.analyzePageBoundaries(
-                    pages: pages,
-                    progressCallback: { pageNumber in
-                        await MainActor.run {
-                            currentAnalysisProgress += 1
-                        }
-                    }
+            // Generate job name
+            let jobName = validPDFs.count == 1
+                ? "Import \(validPDFs[0].lastPathComponent)"
+                : "Import \(validPDFs.count) PDFs"
+
+            // Dismiss immediately and show toast BEFORE starting analysis
+            await MainActor.run {
+                let title = validPDFs.count == 1
+                    ? "Import started"
+                    : "Importing \(validPDFs.count) PDFs"
+
+                toastManager.success(
+                    title: title,
+                    message: "Processing will continue in the background"
                 )
-                totalRecipeCount += recipeGroups.count
 
-                Log.info("Multi-page analysis complete", category: .import, metadata: [
-                    "file": pdfURL.lastPathComponent,
-                    "recipe_groups": recipeGroups.count,
-                    "multi_page_recipes": recipeGroups.filter { $0.isMultiPage }.count
-                ])
+                // Notify parent to dismiss itself (if callback provided)
+                onJobCreated?()
 
-                // Create ImportItems for this PDF
-                for group in recipeGroups {
-                    let combinedImage = group.pageCount == 1 ? group.pages[0] : group.combinedImage()
-                    guard let imageData = combinedImage.jpegData(compressionQuality: 0.9) else {
-                        Log.warning("Failed to create image data for recipe group", category: .import, metadata: [
-                            "file": pdfURL.lastPathComponent,
-                            "pages": group.pageRange
-                        ])
-                        continue
-                    }
+                dismiss()
+            }
 
-                    let item = ImportItem(
-                        source: .pdf,
-                        imageData: imageData,
-                        pageNumber: group.startPage,
-                        totalPages: group.pageCount,
-                        isMultiPageRecipe: group.isMultiPage
+            // Start analysis and extraction in background (happens after dismiss)
+            Task {
+                do {
+                    // Create and analyze job
+                    let job = try await importManager.createAndAnalyzePDFJob(
+                        pdfURLs: validPDFs,
+                        jobName: jobName,
+                        cookbookName: cookbookName,
+                        context: modelContext
                     )
-                    allItems.append(item)
 
-                    Log.info("Created import item for recipe group", category: .import, metadata: [
-                        "file": pdfURL.lastPathComponent,
-                        "title": group.title,
-                        "pages": group.pageRange,
-                        "is_multi_page": group.isMultiPage
-                    ])
+                    // Start extraction phase
+                    try await importManager.startJob(job, context: modelContext)
+
+                    // Track analytics: PDF import completed
+                    await MainActor.run {
+                        analytics.track(event: AnalyticsEvent.pdfImportCompleted, properties: [
+                            "pdf_count": validPDFs.count,
+                            "total_pages": totalPages,
+                            "recipe_count": job.totalItems
+                        ])
+                    }
+                } catch {
+                    Log.error("PDF import job failed", category: .import, error: error)
                 }
             }
+    }
 
-            // STEP 2: Create SINGLE job with all items
-            let jobName = selectedPDFs.count == 1
-                ? "Import \(selectedPDFs[0].lastPathComponent)"
-                : "Import \(selectedPDFs.count) PDFs (\(totalRecipeCount) recipes)"
+    private func continueImportWithCookbookName(_ cookbookName: String) async {
+        guard !pendingValidPDFs.isEmpty else { return }
 
-            let job = ImportJob(jobName: jobName, continueOnError: true)
-            job.items = allItems
-            job.totalItems = allItems.count
+        let validPDFs = pendingValidPDFs
+        pendingValidPDFs = []
 
-            modelContext.insert(job)
-            try modelContext.save()
+        // Generate job name
+            let jobName = validPDFs.count == 1
+                ? "Import \(validPDFs[0].lastPathComponent)"
+                : "Import \(validPDFs.count) PDFs"
 
-            Log.info("PDF import job created successfully", category: .import, metadata: [
-                "pdf_count": selectedPDFs.count,
-                "recipe_count": totalRecipeCount
-            ])
-
-            // Hide analysis overlay and show progress view
+            // Dismiss immediately and show toast BEFORE starting analysis
             await MainActor.run {
-                isAnalyzing = false
-                showProgressView = true
+                let title = "Import started"
+                let message = "Processing will continue in the background"
+
+                toastManager.success(title: title, message: message)
+
+                // Notify parent to dismiss itself (if callback provided)
+                onJobCreated?()
+
+                dismiss()
             }
 
-            // STEP 4: Start single job
-            try await importManager.startJob(job, context: modelContext)
+            // Start analysis and extraction in background (happens after dismiss)
+            Task {
+                do {
+                    // Create and analyze job with user-provided cookbook name
+                    let job = try await importManager.createAndAnalyzePDFJob(
+                        pdfURLs: validPDFs,
+                        jobName: jobName,
+                        cookbookName: cookbookName.isEmpty ? nil : cookbookName,
+                        context: modelContext
+                    )
 
-            // Track analytics: PDF import completed
-            await MainActor.run {
-                analytics.track(event: AnalyticsEvent.pdfImportCompleted, properties: [
-                    "pdf_count": selectedPDFs.count,
-                    "total_pages": totalPages,
-                    "recipe_count": totalRecipeCount
-                ])
+                    // Start extraction phase
+                    try await importManager.startJob(job, context: modelContext)
+
+                    // Track analytics: PDF import completed
+                    await MainActor.run {
+                        analytics.track(event: AnalyticsEvent.pdfImportCompleted, properties: [
+                            "pdf_count": validPDFs.count,
+                            "recipe_count": job.totalItems,
+                            "has_cookbook_name": !cookbookName.isEmpty
+                        ])
+                    }
+                } catch {
+                    Log.error("PDF import job failed", category: .import, error: error)
+                }
             }
-
-        } catch {
-            // Hide analysis overlay on error
-            await MainActor.run {
-                isAnalyzing = false
-            }
-
-            // Track analytics: PDF import failed
-            await MainActor.run {
-                analytics.track(event: AnalyticsEvent.pdfImportFailed, properties: [
-                    "error": error.localizedDescription,
-                    "pdf_count": selectedPDFs.count
-                ])
-
-                errorMessage = error.localizedDescription
-            }
-
-            Log.error("PDF import failed", category: .import, metadata: [
-                "error": error.localizedDescription
-            ])
-        }
     }
 }
 

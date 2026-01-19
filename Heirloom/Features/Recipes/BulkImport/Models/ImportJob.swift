@@ -17,12 +17,22 @@ final class ImportJob {
     var successfulItems: Int = 0
     var failedItems: Int = 0
 
+    // MARK: - Phase Tracking (NEW: for unified progress UX)
+    /// Current phase of the import process
+    var phase: ImportPhase = ImportPhase.validation
+
+    /// Progress within the current phase (0.0 to 1.0)
+    var phaseProgress: Double = 0.0
+
     // MARK: - Configuration
     /// User-provided name for this import (optional)
     var jobName: String?
 
     /// Whether to continue processing if failures occur
     var continueOnError: Bool = true
+
+    /// Cookbook name for auto-categorization (optional)
+    var cookbookName: String?
 
     // MARK: - Relationships
     @Relationship(deleteRule: .cascade, inverse: \ImportItem.job)
@@ -32,6 +42,29 @@ final class ImportJob {
     var progress: Double {
         guard totalItems > 0 else { return 0 }
         return Double(completedItems) / Double(totalItems)
+    }
+
+    /// Overall progress across all phases (0.0 to 1.0)
+    /// Takes into account validation, analysis, and extraction phases
+    var overallProgress: Double {
+        let phaseWeights: [ImportPhase: Double] = [
+            .validation: 0.1,   // 10% of total time
+            .analysis: 0.3,     // 30% of total time
+            .extraction: 0.6,   // 60% of total time
+            .completed: 1.0     // 100% complete
+        ]
+
+        // Calculate weight of completed phases
+        let completedPhases = ImportPhase.allCases.filter { $0.sortOrder < phase.sortOrder }
+        let completedWeight = completedPhases.reduce(0.0) { sum, phase in
+            sum + (phaseWeights[phase] ?? 0.0)
+        }
+
+        // Add progress within current phase
+        let currentPhaseWeight = phaseWeights[phase] ?? 0.0
+        let currentPhaseContribution = currentPhaseWeight * phaseProgress
+
+        return min(completedWeight + currentPhaseContribution, 1.0)
     }
 
     var isComplete: Bool {
@@ -57,6 +90,46 @@ enum ImportJobStatus: String, Codable {
     case paused       // Paused by user
     case completed    // All items processed
     case failed       // Job failed critically
+}
+
+// MARK: - ImportPhase
+
+/// Phases of the import process for unified progress tracking
+enum ImportPhase: String, Codable, CaseIterable {
+    case validation   // Validating PDF files
+    case analysis     // Detecting page boundaries and extracting images
+    case extraction   // Extracting recipe details via AI
+    case completed    // All done
+
+    /// Sort order for phase comparison
+    var sortOrder: Int {
+        switch self {
+        case .validation: return 0
+        case .analysis: return 1
+        case .extraction: return 2
+        case .completed: return 3
+        }
+    }
+
+    /// Display name for UI
+    var displayName: String {
+        switch self {
+        case .validation: return "Validating PDFs..."
+        case .analysis: return "Analyzing pages..."
+        case .extraction: return "Extracting recipes..."
+        case .completed: return "Import complete"
+        }
+    }
+
+    /// Icon name for UI
+    var iconName: String {
+        switch self {
+        case .validation: return "doc.text.magnifyingglass"
+        case .analysis: return "doc.text.image"
+        case .extraction: return "text.badge.checkmark"
+        case .completed: return "checkmark.circle.fill"
+        }
+    }
 }
 
 // MARK: - Convenience Extensions

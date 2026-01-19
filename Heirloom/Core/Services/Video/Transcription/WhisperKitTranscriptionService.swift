@@ -79,7 +79,14 @@ class WhisperKitTranscriptionService: TranscriptionServiceProtocol {
 
         // Use shared instance instead of creating new one
         // This will wait if another load is in progress (e.g., preloadModel at app launch)
-        _ = await Self.getOrCreateWhisperKit(model: model)
+        let result = await Self.getOrCreateWhisperKit(model: model)
+
+        if result == nil {
+            Log.error("WhisperKit model failed to load - transcription will be unavailable", category: .video, metadata: [
+                "model": model,
+                "error_hint": "This may happen on simulator or if model download failed"
+            ])
+        }
     }
 
     var isAvailable: Bool {
@@ -88,6 +95,9 @@ class WhisperKitTranscriptionService: TranscriptionServiceProtocol {
 
     func transcribe(audioURL: URL) async throws -> TranscriptionResult {
         guard let whisper = Self.sharedWhisperKit else {
+            Log.error("Transcription attempted but WhisperKit model not available", category: .video, metadata: [
+                "audio_url": audioURL.lastPathComponent
+            ])
             throw VideoImportError.transcriptionUnavailable
         }
 

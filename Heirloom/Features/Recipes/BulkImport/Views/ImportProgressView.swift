@@ -15,56 +15,37 @@ struct ImportProgressView: View {
         VStack(spacing: HeirloomSpacing.xl) {
             Spacer()
 
-            // Progress Circle
+            // Phase Indicator
+            phaseIndicatorView()
+
+            // Progress Circle (using overallProgress for all phases)
             ZStack {
                 Circle()
                     .stroke(HeirloomColors.warmGray.opacity(0.2), lineWidth: 12)
                     .frame(width: 160, height: 160)
 
                 Circle()
-                    .trim(from: 0, to: job.progress)
+                    .trim(from: 0, to: job.overallProgress)
                     .stroke(HeirloomColors.tomato, lineWidth: 12)
                     .frame(width: 160, height: 160)
                     .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 0.3), value: job.progress)
+                    .animation(.linear(duration: 0.3), value: job.overallProgress)
 
                 VStack(spacing: HeirloomSpacing.xs) {
-                    Text("\(Int(job.progress * 100))%")
+                    Text("\(Int(job.overallProgress * 100))%")
                         .font(HeirloomFonts.largeTitle)
                         .foregroundStyle(HeirloomColors.primaryText)
 
-                    Text("\(job.completedItems)/\(job.totalItems)")
+                    Text(progressSubtitle)
                         .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
             }
             .padding(HeirloomSpacing.xl)
 
-            // Status Text
-            VStack(spacing: HeirloomSpacing.sm) {
-                Text(statusText)
-                    .font(HeirloomFonts.title3)
-                    .foregroundStyle(HeirloomColors.primaryText)
-
-                if manager.isProcessing {
-                    Text("Importing recipes...")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                }
-            }
-
-            // Item List (if there are items to show)
-            if let items = job.items, !items.isEmpty {
-                ScrollView {
-                    VStack(spacing: HeirloomSpacing.sm) {
-                        ForEach(items) { item in
-                            itemRow(item)
-                        }
-                    }
-                    .padding(.horizontal, HeirloomSpacing.lg)
-                }
-                .frame(maxHeight: 200)
-            }
+            // Phase-specific content
+            phaseContentView()
+                .frame(maxHeight: 250)
 
             // Stats
             HStack(spacing: HeirloomSpacing.xl) {
@@ -178,6 +159,132 @@ struct ImportProgressView: View {
         case .failed:
             return "Import Failed"
         }
+    }
+
+    private var progressSubtitle: String {
+        switch job.phase {
+        case .validation:
+            return "Phase 1 of 3 • Validating files"
+        case .analysis:
+            return "Phase 2 of 3 • Analyzing pages"
+        case .extraction:
+            return "Phase 3 of 3 • \(job.completedItems)/\(job.totalItems) recipes"
+        case .completed:
+            return "All done!"
+        }
+    }
+
+    // MARK: - Phase Indicator
+
+    @ViewBuilder
+    private func phaseIndicatorView() -> some View {
+        HStack(spacing: HeirloomSpacing.md) {
+            Image(systemName: job.phase.iconName)
+                .font(.title3)
+                .foregroundStyle(HeirloomColors.tomato)
+
+            Text(job.phase.displayName)
+                .font(HeirloomFonts.bodyBold)
+                .foregroundStyle(HeirloomColors.primaryText)
+        }
+        .padding(.horizontal, HeirloomSpacing.lg)
+        .padding(.vertical, HeirloomSpacing.sm)
+        .background(HeirloomColors.cardBackground)
+        .cornerRadius(20)
+    }
+
+    // MARK: - Phase-Specific Content
+
+    @ViewBuilder
+    private func phaseContentView() -> some View {
+        switch job.phase {
+        case .validation:
+            validationPhaseView()
+        case .analysis:
+            analysisPhaseView()
+        case .extraction:
+            extractionPhaseView()
+        case .completed:
+            completionPhaseView()
+        }
+    }
+
+    private func validationPhaseView() -> some View {
+        VStack(spacing: HeirloomSpacing.md) {
+            Text("Checking PDF files...")
+                .font(HeirloomFonts.body)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .multilineTextAlignment(.center)
+
+            if job.totalItems > 0 {
+                Text("\(job.totalItems) file\(job.totalItems == 1 ? "" : "s")")
+                    .font(HeirloomFonts.caption1Bold)
+                    .foregroundStyle(HeirloomColors.tomato)
+            }
+        }
+        .padding(HeirloomSpacing.lg)
+    }
+
+    private func analysisPhaseView() -> some View {
+        VStack(spacing: HeirloomSpacing.md) {
+            Text("Detecting recipe boundaries and extracting images from PDF pages...")
+                .font(HeirloomFonts.body)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .padding(HeirloomSpacing.lg)
+    }
+
+    private func extractionPhaseView() -> some View {
+        Group {
+            if let items = job.items, !items.isEmpty {
+                ScrollView {
+                    VStack(spacing: HeirloomSpacing.sm) {
+                        ForEach(items) { item in
+                            itemRow(item)
+                        }
+                    }
+                    .padding(.horizontal, HeirloomSpacing.lg)
+                }
+            } else {
+                // Fallback view for early extraction state
+                VStack(spacing: HeirloomSpacing.md) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(HeirloomColors.tomato)
+
+                    Text("Preparing recipes for extraction...")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+
+                    if job.totalItems > 0 {
+                        Text("Detected \(job.totalItems) recipe\(job.totalItems == 1 ? "" : "s")")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(HeirloomColors.tomato)
+                    }
+                }
+                .padding(HeirloomSpacing.lg)
+            }
+        }
+    }
+
+    private func completionPhaseView() -> some View {
+        VStack(spacing: HeirloomSpacing.md) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 60))
+                .foregroundStyle(.green)
+
+            Text("Import Complete!")
+                .font(HeirloomFonts.title3)
+                .foregroundStyle(HeirloomColors.primaryText)
+
+            if job.successfulItems > 0 {
+                Text("Successfully imported \(job.successfulItems) recipe\(job.successfulItems == 1 ? "" : "s")")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+        }
+        .padding(HeirloomSpacing.lg)
     }
 
     // MARK: - Item Row
