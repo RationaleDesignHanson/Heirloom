@@ -26,17 +26,17 @@ struct SimilarRecipesInfoView: View {
                 } label: {
                     HStack(spacing: 12) {
                         Image(systemName: "sparkles")
-                            .font(.title3)
+                            .font(HeirloomFonts.title2)
                             .foregroundStyle(.orange.gradient)
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Similar Recipe Enhancements")
-                                .font(.headline)
+                                .font(HeirloomFonts.bodyBold)
                                 .foregroundStyle(.primary)
 
                             if let metadata = augmentedRecipe?.metadata {
                                 Text(summaryText(for: metadata))
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -44,18 +44,18 @@ struct SimilarRecipesInfoView: View {
                         Spacer()
 
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.tertiary)
                     }
                     .padding()
                     .background(Color.orange.opacity(0.05))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
                 }
                 .buttonStyle(.plain)
 
                 // Expanded content
                 if isExpanded {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
                         // Confidence summary
                         if let metadata = augmentedRecipe?.metadata {
                             confidenceSummary(metadata: metadata)
@@ -64,7 +64,7 @@ struct SimilarRecipesInfoView: View {
                         Divider()
 
                         // Similar recipes list
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                             Text("Similar Recipes Used")
                                 .font(.subheadline.weight(.semibold))
 
@@ -83,9 +83,9 @@ struct SimilarRecipesInfoView: View {
                     }
                     .padding()
                     .background(Color(.systemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                             .strokeBorder(Color.orange.opacity(0.2), lineWidth: 1)
                     )
                 }
@@ -107,29 +107,29 @@ struct SimilarRecipesInfoView: View {
 
     @ViewBuilder
     private func confidenceSummary(metadata: AugmentationMetadata) -> some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: HeirloomSpacing.md) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text("Enhancements")
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(.secondary)
                 Text("\(metadata.totalInferences)")
                     .font(.title3.bold())
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text("Avg. Confidence")
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(.secondary)
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     confidenceDot(for: metadata.averageConfidence)
                     Text(metadata.averageConfidence.displayText)
                         .font(.subheadline.weight(.medium))
                 }
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text("Sources")
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(.secondary)
                 Text("\(metadata.localRecipesUsed + metadata.webRecipesUsed)")
                     .font(.title3.bold())
@@ -143,19 +143,19 @@ struct SimilarRecipesInfoView: View {
 
     @ViewBuilder
     private func localRecipeRow(match: SimilarRecipeMatch) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: HeirloomSpacing.sm) {
             Image(systemName: "book.closed.fill")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(.blue)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(match.recipe.title)
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .lineLimit(1)
 
                 Text("\(match.similarityPercentage)% similar · Local recipe")
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(.secondary)
             }
 
@@ -166,19 +166,19 @@ struct SimilarRecipesInfoView: View {
 
     @ViewBuilder
     private func webRecipeRow(webRecipe: WebRecipeResult) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: HeirloomSpacing.sm) {
             Image(systemName: "globe")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(.green)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(webRecipe.title)
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .lineLimit(1)
 
                 Text("\(webRecipe.similarityPercentage)% similar · \(webRecipe.displayDomain)")
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(.secondary)
             }
 

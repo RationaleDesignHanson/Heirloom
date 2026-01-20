@@ -67,7 +67,7 @@ struct VideoRecipeReviewView: View {
                             .foregroundStyle(.orange)
 
                         Text("Please credit the original creator of this recipe. This information will be displayed with the recipe.")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 4)
@@ -108,7 +108,7 @@ struct VideoRecipeReviewView: View {
                 // Title and Servings
                 Section("Recipe Details") {
                     TextField("Recipe Name *", text: $editedTitle)
-                        .font(.headline)
+                        .font(HeirloomFonts.bodyBold)
 
                     TextField("Servings (optional)", text: $editedServings)
                 }
@@ -175,7 +175,7 @@ struct VideoRecipeReviewView: View {
                 Section {
                     DisclosureGroup("View Original Transcript", isExpanded: $showTranscript) {
                         Text(extraction.transcript.text)
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                             .padding(.vertical, 8)
                     }
@@ -209,15 +209,15 @@ struct VideoRecipeReviewView: View {
                 // Trial upgrade CTA
                 if subscriptionManager.isInTrial {
                     ToolbarItem(placement: .bottomBar) {
-                        VStack(spacing: 4) {
+                        VStack(spacing: HeirloomSpacing.xs) {
                             Text("✨ Video import is a Premium feature")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.secondary)
 
                             Button("Upgrade to Keep Using After Trial") {
                                 showPaywall = true
                             }
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.orange)
                         }
                     }
@@ -475,7 +475,7 @@ struct IngredientEditRow: View {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.circle.fill")
                             .foregroundStyle(HeirloomColors.tomato)
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Please verify - confidence: \(ingredient.confidence.displayName)")
                                 .font(HeirloomFonts.caption2)
@@ -490,7 +490,7 @@ struct IngredientEditRow: View {
                     HStack(spacing: 6) {
                         Image(systemName: "eye.circle.fill")
                             .foregroundStyle(HeirloomColors.familyGreen)
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Vision-based extraction")
                                 .font(HeirloomFonts.caption2)
@@ -534,7 +534,7 @@ struct StepEditRow: View {
             // Numbered circle (matching RecipeImportView)
             Text("\(number)")
                 .font(HeirloomFonts.bodyBold)
-                .foregroundStyle(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
                 .frame(width: 28, height: 28)
                 .background(HeirloomColors.tomato)
                 .cornerRadius(14)
@@ -559,7 +559,7 @@ struct StepEditRow: View {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.circle.fill")
                             .foregroundStyle(HeirloomColors.tomato)
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                         Text("Please verify - confidence: \(step.confidence.displayName)")
                             .font(HeirloomFonts.caption2)
                             .foregroundStyle(HeirloomColors.secondaryText)

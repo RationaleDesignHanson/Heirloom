@@ -21,7 +21,7 @@ struct RecipeCardBackView: View {
             backgroundView
 
             // Content
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
                 // Render visible sections in order
                 ForEach(cardBack.visibleSections, id: \.self) { section in
                     sectionView(for: section)
@@ -33,12 +33,12 @@ struct RecipeCardBackView: View {
 
             // Border
             if cardBack.showBorder {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .stroke(Color(hex: cardBack.borderColor) ?? Color(.systemGray4), lineWidth: 2)
             }
         }
         .frame(width: cardSize.width, height: cardSize.height)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
     }
 
     // MARK: - Background View
@@ -149,7 +149,7 @@ struct LinedPaperBackgroundView: View {
         ZStack {
             Color(hex: "#FFFEF0") ?? .white
 
-            VStack(spacing: 24) {
+            VStack(spacing: HeirloomSpacing.lg) {
                 ForEach(0..<15) { _ in
                     Divider()
                         .background(Color.blue.opacity(0.2))
@@ -194,7 +194,7 @@ struct AttributionView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
             if let attribution = cardBack.customAttributionText ?? recipe.attribution {
                 Text("From:")
                     .font(HeirloomFonts.caption1)
@@ -216,7 +216,7 @@ struct NoteToFriendsView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             HStack {
                 Image(systemName: "heart.text.square")
                     .foregroundColor(.red)
@@ -242,7 +242,7 @@ struct UserTipsView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             HStack {
                 Image(systemName: "lightbulb")
                     .foregroundColor(.yellow)
@@ -251,7 +251,7 @@ struct UserTipsView: View {
             }
 
             ForEach(Array(tips.prefix(3).enumerated()), id: \.offset) { _, tip in
-                HStack(alignment: .top, spacing: 8) {
+                HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
                     Text("•")
                         .foregroundColor(Color(hex: cardBack.textColor) ?? .primary)
                     Text(tip)
@@ -271,7 +271,7 @@ struct UserRatingView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             ForEach(1...5, id: \.self) { star in
                 Image(systemName: star <= rating ? "star.fill" : "star")
                     .foregroundColor(star <= rating ? .yellow : .gray)
@@ -289,7 +289,7 @@ struct UserTagsView: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: HeirloomSpacing.sm) {
                 ForEach(tags, id: \.self) { tag in
                     Text(tag)
                         .font(HeirloomFonts.caption1)
@@ -311,7 +311,7 @@ struct PinnedCommentsView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             HStack {
                 Image(systemName: "pin")
                     .foregroundColor(.orange)
@@ -333,7 +333,7 @@ struct CookingHistoryView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
             Text("Cooking History")
                 .font(HeirloomFonts.title3)
 
@@ -356,7 +356,7 @@ struct HeritageCollectionBadgeView: View {
             Image(systemName: "book.closed.fill")
                 .font(.title2)
                 .foregroundColor(.brown)
-                .padding(8)
+                .padding(HeirloomSpacing.sm)
                 .background(
                     Circle()
                         .fill(Color.brown.opacity(0.1))
@@ -395,7 +395,7 @@ struct HeritageProvenanceView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             HStack {
                 Image(systemName: "arrow.triangle.branch")
                     .foregroundColor(.brown)
@@ -406,7 +406,7 @@ struct HeritageProvenanceView: View {
 
             // Show provenance chain
             if let originalRecipe = recipe.originalHeritageRecipeId {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     provenanceRow(
                         icon: "doc.text",
                         text: "Original Heritage Recipe",
@@ -435,7 +435,7 @@ struct HeritageProvenanceView: View {
     }
 
     private func provenanceRow(icon: String, text: String, isFirst: Bool) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: HeirloomSpacing.sm) {
             Image(systemName: icon)
                 .font(HeirloomFonts.caption1)
                 .foregroundColor(isFirst ? .brown : .secondary)
@@ -454,7 +454,7 @@ struct HistoricalTextView: View {
     let cardBack: RecipeCardBack
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             HStack {
                 Image(systemName: "scroll")
                     .foregroundColor(.brown)

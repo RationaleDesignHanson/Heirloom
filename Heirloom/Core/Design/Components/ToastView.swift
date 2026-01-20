@@ -70,7 +70,7 @@ struct ToastView: View {
                 .font(.system(size: 24))
                 .foregroundStyle(toast.type.color)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(toast.title)
                     .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.charcoal)
@@ -93,7 +93,7 @@ struct ToastView: View {
                     HStack(spacing: 6) {
                         Text("Undo")
                             .font(HeirloomFonts.bodyBold)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
 
                         Text("\(Int(remainingTime))")
                             .font(HeirloomFonts.caption1Bold)
@@ -118,7 +118,7 @@ struct ToastView: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
                 .shadow(
                     color: HeirloomColors.cardShadow,

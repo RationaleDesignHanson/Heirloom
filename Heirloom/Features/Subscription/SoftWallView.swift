@@ -21,7 +21,7 @@ struct SoftWallView: View {
             HeirloomColors.cream
                 .ignoresSafeArea()
 
-            VStack(spacing: 32) {
+            VStack(spacing: HeirloomSpacing.xl) {
                 Spacer()
 
                 // Lock Icon
@@ -47,14 +47,14 @@ struct SoftWallView: View {
                 Spacer()
 
                 // Action Buttons
-                VStack(spacing: 16) {
+                VStack(spacing: HeirloomSpacing.md) {
                     // See Plans Button
                     Button {
                         showPaywall = true
                     } label: {
                         Text("See Plans")
                             .font(HeirloomFonts.bodyBold)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(HeirloomColors.tomato)

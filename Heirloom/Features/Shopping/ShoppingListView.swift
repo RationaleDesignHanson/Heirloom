@@ -93,8 +93,8 @@ struct ShoppingListView: View {
     // MARK: - Empty State
     private var emptyState: some View {
         EmptyStateView.emptyShoppingList {
-            // Switch to Recipes tab
-            tabCoordinator.selectedTab = TabNavigationCoordinator.Tab.recipes.rawValue
+            // Switch to Collections tab
+            tabCoordinator.selectedTab = TabNavigationCoordinator.Tab.collections.rawValue
         }
     }
 
@@ -184,12 +184,12 @@ struct ShoppingListView: View {
             // Checkbox
             Image(systemName: isSelected ? "checkmark.square.fill" : "square")
                 .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.warmGray)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
 
             // Recipe icon
             Image(systemName: recipe.sourceType?.iconName ?? "fork.knife")
                 .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.warmGray)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
 
             // Recipe title (with serving info)
             Text(cartRecipe.displayTitle)
@@ -214,11 +214,11 @@ struct ShoppingListView: View {
     // MARK: - Category Section
     private func categorySection(category: GroceryCategory, ingredients: [CombinedIngredient]) -> some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 HStack {
                     Image(systemName: category.iconName)
                         .foregroundStyle(HeirloomColors.tomato)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
 
                     Text(category.rawValue)
                         .font(HeirloomFonts.title3)
@@ -256,10 +256,10 @@ struct ShoppingListView: View {
             HStack(alignment: .top, spacing: HeirloomSpacing.md) {
                 // Checkbox - always use circle/checkmark, color indicates aggregated status
                 Image(systemName: combinedIngredient.isCheckedOff ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                     .foregroundStyle(combinedIngredient.isCheckedOff ? HeirloomColors.familyGreen : (isAggregated ? HeirloomColors.tomato : HeirloomColors.warmGray))
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(combinedIngredient.displayText)
                         .font(HeirloomFonts.body)
                         .foregroundStyle(
@@ -316,13 +316,13 @@ struct ShoppingListView: View {
                                 recipes: recipeData.sorted { $0.recipeTitle < $1.recipeTitle }
                             )
                         } label: {
-                            HStack(spacing: 4) {
+                            HStack(spacing: HeirloomSpacing.xs) {
                                 Image(systemName: "square.stack.3d.up.fill")
-                                    .font(.caption2)
+                                    .font(HeirloomFonts.caption2)
                                 Text("From \(combinedIngredient.recipeCount) recipes")
                                     .font(HeirloomFonts.caption2)
                                 Image(systemName: "chevron.right")
-                                    .font(.caption2)
+                                    .font(HeirloomFonts.caption2)
                             }
                             .foregroundStyle(HeirloomColors.tomato)
                         }
@@ -928,7 +928,7 @@ struct IngredientRecipeListView: View {
         NavigationStack {
             if recipeData.isEmpty {
                 // Fallback empty state (shouldn't normally happen)
-                VStack(spacing: 16) {
+                VStack(spacing: HeirloomSpacing.md) {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 48))
                         .foregroundStyle(HeirloomColors.warmGray)

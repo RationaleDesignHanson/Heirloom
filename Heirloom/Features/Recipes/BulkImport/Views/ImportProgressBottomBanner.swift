@@ -17,7 +17,9 @@ struct ImportProgressBottomBanner: View {
     @Query(sort: \ImportJob.createdAt, order: .reverse)
     private var allJobs: [ImportJob]
 
-    @State private var showProgressSheet = false
+    // Query for all recipes (to fetch titles by ID)
+    @Query private var allRecipes: [Recipe]
+
     @State private var selectedJob: ImportJob?
 
     // Filter to active jobs (processing or completed)
@@ -43,12 +45,11 @@ struct ImportProgressBottomBanner: View {
                 // Tappable banner content
                 Button {
                     selectedJob = job
-                    showProgressSheet = true
                 } label: {
                     HStack(spacing: 12) {
                         // Icon based on phase
                         phaseIcon(for: job.phase)
-                            .font(.title3)
+                            .font(HeirloomFonts.title2)
                             .foregroundStyle(HeirloomColors.tomato)
 
                         VStack(alignment: .leading, spacing: 2) {
@@ -67,7 +68,7 @@ struct ImportProgressBottomBanner: View {
                         if job.status == .completed {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(.green)
-                                .font(.title3)
+                                .font(HeirloomFonts.title2)
                         } else {
                             Text("\(Int(job.overallProgress * 100))%")
                                 .font(HeirloomFonts.caption1Bold)
@@ -82,14 +83,12 @@ struct ImportProgressBottomBanner: View {
             }
             .background(Color(.systemBackground))
             .shadow(color: .black.opacity(0.1), radius: 8, y: -4)
-            .sheet(isPresented: $showProgressSheet) {
-                if let job = selectedJob {
-                    NavigationStack {
-                        ImportProgressView(
-                            manager: ServiceContainer.shared.resolve(ImportJobManager.self),
-                            job: job
-                        )
-                    }
+            .sheet(item: $selectedJob) { job in
+                NavigationStack {
+                    ImportProgressView(
+                        manager: ServiceContainer.shared.resolve(ImportJobManager.self),
+                        job: job
+                    )
                 }
             }
         }
@@ -102,7 +101,16 @@ struct ImportProgressBottomBanner: View {
 
     private func titleText(for job: ImportJob) -> String {
         if job.status == .completed {
-            // Completed state
+            // For single-recipe imports, show the actual recipe title
+            if job.totalItems == 1,
+               let items = job.items,
+               let successfulItem = items.first(where: { $0.status == .success }),
+               let recipeID = successfulItem.recipeID,
+               let recipe = allRecipes.first(where: { $0.id == recipeID }) {
+                return recipe.title
+            }
+
+            // For multi-recipe imports or when recipe not found, show cookbook name
             if let cookbookName = job.cookbookName, !cookbookName.isEmpty {
                 return "Added to \(cookbookName)"
             } else {

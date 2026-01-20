@@ -46,7 +46,7 @@ struct MigrationTestView: View {
 
                 if let userId = authService.currentUser?.uid {
                     Text("User ID: \(userId)")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundColor(.secondary)
                 }
 
@@ -77,7 +77,7 @@ struct MigrationTestView: View {
 
                     if !testResult.isEmpty {
                         Text(testResult)
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundColor(testResult.contains("✅") ? .green : .red)
                     }
                 }

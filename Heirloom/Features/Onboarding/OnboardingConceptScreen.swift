@@ -59,7 +59,7 @@ struct OnboardingConceptScreen: View {
         ZStack {
             HeirloomColors.cream.ignoresSafeArea()
 
-            VStack(spacing: 24) {
+            VStack(spacing: HeirloomSpacing.lg) {
                 Spacer()
                     .frame(minHeight: 30, maxHeight: 50)
 
@@ -106,7 +106,7 @@ struct OnboardingConceptScreen: View {
                 } label: {
                     Text("Continue")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(HeirloomColors.tomato)
@@ -186,9 +186,9 @@ struct OnboardingConceptRecipeCard: View {
                 .frame(height: 40, alignment: .topLeading)
 
             // Collection badge
-            HStack(spacing: 4) {
+            HStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: recipe.collectionIcon)
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(Color(hex: recipe.collectionColor))
 
                 Text(recipe.collectionName)
@@ -214,7 +214,7 @@ struct OnboardingConceptCollectionRow: View {
         HStack(spacing: HeirloomSpacing.md) {
             // Icon
             Image(systemName: collection.icon)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .fontWeight(collection.isHighlighted ? .semibold : .regular)
                 .foregroundStyle(Color(hex: collection.color))
                 .frame(width: 32)
@@ -235,7 +235,7 @@ struct OnboardingConceptCollectionRow: View {
 
             // Chevron
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
         }
         .padding(HeirloomSpacing.md)

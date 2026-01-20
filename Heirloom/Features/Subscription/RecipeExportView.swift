@@ -118,7 +118,7 @@ struct RecipeExportView: View {
             HStack(spacing: HeirloomSpacing.sm) {
                 if isExporting {
                     ProgressView()
-                        .tint(.white)
+                        .tint(HeirloomColors.buttonTextLight)
                 } else {
                     Image(systemName: "arrow.down.circle.fill")
                     Text("Export Recipes")
@@ -128,7 +128,7 @@ struct RecipeExportView: View {
             .frame(maxWidth: .infinity)
             .padding()
             .background(.orange.gradient)
-            .foregroundStyle(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .cornerRadius(12)
         }
         .disabled(isExporting)
@@ -224,12 +224,12 @@ struct FormatOptionCard: View {
                         .frame(width: 48, height: 48)
 
                     Image(systemName: format.icon)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .foregroundStyle(isSelected ? .orange : HeirloomColors.charcoal.opacity(0.6))
                 }
 
                 // Content
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(format.rawValue)
                         .font(HeirloomFonts.body)
                         .fontWeight(.semibold)
@@ -246,7 +246,7 @@ struct FormatOptionCard: View {
                 // Checkmark
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .foregroundStyle(.orange)
                 }
             }

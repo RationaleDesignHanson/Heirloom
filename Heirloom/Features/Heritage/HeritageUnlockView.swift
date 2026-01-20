@@ -107,7 +107,7 @@ struct HeritageUnlockView: View {
             if let manager = subscriptionManager, manager.isInTrial, let daysRemaining = manager.daysRemaining, daysRemaining > 0 {
                 HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: "clock.fill")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.orange)
 
                     Text("\(daysRemaining) day\(daysRemaining == 1 ? "" : "s") left in trial")
@@ -196,7 +196,7 @@ struct HeritageUnlockView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .background(.blue.gradient)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .cornerRadius(10)
                     }
                 } else if manager.isPremium {
@@ -223,7 +223,7 @@ struct HeritageUnlockView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .background(.blue.gradient)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .cornerRadius(10)
                     }
                 }
@@ -259,7 +259,7 @@ struct HeritageUnlockView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(.orange.gradient)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .cornerRadius(12)
                     }
                     .disabled(isUnlocking)
@@ -364,7 +364,7 @@ struct HeritageUnlockView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(.blue.gradient)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .cornerRadius(12)
             }
         }

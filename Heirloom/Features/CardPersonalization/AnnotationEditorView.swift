@@ -79,7 +79,7 @@ struct RecipeAnnotationEditorView: View {
             // Card Background
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white)
-                .shadow(color: .black.opacity(0.1), radius: 10)
+                .heirloomShadow(HeirloomShadows.card)
                 .padding()
 
             // Preview RecipeAnnotation
@@ -161,14 +161,14 @@ struct RecipeAnnotationEditorView: View {
         Text(text)
             .font(.custom("Bradley Hand", size: fontSize).weight(.regular))
             .foregroundStyle(Color(hex: colorHex))
-            .padding(8)
+            .padding(HeirloomSpacing.sm)
             .background(Color.clear)
     }
 
     private var markerPreview: some View {
         Text(text)
             .font(.system(size: fontSize, weight: .bold))
-            .foregroundStyle(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(
@@ -294,7 +294,7 @@ struct RecipeAnnotationEditorView: View {
                             .padding()
                             .background(Color.red.opacity(0.1))
                             .foregroundStyle(.red)
-                            .cornerRadius(12)
+                            .cornerRadius(HeirloomSpacing.cardCornerRadius)
                     }
                 }
 
@@ -316,7 +316,7 @@ struct RecipeAnnotationEditorView: View {
                         .padding()
                         .background(Color.gray.opacity(0.1))
                         .foregroundStyle(HeirloomColors.primaryText)
-                        .cornerRadius(12)
+                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
                 }
             }
             .padding(HeirloomSpacing.lg)
@@ -348,9 +348,9 @@ struct RecipeAnnotationEditorView: View {
             .padding(.vertical, HeirloomSpacing.md)
             .background(isSelected ? HeirloomColors.tomato.opacity(0.1) : Color.gray.opacity(0.05))
             .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.primaryText)
-            .cornerRadius(12)
+            .cornerRadius(HeirloomSpacing.cardCornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .strokeBorder(isSelected ? HeirloomColors.tomato : Color.clear, lineWidth: 2)
             )
         }

@@ -14,7 +14,7 @@ struct SharePreviewCard: View {
             HStack {
                 Image(systemName: "eye.fill")
                 Text("Recipient's View")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .fontWeight(.semibold)
             }
             .foregroundStyle(HeirloomColors.secondaryText)
@@ -24,7 +24,7 @@ struct SharePreviewCard: View {
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 20)
                     .fill(HeirloomColors.cream)
-                    .shadow(color: HeirloomColors.cardShadow, radius: 10)
+                    .heirloomShadow(HeirloomShadows.card)
 
                 VStack(alignment: .leading, spacing: 12) {
                     // Recipe image
@@ -33,7 +33,7 @@ struct SharePreviewCard: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(height: 120)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
                     }
 
                     // Title
@@ -44,29 +44,29 @@ struct SharePreviewCard: View {
 
                     // Attribution
                     if let sharerName = options.sharerName {
-                        HStack(spacing: 4) {
+                        HStack(spacing: HeirloomSpacing.xs) {
                             Image(systemName: "person.fill")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                             Text("Shared by \(sharerName)")
-                                .font(.subheadline)
+                                .font(HeirloomFonts.body)
                         }
                         .foregroundStyle(HeirloomColors.secondaryText)
                     }
 
                     // Personal message
                     if let message = options.personalMessage, !message.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack(spacing: 4) {
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                            HStack(spacing: HeirloomSpacing.xs) {
                                 Image(systemName: "quote.bubble.fill")
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                 Text("Note from \(options.sharerName ?? "sender")")
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .fontWeight(.semibold)
                             }
                             .foregroundStyle(HeirloomColors.secondaryText)
 
                             Text("\"\(message)\"")
-                                .font(.subheadline)
+                                .font(HeirloomFonts.body)
                                 .italic()
                                 .foregroundStyle(HeirloomColors.secondaryText)
                                 .padding(.leading, 8)
@@ -78,20 +78,20 @@ struct SharePreviewCard: View {
 
                     // Rating (if included)
                     if options.includeRating, let rating = recipe.provenance?.cachedMetrics.averageRating {
-                        HStack(spacing: 4) {
+                        HStack(spacing: HeirloomSpacing.xs) {
                             ForEach(1...5, id: \.self) { star in
                                 Image(systemName: star <= Int(rating) ? "star.fill" : "star")
                                     .foregroundStyle(.yellow)
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                             }
                             Text(String(format: "%.1f", rating))
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.secondaryText)
                         }
                     }
 
                     // Basic info
-                    HStack(spacing: 16) {
+                    HStack(spacing: HeirloomSpacing.md) {
                         if let servings = recipe.servings {
                             InfoPill(icon: "person.2.fill", text: servings)
                         }
@@ -103,7 +103,7 @@ struct SharePreviewCard: View {
                     Spacer()
 
                     // What's included indicator
-                    HStack(spacing: 8) {
+                    HStack(spacing: HeirloomSpacing.sm) {
                         if options.includeCardBack {
                             IncludedBadge(icon: "rectangle.portrait.fill", text: "Card Back")
                         }
@@ -115,7 +115,7 @@ struct SharePreviewCard: View {
                         }
                     }
                 }
-                .padding(16)
+                .padding(HeirloomSpacing.md)
             }
             .frame(height: 420)
         }
@@ -132,11 +132,11 @@ private struct InfoPill: View {
     let text: String
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: icon)
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
             Text(text)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
@@ -153,9 +153,9 @@ private struct IncludedBadge: View {
     var body: some View {
         HStack(spacing: 3) {
             Image(systemName: icon)
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
             Text(text)
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 3)

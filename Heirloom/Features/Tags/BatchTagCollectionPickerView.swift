@@ -172,17 +172,17 @@ struct BatchTagCollectionPickerView: View {
                     // All selected recipes have this tag
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(tag.swiftUIColor)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 } else if taggedCount > 0 {
                     // Some recipes have this tag
                     Image(systemName: "circle.lefthalf.filled")
                         .foregroundStyle(tag.swiftUIColor)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 } else {
                     // No recipes have this tag
                     Image(systemName: "circle")
                         .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 }
             }
         }
@@ -197,7 +197,7 @@ struct BatchTagCollectionPickerView: View {
         } label: {
             HStack(spacing: HeirloomSpacing.md) {
                 Image(systemName: collection.iconName)
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                     .foregroundStyle(collection.swiftUIColor)
                     .frame(width: 28)
 
@@ -221,17 +221,17 @@ struct BatchTagCollectionPickerView: View {
                     // All selected recipes are in this collection
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(collection.swiftUIColor)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 } else if collectedCount > 0 {
                     // Some recipes are in this collection
                     Image(systemName: "circle.lefthalf.filled")
                         .foregroundStyle(collection.swiftUIColor)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 } else {
                     // No recipes are in this collection
                     Image(systemName: "circle")
                         .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 }
             }
         }

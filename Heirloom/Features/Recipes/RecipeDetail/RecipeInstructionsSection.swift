@@ -31,7 +31,7 @@ struct RecipeInstructionsSection: View {
             }
             .padding(HeirloomSpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .fill(.white)
             )
         }
@@ -67,7 +67,7 @@ struct RecipeInstructionsSection: View {
 
                 Text("\(number)")
                     .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
             }
 
             Text(text)

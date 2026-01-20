@@ -121,7 +121,7 @@ struct StickerPickerView: View {
     // MARK: - Category Pills
     private var categoryPills: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: HeirloomSpacing.sm) {
                 // "All" pill
                 CategoryPill(
                     title: "All",
@@ -152,7 +152,7 @@ struct StickerPickerView: View {
         ScrollView {
             LazyVGrid(
                 columns: [
-                    GridItem(.adaptive(minimum: 80, maximum: 120), spacing: 16)
+                    GridItem(.adaptive(minimum: 80, maximum: 120), spacing: HeirloomSpacing.md)
                 ],
                 spacing: 16
             ) {
@@ -168,26 +168,26 @@ struct StickerPickerView: View {
 
     // MARK: - Empty State
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: HeirloomSpacing.md) {
             Image(systemName: "sparkles")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
 
             Text("No Stickers Found")
-                .font(.headline)
+                .font(HeirloomFonts.bodyBold)
 
             if showFavoritesOnly {
                 Text("You haven't favorited any stickers yet")
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             } else if !searchQuery.isEmpty {
                 Text("Try a different search term")
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .foregroundColor(.secondary)
             } else {
                 Text("Check back later for new stickers")
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .foregroundColor(.secondary)
             }
         }
@@ -273,7 +273,7 @@ struct CategoryPill: View {
                     .font(.system(size: 14))
 
                 Text(title)
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .fontWeight(isSelected ? .semibold : .regular)
             }
             .padding(.horizontal, 12)
@@ -306,10 +306,10 @@ struct StickerGridItem: View {
 
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 8) {
+            VStack(spacing: HeirloomSpacing.sm) {
                 // Sticker Preview
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .fill(Color(.systemGray6))
                         .frame(width: 80, height: 80)
 
@@ -346,7 +346,7 @@ struct StickerGridItem: View {
 
                 // Sticker Name
                 Text(sticker.name)
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundColor(.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)

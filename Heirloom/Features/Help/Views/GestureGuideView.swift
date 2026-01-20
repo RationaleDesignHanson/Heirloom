@@ -71,7 +71,7 @@ struct GestureGuideView: View {
             HStack {
                 Image(systemName: category.icon)
                     .foregroundStyle(HeirloomColors.tomato)
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
 
                 Text(category.rawValue)
                     .font(HeirloomFonts.title3)
@@ -110,9 +110,9 @@ struct GestureGuideView: View {
                 .frame(width: 32)
 
             // Content
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 // Gesture type badge + name
-                HStack(spacing: 8) {
+                HStack(spacing: HeirloomSpacing.sm) {
                     Text(gesture.gestureType.rawValue)
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(HeirloomColors.tomato)
@@ -139,7 +139,7 @@ struct GestureGuideView: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(Color.white)
         )
         .padding(.horizontal, HeirloomSpacing.lg)

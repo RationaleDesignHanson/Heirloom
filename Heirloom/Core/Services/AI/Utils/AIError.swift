@@ -208,8 +208,30 @@ extension AIError {
             return true
         case .networkError, .timeout, .rateLimited:
             return true
+        case .unauthorized, .invalidAPIKey:
+            return true // CRITICAL: Show API key issues to user
         default:
             return false // Log only, don't interrupt user
+        }
+    }
+
+    /// Should the app attempt to fall back to the default API key?
+    var shouldFallbackToDefaultKey: Bool {
+        switch self {
+        case .unauthorized, .invalidAPIKey:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// User-friendly message specifically for API key issues
+    var apiKeyFixMessage: String? {
+        switch self {
+        case .unauthorized, .invalidAPIKey:
+            return "Your personal API key appears to be invalid or expired. You can update it in Settings → AI Features, or remove it to use the shared key."
+        default:
+            return nil
         }
     }
 }

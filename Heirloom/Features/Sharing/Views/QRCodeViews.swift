@@ -77,7 +77,7 @@ struct QRCodeShareSheet: View {
             .aspectRatio(contentMode: .fit)
             .frame(width: 300, height: 300)
             .padding(HeirloomSpacing.md)
-            .background(.white)
+            .background(HeirloomColors.cardBackground)
             .cornerRadius(20)
             .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
     }
@@ -128,7 +128,7 @@ struct QRCodeShareSheet: View {
                     Text("Save to Photos")
                 }
                 .font(HeirloomFonts.bodyBold)
-                .foregroundStyle(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(HeirloomColors.tomato)
@@ -224,7 +224,7 @@ struct QRCodeScannerView: View {
                 ToolbarItem(placement: .principal) {
                     Text("Scan QR Code")
                         .font(HeirloomFonts.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                 }
 
                 ToolbarItem(placement: .cancellationAction) {
@@ -232,7 +232,7 @@ struct QRCodeScannerView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                     }
                 }
             }
@@ -308,7 +308,7 @@ struct QRCodeScannerView: View {
 
             Text("Position QR code within the frame")
                 .font(HeirloomFonts.body)
-                .foregroundStyle(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
         }
         .padding(HeirloomSpacing.md)
         .background(.black.opacity(0.7))

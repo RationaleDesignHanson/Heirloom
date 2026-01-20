@@ -18,7 +18,15 @@ struct CollectionDetailView: View {
     @State private var showDeleteConfirmation = false
     @State private var unlockTracker: HeritageUnlockTracker?
 
+    // Batch selection state (for "All Recipes" collection)
+    @State private var isSelectionMode = false
+    @State private var selectedRecipeIDs: Set<UUID> = []
+    @State private var showCollectionPicker = false
+    @State private var showCollectionEditor = false
+    @State private var existingCollectionIDs: Set<UUID> = []
+
     @Query private var allRecipes: [Recipe]
+    @Query private var allCollections: [RecipeCollection]
 
     init(collection: RecipeCollection) {
         self.collection = collection
@@ -28,6 +36,11 @@ struct CollectionDetailView: View {
 
     // Recipes in this collection
     var recipes: [Recipe] {
+        // Special handling for "All Recipes" collection - show all recipes
+        if collection.isAllRecipes {
+            return allRecipes
+        }
+
         let collectionRecipes = allRecipes.filter { recipe in
             recipe.collections?.contains(where: { $0.id == collection.id }) ?? false
         }
@@ -39,6 +52,55 @@ struct CollectionDetailView: View {
         }
 
         return collectionRecipes
+    }
+
+    // Get Recipe objects for selected IDs
+    private func getSelectedRecipes() -> [Recipe] {
+        return allRecipes.filter { selectedRecipeIDs.contains($0.id) }
+    }
+
+    // Available collections for the picker (excludes "All Recipes" and heritage collections)
+    private var availableCollectionsForPicker: [RecipeCollection] {
+        return allCollections.filter { !$0.isAllRecipes && !$0.isHeritageCollection }
+    }
+
+    // Add selected recipes to a collection
+    private func addRecipesToCollection(_ collection: RecipeCollection) {
+        let selectedRecipes = getSelectedRecipes()
+
+        for recipe in selectedRecipes {
+            let alreadyInCollection = recipe.collections?.contains(where: { $0.id == collection.id }) ?? false
+
+            if !alreadyInCollection {
+                if recipe.collections == nil {
+                    recipe.collections = []
+                }
+                recipe.collections?.append(collection)
+            }
+        }
+
+        try? modelContext.save()
+
+        // Reset selection state
+        selectedRecipeIDs.removeAll()
+        isSelectionMode = false
+        showCollectionPicker = false
+    }
+
+    // Handle collection editor dismissal - add recipes to newly created collection
+    private func handleCollectionEditorDismissal() {
+        // Find newly created collection by comparing with existingCollectionIDs
+        let currentCollectionIDs = Set(allCollections.map { $0.id })
+        let newCollectionIDs = currentCollectionIDs.subtracting(existingCollectionIDs)
+
+        // If a new collection was created, add selected recipes to it
+        if let newCollectionID = newCollectionIDs.first,
+           let newCollection = allCollections.first(where: { $0.id == newCollectionID }) {
+            addRecipesToCollection(newCollection)
+        }
+
+        // Clear tracking set
+        existingCollectionIDs.removeAll()
     }
 
     var body: some View {
@@ -56,13 +118,35 @@ struct CollectionDetailView: View {
                         GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
                     ], spacing: HeirloomSpacing.gridSpacing) {
                         ForEach(recipes, id: \.id) { recipe in
-                            NavigationLink {
-                                RecipeDetailView(recipe: recipe)
-                                    .environmentObject(notificationService)
-                            } label: {
+                            if isSelectionMode && collection.isAllRecipes {
+                                // Selection mode: tap to select/deselect
                                 RecipeCardView(recipe: recipe)
+                                    .overlay(alignment: .topTrailing) {
+                                        if selectedRecipeIDs.contains(recipe.id) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.blue)
+                                                .background(HeirloomColors.cardBackground)
+                                                .clipShape(Circle())
+                                                .padding(HeirloomSpacing.sm)
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        if selectedRecipeIDs.contains(recipe.id) {
+                                            selectedRecipeIDs.remove(recipe.id)
+                                        } else {
+                                            selectedRecipeIDs.insert(recipe.id)
+                                        }
+                                    }
+                            } else {
+                                // Normal mode: tap to navigate
+                                NavigationLink {
+                                    RecipeDetailView(recipe: recipe)
+                                        .environmentObject(notificationService)
+                                } label: {
+                                    RecipeCardView(recipe: recipe)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                     }
                     .padding(.horizontal, HeirloomSpacing.md)
@@ -73,40 +157,53 @@ struct CollectionDetailView: View {
         .navigationTitle(collection.name)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                RecipeListToolbarActions(
-                    isSelectionMode: false,
-                    selectedCount: 0,
-                    filteredCount: recipes.count,
-                    onSelectAllToggle: {},
-                    onAddRecipe: {
-                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                        showAddRecipe = true
-                    },
-                    onImportRecipe: {
-                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                        showImportRecipe = true
-                    },
-                    onBulkImport: {
-                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                        showBulkImport = true
-                    },
-                    onCookbookScanner: {
-                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                        showCookbookScanner = true
-                    },
-                    onNarratedVideoImport: {
-                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                        showVideoImport = true
-                    },
-                    onSilentVideoImport: {
-                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                        showASMRVideoImport = true
-                    },
-                    onAddCollection: {}, // Not applicable within a collection detail view
-                    onAddNormalSample: addNormalSampleRecipe,
-                    onAddHeritageSample: addHeritageSampleRecipe
-                )
+            // For "All Recipes": Show Select/Done button for batch operations
+            if collection.isAllRecipes {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(isSelectionMode ? "Done" : "Select") {
+                        isSelectionMode.toggle()
+                        if !isSelectionMode {
+                            selectedRecipeIDs.removeAll()
+                        }
+                    }
+                }
+            } else {
+                // For other collections: Show add/import actions
+                ToolbarItem(placement: .primaryAction) {
+                    RecipeListToolbarActions(
+                        isSelectionMode: false,
+                        selectedCount: 0,
+                        filteredCount: recipes.count,
+                        onSelectAllToggle: {},
+                        onAddRecipe: {
+                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                            showAddRecipe = true
+                        },
+                        onImportRecipe: {
+                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                            showImportRecipe = true
+                        },
+                        onBulkImport: {
+                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                            showBulkImport = true
+                        },
+                        onCookbookScanner: {
+                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                            showCookbookScanner = true
+                        },
+                        onNarratedVideoImport: {
+                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                            showVideoImport = true
+                        },
+                        onSilentVideoImport: {
+                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                            showASMRVideoImport = true
+                        },
+                        onAddCollection: {}, // Not applicable within a collection detail view
+                        onAddNormalSample: addNormalSampleRecipe,
+                        onAddHeritageSample: addHeritageSampleRecipe
+                    )
+                }
             }
 
             // Delete button for non-system collections
@@ -165,6 +262,81 @@ struct CollectionDetailView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Choose what to delete:\n• Collection Only: Recipes remain in your library\n• Collection & Recipes: Removes everything")
+        }
+        .safeAreaInset(edge: .bottom) {
+            // Selection action bar (only for "All Recipes" when recipes are selected)
+            if isSelectionMode && collection.isAllRecipes && !selectedRecipeIDs.isEmpty {
+                HStack {
+                    Text("\(selectedRecipeIDs.count) selected")
+                        .font(HeirloomFonts.bodyBold)
+                    Spacer()
+                    Button("Add to Collection") {
+                        showCollectionPicker = true
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .shadow(radius: 8)
+            }
+        }
+        .sheet(isPresented: $showCollectionPicker) {
+            NavigationStack {
+                List {
+                    // "Create New Collection" option
+                    Section {
+                        Button {
+                            // Track existing collections before opening editor
+                            existingCollectionIDs = Set(allCollections.map { $0.id })
+                            showCollectionEditor = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundStyle(.blue)
+                                Text("Create New Collection")
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                    }
+
+                    // Existing collections
+                    if !availableCollectionsForPicker.isEmpty {
+                        Section("Existing Collections") {
+                            ForEach(availableCollectionsForPicker) { collection in
+                                Button {
+                                    addRecipesToCollection(collection)
+                                } label: {
+                                    HStack {
+                                        Image(systemName: collection.iconName)
+                                            .foregroundStyle(collection.swiftUIColor)
+                                        Text(collection.name)
+                                        Spacer()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .navigationTitle("Add to Collection")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            showCollectionPicker = false
+                        }
+                    }
+                }
+                .sheet(isPresented: $showCollectionEditor) {
+                    CollectionEditorView()
+                        .environmentObject(tabCoordinator)
+                }
+                .onChange(of: showCollectionEditor) { _, isShowing in
+                    // When editor dismisses, check if a new collection was created
+                    if !isShowing {
+                        handleCollectionEditorDismissal()
+                    }
+                }
+            }
         }
         .onAppear {
             if unlockTracker == nil {

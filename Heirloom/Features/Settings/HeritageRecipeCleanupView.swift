@@ -74,10 +74,10 @@ struct HeritageRecipeCleanupView: View {
     // MARK: - Loading View
 
     private var loadingView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: HeirloomSpacing.md) {
             ProgressView()
             Text("Finding eligible recipes...")
-                .font(.subheadline)
+                .font(HeirloomFonts.body)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -86,24 +86,24 @@ struct HeritageRecipeCleanupView: View {
     // MARK: - Empty State View
 
     private var emptyStateView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: HeirloomSpacing.lg) {
             Image(systemName: "sparkles")
                 .font(.system(size: 60))
                 .foregroundStyle(.green)
 
-            VStack(spacing: 8) {
+            VStack(spacing: HeirloomSpacing.sm) {
                 Text("All Clean!")
                     .font(.title2.bold())
 
                 Text("No heritage recipes are eligible for cleanup at this time.")
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
             }
 
             Text("Heritage recipes become eligible for cleanup after 30 days if they haven't been cooked, favorited, or annotated.")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
@@ -118,7 +118,7 @@ struct HeritageRecipeCleanupView: View {
         List {
             Section {
                 Text("These heritage recipes have been in your library for 30+ days without being used. Select recipes to remove them.")
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .foregroundStyle(.secondary)
                     .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
             }
@@ -222,7 +222,7 @@ private struct CleanupRecipeRow: View {
             HStack(spacing: 12) {
                 // Selection indicator
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                     .foregroundStyle(isSelected ? .blue : .secondary)
 
                 // Recipe image
@@ -248,20 +248,20 @@ private struct CleanupRecipeRow: View {
                 }
 
                 // Recipe info
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(recipe.title)
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .fontWeight(.medium)
                         .foregroundStyle(.primary)
 
                     if let collectionId = recipe.heritageCollectionId {
                         Text(collectionId)
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.brown)
                     }
 
                     Text(daysOldText(for: recipe))
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.secondary)
                 }
 

@@ -251,7 +251,7 @@ struct VideoProcessingJobListView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: HeirloomSpacing.md) {
             Image(systemName: "video.slash")
                 .font(.system(size: 48))
                 .foregroundStyle(HeirloomColors.secondaryText)

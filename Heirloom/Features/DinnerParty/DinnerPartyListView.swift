@@ -91,7 +91,7 @@ struct DinnerPartyListView: View {
             VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                 // Header with name and guest count
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                         Text(party.name)
                             .font(HeirloomFonts.title3)
                             .foregroundStyle(HeirloomColors.primaryText)
@@ -106,9 +106,9 @@ struct DinnerPartyListView: View {
 
                     Spacer()
 
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Image(systemName: "person.2.fill")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                         Text("\(party.guestCount)")
                             .font(HeirloomFonts.bodyBold)
                     }
@@ -152,7 +152,7 @@ struct DinnerPartyListView: View {
                         } label: {
                             Text("Cook Now")
                                 .font(HeirloomFonts.bodyBold)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
                                 .background(HeirloomColors.tomato)
@@ -163,9 +163,9 @@ struct DinnerPartyListView: View {
                 .padding(.top, 4)
             }
             .padding()
-            .background(Color.white)
-            .cornerRadius(16)
-            .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
+            .background(HeirloomColors.cardBackground)
+            .cornerRadius(HeirloomSpacing.cardCornerRadius)
+            .heirloomShadow(HeirloomShadows.card)
             .padding(.horizontal)
         }
         .buttonStyle(.plain)
@@ -185,7 +185,7 @@ struct DinnerPartyListView: View {
             if party.isInProgress {
                 Label("In Progress", systemImage: "circle.fill")
                     .font(HeirloomFonts.caption1)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(HeirloomColors.tomato)
@@ -205,9 +205,9 @@ struct DinnerPartyListView: View {
     // MARK: - Stat Display
 
     private func stat(icon: String, value: String, label: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
             Text(value)
                 .font(HeirloomFonts.bodyBold)

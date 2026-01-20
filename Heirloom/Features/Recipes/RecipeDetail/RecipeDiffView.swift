@@ -29,7 +29,7 @@ struct RecipeDiffView: View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
             HStack {
                 Image(systemName: "text.badge.checkmark")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.success)
                 Text("Title Changed")
                     .font(HeirloomFonts.caption1Bold)
@@ -66,7 +66,7 @@ struct RecipeDiffView: View {
                     VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                         HStack {
                             Image(systemName: "list.bullet.badge.plus")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.success)
                             Text("Ingredients Modified")
                                 .font(HeirloomFonts.caption1Bold)
@@ -76,7 +76,7 @@ struct RecipeDiffView: View {
                         ForEach(diffs, id: \.0) { diff in
                             HStack(alignment: .top) {
                                 Image(systemName: diff.1 == .added ? "plus.circle.fill" : "circle")
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .foregroundStyle(diff.1 == .removed ? .gray : HeirloomColors.success)
 
                                 Text(diff.0)
@@ -113,7 +113,7 @@ struct RecipeDiffView: View {
                     VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                         HStack {
                             Image(systemName: "list.number.badge.plus")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.success)
                             Text("Instructions Modified")
                                 .font(HeirloomFonts.caption1Bold)
@@ -128,7 +128,7 @@ struct RecipeDiffView: View {
                                     .frame(width: 25, alignment: .leading)
 
                                 Image(systemName: diff.1 == .added ? "plus.circle.fill" : "circle")
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .foregroundStyle(diff.1 == .removed ? .gray : HeirloomColors.success)
 
                                 Text(diff.0)

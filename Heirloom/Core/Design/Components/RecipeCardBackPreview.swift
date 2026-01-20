@@ -50,16 +50,16 @@ struct RecipeCardBackPreview: View {
                     // "Tap to customize" button at bottom
                     customizeButton
                 }
-                .padding(16)
+                .padding(HeirloomSpacing.md)
             }
 
             // Border
             if cardBack.showBorder {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .stroke(Color(hex: cardBack.borderColor), lineWidth: 2)
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
     }
 
     // MARK: - Background
@@ -87,11 +87,11 @@ struct RecipeCardBackPreview: View {
         HStack {
             Spacer()
 
-            VStack(spacing: 4) {
+            VStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: "pencil.and.list.clipboard")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                 Text("Tap to Customize")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .fontWeight(.medium)
             }
             .foregroundColor(.accentColor)
@@ -115,17 +115,17 @@ struct HeritageCollectionBadgeCompactView: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "book.closed.fill")
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundColor(.brown)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Heritage Recipe")
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
                     .foregroundColor(.secondary)
 
                 if let collection = recipe.heritageCollectionId {
                     Text(collection)
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .fontWeight(.semibold)
                         .foregroundColor(.brown)
                 }
@@ -152,15 +152,15 @@ struct PersonalNoteCompactView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 Image(systemName: "heart.text.square")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundColor(.red)
                 Text("Note")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .fontWeight(.semibold)
             }
 
             Text(note)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundColor(.primary)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
@@ -178,19 +178,19 @@ struct TipsCompactView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 Image(systemName: "lightbulb")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundColor(.yellow)
                 Text("Tips")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .fontWeight(.semibold)
             }
 
             ForEach(Array(tips.enumerated()), id: \.offset) { _, tip in
                 HStack(alignment: .top, spacing: 6) {
                     Text("•")
-                        .font(.caption2)
+                        .font(HeirloomFonts.caption2)
                     Text(tip)
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -209,16 +209,16 @@ struct HistoricalTextCompactView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 Image(systemName: "scroll")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundColor(.brown)
                 Text("Historical Note")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .fontWeight(.semibold)
                     .foregroundColor(.brown)
             }
 
             Text(text)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundColor(.primary)
                 .italic()
                 .lineLimit(4)

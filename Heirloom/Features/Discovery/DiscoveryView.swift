@@ -138,7 +138,7 @@ struct DiscoveryView: View {
             } label: {
                 Text("Try Again")
                     .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .padding(.horizontal, HeirloomSpacing.lg)
                     .padding(.vertical, HeirloomSpacing.sm)
                     .background(HeirloomColors.tomato)
@@ -332,14 +332,14 @@ private struct TrendingRecipeCard: View {
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 80, height: 80)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
                 } else {
                     Image(systemName: "fork.knife")
                         .font(.system(size: 32))
                         .foregroundStyle(HeirloomColors.warmGray)
                         .frame(width: 80, height: 80)
                         .background(HeirloomColors.cream)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
                 }
 
                 // Recipe details
@@ -356,7 +356,7 @@ private struct TrendingRecipeCard: View {
                         if !trending.displayBadge.isEmpty {
                             Text(trending.displayBadge)
                                 .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 3)
                                 .background(HeirloomColors.tomato)
@@ -372,7 +372,7 @@ private struct TrendingRecipeCard: View {
                     }
 
                     // Trending score bar
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Text("Score:")
                             .font(HeirloomFonts.caption2)
                             .foregroundStyle(HeirloomColors.secondaryText)
@@ -509,7 +509,7 @@ private struct PopularRecipeCard: View {
 
                     Image(systemName: "star.fill")
                         .font(.system(size: 20))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                 }
 
                 // Recipe details

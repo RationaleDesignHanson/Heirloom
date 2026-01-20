@@ -81,7 +81,7 @@ struct DinnerPartyActiveView: View {
     private var progressCard: some View {
         VStack(spacing: HeirloomSpacing.md) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(party.name)
                         .font(HeirloomFonts.title2)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -122,9 +122,9 @@ struct DinnerPartyActiveView: View {
             .frame(height: 12)
         }
         .padding()
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
+        .background(HeirloomColors.cardBackground)
+        .cornerRadius(HeirloomSpacing.cardCornerRadius)
+        .heirloomShadow(HeirloomShadows.card)
     }
 
     // MARK: - Section View
@@ -153,7 +153,7 @@ struct DinnerPartyActiveView: View {
                     .fill(accentColor)
                     .frame(width: 12, height: 12)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(recipe.title)
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -182,9 +182,9 @@ struct DinnerPartyActiveView: View {
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
             .padding()
-            .background(Color.white)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.03), radius: 4)
+            .background(HeirloomColors.cardBackground)
+            .cornerRadius(HeirloomSpacing.cardCornerRadius)
+            .heirloomShadow(HeirloomShadows.subtle)
         }
         .buttonStyle(.plain)
     }

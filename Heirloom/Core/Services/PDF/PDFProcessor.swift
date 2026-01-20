@@ -102,6 +102,117 @@ final class PDFProcessor {
 
     // MARK: - Public API
 
+    /// Render PDF pages in batches to avoid memory issues with large PDFs
+    /// - Parameters:
+    ///   - url: URL to PDF file (from document picker)
+    ///   - batchSize: Number of pages to render at once (default: 3)
+    ///   - processBatch: Closure to process each batch before moving to next
+    /// - Throws: PDFError for various failure modes
+    func renderPDFPagesInBatches(
+        from url: URL,
+        batchSize: Int = 3,
+        processBatch: @escaping ([(pageNumber: Int, image: UIImage)]) async throws -> Void
+    ) async throws {
+        // Try to access security-scoped resource if needed
+        let needsSecurityScope = url.startAccessingSecurityScopedResource()
+        defer {
+            if needsSecurityScope {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        // Load PDF document
+        guard let document = PDFDocument(url: url) else {
+            Log.warning("Could not load PDF document", category: .import, metadata: [
+                "file": url.lastPathComponent
+            ])
+            throw PDFImportError.unreadable(fileName: url.lastPathComponent)
+        }
+
+        // Check if password protected
+        if document.isLocked {
+            Log.warning("PDF is password protected", category: .import, metadata: [
+                "file": url.lastPathComponent
+            ])
+            throw PDFImportError.passwordProtected(fileName: url.lastPathComponent)
+        }
+
+        let pageCount = document.pageCount
+
+        // Enforce hard page limit (250 pages)
+        if pageCount > hardPageLimit {
+            Log.warning("PDF exceeds hard page limit", category: .import, metadata: [
+                "file": url.lastPathComponent,
+                "pages": pageCount,
+                "limit": hardPageLimit
+            ])
+            throw PDFImportError.tooManyPages(
+                fileName: url.lastPathComponent,
+                pageCount: pageCount,
+                max: hardPageLimit
+            )
+        }
+
+        // Check premium gate for 50+ pages
+        if pageCount >= premiumPageThreshold {
+            let isPremium = subscriptionManager.isPremium
+
+            if !isPremium {
+                Log.info("Premium required for PDF with 50+ pages", category: .import, metadata: [
+                    "file": url.lastPathComponent,
+                    "pages": pageCount
+                ])
+                throw PDFImportError.requiresPremium(
+                    fileName: url.lastPathComponent,
+                    pageCount: pageCount
+                )
+            }
+        }
+
+        Log.info("Starting batched PDF rendering", category: .import, metadata: [
+            "file": url.lastPathComponent,
+            "pages": pageCount,
+            "batch_size": batchSize
+        ])
+
+        // Render pages in batches
+        var currentBatch: [(Int, UIImage)] = []
+
+        for pageIndex in 0..<pageCount {
+            guard let page = document.page(at: pageIndex) else {
+                Log.warning("Could not load PDF page", category: .import, metadata: [
+                    "file": url.lastPathComponent,
+                    "page": pageIndex + 1
+                ])
+                continue
+            }
+
+            // Render page to image
+            let image = renderPage(page, scale: renderScale)
+            currentBatch.append((pageIndex + 1, image))  // 1-indexed page numbers
+
+            // Process batch when full or at end of document
+            if currentBatch.count == batchSize || pageIndex == pageCount - 1 {
+                try await processBatch(currentBatch)
+                currentBatch.removeAll() // Clear batch to free memory
+
+                // Log progress for large PDFs
+                if pageCount >= 20 && (pageIndex + 1) % 10 == 0 {
+                    Log.info("PDF rendering progress", category: .import, metadata: [
+                        "file": url.lastPathComponent,
+                        "rendered": pageIndex + 1,
+                        "total": pageCount
+                    ])
+                }
+            }
+        }
+
+        Log.info("Batched PDF rendering complete", category: .import, metadata: [
+            "file": url.lastPathComponent,
+            "pages": pageCount
+        ])
+    }
+
     /// Render all pages of a PDF to images for processing
     /// - Parameter url: URL to PDF file (from document picker)
     /// - Returns: Array of (pageNumber, image) tuples

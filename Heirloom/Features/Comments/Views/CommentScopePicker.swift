@@ -64,11 +64,11 @@ struct CommentScopePicker: View {
             }
             .padding(HeirloomSpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .fill(selectedScope == scope ? HeirloomColors.cream : Color.clear)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .stroke(
                         selectedScope == scope ? HeirloomColors.tomato : HeirloomColors.warmGray.opacity(0.3),
                         lineWidth: selectedScope == scope ? 2 : 1
@@ -171,7 +171,7 @@ struct CommentScopeBadge: View {
     }
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: scope.iconName)
                 .font(.system(size: compact ? 10 : 12))
 

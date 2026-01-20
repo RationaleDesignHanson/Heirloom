@@ -95,6 +95,7 @@ protocol AIConfigurationProtocol {
     func model(for task: AITask) -> String
     func incrementRequestCount()
     func canMakeRequest() -> Bool
+    func handleUnauthorizedError()
 }
 
 protocol CommentAnalysisServiceProtocol {

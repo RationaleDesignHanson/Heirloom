@@ -144,7 +144,7 @@ struct OnboardingImportMethodsScreen: View {
                 } label: {
                     Text("Continue")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(HeirloomColors.tomato)
@@ -186,9 +186,9 @@ struct ImportMethodPreviewOverlay: View {
                 }
 
             // Card
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.lg) {
                 // Header
-                HStack(spacing: 16) {
+                HStack(spacing: HeirloomSpacing.md) {
                     Image(systemName: method.icon)
                         .font(.system(size: 40))
                         .foregroundStyle(method.accentColor)
@@ -196,7 +196,7 @@ struct ImportMethodPreviewOverlay: View {
                         .background(method.accentColor.opacity(0.1))
                         .cornerRadius(16)
 
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                         Text(method.title)
                             .font(.system(size: 24, weight: .bold))
                             .foregroundStyle(HeirloomColors.charcoal)
@@ -221,7 +221,7 @@ struct ImportMethodPreviewOverlay: View {
                 } label: {
                     Text("Got it")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(method.accentColor)
@@ -229,7 +229,7 @@ struct ImportMethodPreviewOverlay: View {
                 }
             }
             .padding(32)
-            .background(.white)
+            .background(HeirloomColors.cardBackground)
             .cornerRadius(24)
             .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
             .padding(.horizontal, 32)

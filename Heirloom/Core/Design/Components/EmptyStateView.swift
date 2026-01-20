@@ -55,7 +55,7 @@ struct EmptyStateView: View {
                 Button(action: action) {
                     Text(actionTitle)
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .padding(.horizontal, 32)
                         .padding(.vertical, 16)
                         .background(HeirloomColors.tomato)

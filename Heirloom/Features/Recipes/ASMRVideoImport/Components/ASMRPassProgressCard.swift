@@ -29,7 +29,7 @@ struct ASMRPassProgressCard: View {
                         // Checkmark for completed passes
                         Image(systemName: "checkmark")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                     } else {
                         // Show number for pending and active phases
                         ZStack {
@@ -41,12 +41,12 @@ struct ASMRPassProgressCard: View {
                                 // Spinner while active (matches regular video import)
                                 ProgressView()
                                     .scaleEffect(0.6)
-                                    .tint(.white)
+                                    .tint(HeirloomColors.buttonTextLight)
                             } else {
                                 // Pass number for pending
                                 Text("\(pass.rawValue + 1)")
                                     .font(.caption.bold())
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(HeirloomColors.buttonTextLight)
                             }
                         }
                     }
@@ -54,7 +54,7 @@ struct ASMRPassProgressCard: View {
 
                 // Pass name
                 Text(pass.displayName)
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(isActive ? .primary : .secondary)
 
                 Spacer()
@@ -64,13 +64,13 @@ struct ASMRPassProgressCard: View {
             if !findings.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(findings, id: \.self) { finding in
-                        HStack(alignment: .top, spacing: 8) {
+                        HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
                             Image(systemName: "arrow.right.circle.fill")
-                                .font(.caption2)
+                                .font(HeirloomFonts.caption2)
                                 .foregroundStyle(.blue)
 
                             Text(finding)
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -81,7 +81,7 @@ struct ASMRPassProgressCard: View {
         .background(cardBackground)
         .cornerRadius(12)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .stroke(borderColor, lineWidth: isActive ? 2 : 1)
         )
         .animation(.easeInOut, value: isActive)

@@ -114,7 +114,7 @@ struct CardPersonalizationView: View {
             cardBackground
 
             // Recipe Image (simplified)
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(Color.gray.opacity(0.2))
                 .frame(height: 150)
                 .overlay {
@@ -153,14 +153,14 @@ struct CardPersonalizationView: View {
                 loveMarksOverlay(session)
             }
         }
-        .background(Color.white)
+        .background(HeirloomColors.cardBackground)
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+        .heirloomShadow(HeirloomShadows.card)
     }
 
     private var cardBackView: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
                 // Recipe title
                 Text(recipe.title)
                     .font(.title2)
@@ -169,7 +169,7 @@ struct CardPersonalizationView: View {
 
                 // Attribution
                 if let cardBack = recipe.cardBack, cardBack.visibleSections.contains(.attribution), cardBack.showAttribution {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                         HStack {
                             Image(systemName: recipe.sourceType?.iconName ?? "book.closed.fill")
                             Text(recipe.sourceDisplayName)
@@ -183,7 +183,7 @@ struct CardPersonalizationView: View {
 
                 // Note to friends
                 if let cardBack = recipe.cardBack, cardBack.visibleSections.contains(.noteToFriends), let note = cardBack.noteToFriends {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                         Text("A Note from Me")
                             .font(HeirloomFonts.title3)
 
@@ -218,7 +218,7 @@ struct CardPersonalizationView: View {
                             .font(HeirloomFonts.title3)
 
                         ForEach(cardBack.personalTips, id: \.self) { tip in
-                            HStack(alignment: .top, spacing: 8) {
+                            HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
                                 Image(systemName: "lightbulb.fill")
                                     .foregroundStyle(.yellow)
                                     .font(HeirloomFonts.caption1)
@@ -243,7 +243,7 @@ struct CardPersonalizationView: View {
                                 .font(HeirloomFonts.title3)
 
                             ForEach(Array(pinnedComments)) { comment in
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                                     Text(comment.text)
                                         .font(HeirloomFonts.subheadline)
 
@@ -266,7 +266,7 @@ struct CardPersonalizationView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(recipe.cardBack?.backgroundStyle.color ?? HeirloomColors.cream)
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+        .heirloomShadow(HeirloomShadows.card)
     }
 
     private var cardBackground: some View {
@@ -309,7 +309,7 @@ struct CardPersonalizationView: View {
         Text(annotation.text)
             .font(annotation.style.font)
             .foregroundStyle(Color(hex: annotation.colorHex))
-            .padding(8)
+            .padding(HeirloomSpacing.sm)
             .background(
                 annotation.style == .stickyNote ?
                 AnyView(
@@ -398,7 +398,7 @@ struct CardPersonalizationView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, HeirloomSpacing.md)
                 .background(HeirloomColors.tomato)
-                .foregroundStyle(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
                 .cornerRadius(12)
             }
             .disabled(editingSession?.hasChanges == false)
@@ -432,11 +432,11 @@ struct CardPersonalizationView: View {
                 selectedTab = tab
             }
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: icon)
                     .font(HeirloomFonts.title3)
                 Text(title)
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
@@ -516,7 +516,7 @@ struct CardPersonalizationView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(HeirloomColors.tomato)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .cornerRadius(12)
             }
             .accessibilityLabel("Add Sticker")
@@ -573,7 +573,7 @@ struct CardPersonalizationView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(HeirloomColors.tomato)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .cornerRadius(12)
             }
             .accessibilityLabel("Add Note")
@@ -718,7 +718,7 @@ struct CardPersonalizationView: View {
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(HeirloomColors.tomato)
-                .foregroundStyle(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
                 .cornerRadius(12)
             }
             .accessibilityLabel(isCardFlipped ? "Show Front" : "Show Back")

@@ -41,7 +41,7 @@ struct PaywallView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 32) {
+            VStack(spacing: HeirloomSpacing.xl) {
                 // ⭐ NEW: Debug badge when fake payments are active
                 if storeManager.isFakePaymentsEnabled {
                     HStack {
@@ -49,7 +49,7 @@ struct PaywallView: View {
                         Text("FAKE PAYMENTS ACTIVE")
                             .font(.caption.bold())
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.purple)
@@ -58,7 +58,7 @@ struct PaywallView: View {
                 }
 
                 // Header
-                VStack(spacing: 16) {
+                VStack(spacing: HeirloomSpacing.md) {
                     Image(systemName: subscriptionManager.canUpgrade ? "arrow.up.circle.fill" : "book.closed.fill")
                         .font(.system(size: 64))
                         .foregroundStyle(subscriptionManager.canUpgrade ? .green : HeirloomColors.tomato)
@@ -76,7 +76,7 @@ struct PaywallView: View {
                 .padding(.top, 40)
 
                 // Feature List
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
                     featureRow(text: "Import from any recipe website")
                     featureRow(text: "Scan cookbook pages with OCR")
                     featureRow(text: "Sync across all your devices")
@@ -135,17 +135,17 @@ struct PaywallView: View {
                         if isPurchasing {
                             ProgressView()
                                 .progressViewStyle(.circular)
-                                .tint(.white)
+                                .tint(HeirloomColors.buttonTextLight)
                         } else {
                             Text(ctaText)
                                 .font(HeirloomFonts.bodyBold)
                         }
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(HeirloomColors.tomato)
-                    .cornerRadius(12)
+                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
                 }
                 .disabled(isPurchasing)
                 .padding(.horizontal, 32)
@@ -191,7 +191,7 @@ struct PaywallView: View {
         HStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(HeirloomColors.familyGreen)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
 
             Text(text)
                 .font(HeirloomFonts.body)
@@ -211,13 +211,13 @@ struct PaywallView: View {
                 subscriptionManager.adjustTrialForPlan(productID)
             }
         } label: {
-            HStack(spacing: 16) {
+            HStack(spacing: HeirloomSpacing.md) {
                 // Radio Button
                 Image(systemName: selectedProduct == productID ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                     .foregroundStyle(selectedProduct == productID ? HeirloomColors.tomato : HeirloomColors.warmGray)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     HStack {
                         Text(productID.displayName)
                             .font(HeirloomFonts.subheadline)
@@ -247,11 +247,11 @@ struct PaywallView: View {
 
                 Spacer()
             }
-            .padding(16)
-            .background(.white)
-            .cornerRadius(12)
+            .padding(HeirloomSpacing.md)
+            .background(HeirloomColors.cardBackground)
+            .cornerRadius(HeirloomSpacing.cardCornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .stroke(
                         selectedProduct == productID ? HeirloomColors.tomato : Color.clear,
                         lineWidth: 2

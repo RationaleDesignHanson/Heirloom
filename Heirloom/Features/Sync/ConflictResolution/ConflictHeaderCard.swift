@@ -37,7 +37,7 @@ struct ConflictHeaderCard: View {
             HStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: "exclamationmark.circle.fill")
                     .foregroundStyle(HeirloomColors.conflictAlert)
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
 
                 Text(conflictSummaryText)
                     .font(HeirloomFonts.caption1)
@@ -49,7 +49,7 @@ struct ConflictHeaderCard: View {
                 HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: "person.circle")
                         .foregroundStyle(HeirloomColors.conflictInfo)
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
 
                     Text(attribution)
                         .font(HeirloomFonts.caption1)
@@ -60,7 +60,7 @@ struct ConflictHeaderCard: View {
         .padding(HeirloomSpacing.md)
         .background(HeirloomColors.conflictBannerBackground)
         .cornerRadius(12)
-        .shadow(color: HeirloomColors.cardShadow, radius: 4, x: 0, y: 2)
+        .heirloomShadow(HeirloomShadows.subtle)
     }
 
     // MARK: - Computed Text

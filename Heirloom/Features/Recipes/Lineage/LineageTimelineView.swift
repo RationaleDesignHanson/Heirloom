@@ -141,7 +141,7 @@ private struct TimelineItemView: View {
 
                 Text("G\(node.generation)")
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
             }
             .frame(height: 32)
 
@@ -219,19 +219,19 @@ private struct TimelineItemView: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
                 .shadow(color: isSelected ? HeirloomColors.tomato.opacity(0.3) : .black.opacity(0.05), radius: isSelected ? 8 : 4, y: 2)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .stroke(isSelected ? HeirloomColors.tomato : .clear, lineWidth: 2)
         )
     }
 
     @ViewBuilder
     private func statItem(icon: String, value: Int, label: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: icon)
                 .font(.system(size: 12))
                 .foregroundStyle(HeirloomColors.tomato)
@@ -357,7 +357,7 @@ struct LineageContainerView: View {
             } label: {
                 Text("Retry")
                     .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .padding(.horizontal, HeirloomSpacing.lg)
                     .padding(.vertical, HeirloomSpacing.sm)
                     .background(HeirloomColors.tomato)

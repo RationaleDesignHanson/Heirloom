@@ -169,9 +169,9 @@ struct WhatsNewView: View {
         }
         .padding(HeirloomSpacing.lg)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
-                .shadow(color: HeirloomColors.cardShadow, radius: 4, y: 2)
+                .heirloomShadow(HeirloomShadows.subtle)
         )
     }
 
@@ -181,12 +181,12 @@ struct WhatsNewView: View {
         HStack(alignment: .top, spacing: HeirloomSpacing.md) {
             // Icon
             Image(systemName: feature.icon)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(featureColor(feature.type))
                 .frame(width: 30)
 
             // Content
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 HStack(spacing: HeirloomSpacing.sm) {
                     Text(feature.title)
                         .font(HeirloomFonts.bodyBold)
@@ -207,7 +207,7 @@ struct WhatsNewView: View {
     private func featureBadge(_ type: WhatsNewEntry.Feature.FeatureType) -> some View {
         Text(badgeText(type))
             .font(.system(size: 10, weight: .semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(

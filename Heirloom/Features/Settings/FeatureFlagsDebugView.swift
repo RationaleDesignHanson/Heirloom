@@ -18,12 +18,12 @@ struct FeatureFlagsDebugView: View {
         List {
             // Info section
             Section {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                     Text("Feature Flag Management")
-                        .font(.headline)
+                        .font(HeirloomFonts.bodyBold)
 
                     Text("Toggle features on/off for testing. Local overrides take precedence over remote flags.")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)
@@ -133,26 +133,26 @@ struct FeatureFlagRow: View {
     var body: some View {
         Button(action: toggle) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     HStack {
                         Text(feature.displayName)
                             .font(.body)
 
                         if hasOverride {
                             Image(systemName: "pencil.circle.fill")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.orange)
                         }
 
                         if feature.requiresPremium {
                             Image(systemName: "crown.fill")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.yellow)
                         }
                     }
 
                     Text(feature.description)
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.secondary)
                 }
 

@@ -90,7 +90,7 @@ struct OCRReviewView: View {
                         if isSaving {
                             ProgressView()
                                 .progressViewStyle(.circular)
-                                .tint(.white)
+                                .tint(HeirloomColors.buttonTextLight)
                         } else {
                             Text("Save")
                                 .fontWeight(.semibold)
@@ -166,7 +166,7 @@ struct OCRReviewView: View {
                     .clipped()
                     .cornerRadius(12)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                             .stroke(HeirloomColors.warmGray.opacity(0.3), lineWidth: 1)
                     )
             }
@@ -289,7 +289,7 @@ struct OCRReviewView: View {
                     HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
                         Text("\(index + 1)")
                             .font(HeirloomFonts.bodyBold)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .frame(width: 28, height: 28)
                             .background(HeirloomColors.tomato)
                             .cornerRadius(14)

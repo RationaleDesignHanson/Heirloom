@@ -30,6 +30,15 @@ enum AnalyticsEvent: String {
     case recipeFavorited = "Recipe Favorited"
     case recipeUnfavorited = "Recipe Unfavorited"
 
+    // Collection Actions (Collections-First Architecture)
+    case collectionViewed = "Collection Viewed"
+    case collectionCreated = "Collection Created"
+    case collectionEdited = "Collection Edited"
+    case collectionDeleted = "Collection Deleted"
+    case allRecipesViewed = "All Recipes Viewed"
+    case recipeBatchSelected = "Recipe Batch Selected"
+    case recipesAddedToCollection = "Recipes Added to Collection"
+
     // Shopping List
     case addedToShoppingList = "Added to Shopping List"
     case removedFromShoppingList = "Removed from Shopping List"

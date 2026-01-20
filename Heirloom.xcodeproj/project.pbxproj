@@ -263,6 +263,7 @@
 		C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */; };
 		C5DBE4AD2F1A7EEE00C1B6BA /* PDFImageExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */; };
 		C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */; };
+		C5DBE8842F1EE59C00C1B6BA /* CollectionsFirstMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE8822F1EE59C00C1B6BA /* CollectionsFirstMigration.swift */; };
 		C5E955312F054271006CD3C2 /* RecipeVersionSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E9552F2F054271006CD3C2 /* RecipeVersionSelector.swift */; };
 		C5E955322F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E955302F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift */; };
 		C5E955332F054271006CD3C2 /* RecipeDiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E9552E2F054271006CD3C2 /* RecipeDiffView.swift */; };
@@ -574,6 +575,7 @@
 		C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProgressBottomBanner.swift; sourceTree = "<group>"; };
 		C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImageExtractor.swift; sourceTree = "<group>"; };
 		C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFMetadataExtractor.swift; sourceTree = "<group>"; };
+		C5DBE8822F1EE59C00C1B6BA /* CollectionsFirstMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionsFirstMigration.swift; sourceTree = "<group>"; };
 		C5E9552E2F054271006CD3C2 /* RecipeDiffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDiffView.swift; sourceTree = "<group>"; };
 		C5E9552F2F054271006CD3C2 /* RecipeVersionSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersionSelector.swift; sourceTree = "<group>"; };
 		C5E955302F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersionSelectorViewModel.swift; sourceTree = "<group>"; };
@@ -822,6 +824,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5DBE8832F1EE59C00C1B6BA /* Migration */,
 				C5A7C0422F1810F800D99B07 /* HeritageUnlockService.swift */,
 				C5A7BDAE2F1713FA00D99B07 /* PDF */,
 				C513D8582F163AE700BFCF7D /* Heritage */,
@@ -1598,6 +1601,14 @@
 			path = Utilities;
 			sourceTree = "<group>";
 		};
+		C5DBE8832F1EE59C00C1B6BA /* Migration */ = {
+			isa = PBXGroup;
+			children = (
+				C5DBE8822F1EE59C00C1B6BA /* CollectionsFirstMigration.swift */,
+			);
+			path = Migration;
+			sourceTree = "<group>";
+		};
 		C8004A9A6B408625BEFCB6D2 /* Design */ = {
 			isa = PBXGroup;
 			children = (
@@ -2242,6 +2253,7 @@
 				C58316502F119E910096478E /* FrameAnalysisService.swift in Sources */,
 				C56F3EEF2F0528F200D19743 /* FirebaseLineageService.swift in Sources */,
 				D0F80C3F0014086C6080ABEE /* URLNormalizer.swift in Sources */,
+				C5DBE8842F1EE59C00C1B6BA /* CollectionsFirstMigration.swift in Sources */,
 				C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */,
 				A892587ADBCD4FCA80189C9E /* UIKitAppearance.swift in Sources */,
 			);

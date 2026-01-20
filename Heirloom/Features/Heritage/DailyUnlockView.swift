@@ -25,9 +25,9 @@ struct DailyUnlockView: View {
                 .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 32) {
+                    VStack(spacing: HeirloomSpacing.xl) {
                         // Header
-                        VStack(spacing: 16) {
+                        VStack(spacing: HeirloomSpacing.md) {
                             Image(systemName: "sparkles")
                                 .font(.system(size: 60))
                                 .foregroundStyle(.orange)
@@ -38,7 +38,7 @@ struct DailyUnlockView: View {
                                 .multilineTextAlignment(.center)
 
                             Text("You've unlocked \(unlockedRecipeIds.count) new heritage recipes")
-                                .font(.title3)
+                                .font(HeirloomFonts.title2)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                         }
@@ -47,15 +47,15 @@ struct DailyUnlockView: View {
                         // Progress
                         VStack(spacing: 12) {
                             Text("Collection Progress")
-                                .font(.headline)
+                                .font(HeirloomFonts.bodyBold)
                                 .foregroundStyle(.secondary)
 
-                            HStack(spacing: 8) {
+                            HStack(spacing: HeirloomSpacing.sm) {
                                 Text("Day \(currentBatch) of \(totalBatches)")
                                     .font(.title2.bold())
                                 Spacer()
                                 Text("\(Int(Double(currentBatch) / Double(totalBatches) * 100))%")
-                                    .font(.title3)
+                                    .font(HeirloomFonts.title2)
                                     .foregroundStyle(.secondary)
                             }
 
@@ -69,9 +69,9 @@ struct DailyUnlockView: View {
 
                         // Recipe cards
                         if !recipes.isEmpty {
-                            VStack(alignment: .leading, spacing: 16) {
+                            VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
                                 Text("Today's Unlocked Recipes")
-                                    .font(.headline)
+                                    .font(HeirloomFonts.bodyBold)
                                     .padding(.horizontal)
 
                                 ForEach(recipes) { recipe in
@@ -86,8 +86,8 @@ struct DailyUnlockView: View {
                         // Dismiss button
                         Button(action: onDismiss) {
                             Text("Start Cooking!")
-                                .font(.headline)
-                                .foregroundStyle(.white)
+                                .font(HeirloomFonts.bodyBold)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(.orange, in: RoundedRectangle(cornerRadius: 16))
@@ -150,7 +150,7 @@ struct RecipeUnlockCard: View {
     @State private var recipeImage: UIImage?
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: HeirloomSpacing.md) {
             // Recipe image
             Group {
                 if let image = recipeImage {
@@ -168,17 +168,17 @@ struct RecipeUnlockCard: View {
                 }
             }
             .frame(width: 80, height: 80)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
 
             // Recipe info
             VStack(alignment: .leading, spacing: 6) {
                 Text(recipe.title)
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
                     .lineLimit(2)
 
                 if let historicalContext = recipe.historicalContext {
                     Text(historicalContext)
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
@@ -186,13 +186,13 @@ struct RecipeUnlockCard: View {
                 HStack(spacing: 12) {
                     if let prepTime = recipe.prepTime {
                         Label(prepTime, systemImage: "clock")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
 
                     if let servings = recipe.servings {
                         Label(servings, systemImage: "person.2")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
                 }

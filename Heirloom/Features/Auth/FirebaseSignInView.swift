@@ -44,7 +44,7 @@ struct FirebaseSignInView: View {
                 }
 
                 // Title
-                VStack(spacing: 8) {
+                VStack(spacing: HeirloomSpacing.sm) {
                     Text("Welcome to Heirloom")
                         .font(HeirloomFonts.title1)
                         .foregroundColor(HeirloomColors.primaryText)
@@ -95,15 +95,15 @@ struct FirebaseSignInView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "applelogo")
-                                    .font(.title3)
+                                    .font(HeirloomFonts.title2)
                                 Text("Sign in with Apple")
                                     .font(HeirloomFonts.bodyBold)
                             }
-                            .foregroundColor(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
                             .background(Color.black)
-                            .cornerRadius(12)
+                            .cornerRadius(HeirloomSpacing.cardCornerRadius)
                         }
 
                         // Sign in with Google button
@@ -123,11 +123,11 @@ struct FirebaseSignInView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "g.circle.fill")
-                                    .font(.title3)
+                                    .font(HeirloomFonts.title2)
                                 Text("Sign in with Google")
                                     .font(HeirloomFonts.bodyBold)
                             }
-                            .foregroundColor(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
                             .background(
@@ -137,7 +137,7 @@ struct FirebaseSignInView: View {
                                     endPoint: .trailing
                                 )
                             )
-                            .cornerRadius(12)
+                            .cornerRadius(HeirloomSpacing.cardCornerRadius)
                         }
 
                         // Divider
@@ -161,7 +161,7 @@ struct FirebaseSignInView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "envelope.fill")
-                                    .font(.title3)
+                                    .font(HeirloomFonts.title2)
                                 Text("Sign in with Email")
                                     .font(HeirloomFonts.bodyBold)
                             }
@@ -169,9 +169,9 @@ struct FirebaseSignInView: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
                             .background(HeirloomColors.tomato.opacity(0.1))
-                            .cornerRadius(12)
+                            .cornerRadius(HeirloomSpacing.cardCornerRadius)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 12)
+                                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                                     .strokeBorder(HeirloomColors.tomato, lineWidth: 1.5)
                             )
                         }
@@ -206,7 +206,7 @@ struct FirebaseSignInView: View {
     private func featureRow(icon: String, text: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundColor(HeirloomColors.tomato)
                 .frame(width: 24)
 
@@ -229,7 +229,7 @@ struct FirebaseSignInView: View {
                     email = ""
                     password = ""
                 } label: {
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Image(systemName: "chevron.left")
                         Text("Back")
                     }
@@ -246,7 +246,7 @@ struct FirebaseSignInView: View {
                 .foregroundColor(HeirloomColors.primaryText)
 
             // Email field
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                 Text("Email")
                     .font(HeirloomFonts.caption1)
                     .foregroundColor(HeirloomColors.secondaryText)
@@ -262,7 +262,7 @@ struct FirebaseSignInView: View {
             }
 
             // Password field
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                 Text("Password")
                     .font(HeirloomFonts.caption1)
                     .foregroundColor(HeirloomColors.secondaryText)
@@ -305,7 +305,7 @@ struct FirebaseSignInView: View {
             } label: {
                 Text(isCreatingAccount ? "Create Account" : "Sign In")
                     .font(HeirloomFonts.bodyBold)
-                    .foregroundColor(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .background(HeirloomColors.tomato)
@@ -331,7 +331,7 @@ struct FirebaseSignInView: View {
 
     private var forgotPasswordView: some View {
         NavigationStack {
-            VStack(spacing: 24) {
+            VStack(spacing: HeirloomSpacing.lg) {
                 Text("Reset your password")
                     .font(HeirloomFonts.title3)
                     .foregroundColor(HeirloomColors.primaryText)
@@ -365,7 +365,7 @@ struct FirebaseSignInView: View {
                 } label: {
                     Text("Send Reset Link")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundColor(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                         .background(HeirloomColors.tomato)

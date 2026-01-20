@@ -244,7 +244,7 @@ struct CookingModeView: View {
                                 .padding()
                                 .background(HeirloomColors.warmGray.opacity(0.2))
                                 .foregroundStyle(HeirloomColors.primaryText)
-                                .cornerRadius(12)
+                                .cornerRadius(HeirloomSpacing.cardCornerRadius)
                         }
 
                         Button {
@@ -255,8 +255,8 @@ struct CookingModeView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(HeirloomColors.tomato)
-                                .foregroundStyle(.white)
-                                .cornerRadius(12)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
+                                .cornerRadius(HeirloomSpacing.cardCornerRadius)
                         }
                     }
                 }
@@ -276,7 +276,7 @@ struct CookingModeView: View {
                 } label: {
                     HStack {
                         Image(systemName: "timer")
-                            .font(.title3)
+                            .font(HeirloomFonts.title2)
                         Text("Set Timer")
                             .font(HeirloomFonts.bodyBold)
                     }
@@ -284,9 +284,9 @@ struct CookingModeView: View {
                     .padding()
                     .background(HeirloomColors.warmGray.opacity(0.1))
                     .foregroundStyle(HeirloomColors.primaryText)
-                    .cornerRadius(12)
+                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                             .strokeBorder(HeirloomColors.warmGray.opacity(0.3), lineWidth: 1)
                     )
                 }
@@ -371,8 +371,8 @@ struct CookingModeView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(timerMinutes == 0 && timerSeconds == 0 ? HeirloomColors.warmGray : HeirloomColors.tomato)
-                        .foregroundStyle(.white)
-                        .cornerRadius(12)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
                 }
                 .disabled(timerMinutes == 0 && timerSeconds == 0)
                 .padding(.horizontal, HeirloomSpacing.lg)
@@ -410,7 +410,7 @@ struct CookingModeView: View {
                     .padding()
                     .background(currentStep > 0 ? HeirloomColors.warmGray.opacity(0.2) : Color.clear)
                     .foregroundStyle(currentStep > 0 ? HeirloomColors.primaryText : HeirloomColors.warmGray)
-                    .cornerRadius(12)
+                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
                 }
                 .disabled(currentStep == 0)
 
@@ -431,8 +431,8 @@ struct CookingModeView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(HeirloomColors.tomato)
-                    .foregroundStyle(.white)
-                    .cornerRadius(12)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
+                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
                 }
             }
             .padding(.horizontal, HeirloomSpacing.lg)

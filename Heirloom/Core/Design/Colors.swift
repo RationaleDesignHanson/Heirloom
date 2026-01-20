@@ -44,6 +44,18 @@ enum HeirloomColors {
     /// Background for conflict banner/alert
     static let conflictBannerBackground = Color(hex: "FFF5F5")
 
+    // MARK: - Button & Badge Colors
+    /// Text color for buttons with dark or accent backgrounds
+    static let buttonTextLight = cream
+    /// Text color for buttons with light backgrounds
+    static let buttonTextDark = charcoal
+    /// Background color for badges
+    static let badgeBackground = tomato
+    /// Text color for badges
+    static let badgeText = cream
+    /// Scrim overlay for modals and overlays
+    static let scrim = Color.black.opacity(0.4)
+
     // MARK: - Effects
     static let cardShadow = Color.black.opacity(0.08)
     static let coffeeStain = Color(hex: "8B7355")

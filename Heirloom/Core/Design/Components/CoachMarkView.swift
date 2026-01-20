@@ -39,7 +39,7 @@ struct CoachMarkView: View {
                 } label: {
                     Text("Got it")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .background(HeirloomColors.tomato)
@@ -48,7 +48,7 @@ struct CoachMarkView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 24)
             }
-            .background(.white)
+            .background(HeirloomColors.cardBackground)
             .cornerRadius(16)
             .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
             .padding(.horizontal, 40)
@@ -119,7 +119,7 @@ struct CoachMarkWithArrow: View {
                     } label: {
                         Text("Got it")
                             .font(HeirloomFonts.bodyBold)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                             .background(HeirloomColors.tomato)
@@ -128,7 +128,7 @@ struct CoachMarkWithArrow: View {
                     .padding(.horizontal, 24)
                     .padding(.bottom, 24)
                 }
-                .background(.white)
+                .background(HeirloomColors.cardBackground)
                 .cornerRadius(16)
 
                 if arrowDirection == .up {

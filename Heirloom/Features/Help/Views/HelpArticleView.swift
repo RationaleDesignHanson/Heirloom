@@ -88,12 +88,12 @@ struct HelpArticleView: View {
                         Spacer()
 
                         Image(systemName: "chevron.right")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(HeirloomColors.warmGray)
                     }
                     .padding(HeirloomSpacing.md)
                     .background(HeirloomColors.warmGray.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
                 }
                 .buttonStyle(.plain)
             }

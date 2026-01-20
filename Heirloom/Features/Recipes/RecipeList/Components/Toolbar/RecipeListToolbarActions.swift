@@ -50,7 +50,7 @@ struct RecipeListToolbarActions: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Recipe Website Link")
                             Text("Paste URL from recipe website")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.secondary)
                         }
                     } icon: {
@@ -75,7 +75,7 @@ struct RecipeListToolbarActions: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Scan Cookbook Page")
                             Text("Camera, PDF, or photo from camera roll")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.secondary)
                         }
                     } icon: {
@@ -92,7 +92,7 @@ struct RecipeListToolbarActions: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Narrated Video")
                             Text("From camera roll • Spoken instructions")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.secondary)
                         }
                     } icon: {
@@ -110,7 +110,7 @@ struct RecipeListToolbarActions: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Silent Video (ASMR)")
                             Text("From camera roll • Visual cooking only")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.secondary)
                         }
                     } icon: {

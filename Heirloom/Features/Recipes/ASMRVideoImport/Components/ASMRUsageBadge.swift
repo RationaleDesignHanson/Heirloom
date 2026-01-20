@@ -34,18 +34,18 @@ struct ASMRUsageBadge: View {
                         .font(.title3.bold())
                         .foregroundStyle(.orange)
                 } else {
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Text("\(summary.extractionsRemaining)")
                             .font(.title3.bold())
                             .foregroundStyle(summary.extractionsRemaining > 0 ? .primary : .secondary)
                         Text("/ \(summary.extractionsTotal) left this month")
-                            .font(.subheadline)
+                            .font(HeirloomFonts.body)
                             .foregroundStyle(.secondary)
                     }
                 }
 
                 Text(subscriptionManager.isPremium ? "Premium ASMR access" : "Resets \(summary.resetDate, format: .dateTime.month().day())")
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(.secondary)
             }
 
@@ -56,7 +56,7 @@ struct ASMRUsageBadge: View {
                 showPaywall = true
             } label: {
                 Image(systemName: subscriptionManager.isPremium ? "checkmark.circle.fill" : "arrow.up.circle.fill")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                     .foregroundStyle(subscriptionManager.isPremium ? .green : .orange)
             }
         }
@@ -72,12 +72,12 @@ struct ASMRUsageBadge: View {
 }
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: HeirloomSpacing.md) {
         ASMRUsageBadge()
             .padding()
 
         Text("Preview")
-            .font(.caption)
+            .font(HeirloomFonts.caption1)
             .foregroundStyle(.secondary)
     }
 }

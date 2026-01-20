@@ -99,7 +99,7 @@ struct DinnerPartyShoppingListView: View {
                 HStack {
                     Image(systemName: ingredient.wrappedValue.isChecked ? "checkmark.circle.fill" : "circle")
                         .foregroundStyle(ingredient.wrappedValue.isChecked ? HeirloomColors.familyGreen : Color.gray.opacity(0.3))
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(ingredient.wrappedValue.text)

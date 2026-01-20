@@ -59,9 +59,9 @@ struct CardBackEditorView: View {
 
                 // Personal message section
                 Section {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                         Text("Share your thoughts about this recipe with friends and family")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
 
                         TextEditor(text: $noteToFriends)
@@ -91,10 +91,10 @@ struct CardBackEditorView: View {
                         HStack {
                             Image(systemName: "lightbulb.fill")
                                 .foregroundStyle(.yellow)
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
 
                             Text(tip)
-                                .font(.subheadline)
+                                .font(HeirloomFonts.body)
 
                             Spacer()
 
@@ -140,7 +140,7 @@ struct CardBackEditorView: View {
                             } label: {
                                 Image(systemName: star <= (userRating ?? 0) ? "star.fill" : "star")
                                     .foregroundStyle(star <= (userRating ?? 0) ? .yellow : .gray)
-                                    .font(.title3)
+                                    .font(HeirloomFonts.title2)
                             }
                         }
                     }
@@ -159,16 +159,16 @@ struct CardBackEditorView: View {
                 Section {
                     if !userTags.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
+                            HStack(spacing: HeirloomSpacing.sm) {
                                 ForEach(userTags, id: \.self) { tag in
-                                    HStack(spacing: 4) {
+                                    HStack(spacing: HeirloomSpacing.xs) {
                                         Text(tag)
-                                            .font(.caption)
+                                            .font(HeirloomFonts.caption1)
                                         Button {
                                             removeTag(tag)
                                         } label: {
                                             Image(systemName: "xmark.circle.fill")
-                                                .font(.caption2)
+                                                .font(HeirloomFonts.caption2)
                                         }
                                     }
                                     .padding(.horizontal, 10)
@@ -212,7 +212,7 @@ struct CardBackEditorView: View {
                             showingCommentPicker = true
                         } label: {
                             Text("Select")
-                                .font(.subheadline)
+                                .font(HeirloomFonts.body)
                         }
                     }
 
@@ -230,17 +230,17 @@ struct CardBackEditorView: View {
                     Toggle("Show recipe attribution", isOn: $showAttribution)
 
                     if showAttribution {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                             HStack {
                                 Image(systemName: recipe.sourceType?.iconName ?? "book.closed.fill")
                                     .foregroundStyle(.secondary)
                                 Text(recipe.sourceDisplayName)
-                                    .font(.subheadline)
+                                    .font(HeirloomFonts.body)
                             }
 
                             if let story = recipe.sourceStory {
                                 Text(story)
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -327,33 +327,33 @@ struct CardBackEditorView: View {
                             toggleCommentPin(comment)
                         } label: {
                             HStack {
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                                     Text(comment.text)
-                                        .font(.subheadline)
+                                        .font(HeirloomFonts.body)
                                         .lineLimit(2)
                                         .foregroundStyle(.primary)
 
-                                    HStack(spacing: 8) {
+                                    HStack(spacing: HeirloomSpacing.sm) {
                                         HStack(spacing: 2) {
                                             Image(systemName: "arrow.up.circle.fill")
-                                                .font(.caption2)
+                                                .font(HeirloomFonts.caption2)
                                             Text("\(comment.upvotes)")
-                                                .font(.caption2)
+                                                .font(HeirloomFonts.caption2)
                                         }
                                         .foregroundStyle(.green)
 
                                         if let sentiment = comment.sentimentScore {
                                             HStack(spacing: 2) {
                                                 Image(systemName: sentimentIcon(sentiment))
-                                                    .font(.caption2)
+                                                    .font(HeirloomFonts.caption2)
                                                 Text(String(format: "%.0f%%", abs(sentiment) * 100))
-                                                    .font(.caption2)
+                                                    .font(HeirloomFonts.caption2)
                                             }
                                             .foregroundStyle(sentimentColor(sentiment))
                                         }
 
                                         Text(comment.commentType.displayName)
-                                            .font(.caption2)
+                                            .font(HeirloomFonts.caption2)
                                             .foregroundStyle(.secondary)
                                     }
                                 }
@@ -577,17 +577,17 @@ private struct RecipeCardBackContentView: View {
 
             // Attribution
             if cardBack.visibleSections.contains(.attribution) && cardBack.showAttribution {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                     HStack {
                         Image(systemName: recipe.sourceType?.iconName ?? "book.closed.fill")
                         Text(recipe.sourceDisplayName)
-                            .font(.subheadline)
+                            .font(HeirloomFonts.body)
                     }
                     .foregroundStyle(.secondary)
 
                     if let story = recipe.sourceStory {
                         Text(story)
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                             .italic()
                     }
@@ -598,12 +598,12 @@ private struct RecipeCardBackContentView: View {
 
             // Note to friends
             if cardBack.visibleSections.contains(.noteToFriends), let note = cardBack.noteToFriends {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                     Text("A Note from Me")
-                        .font(.headline)
+                        .font(HeirloomFonts.bodyBold)
 
                     Text(note)
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .italic()
                 }
 
@@ -614,12 +614,12 @@ private struct RecipeCardBackContentView: View {
             if cardBack.visibleSections.contains(.userRating), let rating = cardBack.userRating {
                 HStack {
                     Text("My Rating:")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .foregroundStyle(.secondary)
                     ForEach(1...5, id: \.self) { star in
                         Image(systemName: star <= rating ? "star.fill" : "star")
                             .foregroundStyle(.yellow)
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                     }
                 }
 
@@ -630,15 +630,15 @@ private struct RecipeCardBackContentView: View {
             if cardBack.visibleSections.contains(.userTips) && !cardBack.personalTips.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("My Tips")
-                        .font(.headline)
+                        .font(HeirloomFonts.bodyBold)
 
                     ForEach(cardBack.personalTips, id: \.self) { tip in
-                        HStack(alignment: .top, spacing: 8) {
+                        HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
                             Image(systemName: "lightbulb.fill")
                                 .foregroundStyle(.yellow)
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                             Text(tip)
-                                .font(.subheadline)
+                                .font(HeirloomFonts.body)
                         }
                     }
                 }
@@ -655,17 +655,17 @@ private struct RecipeCardBackContentView: View {
                 if !pinnedComments.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Highlighted Comments")
-                            .font(.headline)
+                            .font(HeirloomFonts.bodyBold)
 
                         ForEach(Array(pinnedComments)) { comment in
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                                 Text(comment.text)
-                                    .font(.subheadline)
+                                    .font(HeirloomFonts.body)
 
                                 HStack {
                                     if let author = comment.authorName {
                                         Text("— \(author)")
-                                            .font(.caption)
+                                            .font(HeirloomFonts.caption1)
                                             .foregroundStyle(.secondary)
                                     }
 
@@ -674,7 +674,7 @@ private struct RecipeCardBackContentView: View {
                                             Image(systemName: "arrow.up.circle.fill")
                                             Text("\(comment.upvotes)")
                                         }
-                                        .font(.caption)
+                                        .font(HeirloomFonts.caption1)
                                         .foregroundStyle(.green)
                                     }
                                 }

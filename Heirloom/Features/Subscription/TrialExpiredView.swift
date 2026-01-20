@@ -80,7 +80,7 @@ struct TrialExpiredView: View {
 
                 Image(systemName: "checkmark")
                     .font(.system(size: 40, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
             }
 
             Text("Trial Complete!")
@@ -107,11 +107,11 @@ struct TrialExpiredView: View {
                 HStack {
                     Image(systemName: "crown.fill")
                         .font(.title2)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
 
                     Text("Upgrade to Premium")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
 
                     Spacer()
                 }
@@ -130,10 +130,10 @@ struct TrialExpiredView: View {
                     Text("See Premium Plans")
                         .font(HeirloomFonts.body)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                     Image(systemName: "arrow.right")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                     Spacer()
                 }
                 .padding(.vertical, HeirloomSpacing.sm)
@@ -178,7 +178,7 @@ struct TrialExpiredView: View {
                 }
 
                 // Content
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("Buy Video Translation Credits")
                         .font(HeirloomFonts.body)
                         .fontWeight(.semibold)
@@ -225,7 +225,7 @@ struct TrialExpiredView: View {
                 }
 
                 // Content
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("Export Your Recipes")
                         .font(HeirloomFonts.body)
                         .fontWeight(.semibold)

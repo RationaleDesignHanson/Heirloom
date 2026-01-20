@@ -13,11 +13,11 @@ struct OfflineBanner: View {
                 // Main banner
                 HStack(spacing: HeirloomSpacing.sm) {
                     Image(systemName: "wifi.slash")
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
 
                     Text("Offline")
                         .font(HeirloomFonts.caption1Bold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
 
                     Spacer()
 
@@ -28,7 +28,7 @@ struct OfflineBanner: View {
                         }
                     } label: {
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.white.opacity(0.8))
                     }
                     .accessibilityLabel(isExpanded ? "Hide details" : "Show details")
@@ -42,7 +42,7 @@ struct OfflineBanner: View {
                     VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                         Text("You're currently offline")
                             .font(HeirloomFonts.callout)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
 
                         Text("Changes will sync automatically when connection is restored.")
                             .font(HeirloomFonts.footnote)
@@ -50,12 +50,12 @@ struct OfflineBanner: View {
 
                         HStack(spacing: HeirloomSpacing.xs) {
                             Image(systemName: "checkmark.circle.fill")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.green)
 
                             Text("You can still:")
                                 .font(HeirloomFonts.caption1Bold)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
                         }
                         .padding(.top, HeirloomSpacing.xs)
 
@@ -88,7 +88,7 @@ private struct FeatureItem: View {
     var body: some View {
         HStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: icon)
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
                 .foregroundStyle(.white.opacity(0.8))
                 .frame(width: 16)
 

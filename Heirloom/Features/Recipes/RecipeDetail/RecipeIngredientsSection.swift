@@ -34,7 +34,7 @@ struct RecipeIngredientsSection: View {
             }
             .padding(HeirloomSpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .fill(.white)
             )
         }
@@ -64,20 +64,20 @@ struct RecipeIngredientsSection: View {
     private func ingredientRow(_ ingredient: Ingredient) -> some View {
         HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
             Image(systemName: "circle")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.tomato)
                 .padding(.top, 4)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(scaledIngredientText(ingredient))
                     .font(HeirloomFonts.body)
                     .foregroundStyle(HeirloomColors.charcoal)
 
                 // Show unit conversion note if ingredient was converted
                 if ingredient.wasConverted, let conversionNote = ingredient.conversionNote {
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Image(systemName: "info.circle")
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                         Text(conversionNote)
                             .font(HeirloomFonts.caption1)
                     }

@@ -56,7 +56,7 @@ struct AISettingsView: View {
             }
 
             // API Key Status Row
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 HStack {
                     Image(systemName: config.currentAPIKey != nil ? "checkmark.circle.fill" : "xmark.circle")
                         .foregroundStyle(config.currentAPIKey != nil ? .green : .red)
@@ -139,7 +139,7 @@ struct AISettingsView: View {
     private var featureTogglesSection: some View {
         Section {
             Toggle(isOn: $config.enableAIParsing) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("AI Ingredient Parsing")
                         .font(HeirloomFonts.body)
                     Text("Use AI to parse ingredient text (~95% accuracy)")
@@ -150,7 +150,7 @@ struct AISettingsView: View {
             .disabled(config.currentAPIKey == nil)
 
             Toggle(isOn: $config.enableAICategories) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("AI Category Detection")
                         .font(HeirloomFonts.body)
                     Text("Automatically detect recipe categories")
@@ -161,7 +161,7 @@ struct AISettingsView: View {
             .disabled(config.currentAPIKey == nil)
 
             Toggle(isOn: $config.enableAIEnhancement) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("AI Recipe Enhancement")
                         .font(HeirloomFonts.body)
                     Text("Add missing metadata and cooking tips")
@@ -248,7 +248,7 @@ struct AISettingsView: View {
                     .font(HeirloomFonts.body)
                     .foregroundStyle(HeirloomColors.secondaryText)
 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                     FeatureExplanation(
                         icon: "text.magnifyingglass",
                         title: "Ingredient Parsing",
@@ -433,7 +433,7 @@ struct FeatureExplanation: View {
     var body: some View {
         HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.tomato)
                 .frame(width: 20)
 

@@ -158,7 +158,7 @@ struct MilestoneCelebrationView: View {
                 } label: {
                     Text("Awesome!")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(HeirloomColors.tomato)

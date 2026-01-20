@@ -15,12 +15,12 @@ struct OnboardingFeaturesScreen: View {
         ZStack {
             HeirloomColors.cream.ignoresSafeArea()
 
-            VStack(spacing: 24) {
+            VStack(spacing: HeirloomSpacing.lg) {
                 Spacer()
                     .frame(minHeight: 40, maxHeight: 60)
 
                 // Title
-                VStack(spacing: 8) {
+                VStack(spacing: HeirloomSpacing.sm) {
                     Text("What you can do")
                         .font(HeirloomFonts.title1)
                         .foregroundStyle(HeirloomColors.charcoal)
@@ -70,7 +70,7 @@ struct OnboardingFeaturesScreen: View {
                 } label: {
                     Text("Continue")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(HeirloomColors.tomato)
@@ -88,7 +88,7 @@ struct OnboardingFeaturesScreen: View {
 
     @ViewBuilder
     private func featureCard(icon: String, title: String, description: String, color: Color) -> some View {
-        HStack(spacing: 16) {
+        HStack(spacing: HeirloomSpacing.md) {
             // Icon circle
             ZStack {
                 Circle()
@@ -110,7 +110,7 @@ struct OnboardingFeaturesScreen: View {
             }
 
             // Text content
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(title)
                     .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.primaryText)
@@ -123,7 +123,7 @@ struct OnboardingFeaturesScreen: View {
 
             Spacer(minLength: 0)
         }
-        .padding(16)
+        .padding(HeirloomSpacing.md)
         .background(Color.white.opacity(0.5))
         .cornerRadius(16)
     }

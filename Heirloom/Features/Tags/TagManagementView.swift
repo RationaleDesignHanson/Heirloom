@@ -77,7 +77,7 @@ struct TagManagementView: View {
             } label: {
                 Image(systemName: "pencil.circle.fill")
                     .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
             }
             .buttonStyle(.plain)
         }
@@ -242,8 +242,8 @@ struct TagEditorView: View {
 
                 if selectedColor == colorHex {
                     Image(systemName: "checkmark")
-                        .foregroundStyle(.white)
-                        .font(.title3)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .font(HeirloomFonts.title2)
                         .fontWeight(.bold)
                 }
             }

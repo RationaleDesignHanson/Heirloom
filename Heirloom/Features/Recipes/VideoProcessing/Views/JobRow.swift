@@ -28,7 +28,7 @@ struct JobRow: View {
                     .lineLimit(1)
 
                 // Status and progress
-                HStack(spacing: 8) {
+                HStack(spacing: HeirloomSpacing.sm) {
                     Text(job.statusText)
                         .font(HeirloomFonts.caption1)
                         .foregroundStyle(statusColor)
@@ -44,7 +44,7 @@ struct JobRow: View {
 
                 // Video type badge
                 if job.videoType == .asmr {
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Image(systemName: "waveform")
                             .font(.system(size: 10))
                         Text("ASMR")
@@ -64,7 +64,7 @@ struct JobRow: View {
             actionContent
         }
         .padding(HeirloomSpacing.md)
-        .background(.white)
+        .background(HeirloomColors.cardBackground)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.03), radius: 4)
     }
@@ -144,7 +144,7 @@ struct JobRow: View {
     private var actionContent: some View {
         switch job.status {
         case .failed:
-            HStack(spacing: 8) {
+            HStack(spacing: HeirloomSpacing.sm) {
                 // Delete button (always visible for failed jobs)
                 if let onDelete = onDelete {
                     Button {
@@ -167,7 +167,7 @@ struct JobRow: View {
                     } label: {
                         Text("Retry")
                             .font(HeirloomFonts.caption1Bold)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background(HeirloomColors.tomato)
@@ -182,14 +182,14 @@ struct JobRow: View {
                     onCancel()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .foregroundStyle(Color.gray)
                 }
             }
 
         case .completed:
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
 
         case .saved:
@@ -206,7 +206,7 @@ struct JobRow: View {
 // MARK: - Preview
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: HeirloomSpacing.md) {
         // Processing
         JobRow(
             job: {

@@ -106,7 +106,7 @@ struct EnhancedScannerView: View {
                 VStack(spacing: HeirloomSpacing.sm) {
                     Text("Position recipe card in frame")
                         .font(HeirloomFonts.subheadline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .shadow(color: .black.opacity(0.3), radius: 4)
 
                     Text("Hold steady for best results")
@@ -148,7 +148,7 @@ struct EnhancedScannerView: View {
 
                     Text(assessment.qualityDescription)
                         .font(HeirloomFonts.subheadline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
 
                     Text(assessment.scorePercentage)
                         .font(HeirloomFonts.caption1)
@@ -174,18 +174,18 @@ struct EnhancedScannerView: View {
                     ForEach(assessment.recommendations, id: \.self) { recommendation in
                         HStack(spacing: HeirloomSpacing.xs) {
                             Image(systemName: "lightbulb.fill")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.yellow)
 
                             Text(recommendation)
                                 .font(HeirloomFonts.caption1)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
                         }
                     }
                 }
                 .padding(HeirloomSpacing.md)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .fill(.black.opacity(0.7))
                 )
                 .padding(.horizontal, HeirloomSpacing.md)
@@ -226,7 +226,7 @@ struct EnhancedScannerView: View {
                 } label: {
                     Label("Process", systemImage: "wand.and.stars")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, HeirloomSpacing.md)
                         .background(HeirloomColors.tomato)
@@ -248,12 +248,12 @@ struct EnhancedScannerView: View {
 
             VStack(spacing: HeirloomSpacing.lg) {
                 ProgressView()
-                    .tint(.white)
+                    .tint(HeirloomColors.buttonTextLight)
                     .scaleEffect(1.5)
 
                 Text("Analyzing recipe card...")
                     .font(HeirloomFonts.title3)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
 
                 Text("Using AI vision to detect and extract recipes")
                     .font(HeirloomFonts.body)

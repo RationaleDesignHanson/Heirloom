@@ -110,11 +110,11 @@ struct CommentAttributionCard: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(HeirloomColors.cream.opacity(0.5))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .stroke(HeirloomColors.tomato.opacity(0.2), lineWidth: 1)
         )
     }
@@ -164,7 +164,7 @@ struct CommentEndorsementButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 4) {
+            HStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: isEndorsed ? "hand.thumbsup.fill" : "hand.thumbsup")
                     .font(.system(size: 14))
 

@@ -83,11 +83,11 @@ struct SharePreviewView: View {
                 .scaleEffect(1.5)
             
             Text("Loading recipe...")
-                .font(.headline)
+                .font(HeirloomFonts.bodyBold)
                 .foregroundStyle(.secondary)
 
             Text("Fetching share details...")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -97,7 +97,7 @@ struct SharePreviewView: View {
     
     private func contentView(data: SharedRecipeData) -> some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: HeirloomSpacing.lg) {
                 // Header with recipe info
                 headerCard(data: data)
 
@@ -132,14 +132,14 @@ struct SharePreviewView: View {
     // MARK: - Header Card
     
     private func headerCard(data: SharedRecipeData) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             // Recipe image (if available)
             if let image = recipeImage {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(height: 180)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
             }
 
             // Recipe title
@@ -163,17 +163,17 @@ struct SharePreviewView: View {
                     .frame(width: 48, height: 48)
                     .overlay {
                         Image(systemName: "person.fill")
-                            .font(.title3)
+                            .font(HeirloomFonts.title2)
                             .foregroundStyle(HeirloomColors.amber)
                     }
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(data.sharerName)
-                        .font(.headline)
+                        .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
 
                     Text("shared this recipe with you")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
 
@@ -183,30 +183,30 @@ struct SharePreviewView: View {
         .padding()
         .background(HeirloomColors.cream)
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: HeirloomColors.cardShadow, radius: 8)
+        .heirloomShadow(HeirloomShadows.card)
     }
     
     // MARK: - Lineage Card
     
     private func lineageCard(data: SharedRecipeData) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
+            HStack(spacing: HeirloomSpacing.sm) {
                 Image(systemName: "arrow.triangle.branch")
                     .foregroundStyle(HeirloomColors.familyGreen)
                 Text("Recipe Lineage")
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.primaryText)
             }
             
             Text(data.generationDisplay)
-                .font(.subheadline)
+                .font(HeirloomFonts.body)
                 .foregroundStyle(HeirloomColors.secondaryText)
             
             // Visual lineage chain
             if data.generation > 0 {
                 HStack(spacing: 6) {
                     ForEach(0...min(data.generation, 5), id: \.self) { gen in
-                        HStack(spacing: 4) {
+                        HStack(spacing: HeirloomSpacing.xs) {
                             Circle()
                                 .fill(gen == data.generation ? HeirloomColors.familyGreen : HeirloomColors.warmGray.opacity(0.5))
                                 .frame(width: 10, height: 10)
@@ -221,14 +221,14 @@ struct SharePreviewView: View {
                     
                     if data.generation > 5 {
                         Text("...")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(HeirloomColors.secondaryText)
                     }
                     
                     Spacer()
                     
                     Text("You'll be Gen \(data.generation + 1)")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .fontWeight(.semibold)
                         .foregroundStyle(HeirloomColors.familyGreen)
                         .padding(.horizontal, 10)
@@ -238,71 +238,71 @@ struct SharePreviewView: View {
                 }
             } else {
                 Text("You'll receive the original recipe")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
         }
         .padding()
         .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
     }
     
     // MARK: - Recipe Preview Card
     
     private func recipePreviewCard(data: SharedRecipeData) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            HStack(spacing: HeirloomSpacing.sm) {
                 Image(systemName: "eye.fill")
                     .foregroundStyle(HeirloomColors.accent)
                 Text("Recipe Preview")
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.primaryText)
             }
             
             // Metadata row
-            HStack(spacing: 16) {
+            HStack(spacing: HeirloomSpacing.md) {
                 if let servings = data.servings {
                     Label(servings, systemImage: "person.2.fill")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
                 
                 if let prepTime = data.prepTime {
                     Label(prepTime, systemImage: "clock.fill")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
                 
                 if let cookTime = data.cookTime {
                     Label(cookTime, systemImage: "flame.fill")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
             }
             
             // Ingredients preview
             if !data.ingredients.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                     Text("Ingredients (\(data.ingredients.count))")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .fontWeight(.semibold)
                         .foregroundStyle(HeirloomColors.primaryText)
                     
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                         ForEach(data.ingredients.prefix(4), id: \.self) { ingredient in
-                            HStack(spacing: 8) {
+                            HStack(spacing: HeirloomSpacing.sm) {
                                 Circle()
                                     .fill(HeirloomColors.amber)
                                     .frame(width: 4, height: 4)
                                 Text(ingredient)
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .foregroundStyle(HeirloomColors.secondaryText)
                             }
                         }
                         
                         if data.ingredients.count > 4 {
                             Text("+ \(data.ingredients.count - 4) more...")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.warmGray)
                                 .padding(.leading, 12)
                         }
@@ -312,15 +312,15 @@ struct SharePreviewView: View {
             
             // Instructions preview
             if !data.instructions.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                     Text("Instructions (\(data.instructions.count) steps)")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .fontWeight(.semibold)
                         .foregroundStyle(HeirloomColors.primaryText)
                     
                     if let firstStep = data.instructions.first {
                         Text("1. \(firstStep)")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(HeirloomColors.secondaryText)
                             .lineLimit(2)
                     }
@@ -329,18 +329,18 @@ struct SharePreviewView: View {
         }
         .padding()
         .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
     }
     
     // MARK: - Message Card
     
     private func messageCard(message: String, from sharerName: String) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
+            HStack(spacing: HeirloomSpacing.sm) {
                 Image(systemName: "quote.bubble.fill")
                     .foregroundStyle(HeirloomColors.amber)
                 Text("Personal Note")
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.primaryText)
             }
             
@@ -354,13 +354,13 @@ struct SharePreviewView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             
             Text("— \(sharerName)")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.warmGray)
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding()
         .background(HeirloomColors.cream)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
     }
     
     // MARK: - Expiration Banner
@@ -375,14 +375,14 @@ struct SharePreviewView: View {
                 .foregroundStyle(isExpired ? .red : .orange)
             
             Text(text)
-                .font(.subheadline)
+                .font(HeirloomFonts.body)
                 .foregroundStyle(isExpired ? .red : .orange)
             
             Spacer()
         }
         .padding()
         .background((isExpired ? Color.red : Color.orange).opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
     }
     
     // MARK: - Import Button
@@ -393,14 +393,14 @@ struct SharePreviewView: View {
                 if isImporting {
                     ProgressView()
                         .progressViewStyle(.circular)
-                        .tint(.white)
+                        .tint(HeirloomColors.buttonTextLight)
                 } else {
                     Image(systemName: "plus.circle.fill")
                     Text("Add to My Recipes")
                 }
             }
-            .font(.headline)
-            .foregroundStyle(.white)
+            .font(HeirloomFonts.bodyBold)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .frame(maxWidth: .infinity)
             .padding()
             .background(data.isExpired ? Color.gray : HeirloomColors.familyGreen)
@@ -419,7 +419,7 @@ struct SharePreviewView: View {
                 .foregroundStyle(.red)
             
             Text("Unable to Load Share")
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .fontWeight(.bold)
                 .foregroundStyle(HeirloomColors.primaryText)
             

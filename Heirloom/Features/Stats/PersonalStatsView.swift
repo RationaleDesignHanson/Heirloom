@@ -447,17 +447,17 @@ private struct RecipeRankCard: View {
 
                 Text("\(rank)")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
             }
 
             // Recipe info
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(recipe.title)
                     .font(HeirloomFonts.subheadline)
                     .foregroundStyle(HeirloomColors.primaryText)
                     .lineLimit(1)
 
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: icon)
                         .font(.system(size: 12))
                         .foregroundStyle(color)
@@ -497,7 +497,7 @@ private struct AchievementBadge: View {
                     .foregroundStyle(achievement.isUnlocked ? .white : HeirloomColors.warmGray)
             }
 
-            VStack(spacing: 4) {
+            VStack(spacing: HeirloomSpacing.xs) {
                 Text(achievement.title)
                     .font(HeirloomFonts.caption1Bold)
                     .foregroundStyle(HeirloomColors.primaryText)

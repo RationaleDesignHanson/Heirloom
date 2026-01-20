@@ -32,12 +32,12 @@ struct OnboardingRecipeCard: View {
                 if recipe.isHeritageRecipe {
                     Text("HERITAGE")
                         .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 3)
                         .background(HeirloomColors.tomato)
                         .cornerRadius(4)
-                        .padding(8)
+                        .padding(HeirloomSpacing.sm)
                 }
             }
 
@@ -51,9 +51,9 @@ struct OnboardingRecipeCard: View {
 
             // Collection name
             if let collection = collection {
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: collection.iconName)
-                        .font(.caption2)
+                        .font(HeirloomFonts.caption2)
                         .foregroundStyle(collection.swiftUIColor)
 
                     Text(collection.name)

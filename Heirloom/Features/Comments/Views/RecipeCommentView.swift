@@ -21,9 +21,9 @@ struct RecipeCommentView: View {
             actionsBar
             repliesView
         }
-        .padding(16)
+        .padding(HeirloomSpacing.md)
         .background(comment.showOnCardBack ? HeirloomColors.cream.opacity(0.3) : Color.clear)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
     }
 
     // MARK: - Subviews
@@ -36,23 +36,23 @@ struct RecipeCommentView: View {
                 .frame(width: 32, height: 32)
                 .overlay {
                     Image(systemName: commentTypeIcon)
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(commentTypeColor)
                 }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(comment.displayAuthor)
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .fontWeight(.semibold)
 
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     Text(comment.displayDate)
-                        .font(.caption2)
+                        .font(HeirloomFonts.caption2)
                         .foregroundStyle(.secondary)
 
                     if comment.source == .scraped {
                         Text("• from web")
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -68,7 +68,7 @@ struct RecipeCommentView: View {
             // Pinned indicator
             if comment.isPinned {
                 Image(systemName: "pin.fill")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(.orange)
             }
         }
@@ -76,7 +76,7 @@ struct RecipeCommentView: View {
 
     private var commentTextView: some View {
         Text(comment.text)
-            .font(.subheadline)
+            .font(HeirloomFonts.body)
             .lineSpacing(4)
     }
 
@@ -87,7 +87,7 @@ struct RecipeCommentView: View {
                 HStack(spacing: 6) {
                     ForEach(comment.topics, id: \.self) { topic in
                         Text(topic)
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(HeirloomColors.amber.opacity(0.3))
@@ -99,7 +99,7 @@ struct RecipeCommentView: View {
     }
 
     private var actionsBar: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: HeirloomSpacing.md) {
             upvoteButton
             downvoteButton
             replyButton
@@ -109,15 +109,15 @@ struct RecipeCommentView: View {
             pinButton
             moreMenu
         }
-        .font(.subheadline)
+        .font(HeirloomFonts.body)
     }
 
     private var upvoteButton: some View {
         Button(action: onUpvote) {
-            HStack(spacing: 4) {
+            HStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: "arrow.up.circle.fill")
                 Text("\(comment.upvotes)")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .monospacedDigit()
             }
             .foregroundStyle(comment.upvotes > 0 ? .green : .secondary)
@@ -126,11 +126,11 @@ struct RecipeCommentView: View {
 
     private var downvoteButton: some View {
         Button(action: onDownvote) {
-            HStack(spacing: 4) {
+            HStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: "arrow.down.circle")
                 if comment.downvotes > 0 {
                     Text("\(comment.downvotes)")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .monospacedDigit()
                 }
             }
@@ -140,11 +140,11 @@ struct RecipeCommentView: View {
 
     private var replyButton: some View {
         Button(action: onReply) {
-            HStack(spacing: 4) {
+            HStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: "bubble.right")
                 if let replyCount = comment.replies?.count, replyCount > 0 {
                     Text("\(replyCount)")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .monospacedDigit()
                 }
             }
@@ -215,9 +215,9 @@ struct RecipeCommentView: View {
     private func sentimentIndicator(score: Double) -> some View {
         HStack(spacing: 2) {
             Image(systemName: sentimentIcon(score))
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
             Text(String(format: "%.0f%%", abs(score) * 100))
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
                 .monospacedDigit()
         }
         .foregroundStyle(sentimentColor(score))

@@ -534,7 +534,7 @@ struct RecipeDetailView: View {
         }
         .sheet(isPresented: $showSignInPrompt) {
             NavigationStack {
-                VStack(spacing: 32) {
+                VStack(spacing: HeirloomSpacing.xl) {
                     Spacer()
 
                     // Icon
@@ -573,7 +573,7 @@ struct RecipeDetailView: View {
                     } label: {
                         Text("Continue to Sign In")
                             .font(HeirloomFonts.bodyBold)
-                            .foregroundColor(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
                             .background(HeirloomColors.tomato)
@@ -690,14 +690,14 @@ struct RecipeDetailView: View {
                         } label: {
                             Image(systemName: "pencil.circle.fill")
                                 .font(.system(size: 32))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
                                 .background(
                                     Circle()
                                         .fill(HeirloomColors.tomato)
                                         .frame(width: 36, height: 36)
                                 )
                         }
-                        .padding(16)
+                        .padding(HeirloomSpacing.md)
                     }
                 } else {
                     // Show empty card back state
@@ -705,7 +705,7 @@ struct RecipeDetailView: View {
                         Rectangle()
                             .fill(Color(.systemBackground))
 
-                        VStack(spacing: 16) {
+                        VStack(spacing: HeirloomSpacing.md) {
                             Image(systemName: "rectangle.portrait.on.rectangle.portrait")
                                 .font(.system(size: 48))
                                 .foregroundStyle(HeirloomColors.secondaryText)
@@ -723,7 +723,7 @@ struct RecipeDetailView: View {
                             } label: {
                                 Text("Add Card Back")
                                     .font(HeirloomFonts.bodyBold)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(HeirloomColors.buttonTextLight)
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 10)
                                     .background(
@@ -769,7 +769,7 @@ struct RecipeDetailView: View {
             // Source Badge
             HStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: recipe.sourceType?.iconName ?? "square.and.pencil")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                 Text(recipe.sourceDisplayName)
                     .font(HeirloomFonts.caption1)
             }
@@ -852,7 +852,7 @@ struct RecipeDetailView: View {
                                 } label: {
                                     HStack(spacing: 6) {
                                         Image(systemName: collection.iconName)
-                                            .font(.caption2)
+                                            .font(HeirloomFonts.caption2)
                                             .foregroundStyle(collection.swiftUIColor)
 
                                         Text(collection.name)
@@ -870,7 +870,7 @@ struct RecipeDetailView: View {
                                         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
                                             HStack(spacing: HeirloomSpacing.sm) {
                                                 Image(systemName: collection.iconName)
-                                                    .font(.title3)
+                                                    .font(HeirloomFonts.title2)
                                                     .foregroundStyle(collection.swiftUIColor)
 
                                                 Text(collection.name)
@@ -920,16 +920,16 @@ struct RecipeDetailView: View {
         .padding(HeirloomSpacing.md)
         .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
-                .shadow(color: HeirloomColors.cardShadow, radius: 4, x: 0, y: 2)
+                .heirloomShadow(HeirloomShadows.subtle)
         )
     }
 
     private var servingsMetadataItem: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: "person.2.fill")
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.tomato)
 
             Text("Servings")
@@ -981,13 +981,13 @@ struct RecipeDetailView: View {
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     Text("\(targetServings) \(servingUnitText(targetServings))")
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.charcoal)
 
                     Image(systemName: recipe.isScalingAllowed ? "chevron.down" : "lock.fill")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
                 }
             }
@@ -1016,9 +1016,9 @@ struct RecipeDetailView: View {
     }
 
     private func metadataItem(icon: String, label: String, value: String) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.tomato)
 
             Text(label)
@@ -1050,7 +1050,7 @@ struct RecipeDetailView: View {
             .frame(maxWidth: .infinity)
             .padding()
             .background(HeirloomColors.tomato)
-            .foregroundStyle(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .cornerRadius(12)
         }
     }
@@ -1072,7 +1072,7 @@ struct RecipeDetailView: View {
             .id(targetServings) // Force refresh when servings change
             .padding(HeirloomSpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .fill(.white)
             )
         }
@@ -1084,7 +1084,7 @@ struct RecipeDetailView: View {
                 servingMultiplier = max(0.5, servingMultiplier - 0.5)
             } label: {
                 Image(systemName: "minus.circle.fill")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                     .foregroundStyle(HeirloomColors.tomato)
             }
             .disabled(servingMultiplier <= 0.5)
@@ -1103,7 +1103,7 @@ struct RecipeDetailView: View {
                 servingMultiplier = min(10.0, servingMultiplier + 0.5)
             } label: {
                 Image(systemName: "plus.circle.fill")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                     .foregroundStyle(HeirloomColors.tomato)
             }
             .disabled(servingMultiplier >= 10.0)
@@ -1126,7 +1126,7 @@ struct RecipeDetailView: View {
     private func ingredientRow(_ ingredient: Ingredient) -> some View {
         HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
             Image(systemName: "circle")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.tomato)
                 .padding(.top, 4)
 
@@ -1244,7 +1244,7 @@ struct RecipeDetailView: View {
             }
             .padding(HeirloomSpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .fill(.white)
             )
         }
@@ -1259,7 +1259,7 @@ struct RecipeDetailView: View {
 
                 Text("\(number)")
                     .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
             }
 
             Text(text)
@@ -1280,7 +1280,7 @@ struct RecipeDetailView: View {
                 .padding(HeirloomSpacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .fill(.white)
                 )
         }
@@ -1296,7 +1296,7 @@ struct RecipeDetailView: View {
                     .font(.title2)
                     .foregroundStyle(.orange)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("Attribution Missing")
                         .font(HeirloomFonts.subheadline)
                         .fontWeight(.semibold)
@@ -1315,7 +1315,7 @@ struct RecipeDetailView: View {
                     Text("Add")
                         .font(HeirloomFonts.caption1)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(HeirloomColors.tomato)
@@ -1325,10 +1325,10 @@ struct RecipeDetailView: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(Color.orange.opacity(0.1))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .stroke(Color.orange.opacity(0.3), lineWidth: 1)
                 )
         )
@@ -1358,9 +1358,9 @@ struct RecipeDetailView: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
-                .shadow(color: HeirloomColors.cardShadow, radius: 4, x: 0, y: 2)
+                .heirloomShadow(HeirloomShadows.subtle)
         )
     }
 
@@ -1383,7 +1383,7 @@ struct RecipeDetailView: View {
                         Text(badgeText)
                             .font(HeirloomFonts.caption2)
                             .fontWeight(.semibold)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
                             .background(
@@ -1439,7 +1439,7 @@ struct RecipeDetailView: View {
 
                     if commentCount > 0 {
                         Image(systemName: "chevron.right")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
                     }
                 }
@@ -1458,7 +1458,7 @@ struct RecipeDetailView: View {
                 }
                 .padding(HeirloomSpacing.md)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .fill(.white)
                 )
 
@@ -1471,7 +1471,7 @@ struct RecipeDetailView: View {
                             Text("View all \(commentCount) comments")
                                 .font(HeirloomFonts.bodyBold)
                             Image(systemName: "arrow.right")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                         }
                         .foregroundStyle(HeirloomColors.tomato)
                     }
@@ -1497,7 +1497,7 @@ struct RecipeDetailView: View {
                 .padding(HeirloomSpacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .fill(.white)
                 )
             }
@@ -1517,9 +1517,9 @@ struct RecipeDetailView: View {
                 if let sentiment = comment.sentimentScore {
                     HStack(spacing: 2) {
                         Image(systemName: sentimentIcon(sentiment))
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                         Text(String(format: "%.0f%%", abs(sentiment) * 100))
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                     }
                     .foregroundStyle(sentimentColor(sentiment))
                 }
@@ -1529,9 +1529,9 @@ struct RecipeDetailView: View {
                 if comment.upvotes > 0 {
                     HStack(spacing: 2) {
                         Image(systemName: "arrow.up.circle.fill")
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                         Text("\(comment.upvotes)")
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                     }
                     .foregroundStyle(.green)
                 }
@@ -2033,7 +2033,7 @@ struct HeirloomShareExplanationView: View {
                         }
                         .padding(HeirloomSpacing.md)
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                                 .fill(HeirloomColors.cardBackground)
                         )
                     }
@@ -2056,11 +2056,11 @@ struct HeirloomShareExplanationView: View {
     private func featureRow(icon: String, title: String, description: String) -> some View {
         HStack(alignment: .top, spacing: HeirloomSpacing.md) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.familyGreen)
                 .frame(width: 32)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(title)
                     .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.primaryText)

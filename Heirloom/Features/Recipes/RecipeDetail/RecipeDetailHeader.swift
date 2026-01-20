@@ -30,7 +30,7 @@ struct RecipeDetailHeader: View {
             // Source Badge
             HStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: recipe.sourceType?.iconName ?? "square.and.pencil")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                 Text(recipe.sourceDisplayName)
                     .font(HeirloomFonts.caption1)
             }

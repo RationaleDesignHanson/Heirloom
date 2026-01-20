@@ -98,14 +98,14 @@ struct VideoExtractionDetailsView: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
-                .shadow(color: HeirloomColors.cardShadow, radius: 4, x: 0, y: 2)
+                .heirloomShadow(HeirloomShadows.subtle)
         )
     }
 
     private func statItem(label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
             Text(label)
                 .font(HeirloomFonts.caption2)
                 .foregroundStyle(HeirloomColors.secondaryText)
@@ -137,9 +137,9 @@ struct VideoExtractionDetailsView: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
-                .shadow(color: HeirloomColors.cardShadow, radius: 4, x: 0, y: 2)
+                .heirloomShadow(HeirloomShadows.subtle)
         )
     }
 
@@ -182,13 +182,13 @@ struct VideoExtractionDetailsView: View {
                     Spacer()
 
                     Image(systemName: "chevron.right")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
                 .padding(HeirloomSpacing.md)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .fill(.white)
                 )
             }
@@ -197,7 +197,7 @@ struct VideoExtractionDetailsView: View {
                 sectionContent(section)
                     .padding(HeirloomSpacing.md)
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                             .fill(Color(.systemGray6))
                     )
                     .padding(.top, 4)
@@ -245,7 +245,7 @@ struct VideoExtractionDetailsView: View {
             Divider()
 
             ForEach(Array(extraction.structuredRecipe.ingredients.enumerated()), id: \.offset) { index, ingredient in
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     HStack {
                         Text("\(index + 1).")
                             .font(HeirloomFonts.caption2)
@@ -285,14 +285,14 @@ struct VideoExtractionDetailsView: View {
             Divider()
 
             ForEach(Array(extraction.structuredRecipe.steps.enumerated()), id: \.offset) { index, step in
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     HStack(alignment: .top) {
                         Text("\(index + 1).")
                             .font(HeirloomFonts.callout)
                             .fontWeight(.semibold)
                             .foregroundStyle(HeirloomColors.secondaryText)
 
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                             Text(step.instruction)
                                 .font(HeirloomFonts.callout)
                                 .foregroundStyle(HeirloomColors.primaryText)
@@ -374,7 +374,7 @@ struct VideoExtractionDetailsView: View {
         return Text(text)
             .font(HeirloomFonts.caption2)
             .fontWeight(.semibold)
-            .foregroundStyle(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .padding(.horizontal, 8)
             .padding(.vertical, 2)
             .background(color)

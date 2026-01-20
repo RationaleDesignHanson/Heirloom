@@ -24,7 +24,7 @@ struct RecipeShareSheet: View {
         NavigationStack {
             VStack(spacing: 0) {
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack(spacing: HeirloomSpacing.lg) {
                         // Share type selector (PROMINENT)
                         shareTypeSelector
 
@@ -101,13 +101,13 @@ struct RecipeShareSheet: View {
     // MARK: - Primary Share Button
 
     private var primaryShareButton: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: HeirloomSpacing.sm) {
             Button(action: isSharing ? {} : createShare) {
                 HStack(spacing: 12) {
                     if isSharing {
                         ProgressView()
                             .progressViewStyle(.circular)
-                            .tint(.white)
+                            .tint(HeirloomColors.buttonTextLight)
                     } else {
                         Image(systemName: options.shareType == .heirloom ? "arrow.triangle.branch" : "square.and.arrow.up.fill")
                             .font(.system(size: 18, weight: .semibold))
@@ -115,7 +115,7 @@ struct RecipeShareSheet: View {
                             .font(HeirloomFonts.bodyBold)
                     }
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
                 .background(options.shareType == .heirloom ? HeirloomColors.tomato : HeirloomColors.familyGreen)
@@ -151,13 +151,13 @@ struct RecipeShareSheet: View {
                 }
                 .padding()
                 .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
             }
             .padding(.horizontal)
 
             // Expanded content
             if showAdvancedSettings {
-                VStack(spacing: 24) {
+                VStack(spacing: HeirloomSpacing.lg) {
                     // What to include
                     customizationSection
 
@@ -176,7 +176,7 @@ struct RecipeShareSheet: View {
     // MARK: - Customization Section (Collapsed Content)
 
     private var customizationSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             SectionHeader(icon: "checklist", title: "What to Include")
 
             VStack(spacing: 12) {
@@ -257,12 +257,12 @@ struct RecipeShareSheet: View {
     // MARK: - Link Settings Section (Collapsed Content)
 
     private var linkSettingsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             SectionHeader(icon: "link", title: "Link Settings")
 
             VStack(spacing: 12) {
                 // Expiration picker
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                     Text("Link Expires")
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -424,9 +424,9 @@ struct RecipeShareSheet: View {
     private func shareSuccessView(url: URL) -> some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 32) {
+                VStack(spacing: HeirloomSpacing.xl) {
                     // Success header
-                    VStack(spacing: 16) {
+                    VStack(spacing: HeirloomSpacing.md) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 64))
                             .foregroundStyle(HeirloomColors.success)
@@ -476,7 +476,7 @@ struct RecipeShareSheet: View {
                                 Text("Copy Link")
                             }
                             .font(HeirloomFonts.bodyBold)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(HeirloomColors.tomato)
@@ -599,7 +599,7 @@ struct SectionHeader: View {
     let title: String
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: HeirloomSpacing.sm) {
             Image(systemName: icon)
                 .foregroundStyle(HeirloomColors.tomato)
                 .font(.system(size: 16, weight: .semibold))

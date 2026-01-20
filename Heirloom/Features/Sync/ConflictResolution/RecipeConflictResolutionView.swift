@@ -129,7 +129,7 @@ struct RecipeConflictResolutionView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(allConflictsResolved ? HeirloomColors.tomato : HeirloomColors.warmGray.opacity(0.3))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .font(HeirloomFonts.bodyBold)
                     .cornerRadius(12)
                 }
@@ -164,7 +164,7 @@ struct RecipeConflictResolutionView: View {
         HStack(spacing: HeirloomSpacing.sm) {
             Image(systemName: icon)
                 .foregroundStyle(color)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)

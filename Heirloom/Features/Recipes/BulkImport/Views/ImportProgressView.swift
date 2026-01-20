@@ -39,6 +39,8 @@ struct ImportProgressView: View {
                     Text(progressSubtitle)
                         .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
                 }
             }
             .padding(HeirloomSpacing.xl)
@@ -76,8 +78,8 @@ struct ImportProgressView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(HeirloomColors.secondaryText)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
                     }
                 } else if job.status == .paused {
                     Button {
@@ -93,8 +95,8 @@ struct ImportProgressView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(HeirloomColors.tomato)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
                     }
                 }
 
@@ -114,8 +116,8 @@ struct ImportProgressView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(HeirloomColors.tomato)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
                     }
                 }
 
@@ -180,7 +182,7 @@ struct ImportProgressView: View {
     private func phaseIndicatorView() -> some View {
         HStack(spacing: HeirloomSpacing.md) {
             Image(systemName: job.phase.iconName)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.tomato)
 
             Text(job.phase.displayName)
@@ -297,7 +299,7 @@ struct ImportProgressView: View {
                 .font(.system(size: 20))
 
             // Item description
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(itemTitle(for: item))
                     .font(HeirloomFonts.body)
                     .foregroundStyle(HeirloomColors.primaryText)
@@ -360,6 +362,12 @@ struct ImportProgressView: View {
             return "Video Recipe"
 
         case .pdf:
+            // Show cookbook title if available
+            if let cookbookTitle = item.cookbookTitle {
+                return cookbookTitle
+            }
+
+            // Fall back to page number display
             if let pageNumber = item.pageNumber {
                 if let isMulti = item.isMultiPageRecipe, isMulti, let totalPages = item.totalPages {
                     return "Pages \(pageNumber)-\(pageNumber + totalPages - 1)"
@@ -379,6 +387,16 @@ struct ImportProgressView: View {
     private func pageInfo(for item: ImportItem) -> String? {
         guard item.source == .pdf else { return nil }
 
+        // If we have a cookbook title, show page number info
+        if item.cookbookTitle != nil, let pageNumber = item.pageNumber {
+            if let isMulti = item.isMultiPageRecipe, isMulti, let totalPages = item.totalPages {
+                return "Pages \(pageNumber)-\(pageNumber + totalPages - 1)"
+            } else {
+                return "Page \(pageNumber)"
+            }
+        }
+
+        // Otherwise show total pages info (legacy behavior)
         if let totalPages = item.totalPages, totalPages > 1 {
             if let isMulti = item.isMultiPageRecipe, isMulti {
                 return "Multi-page recipe"

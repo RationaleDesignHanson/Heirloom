@@ -11,6 +11,7 @@ final class RecipeCollection {
     var color: String = "#FF6B6B" // Hex color code
     var createdDate: Date = Date()
     var isSystemCollection: Bool = false // For built-in collections like "Favorites"
+    var isAllRecipes: Bool = false // Special "All Recipes" collection that shows all recipes
     var heritageCollectionId: String? // ID for founding heritage collections (e.g., "presidential-pantry")
 
     // Blind Box (Onboarding Feature)
@@ -27,6 +28,7 @@ final class RecipeCollection {
         iconName: String = "folder.fill",
         color: String = "#FF6B6B",
         isSystemCollection: Bool = false,
+        isAllRecipes: Bool = false,
         heritageCollectionId: String? = nil
     ) {
         self.id = UUID()
@@ -36,6 +38,7 @@ final class RecipeCollection {
         self.color = color
         self.createdDate = Date()
         self.isSystemCollection = isSystemCollection
+        self.isAllRecipes = isAllRecipes
         self.heritageCollectionId = heritageCollectionId
     }
 
@@ -84,6 +87,25 @@ final class RecipeCollection {
     // MARK: - System Collections
 
     static func createSystemCollections(context: ModelContext) {
+        // Check if All Recipes already exists
+        var allRecipesDescriptor = FetchDescriptor<RecipeCollection>()
+        allRecipesDescriptor.predicate = #Predicate<RecipeCollection> { collection in
+            collection.isAllRecipes == true
+        }
+        let allRecipesExists = (try? context.fetch(allRecipesDescriptor))?.isEmpty == false
+
+        if !allRecipesExists {
+            let allRecipes = RecipeCollection(
+                name: "All Recipes",
+                description: "All recipes in your library",
+                iconName: "book.closed.fill",
+                color: "#FF6B6B",
+                isSystemCollection: true,
+                isAllRecipes: true
+            )
+            context.insert(allRecipes)
+        }
+
         // Check if Favorites already exists
         var descriptor = FetchDescriptor<RecipeCollection>()
         descriptor.predicate = #Predicate<RecipeCollection> { collection in

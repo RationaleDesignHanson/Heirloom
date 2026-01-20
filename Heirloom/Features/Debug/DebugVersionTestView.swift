@@ -33,7 +33,7 @@ struct DebugVersionTestView: View {
                 Section("Status") {
                     if !statusMessage.isEmpty {
                         Text(statusMessage)
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundColor(showSuccess ? .green : .red)
                     }
                 }

@@ -26,7 +26,7 @@ struct VideoImportView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 32) {
+            VStack(spacing: HeirloomSpacing.xl) {
                 Spacer()
 
                 // Header
@@ -35,14 +35,14 @@ struct VideoImportView: View {
                         .font(.system(size: 64))
                         .foregroundStyle(.blue)
 
-                    VStack(spacing: 4) {
+                    VStack(spacing: HeirloomSpacing.xs) {
                         Text("Import from Video")
                             .font(.title.bold())
 
                         // Mode indicator badge
                         Text("From Camera Roll")
                             .font(.caption.bold())
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 4)
                             .background(Color.blue)
@@ -50,14 +50,14 @@ struct VideoImportView: View {
                     }
 
                     Text("Select a video from your camera roll with spoken cooking instructions. Works best with clear narration.")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
                 }
 
                 // Source options
-                VStack(spacing: 16) {
+                VStack(spacing: HeirloomSpacing.md) {
                     // Camera Roll option (primary)
                     Button {
                         showVideoPicker = true
@@ -76,18 +76,18 @@ struct VideoImportView: View {
                 Spacer()
 
                 // Privacy note
-                VStack(spacing: 8) {
+                VStack(spacing: HeirloomSpacing.sm) {
                     Text("Attribution Required")
                         .font(.caption.bold())
                         .foregroundStyle(.orange)
 
                     Text("You'll be asked to credit the original creator during review.")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
 
                     Text("Videos are processed on-device when possible. Audio is never stored permanently.")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.tertiary)
                         .multilineTextAlignment(.center)
                 }
@@ -197,19 +197,19 @@ struct SourceOptionRow: View {
     let color: Color
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: HeirloomSpacing.md) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundStyle(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
                 .frame(width: 52, height: 52)
                 .background(color.gradient)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(title)
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
                 Text(subtitle)
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(.secondary)
             }
 
@@ -217,9 +217,9 @@ struct SourceOptionRow: View {
 
             Image(systemName: "chevron.right")
                 .foregroundStyle(.tertiary)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
         }
-        .padding(16)
+        .padding(HeirloomSpacing.md)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
@@ -346,10 +346,10 @@ struct VideoProcessingContainerView: View {
                 )
             } else {
                 // Show loading while initializing
-                VStack(spacing: 16) {
+                VStack(spacing: HeirloomSpacing.md) {
                     ProgressView()
                     Text(isInitializing ? "Initializing transcription..." : "Failed to initialize")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.secondary)
                 }
             }

@@ -73,7 +73,7 @@ struct DinnerPartyDetailView: View {
             HStack {
                 HStack(spacing: 6) {
                     Image(systemName: "person.2.fill")
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                     Text("\(party.guestCount)")
                         .font(HeirloomFonts.title2)
                 }
@@ -118,9 +118,9 @@ struct DinnerPartyDetailView: View {
             }
         }
         .padding()
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
+        .background(HeirloomColors.cardBackground)
+        .cornerRadius(HeirloomSpacing.cardCornerRadius)
+        .heirloomShadow(HeirloomShadows.card)
     }
 
     // MARK: - Timeline Section
@@ -142,7 +142,7 @@ struct DinnerPartyDetailView: View {
     private func timelineItem(recipe: Recipe, partyRecipe: DinnerPartyRecipe) -> some View {
         HStack(alignment: .top, spacing: HeirloomSpacing.md) {
             // Timeline marker
-            VStack(spacing: 4) {
+            VStack(spacing: HeirloomSpacing.xs) {
                 Circle()
                     .fill(partyRecipe.isCompleted ? HeirloomColors.familyGreen : HeirloomColors.tomato)
                     .frame(width: 12, height: 12)
@@ -157,9 +157,9 @@ struct DinnerPartyDetailView: View {
             .frame(height: 60)
 
             // Recipe card
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                         Text(recipe.title)
                             .font(HeirloomFonts.bodyBold)
                             .foregroundStyle(HeirloomColors.primaryText)
@@ -176,7 +176,7 @@ struct DinnerPartyDetailView: View {
                     if partyRecipe.isCompleted {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(HeirloomColors.familyGreen)
-                            .font(.title3)
+                            .font(HeirloomFonts.title2)
                     }
                 }
 
@@ -207,9 +207,9 @@ struct DinnerPartyDetailView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.03), radius: 4)
+            .background(HeirloomColors.cardBackground)
+            .cornerRadius(HeirloomSpacing.cardCornerRadius)
+            .heirloomShadow(HeirloomShadows.subtle)
         }
     }
 
@@ -221,19 +221,19 @@ struct DinnerPartyDetailView: View {
         } label: {
             HStack {
                 Image(systemName: "cart.fill")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                 Text("View Shopping List")
                     .font(HeirloomFonts.bodyBold)
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
             .foregroundStyle(HeirloomColors.primaryText)
             .padding()
-            .background(Color.white)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.05), radius: 4)
+            .background(HeirloomColors.cardBackground)
+            .cornerRadius(HeirloomSpacing.cardCornerRadius)
+            .heirloomShadow(HeirloomShadows.subtle)
         }
     }
 
@@ -245,14 +245,14 @@ struct DinnerPartyDetailView: View {
         } label: {
             HStack {
                 Image(systemName: "flame.fill")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                 Text(party.isInProgress ? "Continue Cooking" : "Start Cooking")
                     .font(HeirloomFonts.title3)
                 Spacer()
                 Image(systemName: "arrow.right.circle.fill")
                     .font(.title2)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .padding()
             .background(
                 LinearGradient(
@@ -271,7 +271,7 @@ struct DinnerPartyDetailView: View {
     private func statItem(icon: String, value: String, label: String) -> some View {
         HStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
             VStack(alignment: .leading, spacing: 0) {
                 Text(value)

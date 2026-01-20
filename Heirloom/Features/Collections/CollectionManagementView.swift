@@ -75,7 +75,7 @@ struct CollectionManagementView: View {
     private func collectionRow(_ collection: RecipeCollection, canEdit: Bool) -> some View {
         HStack(spacing: HeirloomSpacing.md) {
             Image(systemName: collection.iconName)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(collection.swiftUIColor)
                 .frame(width: 32)
 
@@ -97,7 +97,7 @@ struct CollectionManagementView: View {
                 } label: {
                     Image(systemName: "pencil.circle.fill")
                         .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 }
                 .buttonStyle(.plain)
             }
@@ -291,9 +291,9 @@ struct CollectionEditorView: View {
             let generator = UIImpactFeedbackGenerator(style: .light)
             generator.impactOccurred()
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: HeirloomSpacing.xs) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .fill(selectedIcon == iconName ? Color(hex: selectedColor).opacity(0.2) : .gray.opacity(0.1))
                         .frame(width: 60, height: 60)
 
@@ -333,8 +333,8 @@ struct CollectionEditorView: View {
 
                 if selectedColor == colorHex {
                     Image(systemName: "checkmark")
-                        .foregroundStyle(.white)
-                        .font(.title3)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .font(HeirloomFonts.title2)
                         .fontWeight(.bold)
                 }
             }

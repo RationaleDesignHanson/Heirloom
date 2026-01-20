@@ -32,7 +32,7 @@ class AIConfiguration: ObservableObject, AIConfigurationProtocol {
 
     // MARK: - Rate Limiting (for default key)
 
-    private let dailyRequestLimit = 100 // Soft limit for default API key
+    private let dailyRequestLimit = 1000 // Soft limit for default API key (increased for Pro tier testing)
 
     @Published var dailyRequestCount: Int {
         didSet {
@@ -119,6 +119,33 @@ class AIConfiguration: ObservableObject, AIConfigurationProtocol {
 
         // Fall back to default key from bundle (Config.xcconfig)
         return defaultAPIKey(for: selectedProvider)
+    }
+
+    /// Auto-fallback when personal key fails (for error recovery)
+    /// Called when an API request returns "Unauthorized" error
+    func handleUnauthorizedError() {
+        // If using a personal key and it's unauthorized, remove it to fall back to default
+        if !isUsingDefaultKey {
+            Log.warning("Personal API key unauthorized, falling back to default key", category: .general, metadata: [
+                "provider": selectedProvider.rawValue
+            ])
+
+            // Remove the invalid personal key
+            setAPIKey(nil, for: selectedProvider)
+
+            // Show user-friendly notification
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            toastManager.warning(
+                title: "API Key Issue",
+                message: "Your personal API key was invalid. Switched to shared key automatically."
+            )
+
+            // Track analytics
+            analytics.track(event: .settingChanged, properties: [
+                "setting": "ai_api_key",
+                "action": "auto_removed_invalid"
+            ])
+        }
     }
 
     /// Get default API key from bundle configuration

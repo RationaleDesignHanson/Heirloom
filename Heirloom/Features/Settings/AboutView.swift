@@ -197,7 +197,7 @@ struct AboutView: View {
                         .foregroundStyle(HeirloomColors.tomato)
                     Spacer()
                     Image(systemName: "arrow.up.right")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.tomato)
                 }
             }
@@ -214,7 +214,7 @@ struct AboutView: View {
                         .foregroundStyle(HeirloomColors.tomato)
                     Spacer()
                     Image(systemName: "arrow.up.right")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.tomato)
                 }
             }
@@ -245,7 +245,7 @@ struct FeatureRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: HeirloomSpacing.md) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.tomato)
                 .frame(width: 30)
 
@@ -270,7 +270,7 @@ struct TechnologyRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: HeirloomSpacing.md) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.familyGreen)
                 .frame(width: 20)
 

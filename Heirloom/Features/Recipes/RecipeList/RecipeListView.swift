@@ -39,21 +39,21 @@ struct VideoImportModeSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
+            VStack(spacing: HeirloomSpacing.lg) {
                 // Header
-                VStack(spacing: 8) {
+                VStack(spacing: HeirloomSpacing.sm) {
                     Text("Choose Video Type")
                         .font(.title2.bold())
 
                     Text("Select how to process your cooking video")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
                 .padding(.top)
 
                 // Mode options
-                VStack(spacing: 16) {
+                VStack(spacing: HeirloomSpacing.md) {
                     ForEach(VideoImportMode.allCases) { mode in
                         ModeCard(mode: mode) {
                             onModeSelected(mode)
@@ -86,7 +86,7 @@ private struct ModeCard: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 16) {
+            HStack(spacing: HeirloomSpacing.md) {
                 // Icon circle
                 ZStack {
                     Circle()
@@ -99,13 +99,13 @@ private struct ModeCard: View {
                 }
 
                 // Content
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(mode.rawValue)
-                        .font(.headline)
+                        .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(.primary)
 
                     Text(mode.description)
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .foregroundStyle(.secondary)
                 }
 
@@ -118,9 +118,9 @@ private struct ModeCard: View {
             }
             .padding()
             .background(Color(.systemBackground))
-            .cornerRadius(12)
+            .cornerRadius(HeirloomSpacing.cardCornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .stroke(Color(.separator), lineWidth: 1)
             )
         }
@@ -248,16 +248,6 @@ struct RecipeListView: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 0) {
-                    // Video processing banner at top
-                    VideoProcessingBottomBanner()
-                        .padding(.bottom, 8)
-                        .zIndex(1)
-
-                    // PDF import progress banner at top
-                    ImportProgressBottomBanner()
-                        .padding(.bottom, 8)
-                        .zIndex(1)
-
                     // Main content
                     contentSwitcher(geometry: geometry)
                 }
@@ -319,13 +309,13 @@ struct RecipeListView: View {
                 Button {
                     showHeritageUnlock = true
                 } label: {
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Image(systemName: "sparkles")
                             .foregroundStyle(.orange)
 
                         if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining, daysRemaining > 0 {
                             Text("\(daysRemaining)d")
-                                .font(.caption2)
+                                .font(HeirloomFonts.caption2)
                                 .foregroundStyle(.orange)
                         }
                     }
@@ -341,31 +331,31 @@ struct RecipeListView: View {
                 filteredCount: filteredRecipes.count,
                 onSelectAllToggle: selectAllToggle,
                 onAddRecipe: {
-                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    tabCoordinator.willCreateRecipe(from: .collectionsTab)
                     showAddRecipe = true
                 },
                 onImportRecipe: {
-                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    tabCoordinator.willCreateRecipe(from: .collectionsTab)
                     showImportRecipe = true
                 },
                 onBulkImport: {
-                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    tabCoordinator.willCreateRecipe(from: .collectionsTab)
                     showBulkImport = true
                 },
                 onCookbookScanner: {
-                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    tabCoordinator.willCreateRecipe(from: .collectionsTab)
                     showCookbookScanner = true
                 },
                 onNarratedVideoImport: {
-                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    tabCoordinator.willCreateRecipe(from: .collectionsTab)
                     showVideoImport = true
                 },
                 onSilentVideoImport: {
-                    tabCoordinator.willCreateRecipe(from: .recipesTab)
+                    tabCoordinator.willCreateRecipe(from: .collectionsTab)
                     showASMRVideoImport = true
                 },
                 onAddCollection: {
-                    tabCoordinator.willCreateCollection(from: .recipesTab)
+                    tabCoordinator.willCreateCollection(from: .collectionsTab)
                     showCreateCollection = true
                 },
                 onAddNormalSample: addSampleRecipe,
@@ -604,13 +594,13 @@ struct RecipeListView: View {
 
     // MARK: - Selection Action Toolbar
     private var selectionActionToolbar: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: HeirloomSpacing.md) {
             Button {
                 showBatchDeleteConfirmation = true
             } label: {
                 Label("Delete (\(selectedRecipeIds.count))", systemImage: "trash")
                     .font(HeirloomFonts.body)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(Color.red)
@@ -623,7 +613,7 @@ struct RecipeListView: View {
             } label: {
                 Label("Add to Collection", systemImage: "folder.badge.plus")
                     .font(HeirloomFonts.body)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(HeirloomColors.tomato)
@@ -1219,19 +1209,19 @@ struct ConflictResolutionWrapper: View {
                     Text("⚠️ Conflict Detected")
                         .font(.title)
                     Text("Recipe: \(recipeCRDT.recipe.title)")
-                        .font(.headline)
+                        .font(HeirloomFonts.bodyBold)
                     Text("\(conflicts.count) field(s) need resolution")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
 
                     ForEach(Array(conflicts.enumerated()), id: \.offset) { index, conflict in
                         VStack(alignment: .leading) {
                             Text("Field: \(conflict.fieldPath)")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .bold()
                             Text("Local: \(conflict.localValue?.stringValue ?? "N/A")")
-                                .font(.caption2)
+                                .font(HeirloomFonts.caption2)
                             Text("Remote: \(conflict.remoteValue?.stringValue ?? "N/A")")
-                                .font(.caption2)
+                                .font(HeirloomFonts.caption2)
 
                             HStack {
                                 Button("Keep Local") {
@@ -1247,7 +1237,7 @@ struct ConflictResolutionWrapper: View {
 
                             if let choice = resolutions[conflict.fieldPath] {
                                 Text("✓ Choice: \(choiceDescription(choice))")
-                                    .font(.caption2)
+                                    .font(HeirloomFonts.caption2)
                                     .foregroundColor(.green)
                             }
                         }
@@ -1264,7 +1254,7 @@ struct ConflictResolutionWrapper: View {
                         }
                         .padding()
                         .background(Color.green)
-                        .foregroundColor(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .cornerRadius(8)
                     }
 
@@ -1273,7 +1263,7 @@ struct ConflictResolutionWrapper: View {
                     }
                     .padding()
                     .background(Color.blue)
-                    .foregroundColor(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .cornerRadius(8)
                 }
                 .padding()
@@ -1434,21 +1424,21 @@ struct RecipeCardView: View {
                 .frame(maxWidth: .infinity)
                 .aspectRatio(4/3, contentMode: .fill)
                 .clipped()
-                .cornerRadius(12)
+                .cornerRadius(HeirloomSpacing.cardCornerRadius)
                 .accessibilityHidden(true) // Hide image from VoiceOver, recipe title is more important
 
                 // Favorite heart badge (top left overlay)
                 if recipe.isFavorite {
                     Image(systemName: "heart.fill")
-                        .foregroundStyle(.white)
-                        .font(.title3)
-                        .padding(8)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .font(HeirloomFonts.title2)
+                        .padding(HeirloomSpacing.sm)
                         .background(
                             Circle()
                                 .fill(HeirloomColors.familyGreen)
                                 .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
                         )
-                        .padding(8)
+                        .padding(HeirloomSpacing.sm)
                         .accessibilityLabel("Favorite")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
@@ -1463,9 +1453,9 @@ struct RecipeCardView: View {
 
                         Text("\(unreadCount)")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                     }
-                    .padding(8)
+                    .padding(HeirloomSpacing.sm)
                     .accessibilityLabel("\(unreadCount) unread notification\(unreadCount == 1 ? "" : "s")")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                 }
@@ -1473,15 +1463,15 @@ struct RecipeCardView: View {
                 // Conflict warning badge (bottom left overlay)
                 if recipe.showConflictBadge || recipe.hasPendingConflicts {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.white)
-                        .font(.title3)
-                        .padding(8)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .font(HeirloomFonts.title2)
+                        .padding(HeirloomSpacing.sm)
                         .background(
                             Circle()
                                 .fill(HeirloomColors.conflictAlert)
                                 .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
                         )
-                        .padding(8)
+                        .padding(HeirloomSpacing.sm)
                         .accessibilityLabel("Has unresolved conflicts")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 }
@@ -1489,14 +1479,14 @@ struct RecipeCardView: View {
                 // Language badge (bottom right overlay) - show for non-English recipes
                 if let language = recipe.sourceLanguage, language != "en" {
                     Text(languageFlag(for: language))
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .padding(6)
                         .background(
                             Circle()
                                 .fill(.white)
                                 .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
                         )
-                        .padding(8)
+                        .padding(HeirloomSpacing.sm)
                         .accessibilityLabel("Recipe in \(languageName(for: language))")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                 }
@@ -1506,19 +1496,19 @@ struct RecipeCardView: View {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                         .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.warmGray)
                         .font(.title2)
-                        .padding(8)
+                        .padding(HeirloomSpacing.sm)
                         .background(
                             Circle()
                                 .fill(.white)
                                 .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
                         )
-                        .padding(8)
+                        .padding(HeirloomSpacing.sm)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                         .transition(.scale.combined(with: .opacity))
                 }
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(recipe.title)
                     .font(HeirloomFonts.subheadline)
                     .foregroundStyle(HeirloomColors.primaryText)
@@ -1550,7 +1540,7 @@ struct RecipeCardView: View {
                             .foregroundStyle(HeirloomColors.secondaryText)
 
                         Label("\(recipe.timesCooked)", systemImage: "flame.fill")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(HeirloomColors.amber)
                             .accessibilityLabel("Cooked \(recipe.timesCooked) times")
                     }

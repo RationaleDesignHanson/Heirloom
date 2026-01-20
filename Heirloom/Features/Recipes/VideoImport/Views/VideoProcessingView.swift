@@ -55,17 +55,17 @@ struct VideoProcessingView: View {
             .ignoresSafeArea()
 
             ScrollView {
-                    VStack(spacing: 32) {
+                    VStack(spacing: HeirloomSpacing.xl) {
                         // Large progress ring
                         progressRingSection
 
                         // Important notice
                         if processor.progress < 1.0 {
-                            HStack(spacing: 8) {
+                            HStack(spacing: HeirloomSpacing.sm) {
                                 Image(systemName: "info.circle.fill")
                                     .foregroundStyle(.blue)
                                 Text("Keep this screen open during processing")
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .foregroundStyle(.secondary)
                             }
                             .padding(.horizontal)
@@ -164,7 +164,7 @@ struct VideoProcessingView: View {
     // MARK: - Progress Ring Section
 
     private var progressRingSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: HeirloomSpacing.md) {
             ZStack {
                 // Background circle
                 Circle()
@@ -186,14 +186,14 @@ struct VideoProcessingView: View {
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 0.3), value: processor.progress)
 
-                VStack(spacing: 8) {
+                VStack(spacing: HeirloomSpacing.sm) {
                     Text("\(Int(processor.progress * 100))%")
                         .font(.system(size: 48, weight: .bold, design: .rounded))
                         .foregroundStyle(.primary)
 
                     if let phaseText = currentPhaseText {
                         Text(phaseText)
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -201,11 +201,11 @@ struct VideoProcessingView: View {
 
             // Processing time estimate
             if processor.progress < 1.0 {
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: "clock")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                     Text(estimatedTimeRemaining)
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                 }
                 .foregroundStyle(.secondary)
             }
@@ -216,21 +216,21 @@ struct VideoProcessingView: View {
 
     @ViewBuilder
     private var stateDescriptionView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: HeirloomSpacing.sm) {
             let (icon, title, subtitle, color) = stateInfo
 
-            HStack(spacing: 16) {
+            HStack(spacing: HeirloomSpacing.md) {
                 Image(systemName: icon)
                     .font(.title2)
                     .foregroundStyle(color.gradient)
                     .frame(width: 40)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(title)
-                        .font(.headline)
+                        .font(HeirloomFonts.bodyBold)
 
                     Text(subtitle)
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .foregroundStyle(.secondary)
                 }
 
@@ -247,9 +247,9 @@ struct VideoProcessingView: View {
     // MARK: - Phase Progress Section
 
     private var phaseProgressSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             Text("Processing Phases")
-                .font(.headline)
+                .font(HeirloomFonts.bodyBold)
                 .foregroundStyle(.secondary)
 
             VStack(spacing: 12) {
@@ -493,7 +493,7 @@ struct ProcessingPhaseCard: View {
     let isComplete: Bool
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: HeirloomSpacing.md) {
             // Status indicator
             ZStack {
                 Circle()
@@ -503,7 +503,7 @@ struct ProcessingPhaseCard: View {
                 if isComplete {
                     Image(systemName: "checkmark")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                 } else {
                     // Show number for pending and active phases
                     ZStack {
@@ -514,24 +514,24 @@ struct ProcessingPhaseCard: View {
                         if isActive {
                             ProgressView()
                                 .scaleEffect(0.6)
-                                .tint(.white)
+                                .tint(HeirloomColors.buttonTextLight)
                         } else {
                             Text("\(phaseNumber)")
                                 .font(.caption.bold())
-                                .foregroundStyle(.white)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
                         }
                     }
                 }
             }
 
             // Content
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(phase)
                     .font(.subheadline.bold())
                     .foregroundStyle(isActive ? .primary : .secondary)
 
                 Text(description)
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(.secondary)
             }
 
@@ -539,9 +539,9 @@ struct ProcessingPhaseCard: View {
         }
         .padding()
         .background(isActive ? statusColor.opacity(0.05) : Color.clear)
-        .cornerRadius(12)
+        .cornerRadius(HeirloomSpacing.cardCornerRadius)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .stroke(isActive ? statusColor.opacity(0.3) : Color.clear, lineWidth: 1)
         )
     }

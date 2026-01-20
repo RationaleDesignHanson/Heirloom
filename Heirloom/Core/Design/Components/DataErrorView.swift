@@ -32,11 +32,11 @@ struct DataErrorView: View {
                 } label: {
                     Text("Restart App")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(HeirloomColors.tomato)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
                 }
                 .padding(.horizontal, HeirloomSpacing.xl)
 

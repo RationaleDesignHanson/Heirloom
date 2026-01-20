@@ -125,11 +125,11 @@ struct TagCollectionPickerView: View {
                 if isTagSelected(tag) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(tag.swiftUIColor)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 } else {
                     Image(systemName: "circle")
                         .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 }
             }
         }
@@ -144,7 +144,7 @@ struct TagCollectionPickerView: View {
         } label: {
             HStack(spacing: HeirloomSpacing.md) {
                 Image(systemName: collection.iconName)
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                     .foregroundStyle(collection.swiftUIColor)
                     .frame(width: 28)
 
@@ -157,11 +157,11 @@ struct TagCollectionPickerView: View {
                 if isCollectionSelected(collection) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(collection.swiftUIColor)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 } else {
                     Image(systemName: "circle")
                         .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 }
             }
         }

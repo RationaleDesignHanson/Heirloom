@@ -63,9 +63,9 @@ struct FieldComparisonCard: View {
             if resolution == nil {
                 HStack {
                     Spacer()
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Image(systemName: "hand.draw")
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                         Text("Swipe to choose")
                             .font(HeirloomFonts.caption2)
                     }
@@ -83,7 +83,7 @@ struct FieldComparisonCard: View {
                     Text("View Details")
                         .font(HeirloomFonts.caption1)
                     Image(systemName: "info.circle")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                     Spacer()
                 }
                 .foregroundStyle(HeirloomColors.conflictInfo)
@@ -92,7 +92,7 @@ struct FieldComparisonCard: View {
         .padding(HeirloomSpacing.md)
         .background(HeirloomColors.conflictCardBackground)
         .cornerRadius(12)
-        .shadow(color: HeirloomColors.cardShadow, radius: 8, x: 0, y: 4)
+        .heirloomShadow(HeirloomShadows.card)
         .sheet(isPresented: $showingDetailSheet) {
             detailSheet
         }
@@ -128,9 +128,9 @@ struct FieldComparisonCard: View {
 
             // Selected indicator
             if isSelected {
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                     Text("Selected")
                         .font(HeirloomFonts.caption2)
                 }
@@ -270,11 +270,11 @@ struct FieldComparisonCard: View {
     }
 
     private var changeDescription: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
             HStack(alignment: .top, spacing: HeirloomSpacing.xs) {
                 Image(systemName: "arrow.right.circle.fill")
                     .foregroundStyle(HeirloomColors.conflictInfo)
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
 
                 Text("You changed it to:")
                     .font(HeirloomFonts.caption1)
@@ -287,7 +287,7 @@ struct FieldComparisonCard: View {
             HStack(alignment: .top, spacing: HeirloomSpacing.xs) {
                 Image(systemName: "arrow.right.circle.fill")
                     .foregroundStyle(HeirloomColors.conflictInfo)
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
 
                 Text("\(conflict.remoteDeviceName) changed it to:")
                     .font(HeirloomFonts.caption1)

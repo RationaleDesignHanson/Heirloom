@@ -243,7 +243,7 @@ struct RecipeCommentListView: View {
 
     private var activeFiltersRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: HeirloomSpacing.sm) {
                 if let type = filterType {
                     FilterChip(
                         label: type.displayName,
@@ -279,7 +279,7 @@ struct RecipeCommentListView: View {
                         clearAllFilters()
                     } label: {
                         Text("Clear All")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.red)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -365,7 +365,7 @@ struct RecipeCommentListView: View {
     }
 
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: HeirloomSpacing.md) {
             Spacer()
 
             Image(systemName: hasActiveFilters ? "line.3.horizontal.decrease.circle" : "bubble.left")
@@ -373,11 +373,11 @@ struct RecipeCommentListView: View {
                 .foregroundStyle(.secondary)
 
             Text(hasActiveFilters ? "No comments match your filters" : "No comments yet")
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .fontWeight(.semibold)
 
             Text(hasActiveFilters ? "Try adjusting your filters" : "Be the first to add a comment!")
-                .font(.subheadline)
+                .font(HeirloomFonts.body)
                 .foregroundStyle(.secondary)
 
             if hasActiveFilters {
@@ -385,12 +385,12 @@ struct RecipeCommentListView: View {
                     clearAllFilters()
                 } label: {
                     Text("Clear Filters")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .fontWeight(.medium)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .background(Color.accentColor)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .clipShape(Capsule())
                 }
                 .padding(.top, 8)
@@ -585,18 +585,18 @@ private struct StatBadge: View {
     let color: Color
 
     var body: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 4) {
+        VStack(spacing: HeirloomSpacing.xs) {
+            HStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: icon)
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                 Text(value)
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
                     .fontWeight(.semibold)
             }
             .foregroundStyle(color)
 
             Text(label)
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
                 .foregroundStyle(.secondary)
         }
     }
@@ -609,16 +609,16 @@ private struct FilterChip: View {
     let onRemove: () -> Void
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: icon)
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
             Text(label)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
             Button {
                 onRemove()
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
             }
         }
         .foregroundStyle(color)

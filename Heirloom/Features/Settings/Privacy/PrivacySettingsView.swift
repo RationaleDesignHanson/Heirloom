@@ -83,7 +83,7 @@ struct PrivacySettingsView: View {
         Section {
             // Sharing Consent
             Toggle(isOn: $consentService.hasSharingConsent) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     HStack {
                         Image(systemName: "person.2.fill")
                             .foregroundStyle(HeirloomColors.tomato)
@@ -108,7 +108,7 @@ struct PrivacySettingsView: View {
 
             // Analytics Consent
             Toggle(isOn: $consentService.hasAnalyticsConsent) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     HStack {
                         Image(systemName: "chart.bar.fill")
                             .foregroundStyle(.blue)

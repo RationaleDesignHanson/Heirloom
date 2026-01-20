@@ -77,7 +77,7 @@ struct MergedRecipePreview: View {
                 .font(.system(size: 40))
                 .foregroundStyle(HeirloomColors.conflictSafe)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text("Conflicts Resolved")
                     .font(HeirloomFonts.title2)
                     .foregroundStyle(HeirloomColors.primaryText)
@@ -162,7 +162,7 @@ struct MergedRecipePreview: View {
                     HStack(alignment: .top, spacing: HeirloomSpacing.md) {
                         Text("\(index + 1)")
                             .font(HeirloomFonts.caption1Bold)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
                             .frame(width: 24, height: 24)
                             .background(HeirloomColors.tomato)
                             .cornerRadius(12)
@@ -182,16 +182,16 @@ struct MergedRecipePreview: View {
             }
         }
         .padding(HeirloomSpacing.md)
-        .background(.white)
+        .background(HeirloomColors.cardBackground)
         .cornerRadius(12)
-        .shadow(color: HeirloomColors.cardShadow, radius: 8, x: 0, y: 4)
+        .heirloomShadow(HeirloomShadows.card)
     }
 
     @ViewBuilder
     private func metadataItem(icon: String, text: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
             Text(text)
                 .font(HeirloomFonts.caption1)
@@ -216,7 +216,7 @@ struct MergedRecipePreview: View {
                 Spacer()
 
                 Image(systemName: showingChangeSummary ? "chevron.up" : "chevron.down")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
             .padding(HeirloomSpacing.md)
@@ -233,14 +233,14 @@ struct MergedRecipePreview: View {
             List {
                 Section("Your Choices") {
                     ForEach(Array(resolutions.enumerated()), id: \.offset) { index, resolution in
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                             Text(resolution.fieldPath.capitalized)
                                 .font(HeirloomFonts.bodyBold)
                                 .foregroundStyle(HeirloomColors.primaryText)
 
-                            HStack(spacing: 4) {
+                            HStack(spacing: HeirloomSpacing.xs) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .foregroundStyle(HeirloomColors.conflictSafe)
 
                                 Text(resolutionDescription(resolution.choice))
@@ -302,7 +302,7 @@ struct MergedRecipePreview: View {
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(HeirloomColors.conflictSafe)
-                .foregroundStyle(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
                 .font(HeirloomFonts.bodyBold)
                 .cornerRadius(12)
             }

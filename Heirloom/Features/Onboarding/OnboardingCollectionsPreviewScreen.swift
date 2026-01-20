@@ -89,12 +89,12 @@ struct OnboardingCollectionsPreviewScreen: View {
     // MARK: - Preview Content
 
     private var previewContent: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: HeirloomSpacing.lg) {
             Spacer()
                 .frame(minHeight: 30, maxHeight: 50)
 
             // Message
-            VStack(spacing: 8) {
+            VStack(spacing: HeirloomSpacing.sm) {
                 Text("We didn't want you to start empty handed")
                     .font(HeirloomFonts.title1)
                     .foregroundStyle(HeirloomColors.charcoal)
@@ -158,7 +158,7 @@ struct OnboardingCollectionsPreviewScreen: View {
             } label: {
                 Text("Get Started")
                     .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(HeirloomColors.tomato)
@@ -174,10 +174,10 @@ struct OnboardingCollectionsPreviewScreen: View {
     // MARK: - Fallback Content
 
     private var fallbackContent: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: HeirloomSpacing.lg) {
             Spacer()
 
-            VStack(spacing: 16) {
+            VStack(spacing: HeirloomSpacing.md) {
                 Image(systemName: "book.closed.fill")
                     .font(.system(size: 64))
                     .foregroundStyle(HeirloomColors.tomato)
@@ -200,7 +200,7 @@ struct OnboardingCollectionsPreviewScreen: View {
             } label: {
                 Text("Get Started")
                     .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(HeirloomColors.tomato)

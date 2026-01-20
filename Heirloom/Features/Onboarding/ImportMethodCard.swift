@@ -45,7 +45,7 @@ struct ImportMethodCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(HeirloomSpacing.md)
         .frame(height: 150)
-        .background(.white)
+        .background(HeirloomColors.cardBackground)
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
@@ -63,7 +63,7 @@ struct ImportMethodCard: View {
 // MARK: - Preview
 
 #Preview {
-    HStack(spacing: 16) {
+    HStack(spacing: HeirloomSpacing.md) {
         ImportMethodCard(
             icon: "video.fill",
             title: "Video to recipe",

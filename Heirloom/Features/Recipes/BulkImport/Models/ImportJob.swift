@@ -143,6 +143,11 @@ extension ImportJob {
         } else {
             failedItems += 1
         }
+
+        // Update phase progress based on completion ratio
+        if totalItems > 0 {
+            phaseProgress = Double(completedItems) / Double(totalItems)
+        }
     }
 
     /// Checks if job should continue processing based on status

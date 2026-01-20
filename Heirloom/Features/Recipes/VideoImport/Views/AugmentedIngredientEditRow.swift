@@ -19,11 +19,11 @@ struct AugmentedIngredientEditRow: View {
     @State private var showReasoning: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             // Main ingredient row
             HStack(spacing: 12) {
                 // Quantity
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     TextField("Qty", text: $quantity)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 60)
@@ -51,7 +51,7 @@ struct AugmentedIngredientEditRow: View {
                         }
                     } label: {
                         Image(systemName: showReasoning ? "info.circle.fill" : "info.circle")
-                            .font(.title3)
+                            .font(HeirloomFonts.title2)
                             .foregroundStyle(.blue)
                     }
                 }
@@ -86,15 +86,15 @@ struct AugmentedIngredientEditRow: View {
     private func inferredBadge(for augmentation: AugmentedIngredient) -> some View {
         HStack(spacing: 6) {
             Image(systemName: "sparkles")
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
 
             Text("AI-inferred from \(augmentation.sourceRecipes.count) similar recipe\(augmentation.sourceRecipes.count == 1 ? "" : "s")")
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
 
             confidenceDot(for: augmentation.inferredConfidence)
 
             Text(augmentation.inferredConfidence.shortDisplayText)
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
                 .fontWeight(.medium)
         }
         .foregroundStyle(.secondary)
@@ -108,11 +108,11 @@ struct AugmentedIngredientEditRow: View {
     private func lowConfidenceWarning(for augmentation: AugmentedIngredient) -> some View {
         HStack(spacing: 6) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
                 .foregroundStyle(.orange)
 
             Text("Low confidence - verify quantity")
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
                 .foregroundStyle(.secondary)
 
             confidenceDot(for: augmentation.inferredConfidence)
@@ -127,11 +127,11 @@ struct AugmentedIngredientEditRow: View {
     private func noInferenceBadge(for augmentation: AugmentedIngredient) -> some View {
         HStack(spacing: 6) {
             Image(systemName: "questionmark.circle")
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
                 .foregroundStyle(.gray)
 
             Text("Could not infer quantity - see reasoning")
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 8)
@@ -142,14 +142,14 @@ struct AugmentedIngredientEditRow: View {
 
     @ViewBuilder
     private func reasoningSection(augmentation: AugmentedIngredient) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             // Reasoning text
             Text("AI Reasoning:")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
 
             Text(augmentation.reasoning)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -165,11 +165,11 @@ struct AugmentedIngredientEditRow: View {
                 ForEach(augmentation.sourceRecipes, id: \.self) { recipeTitle in
                     HStack(spacing: 6) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                             .foregroundStyle(.green)
 
                         Text(recipeTitle)
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -188,7 +188,7 @@ struct AugmentedIngredientEditRow: View {
 
     @ViewBuilder
     private func confidenceExplanation(for confidence: InferenceConfidence) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: HeirloomSpacing.sm) {
             confidenceDot(for: confidence)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -196,7 +196,7 @@ struct AugmentedIngredientEditRow: View {
                     .font(.caption.weight(.semibold))
 
                 Text(confidenceDescription(for: confidence))
-                    .font(.caption2)
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(.secondary)
             }
         }

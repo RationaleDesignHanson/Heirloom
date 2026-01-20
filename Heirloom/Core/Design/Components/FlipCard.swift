@@ -141,7 +141,7 @@ extension FlipCard {
                             Text("Ingredients")
                                 .font(HeirloomFonts.title3)
 
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                                 Text("• 2 cups flour")
                                 Text("• 1 cup sugar")
                                 Text("• 2 eggs")
@@ -168,9 +168,9 @@ extension FlipCard {
                             .fill(HeirloomColors.amber)
                             .shadow(radius: 10)
 
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
                             Text("From Grandma Rose")
-                                .font(.title3)
+                                .font(HeirloomFonts.title2)
                                 .fontWeight(.semibold)
 
                             Divider()
@@ -187,7 +187,7 @@ extension FlipCard {
                             Text("Top Comments")
                                 .font(HeirloomFonts.title3)
 
-                            VStack(alignment: .leading, spacing: 8) {
+                            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                                 HStack {
                                     Image(systemName: "star.fill")
                                         .foregroundStyle(.yellow)
@@ -218,7 +218,7 @@ extension FlipCard {
                         .font(HeirloomFonts.title3)
                         .padding()
                         .background(Color.accentColor)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .clipShape(Capsule())
                 }
             }
@@ -265,7 +265,7 @@ private struct RecipeCardFrontView: View {
                     // Recipe Title (if image exists)
                     if recipe.imageFileName != nil {
                         Text(recipe.title)
-                            .font(.title3)
+                            .font(HeirloomFonts.title2)
                             .fontWeight(.bold)
                             .foregroundStyle(HeirloomColors.primaryText)
                             .lineLimit(2)
@@ -301,7 +301,7 @@ private struct RecipeCardFrontView: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 20))
-            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+            .heirloomShadow(HeirloomShadows.card)
         }
     }
 
@@ -347,7 +347,7 @@ private struct RecipeCardFrontView: View {
                     firebaseImageURL: recipe.firebaseImageURL,
                     placeholder: recipe.sourceType?.iconName ?? "fork.knife"
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
             } else {
                 // Placeholder with title
                 imagePlaceholder
@@ -357,17 +357,17 @@ private struct RecipeCardFrontView: View {
     }
 
     private var imagePlaceholder: some View {
-        RoundedRectangle(cornerRadius: 12)
+        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
             .fill(Color.gray.opacity(0.15))
             .overlay {
-                VStack(spacing: 8) {
+                VStack(spacing: HeirloomSpacing.sm) {
                     Image(systemName: "fork.knife")
                         .font(.system(size: 32))
                         .foregroundStyle(HeirloomColors.secondaryText)
 
                     if recipe.imageFileName == nil {
                         Text(recipe.title)
-                            .font(.title3)
+                            .font(HeirloomFonts.title2)
                             .fontWeight(.semibold)
                             .foregroundStyle(HeirloomColors.primaryText)
                             .multilineTextAlignment(.center)
@@ -376,7 +376,7 @@ private struct RecipeCardFrontView: View {
                     }
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
     }
 
     // MARK: - Source Attribution
@@ -417,7 +417,7 @@ private struct RecipeCardFrontView: View {
         Text(annotation.text)
             .font(.system(size: 14))
             .foregroundStyle(Color(hex: annotation.colorHex))
-            .padding(8)
+            .padding(HeirloomSpacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: 6)
                     .fill(Color.yellow.opacity(0.3))
@@ -474,7 +474,7 @@ private struct RecipeCardBackView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
                 // Recipe Title
                 Text(recipe.title)
                     .font(.title2)
@@ -558,7 +558,7 @@ private struct RecipeCardBackView: View {
     // MARK: - Sections
 
     private var attributionSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             HStack(spacing: 6) {
                 Image(systemName: sourceIcon)
                     .font(HeirloomFonts.subheadline)
@@ -577,7 +577,7 @@ private struct RecipeCardBackView: View {
     }
 
     private func noteToFriendsSection(_ note: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             Text("A Note from Me")
                 .font(HeirloomFonts.title3)
                 .foregroundStyle(HeirloomColors.charcoal)
@@ -590,12 +590,12 @@ private struct RecipeCardBackView: View {
     }
 
     private func ratingSection(_ rating: Int) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: HeirloomSpacing.sm) {
             Text("My Rating:")
                 .font(HeirloomFonts.subheadline)
                 .foregroundStyle(HeirloomColors.secondaryText)
 
-            HStack(spacing: 4) {
+            HStack(spacing: HeirloomSpacing.xs) {
                 ForEach(1...5, id: \.self) { star in
                     Image(systemName: star <= rating ? "star.fill" : "star")
                         .foregroundStyle(.yellow)
@@ -612,7 +612,7 @@ private struct RecipeCardBackView: View {
                 .foregroundStyle(HeirloomColors.charcoal)
 
             ForEach(Array(tips.enumerated()), id: \.offset) { _, tip in
-                HStack(alignment: .top, spacing: 8) {
+                HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
                     Image(systemName: "lightbulb.fill")
                         .foregroundStyle(.yellow)
                         .font(HeirloomFonts.caption1)
@@ -637,7 +637,7 @@ private struct RecipeCardBackView: View {
                         .foregroundStyle(HeirloomColors.charcoal)
 
                     ForEach(Array(pinnedComments)) { comment in
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                             Text(comment.text)
                                 .font(HeirloomFonts.subheadline)
                                 .foregroundStyle(HeirloomColors.primaryText)
@@ -658,7 +658,7 @@ private struct RecipeCardBackView: View {
     }
 
     private var lineageSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             HStack(spacing: 6) {
                 Image(systemName: "heart.fill")
                     .foregroundStyle(HeirloomColors.tomato)

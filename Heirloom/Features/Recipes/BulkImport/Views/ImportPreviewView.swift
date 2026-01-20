@@ -39,7 +39,7 @@ struct ImportPreviewView: View {
                 .font(HeirloomFonts.callout)
             }
             .padding(HeirloomSpacing.lg)
-            .background(Color.white)
+            .background(HeirloomColors.cardBackground)
 
             Divider()
 
@@ -76,7 +76,7 @@ struct ImportPreviewView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(validURLs.isEmpty ? HeirloomColors.warmGray : HeirloomColors.tomato)
-                    .foregroundColor(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .cornerRadius(12)
                 }
                 .disabled(validURLs.isEmpty)
@@ -88,7 +88,7 @@ struct ImportPreviewView: View {
                 .foregroundStyle(HeirloomColors.secondaryText)
             }
             .padding(HeirloomSpacing.lg)
-            .background(Color.white)
+            .background(HeirloomColors.cardBackground)
         }
         .confirmationDialog(
             "Delete URL",
@@ -118,7 +118,7 @@ struct URLRowView: View {
                 // Status Icon
                 Image(systemName: editableURL.isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                     .foregroundStyle(editableURL.isValid ? HeirloomColors.tomato : .orange)
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
 
                 VStack(alignment: .leading, spacing: 2) {
                     if isEditing {
@@ -159,7 +159,7 @@ struct URLRowView: View {
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .foregroundStyle(HeirloomColors.secondaryText)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 }
             }
 

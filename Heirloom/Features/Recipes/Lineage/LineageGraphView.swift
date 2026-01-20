@@ -131,7 +131,7 @@ struct LineageGraphView: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
                 .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
         )
@@ -227,7 +227,7 @@ struct LineageGraphView: View {
             // Draw generation badge
             let badgeText = Text(node.generationBadge)
                 .font(.system(size: 10, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
 
             context.draw(badgeText, at: position)
 

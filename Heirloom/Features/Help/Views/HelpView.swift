@@ -66,7 +66,7 @@ struct HelpView: View {
                     .font(.system(size: 40))
                     .foregroundStyle(HeirloomColors.tomato)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("How can we help?")
                         .font(HeirloomFonts.title2)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -101,7 +101,7 @@ struct HelpView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 8))
 
                 // Section info
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(section.rawValue)
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -127,13 +127,13 @@ struct HelpView: View {
                 .frame(width: 60)
 
                 Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.warmGray)
             }
             .padding(HeirloomSpacing.md)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .shadow(color: Color.black.opacity(0.05), radius: 4, y: 2)
+            .background(HeirloomColors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
+            .heirloomShadow(HeirloomShadows.subtle)
         }
         .buttonStyle(.plain)
     }
@@ -152,7 +152,7 @@ struct HelpView: View {
                     .font(.title2)
                     .foregroundStyle(HeirloomColors.tomato)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("Gestures Guide")
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -165,12 +165,12 @@ struct HelpView: View {
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.warmGray)
             }
             .padding(HeirloomSpacing.md)
             .background(HeirloomColors.tomato.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
         }
         .buttonStyle(.plain)
     }
@@ -187,7 +187,7 @@ struct HelpView: View {
                     .font(.title2)
                     .foregroundStyle(HeirloomColors.familyGreen)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("Frequently Asked Questions")
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -200,12 +200,12 @@ struct HelpView: View {
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.warmGray)
             }
             .padding(HeirloomSpacing.md)
             .background(HeirloomColors.familyGreen.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
         }
         .buttonStyle(.plain)
     }
@@ -269,7 +269,7 @@ struct HelpView: View {
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.warmGray)
             }
 
@@ -280,9 +280,9 @@ struct HelpView: View {
                 .lineLimit(2)
         }
         .padding(HeirloomSpacing.md)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: Color.black.opacity(0.05), radius: 2, y: 1)
+        .background(HeirloomColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
+        .heirloomShadow(HeirloomShadows.subtle)
         .padding(.horizontal, HeirloomSpacing.lg)
     }
 

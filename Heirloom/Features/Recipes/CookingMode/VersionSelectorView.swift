@@ -206,7 +206,7 @@ struct CompactVersionSelector: View {
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: "person.2.fill")
                         .font(.system(size: 12, weight: .medium))
 
@@ -279,7 +279,7 @@ private struct VersionSelectorPreview: View {
                     .padding()
 
                 Text("Compact Version:")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundColor(.secondary)
 
                 CompactVersionSelector(

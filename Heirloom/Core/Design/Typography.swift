@@ -94,12 +94,17 @@ struct ScalableFont {
 
 // MARK: - Spacing System
 enum HeirloomSpacing {
+    static let xxs: CGFloat = 2  // Very tight spacing
     static let xs: CGFloat = 4
     static let sm: CGFloat = 8
     static let md: CGFloat = 16
     static let lg: CGFloat = 24
     static let xl: CGFloat = 32
     static let xxl: CGFloat = 48
+
+    // Badge-specific spacing
+    static let badgePaddingH: CGFloat = 10
+    static let badgePaddingV: CGFloat = 6
 
     static let cardPadding: CGFloat = 16
     static let cardCornerRadius: CGFloat = 16
@@ -128,4 +133,14 @@ enum HeirloomShadows {
         x: CGFloat(0),
         y: CGFloat(2)
     )
+}
+
+// MARK: - Shadow Helper Extension
+extension View {
+    /// Apply an Heirloom shadow using design tokens
+    /// - Parameter shadow: Shadow tuple from HeirloomShadows
+    /// - Returns: View with applied shadow
+    func heirloomShadow(_ shadow: (color: Color, radius: CGFloat, x: CGFloat, y: CGFloat)) -> some View {
+        self.shadow(color: shadow.color, radius: shadow.radius, x: shadow.x, y: shadow.y)
+    }
 }

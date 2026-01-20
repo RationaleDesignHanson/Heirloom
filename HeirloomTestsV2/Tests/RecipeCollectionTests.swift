@@ -310,6 +310,28 @@ final class RecipeCollectionTests: XCTestCase {
         XCTAssertTrue(favorites.isSystemCollection)
     }
 
+    func testRecipeCollection_CreateSystemCollections_CreatesAllRecipes() throws {
+        // Act
+        Heirloom.RecipeCollection.createSystemCollections(context: context)
+
+        // Assert
+        let descriptor = FetchDescriptor<Heirloom.RecipeCollection>(
+            predicate: #Predicate { collection in
+                collection.isAllRecipes == true
+            }
+        )
+        let results = try context.fetch(descriptor)
+
+        XCTAssertEqual(results.count, 1)
+        let allRecipes = results.first!
+        XCTAssertEqual(allRecipes.name, "All Recipes")
+        XCTAssertEqual(allRecipes.iconName, "book.closed.fill")
+        XCTAssertEqual(allRecipes.color, "#FF6B6B")
+        XCTAssertEqual(allRecipes.desc, "All recipes in your library")
+        XCTAssertTrue(allRecipes.isSystemCollection)
+        XCTAssertTrue(allRecipes.isAllRecipes)
+    }
+
     func testRecipeCollection_CreateSystemCollections_CreatesThreeCollections() throws {
         // Act
         Heirloom.RecipeCollection.createSystemCollections(context: context)
@@ -320,7 +342,8 @@ final class RecipeCollectionTests: XCTestCase {
         )
         let results = try context.fetch(descriptor)
 
-        XCTAssertEqual(results.count, 3)
+        XCTAssertEqual(results.count, 4)
+        XCTAssertTrue(results.contains { $0.name == "All Recipes" })
         XCTAssertTrue(results.contains { $0.name == "Favorites" })
         XCTAssertTrue(results.contains { $0.name == "Quick Meals" })
         XCTAssertTrue(results.contains { $0.name == "Meal Prep" })
@@ -331,13 +354,13 @@ final class RecipeCollectionTests: XCTestCase {
         Heirloom.RecipeCollection.createSystemCollections(context: context)
         Heirloom.RecipeCollection.createSystemCollections(context: context)
 
-        // Assert - Should still only have 3 system collections
+        // Assert - Should still only have 4 system collections
         let descriptor = FetchDescriptor<Heirloom.RecipeCollection>(
             predicate: #Predicate { $0.isSystemCollection == true }
         )
         let results = try context.fetch(descriptor)
 
-        XCTAssertEqual(results.count, 3)
+        XCTAssertEqual(results.count, 4)
     }
 
     // MARK: - Heritage Collection Tests
@@ -472,7 +495,7 @@ final class RecipeCollectionTests: XCTestCase {
         let results = try context.fetch(descriptor)
 
         // Assert
-        XCTAssertEqual(results.count, 3) // Should only return system collections
+        XCTAssertEqual(results.count, 4) // Should only return system collections
         XCTAssertFalse(results.contains { $0.id == userCollection.id })
     }
 

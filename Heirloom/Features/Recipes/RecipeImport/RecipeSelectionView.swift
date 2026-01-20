@@ -81,7 +81,7 @@ struct RecipeSelectionView: View {
                         .frame(width: 40, height: 40)
 
                     Image(systemName: "doc.on.doc.fill")
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .foregroundColor(HeirloomColors.familyGreen)
                 }
 
@@ -146,8 +146,8 @@ struct RecipeSelectionView: View {
 
                 if isSaving {
                     // Show progress during import
-                    VStack(alignment: .trailing, spacing: 4) {
-                        HStack(spacing: 8) {
+                    VStack(alignment: .trailing, spacing: HeirloomSpacing.xs) {
+                        HStack(spacing: HeirloomSpacing.sm) {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle())
                                 .scaleEffect(0.8)
@@ -382,7 +382,7 @@ struct RecipeSelectionCard: View {
                     Spacer()
 
                     Image(systemName: isExpanded ? "chevron.up.circle.fill" : "chevron.down.circle")
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .foregroundColor(HeirloomColors.tomato)
                 }
                 .padding(.top, HeirloomSpacing.xs)
@@ -410,7 +410,7 @@ struct RecipeSelectionCard: View {
                     }
 
                     // Ingredients preview
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                         Text("Ingredients")
                             .font(HeirloomFonts.caption1)
                             .foregroundColor(HeirloomColors.secondaryText)
@@ -430,7 +430,7 @@ struct RecipeSelectionCard: View {
                     }
 
                     // Instructions preview
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                         Text("Instructions")
                             .font(HeirloomFonts.caption1)
                             .foregroundColor(HeirloomColors.secondaryText)
@@ -473,7 +473,7 @@ struct RecipeSelectionCard: View {
     private func confidenceBadge(_ confidence: Double) -> some View {
         let (label, color) = confidenceInfo(confidence)
 
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             Circle()
                 .fill(color)
                 .frame(width: 6, height: 6)
@@ -498,7 +498,7 @@ struct RecipeSelectionCard: View {
 
     @ViewBuilder
     private func metadataChip(icon: String, text: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: icon)
             Text(text)
         }

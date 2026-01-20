@@ -15,11 +15,11 @@ struct DebugTestView: View {
                 if let results = testResults {
                     // Results Display
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
                             // Summary Card
-                            VStack(alignment: .leading, spacing: 8) {
+                            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                                 Text("Test Results")
-                                    .font(.headline)
+                                    .font(HeirloomFonts.bodyBold)
 
                                 HStack(spacing: 20) {
                                     StatView(title: "Total", value: "\(results.total)", color: .blue)
@@ -31,7 +31,7 @@ struct DebugTestView: View {
                                     let passRate = Double(results.passed) / Double(results.total) * 100
                                     ProgressView(value: passRate, total: 100) {
                                         Text("\(String(format: "%.1f", passRate))% Pass Rate")
-                                            .font(.caption)
+                                            .font(HeirloomFonts.caption1)
                                     }
                                     .tint(passRate == 100 ? .green : passRate >= 70 ? .orange : .red)
                                 }
@@ -65,11 +65,11 @@ struct DebugTestView: View {
                             }
 
                             // Instructions
-                            VStack(alignment: .leading, spacing: 8) {
+                            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                                 Text("Console Output")
-                                    .font(.headline)
+                                    .font(HeirloomFonts.bodyBold)
                                 Text("Check Xcode console for detailed test output including pass/fail messages for each test.")
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .foregroundColor(.secondary)
                             }
                             .padding()
@@ -86,7 +86,7 @@ struct DebugTestView: View {
 
                 } else {
                     // Initial State
-                    VStack(spacing: 16) {
+                    VStack(spacing: HeirloomSpacing.md) {
                         Image(systemName: "flask.fill")
                             .font(.system(size: 60))
                             .foregroundColor(.blue)
@@ -140,9 +140,9 @@ struct StatView: View {
     let color: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
             Text(title)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundColor(.secondary)
             Text(value)
                 .font(.title2)

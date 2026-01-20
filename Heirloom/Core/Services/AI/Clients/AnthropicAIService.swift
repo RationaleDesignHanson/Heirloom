@@ -341,6 +341,8 @@ class AnthropicAIService: AIServiceProtocol {
     private func handleHTTPError(statusCode: Int, message: String?) -> AIError {
         switch statusCode {
         case 401:
+            // Auto-remove invalid personal key and fall back to default
+            configuration.handleUnauthorizedError()
             return .unauthorized
         case 429:
             // Try to parse retry-after header

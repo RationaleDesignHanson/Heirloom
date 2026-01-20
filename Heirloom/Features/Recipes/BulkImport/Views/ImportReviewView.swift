@@ -47,7 +47,7 @@ struct ImportReviewView: View {
                 }
             }
             .padding(HeirloomSpacing.lg)
-            .background(Color.white)
+            .background(HeirloomColors.cardBackground)
 
             Divider()
 
@@ -90,7 +90,7 @@ struct ImportReviewView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(HeirloomColors.secondaryText)
-                        .foregroundColor(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .cornerRadius(12)
                     }
                 }
@@ -106,12 +106,12 @@ struct ImportReviewView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(HeirloomColors.tomato)
-                    .foregroundColor(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .cornerRadius(12)
                 }
             }
             .padding(HeirloomSpacing.lg)
-            .background(Color.white)
+            .background(HeirloomColors.cardBackground)
         }
         .navigationTitle("Import Results")
         .navigationBarTitleDisplayMode(.inline)
@@ -250,9 +250,9 @@ struct SuccessRowView: View {
         HStack(spacing: HeirloomSpacing.md) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(.green)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 if let urlString = item.urlString, let domain = URLNormalizer.extractDomain(urlString) {
                     Text(domain)
                         .font(HeirloomFonts.body)
@@ -266,9 +266,9 @@ struct SuccessRowView: View {
 
                 // Phase 3: AI Suggestions Preview
                 if let collections = item.suggestedCollections, !collections.isEmpty {
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Image(systemName: "sparkles")
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                         Text(collections.joined(separator: ", "))
                             .font(HeirloomFonts.caption2)
                     }
@@ -279,7 +279,7 @@ struct SuccessRowView: View {
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
         .padding(.vertical, HeirloomSpacing.xs)
@@ -295,9 +295,9 @@ struct FailedRowView: View {
         HStack(alignment: .top, spacing: HeirloomSpacing.md) {
             Image(systemName: "exclamationmark.circle.fill")
                 .foregroundStyle(.red)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 if let urlString = item.urlString, let domain = URLNormalizer.extractDomain(urlString) {
                     Text(domain)
                         .font(HeirloomFonts.body)
@@ -335,9 +335,9 @@ struct SkippedRowView: View {
         HStack(alignment: .top, spacing: HeirloomSpacing.md) {
             Image(systemName: "minus.circle.fill")
                 .foregroundStyle(.orange)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 if let urlString = item.urlString, let domain = URLNormalizer.extractDomain(urlString) {
                     Text(domain)
                         .font(HeirloomFonts.body)

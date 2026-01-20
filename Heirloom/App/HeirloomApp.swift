@@ -321,14 +321,8 @@ struct HeirloomApp: App {
             analytics.track(event: .appLaunched)
         }
 
-        // Set personal Anthropic API key for unlimited usage
-        Task { @MainActor in
-            let aiConfig = serviceContainer.resolve(AIConfiguration.self)
-            let personalAPIKey = "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"
-
-            aiConfig.setAPIKey(personalAPIKey, for: .anthropic)
-            Log.info("Using personal Anthropic API key (unlimited)", category: .general)
-        }
+        // Personal API keys should be added via Settings, not hardcoded here
+        // The default key from Config.xcconfig will be used automatically
 
         // Initialize subscription system
         Task { @MainActor in
@@ -390,8 +384,14 @@ struct HeirloomApp: App {
         if let container = modelContainer {
             cleanupOldRecipeData(container: container)
 
-            // Create system collections on first launch
+            // Run collections-first migration for existing users
             Task { @MainActor in
+                let didRunMigration = CollectionsFirstMigration.runIfNeeded(context: container.mainContext)
+                if didRunMigration {
+                    DeviceLogger.shared.log("✅ [Migration] Collections-First migration completed")
+                }
+
+                // Create system collections on first launch (handles migration idempotently)
                 RecipeCollection.createSystemCollections(context: container.mainContext)
 
                 // Create heritage collections on first launch
@@ -769,35 +769,13 @@ struct ContentView: View {
     @ViewBuilder
     private var mainContent: some View {
         TabView(selection: $tabCoordinator.selectedTab) {
-            Group {
-                RecipeListView()
-                    .environmentObject(notificationService)
-                    .environmentObject(tabCoordinator)
-            }
-            .tabItem {
-                Label("Recipes", systemImage: "book.closed.fill")
-            }
-            .if(!hasViewedRecipesList && notificationService.unreadCount > 0) { view in
-                view.badge(notificationService.unreadCount)
-            }
-            .tag(0)
-            .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.recipesTab)
-            .accessibilityLabel("Recipes")
-            .accessibilityHint("View and manage your recipe collection")
-            .onAppear {
-                // Clear tab badge on first view of recipes list
-                if !hasViewedRecipesList {
-                    hasViewedRecipesList = true
-                }
-            }
-
             CollectionsListView()
                 .environmentObject(notificationService)
                 .environmentObject(tabCoordinator)
                 .tabItem {
                     Label("Collections", systemImage: "square.grid.2x2.fill")
                 }
-                .tag(1)
+                .tag(0)
                 .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.collectionsTab)
                 .accessibilityLabel("Collections")
                 .accessibilityHint("View heritage and user collections")
@@ -807,7 +785,7 @@ struct ContentView: View {
                 .tabItem {
                     Label("Shopping", systemImage: "cart.fill")
                 }
-                .tag(2)
+                .tag(1)
                 .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.shoppingTab)
                 .accessibilityLabel("Shopping List")
                 .accessibilityHint("View your shopping list with ingredients from recipes")
@@ -816,7 +794,7 @@ struct ContentView: View {
                 .tabItem {
                     Label("Meal Planning", systemImage: "calendar")
                 }
-                .tag(3)
+                .tag(2)
                 .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.mealPlanningTab)
                 .accessibilityLabel("Meal Planning")
                 .accessibilityHint("Plan and manage dinner parties")
@@ -826,7 +804,7 @@ struct ContentView: View {
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
-                .tag(4)
+                .tag(3)
                 .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.settingsTab)
                 .accessibilityLabel("Settings")
                 .accessibilityHint("App settings and preferences")
@@ -1116,16 +1094,16 @@ struct ContentView: View {
             Color.black.opacity(0.7)
                 .ignoresSafeArea()
 
-            VStack(spacing: 24) {
+            VStack(spacing: HeirloomSpacing.lg) {
                 // Heritage icon
                 Image(systemName: "books.vertical.fill")
                     .font(.system(size: 56))
                     .foregroundStyle(HeirloomColors.tomato)
 
-                VStack(spacing: 8) {
+                VStack(spacing: HeirloomSpacing.sm) {
                     Text("Setting up your Heritage recipes")
                         .font(HeirloomFonts.title3)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .multilineTextAlignment(.center)
 
                     Text("This will only take a moment")

@@ -41,8 +41,8 @@ struct BlindBoxCollectionRow: View {
                 // Mystery icon with blur
                 ZStack {
                     Image(systemName: "gift.fill")
-                        .font(.title3)
-                        .foregroundStyle(.white)
+                        .font(HeirloomFonts.title2)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(width: 32, height: 32)
                         .background(
                             LinearGradient(
@@ -67,7 +67,7 @@ struct BlindBoxCollectionRow: View {
 
                     // Show loading message if seeding, otherwise normal tap message
                     if unlockTracker?.isSeedingInProgress == true {
-                        HStack(spacing: 4) {
+                        HStack(spacing: HeirloomSpacing.xs) {
                             ProgressView()
                                 .scaleEffect(0.7)
                                 .tint(HeirloomColors.tomato)

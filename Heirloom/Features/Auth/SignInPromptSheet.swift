@@ -13,7 +13,7 @@ struct SignInPromptSheet: View {
     @State private var showSignInFlow = false
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: HeirloomSpacing.lg) {
             // Icon with gradient circle
             ZStack {
                 Circle()
@@ -50,7 +50,7 @@ struct SignInPromptSheet: View {
             }
 
             // Benefits List
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
                 benefitRow(
                     icon: "arrow.triangle.2.circlepath",
                     title: "Sync across devices",
@@ -81,7 +81,7 @@ struct SignInPromptSheet: View {
                 } label: {
                     Text("Sign In")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(HeirloomColors.tomato)
@@ -111,9 +111,9 @@ struct SignInPromptSheet: View {
 
     @ViewBuilder
     private func benefitRow(icon: String, title: String, description: String) -> some View {
-        HStack(spacing: 16) {
+        HStack(spacing: HeirloomSpacing.md) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.tomato)
                 .frame(width: 32)
 

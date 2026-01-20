@@ -268,7 +268,7 @@ struct PDFImportView: View {
             .frame(maxWidth: .infinity)
             .padding()
             .background(HeirloomColors.tomato)
-            .foregroundColor(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .cornerRadius(12)
         }
     }
@@ -298,7 +298,7 @@ struct PDFImportView: View {
                 .foregroundStyle(validationIconColor(for: url))
                 .font(.system(size: 24))
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(url.lastPathComponent)
                     .font(HeirloomFonts.body)
                     .foregroundStyle(HeirloomColors.primaryText)
@@ -387,10 +387,10 @@ struct PDFImportView: View {
                 await processPDFs()
             }
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: HeirloomSpacing.sm) {
                 if isProcessing {
                     ProgressView()
-                        .tint(.white)
+                        .tint(HeirloomColors.buttonTextLight)
                     Text("Starting import...")
                         .fontWeight(.semibold)
                 } else {
@@ -402,7 +402,7 @@ struct PDFImportView: View {
             .frame(maxWidth: .infinity)
             .padding()
             .background(canImport ? HeirloomColors.tomato : Color.gray)
-            .foregroundColor(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .cornerRadius(12)
         }
         .disabled(!canImport || isProcessing)
@@ -661,7 +661,7 @@ struct InfoCard: View {
                 .font(.system(size: 24))
                 .frame(width: 32)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(title)
                     .font(HeirloomFonts.subheadline)
                     .fontWeight(.semibold)

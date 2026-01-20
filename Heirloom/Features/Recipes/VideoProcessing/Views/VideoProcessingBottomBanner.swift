@@ -104,7 +104,7 @@ struct VideoProcessingBottomBanner: View {
                 HStack(spacing: 12) {
                     // Phase icon
                     Image(systemName: phaseIcon(for: job))
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .foregroundStyle(HeirloomColors.tomato)
 
                     // Two-line text layout (matching PDF banner)
@@ -137,7 +137,7 @@ struct VideoProcessingBottomBanner: View {
                     } else {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(.green)
-                            .font(.title3)
+                            .font(HeirloomFonts.title2)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -163,7 +163,7 @@ struct VideoProcessingBottomBanner: View {
                 HStack(spacing: 12) {
                     // Checkmark icon
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .foregroundStyle(.green)
 
                     // Two-line text layout
@@ -181,7 +181,7 @@ struct VideoProcessingBottomBanner: View {
 
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -212,7 +212,7 @@ struct VideoProcessingBottomBanner: View {
                 HStack(spacing: 12) {
                     // Error icon
                     Image(systemName: "exclamationmark.circle.fill")
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .foregroundStyle(.red)
 
                     // Two-line text layout
@@ -236,7 +236,7 @@ struct VideoProcessingBottomBanner: View {
 
                     Image(systemName: "exclamationmark.circle.fill")
                         .foregroundStyle(.red)
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)

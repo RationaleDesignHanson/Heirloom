@@ -18,6 +18,8 @@ final class ImportJobManager: ObservableObject {
     @Published private(set) var isProcessing = false
 
     private var currentTasks: [UUID: Task<Void, Never>] = [:]
+    private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    private var shouldPauseForBackground = false
 
     // MARK: - Dependencies
     private let importService: RecipeImportService
@@ -39,6 +41,78 @@ final class ImportJobManager: ObservableObject {
         self.firebaseSync = firebaseSync
         self.backendConfig = backendConfig
         setupRateLimiter()
+        setupBackgroundHandling()
+    }
+
+    // MARK: - Background Task Handling
+
+    private func setupBackgroundHandling() {
+        // Observe app lifecycle events
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterBackground),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+
+    @objc private func appWillEnterBackground() {
+        guard isProcessing else { return }
+
+        Log.info("App backgrounding - starting background task", category: .import)
+
+        // Request background execution time
+        backgroundTask = UIApplication.shared.beginBackgroundTask { [weak self] in
+            // Called when time expires - clean up
+            Log.warning("Background task expired - pausing import", category: .import)
+            Task { @MainActor in
+                self?.handleBackgroundTaskExpiration()
+            }
+        }
+    }
+
+    @objc private func appDidBecomeActive() {
+        guard isProcessing else { return }
+
+        Log.info("App foregrounding - ending background task", category: .import)
+
+        // End background task when returning to foreground
+        if backgroundTask != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTask)
+            backgroundTask = .invalid
+        }
+    }
+
+    private func handleBackgroundTaskExpiration() {
+        Log.warning("Background time limit reached - import will pause", category: .import)
+
+        // End the background task
+        if backgroundTask != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTask)
+            backgroundTask = .invalid
+        }
+
+        // Note: Import will be killed by iOS, but state is persisted in SwiftData
+        // User can resume by reopening the app
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+
+        // Clean up background task if still active
+        let taskToEnd = backgroundTask
+        if taskToEnd != .invalid {
+            Task { @MainActor in
+                UIApplication.shared.endBackgroundTask(taskToEnd)
+            }
+        }
     }
 
     // MARK: - Job Creation
@@ -154,30 +228,33 @@ final class ImportJobManager: ObservableObject {
                 ])
             }
 
-            // Render PDF pages
-            Log.info("Rendering PDF pages", category: .import, metadata: [
+            // Render PDF pages in batches and analyze incrementally
+            Log.info("Starting batched PDF processing", category: .import, metadata: [
                 "file": pdfURL.lastPathComponent
             ])
 
             let pdfProcessor = ServiceContainer.shared.resolve(PDFProcessor.self)
-            let pages = try await pdfProcessor.renderPDFPages(from: pdfURL)
 
-            // Analyze page boundaries with progress callback
-            Log.info("Analyzing page boundaries", category: .import, metadata: [
-                "file": pdfURL.lastPathComponent,
-                "pages": pages.count
-            ])
-
-            let recipeGroups = try await multiPageAnalyzer.analyzePageBoundaries(
-                pages: pages,
-                progressCallback: { currentPage in
-                    Task { @MainActor in
-                        totalPagesProcessed += 1
-                        job.phaseProgress = Double(totalPagesProcessed) / Double(totalPagesAcrossAllPDFs)
-                        try? context.save()
+            // Process PDF in batches to avoid loading all pages into memory
+            try await pdfProcessor.renderPDFPagesInBatches(
+                from: pdfURL,
+                batchSize: 3
+            ) { [self] batch in
+                // Analyze this batch and maintain state
+                try await self.multiPageAnalyzer.processBatch(
+                    batch,
+                    progressCallback: { currentPage in
+                        Task { @MainActor in
+                            totalPagesProcessed += 1
+                            job.phaseProgress = Double(totalPagesProcessed) / Double(totalPagesAcrossAllPDFs)
+                            try? context.save()
+                        }
                     }
-                }
-            )
+                )
+            }
+
+            // Finalize groups after all batches are processed
+            let recipeGroups = multiPageAnalyzer.finalizeGroups()
 
             Log.info("Multi-page analysis complete", category: .import, metadata: [
                 "file": pdfURL.lastPathComponent,
@@ -185,38 +262,59 @@ final class ImportJobManager: ObservableObject {
                 "multi_page_recipes": recipeGroups.filter { $0.isMultiPage }.count
             ])
 
-            // Create ImportItems for this PDF
-            for group in recipeGroups {
-                let combinedImage = group.pageCount == 1 ? group.pages[0] : group.combinedImage()
-                guard let imageData = combinedImage.jpegData(compressionQuality: 0.9) else {
-                    Log.warning("Failed to create image data for recipe group", category: .import, metadata: [
+            // Create ImportItems in batches to avoid loading all images into memory
+            // Process 5 recipe groups at a time
+            let groupBatches = recipeGroups.chunked(into: 5)
+
+            for (batchIndex, groupBatch) in groupBatches.enumerated() {
+                Log.info("Creating import items batch", category: .import, metadata: [
+                    "file": pdfURL.lastPathComponent,
+                    "batch": batchIndex + 1,
+                    "total_batches": groupBatches.count,
+                    "recipes_in_batch": groupBatch.count
+                ])
+
+                for group in groupBatch {
+                    let combinedImage = group.pageCount == 1 ? group.pages[0] : group.combinedImage()
+                    guard let imageData = combinedImage.jpegData(compressionQuality: 0.9) else {
+                        Log.warning("Failed to create image data for recipe group", category: .import, metadata: [
+                            "file": pdfURL.lastPathComponent,
+                            "pages": group.pageRange
+                        ])
+                        continue
+                    }
+
+                    let item = ImportItem(
+                        source: .pdf,
+                        imageData: imageData,
+                        pageNumber: group.startPage,
+                        totalPages: group.pageCount,
+                        isMultiPageRecipe: group.isMultiPage
+                    )
+
+                    // Apply cookbook metadata
+                    item.cookbookTitle = cookbookMetadata?.title
+                    item.cookbookAuthor = cookbookMetadata?.author
+
+                    item.job = job
+                    context.insert(item)
+                    allItems.append(item)
+
+                    Log.info("Created import item for recipe group", category: .import, metadata: [
                         "file": pdfURL.lastPathComponent,
-                        "pages": group.pageRange
+                        "title": group.title,
+                        "pages": group.pageRange,
+                        "is_multi_page": group.isMultiPage
                     ])
-                    continue
                 }
 
-                let item = ImportItem(
-                    source: .pdf,
-                    imageData: imageData,
-                    pageNumber: group.startPage,
-                    totalPages: group.pageCount,
-                    isMultiPageRecipe: group.isMultiPage
-                )
+                // Save batch to database and force memory cleanup
+                try context.save()
+                await Task.yield()
 
-                // Apply cookbook metadata
-                item.cookbookTitle = cookbookMetadata?.title
-                item.cookbookAuthor = cookbookMetadata?.author
-
-                item.job = job
-                context.insert(item)
-                allItems.append(item)
-
-                Log.info("Created import item for recipe group", category: .import, metadata: [
+                Log.info("Saved import items batch to database", category: .import, metadata: [
                     "file": pdfURL.lastPathComponent,
-                    "title": group.title,
-                    "pages": group.pageRange,
-                    "is_multi_page": group.isMultiPage
+                    "batch": batchIndex + 1
                 ])
             }
         }
@@ -704,6 +802,14 @@ final class ImportJobManager: ObservableObject {
         job.phaseProgress = 1.0
         job.completedAt = Date()
         isProcessing = false
+
+        // End background task if active
+        if backgroundTask != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTask)
+            backgroundTask = .invalid
+            Log.info("Background task ended - import completed", category: .import)
+        }
+
         // Don't clear activeJob - let UI dismiss sheet explicitly
         // activeJob will be cleared when user taps "Done" button in ImportProgressView
 

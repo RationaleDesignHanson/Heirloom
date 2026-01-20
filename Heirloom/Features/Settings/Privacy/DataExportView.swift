@@ -117,14 +117,14 @@ struct DataExportView: View {
             HStack {
                 if isExporting {
                     ProgressView()
-                        .tint(.white)
+                        .tint(HeirloomColors.buttonTextLight)
                 } else {
                     Image(systemName: "square.and.arrow.up")
                     Text("Export Data")
                 }
             }
             .font(HeirloomFonts.bodyBold)
-            .foregroundStyle(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .frame(maxWidth: .infinity)
             .padding()
             .background(HeirloomColors.tomato)
@@ -155,7 +155,7 @@ struct DataExportView: View {
                         Text("Share Export File")
                     }
                     .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(HeirloomColors.tomato)

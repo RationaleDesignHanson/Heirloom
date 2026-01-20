@@ -255,7 +255,7 @@ struct PhotoView: View {
             .opacity(opacity)
             .overlay {
                 Text("Photo")
-                    .foregroundColor(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
             }
     }
 }

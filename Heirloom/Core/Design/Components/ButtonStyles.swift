@@ -7,11 +7,11 @@ struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(HeirloomFonts.bodyBold)
-            .foregroundStyle(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .frame(maxWidth: .infinity)
             .padding(.vertical, HeirloomSpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .fill(HeirloomColors.tomato)
                     .opacity(configuration.isPressed ? 0.8 : 1.0)
             )
@@ -19,7 +19,7 @@ struct PrimaryButtonStyle: ButtonStyle {
             .overlay {
                 if isLoading {
                     ProgressView()
-                        .tint(.white)
+                        .tint(HeirloomColors.buttonTextLight)
                 }
             }
             .animation(.easeInOut(duration: 0.2), value: configuration.isPressed)
@@ -37,10 +37,10 @@ struct SecondaryButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .padding(.vertical, HeirloomSpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .stroke(HeirloomColors.tomato, lineWidth: 2)
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                             .fill(HeirloomColors.cream)
                             .opacity(configuration.isPressed ? 0.5 : 0)
                     )
@@ -75,11 +75,11 @@ struct DestructiveButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(HeirloomFonts.bodyBold)
-            .foregroundStyle(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .frame(maxWidth: .infinity)
             .padding(.vertical, HeirloomSpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .fill(Color.red)
                     .opacity(configuration.isPressed ? 0.8 : 1.0)
             )
@@ -87,7 +87,7 @@ struct DestructiveButtonStyle: ButtonStyle {
             .overlay {
                 if isLoading {
                     ProgressView()
-                        .tint(.white)
+                        .tint(HeirloomColors.buttonTextLight)
                 }
             }
             .animation(.easeInOut(duration: 0.2), value: configuration.isPressed)
@@ -177,9 +177,9 @@ extension ButtonStyle where Self == IconButtonStyle {
             } label: {
                 Image(systemName: "square.and.arrow.up")
             }
-            .buttonStyle(.icon(backgroundColor: HeirloomColors.tomato, foregroundColor: .white))
+            .buttonStyle(.icon(backgroundColor: HeirloomColors.tomato, foregroundColor: HeirloomColors.buttonTextLight))
         }
     }
     .padding()
-    .background(Color.white)
+    .background(HeirloomColors.cardBackground)
 }

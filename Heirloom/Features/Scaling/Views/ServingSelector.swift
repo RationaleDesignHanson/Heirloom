@@ -30,7 +30,7 @@ struct ServingSelector: View {
     private var scalableView: some View {
         HStack(spacing: HeirloomSpacing.md) {
             // Label
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text("Servings")
                     .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
@@ -48,7 +48,7 @@ struct ServingSelector: View {
                     decrementServings()
                 } label: {
                     Image(systemName: "minus.circle.fill")
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .foregroundStyle(canDecrement ? HeirloomColors.tomato : HeirloomColors.warmGray.opacity(0.3))
                 }
                 .disabled(!canDecrement)
@@ -57,7 +57,7 @@ struct ServingSelector: View {
                     incrementServings()
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .font(.title3)
+                        .font(HeirloomFonts.title2)
                         .foregroundStyle(canIncrement ? HeirloomColors.tomato : HeirloomColors.warmGray.opacity(0.3))
                 }
                 .disabled(!canIncrement)
@@ -65,9 +65,9 @@ struct ServingSelector: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
-                .shadow(color: HeirloomColors.cardShadow, radius: 4, x: 0, y: 2)
+                .heirloomShadow(HeirloomShadows.subtle)
         )
     }
 
@@ -80,11 +80,11 @@ struct ServingSelector: View {
             HStack(spacing: HeirloomSpacing.md) {
                 // Lock Icon
                 Image(systemName: "lock.fill")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                     .foregroundStyle(HeirloomColors.warmGray)
 
                 // Label
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("Servings")
                         .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
@@ -98,15 +98,15 @@ struct ServingSelector: View {
 
                 // Info Icon
                 Image(systemName: "info.circle")
-                    .font(.title3)
+                    .font(HeirloomFonts.title2)
                     .foregroundStyle(HeirloomColors.warmGray.opacity(0.5))
             }
             .padding(HeirloomSpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .fill(HeirloomColors.warmGray.opacity(0.05))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                             .strokeBorder(HeirloomColors.warmGray.opacity(0.2), lineWidth: 1)
                     )
             )
@@ -189,7 +189,7 @@ struct ScalingExplanationSheet: View {
                         .padding(HeirloomSpacing.md)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                                 .fill(HeirloomColors.warning.opacity(0.1))
                         )
                     }
@@ -208,7 +208,7 @@ struct ScalingExplanationSheet: View {
                     .padding(HeirloomSpacing.md)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                             .fill(HeirloomColors.success.opacity(0.1))
                     )
 
@@ -273,9 +273,9 @@ struct ScalingExplanationSheet: View {
         .padding(HeirloomSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
-                .shadow(color: HeirloomColors.cardShadow, radius: 4, x: 0, y: 2)
+                .heirloomShadow(HeirloomShadows.subtle)
         )
     }
 

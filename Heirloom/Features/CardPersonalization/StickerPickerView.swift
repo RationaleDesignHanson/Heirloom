@@ -71,7 +71,7 @@ struct RecipeStickerPickerView: View {
             // Card Background
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white)
-                .shadow(color: .black.opacity(0.1), radius: 10)
+                .heirloomShadow(HeirloomShadows.card)
                 .padding()
 
             // Preview RecipeSticker
@@ -194,12 +194,12 @@ struct RecipeStickerPickerView: View {
             generator.impactOccurred()
         } label: {
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .fill(isSelected ? HeirloomColors.tomato.opacity(0.1) : Color.gray.opacity(0.05))
                     .frame(width: 70, height: 70)
 
                 if isSelected {
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .strokeBorder(HeirloomColors.tomato, lineWidth: 2)
                         .frame(width: 70, height: 70)
                 }

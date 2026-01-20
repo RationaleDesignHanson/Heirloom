@@ -26,7 +26,7 @@ struct RecipeVersionSelector: View {
                                 }
                             } label: {
                                 Image(systemName: isDiffExpanded ? "chevron.down.circle.fill" : "chevron.right.circle.fill")
-                                    .font(.title3)
+                                    .font(HeirloomFonts.title2)
                                     .foregroundStyle(HeirloomColors.success)
                                     .rotationEffect(.degrees(isDiffExpanded ? 0 : 0))
                                     .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isDiffExpanded)
@@ -47,7 +47,7 @@ struct RecipeVersionSelector: View {
 
                                             if version.generation > 0 {
                                                 Text(version.modifiedAt, style: .relative)
-                                                    .font(.caption)
+                                                    .font(HeirloomFonts.caption1)
                                                     .foregroundStyle(.secondary)
                                             }
                                         }
@@ -62,20 +62,20 @@ struct RecipeVersionSelector: View {
                             }
                         } label: {
                             HStack(spacing: HeirloomSpacing.sm) {
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                                     Text("Viewing")
                                         .font(HeirloomFonts.caption2)
                                         .foregroundStyle(HeirloomColors.secondaryText)
 
                                     HStack(spacing: HeirloomSpacing.xs) {
                                         Image(systemName: "arrow.triangle.branch")
-                                            .font(.caption)
+                                            .font(HeirloomFonts.caption1)
 
                                         Text(selectedVersion?.displayName ?? "Select Version")
                                             .font(HeirloomFonts.bodyBold)
 
                                         Image(systemName: "chevron.down")
-                                            .font(.caption2)
+                                            .font(HeirloomFonts.caption2)
                                     }
                                     .foregroundStyle(HeirloomColors.charcoal)
                                 }
@@ -120,11 +120,11 @@ struct RecipeVersionSelector: View {
                     }
                 }
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .fill(HeirloomColors.cream)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                         .strokeBorder(
                             selectedVersion?.generation ?? 0 > 0 ? HeirloomColors.success.opacity(0.3) : HeirloomColors.charcoal.opacity(0.1),
                             lineWidth: 1

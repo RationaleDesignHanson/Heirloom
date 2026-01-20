@@ -25,16 +25,16 @@ struct FlipAffordanceBadge: View {
 
     // MARK: - Body
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: "arrow.triangle.2.circlepath")
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
                 .fontWeight(.semibold)
 
             Text("Tap to flip")
-                .font(.caption2)
+                .font(HeirloomFonts.caption2)
                 .fontWeight(.medium)
         }
-        .foregroundColor(.white)
+        .foregroundStyle(HeirloomColors.buttonTextLight)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(
@@ -129,7 +129,7 @@ extension FlipAffordanceBadge {
 
 #Preview("Default Badge") {
     ZStack {
-        RoundedRectangle(cornerRadius: 12)
+        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
             .fill(
                 LinearGradient(
                     colors: [.blue, .purple],
@@ -147,7 +147,7 @@ extension FlipAffordanceBadge {
 
 #Preview("First Time (Pulsing)") {
     ZStack {
-        RoundedRectangle(cornerRadius: 12)
+        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
             .fill(
                 LinearGradient(
                     colors: [.green, .teal],
@@ -172,7 +172,7 @@ extension FlipAffordanceBadge {
             .bottomRight
         ], id: \.self) { position in
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                     .fill(Color.orange)
                     .frame(width: 250, height: 150)
 
@@ -185,7 +185,7 @@ extension FlipAffordanceBadge {
 }
 
 #Preview("Using View Extension") {
-    RoundedRectangle(cornerRadius: 12)
+    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
         .fill(
             LinearGradient(
                 colors: [.pink, .red],

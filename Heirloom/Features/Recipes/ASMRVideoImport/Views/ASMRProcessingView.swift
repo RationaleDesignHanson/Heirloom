@@ -35,17 +35,17 @@ struct ASMRProcessingView: View {
                 .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 32) {
+                    VStack(spacing: HeirloomSpacing.xl) {
                         // Progress ring
                         progressRingSection
 
                         // Important notice
                         if processor.progress < 1.0 {
-                            HStack(spacing: 8) {
+                            HStack(spacing: HeirloomSpacing.sm) {
                                 Image(systemName: "info.circle.fill")
                                     .foregroundStyle(.blue)
                                 Text("Keep this screen open during processing")
-                                    .font(.caption)
+                                    .font(HeirloomFonts.caption1)
                                     .foregroundStyle(.secondary)
                             }
                             .padding(.horizontal)
@@ -95,7 +95,7 @@ struct ASMRProcessingView: View {
     // MARK: - Progress Ring Section
 
     private var progressRingSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: HeirloomSpacing.md) {
             ZStack {
                 // Background circle
                 Circle()
@@ -117,14 +117,14 @@ struct ASMRProcessingView: View {
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 0.3), value: processor.progress)
 
-                VStack(spacing: 8) {
+                VStack(spacing: HeirloomSpacing.sm) {
                     Text("\(Int(processor.progress * 100))%")
                         .font(.system(size: 48, weight: .bold, design: .rounded))
                         .foregroundStyle(.primary)
 
                     if let pass = processor.currentPass {
                         Text("Pass \(pass.rawValue + 1)/5")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -132,11 +132,11 @@ struct ASMRProcessingView: View {
 
             // Processing time estimate
             if processor.progress < 1.0 {
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: "clock")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                     Text(estimatedTimeRemaining)
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                 }
                 .foregroundStyle(.secondary)
             }
@@ -147,7 +147,7 @@ struct ASMRProcessingView: View {
 
     @ViewBuilder
     private var stateDescriptionView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: HeirloomSpacing.sm) {
             switch processor.state {
             case .idle:
                 EmptyView()
@@ -217,18 +217,18 @@ struct ASMRProcessingView: View {
     }
 
     private func stateLabel(icon: String, title: String, subtitle: String, color: Color) -> some View {
-        HStack(spacing: 16) {
+        HStack(spacing: HeirloomSpacing.md) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundStyle(color.gradient)
                 .frame(width: 40)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(title)
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
 
                 Text(subtitle)
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .foregroundStyle(.secondary)
             }
 
@@ -239,9 +239,9 @@ struct ASMRProcessingView: View {
     // MARK: - Pass Progress Section
 
     private var passProgressSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             Text("Processing Passes")
-                .font(.headline)
+                .font(HeirloomFonts.bodyBold)
                 .foregroundStyle(.secondary)
 
             VStack(spacing: 12) {

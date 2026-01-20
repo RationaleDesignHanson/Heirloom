@@ -58,7 +58,7 @@ struct OnboardingWelcomeScreen: View {
                 } label: {
                     Text("Get Started")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(HeirloomColors.tomato)

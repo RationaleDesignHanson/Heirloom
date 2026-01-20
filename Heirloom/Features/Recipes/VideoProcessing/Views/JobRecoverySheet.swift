@@ -22,13 +22,13 @@ struct JobRecoverySheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 32) {
+                VStack(spacing: HeirloomSpacing.xl) {
                     // Error Icon
                     errorIcon
                         .font(.system(size: 64))
                         .foregroundStyle(errorIconColor)
 
-                    VStack(spacing: 16) {
+                    VStack(spacing: HeirloomSpacing.md) {
                         // Title
                         Text("Processing Failed")
                             .font(.title2.bold())
@@ -56,19 +56,19 @@ struct JobRecoverySheet: View {
                                         Text("Try ASMR Mode")
                                             .fontWeight(.semibold)
                                         Text("5 credits")
-                                            .font(.caption)
+                                            .font(HeirloomFonts.caption1)
                                             .foregroundStyle(.white.opacity(0.8))
                                     }
                                     Spacer()
                                     if isProcessing {
                                         ProgressView()
-                                            .tint(.white)
+                                            .tint(HeirloomColors.buttonTextLight)
                                     }
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.purple)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
                                 .cornerRadius(12)
                             }
                             .disabled(isProcessing)

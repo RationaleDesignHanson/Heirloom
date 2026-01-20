@@ -23,7 +23,7 @@ struct RecipeListToolbarLeading: View {
             }
             .accessibilityLabel("Cancel selection")
         } else {
-            HStack(spacing: 8) {
+            HStack(spacing: HeirloomSpacing.sm) {
                 if isSyncing {
                     ProgressView()
                         .scaleEffect(0.8)
@@ -35,13 +35,13 @@ struct RecipeListToolbarLeading: View {
                 } label: {
                     ZStack(alignment: .topTrailing) {
                         Image(systemName: filters.isActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                            .font(.title3)
+                            .font(HeirloomFonts.title2)
                             .foregroundStyle(filters.isActive ? HeirloomColors.tomato : HeirloomColors.primaryText)
 
                         if filters.activeFilterCount > 0 {
                             Text("\(filters.activeFilterCount)")
                                 .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
                                 .frame(width: 18, height: 18)
                                 .background(HeirloomColors.tomato)
                                 .clipShape(Circle())

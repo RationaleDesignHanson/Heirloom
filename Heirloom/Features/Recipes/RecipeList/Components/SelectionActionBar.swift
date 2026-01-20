@@ -15,13 +15,13 @@ struct SelectionActionBar: View {
     let onAddToCollection: () -> Void
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: HeirloomSpacing.md) {
             Button {
                 onDelete()
             } label: {
                 Label("Delete (\(selectedCount))", systemImage: "trash")
                     .font(HeirloomFonts.body)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(Color.red)
@@ -34,7 +34,7 @@ struct SelectionActionBar: View {
             } label: {
                 Label("Add to Collection", systemImage: "folder.badge.plus")
                     .font(HeirloomFonts.body)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(HeirloomColors.tomato)

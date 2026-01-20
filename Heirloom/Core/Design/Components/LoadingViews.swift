@@ -40,7 +40,7 @@ struct RecipeCardSkeleton: View {
     var body: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             // Image skeleton
-            SkeletonView(cornerRadius: 12)
+            SkeletonView(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .aspectRatio(4/3, contentMode: .fill)
 
             VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
@@ -107,7 +107,7 @@ struct FullScreenLoading: View {
 
                 Text(message)
                     .font(HeirloomFonts.title3)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
             }
             .padding(HeirloomSpacing.xl)
             .background(
@@ -309,7 +309,7 @@ struct AsyncRecipeImage: View {
         }
         .padding()
     }
-    .background(Color.white)
+    .background(HeirloomColors.cardBackground)
 }
 
 #Preview("Full Screen Loading") {

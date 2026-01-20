@@ -34,7 +34,7 @@ struct ASMRVideoImportView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: HeirloomSpacing.lg) {
                     // Header with icon and explanation
                     headerSection
 
@@ -98,18 +98,18 @@ struct ASMRVideoImportView: View {
             }
             .sheet(isPresented: $showPaywall) {
                 NavigationStack {
-                    VStack(spacing: 24) {
+                    VStack(spacing: HeirloomSpacing.lg) {
                         Image(systemName: "waveform.circle.fill")
                             .font(.system(size: 60))
                             .foregroundStyle(.orange.gradient)
 
-                        VStack(spacing: 8) {
+                        VStack(spacing: HeirloomSpacing.sm) {
                             Text("No ASMR Credits Remaining")
                                 .font(.title2.bold())
 
                             let summary = usageManager.getUsageSummary()
                             Text("You've used \(summary.extractionsUsed) of \(summary.extractionsTotal) monthly extractions.")
-                                .font(.subheadline)
+                                .font(HeirloomFonts.body)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                         }
@@ -150,14 +150,14 @@ struct ASMRVideoImportView: View {
                 .font(.system(size: 60))
                 .foregroundStyle(.blue.gradient)
 
-            VStack(spacing: 4) {
+            VStack(spacing: HeirloomSpacing.xs) {
                 Text("Silent Video Import")
                     .font(.title2.bold())
 
                 // Mode indicator badge
                 Text("From Camera Roll")
                     .font(.caption.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
                     .background(Color.purple)
@@ -165,7 +165,7 @@ struct ASMRVideoImportView: View {
             }
 
             Text("Select a video without narration from your camera roll. No spoken instructions needed - extracts recipe visually.")
-                .font(.subheadline)
+                .font(HeirloomFonts.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
@@ -178,7 +178,7 @@ struct ASMRVideoImportView: View {
         Button {
             showVideoPicker = true
         } label: {
-            VStack(spacing: 16) {
+            VStack(spacing: HeirloomSpacing.md) {
                 if isLoadingVideo {
                     ProgressView()
                         .scaleEffect(1.5)
@@ -190,11 +190,11 @@ struct ASMRVideoImportView: View {
                 }
 
                 Text(isLoadingVideo ? "Loading video..." : "Select Video")
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
 
                 if !isLoadingVideo {
                     Text("Choose an ASMR or silent cooking video from your library")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
@@ -217,7 +217,7 @@ struct ASMRVideoImportView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Selected Video")
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
 
                 Spacer()
 
@@ -228,7 +228,7 @@ struct ASMRVideoImportView: View {
                     videoDuration = nil
                 } label: {
                     Text("Change")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                 }
             }
 
@@ -252,14 +252,14 @@ struct ASMRVideoImportView: View {
                         )
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(selectedVideoURL?.lastPathComponent ?? "Video")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .lineLimit(2)
 
                     if let duration = videoDuration {
                         Text(formatDuration(duration))
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -278,15 +278,15 @@ struct ASMRVideoImportView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Video Description")
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
 
                 Text("(Required)")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(.secondary)
             }
 
             Text("Help us understand what's being cooked. This improves accuracy significantly.")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(.secondary)
 
             TextField("e.g., Making carbonara pasta", text: $userCaption, axis: .vertical)
@@ -306,23 +306,23 @@ struct ASMRVideoImportView: View {
                     Image(systemName: "wand.and.stars")
                     Text("Extract Recipe")
                     Text("(5 credits)")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.white.opacity(0.8))
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(canProcess ? Color.blue : Color.gray)
-                .foregroundStyle(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
                 .cornerRadius(12)
             }
             .disabled(!canProcess)
 
             if !canProcess && !userCaption.isEmpty && selectedVideoURL != nil {
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                     Text("Insufficient credits. Upgrade to continue.")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                 }
                 .foregroundStyle(.orange)
             }
@@ -334,7 +334,7 @@ struct ASMRVideoImportView: View {
     private var onboardingSheet: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.lg) {
                     VStack(spacing: 12) {
                         Image(systemName: "eye.circle.fill")
                             .font(.system(size: 60))
@@ -398,12 +398,12 @@ struct ASMRVideoImportView: View {
                 .foregroundStyle(.blue)
                 .frame(width: 32)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(title)
-                    .font(.headline)
+                    .font(HeirloomFonts.bodyBold)
 
                 Text(description)
-                    .font(.subheadline)
+                    .font(HeirloomFonts.body)
                     .foregroundStyle(.secondary)
             }
         }

@@ -89,10 +89,10 @@ struct BulkImportView: View {
                         .frame(minHeight: 200)
                         .padding(HeirloomSpacing.md)
                         .scrollContentBackground(.hidden)
-                        .background(Color.white)
+                        .background(HeirloomColors.cardBackground)
                         .cornerRadius(12)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                                 .stroke(HeirloomColors.warmGray.opacity(0.3), lineWidth: 1)
                         )
                         .padding(.horizontal, HeirloomSpacing.lg)
@@ -108,9 +108,9 @@ struct BulkImportView: View {
                             Button {
                                 cleanupURLs()
                             } label: {
-                                HStack(spacing: 4) {
+                                HStack(spacing: HeirloomSpacing.xs) {
                                     Image(systemName: "wand.and.stars")
-                                        .font(.caption)
+                                        .font(HeirloomFonts.caption1)
                                     Text("Clean Up")
                                         .font(HeirloomFonts.caption1Bold)
                                 }
@@ -151,7 +151,7 @@ struct BulkImportView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(pastedText.isEmpty ? HeirloomColors.warmGray : HeirloomColors.tomato)
-                    .foregroundColor(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .cornerRadius(12)
                 }
                 .disabled(pastedText.isEmpty)
@@ -166,7 +166,7 @@ struct BulkImportView: View {
         HStack {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(HeirloomColors.tomato)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
 
             Text(title)
                 .font(HeirloomFonts.caption1)

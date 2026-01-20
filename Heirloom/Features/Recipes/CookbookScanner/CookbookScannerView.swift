@@ -254,7 +254,7 @@ struct CookbookScannerView: View {
                         Text("Open Camera")
                     }
                     .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(HeirloomColors.tomato)
@@ -275,10 +275,10 @@ struct CookbookScannerView: View {
                     .foregroundStyle(HeirloomColors.tomato)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.white)
+                    .background(HeirloomColors.cardBackground)
                     .cornerRadius(12)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                             .stroke(HeirloomColors.tomato, lineWidth: 2)
                     )
                 }
@@ -295,10 +295,10 @@ struct CookbookScannerView: View {
                     .foregroundStyle(HeirloomColors.tomato)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.white)
+                    .background(HeirloomColors.cardBackground)
                     .cornerRadius(12)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                             .stroke(HeirloomColors.tomato, lineWidth: 2)
                     )
                 }
@@ -313,7 +313,7 @@ struct CookbookScannerView: View {
     private func instructionRow(icon: String, text: String) -> some View {
         HStack(spacing: HeirloomSpacing.md) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.tomato)
                 .frame(width: 30)
 
@@ -724,16 +724,16 @@ struct CookbookScannerView: View {
                         .foregroundStyle(HeirloomColors.tomato)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.white)
+                        .background(HeirloomColors.cardBackground)
                         .cornerRadius(12)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                                 .stroke(HeirloomColors.tomato, lineWidth: 2)
                         )
                 }
             }
             .padding(HeirloomSpacing.xl)
-            .background(.white)
+            .background(HeirloomColors.cardBackground)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.2), radius: 20, y: 10)
             .padding(HeirloomSpacing.xl)
@@ -811,7 +811,7 @@ struct CookbookScannerView: View {
                 } label: {
                     Text("Done")
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(HeirloomColors.tomato)

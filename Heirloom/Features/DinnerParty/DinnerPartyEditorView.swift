@@ -86,7 +86,7 @@ struct DinnerPartyEditorView: View {
                     } else {
                         ForEach(Array(selectedRecipes), id: \.id) { recipe in
                             HStack {
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                                     Text(recipe.title)
                                         .font(HeirloomFonts.body)
                                         .foregroundStyle(HeirloomColors.primaryText)
@@ -296,7 +296,7 @@ struct RecipePickerView: View {
                         }
                     } label: {
                         HStack {
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                                 Text(recipe.title)
                                     .font(HeirloomFonts.body)
                                     .foregroundStyle(HeirloomColors.primaryText)

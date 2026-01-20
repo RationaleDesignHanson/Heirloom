@@ -395,7 +395,7 @@ struct RecipeEditorView: View {
                     } label: {
                         HStack(spacing: HeirloomSpacing.md) {
                             Image(systemName: collection.iconName)
-                                .font(.title3)
+                                .font(HeirloomFonts.title2)
                                 .foregroundStyle(collection.swiftUIColor)
                                 .frame(width: 28)
 
@@ -408,11 +408,11 @@ struct RecipeEditorView: View {
                             if selectedCollectionIDs.contains(collection.id) {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundStyle(collection.swiftUIColor)
-                                    .font(.title3)
+                                    .font(HeirloomFonts.title2)
                             } else {
                                 Image(systemName: "circle")
                                     .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
-                                    .font(.title3)
+                                    .font(HeirloomFonts.title2)
                             }
                         }
                     }
@@ -430,7 +430,7 @@ struct RecipeEditorView: View {
     private var ingredientsSection: some View {
         Section {
             ForEach(ingredientInputs.indices, id: \.self) { index in
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     HStack {
                         TextField("Ingredient", text: $ingredientInputs[index])
                             .font(HeirloomFonts.body)
@@ -540,7 +540,7 @@ struct RecipeEditorView: View {
                     .font(.system(size: 20))
                     .foregroundStyle(HeirloomColors.tomato)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text("Personalize your recipes")
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
@@ -560,7 +560,7 @@ struct RecipeEditorView: View {
                 } label: {
                     Text("Sign In")
                         .font(HeirloomFonts.caption1Bold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                         .background(HeirloomColors.tomato)
@@ -1194,16 +1194,16 @@ struct RecipeEditorView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "lightbulb.fill")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.tomato)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Text(suggestion.original)
                             .strikethrough()
                             .foregroundStyle(HeirloomColors.secondaryText)
                         Image(systemName: "arrow.right")
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                             .foregroundStyle(HeirloomColors.secondaryText)
                         Text(suggestion.corrected)
                             .fontWeight(.medium)
@@ -1219,7 +1219,7 @@ struct RecipeEditorView: View {
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
             .padding(.horizontal, 12)

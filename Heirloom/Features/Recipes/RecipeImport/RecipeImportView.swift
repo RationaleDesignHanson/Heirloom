@@ -69,7 +69,7 @@ struct RecipeImportView: View {
                             if isSaving {
                                 ProgressView()
                                     .progressViewStyle(.circular)
-                                    .tint(.white)
+                                    .tint(HeirloomColors.buttonTextLight)
                             } else {
                                 Text("Save")
                                     .fontWeight(.semibold)
@@ -134,7 +134,7 @@ struct RecipeImportView: View {
                     HStack(spacing: HeirloomSpacing.xs) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(.red)
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
 
                         Text(error)
                             .font(HeirloomFonts.caption1)
@@ -159,7 +159,7 @@ struct RecipeImportView: View {
                 HStack {
                     if isImporting {
                         ProgressView()
-                            .tint(.white)
+                            .tint(HeirloomColors.buttonTextLight)
                     } else {
                         Image(systemName: "arrow.down.circle.fill")
                         Text("Import Recipe")
@@ -168,7 +168,7 @@ struct RecipeImportView: View {
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(urlText.isEmpty || isImporting ? HeirloomColors.warmGray : HeirloomColors.tomato)
-                .foregroundStyle(.white)
+                .foregroundStyle(HeirloomColors.buttonTextLight)
                 .font(HeirloomFonts.bodyBold)
                 .cornerRadius(12)
             }
@@ -310,7 +310,7 @@ struct RecipeImportView: View {
                                 HStack(alignment: .top, spacing: HeirloomSpacing.md) {
                                     Text("\(index + 1)")
                                         .font(HeirloomFonts.bodyBold)
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(HeirloomColors.buttonTextLight)
                                         .frame(width: 28, height: 28)
                                         .background(HeirloomColors.tomato)
                                         .cornerRadius(14)
@@ -517,9 +517,9 @@ struct MetadataItem: View {
     let text: String
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
             Text(text)
                 .font(HeirloomFonts.caption1)

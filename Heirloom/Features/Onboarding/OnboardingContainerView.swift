@@ -111,8 +111,8 @@ struct OnboardingContainerView: View {
             }
         }
 
-        // Navigate to Collections tab (index 1) instead of Recipes (index 0)
-        selectedTab = 1
+        // Navigate to Collections tab (now index 0 after removing Recipes tab)
+        selectedTab = 0
 
         // Notify parent that onboarding is complete
         onComplete()
@@ -146,7 +146,7 @@ struct OnboardingContainerView: View {
 
             // Analytics tracking for heritage setup during onboarding
             let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
-            analytics.track(event: .appLaunched, properties: ["heritage_setup": "collections_created"])
+            analytics.track(event: AnalyticsEvent.appLaunched, properties: ["heritage_setup": "collections_created"])
 
             // Mark as complete to prevent duplicate attempts
             hasSeededHeritage = true

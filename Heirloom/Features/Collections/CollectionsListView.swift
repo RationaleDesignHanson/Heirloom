@@ -8,6 +8,10 @@ struct CollectionsListView: View {
     @EnvironmentObject private var notificationService: FirebaseNotificationService
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @Query(sort: \RecipeCollection.createdDate) private var allCollections: [RecipeCollection]
+    @Query(sort: \Recipe.dateAdded, order: .reverse) private var allRecipes: [Recipe]
+
+    // Global recipe search state
+    @State private var searchText = ""
 
     @State private var showCreateCollection = false
     @State private var showAddRecipe = false
@@ -65,22 +69,78 @@ struct CollectionsListView: View {
         allCollections.filter { !$0.isSystemCollection && !$0.isHeritageCollection }
     }
 
-    // System collections (Favorites, Quick Meals, etc.)
+    // System collections (All Recipes, Favorites, Quick Meals, etc.)
     var systemCollections: [RecipeCollection] {
-        allCollections.filter { $0.isSystemCollection && !$0.isHeritageCollection }
+        let filtered = allCollections.filter { $0.isSystemCollection && !$0.isHeritageCollection }
+
+        // Sort to ensure "All Recipes" appears first
+        return filtered.sorted { lhs, rhs in
+            if lhs.isAllRecipes { return true }
+            if rhs.isAllRecipes { return false }
+            return lhs.name < rhs.name
+        }
+    }
+
+    // Filtered recipes for global search
+    var searchResults: [Recipe] {
+        guard !searchText.isEmpty else { return [] }
+
+        return allRecipes.filter { recipe in
+            // Search in title
+            if recipe.title.localizedCaseInsensitiveContains(searchText) {
+                return true
+            }
+
+            // Search in notes
+            if recipe.notes?.localizedCaseInsensitiveContains(searchText) == true {
+                return true
+            }
+
+            // Search in ingredients
+            if let ingredients = recipe.ingredients {
+                for ingredient in ingredients {
+                    if ingredient.name.localizedCaseInsensitiveContains(searchText) {
+                        return true
+                    }
+                }
+            }
+
+            return false
+        }
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: HeirloomSpacing.xl) {
-                    // Unified Collections Section
-                    unifiedCollectionsSection
+                VStack(spacing: 0) {
+                    // Video processing banner at top
+                    VideoProcessingBottomBanner()
+                        .padding(.bottom, 8)
+                        .zIndex(1)
+
+                    // PDF import progress banner at top
+                    ImportProgressBottomBanner()
+                        .padding(.bottom, 8)
+                        .zIndex(1)
+
+                    // Content: Search results or collections
+                    if !searchText.isEmpty {
+                        // Global recipe search results
+                        searchResultsSection
+                            .padding(.vertical, HeirloomSpacing.lg)
+                    } else {
+                        // Normal collections content
+                        VStack(spacing: HeirloomSpacing.xl) {
+                            // Unified Collections Section
+                            unifiedCollectionsSection
+                        }
+                        .padding(.vertical, HeirloomSpacing.lg)
+                    }
                 }
-                .padding(.vertical, HeirloomSpacing.lg)
             }
             .navigationTitle("Collections")
             .navigationBarTitleDisplayMode(.large)
+            .searchable(text: $searchText, prompt: "Search recipes")
             .toolbar {
                 toolbarContent
             }
@@ -281,6 +341,39 @@ struct CollectionsListView: View {
 
     // MARK: - View Components
 
+    // Global recipe search results
+    private var searchResultsSection: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            // Result count
+            Text("\(searchResults.count) recipe\(searchResults.count == 1 ? "" : "s")")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .padding(.horizontal)
+
+            // Recipe grid with collection tags
+            if searchResults.isEmpty {
+                ContentUnavailableView.search(text: searchText)
+                    .padding(.top, 40)
+            } else {
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing),
+                    GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
+                ], spacing: HeirloomSpacing.gridSpacing) {
+                    ForEach(searchResults, id: \.id) { recipe in
+                        NavigationLink {
+                            RecipeDetailView(recipe: recipe)
+                                .environmentObject(notificationService)
+                        } label: {
+                            RecipeCardWithCollectionTags(recipe: recipe)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+
     private var unifiedCollectionsSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             if heritageCollections.isEmpty && systemCollections.isEmpty && userCollections.isEmpty {
@@ -289,10 +382,13 @@ struct CollectionsListView: View {
                 LazyVStack(spacing: HeirloomSpacing.sm) {
                     // System collections (Favorites, Quick Meals, etc.) - shown first
                     ForEach(systemCollections, id: \.id) { collection in
-                        CollectionRow(collection: collection)
-                            .onTapGesture {
-                                selectedCollection = collection
-                            }
+                        CollectionRow(
+                            collection: collection,
+                            totalRecipeCount: collection.isAllRecipes ? allRecipes.count : nil
+                        )
+                        .onTapGesture {
+                            selectedCollection = collection
+                        }
                     }
 
                     // User collections (with delete context menu) - shown second
@@ -376,7 +472,7 @@ struct CollectionsListView: View {
                     Text("Upgrade to Premium")
                         .font(HeirloomFonts.caption1)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .padding(.horizontal, HeirloomSpacing.md)
                         .padding(.vertical, HeirloomSpacing.sm)
                         .background(HeirloomColors.tomato)
@@ -400,7 +496,7 @@ struct CollectionsListView: View {
         }
         .padding(HeirloomSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(Color.orange.opacity(0.1))
         )
     }
@@ -413,13 +509,13 @@ struct CollectionsListView: View {
                 Button {
                     showHeritageUnlock = true
                 } label: {
-                    HStack(spacing: 4) {
+                    HStack(spacing: HeirloomSpacing.xs) {
                         Image(systemName: "sparkles")
                             .foregroundStyle(.orange)
 
                         if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining, daysRemaining > 0 {
                             Text("\(daysRemaining)d")
-                                .font(.caption2)
+                                .font(HeirloomFonts.caption2)
                                 .foregroundStyle(.orange)
                         }
                     }
@@ -476,7 +572,7 @@ struct CollectionsListView: View {
 
                     Text(downloadProgress)
                         .font(HeirloomFonts.body)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .multilineTextAlignment(.center)
                 }
                 .padding(HeirloomSpacing.xl)
@@ -742,7 +838,7 @@ struct CollectionsListView: View {
             } label: {
                 Text("Create Collection")
                     .font(HeirloomFonts.body)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
                     .padding(.horizontal, HeirloomSpacing.lg)
                     .padding(.vertical, HeirloomSpacing.sm)
                     .background(HeirloomColors.tomato)
@@ -922,9 +1018,14 @@ struct CollectionsListView: View {
 
 struct CollectionRow: View {
     let collection: RecipeCollection
+    var totalRecipeCount: Int? = nil // For "All Recipes" collection
     @State private var unlockTracker: HeritageUnlockTracker?
 
     private var displayCount: Int {
+        // For "All Recipes" collection, show total count from parameter
+        if collection.isAllRecipes, let count = totalRecipeCount {
+            return count
+        }
         // For heritage collections, show unlocked count only
         if collection.isHeritageCollection {
             guard let tracker = unlockTracker else { return 0 }
@@ -939,7 +1040,7 @@ struct CollectionRow: View {
         HStack(spacing: HeirloomSpacing.md) {
             // Icon (with subtle distinction for heritage)
             Image(systemName: collection.iconName)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .fontWeight(collection.isHeritageCollection ? .semibold : .regular)
                 .foregroundStyle(collection.swiftUIColor)
                 .frame(width: 32)
@@ -959,7 +1060,7 @@ struct CollectionRow: View {
 
             // Chevron
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
         }
         .padding(HeirloomSpacing.md)
@@ -975,6 +1076,55 @@ struct CollectionRow: View {
                 unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
             }
         }
+    }
+}
+
+// MARK: - Recipe Card with Collection Tags
+
+/// Recipe card that shows which collections the recipe belongs to
+/// Used in global search results
+struct RecipeCardWithCollectionTags: View {
+    let recipe: Recipe
+
+    private var recipeCollections: [RecipeCollection] {
+        (recipe.collections ?? []).filter { !$0.isAllRecipes }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            // Standard recipe card (reuse existing component)
+            RecipeCardView(recipe: recipe)
+
+            // Collection tags (if any)
+            if !recipeCollections.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(recipeCollections, id: \.id) { collection in
+                            CollectionTag(collection: collection)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Small collection badge/tag
+struct CollectionTag: View {
+    let collection: RecipeCollection
+
+    var body: some View {
+        HStack(spacing: HeirloomSpacing.xs) {
+            Image(systemName: collection.iconName)
+                .font(.system(size: 10))
+            Text(collection.name)
+                .font(.system(size: 11))
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(collection.swiftUIColor.opacity(0.15))
+        .foregroundStyle(collection.swiftUIColor)
+        .cornerRadius(8)
     }
 }
 

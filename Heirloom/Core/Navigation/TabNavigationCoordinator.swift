@@ -17,7 +17,6 @@ class TabNavigationCoordinator: ObservableObject {
 
     /// Track navigation context for post-creation navigation
     enum CreationContext {
-        case recipesTab
         case collectionsTab
         case collectionDetail
     }
@@ -27,11 +26,10 @@ class TabNavigationCoordinator: ObservableObject {
     // MARK: - Tab Constants
 
     enum Tab: Int {
-        case recipes = 0
-        case collections = 1
-        case shopping = 2
-        case dinnerParty = 3
-        case settings = 4
+        case collections = 0
+        case shopping = 1
+        case dinnerParty = 2
+        case settings = 3
     }
 
     // MARK: - Context Tracking
@@ -55,12 +53,8 @@ class TabNavigationCoordinator: ObservableObject {
         guard let context = currentCreationContext else { return }
 
         switch context {
-        case .collectionsTab:
-            // Navigate to Recipes tab after creating recipe from Collections tab
-            Log.info("Navigating to Recipes tab after recipe creation", category: .ui)
-            selectedTab = Tab.recipes.rawValue
-        case .recipesTab, .collectionDetail:
-            // Stay in current context
+        case .collectionsTab, .collectionDetail:
+            // Stay in Collections tab (already there)
             break
         }
 
@@ -72,10 +66,6 @@ class TabNavigationCoordinator: ObservableObject {
         guard let context = currentCreationContext else { return }
 
         switch context {
-        case .recipesTab:
-            // Navigate to Collections tab after creating collection from Recipes tab
-            Log.info("Navigating to Collections tab after collection creation", category: .ui)
-            selectedTab = Tab.collections.rawValue
         case .collectionsTab, .collectionDetail:
             // Stay in current context
             break

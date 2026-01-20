@@ -41,18 +41,18 @@ struct RecipeMetadataSection: View {
         .padding(HeirloomSpacing.md)
         .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .fill(.white)
-                .shadow(color: HeirloomColors.cardShadow, radius: 4, x: 0, y: 2)
+                .heirloomShadow(HeirloomShadows.subtle)
         )
     }
 
     // MARK: - Servings Item
 
     private var servingsMetadataItem: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: "person.2.fill")
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.tomato)
 
             Text("Servings")
@@ -104,13 +104,13 @@ struct RecipeMetadataSection: View {
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     Text("\(targetServings) \(servingUnitText(targetServings))")
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.charcoal)
 
                     Image(systemName: recipe.isScalingAllowed ? "chevron.down" : "lock.fill")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
                 }
             }
@@ -153,9 +153,9 @@ struct RecipeMetadataSection: View {
     }
 
     private func metadataItem(icon: String, label: String, value: String) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: HeirloomSpacing.xs) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.tomato)
 
             Text(label)

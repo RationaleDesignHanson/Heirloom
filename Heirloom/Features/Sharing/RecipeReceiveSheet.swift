@@ -152,7 +152,7 @@ struct RecipeReceiveSheet: View {
             if let generation = preview.generation, generation > 0 {
                 HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: "arrow.triangle.branch")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                     Text("Generation \(generation + 1)")
                         .font(HeirloomFonts.caption1)
                 }
@@ -164,7 +164,7 @@ struct RecipeReceiveSheet: View {
             }
         }
         .padding(HeirloomSpacing.md)
-        .background(Color.white)
+        .background(HeirloomColors.cardBackground)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 8)
     }
@@ -254,7 +254,7 @@ struct RecipeReceiveSheet: View {
             }
         }
         .padding(HeirloomSpacing.md)
-        .background(Color.white)
+        .background(HeirloomColors.cardBackground)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 8)
     }
@@ -268,14 +268,14 @@ struct RecipeReceiveSheet: View {
             HStack {
                 if isAccepting {
                     ProgressView()
-                        .tint(.white)
+                        .tint(HeirloomColors.buttonTextLight)
                 } else {
                     Image(systemName: "checkmark.circle.fill")
                     Text("Add to My Recipes")
                 }
             }
             .font(HeirloomFonts.bodyBold)
-            .foregroundStyle(.white)
+            .foregroundStyle(HeirloomColors.buttonTextLight)
             .frame(maxWidth: .infinity)
             .padding()
             .background(HeirloomColors.tomato)

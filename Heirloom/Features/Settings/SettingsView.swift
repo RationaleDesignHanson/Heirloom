@@ -163,7 +163,7 @@ struct SettingsView: View {
                                 .scaleEffect(1.5)
 
                             Text("Clearing data...")
-                                .foregroundColor(.white)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
                                 .font(HeirloomFonts.bodyBold)
                         }
                         .padding(40)
@@ -237,7 +237,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading) {
                         Text("Fake Payments (Debug)")
                         Text("Grants premium without real transactions")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -274,7 +274,7 @@ struct SettingsView: View {
                                 .foregroundStyle(.green)
                             Spacer()
                             Text("Save 50%")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.green)
                         }
                     }
@@ -291,7 +291,7 @@ struct SettingsView: View {
 
                 // Manage Subscription button (cancel, etc.)
                 // ⭐ MODIFIED: Disable when fake payments active (no real subscription to manage)
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Button {
                         openManageSubscription()
                     } label: {
@@ -303,7 +303,7 @@ struct SettingsView: View {
                     // Show hint when disabled
                     if ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled {
                         Text("Only available for real subscriptions")
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                             .foregroundStyle(.secondary)
                             .padding(.leading, 32)
                     }
@@ -326,7 +326,7 @@ struct SettingsView: View {
                     if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining {
                         HStack {
                             Image(systemName: "clock.fill")
-                                .font(.caption)
+                                .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.orange)
 
                             Text("\(daysRemaining) day\(daysRemaining == 1 ? "" : "s") left in trial")
@@ -420,10 +420,10 @@ struct SettingsView: View {
                 .count
 
             // Status Display
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                 HStack {
                     Text("Heritage Recipes")
-                        .font(.subheadline)
+                        .font(HeirloomFonts.body)
                         .foregroundStyle(.secondary)
                     Spacer()
                     Text("\(heritageCount) recipes")
@@ -434,7 +434,7 @@ struct SettingsView: View {
                 if heritageCount > 0 {
                     HStack {
                         Text("Collections")
-                            .font(.subheadline)
+                            .font(HeirloomFonts.body)
                             .foregroundStyle(.secondary)
                         Spacer()
                         Text("\(heritageCollections) unlocked")
@@ -458,7 +458,7 @@ struct SettingsView: View {
                         .foregroundStyle(.primary)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -474,7 +474,7 @@ struct SettingsView: View {
                         .foregroundStyle(.primary)
                     Spacer()
                     Text("(Dev)")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -489,7 +489,7 @@ struct SettingsView: View {
                         .foregroundStyle(.primary)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -621,7 +621,7 @@ struct SettingsView: View {
                     Spacer()
                     Text("NEW")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
@@ -660,7 +660,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading) {
                         Text("Force Non-Premium Mode")
                         Text((UserDefaults.standard.object(forKey: "debug_force_non_premium") as? Bool ?? true) ? "Testing progressive unlock" : "Premium access enabled")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -676,7 +676,7 @@ struct SettingsView: View {
                     Text("View Debug Log")
                     Spacer()
                     Text("📁")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                 }
             }
 
@@ -690,7 +690,7 @@ struct SettingsView: View {
                     Text("Trial Debug")
                     Spacer()
                     Text("🔬")
-                        .font(.caption)
+                        .font(HeirloomFonts.caption1)
                 }
             }
 
@@ -705,7 +705,7 @@ struct SettingsView: View {
             //         Text("Feature Flags")
             //         Spacer()
             //         Text("🚩")
-            //             .font(.caption)
+            //             .font(HeirloomFonts.caption1)
             //     }
             // }
 
@@ -724,7 +724,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading) {
                         Text("Enable RevenueCat (Stub)")
                         Text("Not yet implemented")
-                            .font(.caption)
+                            .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -744,7 +744,7 @@ struct SettingsView: View {
                         Text("☢️ Nuke Firebase User Data")
                             .fontWeight(.bold)
                         Text("⚠️ DANGER: Deletes all users, shares, lineage")
-                            .font(.caption2)
+                            .font(HeirloomFonts.caption2)
                             .foregroundStyle(.secondary)
                     }
                 }

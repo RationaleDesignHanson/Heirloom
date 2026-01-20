@@ -50,7 +50,7 @@ struct VideoAttributionSheet: View {
                             .font(.title2.bold())
 
                         Text("Credit the original creator of this recipe. This information will appear on the recipe card.")
-                            .font(.subheadline)
+                            .font(HeirloomFonts.body)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                     }
