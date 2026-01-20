@@ -110,8 +110,13 @@ struct ShareExtensionView: View {
             }
 
         case .success:
-            Text("Opening Heirloom...")
-                .font(.headline)
+            VStack(spacing: 8) {
+                Text("Video Saved!")
+                    .font(.headline)
+                Text("Open Heirloom to import")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
 
         case .error(let message):
             VStack(spacing: 8) {
@@ -259,7 +264,11 @@ struct ShareExtensionView: View {
         components.queryItems = [URLQueryItem(name: "id", value: id.uuidString)]
 
         guard let deepLinkURL = components.url else {
-            throw ShareError.invalidDeepLink
+            // URL creation failed, but video is saved - complete successfully
+            state = .success
+            try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+            onComplete(true)
+            return
         }
 
         state = .success
@@ -267,26 +276,22 @@ struct ShareExtensionView: View {
         // Wait a moment for UI to update
         try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
 
-        // Open main app - use completion handler version for better reliability on device
-        guard let context = extensionContext else {
-            throw ShareError.invalidDeepLink
-        }
-
-        // Use continuation to wait for completion
-        _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Bool, Error>) in
+        // Try to open main app - if this fails, it's okay because we have polling
+        if let context = extensionContext {
+            // Attempt to open, but don't fail if it doesn't work
             context.open(deepLinkURL) { success in
-                if success {
-                    continuation.resume(returning: true)
-                } else {
-                    continuation.resume(throwing: ShareError.invalidDeepLink)
+                // Log result but don't throw - the main app will poll for imports
+                if !success {
+                    print("⚠️ Share Extension: Failed to open main app URL, but video is saved. User should open Heirloom manually.")
                 }
             }
+
+            // Give the open attempt a moment to work
+            try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
         }
 
-        // Small delay before dismissing to ensure URL handling completes
-        try await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
-
-        // Complete extension
+        // Complete extension successfully regardless of whether URL opening worked
+        // The main app will detect the pending import when it becomes active
         onComplete(true)
     }
 
