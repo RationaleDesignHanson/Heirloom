@@ -437,9 +437,13 @@ struct HeirloomApp: App {
             return
         }
 
+        // Check for pending video imports first (new Share Extension format)
+        checkForPendingVideoImport(groupDefaults: groupDefaults)
+
+        // Check for pending URL imports (old format)
         guard let pendingURLString = groupDefaults.string(forKey: "pendingImportURL"),
               URL(string: pendingURLString) != nil else {
-            // No pending import
+            // No pending URL import
             return
         }
 
@@ -478,6 +482,35 @@ struct HeirloomApp: App {
 
         Log.info("Triggered deep link handler for share extension import", category: .general)
         DeviceLogger.shared.log("✅ [ShareExtension] Triggered deep link handler for import")
+    }
+
+    private func checkForPendingVideoImport(groupDefaults: UserDefaults) {
+        // Check PendingImportManager for any pending imports
+        Task {
+            let pendingImports = await PendingImportManager.shared.loadAll()
+
+            guard !pendingImports.isEmpty else {
+                return
+            }
+
+            // Get the most recent import
+            guard let mostRecent = pendingImports.sorted(by: { $0.createdAt > $1.createdAt }).first else {
+                return
+            }
+
+            Log.info("Found pending video import from share extension", category: .general, metadata: ["importId": mostRecent.id.uuidString])
+            DeviceLogger.shared.log("✅ [ShareExtension] Found pending video import: \(mostRecent.id.uuidString)")
+
+            // Trigger deep link on main actor
+            await MainActor.run {
+                let importDeepLink = URL(string: "heirloom://import?id=\(mostRecent.id.uuidString)")!
+                let deepLinkHandler = serviceContainer.resolve(DeepLinkHandler.self)
+                deepLinkHandler.handle(importDeepLink)
+
+                Log.info("Triggered deep link handler for video import", category: .general)
+                DeviceLogger.shared.log("✅ [ShareExtension] Triggered deep link handler for video import")
+            }
+        }
     }
 
     private func requestNotificationPermission() async {
