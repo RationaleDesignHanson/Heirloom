@@ -1,8 +1,10 @@
 # Share Extension + Unified Video Import - Final Status
 
-## ✅ 100% Complete - Ready for Testing
+## ✅ 100% Complete - Ready for Pre-Merge Testing
 
-All implementation work is complete. The feature is now ready for Xcode integration and device testing.
+All implementation and test infrastructure is complete. Legacy test suite removed. Feature is now ready for comprehensive device testing before merge to main.
+
+**⚠️ FLAGSHIP FEATURE - Social sharing is a dealbreaker. Test thoroughly before merge!**
 
 ---
 
@@ -208,25 +210,41 @@ Bundle.main.object(forInfoDictionaryKey: "DEFAULT_ANTHROPIC_KEY")
 2. **EXTRACTION_PIPELINE_IMPLEMENTATION.md** - How corporate key + VideoRecipeProcessor works
 3. **STEP_7_EXTRACTION_PIPELINE_GUIDE.md** - Original planning doc (superseded)
 4. **TESTING.md** - Manual test matrix and performance benchmarks
-5. **SHARE_EXTENSION_IMPLEMENTATION.md** - Feature overview and architecture
-6. **ARCHITECTURE_NOTES.md** - Existing codebase analysis (from Prompt 1)
-7. **THIS FILE** - Final status and next steps
+5. **SHARE_EXTENSION_TESTING_PLAN.md** - **NEW:** Comprehensive 40-test plan before merge
+6. **QUICK_TEST_CHECKLIST.md** - **NEW:** 30-minute must-pass tests
+7. **TEST_INFRASTRUCTURE_ANALYSIS.md** - V1 vs V2 comparison and migration plan
+8. **SHARE_EXTENSION_IMPLEMENTATION.md** - Feature overview and architecture
+9. **ARCHITECTURE_NOTES.md** - Existing codebase analysis (from Prompt 1)
+10. **THIS FILE** - Final status and next steps
 
 ---
 
 ## Success Criteria (Before Merging to Main)
 
+### Phase 1: Xcode Integration
 - [ ] All files added to correct Xcode targets
 - [ ] Corporate Anthropic key verified in Config.xcconfig
-- [ ] Share Extension appears in share sheet
-- [ ] Deep link opens main app successfully
-- [ ] Three-tier cascade selects correct mode
-- [ ] Recipes created with Claude AI
-- [ ] Attribution displays correctly
-- [ ] Paywall shows for visual extraction (non-premium)
-- [ ] Premium users can use visual extraction
-- [ ] Unit tests pass (⌘U)
-- [ ] Manual testing complete per TESTING.md
+- [ ] Clean build succeeds (no errors/warnings)
+- [ ] Unit tests pass (⌘U) - All 53 tests in HeirloomTestsV2
+
+### Phase 2: Device Testing (See SHARE_EXTENSION_TESTING_PLAN.md)
+- [ ] **Quick Test Checklist** (30 min) - 8 must-pass tests
+- [ ] **Comprehensive Test Plan** (3-4 hours) - All 40 test cases pass
+
+### Must Pass:
+- [ ] TikTok → Recipe card works flawlessly
+- [ ] Instagram Reels → Recipe card works flawlessly
+- [ ] YouTube Shorts → Recipe card works flawlessly
+- [ ] Three-tier cascade functions correctly
+- [ ] Attribution displays correctly on recipe cards
+- [ ] Paywall blocks visual mode for free users
+- [ ] No crashes in any error scenario
+- [ ] Performance: Full import completes <30 seconds
+
+### Stakeholder Sign-Off:
+- [ ] Demo to team/stakeholders
+- [ ] Collect feedback on social sharing UX
+- [ ] Confirm: "Social sharing is production-ready"
 
 ---
 
