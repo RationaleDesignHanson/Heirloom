@@ -1,14 +1,45 @@
-import Foundation
+# Proper Extraction Pipeline Implementation
 
+## Current Issue
+The `PendingImportProcessor.extractRecipe()` method currently uses basic pattern matching instead of the proper `VideoRecipeProcessor` + Claude AI pipeline that exists in `HeirloomVideoLab`.
+
+## Architecture (from main branch)
+
+### API Key Management:
+- **Corporate Key**: Stored in `Config.xcconfig` → `Info.plist` → `DEFAULT_ANTHROPIC_KEY`
+- **Personal Keys**: Stored in iOS Keychain (user-provided, optional)
+- **Priority**: Personal key first → Corporate key fallback
+- **Auto-recovery**: 401 errors auto-remove invalid personal keys
+
+### Extraction Pipeline:
+```
+VideoRecipeProcessor
+    ├── WhisperKitTranscriptionService (audio → transcript)
+    ├── FrameAnalysisService (video → OCR text from frames)
+    └── ClaudeRecipeStructurer (transcript + OCR → structured recipe via Claude AI)
+            └── AnthropicAIService (uses corporate/personal key)
+```
+
+## Implementation Steps
+
+### Step 1: Update PendingImportProcessor to use VideoRecipeProcessor
+
+**File**: `Heirloom/Core/Services/Video/PendingImportProcessor.swift`
+
+Replace the current `extractRecipe()` implementation with proper VideoRecipeProcessor integration:
+
+```swift
 actor PendingImportProcessor {
 
-    // Use existing services
+    // Existing services
     private let audioAnalyzer: AudioAnalyzer
     private let onScreenTextDetector: OnScreenTextDetector
     private let watermarkDetector: WatermarkDetector
     private let socialMetadataService: SocialMetadataService
     private let subscriptionManager: SubscriptionManager
     private let paywallManager: PaywallManager
+
+    // NEW: Add VideoRecipeProcessor
     private let videoProcessor: VideoRecipeProcessor?
 
     init(audioAnalyzer: AudioAnalyzer,
@@ -66,105 +97,6 @@ actor PendingImportProcessor {
         return videoProcessor
     }
 
-    /// Analyze video to determine extraction mode and check if premium is required
-    func analyzeVideo(at videoURL: URL) async throws -> VideoImportAnalysisResult {
-
-        // TIER 1: Audio Analysis (FREE)
-        let audioResult = try await audioAnalyzer.analyze(videoAt: videoURL)
-
-        if audioResult.recommendedMode == .audioTranscript {
-            // Audio is good - proceed for free
-            return .canProceedFree(
-                mode: .audioTranscript,
-                transcript: audioResult.transcript,
-                onScreenText: nil
-            )
-        }
-
-        // TIER 2: On-Screen Text Detection (FREE)
-        let ocrResult = try await onScreenTextDetector.detect(in: videoURL)
-
-        if ocrResult.hasRecipeText {
-            // OCR found recipe text - proceed for free
-            return .canProceedFree(
-                mode: .onScreenText,
-                transcript: nil,
-                onScreenText: ocrResult.detectedText
-            )
-        }
-
-        // TIER 3: Visual Analysis Required (PREMIUM)
-        // Check if user has premium access
-        if subscriptionManager.isPremium {
-            return .canProceedFree(
-                mode: .visualFrames,
-                transcript: nil,
-                onScreenText: nil
-            )
-        }
-
-        // User needs premium for visual extraction
-        return .requiresPremium(
-            audioReasoning: audioResult.reasoning,
-            ocrReasoning: ocrResult.reasoning
-        )
-    }
-
-    /// Process import after user confirms (or has premium)
-    func processImport(
-        _ pendingImport: PendingVideoImport,
-        mode: ExtractionMode,
-        transcript: String?,
-        onScreenText: String?
-    ) async throws -> Recipe {
-        var updated = pendingImport
-
-        guard let videoURL = updated.localVideoURL else {
-            throw ImportError.noVideoFile
-        }
-
-        // Watermark detection for attribution (parallel to extraction)
-        let watermarkResult = try await watermarkDetector.detect(in: videoURL)
-
-        // Resolve attribution from multiple sources
-        let (sourceURL, sourceAttribution, platform) = AttributionResolver.resolve(
-            urlPlatformInfo: nil, // TODO: Pass from pending import if available
-            watermarkResult: watermarkResult,
-            socialMetadata: nil // TODO: Fetch if URL available
-        )
-
-        // Create ProvenanceMetadata
-        var provenanceMetadata = ProvenanceMetadata(
-            sourceType: .video,
-            sourceURL: sourceURL,
-            sourceAttribution: sourceAttribution
-        )
-
-        updated.provenanceMetadata = provenanceMetadata
-
-        // Extract recipe using determined mode
-        updated.processingStatus = .extractingRecipe
-
-        let recipe = try await extractRecipe(
-            from: videoURL,
-            mode: mode,
-            transcript: transcript,
-            onScreenText: onScreenText,
-            provenanceMetadata: updated.provenanceMetadata
-        )
-
-        updated.processingStatus = .completed
-
-        return recipe
-    }
-
-    /// Trigger paywall for visual extraction
-    func triggerVisualExtractionPaywall() {
-        Task { @MainActor in
-            paywallManager.show(for: .visualVideoExtraction)
-        }
-    }
-
     private func extractRecipe(
         from videoURL: URL,
         mode: ExtractionMode,
@@ -177,8 +109,7 @@ actor PendingImportProcessor {
             throw ImportError.extractionFailed("Video processor not initialized")
         }
 
-        // Use VideoRecipeProcessor for all modes
-        // It handles: audio extraction → transcription → frame analysis → Claude AI structuring
+        // Use VideoRecipeProcessor for all modes (it handles audio, OCR, and visual)
         let extraction = try await processor.process(videoURL: videoURL)
 
         // Convert VideoRecipeExtraction → Recipe
@@ -206,7 +137,7 @@ actor PendingImportProcessor {
             cookTime: structured.cookTime
         )
 
-        // Add ingredients with full details
+        // Add ingredients
         for extracted in structured.ingredients {
             let ingredient = Ingredient()
             ingredient.item = extracted.item
@@ -217,7 +148,7 @@ actor PendingImportProcessor {
             recipe.ingredients?.append(ingredient)
         }
 
-        // Set provenance metadata for attribution
+        // Set provenance metadata
         recipe.provenance = provenanceMetadata
 
         // Add extraction metadata to notes if there are warnings
@@ -229,31 +160,82 @@ actor PendingImportProcessor {
             \(structured.warnings.joined(separator: "\n"))
 
             Overall confidence: \(Int(structured.overallConfidence * 100))%
-            Processing time: \(String(format: "%.1f", extraction.processingTime))s
             """
         }
 
         return recipe
     }
-
 }
+```
 
-enum ImportError: LocalizedError {
-    case videoRequired(platform: SocialPlatform)
-    case noVideoFile
-    case extractionFailed(String)
-    case premiumRequired
+### Step 2: Update ClaudeRecipeStructurer to Accept AIService
 
-    var errorDescription: String? {
-        switch self {
-        case .videoRequired(let platform):
-            return "Please provide the video from \(platform.displayName)"
-        case .noVideoFile:
-            return "No video file available"
-        case .extractionFailed(let reason):
-            return "Could not extract recipe: \(reason)"
-        case .premiumRequired:
-            return "Premium subscription required for visual extraction"
-        }
-    }
+**File**: `HeirloomVideoLab/Features/VideoImport/Services/ClaudeRecipeStructurer.swift`
+
+The file already has the right structure, just needs to remove the `fatalError` in the convenience init:
+
+```swift
+/// Convenience initializer for production use
+convenience init() {
+    // Use AnthropicAIService from ServiceContainer
+    let aiConfig = ServiceContainer.shared.resolve(AIConfiguration.self)
+    let usageTracker = ServiceContainer.shared.resolve(AIUsageTracker.self)
+    let anthropicService = AnthropicAIService(
+        configuration: aiConfig,
+        usageTracker: usageTracker
+    )
+    self.init(aiService: anthropicService)
 }
+```
+
+### Step 3: Verify Config.xcconfig
+
+**File**: `Heirloom/Config/Config.xcconfig`
+
+Ensure your corporate Anthropic key is set:
+
+```
+// Anthropic API Configuration
+DEFAULT_ANTHROPIC_KEY = sk-ant-api03-your-corporate-key-here
+```
+
+This gets read by `Info.plist` and accessed via:
+```swift
+Bundle.main.object(forInfoDictionaryKey: "DEFAULT_ANTHROPIC_KEY")
+```
+
+### Step 4: Remove Pattern Matching Implementation
+
+Delete the current pattern matching implementation (extractTitle, extractInstructions, extractIngredients) since VideoRecipeProcessor + Claude AI handles this properly.
+
+## Benefits of Proper Implementation
+
+1. **Uses Claude AI**: Much better extraction quality than pattern matching
+2. **Corporate Key**: Uses your Config.xcconfig key automatically
+3. **Personal Key Support**: Users can optionally provide their own keys
+4. **Auto-fallback**: Invalid personal keys automatically revert to corporate key
+5. **Rate Limiting**: Built-in quota management for default key
+6. **Caching**: VideoRecipeProcessor caches transcripts to avoid re-processing
+7. **Usage Tracking**: All AI requests tracked via AIUsageTracker
+
+## Testing
+
+After implementation:
+
+1. **Test with corporate key**:
+   - Remove any personal keys from Keychain
+   - Import a video → should use corporate key
+
+2. **Test personal key fallback**:
+   - Add invalid personal key via settings
+   - Import video → should auto-remove invalid key, use corporate key
+
+3. **Test quality**:
+   - Compare extraction quality to pattern matching
+   - Claude AI should extract much better structured data
+
+## Notes
+
+- The corporate key is **build-time configuration** (Config.xcconfig → Info.plist)
+- Personal keys are **runtime configuration** (user-provided, stored in Keychain)
+- The system is designed to handle both gracefully with automatic fallback
