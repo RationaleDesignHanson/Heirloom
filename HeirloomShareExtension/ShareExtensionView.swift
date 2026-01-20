@@ -267,8 +267,24 @@ struct ShareExtensionView: View {
         // Wait a moment for UI to update
         try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
 
-        // Open main app (using extension context's async method)
-        await extensionContext?.open(deepLinkURL)
+        // Open main app - use completion handler version for better reliability on device
+        guard let context = extensionContext else {
+            throw ShareError.invalidDeepLink
+        }
+
+        // Use continuation to wait for completion
+        _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Bool, Error>) in
+            context.open(deepLinkURL) { success in
+                if success {
+                    continuation.resume(returning: true)
+                } else {
+                    continuation.resume(throwing: ShareError.invalidDeepLink)
+                }
+            }
+        }
+
+        // Small delay before dismissing to ensure URL handling completes
+        try await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
 
         // Complete extension
         onComplete(true)
