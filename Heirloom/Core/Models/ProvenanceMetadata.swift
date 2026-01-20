@@ -135,6 +135,7 @@ struct ProvenanceMetadata: Codable, Hashable {
         generation > 0
     }
 
+    #if !APPEXTENSION
     /// Display-friendly source description
     var displaySource: String {
         if let sharedBy = sharedByName, isShared {
@@ -160,6 +161,7 @@ struct ProvenanceMetadata: Codable, Hashable {
             return "Video Import"
         }
     }
+    #endif
 
     /// Badge text for generation indicator
     var generationBadgeText: String? {

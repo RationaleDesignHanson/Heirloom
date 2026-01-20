@@ -101,11 +101,11 @@ actor WatermarkDetector {
 
         // Look for username pattern (@username)
         let usernamePattern = /@([A-Za-z0-9._]+)/
-        guard let match = text.firstMatch(of: try! Regex(usernamePattern.description)) else {
+        guard let match = text.firstMatch(of: usernamePattern) else {
             return nil
         }
 
-        let username = String(match.output.1)
+        let username = String(match.1)
         let platform = detectPlatform(from: text)
         let confidence = calculateConfidence(username: username, platform: platform, rawText: text)
 

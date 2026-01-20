@@ -1,18 +1,19 @@
 import Foundation
 import AVFoundation
 
-actor AudioAnalyzer {
+@MainActor
+class AudioAnalyzer {
 
     // IMPORTANT: Use existing WhisperKitTranscriptionService
     private let transcriptionService: WhisperKitTranscriptionService
 
-    init(transcriptionService: WhisperKitTranscriptionService) async {
+    init(transcriptionService: WhisperKitTranscriptionService) {
         self.transcriptionService = transcriptionService
     }
 
     /// Convenience initializer with new instance
-    static func makeDefault() async -> AudioAnalyzer {
-        let service = await WhisperKitTranscriptionService()
+    static func makeDefault() -> AudioAnalyzer {
+        let service = WhisperKitTranscriptionService(modelName: "base")
         return AudioAnalyzer(transcriptionService: service)
     }
 

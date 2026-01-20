@@ -1,13 +1,22 @@
 import Foundation
 
 /// Metadata fetched from social platforms via oembed APIs
-struct SocialMetadata: Codable {
-    let platform: SocialPlatform
-    let creatorUsername: String?
-    let creatorDisplayName: String?
-    let title: String?
-    let thumbnailURL: URL?
-    let fetchedAt: Date
+public struct SocialMetadata: Codable {
+    public let platform: SocialPlatform
+    public let creatorUsername: String?
+    public let creatorDisplayName: String?
+    public let title: String?
+    public let thumbnailURL: URL?
+    public let fetchedAt: Date
+
+    public init(platform: SocialPlatform, creatorUsername: String?, creatorDisplayName: String?, title: String?, thumbnailURL: URL?, fetchedAt: Date) {
+        self.platform = platform
+        self.creatorUsername = creatorUsername
+        self.creatorDisplayName = creatorDisplayName
+        self.title = title
+        self.thumbnailURL = thumbnailURL
+        self.fetchedAt = fetchedAt
+    }
 }
 
 actor SocialMetadataService {

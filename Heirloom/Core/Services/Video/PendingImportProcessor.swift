@@ -52,15 +52,19 @@ actor PendingImportProcessor {
             usageTracker: usageTracker
         )
 
-        // Create ClaudeRecipeStructurer with AnthropicAIService
+        // Create services
+        let transcriptionService = WhisperKitTranscriptionService(modelName: "base")
         let recipeStructurer = ClaudeRecipeStructurer(aiService: anthropicService)
 
-        // Create VideoRecipeProcessor with all services
+        // Create VideoRecipeProcessor using convenience initializer
+        // This will automatically create AudioExtractionService and FrameAnalysisService
         let videoProcessor = VideoRecipeProcessor(
-            transcriptionService: WhisperKitTranscriptionService.shared,
+            transcriptionService: transcriptionService,
             recipeStructurer: recipeStructurer,
+            aiService: anthropicService,
             enableFrameAnalysis: true,
-            enableCaching: true
+            enableCaching: true,
+            enableAugmentation: false  // Disable augmentation for Share Extension imports
         )
 
         return videoProcessor
@@ -209,8 +213,11 @@ actor PendingImportProcessor {
         // Add ingredients with full details
         for extracted in structured.ingredients {
             let ingredient = Ingredient()
-            ingredient.item = extracted.item
-            ingredient.quantity = extracted.quantity
+            ingredient.name = extracted.item  // Note: Ingredient model uses 'name' not 'item'
+            ingredient.originalText = extracted.item  // Store original text too
+            if let qty = Double(extracted.quantity ?? "") {
+                ingredient.quantity = qty
+            }
             ingredient.unit = extracted.unit
             ingredient.preparation = extracted.preparation
             ingredient.recipe = recipe

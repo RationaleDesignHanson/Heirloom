@@ -3,8 +3,10 @@ import PhotosUI
 
 struct UnifiedVideoImportView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var subscriptionManager: SubscriptionManager
-    @EnvironmentObject private var paywallManager: PaywallManager
+
+    // Services injected directly
+    private let subscriptionManager: SubscriptionManager
+    private let paywallManager: PaywallManager
 
     // Optional: Import from Share Extension via deep link
     let pendingImportID: UUID?
@@ -17,8 +19,14 @@ struct UnifiedVideoImportView: View {
     @State private var videoURL: URL?
     @State private var processor: PendingImportProcessor?
 
-    init(pendingImportID: UUID? = nil) {
+    init(
+        pendingImportID: UUID? = nil,
+        subscriptionManager: SubscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self),
+        paywallManager: PaywallManager = ServiceContainer.shared.resolve(PaywallManager.self)
+    ) {
         self.pendingImportID = pendingImportID
+        self.subscriptionManager = subscriptionManager
+        self.paywallManager = paywallManager
     }
 
     enum ImportState {

@@ -836,8 +836,6 @@ struct ContentView: View {
         .sheet(isPresented: $deepLinkCoordinator.showVideoImportSheet) {
             if let importID = deepLinkCoordinator.pendingVideoImportID {
                 UnifiedVideoImportView(pendingImportID: importID)
-                    .environmentObject(ServiceContainer.shared.resolve(SubscriptionManager.self))
-                    .environmentObject(ServiceContainer.shared.resolve(PaywallManager.self))
                     .onDisappear {
                         deepLinkCoordinator.clearPendingVideoImport()
                     }
