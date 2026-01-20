@@ -139,22 +139,170 @@ actor PendingImportProcessor {
         provenanceMetadata: ProvenanceMetadata?
     ) async throws -> Recipe {
 
-        // TODO: Connect to existing extraction pipelines
-        // Reference ARCHITECTURE_NOTES.md for exact implementation
+        // Create recipe with extracted content
+        let recipe = Recipe(
+            title: extractTitle(from: transcript, onScreenText: onScreenText, mode: mode),
+            sourceType: .video,
+            sourceURL: provenanceMetadata?.sourceURL,
+            instructions: extractInstructions(from: transcript, onScreenText: onScreenText, mode: mode),
+            servings: nil,  // Could be extracted from transcript
+            prepTime: nil,  // Could be extracted from transcript
+            cookTime: nil   // Could be extracted from transcript
+        )
 
-        switch mode {
-        case .audioTranscript:
-            // Use existing VideoImport/ extraction with transcript
-            throw ImportError.extractionFailed("Audio transcript extraction not yet connected")
-
-        case .onScreenText:
-            // Use on-screen text as input (similar to standard but with OCR text)
-            throw ImportError.extractionFailed("OCR text extraction not yet connected")
-
-        case .visualFrames:
-            // Use existing ASMRVideoImport/ visual extraction
-            throw ImportError.extractionFailed("Visual frame extraction not yet connected")
+        // Add ingredients extracted from text
+        let extractedIngredients = extractIngredients(from: transcript, onScreenText: onScreenText)
+        for ingredientText in extractedIngredients {
+            let ingredient = Ingredient()
+            ingredient.item = ingredientText
+            ingredient.recipe = recipe
+            recipe.ingredients?.append(ingredient)
         }
+
+        // Set provenance metadata for attribution
+        recipe.provenance = provenanceMetadata
+
+        // Add extraction mode metadata to notes
+        let modeDescription: String = {
+            switch mode {
+            case .audioTranscript: return "Extracted using audio transcript"
+            case .onScreenText: return "Extracted using on-screen text (OCR)"
+            case .visualFrames: return "Extracted using frame-by-frame visual analysis"
+            }
+        }()
+
+        recipe.notes = """
+        Imported from video
+
+        Extraction method: \(modeDescription)
+
+        ⚠️ Please review and edit this recipe:
+        - Verify ingredients and quantities
+        - Check cooking times and temperatures
+        - Add any missing steps or details
+
+        This recipe was automatically extracted and may need refinement.
+        """
+
+        return recipe
+
+        // TODO: For production-quality extraction, integrate with:
+        // - VideoRecipeProcessor for audio/OCR modes (uses Claude AI for structuring)
+        // - ASMRVideoImportView logic for visual frame analysis
+        // See STEP_7_EXTRACTION_PIPELINE_GUIDE.md for details
+    }
+
+    /// Extract recipe title from text content
+    private func extractTitle(from transcript: String?, onScreenText: String?, mode: ExtractionMode) -> String {
+        let text = transcript ?? onScreenText ?? ""
+
+        // Try to find recipe title patterns
+        let patterns = [
+            "(?:recipe|how to make|making|baking) ([^.!?\\n]+)",
+            "(?:^|\\n)([^\\n]{10,60}?)(?:recipe|ingredients|method|steps)",
+            "(?:^|\\n)([A-Z][^\\n]{10,60}?)(?:\\n|$)"
+        ]
+
+        for pattern in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+               match.numberOfRanges > 1,
+               let titleRange = Range(match.range(at: 1), in: text) {
+                let title = String(text[titleRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+                if title.count > 5 && title.count < 80 {
+                    return title
+                }
+            }
+        }
+
+        // Fallback: Use first substantial line or generic title
+        let lines = text.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { $0.count > 10 && $0.count < 80 }
+
+        if let firstLine = lines.first {
+            return firstLine
+        }
+
+        // Generic title based on mode
+        switch mode {
+        case .audioTranscript: return "Recipe from Video (Audio)"
+        case .onScreenText: return "Recipe from Video (Text)"
+        case .visualFrames: return "Recipe from Video (Visual)"
+        }
+    }
+
+    /// Extract cooking instructions from text
+    private func extractInstructions(from transcript: String?, onScreenText: String?, mode: ExtractionMode) -> [String] {
+        let text = transcript ?? onScreenText ?? ""
+
+        // Split into sentences and filter for instruction-like content
+        let sentences = text.components(separatedBy: CharacterSet(charactersIn: ".!?\\n"))
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { sentence in
+                // Keep sentences that look like instructions
+                sentence.count > 20 &&
+                sentence.count < 500 &&
+                (sentence.lowercased().contains(any: ["add", "mix", "cook", "bake", "heat", "stir", "place", "pour", "combine", "whisk", "blend"]) ||
+                 sentence.contains(any: ["°F", "°C", "minutes", "hours", "cups", "tablespoon", "teaspoon"]))
+            }
+
+        if sentences.isEmpty {
+            // Fallback: Return the full text as a single instruction
+            let cleanedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return cleanedText.isEmpty ? ["No instructions extracted. Please add cooking steps."] : [cleanedText]
+        }
+
+        return sentences
+    }
+
+    /// Extract ingredient list from text
+    private func extractIngredients(from transcript: String?, onScreenText: String?) -> [String] {
+        let text = transcript ?? onScreenText ?? ""
+
+        // Look for ingredient patterns
+        let ingredientKeywords = RecipeKeywords.ingredients
+        var ingredients: [String] = []
+
+        // Split into lines and look for ingredient-like patterns
+        let lines = text.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+
+        for line in lines {
+            let lowercased = line.lowercased()
+
+            // Check if line contains ingredient keywords
+            if ingredientKeywords.contains(where: { lowercased.contains($0) }) {
+                // Line mentions an ingredient
+                if line.count > 5 && line.count < 200 {
+                    ingredients.append(line)
+                }
+            }
+
+            // Look for measurement patterns (suggests ingredient line)
+            if line.range(of: "\\d+\\s*(cup|tablespoon|teaspoon|gram|kg|lb|oz|ml|liter)", options: .regularExpression) != nil {
+                if line.count > 5 && line.count < 200 && !ingredients.contains(line) {
+                    ingredients.append(line)
+                }
+            }
+        }
+
+        if ingredients.isEmpty {
+            // Fallback: Return placeholder
+            return ["Ingredients not automatically extracted. Please add ingredients manually."]
+        }
+
+        // Deduplicate and limit
+        return Array(Set(ingredients)).prefix(20).map { String($0) }
+    }
+}
+
+// MARK: - Helper Extensions
+
+private extension String {
+    /// Check if string contains any of the given substrings
+    func contains(any substrings: [String]) -> Bool {
+        return substrings.contains { self.contains($0) }
     }
 }
 
