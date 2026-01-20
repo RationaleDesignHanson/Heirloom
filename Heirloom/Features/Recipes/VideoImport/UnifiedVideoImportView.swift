@@ -4,10 +4,6 @@ import PhotosUI
 struct UnifiedVideoImportView: View {
     @Environment(\.dismiss) private var dismiss
 
-    // Services injected directly
-    private let subscriptionManager: SubscriptionManager
-    private let paywallManager: PaywallManager
-
     // Optional: Import from Share Extension via deep link
     let pendingImportID: UUID?
 
@@ -19,14 +15,12 @@ struct UnifiedVideoImportView: View {
     @State private var videoURL: URL?
     @State private var processor: PendingImportProcessor?
 
-    init(
-        pendingImportID: UUID? = nil,
-        subscriptionManager: SubscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self),
-        paywallManager: PaywallManager = ServiceContainer.shared.resolve(PaywallManager.self)
-    ) {
+    // Services resolved on MainActor
+    @State private var subscriptionManager: SubscriptionManager?
+    @State private var paywallManager: PaywallManager?
+
+    init(pendingImportID: UUID? = nil) {
         self.pendingImportID = pendingImportID
-        self.subscriptionManager = subscriptionManager
-        self.paywallManager = paywallManager
     }
 
     enum ImportState {
@@ -64,10 +58,19 @@ struct UnifiedVideoImportView: View {
                 }
             }
             .task {
+                // Initialize services from ServiceContainer
+                self.subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+                self.paywallManager = ServiceContainer.shared.resolve(PaywallManager.self)
+
                 // Initialize processor
+                guard let subManager = subscriptionManager, let pwManager = paywallManager else {
+                    importState = .error("Failed to initialize services")
+                    return
+                }
+
                 self.processor = await PendingImportProcessor.make(
-                    subscriptionManager: subscriptionManager,
-                    paywallManager: paywallManager
+                    subscriptionManager: subManager,
+                    paywallManager: pwManager
                 )
 
                 // If launched from Share Extension, process pending import
@@ -213,7 +216,7 @@ struct UnifiedVideoImportView: View {
             // Upgrade button
             Button {
                 Task { @MainActor in
-                    paywallManager.show(for: .visualVideoExtraction)
+                    paywallManager?.show(for: .visualVideoExtraction)
                 }
             } label: {
                 HStack {
@@ -253,7 +256,7 @@ struct UnifiedVideoImportView: View {
             .padding(.horizontal)
         }
         // Listen for subscription changes (user may have upgraded)
-        .onChange(of: subscriptionManager.isPremium) { _, isPremium in
+        .onChange(of: subscriptionManager?.isPremium == true) { _, isPremium in
             if isPremium, let url = videoURL {
                 // User upgraded! Proceed with extraction
                 proceedWithVisualExtraction(videoURL: url)
@@ -387,7 +390,7 @@ struct UnifiedVideoImportView: View {
 
                 case .requiresPremium(let audioReasoning, let ocrReasoning):
                     // PREMIUM REQUIRED - show paywall screen
-                    if subscriptionManager.isPremium {
+                    if subscriptionManager?.isPremium == true {
                         // User is premium, proceed anyway
                         proceedWithVisualExtraction(videoURL: videoData.url)
                     } else {
@@ -452,7 +455,7 @@ struct UnifiedVideoImportView: View {
                 await PendingImportManager.shared.delete(id: importID)
 
             case .requiresPremium(let audioReasoning, let ocrReasoning):
-                if subscriptionManager.isPremium {
+                if subscriptionManager?.isPremium == true {
                     proceedWithVisualExtraction(videoURL: videoURL)
                 } else {
                     importState = .premiumRequired(
@@ -514,9 +517,9 @@ struct UnifiedVideoImportView: View {
     private func processURL(_ platformInfo: DetectedPlatformInfo) {
         // URL imports are already a hard paywall (.urlImport)
         // Check subscription first
-        if !subscriptionManager.isPremium {
+        if !subscriptionManager?.isPremium == true {
             Task { @MainActor in
-                paywallManager.show(for: .urlImport)
+                paywallManager?.show(for: .urlImport)
             }
             return
         }
