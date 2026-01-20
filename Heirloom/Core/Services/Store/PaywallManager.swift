@@ -18,6 +18,7 @@ enum PaywallTrigger {
     case cookbookScan               // Hard wall - cookbook scan feature
     case sync                       // Hard wall - sync feature
     case largePDFImport(pageCount: Int)  // Hard wall - PDF import 50+ pages
+    case visualVideoExtraction      // Hard wall - visual/ASMR video extraction
 
     var displayName: String {
         switch self {
@@ -28,6 +29,7 @@ enum PaywallTrigger {
         case .cookbookScan: return "Cookbook Scan"
         case .sync: return "Sync"
         case .largePDFImport: return "Large PDF Import"
+        case .visualVideoExtraction: return "Visual Video Extraction"
         }
     }
 
@@ -35,7 +37,7 @@ enum PaywallTrigger {
         switch self {
         case .firstRecipeAdded, .fiveRecipesOrDay7, .day13Urgency:
             return true
-        case .urlImport, .cookbookScan, .sync, .largePDFImport:
+        case .urlImport, .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction:
             return false
         }
     }
@@ -44,7 +46,7 @@ enum PaywallTrigger {
         switch self {
         case .firstRecipeAdded: return 48
         case .fiveRecipesOrDay7: return 72
-        case .day13Urgency, .urlImport, .cookbookScan, .sync, .largePDFImport: return nil
+        case .day13Urgency, .urlImport, .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction: return nil
         }
     }
 }

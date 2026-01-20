@@ -1,6 +1,44 @@
 import Foundation
 import CryptoKit
 
+/// Social platform detection for video imports
+enum SocialPlatform: String, Codable, CaseIterable {
+    case tiktok
+    case instagram
+    case youtube
+    case facebook
+    case unknown
+
+    var displayName: String {
+        switch self {
+        case .tiktok: return "TikTok"
+        case .instagram: return "Instagram"
+        case .youtube: return "YouTube"
+        case .facebook: return "Facebook"
+        case .unknown: return "Unknown"
+        }
+    }
+
+    var iconSystemName: String {
+        // Use SF Symbols for consistent design
+        switch self {
+        case .tiktok: return "play.square.stack"
+        case .instagram: return "camera"
+        case .youtube: return "play.rectangle"
+        case .facebook: return "person.2"
+        case .unknown: return "questionmark.circle"
+        }
+    }
+}
+
+/// Detection method for attribution
+enum AttributionDetectionMethod: String, Codable {
+    case urlMetadata    // Extracted from shared URL
+    case watermark      // OCR from video watermark
+    case onScreenText   // OCR from recipe text in video
+    case manual         // User-provided
+}
+
 /// Tracks the origin, lineage, and sharing history of a recipe
 /// Embedded as a Codable property within Recipe model
 struct ProvenanceMetadata: Codable, Hashable {
