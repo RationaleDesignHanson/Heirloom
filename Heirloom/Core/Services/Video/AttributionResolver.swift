@@ -1,12 +1,5 @@
 import Foundation
 
-/// Social metadata from oEmbed APIs (placeholder - full implementation in Prompt 7)
-struct SocialMetadata {
-    let creatorUsername: String?
-    let creatorDisplayName: String?
-    let platform: SocialPlatform
-}
-
 enum AttributionResolver {
 
     /// Resolve final attribution from multiple sources
