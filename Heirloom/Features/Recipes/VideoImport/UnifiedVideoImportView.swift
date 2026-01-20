@@ -6,6 +6,9 @@ struct UnifiedVideoImportView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @EnvironmentObject private var paywallManager: PaywallManager
 
+    // Optional: Import from Share Extension via deep link
+    let pendingImportID: UUID?
+
     @State private var selectedItem: PhotosPickerItem?
     @State private var importState: ImportState = .selecting
     @State private var currentMode: ExtractionMode?
@@ -13,6 +16,10 @@ struct UnifiedVideoImportView: View {
     @State private var analysisResult: VideoImportAnalysisResult?
     @State private var videoURL: URL?
     @State private var processor: PendingImportProcessor?
+
+    init(pendingImportID: UUID? = nil) {
+        self.pendingImportID = pendingImportID
+    }
 
     enum ImportState {
         case selecting
@@ -54,6 +61,11 @@ struct UnifiedVideoImportView: View {
                     subscriptionManager: subscriptionManager,
                     paywallManager: paywallManager
                 )
+
+                // If launched from Share Extension, process pending import
+                if let importID = pendingImportID {
+                    await processPendingImport(importID)
+                }
             }
         }
     }
@@ -385,6 +397,68 @@ struct UnifiedVideoImportView: View {
             } catch {
                 importState = .error(error.localizedDescription)
             }
+        }
+    }
+
+    private func processPendingImport(_ importID: UUID) async {
+        importState = .analyzing(stage: "Loading video from Share Extension...")
+
+        // Load pending import
+        guard let pendingImport = await PendingImportManager.shared.load(id: importID) else {
+            importState = .error("Could not find pending import")
+            return
+        }
+
+        guard let videoURL = pendingImport.localVideoURL else {
+            importState = .error("No video file available")
+            return
+        }
+
+        self.videoURL = videoURL
+
+        // Process using same flow as photo library import
+        do {
+            guard let processor = self.processor else {
+                throw ImportError.extractionFailed("Processor not initialized")
+            }
+
+            importState = .analyzing(stage: "Analyzing audio...")
+
+            let result = try await processor.analyzeVideo(at: videoURL)
+
+            switch result {
+            case .canProceedFree(let mode, let transcript, let onScreenText):
+                importState = .extracting(mode: mode, progress: 0)
+
+                let recipe = try await processor.processImport(
+                    pendingImport,
+                    mode: mode,
+                    transcript: transcript,
+                    onScreenText: onScreenText
+                )
+
+                importedRecipe = recipe
+                importState = .success
+
+                // Clean up pending import
+                await PendingImportManager.shared.delete(id: importID)
+
+            case .requiresPremium(let audioReasoning, let ocrReasoning):
+                if subscriptionManager.isPremium {
+                    proceedWithVisualExtraction(videoURL: videoURL)
+                } else {
+                    importState = .premiumRequired(
+                        audioReasoning: audioReasoning,
+                        ocrReasoning: ocrReasoning
+                    )
+                }
+
+            case .failed(let error):
+                importState = .error(error.localizedDescription)
+            }
+
+        } catch {
+            importState = .error(error.localizedDescription)
         }
     }
 

@@ -21,6 +21,10 @@ class DeepLinkHandler: ObservableObject {
     @Published var pendingImportURL: URL?
     @Published var showURLImportSheet = false
 
+    // Video import state (for share extension video imports)
+    @Published var pendingVideoImportID: UUID?
+    @Published var showVideoImportSheet = false
+
     // Video job state (for notifications)
     @Published var pendingVideoJobID: UUID?
     @Published var pendingVideoJobAction: VideoJobAction?
@@ -197,18 +201,28 @@ class DeepLinkHandler: ObservableObject {
             handleFirebaseShare(shareID: shareID, originalURL: url)
 
         } else if components.host == "import" {
-            // Handle URL import from share extension
-            guard let urlString = components.queryItems?.first(where: { $0.name == "url" })?.value,
-                  let importURL = URL(string: urlString) else {
-                Log.error("Invalid import URL in heirloom:// URL", category: .general)
-                DeviceLogger.shared.log("❌ [DeepLink] Invalid import URL in heirloom:// URL")
+            // Check for video import with ID (new Share Extension format)
+            if let idString = components.queryItems?.first(where: { $0.name == "id" })?.value,
+               let importID = UUID(uuidString: idString) {
+                Log.info("Extracted video import ID from deep link", category: .general, metadata: ["importId": importID.uuidString])
+                DeviceLogger.shared.log("✅ [DeepLink] Extracted video import ID: \(importID.uuidString)")
+
+                handleVideoImport(importID)
                 return
             }
 
-            Log.info("Extracted import URL from deep link", category: .general, metadata: ["importUrl": importURL.absoluteString])
-            DeviceLogger.shared.log("✅ [DeepLink] Extracted import URL: \(importURL.absoluteString)")
+            // Fallback: Handle URL import (old format)
+            if let urlString = components.queryItems?.first(where: { $0.name == "url" })?.value,
+               let importURL = URL(string: urlString) {
+                Log.info("Extracted import URL from deep link", category: .general, metadata: ["importUrl": importURL.absoluteString])
+                DeviceLogger.shared.log("✅ [DeepLink] Extracted import URL: \(importURL.absoluteString)")
 
-            handleURLImport(importURL)
+                handleURLImport(importURL)
+                return
+            }
+
+            Log.error("Invalid import parameters in heirloom:// URL", category: .general)
+            DeviceLogger.shared.log("❌ [DeepLink] Invalid import parameters in heirloom:// URL")
 
         } else if components.host == "video-job" {
             // Handle video processing job notification
@@ -290,6 +304,20 @@ class DeepLinkHandler: ObservableObject {
         DeviceLogger.shared.log("✅ [DeepLink] URL import sheet triggered")
     }
 
+    // MARK: - Video Import Handling (from share extension)
+
+    private func handleVideoImport(_ importID: UUID) {
+        Log.info("Handling video import from share extension", category: .general, metadata: ["importId": importID.uuidString])
+        DeviceLogger.shared.log("🎥 [DeepLink] Handling video import from share extension: \(importID.uuidString)")
+
+        // Store import ID for import flow
+        pendingVideoImportID = importID
+        showVideoImportSheet = true
+
+        Log.info("Video import sheet triggered", category: .ui)
+        DeviceLogger.shared.log("✅ [DeepLink] Video import sheet triggered")
+    }
+
     // MARK: - Video Job Handling (from notifications)
 
     private func handleVideoJob(jobID: UUID, action: VideoJobAction) {
@@ -344,6 +372,14 @@ class DeepLinkHandler: ObservableObject {
         DeviceLogger.shared.log("🧹 [DeepLink] Clearing pending URL import")
         pendingImportURL = nil
         showURLImportSheet = false
+    }
+
+    /// Clear pending video import (called after processing)
+    func clearPendingVideoImport() {
+        Log.debug("Clearing pending video import", category: .general)
+        DeviceLogger.shared.log("🧹 [DeepLink] Clearing pending video import")
+        pendingVideoImportID = nil
+        showVideoImportSheet = false
     }
 
     /// Clear pending video job (called after handling)
