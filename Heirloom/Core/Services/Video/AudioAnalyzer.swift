@@ -12,8 +12,8 @@ class AudioAnalyzer {
     }
 
     /// Convenience initializer with new instance
-    static func makeDefault() -> AudioAnalyzer {
-        let service = WhisperKitTranscriptionService(modelName: "base")
+    static func makeDefault() async -> AudioAnalyzer {
+        let service = await WhisperKitTranscriptionService()
         return AudioAnalyzer(transcriptionService: service)
     }
 

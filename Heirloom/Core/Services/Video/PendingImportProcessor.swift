@@ -41,7 +41,7 @@ actor PendingImportProcessor {
     }
 
     @MainActor
-    private static func makeVideoProcessor() -> VideoRecipeProcessor {
+    private static func makeVideoProcessor() async -> VideoRecipeProcessor {
         // Get AI configuration and services from ServiceContainer
         let aiConfig = ServiceContainer.shared.resolve(AIConfiguration.self)
         let usageTracker = ServiceContainer.shared.resolve(AIUsageTracker.self)
@@ -53,7 +53,7 @@ actor PendingImportProcessor {
         )
 
         // Create services
-        let transcriptionService = WhisperKitTranscriptionService(modelName: "base")
+        let transcriptionService = await WhisperKitTranscriptionService()
         let recipeStructurer = ClaudeRecipeStructurer(aiService: anthropicService)
 
         // Create VideoRecipeProcessor using convenience initializer
@@ -99,7 +99,8 @@ actor PendingImportProcessor {
 
         // TIER 3: Visual Analysis Required (PREMIUM)
         // Check if user has premium access
-        if subscriptionManager.isPremium {
+        let isPremium = await subscriptionManager.isPremium
+        if isPremium {
             return .canProceedFree(
                 mode: .visualFrames,
                 transcript: nil,
@@ -124,21 +125,21 @@ actor PendingImportProcessor {
         var updated = pendingImport
 
         guard let videoURL = updated.localVideoURL else {
-            throw ImportError.noVideoFile
+            throw VideoImportError.noVideoFile
         }
 
         // Watermark detection for attribution (parallel to extraction)
         let watermarkResult = try await watermarkDetector.detect(in: videoURL)
 
         // Resolve attribution from multiple sources
-        let (sourceURL, sourceAttribution, platform) = AttributionResolver.resolve(
-            urlPlatformInfo: nil, // TODO: Pass from pending import if available
+        let (sourceURL, sourceAttribution, _) = AttributionResolver.resolve(
+            urlPlatformInfo: nil,
             watermarkResult: watermarkResult,
-            socialMetadata: nil // TODO: Fetch if URL available
+            socialMetadata: nil
         )
 
         // Create ProvenanceMetadata
-        var provenanceMetadata = ProvenanceMetadata(
+        let provenanceMetadata = ProvenanceMetadata(
             sourceType: .video,
             sourceURL: sourceURL,
             sourceAttribution: sourceAttribution
@@ -178,7 +179,7 @@ actor PendingImportProcessor {
     ) async throws -> Recipe {
 
         guard let processor = videoProcessor else {
-            throw ImportError.extractionFailed("Video processor not initialized")
+            throw VideoImportError.extractionFailed("Video processor not initialized")
         }
 
         // Use VideoRecipeProcessor for all modes
@@ -243,24 +244,4 @@ actor PendingImportProcessor {
         return recipe
     }
 
-}
-
-enum ImportError: LocalizedError {
-    case videoRequired(platform: SocialPlatform)
-    case noVideoFile
-    case extractionFailed(String)
-    case premiumRequired
-
-    var errorDescription: String? {
-        switch self {
-        case .videoRequired(let platform):
-            return "Please provide the video from \(platform.displayName)"
-        case .noVideoFile:
-            return "No video file available"
-        case .extractionFailed(let reason):
-            return "Could not extract recipe: \(reason)"
-        case .premiumRequired:
-            return "Premium subscription required for visual extraction"
-        }
-    }
 }

@@ -638,37 +638,6 @@ struct ASMRVideoImportView: View {
     }
 }
 
-// MARK: - Video Transferable
-
-struct VideoTransferable: Transferable {
-    let url: URL
-
-    static var transferRepresentation: some TransferRepresentation {
-        FileRepresentation(contentType: .movie) { video in
-            SentTransferredFile(video.url)
-        } importing: { received in
-            // Use persistent VideoProcessing directory (consistent with VideoImportView)
-            let processingDir = FileManager.default
-                .urls(for: .documentDirectory, in: .userDomainMask)[0]
-                .appendingPathComponent("VideoProcessing", isDirectory: true)
-
-            try FileManager.default.createDirectory(at: processingDir, withIntermediateDirectories: true)
-
-            let copy = processingDir
-                .appendingPathComponent(UUID().uuidString)
-                .appendingPathExtension("mov")
-
-            try FileManager.default.copyItem(at: received.file, to: copy)
-
-            Log.info("ASMR video saved to persistent storage", category: .video, metadata: [
-                "path": copy.path
-            ])
-
-            return Self(url: copy)
-        }
-    }
-}
-
 // MARK: - Preview
 
 #Preview {

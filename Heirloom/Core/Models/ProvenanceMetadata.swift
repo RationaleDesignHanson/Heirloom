@@ -2,7 +2,7 @@ import Foundation
 import CryptoKit
 
 /// Social platform detection for video imports
-enum SocialPlatform: String, Codable, CaseIterable {
+public enum SocialPlatform: String, Codable, CaseIterable {
     case tiktok
     case instagram
     case youtube

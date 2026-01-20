@@ -57,7 +57,7 @@ struct UnifiedVideoImportView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
-            .task {
+            .task { @MainActor in
                 // Initialize services from ServiceContainer
                 self.subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
                 self.paywallManager = ServiceContainer.shared.resolve(PaywallManager.self)
@@ -308,7 +308,7 @@ struct UnifiedVideoImportView: View {
                 .font(.headline)
 
             if let recipe = importedRecipe,
-               let attribution = recipe.provenanceMetadata?.sourceAttribution {
+               let attribution = recipe.provenance?.sourceAttribution {
                 Text("From \(attribution)")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -353,12 +353,12 @@ struct UnifiedVideoImportView: View {
         Task {
             do {
                 guard let processor = self.processor else {
-                    throw ImportError.extractionFailed("Processor not initialized")
+                    throw VideoImportError.extractionFailed("Processor not initialized")
                 }
 
                 // Load video
                 guard let videoData = try await item.loadTransferable(type: VideoTransferable.self) else {
-                    throw ImportError.noVideoFile
+                    throw VideoImportError.noVideoFile
                 }
 
                 self.videoURL = videoData.url
@@ -430,7 +430,7 @@ struct UnifiedVideoImportView: View {
         // Process using same flow as photo library import
         do {
             guard let processor = self.processor else {
-                throw ImportError.extractionFailed("Processor not initialized")
+                throw VideoImportError.extractionFailed("Processor not initialized")
             }
 
             importState = .analyzing(stage: "Analyzing audio...")
@@ -479,7 +479,7 @@ struct UnifiedVideoImportView: View {
         Task {
             do {
                 guard let processor = self.processor else {
-                    throw ImportError.extractionFailed("Processor not initialized")
+                    throw VideoImportError.extractionFailed("Processor not initialized")
                 }
 
                 let pendingImport = PendingVideoImport(
@@ -517,7 +517,7 @@ struct UnifiedVideoImportView: View {
     private func processURL(_ platformInfo: DetectedPlatformInfo) {
         // URL imports are already a hard paywall (.urlImport)
         // Check subscription first
-        if !subscriptionManager?.isPremium == true {
+        if subscriptionManager?.isPremium != true {
             Task { @MainActor in
                 paywallManager?.show(for: .urlImport)
             }

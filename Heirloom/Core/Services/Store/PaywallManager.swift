@@ -161,7 +161,7 @@ final class PaywallManager {
         case .day13Urgency:
             return canTriggerDay13()
 
-        case .urlImport, .cookbookScan, .sync, .largePDFImport:
+        case .urlImport, .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction:
             return true // Hard walls always pass
         }
     }
@@ -352,7 +352,7 @@ final class PaywallManager {
         case .day13Urgency:
             UserDefaults.standard.set(true, forKey: Keys.hasTriggeredDay13)
 
-        case .urlImport, .cookbookScan, .sync, .largePDFImport:
+        case .urlImport, .cookbookScan, .sync, .largePDFImport, .visualVideoExtraction:
             break // Hard walls don't track trigger date
         }
     }

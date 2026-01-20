@@ -290,6 +290,7 @@
 		C5DBEC892F20102E00C1B6BA /* PendingImportProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC822F20102E00C1B6BA /* PendingImportProcessor.swift */; };
 		C5DBEC8A2F2010C300C1B6BA /* RecipeKeywords.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC722F200EA900C1B6BA /* RecipeKeywords.swift */; };
 		C5DBEC942F201F5300C1B6BA /* ProvenanceMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BA98B3C07204712DFE0C34D /* ProvenanceMetadata.swift */; };
+		C5DBEEAC2F202D1E00C1B6BA /* SocialMetadataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEEAB2F202D1E00C1B6BA /* SocialMetadataService.swift */; };
 		C5E955312F054271006CD3C2 /* RecipeVersionSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E9552F2F054271006CD3C2 /* RecipeVersionSelector.swift */; };
 		C5E955322F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E955302F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift */; };
 		C5E955332F054271006CD3C2 /* RecipeDiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E9552E2F054271006CD3C2 /* RecipeDiffView.swift */; };
@@ -611,6 +612,7 @@
 		C5DBEC812F20102E00C1B6BA /* PendingImportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingImportManager.swift; sourceTree = "<group>"; };
 		C5DBEC822F20102E00C1B6BA /* PendingImportProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingImportProcessor.swift; sourceTree = "<group>"; };
 		C5DBEC832F20102E00C1B6BA /* WatermarkDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatermarkDetector.swift; sourceTree = "<group>"; };
+		C5DBEEAB2F202D1E00C1B6BA /* SocialMetadataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialMetadataService.swift; sourceTree = "<group>"; };
 		C5E9552E2F054271006CD3C2 /* RecipeDiffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDiffView.swift; sourceTree = "<group>"; };
 		C5E9552F2F054271006CD3C2 /* RecipeVersionSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersionSelector.swift; sourceTree = "<group>"; };
 		C5E955302F054271006CD3C2 /* RecipeVersionSelectorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersionSelectorViewModel.swift; sourceTree = "<group>"; };
@@ -654,11 +656,19 @@
 			);
 			target = C56887312F057B02006EA0B1 /* HeirloomShareExtension */;
 		};
+		C5DBEEAD2F20312A00C1B6BA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Integration/AI/README.md,
+				README.md,
+			);
+			target = C583051E2F0E06D30096478E /* HeirloomTestsV2 */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C56887332F057B02006EA0B1 /* HeirloomShareExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (C568873D2F057B02006EA0B1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = HeirloomShareExtension; sourceTree = "<group>"; };
-		C58305202F0E06D30096478E /* HeirloomTestsV2 */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HeirloomTestsV2; sourceTree = "<group>"; };
+		C58305202F0E06D30096478E /* HeirloomTestsV2 */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (C5DBEEAD2F20312A00C1B6BA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = HeirloomTestsV2; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1316,6 +1326,7 @@
 		C58316472F119E910096478E /* Video */ = {
 			isa = PBXGroup;
 			children = (
+				C5DBEEAB2F202D1E00C1B6BA /* SocialMetadataService.swift */,
 				C5DBEC7E2F20102E00C1B6BA /* AttributionResolver.swift */,
 				C5DBEC7F2F20102E00C1B6BA /* AudioAnalyzer.swift */,
 				C5DBEC802F20102E00C1B6BA /* OnScreenTextDetector.swift */,
@@ -2102,6 +2113,7 @@
 				679F93B31ACD344543403260 /* ImagePreprocessor.swift in Sources */,
 				BBD52D4E93767271B07C62A6 /* ImageStorageService.swift in Sources */,
 				14902ECCAAEBB9BA1C553ABD /* ImportAttempt.swift in Sources */,
+				C5DBEEAC2F202D1E00C1B6BA /* SocialMetadataService.swift in Sources */,
 				CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */,
 				F22F7A301F871867FF273924 /* ImportJob.swift in Sources */,
 				C5830E0F2F103A580096478E /* UserDefaultsKeys.swift in Sources */,

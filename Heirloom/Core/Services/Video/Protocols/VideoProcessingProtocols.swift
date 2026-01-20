@@ -7,7 +7,9 @@
 
 import Foundation
 import AVFoundation
+#if !APPEXTENSION
 import UIKit
+#endif
 
 // MARK: - Audio Extraction Protocol
 
@@ -258,6 +260,12 @@ enum VideoImportError: LocalizedError {
     case cancelled
     case unsupportedSource(message: String)
 
+    // Share Extension specific errors
+    case videoRequired(platform: SocialPlatform)
+    case noVideoFile
+    case extractionFailed(String)
+    case premiumRequired
+
     var errorDescription: String? {
         switch self {
         case .invalidVideoURL:
@@ -276,6 +284,14 @@ enum VideoImportError: LocalizedError {
             return "Processing was cancelled"
         case .unsupportedSource(let message):
             return message
+        case .videoRequired(let platform):
+            return "Please provide the video from \(platform.displayName)"
+        case .noVideoFile:
+            return "No video file available"
+        case .extractionFailed(let reason):
+            return "Could not extract recipe: \(reason)"
+        case .premiumRequired:
+            return "Premium subscription required for visual extraction"
         }
     }
 }
