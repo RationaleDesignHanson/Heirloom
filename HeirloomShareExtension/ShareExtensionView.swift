@@ -278,12 +278,12 @@ struct ShareExtensionView: View {
 
         // Try to open main app - if this fails, it's okay because we have polling
         if let context = extensionContext {
-            // Attempt to open, but don't fail if it doesn't work
-            context.open(deepLinkURL) { success in
+            // Attempt to open using async method, but don't fail if it doesn't work
+            do {
+                _ = try await context.open(deepLinkURL)
+            } catch {
                 // Log result but don't throw - the main app will poll for imports
-                if !success {
-                    print("⚠️ Share Extension: Failed to open main app URL, but video is saved. User should open Heirloom manually.")
-                }
+                print("⚠️ Share Extension: Failed to open main app URL, but video is saved. User should open Heirloom manually.")
             }
 
             // Give the open attempt a moment to work
