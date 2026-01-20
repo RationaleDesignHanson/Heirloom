@@ -267,8 +267,8 @@ struct ShareExtensionView: View {
         // Wait a moment for UI to update
         try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
 
-        // Open main app
-        await UIApplication.shared.open(deepLinkURL)
+        // Open main app (using extension context instead of UIApplication.shared)
+        extensionContext?.open(deepLinkURL, completionHandler: nil)
 
         // Complete extension
         onComplete(true)

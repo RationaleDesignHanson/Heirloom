@@ -57,14 +57,16 @@ enum PlatformDetector {
         let isShort = host.contains("vm.tiktok.com") || host.contains("vt.tiktok.com")
 
         // Pattern: /@username/video/videoId
-        let pattern = #"@([A-Za-z0-9_.]+)/video/(\d+)"#
-        if let match = urlString.firstMatch(of: try! Regex(pattern)) {
+        let pattern = /@([A-Za-z0-9_.]+)\/video\/([0-9]+)/
+        if let match = urlString.firstMatch(of: pattern) {
+            let username = String(match.1)
+            let videoId = String(match.2)
             return DetectedPlatformInfo(
                 platform: .tiktok,
-                videoId: String(match.output.2),
+                videoId: videoId,
                 originalURL: url,
                 isShortURL: isShort,
-                extractedUsername: String(match.output.1)
+                extractedUsername: username
             )
         }
 
@@ -86,16 +88,17 @@ enum PlatformDetector {
 
         // Pattern: /reel/shortcode or /reels/shortcode or /p/shortcode
         let patterns = [
-            #"/reel/([A-Za-z0-9_-]+)"#,
-            #"/reels/([A-Za-z0-9_-]+)"#,
-            #"/p/([A-Za-z0-9_-]+)"#
+            /\/reel\/([A-Za-z0-9_-]+)/,
+            /\/reels\/([A-Za-z0-9_-]+)/,
+            /\/p\/([A-Za-z0-9_-]+)/
         ]
 
         for pattern in patterns {
-            if let match = urlString.firstMatch(of: try! Regex(pattern)) {
+            if let match = urlString.firstMatch(of: pattern) {
+                let shortcode = String(match.1)
                 return DetectedPlatformInfo(
                     platform: .instagram,
-                    videoId: String(match.output.1),
+                    videoId: shortcode,
                     originalURL: url,
                     isShortURL: host.contains("instagr.am"),
                     extractedUsername: nil
@@ -131,9 +134,9 @@ enum PlatformDetector {
         }
         // youtube.com/shorts/videoId
         else if urlString.contains("/shorts/") {
-            let pattern = #"/shorts/([A-Za-z0-9_-]+)"#
-            if let match = urlString.firstMatch(of: try! Regex(pattern)) {
-                videoId = String(match.output.1)
+            let pattern = /\/shorts\/([A-Za-z0-9_-]+)/
+            if let match = urlString.firstMatch(of: pattern) {
+                videoId = String(match.1)
             }
         }
 
@@ -154,15 +157,16 @@ enum PlatformDetector {
 
         // Pattern: /reel/videoId or /videos/videoId
         let patterns = [
-            #"/reel/(\d+)"#,
-            #"/videos/(\d+)"#
+            /\/reel\/([0-9]+)/,
+            /\/videos\/([0-9]+)/
         ]
 
         for pattern in patterns {
-            if let match = urlString.firstMatch(of: try! Regex(pattern)) {
+            if let match = urlString.firstMatch(of: pattern) {
+                let videoId = String(match.1)
                 return DetectedPlatformInfo(
                     platform: .facebook,
-                    videoId: String(match.output.1),
+                    videoId: videoId,
                     originalURL: url,
                     isShortURL: host.contains("fb.watch"),
                     extractedUsername: nil
