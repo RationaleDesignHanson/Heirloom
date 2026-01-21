@@ -136,8 +136,12 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
         )
 
         guard let lineage = try context.fetch(descriptor).first else {
-            logger.log("No lineage found for recipe", category: .firebase, level: .warning, metadata: nil)
-            return
+            logger.log("No lineage found for recipe - cannot record modification", category: .firebase, level: .warning, metadata: [
+                "recipeId": recipeId.uuidString
+            ])
+            // CRITICAL: Do NOT create lineage here - throw error instead
+            // Lineage should only be created during share acceptance, not during edits
+            throw LineageError.lineageNotFound
         }
 
         // Only track modifications for heirloom recipes
@@ -297,6 +301,21 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
         ])
     }
 
+    /// Fetch display name for the user who made the modification
+    private func fetchModifierDisplayName(for userId: String) async -> String {
+        do {
+            if let displayName = try await userProfileService.fetchDisplayName(for: userId) {
+                return displayName
+            }
+        } catch {
+            Log.warning("Failed to fetch display name for notification", category: .firebase, metadata: [
+                "userId": userId,
+                "error": error.localizedDescription
+            ])
+        }
+        return "Someone"
+    }
+
     /// Notify ancestors when a descendant makes modifications
     private func notifyAncestors(
         lineage: RecipeLineage,
@@ -313,28 +332,40 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
             .whereField("generation", isLessThan: lineage.generation)
             .getDocuments()
 
-        for doc in snapshot.documents {
-            let ancestorOwnerId = doc.data()["ownerId"] as? String ?? ""
+        // Fetch current user's display name ONCE for all notifications
+        let modifierDisplayName = await fetchModifierDisplayName(for: lineage.ownerId)
 
-            // Create notification document
+        for doc in snapshot.documents {
+            let ancestorData = doc.data()
+            guard let ancestorOwnerId = ancestorData["ownerId"] as? String else { continue }
+            let ancestorGeneration = ancestorData["generation"] as? Int ?? 0
+
+            // Create notification data with CORRECT fields
             let notificationData: [String: Any] = [
                 "type": "lineage_modification",
                 "recipeId": lineage.currentRecipeId.uuidString,
                 "rootRecipeId": lineage.rootRecipeId.uuidString,
-                "generation": lineage.generation,
+                "generation": ancestorGeneration,  // FIX: Use ancestor's gen, not modifier's
+                "modifierGeneration": lineage.generation,  // NEW: Track who made the change
                 "modifiedBy": lineage.ownerId,
-                "modifiedByName": lineage.sharedByName as Any,
+                "modifiedByName": modifierDisplayName,  // FIX: Fetched display name, never nil
+                "ownerId": ancestorOwnerId,  // NEW: Track notification recipient
                 "changeType": modification.changeType.rawValue,
                 "changeDescription": modification.changeDescription,
                 "timestamp": Timestamp(date: modification.timestamp),
                 "read": false
             ]
 
-            // Store notification for ancestor
+            // Store notification in ancestor's collection
             try await db.collection("users/\(ancestorOwnerId)/notifications")
                 .addDocument(data: notificationData)
 
-            logger.log("Notification sent to ancestor", category: .firebase, level: .debug, metadata: nil)
+            Log.info("Created lineage modification notification", category: .firebase, metadata: [
+                "ancestorOwnerId": ancestorOwnerId,
+                "ancestorGeneration": ancestorGeneration,
+                "modifierGeneration": lineage.generation,
+                "modifiedBy": lineage.ownerId
+            ])
         }
     }
 

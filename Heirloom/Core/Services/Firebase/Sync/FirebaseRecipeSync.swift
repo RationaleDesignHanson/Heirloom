@@ -121,15 +121,30 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
 
             // Step 6: Track lineage modification if this is an heirloom recipe being edited
             logger.log("Checking lineage tracking", category: .sync, level: .debug, metadata: nil)
+
+            // CRITICAL: Only record modifications if lineage already exists
+            // Do NOT create new lineage on edit - that should only happen on share acceptance
             do {
-                try await lineageService.recordModification(
-                    recipeId: recipe.id,
-                    changeType: .modified,
-                    changeDescription: "Recipe '\(recipe.title)' was edited",
-                    fieldChanged: nil,
-                    context: context
+                // First check if lineage exists for this recipe
+                let recipeId = recipe.id  // Capture value for predicate
+                let descriptor = FetchDescriptor<RecipeLineage>(
+                    predicate: #Predicate { $0.currentRecipeId == recipeId }
                 )
-                logger.log("Lineage modification recorded", category: .sync, level: .info, metadata: nil)
+
+                if try context.fetch(descriptor).first != nil {
+                    // Lineage exists - record modification to EXISTING lineage
+                    try await lineageService.recordModification(
+                        recipeId: recipe.id,
+                        changeType: .modified,
+                        changeDescription: "Recipe '\(recipe.title)' was edited",
+                        fieldChanged: nil,
+                        context: context
+                    )
+                    logger.log("Lineage modification recorded for existing lineage", category: .sync, level: .info, metadata: nil)
+                } else {
+                    // No lineage exists - this is a local recipe, not an heirloom
+                    logger.log("No lineage found - skipping modification tracking", category: .sync, level: .debug, metadata: nil)
+                }
             } catch {
                 // Log but don't fail the upload if lineage tracking fails
                 logger.log("Failed to record lineage modification", category: .sync, level: .warning, metadata: nil)

@@ -483,17 +483,19 @@ struct RecipeShareSheet: View {
                             .cornerRadius(12)
                         }
 
-                        ShareLink(item: url) {
-                            HStack {
-                                Image(systemName: "square.and.arrow.up")
-                                Text("Share via...")
+                        if let url = shareURL {
+                            ShareLink(item: url) {
+                                HStack {
+                                    Image(systemName: "square.and.arrow.up")
+                                    Text("Share via...")
+                                }
+                                .font(HeirloomFonts.bodyBold)
+                                .foregroundStyle(HeirloomColors.tomato)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(12)
                             }
-                            .font(HeirloomFonts.bodyBold)
-                            .foregroundStyle(HeirloomColors.tomato)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
                         }
                     }
                     .padding(.horizontal)
@@ -513,13 +515,24 @@ struct RecipeShareSheet: View {
     }
 
     private func copyLink(_ url: URL) {
-        UIPasteboard.general.string = url.absoluteString
+        // Generate universal link format for Messages compatibility
+        // Custom scheme: heirloom://share/UUID
+        // Universal: https://heirloom.app/share/UUID
+        let shareId = url.lastPathComponent
+        let universalLink = "https://heirloom.app/share/\(shareId)"
+
+        // Copy universal link for better compatibility in Messages and other apps
+        UIPasteboard.general.string = universalLink
+
         ServiceContainer.shared.resolve(ToastManager.self).show(
             type: .success,
             title: "Link Copied",
             message: "Share link copied to clipboard"
         )
-        Log.info("Share link copied to clipboard", category: .firebase)
+        Log.info("Share link copied (universal format)", category: .firebase, metadata: [
+            "shareId": shareId,
+            "format": "universal"
+        ])
     }
 }
 

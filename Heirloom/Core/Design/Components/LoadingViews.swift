@@ -212,8 +212,34 @@ struct AsyncRecipeImage: View {
             }
         }
         .onChange(of: imageFileName) { oldValue, newValue in
-            // Re-attempt load if imageFileName changes from nil to a value (after async download)
-            if oldValue == nil && newValue != nil {
+            // Reload image whenever imageFileName changes (not just nil→value)
+            if oldValue != newValue {
+                Log.debug("Image filename changed, reloading", category: .storage, metadata: [
+                    "old": oldValue ?? "nil",
+                    "new": newValue ?? "nil"
+                ])
+
+                // Reset state for new image
+                loadedImage = nil
+                isLoading = true
+
+                Task {
+                    await loadImage()
+                }
+            }
+        }
+        .onChange(of: firebaseImageURL) { oldValue, newValue in
+            // Reload image whenever Firebase URL changes
+            if oldValue != newValue {
+                Log.debug("Firebase image URL changed, reloading", category: .storage, metadata: [
+                    "old": oldValue ?? "nil",
+                    "new": newValue ?? "nil"
+                ])
+
+                // Reset state for new image
+                loadedImage = nil
+                isLoading = true
+
                 Task {
                     await loadImage()
                 }
