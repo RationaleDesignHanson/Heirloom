@@ -35,6 +35,9 @@ final class VideoProcessingJob {
     /// SHA256 hash of video file for duplicate detection
     var videoHash: String?
 
+    /// Thumbnail image data (JPEG)
+    var thumbnailData: Data?
+
     // MARK: - Status & Progress
 
     /// Current processing status

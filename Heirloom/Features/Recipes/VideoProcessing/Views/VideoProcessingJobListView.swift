@@ -25,6 +25,8 @@ struct VideoProcessingJobListView: View {
     @State private var selectedEnhanced: VideoRecipeExtraction.Enhanced?
     @State private var showReviewSheet = false
     @State private var showRecoverySheet = false
+    @State private var showCollectionPicker = false
+    @State private var savedRecipe: Recipe?
 
     private var processingJobs: [VideoProcessingJob] {
         allJobs.filter { $0.status == .processing }
@@ -135,8 +137,16 @@ struct VideoProcessingJobListView: View {
                         extraction: enhanced.original,
                         enhancedExtraction: enhanced,
                         onSave: { updatedExtraction in
-                            saveRecipe(from: updatedExtraction, job: job)
+                            let recipe = saveRecipe(from: updatedExtraction, job: job)
                             showReviewSheet = false
+
+                            // Show collection picker after review sheet dismisses
+                            // Need delay to avoid SwiftUI presentation timing conflict
+                            Task { @MainActor in
+                                try? await Task.sleep(nanoseconds: 700_000_000) // 0.7 seconds
+                                savedRecipe = recipe
+                                showCollectionPicker = true
+                            }
                         },
                         onCancel: {
                             showReviewSheet = false
@@ -149,6 +159,11 @@ struct VideoProcessingJobListView: View {
                     JobRecoverySheet(job: job) { action in
                         try await jobManager.handleRecoveryAction(for: job, action: action, context: modelContext)
                     }
+                }
+            }
+            .sheet(isPresented: $showCollectionPicker) {
+                if let recipe = savedRecipe {
+                    TagCollectionPickerView(recipe: recipe)
                 }
             }
         }
@@ -367,7 +382,7 @@ struct VideoProcessingJobListView: View {
         showRecoverySheet = true
     }
 
-    private func saveRecipe(from extraction: VideoRecipeExtraction, job: VideoProcessingJob) {
+    private func saveRecipe(from extraction: VideoRecipeExtraction, job: VideoProcessingJob) -> Recipe? {
         do {
             // Use centralized save method from job manager
             let recipe = try jobManager.saveRecipeFromJob(job, context: modelContext)
@@ -382,6 +397,8 @@ struct VideoProcessingJobListView: View {
                 "jobId": job.id.uuidString,
                 "recipeId": recipe.id.uuidString
             ])
+
+            return recipe
         } catch {
             Log.error("Failed to save recipe from job", category: .video, metadata: [
                 "jobId": job.id.uuidString,
@@ -394,6 +411,8 @@ struct VideoProcessingJobListView: View {
                 title: "Failed to Save Recipe",
                 message: error.localizedDescription
             )
+
+            return nil
         }
     }
 

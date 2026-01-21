@@ -40,20 +40,24 @@ struct RecipeVersionSelector: View {
                                 Button {
                                     selectedVersion = version
                                 } label: {
-                                    HStack {
-                                        VStack(alignment: .leading) {
+                                    HStack(spacing: HeirloomSpacing.xs) {
+                                        // Person icon
+                                        Image(systemName: "person.circle.fill")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+
+                                        // Version name with optional compact timestamp
+                                        if version.isCurrent && version.generation > 0 {
+                                            Text("\(version.displayName) (\(version.compactTimestamp))")
+                                                .font(.body)
+                                        } else {
                                             Text(version.displayName)
                                                 .font(.body)
-
-                                            if version.generation > 0 {
-                                                Text(version.modifiedAt, style: .relative)
-                                                    .font(HeirloomFonts.caption1)
-                                                    .foregroundStyle(.secondary)
-                                            }
                                         }
 
                                         Spacer()
 
+                                        // Checkmark for selected version
                                         if version.id == selectedVersion?.id {
                                             Image(systemName: "checkmark")
                                         }

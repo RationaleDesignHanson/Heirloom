@@ -18,8 +18,7 @@ struct RecipeListToolbarActions: View {
     let onImportRecipe: () -> Void
     let onBulkImport: () -> Void
     let onCookbookScanner: () -> Void
-    let onNarratedVideoImport: () -> Void
-    let onSilentVideoImport: () -> Void
+    let onVideoImport: () -> Void
     let onAddCollection: () -> Void
     let onAddNormalSample: () -> Void
     let onAddHeritageSample: () -> Void
@@ -86,40 +85,22 @@ struct RecipeListToolbarActions: View {
                 .accessibilityHint("Scan recipe images using camera, PDF, or photos from camera roll")
 
                 Button {
-                    onNarratedVideoImport()
+                    onVideoImport()
                 } label: {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Narrated Video")
-                            Text("From camera roll • Spoken instructions")
+                            Text("Video Import")
+                            Text("Auto-detects speech, text, or visual content")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.secondary)
                         }
                     } icon: {
-                        Image(systemName: "video.badge.waveform")
+                        Image(systemName: "video.circle.fill")
                             .foregroundStyle(.blue)
                     }
                 }
-                .accessibilityLabel("Import recipe from narrated video in camera roll")
-                .accessibilityHint("Select a video from camera roll with spoken cooking instructions")
-
-                Button {
-                    onSilentVideoImport()
-                } label: {
-                    Label {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Silent Video (ASMR)")
-                            Text("From camera roll • Visual cooking only")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Image(systemName: "eye.circle.fill")
-                            .foregroundStyle(.purple)
-                    }
-                }
-                .accessibilityLabel("Import recipe from silent video in camera roll")
-                .accessibilityHint("Select a silent ASMR video from camera roll to extract recipe visually")
+                .accessibilityLabel("Import recipe from video")
+                .accessibilityHint("Select a cooking video from camera roll or share from Instagram/TikTok")
 
                 Divider()
 

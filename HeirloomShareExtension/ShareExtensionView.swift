@@ -16,6 +16,7 @@ struct ShareExtensionView: View {
         case processingURL
         case success
         case error(String)
+        case urlNotSupported(String)  // New: for Instagram/TikTok URLs
     }
 
     var body: some View {
@@ -34,6 +35,11 @@ struct ShareExtensionView: View {
                 // Action button (cancel/done)
                 if case .error = state {
                     Button("Cancel") {
+                        onComplete(false)
+                    }
+                    .padding()
+                } else if case .urlNotSupported = state {
+                    Button("Got It") {
                         onComplete(false)
                     }
                     .padding()
@@ -80,6 +86,11 @@ struct ShareExtensionView: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(.red)
+
+        case .urlNotSupported:
+            Image(systemName: "info.circle.fill")
+                .font(.system(size: 64))
+                .foregroundStyle(.blue)
         }
     }
 
@@ -127,6 +138,37 @@ struct ShareExtensionView: View {
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
+
+        case .urlNotSupported(let platformName):
+            VStack(spacing: 12) {
+                Text("How to Import from \(platformName)")
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .top) {
+                        Text("1.")
+                        Text("Open the video in \(platformName)")
+                    }
+                    HStack(alignment: .top) {
+                        Text("2.")
+                        Text("Save it to your Camera Roll")
+                    }
+                    HStack(alignment: .top) {
+                        Text("3.")
+                        Text("Open Heirloom → tap + → Video Import")
+                    }
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+                Text("We can't download videos directly from URLs due to platform restrictions.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 4)
+            }
+            .padding(.horizontal)
         }
     }
 
@@ -220,21 +262,13 @@ struct ShareExtensionView: View {
     // MARK: - URL Handling
 
     private func handleURL(_ url: URL, platformInfo: DetectedPlatformInfo?) async throws {
-        // 1. Create pending import record
-        let pendingImportID = UUID()
-        let pendingImport = PendingVideoImport(
-            id: pendingImportID,
-            sourceType: .shareExtensionURL,
-            localVideoURL: nil,
-            originalURL: url,
-            detectedPlatform: platformInfo?.platform ?? .unknown
-        )
+        // URLs from Instagram/TikTok don't give us the video file
+        // Show instructions instead
+        let platformName = platformInfo?.platform.displayName ?? "this platform"
+        state = .urlNotSupported(platformName)
 
-        // 2. Save to pending imports directory
-        try savePendingImport(pendingImport)
-
-        // 3. Open main app
-        try await openMainApp(withImportID: pendingImportID)
+        // Wait a moment so user can read
+        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
     }
 
     // MARK: - Helpers
@@ -279,9 +313,8 @@ struct ShareExtensionView: View {
         // Try to open main app - if this fails, it's okay because we have polling
         if let context = extensionContext {
             // Attempt to open using async method, but don't fail if it doesn't work
-            do {
-                _ = try await context.open(deepLinkURL)
-            } catch {
+            let opened = await context.open(deepLinkURL)
+            if !opened {
                 // Log result but don't throw - the main app will poll for imports
                 print("⚠️ Share Extension: Failed to open main app URL, but video is saved. User should open Heirloom manually.")
             }

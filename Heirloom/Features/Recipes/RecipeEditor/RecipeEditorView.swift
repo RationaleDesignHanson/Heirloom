@@ -63,6 +63,10 @@ struct RecipeEditorView: View {
     @State private var hasEditPermission = true
     @State private var permissionCheckReason: String?
 
+    // Collection picker for new recipes
+    @State private var showCollectionPicker = false
+    @State private var savedRecipe: Recipe?
+
     init(
         recipe: Recipe? = nil,
         initialImage: UIImage? = nil,
@@ -111,8 +115,9 @@ struct RecipeEditorView: View {
                             parts.append(unit)
                         }
 
-                        // Add ingredient name (from originalText)
-                        parts.append(ingredient.originalText)
+                        // Add ingredient name (from parsed name field, not originalText)
+                        // CRITICAL: Use ingredient.name to avoid duplicating quantity/unit
+                        parts.append(ingredient.name)
 
                         // Add preparation
                         if let prep = ingredient.preparation {
@@ -279,6 +284,15 @@ struct RecipeEditorView: View {
                 }
             } message: {
                 Text("You've made changes to this recipe. Would you like to save over the current version, or create a new version to keep both?")
+            }
+            .sheet(isPresented: $showCollectionPicker) {
+                if let recipe = savedRecipe {
+                    TagCollectionPickerView(recipe: recipe)
+                        .onDisappear {
+                            // Dismiss the editor after collection picker closes
+                            dismiss()
+                        }
+                }
             }
         }
     }
@@ -693,10 +707,13 @@ struct RecipeEditorView: View {
             }
         }
 
-        // Reset state and dismiss
+        // Reset state and show collection picker
         isSaving = false
         shouldCreateNewVersion = false
-        dismiss()
+
+        // Show collection picker for the new version
+        savedRecipe = newRecipe
+        showCollectionPicker = true
     }
 
     private func toggleCollection(_ collection: RecipeCollection) {
@@ -1132,9 +1149,14 @@ struct RecipeEditorView: View {
                 // Notify coordinator of recipe creation for cross-tab navigation
                 if isNewRecipe {
                     tabCoordinator.didCreateRecipe()
-                }
 
-                dismiss()
+                    // Show collection picker for new recipes
+                    savedRecipe = recipe
+                    showCollectionPicker = true
+                } else {
+                    // For edited recipes, just dismiss
+                    dismiss()
+                }
             }
             } catch {
                 await MainActor.run {

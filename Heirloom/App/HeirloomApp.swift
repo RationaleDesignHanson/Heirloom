@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
+import BackgroundTasks
 import os.log
 import FirebaseCore
 import FirebaseFirestore
@@ -192,6 +193,11 @@ struct HeirloomApp: App {
         logger.info("🔧 [Heirloom] Active backend: Firebase")
         Log.info("Active backend configured", category: .firebase, metadata: ["backend": "Firebase"])
 
+        // REGISTER BACKGROUND TASKS
+        if !isRunningTests {
+            registerBackgroundTasks()
+        }
+
         print("💾 [INIT] Starting SwiftData configuration...")
 
         do {
@@ -292,6 +298,12 @@ struct HeirloomApp: App {
                         logger.info("📱 WindowGroup received user activity")
                         DeviceLogger.shared.log("📱 [App] WindowGroup received user activity: \(userActivity.activityType)")
                         deepLinkCoordinator?.handle(userActivity)
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                        // Check for pending imports when app enters foreground
+                        Log.info("App entering foreground - checking for pending imports", category: .general)
+                        DeviceLogger.shared.log("✅ [App] App entering foreground - checking for pending imports")
+                        checkSharedContainerForPendingImport()
                     }
                 } else {
                     // Test environment - show minimal view
@@ -572,6 +584,66 @@ struct HeirloomApp: App {
         DeviceLogger.shared.log("✅ [Notifications] Video processing categories registered")
     }
 
+    // MARK: - Background Task Registration
+
+    private func registerBackgroundTasks() {
+        // Register video processing background task
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: "com.matthanson.heirloom.video-processing",
+            using: nil
+        ) { task in
+            self.handleVideoProcessingBackgroundTask(task: task as! BGProcessingTask)
+        }
+
+        Log.info("Background tasks registered", category: .video)
+        DeviceLogger.shared.log("✅ [BackgroundTasks] Video processing task registered")
+    }
+
+    private func handleVideoProcessingBackgroundTask(task: BGProcessingTask) {
+        Log.info("Background video processing task started", category: .video)
+        DeviceLogger.shared.log("🔄 [BackgroundTasks] Video processing task started")
+
+        // Schedule expiration handler
+        task.expirationHandler = {
+            Log.warning("Background task expired", category: .video)
+            DeviceLogger.shared.log("⚠️ [BackgroundTasks] Task expired, will resume on foreground")
+        }
+
+        // Get job manager and process pending jobs
+        Task { @MainActor in
+            guard let container = self.modelContainer else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+
+            let jobManager = ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
+            let context = container.mainContext
+
+            // Resume any pending jobs (doesn't throw - handles errors internally)
+            await jobManager.resumePendingJobs(context: context)
+
+            // Mark task as complete
+            task.setTaskCompleted(success: true)
+            Log.info("Background task completed successfully", category: .video)
+            DeviceLogger.shared.log("✅ [BackgroundTasks] Task completed successfully")
+
+            // Schedule next background task if there are still jobs
+            scheduleNextBackgroundTask()
+        }
+    }
+
+    private func scheduleNextBackgroundTask() {
+        let request = BGProcessingTaskRequest(identifier: "com.matthanson.heirloom.video-processing")
+        request.requiresNetworkConnectivity = false
+        request.requiresExternalPower = false // Allow on battery
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 60) // Try again in 1 minute
+
+        // Try to submit the task (may fail if too many tasks scheduled)
+        try? BGTaskScheduler.shared.submit(request)
+        Log.info("Scheduled next background task", category: .video)
+        DeviceLogger.shared.log("✅ [BackgroundTasks] Scheduled next task")
+    }
+
     private func cleanupOldRecipeData(container: ModelContainer) {
         let hasCleanedKey = "hasCleanedBrokenRecipeData_v4"  // v4: Parsed ingredients + proper math
 
@@ -640,16 +712,24 @@ struct RootView: View {
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
     var body: some View {
-        // OPTION A (HYBRID AUTH UX): Always show ContentView
-        // Users can browse heritage recipes without signing in
-        // Sign-in is optional via Settings, contextual prompts when needed (e.g., sharing)
-        let tabCoordinator = ServiceContainer.shared.resolve(TabNavigationCoordinator.self)
-        ContentView(
-            tabCoordinator: tabCoordinator,
-            notificationService: notificationService
-        )
-            .modelContainer(modelContainer)
-            .environment(\.firebaseAuth, authService)
+        // MANDATORY AUTH: Require Firebase authentication to access app
+        // Recipes require Firebase for sync, sharing, and lineage tracking
+        Group {
+            if authService.isAuthenticated {
+                let tabCoordinator = ServiceContainer.shared.resolve(TabNavigationCoordinator.self)
+                ContentView(
+                    tabCoordinator: tabCoordinator,
+                    notificationService: notificationService
+                )
+                    .modelContainer(modelContainer)
+                    .environment(\.firebaseAuth, authService)
+            } else {
+                // Show sign-in screen if not authenticated
+                FirebaseSignInView()
+                    .modelContainer(modelContainer)
+                    .environment(\.firebaseAuth, authService)
+            }
+        }
             .onAppear {
                 // Start automatic sync if already authenticated on app launch
                 if authService.isAuthenticated {

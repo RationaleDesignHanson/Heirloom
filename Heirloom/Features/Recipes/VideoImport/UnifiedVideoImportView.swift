@@ -1,8 +1,10 @@
 import SwiftUI
 import PhotosUI
+import SwiftData
 
 struct UnifiedVideoImportView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
 
     // Optional: Import from Share Extension via deep link
     let pendingImportID: UUID?
@@ -18,6 +20,9 @@ struct UnifiedVideoImportView: View {
     // Services resolved on MainActor
     @State private var subscriptionManager: SubscriptionManager?
     @State private var paywallManager: PaywallManager?
+
+    // Initialization state
+    @State private var isProcessorReady = false
 
     init(pendingImportID: UUID? = nil) {
         self.pendingImportID = pendingImportID
@@ -62,20 +67,24 @@ struct UnifiedVideoImportView: View {
                 self.subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
                 self.paywallManager = ServiceContainer.shared.resolve(PaywallManager.self)
 
-                // Initialize processor
-                guard let subManager = subscriptionManager, let pwManager = paywallManager else {
-                    importState = .error("Failed to initialize services")
-                    return
-                }
-
-                self.processor = await PendingImportProcessor.make(
-                    subscriptionManager: subManager,
-                    paywallManager: pwManager
-                )
-
-                // If launched from Share Extension, process pending import
+                // If launched from Share Extension, initialize processor for pending import
                 if let importID = pendingImportID {
+                    guard let subManager = subscriptionManager, let pwManager = paywallManager else {
+                        importState = .error("Failed to initialize services")
+                        return
+                    }
+
+                    self.processor = await PendingImportProcessor.make(
+                        subscriptionManager: subManager,
+                        paywallManager: pwManager
+                    )
+
+                    // Process the pending import
                     await processPendingImport(importID)
+                } else {
+                    // For camera roll flow, mark ready immediately
+                    // We'll use VideoProcessingJobManager instead of PendingImportProcessor
+                    isProcessorReady = true
                 }
             }
         }
@@ -100,23 +109,21 @@ struct UnifiedVideoImportView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
-            PhotosPicker(selection: $selectedItem, matching: .videos) {
-                Label("Choose from Library", systemImage: "photo.on.rectangle")
-                    .frame(maxWidth: .infinity)
+            if !isProcessorReady {
+                ProgressView()
+                    .padding()
+                Text("Initializing...")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } else {
+                PhotosPicker(selection: $selectedItem, matching: .videos) {
+                    Label("Choose from Library", systemImage: "photo.on.rectangle")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .padding(.horizontal)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .padding(.horizontal)
-
-            Button {
-                checkClipboardForURL()
-            } label: {
-                Label("Paste Video Link", systemImage: "link")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-            .padding(.horizontal)
 
             Spacer()
 
@@ -348,62 +355,56 @@ struct UnifiedVideoImportView: View {
     // MARK: - Processing
 
     private func processSelectedVideo(_ item: PhotosPickerItem) {
-        importState = .analyzing(stage: "Loading video...")
-
+        // Use VideoProcessingJobManager for camera roll imports
         Task {
             do {
-                guard let processor = self.processor else {
-                    throw VideoImportError.extractionFailed("Processor not initialized")
-                }
-
-                // Load video
+                // Load video using VideoPickerView's transferable
                 guard let videoData = try await item.loadTransferable(type: VideoTransferable.self) else {
-                    throw VideoImportError.noVideoFile
+                    importState = .error("Could not load video")
+                    return
                 }
 
-                self.videoURL = videoData.url
+                // Get the job manager
+                let jobManager = ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
 
-                importState = .analyzing(stage: "Analyzing audio...")
+                // Create attribution (empty for now, will be collected in review)
+                let attribution = VideoSourceAttribution(
+                    sourceURL: nil,
+                    captionText: nil
+                )
 
-                // Step 1: Analyze video to determine mode
-                let result = try await processor.analyzeVideo(at: videoData.url)
+                // Create and queue the job
+                let job = try jobManager.createJob(
+                    videoURL: videoData.url,
+                    videoType: .standard,
+                    userCaption: nil,
+                    videoDuration: nil,
+                    sourceAttribution: attribution,
+                    context: modelContext
+                )
 
-                switch result {
-                case .canProceedFree(let mode, let transcript, let onScreenText):
-                    // FREE TIER - proceed directly
-                    importState = .extracting(mode: mode, progress: 0)
+                // Get queue position for user feedback
+                let descriptor = FetchDescriptor<VideoProcessingJob>(
+                    sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+                )
+                let allJobs = try modelContext.fetch(descriptor)
+                let activeJobs = allJobs.filter { $0.status == .pending || $0.status == .processing }
+                let queuePosition = activeJobs.firstIndex(where: { $0.id == job.id }) ?? 0
+                let totalInQueue = activeJobs.count
 
-                    let pendingImport = PendingVideoImport(
-                        sourceType: .photoLibrary,
-                        localVideoURL: videoData.url
-                    )
+                // Show success
+                importState = .success
 
-                    let recipe = try await processor.processImport(
-                        pendingImport,
-                        mode: mode,
-                        transcript: transcript,
-                        onScreenText: onScreenText
-                    )
+                // Toast notification with queue info
+                let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                toastManager.success(
+                    title: "Video queued (\(queuePosition + 1) of \(totalInQueue))",
+                    message: "You'll be notified when it's ready to review"
+                )
 
-                    importedRecipe = recipe
-                    importState = .success
-
-                case .requiresPremium(let audioReasoning, let ocrReasoning):
-                    // PREMIUM REQUIRED - show paywall screen
-                    if subscriptionManager?.isPremium == true {
-                        // User is premium, proceed anyway
-                        proceedWithVisualExtraction(videoURL: videoData.url)
-                    } else {
-                        // Show premium required screen
-                        importState = .premiumRequired(
-                            audioReasoning: audioReasoning,
-                            ocrReasoning: ocrReasoning
-                        )
-                    }
-
-                case .failed(let error):
-                    importState = .error(error.localizedDescription)
-                }
+                // Dismiss after a moment
+                try await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 seconds
+                dismiss()
 
             } catch {
                 importState = .error(error.localizedDescription)
@@ -501,31 +502,6 @@ struct UnifiedVideoImportView: View {
                 importState = .error(error.localizedDescription)
             }
         }
-    }
-
-    private func checkClipboardForURL() {
-        guard let string = UIPasteboard.general.string,
-              let platformInfo = PlatformDetector.detect(from: string) else {
-            // Show alert that no valid URL found
-            return
-        }
-
-        // Handle URL import (already paywalled via .urlImport trigger)
-        processURL(platformInfo)
-    }
-
-    private func processURL(_ platformInfo: DetectedPlatformInfo) {
-        // URL imports are already a hard paywall (.urlImport)
-        // Check subscription first
-        if subscriptionManager?.isPremium != true {
-            Task { @MainActor in
-                paywallManager?.show(for: .urlImport)
-            }
-            return
-        }
-
-        // User is premium, show instructions for the platform
-        // (they need to provide the video file since we can't download it)
     }
 }
 

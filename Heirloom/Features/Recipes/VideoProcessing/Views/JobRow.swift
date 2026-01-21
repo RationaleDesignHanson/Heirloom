@@ -16,8 +16,8 @@ struct JobRow: View {
 
     var body: some View {
         HStack(spacing: HeirloomSpacing.md) {
-            // Status Icon
-            statusIcon
+            // Thumbnail or Status Icon
+            thumbnailOrIcon
 
             // Job Details
             VStack(alignment: .leading, spacing: 6) {
@@ -67,6 +67,53 @@ struct JobRow: View {
         .background(HeirloomColors.cardBackground)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.03), radius: 4)
+    }
+
+    // MARK: - Thumbnail or Icon
+
+    @ViewBuilder
+    private var thumbnailOrIcon: some View {
+        if let thumbnailData = job.thumbnailData,
+           let uiImage = UIImage(data: thumbnailData) {
+            // Show video thumbnail with status badge
+            ZStack(alignment: .bottomTrailing) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 64, height: 64)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                // Status badge overlay
+                statusBadge
+                    .offset(x: 4, y: 4)
+            }
+            .frame(width: 64, height: 64)
+        } else {
+            // Fallback to status icon
+            statusIcon
+        }
+    }
+
+    private var statusBadge: some View {
+        ZStack {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 24, height: 24)
+
+            if job.status == .processing {
+                // Mini circular progress
+                Circle()
+                    .trim(from: 0, to: job.progress)
+                    .stroke(Color.white, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                    .frame(width: 20, height: 20)
+                    .rotationEffect(.degrees(-90))
+            } else {
+                Image(systemName: statusIconName)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.white)
+            }
+        }
+        .shadow(color: .black.opacity(0.2), radius: 2)
     }
 
     // MARK: - Status Icon

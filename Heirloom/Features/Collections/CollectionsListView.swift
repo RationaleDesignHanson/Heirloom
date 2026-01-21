@@ -19,12 +19,13 @@ struct CollectionsListView: View {
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
-    @State private var showASMRVideoImport = false
     @State private var selectedCollection: RecipeCollection?
     @State private var showRecipeCoachMark = false
     @State private var collectionToDelete: RecipeCollection?
     @State private var showDeleteConfirmation = false
     @State private var showHeritageUnlock = false
+    @State private var showCollectionPicker = false
+    @State private var generatedRecipe: Recipe?
     @State private var unlockTracker: HeritageUnlockTracker?
     @State private var isDownloadingRecipes = false
     @State private var downloadProgress: String = ""
@@ -111,30 +112,27 @@ struct CollectionsListView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Video processing banner at top
-                    VideoProcessingBottomBanner()
-                        .padding(.bottom, 8)
-                        .zIndex(1)
+            VStack(spacing: 0) {
+                // Fixed banners at top (don't scroll)
+                VideoProcessingBottomBanner()
+                ImportProgressBottomBanner()
 
-                    // PDF import progress banner at top
-                    ImportProgressBottomBanner()
-                        .padding(.bottom, 8)
-                        .zIndex(1)
-
-                    // Content: Search results or collections
-                    if !searchText.isEmpty {
-                        // Global recipe search results
-                        searchResultsSection
+                // Scrollable content below
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Content: Search results or collections
+                        if !searchText.isEmpty {
+                            // Global recipe search results
+                            searchResultsSection
+                                .padding(.vertical, HeirloomSpacing.lg)
+                        } else {
+                            // Normal collections content
+                            VStack(spacing: HeirloomSpacing.xl) {
+                                // Unified Collections Section
+                                unifiedCollectionsSection
+                            }
                             .padding(.vertical, HeirloomSpacing.lg)
-                    } else {
-                        // Normal collections content
-                        VStack(spacing: HeirloomSpacing.xl) {
-                            // Unified Collections Section
-                            unifiedCollectionsSection
                         }
-                        .padding(.vertical, HeirloomSpacing.lg)
                     }
                 }
             }
@@ -165,14 +163,14 @@ struct CollectionsListView: View {
                     .environmentObject(tabCoordinator)
             }
             .sheet(isPresented: $showVideoImport) {
-                VideoImportView()
+                UnifiedVideoImportView()
                     .environmentObject(notificationService)
                     .environmentObject(tabCoordinator)
             }
-            .sheet(isPresented: $showASMRVideoImport) {
-                ASMRVideoImportView()
-                    .environmentObject(notificationService)
-                    .environmentObject(tabCoordinator)
+            .sheet(isPresented: $showCollectionPicker) {
+                if let recipe = generatedRecipe {
+                    TagCollectionPickerView(recipe: recipe)
+                }
             }
             .sheet(isPresented: $showHeritageUnlock) {
                 HeritageUnlockView()
@@ -534,11 +532,10 @@ struct CollectionsListView: View {
                 onImportRecipe: handleImportRecipe,
                 onBulkImport: handleBulkImport,
                 onCookbookScanner: handleCookbookScanner,
-                onNarratedVideoImport: handleNarratedVideoImport,
-                onSilentVideoImport: handleSilentVideoImport,
+                onVideoImport: handleVideoImport,
                 onAddCollection: handleAddCollection,
-                onAddNormalSample: {},
-                onAddHeritageSample: {}
+                onAddNormalSample: handleAddNormalSample,
+                onAddHeritageSample: handleAddHeritageSample
             )
         }
     }
@@ -998,19 +995,223 @@ struct CollectionsListView: View {
         showCookbookScanner = true
     }
 
-    private func handleNarratedVideoImport() {
+    private func handleVideoImport() {
         tabCoordinator.willCreateRecipe(from: .collectionsTab)
         showVideoImport = true
-    }
-
-    private func handleSilentVideoImport() {
-        tabCoordinator.willCreateRecipe(from: .collectionsTab)
-        showASMRVideoImport = true
     }
 
     private func handleAddCollection() {
         tabCoordinator.willCreateCollection(from: .collectionsTab)
         showCreateCollection = true
+    }
+
+    private func handleAddNormalSample() {
+        // Pick any recipe from the full library
+        guard let sampleRecipe = SampleRecipeLibrary.all.randomElement() else { return }
+
+        Task {
+            await createSampleRecipe(from: sampleRecipe)
+        }
+    }
+
+    private func handleAddHeritageSample() {
+        Task {
+            await createHeritageRecipe()
+        }
+    }
+
+    private func createSampleRecipe(from sampleRecipe: SampleRecipeData) async {
+        let sampleData = sampleRecipe.recipe
+        let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+
+        // Create a unique title variation by checking existing recipes
+        var finalTitle = sampleData.title
+        let existingTitles = allRecipes.map { $0.title }
+        if existingTitles.contains(sampleData.title) {
+            // Add a variation number if duplicate exists
+            var counter = 2
+            while existingTitles.contains("\(sampleData.title) (\(counter))") {
+                counter += 1
+            }
+            finalTitle = "\(sampleData.title) (\(counter))"
+        }
+
+        // Create a NEW Recipe object
+        let recipe = Recipe(
+            title: finalTitle,
+            sourceType: sampleData.sourceType ?? .manual,
+            sourceURL: sampleData.sourceURL,
+            instructions: sampleData.instructions,
+            servings: sampleData.servings,
+            prepTime: sampleData.prepTime,
+            cookTime: sampleData.cookTime
+        )
+
+        // Copy additional properties
+        recipe.sourcePerson = sampleData.sourcePerson
+        recipe.sourceDate = sampleData.sourceDate
+        recipe.sourceBookTitle = sampleData.sourceBookTitle
+        recipe.timesCooked = sampleData.timesCooked
+        recipe.isFavorite = sampleData.isFavorite
+        recipe.notes = sampleData.notes
+
+        // Download and save image
+        if let imageURL = URL(string: sampleRecipe.imageURL) {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: imageURL)
+                if let image = UIImage(data: data) {
+                    let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
+                    recipe.imageFileName = fileName
+                }
+            } catch {
+                // Continue without image - not a fatal error
+            }
+        }
+
+        // Insert recipe immediately and show picker
+        await MainActor.run {
+            modelContext.insert(recipe)
+            try? modelContext.save()
+
+            // Show collection picker immediately (don't wait for ingredients)
+            generatedRecipe = recipe
+            showCollectionPicker = true
+
+            // Parse and add ingredients in background (non-blocking)
+            Task {
+                let aiIngredientParser = ServiceContainer.shared.resolve(AIIngredientParser.self)
+                do {
+                    let parsedResults = try await aiIngredientParser.parseBatch(sampleRecipe.ingredients)
+                    await MainActor.run {
+                        for (index, ingredientText) in sampleRecipe.ingredients.enumerated() {
+                            let parsed = parsedResults[index]
+                            let category = GroceryCategory.categorize(parsed.name)
+                            let ingredient = Ingredient(
+                                originalText: ingredientText,
+                                name: parsed.name,
+                                quantity: parsed.quantity,
+                                unit: parsed.unit,
+                                category: category,
+                                orderIndex: index
+                            )
+                            ingredient.recipe = recipe
+                            modelContext.insert(ingredient)
+                        }
+                        try? modelContext.save()
+                        Log.debug("Background ingredient parsing completed for sample recipe", category: .general)
+                    }
+                } catch {
+                    Log.error("Failed to parse ingredients for sample recipe", category: .general, metadata: ["error": error.localizedDescription])
+                }
+            }
+        }
+    }
+
+    // MARK: - Heritage Recipe Types
+
+    private struct HeritageRecipeJSON: Codable {
+        let id: String
+        let title: String
+        let heritageCollectionId: String
+        let servings: String?
+        let prepTime: String?
+        let cookTime: String?
+        let ingredients: [HeritageIngredientJSON]
+        let instructions: [String]
+        let description: String?
+        let imageName: String?
+    }
+
+    private struct HeritageIngredientJSON: Codable {
+        let originalText: String
+        let name: String
+        let quantity: Double?
+        let unit: String?
+    }
+
+    private func createHeritageRecipe() async {
+        // Load heritage recipes from JSON
+        guard let url = Bundle.main.url(forResource: "heritage-recipes", withExtension: "json"),
+              let data = try? Data(contentsOf: url) else {
+            return
+        }
+
+        struct HeritageRecipeData: Codable {
+            let recipes: [HeritageRecipeJSON]
+        }
+
+        guard let heritageData = try? JSONDecoder().decode(HeritageRecipeData.self, from: data) else {
+            return
+        }
+
+        // Get existing recipe titles to avoid duplicates
+        let existingTitles = allRecipes.map { $0.title }
+
+        // Filter out recipes that already exist
+        let availableRecipes = heritageData.recipes.filter { !existingTitles.contains($0.title) }
+
+        // Pick a random recipe that doesn't already exist
+        guard let heritageRecipe = availableRecipes.randomElement() ?? heritageData.recipes.randomElement() else {
+            return
+        }
+
+        let titleExists = availableRecipes.isEmpty
+
+        await createHeritageRecipeFromJSON(heritageRecipe, titleExists: titleExists)
+    }
+
+    private func createHeritageRecipeFromJSON(_ json: HeritageRecipeJSON, titleExists: Bool) async {
+        let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+
+        await MainActor.run {
+            let recipe = Recipe()
+            recipe.title = titleExists ? "\(json.title) (\(Int.random(in: 2...100)))" : json.title
+            recipe.servings = json.servings
+            recipe.prepTime = json.prepTime
+            recipe.cookTime = json.cookTime
+            recipe.notes = json.description
+            recipe.instructions = json.instructions
+            recipe.isHeritageRecipe = true
+
+            modelContext.insert(recipe)
+
+            // Add ingredients
+            for (index, ing) in json.ingredients.enumerated() {
+                let category = GroceryCategory.categorize(ing.name)
+                let ingredient = Ingredient(
+                    originalText: ing.originalText,
+                    name: ing.name,
+                    quantity: ing.quantity,
+                    unit: ing.unit,
+                    category: category,
+                    orderIndex: index
+                )
+                ingredient.recipe = recipe
+                modelContext.insert(ingredient)
+            }
+
+            try? modelContext.save()
+
+            // Show collection picker immediately (don't wait for image)
+            generatedRecipe = recipe
+            showCollectionPicker = true
+
+            // Save heritage image in background if available
+            if let imageName = json.imageName,
+               let image = UIImage(named: imageName) {
+                Task {
+                    do {
+                        let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
+                        await MainActor.run {
+                            recipe.imageFileName = fileName
+                            try? modelContext.save()
+                        }
+                    } catch {
+                        Log.error("Failed to save heritage recipe image", category: .storage, metadata: ["error": error.localizedDescription])
+                    }
+                }
+            }
+        }
     }
 }
 

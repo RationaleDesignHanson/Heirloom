@@ -58,6 +58,11 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.matthanson.heirloom.video-processing</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>

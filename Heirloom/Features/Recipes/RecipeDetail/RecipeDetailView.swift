@@ -201,6 +201,23 @@ struct RecipeDetailView: View {
         return recipe.imageFileName
     }
 
+    /// The Firebase image URL to display (from selected version or base recipe)
+    private var displayFirebaseImageURL: String? {
+        if let selected = selectedVersion {
+            // If viewing current version's recipe, use its Firebase URL
+            if let versionRecipe = selected.recipe {
+                return versionRecipe.firebaseImageURL
+            }
+            // If viewing remote version, try to get Firebase URL from recipe data
+            if let recipeData = selected.recipeData,
+               let firebaseImageURL = recipeData["firebaseImageURL"] as? String {
+                return firebaseImageURL
+            }
+        }
+        // Fall back to base recipe's Firebase URL
+        return recipe.firebaseImageURL
+    }
+
     /// Badge text for version/generation indicator
     private var versionBadgeText: String? {
         let versionCount = versionViewModel.versions.count
@@ -672,7 +689,7 @@ struct RecipeDetailView: View {
             front: {
                 AsyncRecipeImage(
                     imageFileName: displayImageFileName,
-                    firebaseImageURL: recipe.firebaseImageURL,
+                    firebaseImageURL: displayFirebaseImageURL,
                     placeholder: recipe.sourceType?.iconName ?? "fork.knife"
                 )
             },

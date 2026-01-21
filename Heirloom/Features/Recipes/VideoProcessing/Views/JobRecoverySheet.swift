@@ -18,6 +18,21 @@ struct JobRecoverySheet: View {
     @State private var isProcessing = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showDishNamePrompt = false
+    @State private var dishName = ""
+
+    // Check premium status for visual extraction
+    private var subscriptionManager: SubscriptionManager {
+        ServiceContainer.shared.resolve(SubscriptionManager.self)
+    }
+
+    private var paywallManager: PaywallManager {
+        ServiceContainer.shared.resolve(PaywallManager.self)
+    }
+
+    private var isPremium: Bool {
+        subscriptionManager.isPremium
+    }
 
     var body: some View {
         NavigationStack {
@@ -29,8 +44,8 @@ struct JobRecoverySheet: View {
                         .foregroundStyle(errorIconColor)
 
                     VStack(spacing: HeirloomSpacing.md) {
-                        // Title
-                        Text("Processing Failed")
+                        // Title - different for ASMR vs real errors
+                        Text(errorTitle)
                             .font(.title2.bold())
 
                         // Contextual explanation
@@ -47,31 +62,56 @@ struct JobRecoverySheet: View {
                     VStack(spacing: 12) {
                         // Special ASMR button (only for audio failures)
                         if shouldShowASMROption {
-                            Button {
-                                handleAction(.tryASMRMode)
-                            } label: {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "eye.circle.fill")
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Try ASMR Mode")
-                                            .fontWeight(.semibold)
-                                        Text("5 credits")
-                                            .font(HeirloomFonts.caption1)
-                                            .foregroundStyle(.white.opacity(0.8))
+                            if isPremium {
+                                // Premium user: Can use ASMR mode
+                                Button {
+                                    showDishNamePrompt = true
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "eye.circle.fill")
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Try Visual Extraction")
+                                                .fontWeight(.semibold)
+                                            Text("Analyzes video frames")
+                                                .font(HeirloomFonts.caption1)
+                                                .foregroundStyle(.white.opacity(0.8))
+                                        }
+                                        Spacer()
+                                        if isProcessing {
+                                            ProgressView()
+                                                .tint(HeirloomColors.buttonTextLight)
+                                        }
                                     }
-                                    Spacer()
-                                    if isProcessing {
-                                        ProgressView()
-                                            .tint(HeirloomColors.buttonTextLight)
-                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.purple)
+                                    .foregroundStyle(HeirloomColors.buttonTextLight)
+                                    .cornerRadius(12)
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.purple)
-                                .foregroundStyle(HeirloomColors.buttonTextLight)
-                                .cornerRadius(12)
+                                .disabled(isProcessing)
+                            } else {
+                                // Non-premium: Show upgrade button
+                                Button {
+                                    paywallManager.show(for: .visualVideoExtraction)
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "crown.fill")
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Upgrade to Premium")
+                                                .fontWeight(.semibold)
+                                            Text("Unlock visual extraction for silent videos")
+                                                .font(HeirloomFonts.caption1)
+                                                .foregroundStyle(.white.opacity(0.8))
+                                        }
+                                        Spacer()
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.orange)
+                                    .foregroundStyle(HeirloomColors.buttonTextLight)
+                                    .cornerRadius(12)
+                                }
                             }
-                            .disabled(isProcessing)
                         }
 
                         // Retry button
@@ -136,7 +176,85 @@ struct JobRecoverySheet: View {
             } message: {
                 Text(errorMessage)
             }
+            .onChange(of: isPremium) {
+                // If user just upgraded to premium while viewing this sheet, show dish name prompt
+                if isPremium && shouldShowASMROption {
+                    showDishNamePrompt = true
+                }
+            }
+            .sheet(isPresented: $showDishNamePrompt) {
+                dishNamePromptSheet
+            }
         }
+    }
+
+    // MARK: - Dish Name Prompt Sheet
+
+    private var dishNamePromptSheet: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                VStack(spacing: 12) {
+                    Image(systemName: "eye.circle.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(.purple)
+
+                    Text("Visual Extraction")
+                        .font(.title2.bold())
+
+                    Text("Help us understand what's being cooked. This improves accuracy significantly.")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("What dish is this?")
+                        .font(.subheadline.bold())
+
+                    TextField("e.g., Making carbonara pasta", text: $dishName, axis: .vertical)
+                        .textFieldStyle(.roundedBorder)
+                        .lineLimit(3...5)
+
+                    Text("At least 5 characters required")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal)
+
+                Spacer()
+
+                Button {
+                    handleAction(.tryASMRMode(dishName: dishName))
+                    showDishNamePrompt = false
+                } label: {
+                    Text("Start Visual Extraction")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(canSubmitDishName ? Color.purple : Color.gray)
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
+                }
+                .disabled(!canSubmitDishName || isProcessing)
+                .padding(.horizontal)
+            }
+            .padding(.vertical, 24)
+            .navigationTitle("Dish Information")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        showDishNamePrompt = false
+                        dishName = ""
+                    }
+                    .disabled(isProcessing)
+                }
+            }
+        }
+    }
+
+    private var canSubmitDishName: Bool {
+        dishName.count >= 5
     }
 
     // MARK: - Computed Properties
@@ -165,6 +283,13 @@ struct JobRecoverySheet: View {
         }
     }
 
+    private var errorTitle: String {
+        if shouldShowASMROption {
+            return "Visual Processing Available"
+        }
+        return "Processing Failed"
+    }
+
     private var errorIcon: Image {
         guard let errorType = safeErrorType else {
             return Image(systemName: "exclamationmark.triangle")
@@ -172,7 +297,8 @@ struct JobRecoverySheet: View {
 
         switch errorType {
         case .insufficientAudioData:
-            return Image(systemName: "waveform.badge.exclamationmark")
+            // Special icon for visual extraction feature (not an error)
+            return Image(systemName: "eye.circle.fill")
         case .fileNotFound:
             return Image(systemName: "doc.badge.exclamationmark")
         case .permissionDenied:
@@ -189,13 +315,20 @@ struct JobRecoverySheet: View {
 
         switch errorType {
         case .insufficientAudioData:
-            return .orange
+            // Purple to match visual extraction feature color
+            return .purple
         case .fileNotFound, .permissionDenied, .other:
             return .red
         }
     }
 
     private var errorExplanation: String {
+        // For ASMR/visual extraction scenarios, use positive messaging
+        if shouldShowASMROption {
+            return "This video doesn't have clear narration. Our visual extraction feature can analyze the video frames to extract the recipe."
+        }
+
+        // For other errors, show error message or fallback
         if let errorMessage = job.errorMessage {
             return errorMessage
         }
@@ -207,7 +340,7 @@ struct JobRecoverySheet: View {
 
         switch errorType {
         case .insufficientAudioData:
-            return "Could not extract audio from video. This video appears to be silent or have unclear narration."
+            return "This video doesn't have clear narration. Our visual extraction feature can analyze the video frames to extract the recipe."
         case .fileNotFound:
             return "Video file could not be accessed. It may be stored in iCloud and not downloaded."
         case .permissionDenied:

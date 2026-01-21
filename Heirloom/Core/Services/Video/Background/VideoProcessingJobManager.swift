@@ -8,8 +8,11 @@
 import Foundation
 import SwiftData
 import UserNotifications
+import BackgroundTasks
 import Combine
 import CryptoKit
+import AVFoundation
+import UIKit
 
 /// Manages background video processing jobs with persistence and resume capability
 @MainActor
@@ -126,6 +129,15 @@ final class VideoProcessingJobManager: ObservableObject {
             sourceAttribution: sourceAttribution?.creatorName
         )
 
+        // Generate thumbnail asynchronously (don't block job creation)
+        Task {
+            let thumbnailData = await generateThumbnail(from: destinationURL)
+            await MainActor.run {
+                job.thumbnailData = thumbnailData
+                try? context.save()
+            }
+        }
+
         // Create empty checkpoint
         let checkpoint = ProcessingCheckpoint()
         checkpoint.job = job
@@ -147,7 +159,26 @@ final class VideoProcessingJobManager: ObservableObject {
             }
         }
 
+        // Schedule background task for processing when app is backgrounded
+        scheduleBackgroundProcessingTask()
+
         return job
+    }
+
+    // MARK: - Background Task Scheduling
+
+    private func scheduleBackgroundProcessingTask() {
+        let request = BGProcessingTaskRequest(identifier: "com.matthanson.heirloom.video-processing")
+        request.requiresNetworkConnectivity = false
+        request.requiresExternalPower = false // Allow on battery
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 30) // Try in 30 seconds
+
+        do {
+            try BGTaskScheduler.shared.submit(request)
+            Log.info("Scheduled background processing task", category: .video)
+        } catch {
+            Log.error("Failed to schedule background task", category: .video, metadata: ["error": error.localizedDescription])
+        }
     }
 
     // MARK: - Queue Management
@@ -502,6 +533,7 @@ final class VideoProcessingJobManager: ObservableObject {
            description.contains("no speech") ||
            description.contains("confidence") ||
            description.contains("extraction") ||
+           description.contains("narration") ||
            description.contains("too short") {
             return .insufficientAudioData
         }
@@ -545,7 +577,7 @@ final class VideoProcessingJobManager: ObservableObject {
     /// Handle recovery action from JobRecoverySheet
     func handleRecoveryAction(for job: VideoProcessingJob, action: RecoveryAction, context: ModelContext) async throws {
         switch action {
-        case .tryASMRMode:
+        case .tryASMRMode(let dishName):
             // Verify error type is audio-related
             guard job.errorType == .insufficientAudioData else {
                 throw RecoveryError.invalidRecoveryAction
@@ -568,7 +600,7 @@ final class VideoProcessingJobManager: ObservableObject {
             _ = try createJob(
                 videoURL: videoURL,
                 videoType: .asmr,
-                userCaption: job.userCaption ?? "Recipe from failed narrated video (retry)",
+                userCaption: dishName,
                 videoDuration: job.videoDuration,
                 sourceAttribution: attribution,
                 context: context
@@ -965,6 +997,32 @@ final class VideoProcessingJobManager: ObservableObject {
             }
         }
     }
+
+    // MARK: - Thumbnail Generation
+
+    /// Generate a thumbnail from a video file
+    private func generateThumbnail(from url: URL) async -> Data? {
+        let asset = AVURLAsset(url: url)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true
+        imageGenerator.maximumSize = CGSize(width: 192, height: 192)
+
+        do {
+            // Generate thumbnail at 1 second into the video
+            let time = CMTime(seconds: 1.0, preferredTimescale: 600)
+            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+            let uiImage = UIImage(cgImage: cgImage)
+
+            // Convert to JPEG data
+            return uiImage.jpegData(compressionQuality: 0.8)
+        } catch {
+            Log.warning("Failed to generate thumbnail", category: .video, metadata: [
+                "url": url.path,
+                "error": error.localizedDescription
+            ])
+            return nil
+        }
+    }
 }
 
 // MARK: - Errors
@@ -999,7 +1057,7 @@ enum VideoProcessingError: LocalizedError {
 }
 
 enum RecoveryAction {
-    case tryASMRMode
+    case tryASMRMode(dishName: String)
     case retry
     case cancel
 }

@@ -15,6 +15,7 @@ struct TagCollectionPickerView: View {
 
     @State private var showTagManagement = false
     @State private var showCollectionManagement = false
+    @State private var showCreateCollection = false
 
     var body: some View {
         NavigationStack {
@@ -55,21 +56,26 @@ struct TagCollectionPickerView: View {
 
                 // Collections Section
                 Section {
-                    if allCollections.isEmpty {
-                        HStack {
-                            Text("No collections yet")
-                                .font(HeirloomFonts.body)
-                                .foregroundStyle(HeirloomColors.secondaryText)
+                    // Create New Collection button (always at top)
+                    Button {
+                        showCreateCollection = true
+                    } label: {
+                        HStack(spacing: HeirloomSpacing.md) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(HeirloomFonts.title2)
+                                .foregroundStyle(HeirloomColors.familyGreen)
+                                .frame(width: 28)
+
+                            Text("Create New Collection")
+                                .font(HeirloomFonts.bodyBold)
+                                .foregroundStyle(HeirloomColors.familyGreen)
 
                             Spacer()
-
-                            Button("Create Collection") {
-                                showCollectionManagement = true
-                            }
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.tomato)
                         }
-                    } else {
+                    }
+                    .buttonStyle(.plain)
+
+                    if !allCollections.isEmpty {
                         ForEach(allCollections, id: \.id) { collection in
                             collectionRow(collection)
                         }
@@ -101,6 +107,9 @@ struct TagCollectionPickerView: View {
             }
             .sheet(isPresented: $showCollectionManagement) {
                 CollectionManagementView()
+            }
+            .sheet(isPresented: $showCreateCollection) {
+                CollectionEditorView()
             }
         }
     }
@@ -245,6 +254,7 @@ struct TagCollectionPickerView: View {
             }
         }
     }
+
 }
 
 // MARK: - Preview

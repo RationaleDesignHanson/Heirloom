@@ -15,6 +15,12 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         Firestore.firestore()
     }()
 
+    private let userProfileService: FirebaseUserProfileService
+
+    init(userProfileService: FirebaseUserProfileService? = nil) {
+        self.userProfileService = userProfileService ?? ServiceContainer.shared.resolve(FirebaseUserProfileService.self)
+    }
+
     /// Load all versions of a recipe (original + all descendant modifications)
     func loadVersions(for recipe: Recipe, context: ModelContext) async {
         Log.debug("Loading recipe versions", category: .firebase, metadata: ["title": recipe.title])
@@ -60,11 +66,13 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             var allVersions: [RecipeLineageVersion] = []
 
             // Add current local version
+            // Fetch correct display name for current owner (not sharedByName which is the previous sharer)
+            let ownerDisplayName = try? await userProfileService.fetchDisplayName(for: lineage.ownerId)
             let currentVersion = RecipeLineageVersion(
                 recipe: recipe,
                 generation: lineage.generation,
                 modifiedBy: lineage.ownerId,
-                modifiedByName: lineage.sharedByName,
+                modifiedByName: ownerDisplayName ?? "Someone",
                 modifiedAt: recipe.lastModified,
                 isCurrent: true
             )
@@ -101,6 +109,34 @@ class RecipeVersionSelectorViewModel: ObservableObject {
     }
 
     // MARK: - Private Helpers
+
+    /// Batch fetch display names for multiple owner IDs
+    /// Uses concurrent fetching for performance
+    private func fetchDisplayNames(for ownerIds: Set<String>) async -> [String: String] {
+        await withTaskGroup(of: (String, String?).self) { group in
+            var displayNames: [String: String] = [:]
+
+            // Launch concurrent fetch tasks
+            for ownerId in ownerIds {
+                group.addTask { [weak self] in
+                    guard let self = self else { return (ownerId, nil) }
+                    let name = try? await self.userProfileService.fetchDisplayName(for: ownerId)
+                    return (ownerId, name)
+                }
+            }
+
+            // Collect results
+            for await (ownerId, name) in group {
+                if let name = name {
+                    displayNames[ownerId] = name
+                } else {
+                    Log.warning("No display name found for owner", category: .firebase, metadata: ["ownerId": ownerId])
+                }
+            }
+
+            return displayNames
+        }
+    }
 
     private func fetchLineage(for recipeId: UUID) async throws -> RecipeLineage? {
         guard let userId = Auth.auth().currentUser?.uid else { return nil }
@@ -191,16 +227,19 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             ])
         }
 
-        // Query root owner's lineages collection if we have their ID
+        // Query root owner's lineages from GLOBAL collection (readable by all authenticated users)
+        // This avoids permission denied errors when viewing shared recipes
         var rootOwnerSnapshot: QuerySnapshot? = nil
         if let rootOwnerId = rootOwnerId {
-            rootOwnerSnapshot = try? await db.collection("users/\(rootOwnerId)/lineages")
+            rootOwnerSnapshot = try? await db.collection("lineages")
+                .whereField("ownerId", isEqualTo: rootOwnerId)
                 .whereField("currentRecipeId", isEqualTo: rootRecipeId.uuidString)
                 .limit(to: 1)
                 .getDocuments()
 
-            Log.debug("Root owner lineages query result", category: .firebase, metadata: [
-                "documentCount": rootOwnerSnapshot?.documents.count ?? 0
+            Log.debug("Root owner lineages query result (from global collection)", category: .firebase, metadata: [
+                "documentCount": rootOwnerSnapshot?.documents.count ?? 0,
+                "rootOwnerId": rootOwnerId
             ])
         }
 
@@ -242,11 +281,13 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                 let ingredientsData = recipeData["ingredients"] as? [[String: Any]] ?? []
                 let ingredientTexts = ingredientsData.compactMap { $0["originalText"] as? String }
 
+                // Fetch correct display name for owner (not sharedByName which is the previous sharer)
+                let ownerDisplayName = try? await userProfileService.fetchDisplayName(for: ownerId)
                 let version = RecipeLineageVersion(
                     recipeData: recipeData,
                     generation: generation,
                     modifiedBy: ownerId,
-                    modifiedByName: data["sharedByName"] as? String,
+                    modifiedByName: ownerDisplayName ?? "Someone",
                     modifiedAt: (data["lastModified"] as? Timestamp)?.dateValue() ?? Date(),
                     isCurrent: false
                 )
@@ -305,11 +346,13 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                     ownerId: ownerId,
                     recipeId: recipeId
                 ) {
+                    // Fetch correct display name for owner (not sharedByName which is the previous sharer)
+                    let ownerDisplayName = try? await userProfileService.fetchDisplayName(for: ownerId)
                     let version = RecipeLineageVersion(
                         recipeData: recipeData,
                         generation: generation,
                         modifiedBy: ownerId,
-                        modifiedByName: data["sharedByName"] as? String,
+                        modifiedByName: ownerDisplayName ?? "Someone",
                         modifiedAt: (data["lastModified"] as? Timestamp)?.dateValue() ?? Date(),
                         isCurrent: false
                     )
@@ -387,6 +430,36 @@ struct RecipeLineageVersion: Identifiable, Hashable {
         } else {
             let name = modifiedByName ?? "Someone"
             return "\(name)'s Version (Gen \(generation))"
+        }
+    }
+
+    /// Compact timestamp for UI (e.g., "2d ago", "3mo ago")
+    var compactTimestamp: String {
+        let now = Date()
+        let interval = now.timeIntervalSince(modifiedAt)
+
+        let seconds = Int(interval)
+        let minutes = seconds / 60
+        let hours = minutes / 60
+        let days = hours / 24
+        let weeks = days / 7
+        let months = days / 30
+        let years = days / 365
+
+        if years > 0 {
+            return "\(years)y ago"
+        } else if months > 0 {
+            return "\(months)mo ago"
+        } else if weeks > 0 {
+            return "\(weeks)w ago"
+        } else if days > 0 {
+            return "\(days)d ago"
+        } else if hours > 0 {
+            return "\(hours)h ago"
+        } else if minutes > 0 {
+            return "\(minutes)m ago"
+        } else {
+            return "just now"
         }
     }
 

@@ -14,7 +14,6 @@ struct CollectionDetailView: View {
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
-    @State private var showASMRVideoImport = false
     @State private var showDeleteConfirmation = false
     @State private var unlockTracker: HeritageUnlockTracker?
 
@@ -191,13 +190,9 @@ struct CollectionDetailView: View {
                             tabCoordinator.willCreateRecipe(from: .collectionDetail)
                             showCookbookScanner = true
                         },
-                        onNarratedVideoImport: {
+                        onVideoImport: {
                             tabCoordinator.willCreateRecipe(from: .collectionDetail)
                             showVideoImport = true
-                        },
-                        onSilentVideoImport: {
-                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                            showASMRVideoImport = true
                         },
                         onAddCollection: {}, // Not applicable within a collection detail view
                         onAddNormalSample: addNormalSampleRecipe,
@@ -235,11 +230,7 @@ struct CollectionDetailView: View {
                 .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showVideoImport) {
-            VideoImportView()
-                .environmentObject(tabCoordinator)
-        }
-        .sheet(isPresented: $showASMRVideoImport) {
-            ASMRVideoImportView()
+            UnifiedVideoImportView()
                 .environmentObject(tabCoordinator)
         }
         .confirmationDialog(

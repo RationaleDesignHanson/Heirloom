@@ -159,7 +159,6 @@ struct RecipeListView: View {
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
-    @State private var showASMRVideoImport = false
     @State private var showCreateCollection = false
     @State private var showFilters = false
     @State private var filters = RecipeFilters()
@@ -346,13 +345,9 @@ struct RecipeListView: View {
                     tabCoordinator.willCreateRecipe(from: .collectionsTab)
                     showCookbookScanner = true
                 },
-                onNarratedVideoImport: {
+                onVideoImport: {
                     tabCoordinator.willCreateRecipe(from: .collectionsTab)
                     showVideoImport = true
-                },
-                onSilentVideoImport: {
-                    tabCoordinator.willCreateRecipe(from: .collectionsTab)
-                    showASMRVideoImport = true
                 },
                 onAddCollection: {
                     tabCoordinator.willCreateCollection(from: .collectionsTab)
@@ -371,7 +366,6 @@ struct RecipeListView: View {
             showBulkImport: $showBulkImport,
             showCookbookScanner: $showCookbookScanner,
             showVideoImport: $showVideoImport,
-            showASMRVideoImport: $showASMRVideoImport,
             showCreateCollection: $showCreateCollection,
             showFilters: $showFilters,
             filters: $filters,
