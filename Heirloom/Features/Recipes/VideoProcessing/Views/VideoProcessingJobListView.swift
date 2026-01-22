@@ -226,7 +226,10 @@ struct VideoProcessingJobListView: View {
                 } : nil,
                 onDelete: {
                     deleteJob(job)
-                }
+                },
+                onResume: job.canResume ? {
+                    resumeJob(job)
+                } : nil
             )
         }
         .buttonStyle(.plain)
@@ -286,6 +289,31 @@ struct VideoProcessingJobListView: View {
     }
 
     // MARK: - Actions
+
+    private func resumeJob(_ job: VideoProcessingJob) {
+        Task {
+            do {
+                try await jobManager.resumeJob(job, context: modelContext)
+
+                Log.info("Resumed interrupted video job", category: .video, metadata: [
+                    "job_id": job.id.uuidString,
+                    "phase": job.currentPhase.rawValue
+                ])
+            } catch {
+                Log.error("Failed to resume job", category: .video, metadata: [
+                    "jobId": job.id.uuidString,
+                    "error": error.localizedDescription
+                ])
+
+                // Show error toast to user
+                let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                toastManager.error(
+                    title: "Cannot Resume",
+                    message: error.localizedDescription
+                )
+            }
+        }
+    }
 
     private func retryJob(_ job: VideoProcessingJob) {
         Task {

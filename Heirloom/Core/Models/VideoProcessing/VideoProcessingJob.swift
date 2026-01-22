@@ -61,6 +61,14 @@ final class VideoProcessingJob {
     /// Number of times this job has been retried
     var retryCount: Int
 
+    // MARK: - Resume Detection (Force-Quit Support)
+
+    /// Flag indicating this job was interrupted (not manually paused)
+    var wasInterrupted: Bool = false
+
+    /// Timestamp when interruption occurred
+    var interruptedAt: Date?
+
     // MARK: - Checkpoints
 
     /// Checkpoint data for resume capability
@@ -202,6 +210,37 @@ extension VideoProcessingJob {
     /// Whether this job can be cancelled
     var canCancel: Bool {
         status == .pending || status == .processing || status == .paused
+    }
+
+    /// Whether this job can be resumed from checkpoint after force-quit
+    /// Note: wasInterrupted is set during app launch detection for force-quit scenarios
+    var canResume: Bool {
+        // Must be marked as interrupted (set during detection or background)
+        guard wasInterrupted else { return false }
+
+        // Must be in processing or pending status (interrupted mid-processing)
+        // Note: resumePendingJobs() changes crashed jobs to .pending, so we accept both
+        guard status == .processing || status == .pending else { return false }
+
+        guard let checkpoint = checkpoint else { return false }
+
+        // Must have made some progress (at least started one phase)
+        let hasProgress = checkpoint.hasAudioExtraction ||
+                          checkpoint.hasTranscription ||
+                          checkpoint.hasFrameAnalysis ||
+                          checkpoint.hasStructuredRecipe
+
+        guard hasProgress else { return false }
+
+        // Check if not expired (7 days)
+        if let interruptedAt = interruptedAt {
+            let sevenDaysAgo = Date().addingTimeInterval(-7 * 24 * 60 * 60)
+            if interruptedAt <= sevenDaysAgo {
+                return false
+            }
+        }
+
+        return true
     }
 
     /// Whether credits should be refunded for this job

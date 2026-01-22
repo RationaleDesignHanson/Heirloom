@@ -100,6 +100,26 @@ struct ImportProgressView: View {
                     }
                 }
 
+                // Resume from checkpoint button (for interrupted jobs)
+                if job.canResume && !manager.isProcessing {
+                    Button {
+                        Task {
+                            try? await manager.resumeInterruptedJob(job, context: modelContext)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.clockwise.circle.fill")
+                            Text("Resume from Checkpoint")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(HeirloomColors.tomato)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                    }
+                }
+
                 if job.isComplete {
                     Button {
                         // Clear activeJob when user dismisses completed job

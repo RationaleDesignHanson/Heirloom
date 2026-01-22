@@ -64,11 +64,12 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
 
         logger.log("Creating Firebase share for recipe", category: .firebase, level: .info, metadata: nil)
 
-        // 0. Copy-on-share for heritage recipes
-        // If sharing a heritage recipe, create a user copy and share that instead
+        // 0. Copy-on-share for heritage and sample recipes
+        // If sharing a heritage or sample recipe, create a user copy and share that instead
+        // This prevents ID collisions across devices (samples have same IDs)
         var recipeToShare: Recipe
         if recipe.isHeritageRecipe {
-            logger.log("Heritage recipe detected - creating user copy before sharing", category: .firebase, level: .info, metadata: [
+            Log.info("Heritage recipe detected - creating user copy before sharing", category: .firebase, metadata: [
                 "originalRecipeId": recipe.id.uuidString,
                 "title": recipe.title
             ])
@@ -79,7 +80,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             // Save the copy
             try context.save()
 
-            logger.log("User copy created for heritage recipe share", category: .firebase, level: .info, metadata: [
+            Log.info("User copy created for heritage recipe share", category: .firebase, metadata: [
                 "originalRecipeId": recipe.id.uuidString,
                 "copyRecipeId": userCopy.id.uuidString,
                 "hasCardBack": userCopy.cardBack != nil
@@ -87,8 +88,27 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
 
             // Use the copy for sharing
             recipeToShare = userCopy
+        } else if recipe.isSampleRecipe {
+            Log.info("Sample recipe detected - creating user copy before sharing", category: .firebase, metadata: [
+                "originalRecipeId": recipe.id.uuidString,
+                "title": recipe.title
+            ])
+
+            // Create user copy with new ID
+            let userCopy = recipe.createUserCopy(context: context)
+
+            // Save the copy
+            try context.save()
+
+            Log.info("User copy created for sample recipe share", category: .firebase, metadata: [
+                "originalRecipeId": recipe.id.uuidString,
+                "copyRecipeId": userCopy.id.uuidString
+            ])
+
+            // Use the copy for sharing
+            recipeToShare = userCopy
         } else {
-            // Share the original recipe
+            // Share the original recipe (user-created recipe)
             recipeToShare = recipe
         }
 
@@ -261,7 +281,13 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         // 3. Extract share metadata
         let recipeId = shareData["recipeId"] as? String ?? ""
         let ownerId = shareData["ownerId"] as? String ?? ""
-        let shareType = ShareOptions.ShareType(rawValue: shareData["shareType"] as? String ?? "generic") ?? .generic
+        let shareType = ShareOptions.ShareType(rawValue: shareData["shareType"] as? String ?? "heirloom") ?? .heirloom
+
+        Log.info("Accepting share", category: .firebase, metadata: [
+            "shareId": shareId,
+            "shareType": shareType.rawValue,
+            "recipeId": recipeId
+        ])
 
         // Prevent accepting own share
         if ownerId == userId {
@@ -370,22 +396,43 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         let existingRecipes = try context.fetch(descriptor)
 
         if let existingRecipe = existingRecipes.first {
-            // Recipe already exists - merge/update instead of insert
-            logger.log("Recipe already exists locally, updating instead of inserting", category: .firebase, level: .info, metadata: nil)
-            existingRecipe.title = sharedRecipe.title
-            existingRecipe.instructions = sharedRecipe.instructions
-            existingRecipe.ingredients = sharedRecipe.ingredients
-            existingRecipe.servings = sharedRecipe.servings
-            existingRecipe.prepTime = sharedRecipe.prepTime
-            existingRecipe.cookTime = sharedRecipe.cookTime
-            existingRecipe.notes = sharedRecipe.notes
-            existingRecipe.sharedBy = ownerName
-            existingRecipe.sharedDate = Date()
-            existingRecipe.generationCount = generation + 1
-            existingRecipe.modifiedAt = Date()
-            existingRecipe.dateAdded = Date() // Update so recipe appears at top of list
+            // CRITICAL: Don't update sample recipes - create a new recipe instead
+            // Sample recipes can have the same ID across devices, but they should remain separate
+            if existingRecipe.isSampleRecipe {
+                Log.info("Existing recipe is a sample - creating new recipe with new ID", category: .firebase, metadata: [
+                    "existingTitle": existingRecipe.title,
+                    "sharedTitle": sharedRecipe.title
+                ])
 
-            sharedRecipe = existingRecipe // Use existing recipe for subsequent operations
+                // Create new recipe with new ID
+                sharedRecipe.id = UUID()
+                sharedRecipe.dateAdded = Date()
+                context.insert(sharedRecipe)
+
+                Log.info("Inserted new recipe with new ID (sample collision avoided)", category: .firebase, metadata: [
+                    "newRecipeId": sharedRecipe.id.uuidString
+                ])
+            } else {
+                // Recipe already exists (not a sample) - merge/update instead of insert
+                // This handles re-accepting the same share
+                Log.info("Recipe already exists locally (not sample), updating instead of inserting", category: .firebase, metadata: [
+                    "recipeId": existingRecipe.id.uuidString
+                ])
+                existingRecipe.title = sharedRecipe.title
+                existingRecipe.instructions = sharedRecipe.instructions
+                existingRecipe.ingredients = sharedRecipe.ingredients
+                existingRecipe.servings = sharedRecipe.servings
+                existingRecipe.prepTime = sharedRecipe.prepTime
+                existingRecipe.cookTime = sharedRecipe.cookTime
+                existingRecipe.notes = sharedRecipe.notes
+                existingRecipe.sharedBy = ownerName
+                existingRecipe.sharedDate = Date()
+                existingRecipe.generationCount = generation + 1
+                existingRecipe.modifiedAt = Date()
+                existingRecipe.dateAdded = Date() // Update so recipe appears at top of list
+
+                sharedRecipe = existingRecipe // Use existing recipe for subsequent operations
+            }
         } else {
             // 12. Insert new recipe into local database (keeps original ID)
             sharedRecipe.dateAdded = Date()
@@ -403,6 +450,14 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             let rootRecipeIdString = shareData["rootRecipeId"] as? String ?? recipeId
             let rootOwnerId = shareData["rootOwnerId"] as? String ?? ownerId
 
+            Log.info("Creating lineage for heirloom share", category: .firebase, metadata: [
+                "rootRecipeIdString": rootRecipeIdString,
+                "parentRecipeId": recipeId,
+                "currentRecipeId": sharedRecipe.id.uuidString,
+                "rootOwnerId": rootOwnerId,
+                "generation": generation
+            ])
+
             if let rootRecipeId = UUID(uuidString: rootRecipeIdString),
                let parentRecipeId = UUID(uuidString: recipeId) {
                 do {
@@ -415,14 +470,21 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
                         sharedByName: ownerName,
                         context: context
                     )
-                    logger.log("Lineage record created for shared recipe", category: .firebase, level: .info, metadata: nil)
+                    Log.info("Lineage record created for shared recipe", category: .firebase)
                 } catch {
-                    logger.log("Failed to create lineage for shared recipe", category: .firebase, level: .warning, metadata: nil)
+                    Log.error("Failed to create lineage for shared recipe", category: .firebase, error: error)
                     // Continue without lineage tracking
                 }
             } else {
-                Log.warning("Invalid lineage IDs, skipping lineage tracking", category: .firebase)
+                Log.warning("Invalid lineage IDs, skipping lineage tracking", category: .firebase, metadata: [
+                    "rootRecipeIdString": rootRecipeIdString,
+                    "parentRecipeId": recipeId
+                ])
             }
+        } else {
+            Log.warning("Skipping lineage creation - not a heirloom share", category: .firebase, metadata: [
+                "shareType": shareType.rawValue
+            ])
         }
 
         // 14. Update share document (track acceptance)

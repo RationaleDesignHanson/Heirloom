@@ -22,10 +22,10 @@ struct ImportProgressBottomBanner: View {
 
     @State private var selectedJob: ImportJob?
 
-    // Filter to active jobs (processing or completed)
+    // Filter to active jobs (only show processing, not completed)
     private var activeJobs: [ImportJob] {
         allJobs.filter { job in
-            job.status == .processing || job.status == .completed
+            job.status == .processing
         }
     }
 

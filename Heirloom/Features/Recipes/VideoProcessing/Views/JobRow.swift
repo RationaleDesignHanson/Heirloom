@@ -13,6 +13,7 @@ struct JobRow: View {
     let onRetry: (() -> Void)?
     let onCancel: (() -> Void)?
     let onDelete: (() -> Void)?
+    let onResume: (() -> Void)?
 
     var body: some View {
         HStack(spacing: HeirloomSpacing.md) {
@@ -224,7 +225,23 @@ struct JobRow: View {
             }
 
         case .processing, .pending:
-            if job.canCancel, let onCancel = onCancel {
+            // Resume button for interrupted jobs (force-quit)
+            if job.canResume, let onResume = onResume {
+                Button {
+                    onResume()
+                } label: {
+                    HStack(spacing: HeirloomSpacing.xs) {
+                        Image(systemName: "arrow.clockwise.circle.fill")
+                        Text("Resume")
+                            .font(HeirloomFonts.caption1Bold)
+                    }
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(HeirloomColors.tomato)
+                    .cornerRadius(8)
+                }
+            } else if job.canCancel, let onCancel = onCancel {
                 Button {
                     onCancel()
                 } label: {
@@ -265,7 +282,8 @@ struct JobRow: View {
             }(),
             onRetry: nil,
             onCancel: {},
-            onDelete: nil
+            onDelete: nil,
+            onResume: nil
         )
 
         // Completed
@@ -278,7 +296,8 @@ struct JobRow: View {
             }(),
             onRetry: nil,
             onCancel: nil,
-            onDelete: nil
+            onDelete: nil,
+            onResume: nil
         )
 
         // Failed
@@ -291,7 +310,8 @@ struct JobRow: View {
             }(),
             onRetry: {},
             onCancel: nil,
-            onDelete: {}
+            onDelete: {},
+            onResume: nil
         )
     }
     .padding()

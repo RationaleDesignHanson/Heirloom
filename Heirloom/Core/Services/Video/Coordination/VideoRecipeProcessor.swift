@@ -99,7 +99,7 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
         )
     }
 
-    func process(videoURL: URL) async throws -> VideoRecipeExtraction {
+    func process(videoURL: URL, checkpoint: ProcessingCheckpoint? = nil) async throws -> VideoRecipeExtraction {
         let startTime = Date()
         canCancel = true
         defer { canCancel = false }
@@ -125,6 +125,13 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
             progressInterpolator.snap(to: 0.10)
             progress = 0.10
             subPhaseProgress = 1.0
+
+            // CHECKPOINT: Save audio extraction
+            if let checkpoint = checkpoint {
+                checkpoint.saveAudioExtraction(audioPath: audioURL.path)
+                try? modelContext?.save()
+                Log.info("Saved audio extraction checkpoint", category: .video)
+            }
 
             // Estimate video duration for metadata
             let videoDuration = await audioExtractor.estimateDuration(videoURL) ?? 0
@@ -154,6 +161,14 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
             progress = 0.75
             subPhaseProgress = 1.0
             try Task.checkCancellation()
+
+            // CHECKPOINT: Save transcription (CRITICAL - 70% of processing time saved!)
+            if let checkpoint = checkpoint {
+                let transcriptData = try JSONEncoder().encode(transcript)
+                checkpoint.saveTranscription(transcriptData)
+                try? modelContext?.save()
+                Log.info("✅ SAVED TRANSCRIPTION CHECKPOINT - Resume will skip transcription!", category: .video)
+            }
 
             // Cache transcript
             if enableCaching {
@@ -197,6 +212,14 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                 progress = 0.80
                 subPhaseProgress = 1.0
                 try Task.checkCancellation()
+
+                // CHECKPOINT: Save frame analysis
+                if let checkpoint = checkpoint, !visualElements.isEmpty {
+                    let framesData = try JSONEncoder().encode(visualElements)
+                    checkpoint.saveFrameAnalysis(framesData: framesData, visualElements: visualElements)
+                    try? modelContext?.save()
+                    Log.info("Saved frame analysis checkpoint", category: .video)
+                }
             } else {
                 // Skip frame analysis - transcript is high quality
                 progressInterpolator.snap(to: 0.80)
@@ -218,6 +241,14 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
             progressInterpolator.snap(to: 0.90)
             progress = 0.90
             subPhaseProgress = 1.0
+
+            // CHECKPOINT: Save structured recipe
+            if let checkpoint = checkpoint {
+                let recipeData = try JSONEncoder().encode(structuredRecipe)
+                checkpoint.saveStructuredRecipe(recipeData)
+                try? modelContext?.save()
+                Log.info("Saved structured recipe checkpoint", category: .video)
+            }
 
             // Step 5.5: Augment with similar recipes (NEW - Week 4)
             var augmentedRecipe: AugmentedRecipe? = nil
@@ -323,11 +354,17 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
             )
 
             // Create attribution (pre-fill with detected watermark if found)
+            // Construct creator profile URL if watermark detected, otherwise use local video URL
+            let attributionURL = constructCreatorURL(
+                watermark: detectedWatermark,
+                fallbackURL: videoURL.absoluteString
+            )
+
             let attribution = VideoSourceAttribution(
                 creatorName: detectedWatermark?.creatorHandle,  // Auto-populate if watermark detected
                 videoTitle: nil,
                 platform: detectedWatermark?.platform ?? .cameraRoll,  // Use detected platform
-                sourceURL: videoURL.absoluteString,
+                sourceURL: attributionURL,
                 notes: detectedWatermark != nil ? "(detected from video)" : nil,  // Add note if auto-detected
                 importDate: Date(),
                 hasPermission: true
@@ -442,6 +479,40 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
         )
 
         return aiCost
+    }
+
+    /// Construct creator profile URL based on detected watermark
+    /// - Parameters:
+    ///   - watermark: Detected watermark with creator handle and platform
+    ///   - fallbackURL: URL to use if no watermark detected (local video file path)
+    /// - Returns: Creator profile URL or fallback URL
+    private func constructCreatorURL(
+        watermark: WatermarkDetectionResult?,
+        fallbackURL: String
+    ) -> String? {
+        guard let watermark = watermark,
+              let handle = watermark.creatorHandle,
+              let platform = watermark.platform else {
+            // No watermark detected - use fallback (local file path)
+            return fallbackURL
+        }
+
+        // Construct platform-specific creator profile URL
+        switch platform {
+        case .tiktok:
+            return "https://www.tiktok.com/@\(handle)"
+        case .youtube:
+            return "https://www.youtube.com/@\(handle)"
+        case .instagram:
+            return "https://www.instagram.com/\(handle)"
+        case .facebook:
+            return "https://www.facebook.com/\(handle)"
+        case .twitter:
+            return "https://twitter.com/\(handle)"
+        case .cameraRoll, .other:
+            // For camera roll and other platforms, no profile URL makes sense
+            return fallbackURL
+        }
     }
 }
 

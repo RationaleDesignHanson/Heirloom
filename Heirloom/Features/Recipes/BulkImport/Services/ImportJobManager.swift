@@ -64,14 +64,27 @@ final class ImportJobManager: ObservableObject {
     }
 
     @objc private func appWillEnterBackground() {
-        guard isProcessing else { return }
+        guard isProcessing, let job = activeJob else { return }
 
-        Log.info("App backgrounding - starting background task", category: .import)
+        Log.info("App backgrounding - starting background task", category: .import, metadata: [
+            "job_id": job.id.uuidString,
+            "phase": job.phase.rawValue
+        ])
+
+        // Mark as potentially interrupted
+        job.wasInterrupted = true
+        job.interruptedAt = Date()
+        job.checkpoint?.markInterrupted(phase: job.phase)
+
+        // Save immediately
+        if let context = try? ServiceContainer.shared.resolve(ModelContext.self) {
+            try? context.save()
+        }
 
         // Request background execution time
         backgroundTask = UIApplication.shared.beginBackgroundTask { [weak self] in
             // Called when time expires - clean up
-            Log.warning("Background task expired - pausing import", category: .import)
+            Log.warning("Background task expired - import interrupted", category: .import)
             Task { @MainActor in
                 self?.handleBackgroundTaskExpiration()
             }
@@ -187,7 +200,15 @@ final class ImportJobManager: ObservableObject {
         job.phaseProgress = 0.0
         job.totalItems = 0 // Will be updated as we discover recipes
         job.cookbookName = cookbookName
+        job.pdfURL = pdfURLs.first?.absoluteString // Store for resume detection
         context.insert(job)
+
+        // Create checkpoint for resumable imports
+        let checkpoint = PDFImportCheckpoint()
+        checkpoint.job = job
+        context.insert(checkpoint)
+        job.checkpoint = checkpoint
+
         try context.save()
 
         Log.info("PDF import job created (analyzing...)", category: .import, metadata: [
@@ -247,7 +268,15 @@ final class ImportJobManager: ObservableObject {
                         Task { @MainActor in
                             totalPagesProcessed += 1
                             job.phaseProgress = Double(totalPagesProcessed) / Double(totalPagesAcrossAllPDFs)
+
+                            // Save checkpoint after each page analyzed
+                            job.checkpoint?.addCompletedPage(currentPage)
                             try? context.save()
+
+                            Log.debug("Checkpointed page", category: .import, metadata: [
+                                "page": currentPage,
+                                "total_analyzed": job.checkpoint?.analyzedPageNumbers.count ?? 0
+                            ])
                         }
                     }
                 )
@@ -416,6 +445,18 @@ final class ImportJobManager: ObservableObject {
         isProcessing = true
         job.status = .processing
 
+        // Create checkpoint if doesn't exist
+        if job.checkpoint == nil {
+            let checkpoint = PDFImportCheckpoint()
+            checkpoint.job = job
+            context.insert(checkpoint)
+            job.checkpoint = checkpoint
+        }
+
+        // Clear interrupted flag (user manually started)
+        job.wasInterrupted = false
+        job.checkpoint?.clearInterruptedFlag()
+
         try context.save()
 
         // Get pending items
@@ -492,6 +533,199 @@ final class ImportJobManager: ObservableObject {
         guard job.status == .paused else { return }
 
         try await startJob(job, context: context)
+    }
+
+    /// Resume an interrupted job from checkpoint
+    func resumeInterruptedJob(_ job: ImportJob, context: ModelContext) async throws {
+        guard job.canResume else {
+            throw ImportJobError.cannotResume
+        }
+
+        Log.info("Resuming interrupted import", category: .import, metadata: [
+            "job_id": job.id.uuidString,
+            "phase": job.checkpoint?.resumePhase.rawValue ?? "unknown",
+            "completed_pages": job.checkpoint?.analyzedPageNumbers.count ?? 0,
+            "completed_recipes": job.checkpoint?.lastExtractedItemIndex ?? -1
+        ])
+
+        let resumePhase = job.checkpoint?.resumePhase ?? .extraction
+
+        // Clear interrupted flags
+        job.wasInterrupted = false
+        job.checkpoint?.clearInterruptedFlag()
+        job.status = .processing
+        activeJob = job
+        isProcessing = true
+        try context.save()
+
+        switch resumePhase {
+        case .analysis:
+            try await resumePageAnalysis(job: job, context: context)
+        case .extraction:
+            try await resumeRecipeExtraction(job: job, context: context)
+        default:
+            // If interrupted during validation or already completed, just continue normally
+            try await startJob(job, context: context)
+        }
+    }
+
+    /// Resume page analysis phase, skipping completed pages
+    private func resumePageAnalysis(job: ImportJob, context: ModelContext) async throws {
+        guard let pdfURLString = job.pdfURL,
+              let pdfURL = URL(string: pdfURLString) else {
+            throw ImportJobError.missingPDFURL
+        }
+
+        // Check file exists
+        guard FileManager.default.fileExists(atPath: pdfURL.path) else {
+            throw ImportJobError.pdfFileNotFound
+        }
+
+        let completedPages = job.checkpoint?.completedPagesSet() ?? Set<Int>()
+
+        job.phase = .analysis
+        job.status = .processing
+
+        Log.info("Resuming page analysis", category: .import, metadata: [
+            "pdf_url": pdfURLString,
+            "completed_pages": completedPages.count,
+            "skipping": Array(completedPages).sorted()
+        ])
+
+        // Resume batch processing, skipping completed pages
+        let pdfProcessor = ServiceContainer.shared.resolve(PDFProcessor.self)
+        var totalPagesProcessed = completedPages.count
+        var totalPagesAcrossAllPDFs = 0
+
+        // Count total pages
+        if let pdfDocument = PDFDocument(url: pdfURL) {
+            totalPagesAcrossAllPDFs = pdfDocument.pageCount
+        }
+
+        try await pdfProcessor.renderPDFPagesInBatches(from: pdfURL, batchSize: 3) { [self] batch in
+            // Filter out already-analyzed pages
+            let pendingPages = batch.filter { !completedPages.contains($0.pageNumber) }
+
+            guard !pendingPages.isEmpty else {
+                Log.debug("Skipping already-analyzed batch", category: .import)
+                return
+            }
+
+            Log.info("Processing pending batch", category: .import, metadata: [
+                "pending_count": pendingPages.count,
+                "skipped_count": batch.count - pendingPages.count
+            ])
+
+            try await self.multiPageAnalyzer.processBatch(
+                pendingPages,
+                progressCallback: { currentPage in
+                    Task { @MainActor in
+                        totalPagesProcessed += 1
+                        job.phaseProgress = Double(totalPagesProcessed) / Double(totalPagesAcrossAllPDFs)
+
+                        // Save checkpoint after each page analyzed
+                        job.checkpoint?.addCompletedPage(currentPage)
+                        try? context.save()
+                    }
+                }
+            )
+        }
+
+        // Finalize groups and create ImportItems
+        let recipeGroups = multiPageAnalyzer.finalizeGroups()
+
+        Log.info("Resume: Creating import items", category: .import, metadata: [
+            "recipe_groups": recipeGroups.count
+        ])
+
+        // Create ImportItems (similar to createAndAnalyzePDFJob)
+        for group in recipeGroups {
+            let combinedImage = group.pageCount == 1 ? group.pages[0] : group.combinedImage()
+            guard let imageData = combinedImage.jpegData(compressionQuality: 0.9) else {
+                continue
+            }
+
+            let item = ImportItem(
+                source: .pdf,
+                imageData: imageData,
+                pageNumber: group.startPage,
+                totalPages: group.pageCount,
+                isMultiPageRecipe: group.isMultiPage
+            )
+
+            item.job = job
+            context.insert(item)
+        }
+
+        job.items = job.items ?? []
+        job.totalItems = job.items?.count ?? 0
+        job.phaseProgress = 1.0
+        try context.save()
+
+        // Transition to extraction phase
+        try await resumeRecipeExtraction(job: job, context: context)
+    }
+
+    /// Resume recipe extraction phase, skipping completed recipes
+    private func resumeRecipeExtraction(job: ImportJob, context: ModelContext) async throws {
+        job.phase = .extraction
+        job.status = .processing
+
+        // Get only pending items (not yet processed)
+        guard let allItems = job.items, !allItems.isEmpty else {
+            // No items exist yet - job was interrupted during analysis phase
+            // Fall back to resuming page analysis to create items
+            Log.info("No items found - falling back to analysis phase", category: .import, metadata: [
+                "job_id": job.id.uuidString
+            ])
+            try await resumePageAnalysis(job: job, context: context)
+            return
+        }
+
+        let pendingItems = allItems.filter { $0.status == .pending && !$0.wasCheckpointed }
+
+        guard !pendingItems.isEmpty else {
+            // All items already processed - complete the job
+            Log.info("All items already processed - completing job", category: .import, metadata: [
+                "total_items": job.totalItems,
+                "successful_items": job.successfulItems
+            ])
+            await completeJob(job, context: context)
+            return
+        }
+
+        Log.info("Resuming recipe extraction", category: .import, metadata: [
+            "pending_items": pendingItems.count,
+            "total_items": job.totalItems,
+            "already_successful": job.successfulItems
+        ])
+
+        // Process remaining items (use existing concurrent logic)
+        await withTaskGroup(of: Void.self) { group in
+            var activeCount = 0
+
+            for item in pendingItems {
+                // Wait if at max concurrent imports
+                while activeCount >= maxConcurrentImports {
+                    await group.next()
+                    activeCount -= 1
+                }
+
+                // Wait for rate limit
+                await waitForRateLimit()
+
+                // Start import task
+                activeCount += 1
+                group.addTask { @MainActor in
+                    await self.processItem(item, job: job, context: context)
+                }
+            }
+
+            // Wait for all tasks to complete
+            await group.waitForAll()
+        }
+
+        await completeJob(job, context: context)
     }
 
     /// Retry failed items in a job
@@ -601,7 +835,20 @@ final class ImportJobManager: ObservableObject {
 
             // Mark item as successful
             item.markSuccess(recipeID: recipe.id)
+            item.wasCheckpointed = true
             job.updateProgress(success: true)
+
+            // Update checkpoint with recipe index
+            if let items = job.items,
+               let itemIndex = items.firstIndex(where: { $0.id == item.id }) {
+                job.checkpoint?.updateExtractionProgress(itemIndex: itemIndex)
+
+                Log.info("Checkpointed recipe", category: .import, metadata: [
+                    "recipe_index": itemIndex,
+                    "total_completed": job.successfulItems,
+                    "recipe_id": recipe.id.uuidString
+                ])
+            }
 
             try context.save()
 
@@ -898,6 +1145,25 @@ final class ImportJobManager: ObservableObject {
 
         try? context.save()
 
+        // Upload collection to Firebase if backend is active
+        if backendConfig.isFirebaseActive {
+            Task {
+                do {
+                    try await firebaseSync.uploadCollection(collection)
+                    Log.info("Collection synced to Firebase", category: .firebase, metadata: [
+                        "collectionId": collection.id.uuidString,
+                        "name": cookbookName,
+                        "recipeCount": recipes.count
+                    ])
+                } catch {
+                    Log.error("Failed to sync collection to Firebase", category: .firebase, error: error, metadata: [
+                        "collectionId": collection.id.uuidString,
+                        "name": cookbookName
+                    ])
+                }
+            }
+        }
+
         Log.info("Successfully added recipes to collection", category: .import, metadata: [
             "collection": cookbookName,
             "successful_recipes": recipes.count,
@@ -956,6 +1222,9 @@ enum ImportJobError: LocalizedError {
     case missingImageData
     case invalidImageData
     case noRecipeFound
+    case cannotResume
+    case missingPDFURL
+    case pdfFileNotFound
 
     var errorDescription: String? {
         switch self {
@@ -973,6 +1242,12 @@ enum ImportJobError: LocalizedError {
             return "Could not create image from image data"
         case .noRecipeFound:
             return "No recipe could be extracted from the image"
+        case .cannotResume:
+            return "Cannot resume this import job - checkpoint is invalid or expired"
+        case .missingPDFURL:
+            return "PDF URL is missing - cannot resume import"
+        case .pdfFileNotFound:
+            return "PDF file was moved or deleted - cannot resume import"
         }
     }
 }

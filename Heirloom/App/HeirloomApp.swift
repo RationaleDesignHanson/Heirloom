@@ -439,6 +439,68 @@ struct HeirloomApp: App {
                 Log.info("Video processing queue coordinator initialized", category: .video)
                 DeviceLogger.shared.log("✅ [Video] Queue coordinator initialized, pending jobs resumed")
             }
+
+            // Check for interrupted PDF import jobs on app launch (shown via ContentView)
+            Task { @MainActor in
+                let modelContext = container.mainContext
+
+                // Query for interrupted jobs (filter by status in memory since predicates don't support enum)
+                let descriptor = FetchDescriptor<ImportJob>(
+                    predicate: #Predicate<ImportJob> { job in
+                        job.wasInterrupted == true
+                    },
+                    sortBy: [SortDescriptor(\.interruptedAt, order: .reverse)]
+                )
+
+                do {
+                    let jobs = try modelContext.fetch(descriptor)
+                    let resumableJobs = jobs.filter { $0.status == .processing && $0.canResume }
+
+                    if !resumableJobs.isEmpty {
+                        Log.info("Detected interrupted PDF imports", category: .import, metadata: [
+                            "count": resumableJobs.count
+                        ])
+                        DeviceLogger.shared.log("✅ [Import] Detected \(resumableJobs.count) interrupted PDF imports - resume prompt will appear in ContentView")
+                    }
+                } catch {
+                    Log.error("Failed to detect interrupted imports", category: .import, metadata: [
+                        "error": error.localizedDescription
+                    ])
+                }
+            }
+
+            // Check for interrupted video jobs (logging only - marking happens in RootView.onAppear)
+            Task { @MainActor in
+                let modelContext = container.mainContext
+
+                // Query for video jobs that were marked as interrupted
+                let videoDescriptor = FetchDescriptor<VideoProcessingJob>(
+                    sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+                )
+
+                do {
+                    let allVideoJobs = try modelContext.fetch(videoDescriptor)
+                    let interruptedVideoJobs = allVideoJobs.filter { $0.status == .processing && $0.canResume }
+
+                    Log.info("🎬 SETUPSERVICES: Checked for interrupted video jobs", category: .video, metadata: [
+                        "total_jobs": allVideoJobs.count,
+                        "interrupted_count": interruptedVideoJobs.count
+                    ])
+                    DeviceLogger.shared.log("🎬 [Video] setupServices: Found \(interruptedVideoJobs.count) interrupted video jobs (total: \(allVideoJobs.count))")
+
+                    if !interruptedVideoJobs.isEmpty {
+                        Log.info("Detected interrupted video jobs", category: .video, metadata: [
+                            "count": interruptedVideoJobs.count,
+                            "job_ids": interruptedVideoJobs.map { $0.id.uuidString }
+                        ])
+                        DeviceLogger.shared.log("✅ [Video] Detected \(interruptedVideoJobs.count) interrupted video jobs - resume button will appear in UI")
+                    }
+                } catch {
+                    Log.error("Failed to check for interrupted video jobs", category: .video, metadata: [
+                        "error": error.localizedDescription
+                    ])
+                }
+            }
         }
     }
 
@@ -731,6 +793,25 @@ struct RootView: View {
             }
         }
             .onAppear {
+                Log.info("🚀 ROOTVIEW.ONAPPEAR: Starting", category: .video)
+                DeviceLogger.shared.log("🚀 [Video] RootView.onAppear: Starting detection tasks")
+
+                // Mark interrupted imports on app launch
+                Task {
+                    await markInterruptedImportsOnLaunch(modelContainer: modelContainer)
+                }
+
+                // Mark interrupted video jobs on app launch
+                Task {
+                    Log.info("🎬 ROOTVIEW.ONAPPEAR: About to call video detection", category: .video)
+                    DeviceLogger.shared.log("🎬 [Video] RootView.onAppear: Calling markInterruptedVideoJobsOnLaunch NOW")
+
+                    await markInterruptedVideoJobsOnLaunch(modelContainer: modelContainer)
+
+                    Log.info("🎬 ROOTVIEW.ONAPPEAR: Video detection task completed", category: .video)
+                    DeviceLogger.shared.log("🎬 [Video] RootView.onAppear: Video detection task completed")
+                }
+
                 // Start automatic sync if already authenticated on app launch
                 if authService.isAuthenticated {
                     Log.info("User already authenticated on launch - starting automatic sync", category: .sync)
@@ -797,6 +878,211 @@ struct RootView: View {
                 }
             }
     }
+
+    // MARK: - Interrupted Import Detection
+
+    private func markInterruptedImportsOnLaunch(modelContainer: ModelContainer) async {
+        Log.info("🔍 Starting interrupted import detection", category: .import)
+
+        let modelContext = modelContainer.mainContext
+
+        // Query for ALL import jobs
+        let descriptor = FetchDescriptor<ImportJob>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+
+        do {
+            let allJobs = try modelContext.fetch(descriptor)
+
+            Log.info("📊 Fetched import jobs from database", category: .import, metadata: [
+                "total_count": allJobs.count,
+                "job_ids": allJobs.map { $0.id.uuidString }
+            ])
+
+            // Log detailed status of each job
+            for job in allJobs {
+                Log.info("📋 Import job details", category: .import, metadata: [
+                    "job_id": job.id.uuidString,
+                    "job_name": job.jobName ?? "unknown",
+                    "status": job.status.rawValue,
+                    "has_checkpoint": job.checkpoint != nil,
+                    "checkpoint_can_resume": job.checkpoint?.canResume ?? false,
+                    "was_interrupted": job.wasInterrupted,
+                    "total_items": job.totalItems,
+                    "successful_items": job.successfulItems
+                ])
+
+                // Log checkpoint details if exists
+                if let checkpoint = job.checkpoint {
+                    Log.info("🔖 Checkpoint details", category: .import, metadata: [
+                        "job_id": job.id.uuidString,
+                        "analyzed_pages_count": checkpoint.analyzedPageNumbers.count,
+                        "analyzed_pages": checkpoint.analyzedPageNumbers,
+                        "last_extracted_index": checkpoint.lastExtractedItemIndex ?? -1,
+                        "was_interrupted": checkpoint.wasInterrupted,
+                        "can_resume": checkpoint.canResume
+                    ])
+                }
+            }
+
+            // Find jobs that are in processing state - these were interrupted
+            // Note: Force-quit doesn't allow cleanup, so checkpoint.wasInterrupted might be false
+            // Instead, we detect interruption by checking if job is processing with progress made
+            let interruptedJobs = allJobs.filter { job in
+                let statusMatch = job.status == .processing
+                let hasCheckpoint = job.checkpoint != nil
+                let hasProgress = (job.checkpoint?.analyzedPageNumbers.count ?? 0) > 0 ||
+                                  job.checkpoint?.lastExtractedItemIndex != nil
+
+                Log.info("🔎 Evaluating job for interruption", category: .import, metadata: [
+                    "job_id": job.id.uuidString,
+                    "status_match": statusMatch,
+                    "has_checkpoint": hasCheckpoint,
+                    "has_progress": hasProgress,
+                    "passes_filter": statusMatch && hasCheckpoint && hasProgress
+                ])
+
+                return statusMatch && hasCheckpoint && hasProgress
+            }
+
+            Log.info("✅ Finished filtering interrupted jobs", category: .import, metadata: [
+                "interrupted_count": interruptedJobs.count,
+                "interrupted_job_ids": interruptedJobs.map { $0.id.uuidString }
+            ])
+
+            // Mark them as interrupted if not already marked
+            for job in interruptedJobs {
+                if !job.wasInterrupted {
+                    Log.info("🏷️ Marking job as interrupted", category: .import, metadata: [
+                        "job_id": job.id.uuidString
+                    ])
+
+                    job.wasInterrupted = true
+                    job.interruptedAt = Date()
+                    job.checkpoint?.wasInterrupted = true
+                    job.checkpoint?.interruptedAt = Date()
+                }
+            }
+
+            if !interruptedJobs.isEmpty {
+                try? modelContext.save()
+
+                Log.info("💾 Detected and saved interrupted imports on launch", category: .import, metadata: [
+                    "count": interruptedJobs.count,
+                    "job_ids": interruptedJobs.map { $0.id.uuidString }
+                ])
+            } else {
+                Log.info("✓ No interrupted imports found on launch", category: .import)
+            }
+        } catch {
+            Log.error("❌ Failed to check for interrupted imports", category: .import, metadata: [
+                "error": error.localizedDescription
+            ])
+        }
+    }
+
+    // MARK: - Interrupted Video Processing Detection
+
+    private func markInterruptedVideoJobsOnLaunch(modelContainer: ModelContainer) async {
+        Log.info("🔍 Starting interrupted video job detection", category: .video)
+        DeviceLogger.shared.log("🔍 [Video] DETECTION FUNCTION CALLED - markInterruptedVideoJobsOnLaunch is executing NOW")
+        print("🎬 🎬 🎬 VIDEO DETECTION STARTING - markInterruptedVideoJobsOnLaunch() 🎬 🎬 🎬")
+
+        let modelContext = modelContainer.mainContext
+
+        // Query for ALL video processing jobs
+        let descriptor = FetchDescriptor<VideoProcessingJob>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+
+        do {
+            let allJobs = try modelContext.fetch(descriptor)
+
+            Log.info("📊 Fetched video jobs from database", category: .video, metadata: [
+                "total_count": allJobs.count,
+                "job_ids": allJobs.map { $0.id.uuidString }
+            ])
+
+            // Log detailed status of each job
+            for job in allJobs {
+                Log.info("📋 Video job details", category: .video, metadata: [
+                    "job_id": job.id.uuidString,
+                    "status": job.status.rawValue,
+                    "current_phase": job.currentPhase.rawValue,
+                    "has_checkpoint": job.checkpoint != nil,
+                    "was_interrupted": job.wasInterrupted,
+                    "progress": job.progress
+                ])
+
+                // Log checkpoint details if exists
+                if let checkpoint = job.checkpoint {
+                    Log.info("🔖 Video checkpoint details", category: .video, metadata: [
+                        "job_id": job.id.uuidString,
+                        "has_audio": checkpoint.hasAudioExtraction,
+                        "has_transcription": checkpoint.hasTranscription,
+                        "has_frames": checkpoint.hasFrameAnalysis,
+                        "has_recipe": checkpoint.hasStructuredRecipe,
+                        "resume_phase": checkpoint.resumePhase.rawValue
+                    ])
+                }
+            }
+
+            // Find jobs that are in processing or pending state - these were interrupted
+            // Note: resumePendingJobs() changes crashed jobs to .pending BEFORE this runs,
+            // so we must check for BOTH .processing (fresh force-quit) and .pending (already resumed)
+            let interruptedJobs = allJobs.filter { job in
+                let statusMatch = job.status == .processing || job.status == .pending
+                let hasCheckpoint = job.checkpoint != nil
+                let hasProgress = job.checkpoint?.hasAudioExtraction ?? false ||
+                                  job.checkpoint?.hasTranscription ?? false ||
+                                  job.checkpoint?.hasFrameAnalysis ?? false ||
+                                  job.checkpoint?.hasStructuredRecipe ?? false
+
+                Log.info("🔎 Evaluating video job for interruption", category: .video, metadata: [
+                    "job_id": job.id.uuidString,
+                    "status": job.status.rawValue,
+                    "status_match": statusMatch,
+                    "has_checkpoint": hasCheckpoint,
+                    "has_progress": hasProgress,
+                    "passes_filter": statusMatch && hasCheckpoint && hasProgress
+                ])
+
+                return statusMatch && hasCheckpoint && hasProgress
+            }
+
+            Log.info("✅ Finished filtering interrupted video jobs", category: .video, metadata: [
+                "interrupted_count": interruptedJobs.count,
+                "interrupted_job_ids": interruptedJobs.map { $0.id.uuidString }
+            ])
+
+            // Mark them as interrupted if not already marked
+            for job in interruptedJobs {
+                if !job.wasInterrupted {
+                    Log.info("🏷️ Marking video job as interrupted", category: .video, metadata: [
+                        "job_id": job.id.uuidString
+                    ])
+
+                    job.wasInterrupted = true
+                    job.interruptedAt = Date()
+                }
+            }
+
+            if !interruptedJobs.isEmpty {
+                try? modelContext.save()
+
+                Log.info("💾 Detected and saved interrupted video jobs on launch", category: .video, metadata: [
+                    "count": interruptedJobs.count,
+                    "job_ids": interruptedJobs.map { $0.id.uuidString }
+                ])
+            } else {
+                Log.info("✓ No interrupted video jobs found on launch", category: .video)
+            }
+        } catch {
+            Log.error("❌ Failed to check for interrupted video jobs", category: .video, metadata: [
+                "error": error.localizedDescription
+            ])
+        }
+    }
 }
 
 struct ContentView: View {
@@ -812,6 +1098,9 @@ struct ContentView: View {
 
     // Firebase auth (injected via environment)
     @Environment(\.firebaseAuth) private var firebaseAuth
+
+    // Model context (injected by SwiftData)
+    @Environment(\.modelContext) private var modelContext
 
     // Tab navigation coordinator (injected from DI container)
     @ObservedObject var tabCoordinator: TabNavigationCoordinator
@@ -881,7 +1170,9 @@ struct ContentView: View {
 
     @ViewBuilder
     private var mainContent: some View {
-        TabView(selection: $tabCoordinator.selectedTab) {
+        let containerReference = modelContainer
+
+        return TabView(selection: $tabCoordinator.selectedTab) {
             CollectionsListView()
                 .environmentObject(notificationService)
                 .environmentObject(tabCoordinator)
@@ -975,6 +1266,7 @@ struct ContentView: View {
 
             // Check for daily unlocks
             checkForDailyUnlock()
+
         }
     }
 
@@ -983,25 +1275,26 @@ struct ContentView: View {
     private func checkForDailyUnlock() {
         Task {
             do {
-                // Get auth service and model container
+                // Get auth service
                 guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
                       authService.isAuthenticated else {
                     Log.info("Not authenticated, skipping daily unlock check", category: .firebase)
                     return
                 }
 
-                guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
-                    Log.warning("ModelContainer not available, skipping daily unlock check", category: .firebase)
-                    return
-                }
-
-                // Create unlock service
+                // Create unlock service with modelContext from environment
                 let unlockService = HeritageUnlockService(
-                    modelContext: modelContainer.mainContext,
+                    modelContext: modelContext,
                     firebaseAuth: authService
                 )
 
-                // Try to unlock daily batch
+                // CRITICAL: Sync local state with Firebase first
+                // This restores previously unlocked recipes after app reinstall
+                try await unlockService.syncLocalRecipesWithUserState()
+
+                Log.info("Heritage state synced from Firebase", category: .heritage)
+
+                // Try to unlock daily batch (will skip if already unlocked today)
                 let newlyUnlocked = try await unlockService.unlockDailyBatch()
 
                 if !newlyUnlocked.isEmpty {
@@ -1026,10 +1319,14 @@ struct ContentView: View {
         }
     }
 
+
     // MARK: - Premium Unlock Observer
 
     /// Set up observer for premium status changes to unlock all heritage recipes
     private func setupPremiumUnlockObserver() {
+        // Capture modelContext for use in closure
+        let context = modelContext
+
         NotificationCenter.default.addObserver(
             forName: .userBecamePremium,
             object: nil,
@@ -1040,21 +1337,16 @@ struct ContentView: View {
                 DeviceLogger.shared.log("✅ [Premium] User became premium - unlocking all heritage recipes")
 
                 do {
-                    // Get auth service and model container
+                    // Get auth service
                     guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
                           authService.isAuthenticated else {
                         Log.warning("Not authenticated, cannot unlock heritage recipes", category: .store)
                         return
                     }
 
-                    guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
-                        Log.warning("ModelContainer not available, cannot unlock heritage recipes", category: .store)
-                        return
-                    }
-
-                    // Create unlock service
+                    // Create unlock service with captured modelContext
                     let unlockService = HeritageUnlockService(
-                        modelContext: modelContainer.mainContext,
+                        modelContext: context,
                         firebaseAuth: authService
                     )
 

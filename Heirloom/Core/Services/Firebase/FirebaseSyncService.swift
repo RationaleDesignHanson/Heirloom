@@ -640,7 +640,25 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 logger.log("ℹ️ [Firebase] No remote changes to download", category: .sync, level: .info, metadata: nil)
             }
 
-            // 3. Update sync timestamp
+            // 3. Sync collections
+            // Upload local collections
+            let localCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
+            let userCreatedCollections = localCollections.filter { !$0.isSystemCollection && !$0.isAllRecipes }
+
+            if !userCreatedCollections.isEmpty {
+                logger.log("📤 [Firebase] Uploading \(userCreatedCollections.count) collections", category: .sync, level: .info, metadata: nil)
+                for collection in userCreatedCollections {
+                    try await uploadCollection(collection)
+                }
+                logger.log("✅ [Firebase] Collections uploaded", category: .sync, level: .info, metadata: nil)
+            }
+
+            // Download remote collections
+            logger.log("📥 [Firebase] Downloading collections", category: .sync, level: .info, metadata: nil)
+            let remoteCollections = try await downloadAllCollections(context: context)
+            logger.log("✅ [Firebase] Downloaded \(remoteCollections.count) collections", category: .sync, level: .info, metadata: nil)
+
+            // 4. Update sync timestamp
             let now = Date()
             UserDefaults.standard.set(now, forKey: "firebase_lastSyncDate")
             lastSyncDate = now
@@ -1169,8 +1187,109 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         data["createdDate"] = Timestamp(date: collection.createdDate)
         data["recipeIds"] = collection.recipes?.map { $0.id.uuidString } ?? []
 
+        // Heritage-specific fields
+        data["isBlindBox"] = collection.isBlindBox
+        data["isRevealed"] = collection.isRevealed
+        data["heritageCollectionId"] = collection.heritageCollectionId as Any
+        data["iconName"] = collection.iconName
+        data["color"] = collection.color
+        data["isSystemCollection"] = collection.isSystemCollection
+        data["isAllRecipes"] = collection.isAllRecipes
+
         try await collectionRef.setData(data)
         logger.log("Collection uploaded", category: .sync, level: .info, metadata: nil)
+    }
+
+    /// Download all collections from Firebase
+    func downloadAllCollections(context: ModelContext) async throws -> [RecipeCollection] {
+        guard let userId = currentUserId else {
+            throw SyncError.notAuthenticated
+        }
+
+        Log.info("Downloading collections from Firebase", category: .sync)
+
+        let collectionsRef = db.collection("users/\(userId)/collections")
+        let snapshot = try await collectionsRef.getDocuments()
+
+        var collections: [RecipeCollection] = []
+
+        for doc in snapshot.documents {
+            let data = doc.data()
+            let collectionId = UUID(uuidString: doc.documentID) ?? UUID()
+
+            // Check if collection already exists locally
+            let descriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate { collection in
+                    collection.id == collectionId
+                }
+            )
+
+            let existingCollection = try? context.fetch(descriptor).first
+
+            let collection: RecipeCollection
+            if let existing = existingCollection {
+                // Update existing collection
+                existing.name = data["name"] as? String ?? existing.name
+                existing.desc = data["desc"] as? String
+
+                // Update heritage-specific fields
+                existing.isBlindBox = data["isBlindBox"] as? Bool ?? existing.isBlindBox
+                existing.isRevealed = data["isRevealed"] as? Bool ?? existing.isRevealed
+                existing.heritageCollectionId = data["heritageCollectionId"] as? String
+                existing.iconName = data["iconName"] as? String ?? existing.iconName
+                existing.color = data["color"] as? String ?? existing.color
+                existing.isSystemCollection = data["isSystemCollection"] as? Bool ?? existing.isSystemCollection
+                existing.isAllRecipes = data["isAllRecipes"] as? Bool ?? existing.isAllRecipes
+
+                collection = existing
+            } else {
+                // Create new collection
+                collection = RecipeCollection(
+                    name: data["name"] as? String ?? "Untitled",
+                    description: data["desc"] as? String,
+                    iconName: data["iconName"] as? String ?? "folder.fill",
+                    color: data["color"] as? String ?? "#FF6B6B"
+                )
+                collection.id = collectionId
+                if let createdDate = (data["createdDate"] as? Timestamp)?.dateValue() {
+                    collection.createdDate = createdDate
+                }
+
+                // Set heritage-specific fields
+                collection.isBlindBox = data["isBlindBox"] as? Bool ?? false
+                collection.isRevealed = data["isRevealed"] as? Bool ?? false
+                collection.heritageCollectionId = data["heritageCollectionId"] as? String
+                collection.isSystemCollection = data["isSystemCollection"] as? Bool ?? false
+                collection.isAllRecipes = data["isAllRecipes"] as? Bool ?? false
+
+                context.insert(collection)
+            }
+
+            // Restore recipe relationships
+            if let recipeIds = data["recipeIds"] as? [String] {
+                var linkedRecipes: [Recipe] = []
+                for recipeIdString in recipeIds {
+                    if let recipeId = UUID(uuidString: recipeIdString) {
+                        let recipeDescriptor = FetchDescriptor<Recipe>(
+                            predicate: #Predicate { recipe in
+                                recipe.id == recipeId
+                            }
+                        )
+                        if let recipe = try? context.fetch(recipeDescriptor).first {
+                            linkedRecipes.append(recipe)
+                        }
+                    }
+                }
+                collection.recipes = linkedRecipes
+            }
+
+            collections.append(collection)
+        }
+
+        try context.save()
+        Log.info("Downloaded collections from Firebase", category: .sync, metadata: ["count": collections.count])
+
+        return collections
     }
 
     /// Delete collection from Firebase

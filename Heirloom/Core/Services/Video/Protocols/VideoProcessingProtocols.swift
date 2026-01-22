@@ -240,8 +240,9 @@ protocol VideoRecipeProcessorProtocol: ObservableObject {
 
     /// Process a video file to extract recipe
     /// - Parameter videoURL: Local file URL to video
+    /// - Parameter checkpoint: Optional checkpoint for resume capability
     /// - Returns: Complete extraction result
-    func process(videoURL: URL) async throws -> VideoRecipeExtraction
+    func process(videoURL: URL, checkpoint: ProcessingCheckpoint?) async throws -> VideoRecipeExtraction
 
     /// Cancel ongoing processing
     func cancel()

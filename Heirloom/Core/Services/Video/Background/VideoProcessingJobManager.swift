@@ -33,6 +33,63 @@ final class VideoProcessingJobManager: ObservableObject {
 
     init() {
         self.usageManager = ASMRUsageManager()
+        setupBackgroundHandling()
+    }
+
+    // MARK: - Background Task Handling
+
+    private func setupBackgroundHandling() {
+        // Observe app lifecycle events
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterBackground),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+
+    @objc private func appWillEnterBackground() {
+        guard isProcessing, let job = activeJob else { return }
+
+        Log.info("App backgrounding during video processing", category: .video, metadata: [
+            "job_id": job.id.uuidString,
+            "phase": job.currentPhase.rawValue,
+            "progress": job.progress
+        ])
+
+        // Mark as potentially interrupted
+        job.wasInterrupted = true
+        job.interruptedAt = Date()
+
+        // Save immediately
+        if let context = try? ServiceContainer.shared.resolve(ModelContext.self) {
+            try? context.save()
+        }
+
+        Log.info("Marked video job as interrupted on background", category: .video)
+    }
+
+    @objc private func appDidBecomeActive() {
+        guard isProcessing else { return }
+
+        Log.info("App foregrounding during video processing", category: .video)
+
+        // Clear interrupted flag if processing continues
+        if let job = activeJob {
+            job.wasInterrupted = false
+            job.interruptedAt = nil
+
+            if let context = try? ServiceContainer.shared.resolve(ModelContext.self) {
+                try? context.save()
+            }
+        }
     }
 
     /// Lazily initialize standard processor when needed
@@ -374,8 +431,8 @@ final class VideoProcessingJobManager: ObservableObject {
             cancellable2.cancel()
         }
 
-        // Process video through existing pipeline
-        let extraction = try await processor.process(videoURL: videoURL)
+        // Process video through existing pipeline (with checkpoint for resume)
+        let extraction = try await processor.process(videoURL: videoURL, checkpoint: checkpoint)
 
         // Return enhanced extraction with augmentation data
         // processor.enhancedExtraction is populated during process() call
@@ -697,16 +754,46 @@ final class VideoProcessingJobManager: ObservableObject {
         Log.info("Job paused", category: .video, metadata: ["jobId": job.id.uuidString])
     }
 
-    /// Resume a paused job
+    /// Resume a paused or interrupted job
     func resumeJob(_ job: VideoProcessingJob, context: ModelContext) async throws {
-        guard job.status == .paused else { return }
+        // Handle paused jobs
+        if job.status == .paused {
+            job.status = .pending
+            try context.save()
+            refreshQueue(context: context)
+            try await startNextJob(context: context)
+            return
+        }
 
-        job.status = .pending
-        try context.save()
+        // Handle interrupted jobs (force-quit resume)
+        if job.wasInterrupted && (job.status == .pending || job.status == .processing) {
+            Log.info("Resuming interrupted job from checkpoint", category: .video, metadata: [
+                "job_id": job.id.uuidString,
+                "status": job.status.rawValue,
+                "has_checkpoint": job.checkpoint != nil
+            ])
 
-        refreshQueue(context: context)
+            // Clear interrupted flag
+            job.wasInterrupted = false
+            job.interruptedAt = nil
 
-        try await startNextJob(context: context)
+            // Ensure status is pending so it gets picked up by queue
+            job.status = .pending
+            try context.save()
+
+            refreshQueue(context: context)
+
+            // Start processing
+            try await startNextJob(context: context)
+            return
+        }
+
+        // Job is not in a resumable state
+        Log.warning("Cannot resume job - not paused or interrupted", category: .video, metadata: [
+            "job_id": job.id.uuidString,
+            "status": job.status.rawValue,
+            "was_interrupted": job.wasInterrupted
+        ])
     }
 
     /// Cancel a job

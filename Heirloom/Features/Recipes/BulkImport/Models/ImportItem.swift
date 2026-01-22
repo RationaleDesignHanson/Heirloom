@@ -9,6 +9,44 @@ enum ImportSource: String, Codable {
     case photoLibrary  // Photo library import
 }
 
+/// Phases of the import process for unified progress tracking
+enum ImportPhase: String, Codable, CaseIterable {
+    case validation   // Validating PDF files
+    case analysis     // Detecting page boundaries and extracting images
+    case extraction   // Extracting recipe details via AI
+    case completed    // All done
+
+    /// Sort order for phase comparison
+    var sortOrder: Int {
+        switch self {
+        case .validation: return 0
+        case .analysis: return 1
+        case .extraction: return 2
+        case .completed: return 3
+        }
+    }
+
+    /// Display name for UI
+    var displayName: String {
+        switch self {
+        case .validation: return "Validating PDFs..."
+        case .analysis: return "Analyzing pages..."
+        case .extraction: return "Extracting recipes..."
+        case .completed: return "Import complete"
+        }
+    }
+
+    /// Icon name for UI
+    var iconName: String {
+        switch self {
+        case .validation: return "doc.text.magnifyingglass"
+        case .analysis: return "doc.text.image"
+        case .extraction: return "text.badge.checkmark"
+        case .completed: return "checkmark.circle.fill"
+        }
+    }
+}
+
 /// Represents a single item to import within a bulk import job
 /// Supports URL-based imports (video/recipe) and image-based imports (PDF/camera/photo)
 @Model
@@ -17,6 +55,16 @@ final class ImportItem {
     var id: UUID = UUID()
     var createdAt: Date = Date()
     var processedAt: Date?
+
+    // MARK: - Checkpoint Tracking
+    /// Timestamp when page analysis completed
+    var analysisCompletedAt: Date?
+
+    /// Timestamp when recipe extraction started
+    var extractionStartedAt: Date?
+
+    /// Flag indicating this item was checkpointed (for resume)
+    var wasCheckpointed: Bool = false
 
     // MARK: - Source Type
     var source: ImportSource = ImportSource.url

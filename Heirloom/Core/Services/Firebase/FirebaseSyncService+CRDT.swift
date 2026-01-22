@@ -451,7 +451,25 @@ extension FirebaseSyncService {
             }
         }
 
-        // Step 3: If conflicts detected, user needs to resolve them
+        // Step 3: Sync collections
+        // Upload local collections
+        let localCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
+        let userCreatedCollections = localCollections.filter { !$0.isSystemCollection && !$0.isAllRecipes }
+
+        if !userCreatedCollections.isEmpty {
+            Log.info("Uploading collections", category: .sync, metadata: ["count": userCreatedCollections.count])
+            for collection in userCreatedCollections {
+                try await uploadCollection(collection)
+            }
+            Log.info("Collections uploaded", category: .sync)
+        }
+
+        // Download remote collections
+        Log.info("Downloading collections", category: .sync)
+        let remoteCollections = try await downloadAllCollections(context: context)
+        Log.info("Downloaded collections", category: .sync, metadata: ["count": remoteCollections.count])
+
+        // Step 4: If conflicts detected, user needs to resolve them
         if !conflictsDetected.isEmpty {
             Log.warning("Recipes have conflicts requiring resolution", category: .crdt, metadata: ["count": conflictsDetected.count])
 
