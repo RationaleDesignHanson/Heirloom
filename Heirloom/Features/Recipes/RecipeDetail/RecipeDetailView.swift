@@ -727,11 +727,30 @@ struct RecipeDetailView: View {
             }
         }
         .onChange(of: selectedVersion) { oldValue, newValue in
-            // Save the selected version ID to recipe for persistence
-            if let newVersion = newValue, let recipeId = newVersion.recipe?.id {
-                recipe.lastViewedVersionId = recipeId
+            // Save the selected version ID and image info to recipe for persistence
+            // This ensures the recipe card in list view shows the selected version's image
+            if let newVersion = newValue {
+                if let recipeId = newVersion.recipe?.id {
+                    recipe.lastViewedVersionId = recipeId
+                }
+
+                // Update recipe's image to match selected version
+                // This makes the preview card show the version's image
+                if let versionRecipe = newVersion.recipe {
+                    // Version has a local recipe - use its image
+                    recipe.imageFileName = versionRecipe.imageFileName
+                    recipe.firebaseImageURL = versionRecipe.firebaseImageURL
+                } else if let recipeData = newVersion.recipeData {
+                    // Remote version - use image from Firebase data
+                    recipe.imageFileName = recipeData["imageFileName"] as? String
+                    recipe.firebaseImageURL = recipeData["firebaseImageURL"] as? String
+                }
+
                 try? modelContext.save()
-                Log.debug("Saved last viewed version", category: .database, metadata: ["versionDisplayName": newVersion.displayName])
+                Log.debug("Saved last viewed version with image", category: .database, metadata: [
+                    "versionDisplayName": newVersion.displayName,
+                    "imageFileName": recipe.imageFileName ?? "nil"
+                ])
             }
         }
         .navigationDestination(isPresented: $showLineageView) {
