@@ -196,6 +196,7 @@ struct RecipeListView: View {
     var body: some View {
         NavigationStack {
             mainContent
+                .searchable(text: $searchText, prompt: "Search recipes")
                 .toolbar {
                     toolbarLeading
                     toolbarActions
@@ -255,7 +256,6 @@ struct RecipeListView: View {
         }
         .navigationTitle("Recipes")
         .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $searchText, prompt: "Search recipes")
         .refreshable {
             await refreshRecipes()
         }
