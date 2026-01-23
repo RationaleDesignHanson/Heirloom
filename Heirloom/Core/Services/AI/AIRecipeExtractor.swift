@@ -319,9 +319,9 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
 
             Log.warning("AI multi-recipe extraction failed, falling back to basic extraction", category: .ocr, metadata: ["error": error.localizedDescription])
 
-            // Fallback to basic single recipe extraction
-            let recipe = extractRecipeBasic(from: ocrText)
-            return MultiRecipeExtractionResult(recipes: [recipe], sourceImage: sourceImage)
+            // Fallback: Try to split into multiple recipes based on heuristics
+            let recipes = extractMultipleRecipesBasic(from: ocrText)
+            return MultiRecipeExtractionResult(recipes: recipes, sourceImage: sourceImage)
         }
     }
 
@@ -914,6 +914,74 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             notes: nil,
             confidence: nil
         )
+    }
+
+    /// Extract multiple recipes using basic heuristics (fallback when AI fails)
+    func extractMultipleRecipesBasic(from text: String) -> [ExtractedRecipe] {
+        // Try to split text into multiple recipes based on common patterns
+        let lines = text.components(separatedBy: .newlines)
+        var recipeChunks: [[String]] = []
+        var currentChunk: [String] = []
+
+        // Look for recipe boundaries - new titles with metadata pattern
+        for (index, line) in lines.enumerated() {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            // Skip empty lines
+            if trimmed.isEmpty {
+                if !currentChunk.isEmpty {
+                    currentChunk.append(line)  // Keep structure
+                }
+                continue
+            }
+
+            // Detect new recipe start: Title-like line (not all caps section header)
+            // followed by SERVINGS/TIME metadata within next 3 lines
+            let isLikelyTitle = trimmed.count > 10 &&
+                               trimmed.count < 100 &&
+                               !trimmed.hasPrefix("•") &&
+                               !trimmed.uppercased().contains("SERVINGS:") &&
+                               !trimmed.uppercased().contains("SOURCE:") &&
+                               !["CRANBERRIES", "CAKE", "BARK", "FILLING", "ASSEMBLY", "SPICED CASHEWS"].contains(trimmed.uppercased())
+
+            if isLikelyTitle {
+                // Look ahead for metadata markers
+                let nextFewLines = lines.dropFirst(index + 1).prefix(3)
+                let hasMetadata = nextFewLines.contains { nextLine in
+                    let next = nextLine.uppercased()
+                    return next.contains("SERVINGS:") || next.contains("TIME:") || next.contains("SOURCE:")
+                }
+
+                // If we have metadata following this title and we already have a chunk, start new recipe
+                if hasMetadata && !currentChunk.isEmpty {
+                    recipeChunks.append(currentChunk)
+                    currentChunk = [line]
+                    continue
+                }
+            }
+
+            currentChunk.append(line)
+        }
+
+        // Add final chunk
+        if !currentChunk.isEmpty {
+            recipeChunks.append(currentChunk)
+        }
+
+        // If we only found one chunk, just use basic extraction
+        if recipeChunks.count <= 1 {
+            Log.info("Basic extraction found single recipe", category: .ocr)
+            let recipe = extractRecipeBasic(from: text)
+            return [recipe]
+        }
+
+        // Extract each chunk as a separate recipe
+        Log.info("Basic extraction split into multiple recipes", category: .ocr, metadata: ["count": recipeChunks.count])
+
+        return recipeChunks.map { chunk in
+            let chunkText = chunk.joined(separator: "\n")
+            return extractRecipeBasic(from: chunkText)
+        }
     }
 
     private enum Section {

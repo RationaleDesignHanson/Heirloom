@@ -31,8 +31,8 @@ class AnthropicAIService: AIServiceProtocol {
         self.configuration = configuration
         self.usageTracker = usageTracker
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        config.timeoutIntervalForResource = 60
+        config.timeoutIntervalForRequest = 90  // Increased for long text extraction
+        config.timeoutIntervalForResource = 120  // Increased for complex prompts
         self.session = URLSession(configuration: config)
     }
 
