@@ -103,13 +103,13 @@ final class FirebaseFeatureFlagProvider: RemoteFeatureFlagProvider {
 
     /// Set default values for all features (all enabled by default)
     private func setDefaultValues() {
-        var defaults: [String: Any] = [:]
+        var defaults: [String: NSObject] = [:]
 
         for feature in Feature.allCases {
-            defaults[feature.rawValue] = true
+            defaults[feature.rawValue] = NSNumber(value: true)
         }
 
-        remoteConfig.setDefaults(defaults as [String: NSObject])
+        remoteConfig.setDefaults(defaults)
 
         logger.log(
             "Set default values for \(defaults.count) features",

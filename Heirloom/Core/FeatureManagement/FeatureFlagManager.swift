@@ -188,6 +188,7 @@ final class LocalFeatureFlagProvider: FeatureFlagProvider {
 
 /// Protocol for remote feature flag providers (Firebase Remote Config)
 /// Will be implemented in Phase 3
+@MainActor
 protocol RemoteFeatureFlagProvider: FeatureFlagProvider {
     func fetch() async
     func activateFetched() async

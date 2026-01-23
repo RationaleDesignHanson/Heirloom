@@ -10,7 +10,6 @@ import SwiftUI
 
 struct FeatureFlagsDebugView: View {
 
-    @Environment(ServiceContainer.self) private var container
     @State private var flagManager: FeatureFlagManager?
     @State private var enabledStates: [Feature: Bool] = [:]
 
@@ -69,7 +68,7 @@ struct FeatureFlagsDebugView: View {
         .navigationTitle("Feature Flags")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            flagManager = container.resolve(FeatureFlagManager.self)
+            flagManager = ServiceContainer.shared.resolve(FeatureFlagManager.self)
             refreshStates()
         }
     }

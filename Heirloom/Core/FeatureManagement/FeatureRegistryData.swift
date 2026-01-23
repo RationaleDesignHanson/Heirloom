@@ -18,7 +18,7 @@ struct FeatureMetadata {
     let requiredServices: [String]
     let testCoverage: Double // 0.0 to 1.0
     let owner: String
-    let introducedVersion: String
+    let introducedVersion: String?
     let deprecatedVersion: String?
     let removalVersion: String?
     let documentation: String?

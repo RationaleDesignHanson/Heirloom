@@ -98,6 +98,13 @@
 		C502EB7B2F2341FD00BF1696 /* FeaturePill.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB762F2341FD00BF1696 /* FeaturePill.swift */; };
 		C502EB7C2F2341FD00BF1696 /* ThreeTierExtractionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB782F2341FD00BF1696 /* ThreeTierExtractionView.swift */; };
 		C502ED0C2F23C94800BF1696 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C502ED0B2F23C94800BF1696 /* FirebaseCrashlytics */; };
+		C502FA472F24110C00BF1696 /* OnboardingSubscriptionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502FA462F24110C00BF1696 /* OnboardingSubscriptionScreen.swift */; };
+		C502FA492F24111D00BF1696 /* FeatureFlagsDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502FA482F24111D00BF1696 /* FeatureFlagsDebugView.swift */; };
+		C502FA4F2F24175F00BF1696 /* Feature.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502FA4A2F24175F00BF1696 /* Feature.swift */; };
+		C502FA502F24175F00BF1696 /* FeatureFlagManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502FA4B2F24175F00BF1696 /* FeatureFlagManager.swift */; };
+		C502FA512F24175F00BF1696 /* FeatureRegistryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502FA4C2F24175F00BF1696 /* FeatureRegistryData.swift */; };
+		C502FA522F24175F00BF1696 /* RemoteFeatureFlagProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502FA4D2F24175F00BF1696 /* RemoteFeatureFlagProvider.swift */; };
+		C502FA542F24184D00BF1696 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = C502FA532F24184D00BF1696 /* FirebaseRemoteConfig */; };
 		C513D42C2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42B2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift */; };
 		C513D42D2F15EB0300BFCF7D /* OnboardingConceptScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */; };
 		C513D42E2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */; };
@@ -441,6 +448,12 @@
 		C502EB762F2341FD00BF1696 /* FeaturePill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturePill.swift; sourceTree = "<group>"; };
 		C502EB772F2341FD00BF1696 /* PremiumBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumBadge.swift; sourceTree = "<group>"; };
 		C502EB782F2341FD00BF1696 /* ThreeTierExtractionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreeTierExtractionView.swift; sourceTree = "<group>"; };
+		C502FA462F24110C00BF1696 /* OnboardingSubscriptionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSubscriptionScreen.swift; sourceTree = "<group>"; };
+		C502FA482F24111D00BF1696 /* FeatureFlagsDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlagsDebugView.swift; sourceTree = "<group>"; };
+		C502FA4A2F24175F00BF1696 /* Feature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feature.swift; sourceTree = "<group>"; };
+		C502FA4B2F24175F00BF1696 /* FeatureFlagManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlagManager.swift; sourceTree = "<group>"; };
+		C502FA4C2F24175F00BF1696 /* FeatureRegistryData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureRegistryData.swift; sourceTree = "<group>"; };
+		C502FA4D2F24175F00BF1696 /* RemoteFeatureFlagProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFeatureFlagProvider.swift; sourceTree = "<group>"; };
 		C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingConceptScreen.swift; sourceTree = "<group>"; };
 		C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingRecipeSeeder.swift; sourceTree = "<group>"; };
 		C513D42B2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeScreen.swift; sourceTree = "<group>"; };
@@ -693,6 +706,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C502FA542F24184D00BF1696 /* FirebaseRemoteConfig in Frameworks */,
 				7AA3CB42BF64EEE963168293 /* SwiftSoup in Frameworks */,
 				C56F3E6F2F04A9E000D19743 /* FirebaseFirestore in Frameworks */,
 				C56F3E6D2F04A9E000D19743 /* FirebaseCore in Frameworks */,
@@ -931,6 +945,7 @@
 		7163C016CDBBBFAAE25B1F74 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				C502FA462F24110C00BF1696 /* OnboardingSubscriptionScreen.swift */,
 				C502EB792F2341FD00BF1696 /* Components */,
 				C502EB6E2F2341C800BF1696 /* OnboardingFlexibilityScreen.swift */,
 				C502EB6F2F2341C800BF1696 /* OnboardingOrganizationScreen.swift */,
@@ -963,6 +978,7 @@
 		82DB2D05EA149582BC4C7525 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				C502FA482F24111D00BF1696 /* FeatureFlagsDebugView.swift */,
 				C583FF9C2F0C9CA90096478E /* HeritageRecipeCleanupView.swift */,
 				C56F3DCE2F02285600D19743 /* DebugLogView.swift */,
 				C5B317672F00C8310087CF6D /* WhatsNewView.swift */,
@@ -1146,6 +1162,17 @@
 				C502EB782F2341FD00BF1696 /* ThreeTierExtractionView.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		C502FA4E2F24175F00BF1696 /* FeatureManagement */ = {
+			isa = PBXGroup;
+			children = (
+				C502FA4A2F24175F00BF1696 /* Feature.swift */,
+				C502FA4B2F24175F00BF1696 /* FeatureFlagManager.swift */,
+				C502FA4C2F24175F00BF1696 /* FeatureRegistryData.swift */,
+				C502FA4D2F24175F00BF1696 /* RemoteFeatureFlagProvider.swift */,
+			);
+			path = FeatureManagement;
 			sourceTree = "<group>";
 		};
 		C513D8582F163AE700BFCF7D /* Heritage */ = {
@@ -1767,6 +1794,7 @@
 		CE482F3082BC4015FE64856D /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				C502FA4E2F24175F00BF1696 /* FeatureManagement */,
 				C5831EBA2F135F060096478E /* Navigation */,
 				C583F5CD2F09FCAC0096478E /* DI */,
 				C56F3E732F04AA3C00D19743 /* Config */,
@@ -1926,6 +1954,7 @@
 				C5E9553D2F056CA2006CD3C2 /* GoogleSignIn */,
 				C58316522F119F060096478E /* WhisperKit */,
 				C502ED0B2F23C94800BF1696 /* FirebaseCrashlytics */,
+				C502FA532F24184D00BF1696 /* FirebaseRemoteConfig */,
 			);
 			productName = Heirloom;
 			productReference = 7783D80B7B8AD9C0FBDC0EF7 /* Heirloom.app */;
@@ -2183,9 +2212,14 @@
 				14902ECCAAEBB9BA1C553ABD /* ImportAttempt.swift in Sources */,
 				C5DBEEAC2F202D1E00C1B6BA /* SocialMetadataService.swift in Sources */,
 				CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */,
+				C502FA4F2F24175F00BF1696 /* Feature.swift in Sources */,
+				C502FA502F24175F00BF1696 /* FeatureFlagManager.swift in Sources */,
+				C502FA512F24175F00BF1696 /* FeatureRegistryData.swift in Sources */,
+				C502FA522F24175F00BF1696 /* RemoteFeatureFlagProvider.swift in Sources */,
 				F22F7A301F871867FF273924 /* ImportJob.swift in Sources */,
 				C5830E0F2F103A580096478E /* UserDefaultsKeys.swift in Sources */,
 				3CC6B00DE8E62E4254000E3A /* ImportJobManager.swift in Sources */,
+				C502FA472F24110C00BF1696 /* OnboardingSubscriptionScreen.swift in Sources */,
 				E65CA0A636B690DCB9F89D0C /* ImportPreviewView.swift in Sources */,
 				C5830E202F103B500096478E /* HeirloomSubscriptionStatus.swift in Sources */,
 				C5DBEC842F20102E00C1B6BA /* PendingImportManager.swift in Sources */,
@@ -2264,6 +2298,7 @@
 				C583F5AA2F09A6B80096478E /* LogRedactor.swift in Sources */,
 				C5B317732F00C8500087CF6D /* HelpView.swift in Sources */,
 				C56887812F06B4C8006EA0B1 /* VectorClock.swift in Sources */,
+				C502FA492F24111D00BF1696 /* FeatureFlagsDebugView.swift in Sources */,
 				C56887822F06B4C8006EA0B1 /* RecipeCRDT.swift in Sources */,
 				C56887832F06B4C8006EA0B1 /* OperationLog.swift in Sources */,
 				C56887842F06B4C8006EA0B1 /* RecipeOperation.swift in Sources */,
@@ -2821,6 +2856,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C56F3E642F04A46600D19743 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
+		};
+		C502FA532F24184D00BF1696 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C56F3E642F04A46600D19743 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
 		};
 		C56F3E6A2F04A9E000D19743 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
