@@ -5,6 +5,7 @@ import BackgroundTasks
 import os.log
 import FirebaseCore
 import FirebaseFirestore
+import FirebaseCrashlytics
 
 // Device-visible logging
 private let logger = Logger(subsystem: "com.matthanson.heirloom", category: "App")
@@ -163,6 +164,12 @@ struct HeirloomApp: App {
                 DeviceLogger.shared.log("📝 [Heirloom] Calling FirebaseApp.configure()...")
                 FirebaseApp.configure()
                 DeviceLogger.shared.log("✅ [Heirloom] FirebaseApp.configure() completed")
+
+                // Enable Crashlytics for crash reporting and monitoring
+                DeviceLogger.shared.log("🔧 [Heirloom] Enabling Crashlytics...")
+                Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
+                DeviceLogger.shared.log("✅ [Heirloom] Crashlytics enabled")
+                Log.info("Crashlytics crash reporting enabled", category: .general)
 
                 // CRITICAL: Configure Firestore settings IMMEDIATELY after first configuration
                 DeviceLogger.shared.log("⚙️ [Heirloom] Configuring Firestore settings...")
