@@ -90,6 +90,13 @@
 		C3F4F1430F87ACCB0530FA31 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */; };
 		C502EAA52F2322E600BF1696 /* LineageGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EAA22F2322E600BF1696 /* LineageGraphView.swift */; };
 		C502EAA62F2322E600BF1696 /* LineageTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EAA32F2322E600BF1696 /* LineageTimelineView.swift */; };
+		C502EB722F2341C800BF1696 /* OnboardingVideoHeroScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB712F2341C800BF1696 /* OnboardingVideoHeroScreen.swift */; };
+		C502EB732F2341C800BF1696 /* OnboardingOrganizationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB6F2F2341C800BF1696 /* OnboardingOrganizationScreen.swift */; };
+		C502EB742F2341C800BF1696 /* OnboardingShareExtensionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB702F2341C800BF1696 /* OnboardingShareExtensionScreen.swift */; };
+		C502EB752F2341C800BF1696 /* OnboardingFlexibilityScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB6E2F2341C800BF1696 /* OnboardingFlexibilityScreen.swift */; };
+		C502EB7A2F2341FD00BF1696 /* PremiumBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB772F2341FD00BF1696 /* PremiumBadge.swift */; };
+		C502EB7B2F2341FD00BF1696 /* FeaturePill.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB762F2341FD00BF1696 /* FeaturePill.swift */; };
+		C502EB7C2F2341FD00BF1696 /* ThreeTierExtractionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB782F2341FD00BF1696 /* ThreeTierExtractionView.swift */; };
 		C513D42C2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42B2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift */; };
 		C513D42D2F15EB0300BFCF7D /* OnboardingConceptScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */; };
 		C513D42E2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */; };
@@ -427,6 +434,13 @@
 		C3793A6177FBDB4B932CC837 /* DataErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataErrorView.swift; sourceTree = "<group>"; };
 		C502EAA22F2322E600BF1696 /* LineageGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineageGraphView.swift; sourceTree = "<group>"; };
 		C502EAA32F2322E600BF1696 /* LineageTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineageTimelineView.swift; sourceTree = "<group>"; };
+		C502EB6E2F2341C800BF1696 /* OnboardingFlexibilityScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlexibilityScreen.swift; sourceTree = "<group>"; };
+		C502EB6F2F2341C800BF1696 /* OnboardingOrganizationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingOrganizationScreen.swift; sourceTree = "<group>"; };
+		C502EB702F2341C800BF1696 /* OnboardingShareExtensionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingShareExtensionScreen.swift; sourceTree = "<group>"; };
+		C502EB712F2341C800BF1696 /* OnboardingVideoHeroScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingVideoHeroScreen.swift; sourceTree = "<group>"; };
+		C502EB762F2341FD00BF1696 /* FeaturePill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturePill.swift; sourceTree = "<group>"; };
+		C502EB772F2341FD00BF1696 /* PremiumBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumBadge.swift; sourceTree = "<group>"; };
+		C502EB782F2341FD00BF1696 /* ThreeTierExtractionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreeTierExtractionView.swift; sourceTree = "<group>"; };
 		C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingConceptScreen.swift; sourceTree = "<group>"; };
 		C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingRecipeSeeder.swift; sourceTree = "<group>"; };
 		C513D42B2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeScreen.swift; sourceTree = "<group>"; };
@@ -917,6 +931,11 @@
 		7163C016CDBBBFAAE25B1F74 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				C502EB792F2341FD00BF1696 /* Components */,
+				C502EB6E2F2341C800BF1696 /* OnboardingFlexibilityScreen.swift */,
+				C502EB6F2F2341C800BF1696 /* OnboardingOrganizationScreen.swift */,
+				C502EB702F2341C800BF1696 /* OnboardingShareExtensionScreen.swift */,
+				C502EB712F2341C800BF1696 /* OnboardingVideoHeroScreen.swift */,
 				C513D4352F15FBF800BFCF7D /* OnboardingFeaturesScreen.swift */,
 				C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */,
 				C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */,
@@ -1118,6 +1137,16 @@
 				C502EAA32F2322E600BF1696 /* LineageTimelineView.swift */,
 			);
 			path = Lineage;
+			sourceTree = "<group>";
+		};
+		C502EB792F2341FD00BF1696 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				C502EB762F2341FD00BF1696 /* FeaturePill.swift */,
+				C502EB772F2341FD00BF1696 /* PremiumBadge.swift */,
+				C502EB782F2341FD00BF1696 /* ThreeTierExtractionView.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 		C513D8582F163AE700BFCF7D /* Heritage */ = {
@@ -2177,6 +2206,9 @@
 				C583070F2F0EC5480096478E /* FilePathValidator.swift in Sources */,
 				C583162E2F119A030096478E /* VideoProcessingView.swift in Sources */,
 				C583162F2F119A030096478E /* SimilarRecipesInfoView.swift in Sources */,
+				C502EB7A2F2341FD00BF1696 /* PremiumBadge.swift in Sources */,
+				C502EB7B2F2341FD00BF1696 /* FeaturePill.swift in Sources */,
+				C502EB7C2F2341FD00BF1696 /* ThreeTierExtractionView.swift in Sources */,
 				C5A7BDAF2F1713FA00D99B07 /* PDFProcessor.swift in Sources */,
 				C5A7BDB02F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift in Sources */,
 				C58316302F119A030096478E /* AugmentedIngredientEditRow.swift in Sources */,
@@ -2300,6 +2332,10 @@
 				7F0DA576A2BA5C4746384423 /* Typography.swift in Sources */,
 				C583FFA22F0CA9870096478E /* FirebaseServiceProtocols.swift in Sources */,
 				14B54EA78DD910B9F98D715B /* UIImage+Helpers.swift in Sources */,
+				C502EB722F2341C800BF1696 /* OnboardingVideoHeroScreen.swift in Sources */,
+				C502EB732F2341C800BF1696 /* OnboardingOrganizationScreen.swift in Sources */,
+				C502EB742F2341C800BF1696 /* OnboardingShareExtensionScreen.swift in Sources */,
+				C502EB752F2341C800BF1696 /* OnboardingFlexibilityScreen.swift in Sources */,
 				C58316482F119E910096478E /* VideoProcessingProtocols.swift in Sources */,
 				C58316492F119E910096478E /* RecipeAugmentationService.swift in Sources */,
 				C583164A2F119E910096478E /* AudioExtractionService.swift in Sources */,
@@ -2522,7 +2558,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2540,7 +2576,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.11.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2563,7 +2599,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2577,7 +2613,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.11.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2599,7 +2635,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2609,7 +2645,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.11.3;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -2630,13 +2666,13 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.11.3;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;

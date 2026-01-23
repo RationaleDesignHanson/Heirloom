@@ -12,15 +12,16 @@ struct OnboardingOrganizationScreen: View {
     let onContinue: () -> Void
 
     // Static data (no SwiftData queries) - 2 separate recipes
+    // Reuse OnboardingConceptScreen types for compatibility with OnboardingConceptRecipeCard
     private let sampleRecipes = [
-        SampleRecipe(
+        OnboardingConceptScreen.SampleRecipe(
             title: "Classic Grilled Cheese",
             collectionName: "Favorites",
             collectionIcon: "heart.fill",
             collectionColor: "#FF6B6B",
             imageName: "onboarding-grilled-cheese"
         ),
-        SampleRecipe(
+        OnboardingConceptScreen.SampleRecipe(
             title: "Tomato Soup",
             collectionName: "Favorites",
             collectionIcon: "heart.fill",
@@ -29,22 +30,22 @@ struct OnboardingOrganizationScreen: View {
         )
     ]
 
-    private let collections: [SampleCollection] = [
-        SampleCollection(
+    private let collections: [OnboardingConceptScreen.SampleCollection] = [
+        OnboardingConceptScreen.SampleCollection(
             name: "Favorites",
             icon: "heart.fill",
             color: "#FF6B6B",
             count: 2,
             isHighlighted: true
         ),
-        SampleCollection(
+        OnboardingConceptScreen.SampleCollection(
             name: "Quick Meals",
             icon: "clock.fill",
             color: "#4ECDC4",
             count: 0,
             isHighlighted: false
         ),
-        SampleCollection(
+        OnboardingConceptScreen.SampleCollection(
             name: "Meal Prep",
             icon: "tray.2.fill",
             color: "#95E1D3",
@@ -161,23 +162,6 @@ struct OnboardingOrganizationScreen: View {
         .cornerRadius(20)
     }
 
-    // MARK: - Data Models
-
-    struct SampleRecipe {
-        let title: String
-        let collectionName: String
-        let collectionIcon: String
-        let collectionColor: String
-        let imageName: String
-    }
-
-    struct SampleCollection {
-        let name: String
-        let icon: String
-        let color: String
-        let count: Int
-        let isHighlighted: Bool
-    }
 }
 
 // MARK: - Preview

@@ -844,7 +844,11 @@ private struct RecipeDetailModifiers: ViewModifier {
             }
         }
     }
+}
 
+// MARK: - RecipeDetailView Extension
+
+extension RecipeDetailView {
     // MARK: - Image Section
     private var recipeImage: some View {
         FlipCard(
