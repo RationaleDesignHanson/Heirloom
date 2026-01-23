@@ -116,7 +116,7 @@ struct OnboardingSubscriptionScreen: View {
 
                             Text("Cancel anytime during trial")
                                 .font(.caption)
-                                .foregroundColor(.tertiary)
+                                .foregroundColor(.secondary.opacity(0.6))
                         }
                     }
 
@@ -186,7 +186,7 @@ struct OnboardingSubscriptionScreen: View {
                         // Secondary benefit - daily recipe bonuses
                         Text("Includes daily heritage recipe bonuses during trial")
                             .font(.caption2)
-                            .foregroundColor(.tertiary)
+                            .foregroundColor(.secondary.opacity(0.6))
                             .multilineTextAlignment(.center)
 
                         HStack(spacing: 16) {
@@ -195,7 +195,7 @@ struct OnboardingSubscriptionScreen: View {
                             Link("Privacy", destination: URL(string: "https://heirloom-ios-prod.web.app/privacy.html")!)
                         }
                         .font(.caption2)
-                        .foregroundColor(.tertiary)
+                        .foregroundColor(.secondary.opacity(0.6))
                     }
                     .padding(.horizontal)
                     .padding(.bottom, 32)
