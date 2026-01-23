@@ -29,6 +29,7 @@ struct RecipeDetailView: View {
     @State private var showComments = false
     @State private var isCardFlipped = false
     @State private var showCardBackEditor = false
+    @State private var cardBackRefreshTrigger = UUID()
     @State private var selectedCollection: RecipeCollection?
     @State private var showVideoAttributionSheet = false
 
@@ -593,6 +594,9 @@ struct RecipeDetailView: View {
         }
         .sheet(isPresented: $showCardBackEditor) {
             CardBackEditorView(recipe: recipe)
+        } onDismiss: {
+            // Force card back preview to refresh with updated data
+            cardBackRefreshTrigger = UUID()
         }
         .sheet(isPresented: $showVideoAttributionSheet) {
             VideoAttributionSheet(recipe: recipe) {
@@ -779,6 +783,7 @@ struct RecipeDetailView: View {
                     ZStack(alignment: .topTrailing) {
                         RecipeCardBackPreview(cardBack: recipe.cardBack!, recipe: recipe)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .id(cardBackRefreshTrigger)
 
                         // Edit affordance
                         Button {
