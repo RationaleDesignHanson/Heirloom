@@ -379,6 +379,45 @@ struct RecipeDetailView: View {
     }
 
     var body: some View {
+        contentView
+            .modifier(RecipeDetailModifiers(
+                recipe: recipe,
+                modelContext: modelContext,
+                analytics: analytics,
+                versionViewModel: versionViewModel,
+                notificationService: notificationService,
+                showDeleteConfirmation: $showDeleteConfirmation,
+                showEditSheet: $showEditSheet,
+                recipeToEdit: $recipeToEdit,
+                showHeritageEditConfirmation: $showHeritageEditConfirmation,
+                showTagCollectionPicker: $showTagCollectionPicker,
+                showCardPersonalization: $showCardPersonalization,
+                showCloudKitShare: $showCloudKitShare,
+                showComments: $showComments,
+                isCardFlipped: $isCardFlipped,
+                showCardBackEditor: $showCardBackEditor,
+                cardBackRefreshTrigger: $cardBackRefreshTrigger,
+                showVideoAttributionSheet: $showVideoAttributionSheet,
+                showHeirloomExplanation: $showHeirloomExplanation,
+                showSignInPrompt: $showSignInPrompt,
+                showFirebaseSignIn: $showFirebaseSignIn,
+                showCookingMode: $showCookingMode,
+                showRecipeCoachMark: $showRecipeCoachMark,
+                selectedVersion: $selectedVersion,
+                showLineageView: $showLineageView,
+                targetServings: $targetServings,
+                handleShareTapped: handleShareTapped,
+                handleEditTapped: handleEditTapped,
+                duplicateRecipe: duplicateRecipe,
+                deleteRecipe: deleteRecipe,
+                createUserCopyAndEdit: createUserCopyAndEdit
+            ))
+    }
+
+    // MARK: - Main Content
+
+    @ViewBuilder
+    private var contentView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // Hero Image
@@ -464,7 +503,48 @@ struct RecipeDetailView: View {
         }
         .background(HeirloomColors.cream)
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
+    }
+}
+
+// MARK: - View Modifiers
+
+private struct RecipeDetailModifiers: ViewModifier {
+    let recipe: Recipe
+    let modelContext: ModelContext
+    let analytics: AnalyticsService
+    let versionViewModel: RecipeVersionSelectorViewModel
+    let notificationService: NotificationService
+
+    @Binding var showDeleteConfirmation: Bool
+    @Binding var showEditSheet: Bool
+    @Binding var recipeToEdit: Recipe?
+    @Binding var showHeritageEditConfirmation: Bool
+    @Binding var showTagCollectionPicker: Bool
+    @Binding var showCardPersonalization: Bool
+    @Binding var showCloudKitShare: Bool
+    @Binding var showComments: Bool
+    @Binding var isCardFlipped: Bool
+    @Binding var showCardBackEditor: Bool
+    @Binding var cardBackRefreshTrigger: UUID
+    @Binding var showVideoAttributionSheet: Bool
+    @Binding var showHeirloomExplanation: Bool
+    @Binding var showSignInPrompt: Bool
+    @Binding var showFirebaseSignIn: Bool
+    @Binding var showCookingMode: Bool
+    @Binding var showRecipeCoachMark: Bool
+    @Binding var selectedVersion: RecipeLineageVersion?
+    @Binding var showLineageView: Bool
+    @Binding var targetServings: Int
+
+    let handleShareTapped: () -> Void
+    let handleEditTapped: () -> Void
+    let duplicateRecipe: () -> Void
+    let deleteRecipe: () -> Void
+    let createUserCopyAndEdit: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
             // Initialize target servings to recipe's base serving count
             if targetServings == 0 {
                 targetServings = recipe.parsedServingCount

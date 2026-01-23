@@ -13,7 +13,7 @@ struct OnboardingContainerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var notificationService: FirebaseNotificationService
-    @State private var currentScreen: OnboardingScreen = .welcome
+    @State private var currentScreen: OnboardingScreen = .videoHero
     @State private var hasSeededHeritage = false
 
     /// Binding to control which tab should be selected after onboarding
@@ -23,20 +23,20 @@ struct OnboardingContainerView: View {
     var onComplete: () -> Void
 
     enum OnboardingScreen {
-        case welcome
-        case importMethods
-        case concept
-        case features
+        case videoHero
+        case shareExtension
+        case flexibility
+        case organization
     }
 
     var body: some View {
         NavigationStack {
             Group {
             switch currentScreen {
-            case .welcome:
-                OnboardingWelcomeScreen {
+            case .videoHero:
+                OnboardingVideoHeroScreen {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .importMethods
+                        currentScreen = .shareExtension
                     }
                 }
                 .transition(.asymmetric(
@@ -44,10 +44,10 @@ struct OnboardingContainerView: View {
                     removal: .move(edge: .leading)
                 ))
 
-            case .importMethods:
-                OnboardingImportMethodsScreen {
+            case .shareExtension:
+                OnboardingShareExtensionScreen {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .concept
+                        currentScreen = .flexibility
                     }
                 }
                 .transition(.asymmetric(
@@ -55,10 +55,10 @@ struct OnboardingContainerView: View {
                     removal: .move(edge: .leading)
                 ))
 
-            case .concept:
-                OnboardingConceptScreen {
+            case .flexibility:
+                OnboardingFlexibilityScreen {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .features
+                        currentScreen = .organization
                     }
                 }
                 .transition(.asymmetric(
@@ -66,8 +66,8 @@ struct OnboardingContainerView: View {
                     removal: .move(edge: .leading)
                 ))
 
-            case .features:
-                OnboardingFeaturesScreen {
+            case .organization:
+                OnboardingOrganizationScreen {
                     completeOnboarding()
                 }
                 .transition(.asymmetric(

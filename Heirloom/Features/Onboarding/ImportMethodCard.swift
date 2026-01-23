@@ -13,8 +13,10 @@ struct ImportMethodCard: View {
     let title: String
     let subtitle: String
     let accentColor: Color
+    var isEmphasized: Bool = false
 
     @State private var isPressed = false
+    @State private var pulseAnimation = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
@@ -49,14 +51,25 @@ struct ImportMethodCard: View {
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(accentColor.opacity(0.15), lineWidth: 1.5)
+                .strokeBorder(
+                    accentColor.opacity(isEmphasized ? 0.5 : 0.15),
+                    lineWidth: isEmphasized ? 2.5 : 1.5
+                )
+                .opacity(isEmphasized && pulseAnimation ? 0.7 : 1.0)
         )
-        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+        .shadow(color: .black.opacity(isEmphasized ? 0.12 : 0.06), radius: 8, x: 0, y: 2)
         .scaleEffect(isPressed ? 0.97 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: isPressed)
         .onLongPressGesture(minimumDuration: .infinity, maximumDistance: .infinity, pressing: { pressing in
             isPressed = pressing
         }, perform: {})
+        .onAppear {
+            if isEmphasized {
+                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                    pulseAnimation = true
+                }
+            }
+        }
     }
 }
 
