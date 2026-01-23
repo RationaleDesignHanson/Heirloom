@@ -220,7 +220,7 @@ struct OnboardingShareExtensionScreen: View {
 
     private var tutorialSteps: some View {
         VStack(alignment: .leading, spacing: 16) {
-            tutorialStep(number: "1", text: "Find recipe video")
+            tutorialStep(number: "1", text: "See recipe")
             tutorialStep(number: "2", text: "Tap Share → Heirloom")
             tutorialStep(number: "3", text: "Recipe saved automatically")
         }
