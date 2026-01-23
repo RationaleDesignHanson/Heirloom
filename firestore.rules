@@ -170,6 +170,28 @@ service cloud.firestore {
     }
 
     // ========================================
+    // USER COLLECTIONS (User-Scoped)
+    // ========================================
+    match /users/{userId}/collections/{collectionId} {
+      // Users can read their own collections
+      allow read: if isOwner(userId);
+
+      // Users can write their own collections
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
+    // HERITAGE STATE (User-Scoped)
+    // ========================================
+    match /users/{userId}/heritageState/{document=**} {
+      // Users can read their own heritage state
+      allow read: if isOwner(userId);
+
+      // Users can write their own heritage state
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
     // FALLBACK: Deny all other access
     // ========================================
     match /{document=**} {
