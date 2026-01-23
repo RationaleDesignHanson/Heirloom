@@ -1,5 +1,16 @@
 import Foundation
 
+/// Represents bulk content from Notes (multiple URLs and/or recipe text)
+struct BulkImportContent: Codable {
+    let urls: [String]
+    let plainText: String?
+    let hasRecipeText: Bool
+
+    var totalItems: Int {
+        urls.count + (hasRecipeText ? 1 : 0)
+    }
+}
+
 /// Represents a video import in progress (for Share Extension handoff)
 struct PendingVideoImport: Codable, Identifiable {
     let id: UUID
@@ -13,12 +24,14 @@ struct PendingVideoImport: Codable, Identifiable {
     var processingStatus: ProcessingStatus
     let createdAt: Date
     var errorMessage: String?
+    var bulkContent: BulkImportContent?  // For Notes with URLs + text
 
     enum SourceType: String, Codable {
         case shareExtensionVideo
         case shareExtensionURL
         case shareExtensionPDF
         case shareExtensionImage
+        case shareExtensionBulk  // Multiple URLs + optional text
         case photoLibrary
         case cameraCapture
     }
