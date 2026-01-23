@@ -190,15 +190,31 @@ struct RecipeDetailView: View {
         if let selected = selectedVersion {
             // If viewing current version's recipe, use its image
             if let versionRecipe = selected.recipe {
+                Log.debug("Using local recipe image", category: .ui, metadata: [
+                    "imageFileName": versionRecipe.imageFileName ?? "nil",
+                    "generation": selected.generation
+                ])
                 return versionRecipe.imageFileName
             }
             // If viewing remote version, try to get image from recipe data
             if let recipeData = selected.recipeData,
                let imageFileName = recipeData["imageFileName"] as? String {
+                Log.debug("Using remote recipe image from data", category: .ui, metadata: [
+                    "imageFileName": imageFileName,
+                    "generation": selected.generation
+                ])
                 return imageFileName
             }
+            Log.warning("No image found in selected version", category: .ui, metadata: [
+                "generation": selected.generation,
+                "hasRecipe": selected.recipe != nil,
+                "hasData": selected.recipeData != nil
+            ])
         }
         // Fall back to base recipe's image
+        Log.debug("Using base recipe image (fallback)", category: .ui, metadata: [
+            "imageFileName": recipe.imageFileName ?? "nil"
+        ])
         return recipe.imageFileName
     }
 
@@ -207,15 +223,31 @@ struct RecipeDetailView: View {
         if let selected = selectedVersion {
             // If viewing current version's recipe, use its Firebase URL
             if let versionRecipe = selected.recipe {
+                Log.debug("Using local recipe Firebase URL", category: .ui, metadata: [
+                    "firebaseImageURL": versionRecipe.firebaseImageURL ?? "nil",
+                    "generation": selected.generation
+                ])
                 return versionRecipe.firebaseImageURL
             }
             // If viewing remote version, try to get Firebase URL from recipe data
             if let recipeData = selected.recipeData,
                let firebaseImageURL = recipeData["firebaseImageURL"] as? String {
+                Log.debug("Using remote recipe Firebase URL from data", category: .ui, metadata: [
+                    "firebaseImageURL": firebaseImageURL,
+                    "generation": selected.generation
+                ])
                 return firebaseImageURL
             }
+            Log.warning("No Firebase URL found in selected version", category: .ui, metadata: [
+                "generation": selected.generation,
+                "hasRecipe": selected.recipe != nil,
+                "hasData": selected.recipeData != nil
+            ])
         }
         // Fall back to base recipe's Firebase URL
+        Log.debug("Using base recipe Firebase URL (fallback)", category: .ui, metadata: [
+            "firebaseImageURL": recipe.firebaseImageURL ?? "nil"
+        ])
         return recipe.firebaseImageURL
     }
 
