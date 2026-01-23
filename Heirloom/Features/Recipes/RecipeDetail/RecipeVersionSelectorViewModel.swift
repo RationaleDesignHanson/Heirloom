@@ -244,6 +244,8 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         }
 
         var versions: [RecipeLineageVersion] = []
+        // Track unique versions to prevent duplicates (by ownerId + recipeId + generation)
+        var seenVersions: Set<String> = []
 
         // Process global lineages
         for doc in globalSnapshot.documents {
@@ -262,6 +264,18 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                 Log.debug("Skipping own lineage", category: .firebase, metadata: [
                     "ownerId": ownerId,
                     "generation": generation
+                ])
+                continue
+            }
+
+            // Create unique key to prevent duplicates (ownerId + recipeId + generation)
+            let versionKey = "\(ownerId)_\(recipeId.uuidString)_\(generation)"
+            guard !seenVersions.contains(versionKey) else {
+                Log.debug("Skipping duplicate version", category: .firebase, metadata: [
+                    "ownerId": ownerId,
+                    "recipeId": recipeId.uuidString,
+                    "generation": generation,
+                    "reason": "already added from different query path"
                 ])
                 continue
             }
@@ -292,6 +306,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                     isCurrent: false
                 )
                 versions.append(version)
+                seenVersions.insert(versionKey)  // Mark as seen
                 Log.debug("Added version from global lineage", category: .firebase, metadata: [
                     "generation": generation,
                     "ownerId": ownerId,
@@ -335,6 +350,18 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                     continue
                 }
 
+                // Create unique key to prevent duplicates (ownerId + recipeId + generation)
+                let versionKey = "\(ownerId)_\(recipeId.uuidString)_\(generation)"
+                guard !seenVersions.contains(versionKey) else {
+                    Log.debug("Skipping duplicate root owner version", category: .firebase, metadata: [
+                        "ownerId": ownerId,
+                        "recipeId": recipeId.uuidString,
+                        "generation": generation,
+                        "reason": "already added from global lineages query"
+                    ])
+                    continue
+                }
+
                 Log.debug("Processing root owner lineage", category: .firebase, metadata: [
                     "ownerId": ownerId,
                     "recipeId": recipeId.uuidString,
@@ -357,6 +384,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                         isCurrent: false
                     )
                     versions.append(version)
+                    seenVersions.insert(versionKey)  // Mark as seen
                     Log.debug("Added root owner version", category: .firebase, metadata: [
                         "generation": generation,
                         "ownerId": ownerId
