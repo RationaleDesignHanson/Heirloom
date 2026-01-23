@@ -57,7 +57,7 @@ struct ImportMethodCard: View {
                 )
                 .opacity(isEmphasized && pulseAnimation ? 0.7 : 1.0)
         )
-        .shadow(color: .black.opacity(isEmphasized ? 0.12 : 0.06), radius: 8, x: 0, y: 2)
+        .heirloomShadow(isEmphasized ? HeirloomShadows.elevated : HeirloomShadows.card)
         .scaleEffect(isPressed ? 0.97 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: isPressed)
         .onLongPressGesture(minimumDuration: .infinity, maximumDistance: .infinity, pressing: { pressing in

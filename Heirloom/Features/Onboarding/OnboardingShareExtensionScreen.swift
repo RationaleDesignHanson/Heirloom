@@ -24,9 +24,11 @@ struct OnboardingShareExtensionScreen: View {
 
                 // Title
                 Text("Share from anywhere")
-                    .font(HeirloomFonts.title1)
+                    .font(HeirloomFonts.largeTitle)
                     .foregroundStyle(HeirloomColors.charcoal)
                     .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+                    .kerning(-0.5)
                     .padding(.horizontal, 32)
 
                 // Subtitle
@@ -153,7 +155,7 @@ struct OnboardingShareExtensionScreen: View {
             .frame(maxWidth: .infinity)
             .background(.white)
             .cornerRadius(16)
-            .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
+            .heirloomShadow(HeirloomShadows.elevated)
         }
     }
 

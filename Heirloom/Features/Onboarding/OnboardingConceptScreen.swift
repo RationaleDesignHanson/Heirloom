@@ -200,6 +200,7 @@ struct OnboardingConceptRecipeCard: View {
         .padding(HeirloomSpacing.sm)
         .background(Color(hex: "#F8F8F8"))
         .cornerRadius(HeirloomSpacing.cardCornerRadius)
+        .heirloomShadow(HeirloomShadows.card)
     }
 }
 

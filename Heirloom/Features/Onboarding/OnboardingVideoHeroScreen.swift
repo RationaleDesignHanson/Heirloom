@@ -21,10 +21,12 @@ struct OnboardingVideoHeroScreen: View {
                     .frame(minHeight: 30, maxHeight: 50)
 
                 // Title
-                Text("Recipes from your favorite creators")
-                    .font(HeirloomFonts.title1)
+                Text("Recipes from your\nfavorite creators")
+                    .font(HeirloomFonts.largeTitle)
                     .foregroundStyle(HeirloomColors.charcoal)
                     .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+                    .kerning(-0.5)
                     .padding(.horizontal, 32)
 
                 // Subtitle
@@ -98,66 +100,67 @@ struct OnboardingVideoHeroScreen: View {
     }
 
     private var videoCardMock: some View {
-        VStack(spacing: 0) {
-            // Video thumbnail placeholder
-            ZStack {
-                // Background gradient (pasta colors)
-                LinearGradient(
-                    colors: [
-                        Color.orange.opacity(0.3),
-                        Color.red.opacity(0.2)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+        ZStack {
+            // Background gradient (pasta colors)
+            LinearGradient(
+                colors: [
+                    Color.orange.opacity(0.3),
+                    Color.red.opacity(0.2)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
 
-                // Play button overlay
-                Image(systemName: "play.circle.fill")
-                    .font(.system(size: 50))
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+            // Play button overlay
+            Image(systemName: "play.circle.fill")
+                .font(.system(size: 50))
+                .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
 
-                // Creator attribution badge (top left)
-                VStack {
-                    HStack {
-                        CreatorAttributionBadge(
-                            platform: .tiktok,
-                            attribution: "@gordonramsay",
-                            size: .medium
-                        )
-                        .padding(12)
+            // Creator attribution badge (top left)
+            VStack {
+                HStack {
+                    CreatorAttributionBadge(
+                        platform: .tiktok,
+                        attribution: "@gordonramsay",
+                        size: .medium
+                    )
+                    .padding(12)
 
-                        Spacer()
-                    }
                     Spacer()
                 }
-
-                // AI powered badge (top right)
-                VStack {
-                    HStack {
-                        Spacer()
-
-                        HStack(spacing: 4) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 11, weight: .semibold))
-                            Text("AI powered")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.black.opacity(0.6))
-                        .cornerRadius(12)
-                        .padding(12)
-                    }
-                    Spacer()
-                }
+                Spacer()
             }
-            .frame(height: 200)
-            .frame(maxWidth: 180)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
+
+            // AI powered badge (top right)
+            VStack {
+                HStack {
+                    Spacer()
+
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text("AI powered")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.black.opacity(0.6))
+                    .cornerRadius(12)
+                    .padding(12)
+                }
+                Spacer()
+            }
         }
+        .frame(height: 200)
+        .frame(maxWidth: 180)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.clear)
+        )
+        .cornerRadius(12)
+        .heirloomShadow(HeirloomShadows.elevated)
     }
 
     private var platformSupport: some View {

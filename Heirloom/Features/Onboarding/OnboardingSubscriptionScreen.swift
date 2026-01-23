@@ -148,6 +148,7 @@ struct OnboardingSubscriptionScreen: View {
                             .foregroundColor(.white)
                             .cornerRadius(16)
                         }
+                        .heirloomShadow(HeirloomShadows.elevated)
                         .disabled(isLoading)
 
                         // Skip Button
