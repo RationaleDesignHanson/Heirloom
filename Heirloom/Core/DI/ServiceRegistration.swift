@@ -290,8 +290,8 @@ extension ServiceContainer {
 
         // RecipeLineageService
         register(RecipeLineageService.self, lifecycle: .singleton) { container in
-            let firebaseLineageService = container.resolve(FirebaseLineageService.self)
-            return RecipeLineageService(firebaseLineageService: firebaseLineageService)
+            let userProfileService = container.resolve(FirebaseUserProfileService.self)
+            return RecipeLineageService(userProfileService: userProfileService)
         }
 
         // HeritageUnlockService - Note: Requires modelContext at init, instantiate directly where needed
