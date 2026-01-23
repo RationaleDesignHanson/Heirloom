@@ -29,8 +29,8 @@ struct CollectionDetailView: View {
 
     init(collection: RecipeCollection) {
         self.collection = collection
-        // Fetch all recipes (will filter in computed property)
-        _allRecipes = Query(sort: \Recipe.title)
+        // Fetch all recipes sorted by most recently added
+        _allRecipes = Query(sort: \Recipe.dateAdded, order: .reverse)
     }
 
     // Recipes in this collection

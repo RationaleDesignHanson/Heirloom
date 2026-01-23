@@ -28,12 +28,18 @@ final class VideoProcessingJobManager: ObservableObject {
     private var standardProcessor: VideoRecipeProcessor?
     private var asmrProcessor: ASMRVideoProcessor?
     private let usageManager: ASMRUsageManager
+    private var modelContext: ModelContext?
 
     // MARK: - Initialization
 
     init() {
         self.usageManager = ASMRUsageManager()
         setupBackgroundHandling()
+    }
+
+    /// Set the ModelContext for saving job state
+    func setModelContext(_ context: ModelContext) {
+        self.modelContext = context
     }
 
     // MARK: - Background Task Handling
@@ -69,7 +75,7 @@ final class VideoProcessingJobManager: ObservableObject {
         job.interruptedAt = Date()
 
         // Save immediately
-        if let context = try? ServiceContainer.shared.resolve(ModelContext.self) {
+        if let context = modelContext {
             try? context.save()
         }
 
@@ -86,7 +92,7 @@ final class VideoProcessingJobManager: ObservableObject {
             job.wasInterrupted = false
             job.interruptedAt = nil
 
-            if let context = try? ServiceContainer.shared.resolve(ModelContext.self) {
+            if let context = modelContext {
                 try? context.save()
             }
         }
@@ -388,6 +394,12 @@ final class VideoProcessingJobManager: ObservableObject {
         // Get processor instance (will load WhisperKit if needed)
         let processor = await getStandardProcessor(context: context)
 
+        // Model loaded - transition to extracting audio phase
+        job.currentPhase = .extractingAudio
+        job.progress = 0.05
+        try context.save()
+        Log.info("Model loaded, starting audio extraction", category: .video, metadata: ["jobId": job.id.uuidString])
+
         // Delegate to existing processor and monitor progress
         let cancellable = processor.$progress.sink { progress in
             Task { @MainActor in
@@ -468,6 +480,12 @@ final class VideoProcessingJobManager: ObservableObject {
 
         // Get processor instance
         let processor = getASMRProcessor()
+
+        // Model loaded - transition to extracting audio phase
+        job.currentPhase = .extractingAudio
+        job.progress = 0.05
+        try context.save()
+        Log.info("Model loaded, starting audio extraction", category: .video, metadata: ["jobId": job.id.uuidString])
 
         // Monitor progress
         let cancellable = processor.$progress.sink { progress in

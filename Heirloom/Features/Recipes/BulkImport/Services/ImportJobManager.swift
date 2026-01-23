@@ -77,9 +77,8 @@ final class ImportJobManager: ObservableObject {
         job.checkpoint?.markInterrupted(phase: job.phase)
 
         // Save immediately
-        if let context = try? ServiceContainer.shared.resolve(ModelContext.self) {
-            try? context.save()
-        }
+        let context = ServiceContainer.shared.resolve(ModelContext.self)
+        try? context.save()
 
         // Request background execution time
         backgroundTask = UIApplication.shared.beginBackgroundTask { [weak self] in

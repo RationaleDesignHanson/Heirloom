@@ -17,6 +17,8 @@ struct PendingVideoImport: Codable, Identifiable {
     enum SourceType: String, Codable {
         case shareExtensionVideo
         case shareExtensionURL
+        case shareExtensionPDF
+        case shareExtensionImage
         case photoLibrary
         case cameraCapture
     }

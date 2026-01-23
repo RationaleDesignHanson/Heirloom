@@ -431,10 +431,14 @@ struct HeirloomApp: App {
             // Initialize video processing queue coordinator
             Task { @MainActor in
                 let jobManager = VideoProcessingJobManager()
+
+                // Inject ModelContext for job state persistence
+                let modelContext = container.mainContext
+                jobManager.setModelContext(modelContext)
+
                 serviceContainer.register(VideoProcessingJobManager.self, instance: jobManager)
 
                 // Resume pending jobs on app launch
-                let modelContext = container.mainContext
                 await jobManager.resumePendingJobs(context: modelContext)
                 Log.info("Video processing queue coordinator initialized", category: .video)
                 DeviceLogger.shared.log("✅ [Video] Queue coordinator initialized, pending jobs resumed")
@@ -1170,9 +1174,7 @@ struct ContentView: View {
 
     @ViewBuilder
     private var mainContent: some View {
-        let containerReference = modelContainer
-
-        return TabView(selection: $tabCoordinator.selectedTab) {
+        TabView(selection: $tabCoordinator.selectedTab) {
             CollectionsListView()
                 .environmentObject(notificationService)
                 .environmentObject(tabCoordinator)
@@ -1232,6 +1234,7 @@ struct ContentView: View {
         .sheet(isPresented: $deepLinkCoordinator.showURLImportSheet) {
             if let importURL = deepLinkCoordinator.pendingImportURL {
                 RecipeImportView(url: importURL)
+                    .environmentObject(tabCoordinator)
                     .onDisappear {
                         deepLinkCoordinator.clearPendingImport()
                     }
@@ -1245,6 +1248,25 @@ struct ContentView: View {
                     }
             }
         }
+        .sheet(isPresented: $deepLinkCoordinator.showImportProgressSheet) {
+            if let jobID = deepLinkCoordinator.pendingImportJobID {
+                ImportProgressSheetWrapper(jobID: jobID)
+                    .onDisappear {
+                        deepLinkCoordinator.clearImportProgress()
+                    }
+            }
+        }
+        .sheet(isPresented: $deepLinkCoordinator.showImageRecipeSelectionSheet) {
+            if let result = deepLinkCoordinator.pendingImageRecipeResult {
+                RecipeSelectionView(
+                    recipes: result.recipes,
+                    sourceImage: result.sourceImage
+                )
+                .onDisappear {
+                    deepLinkCoordinator.clearImageRecipeSelection()
+                }
+            }
+        }
         .sheet(isPresented: $showDailyUnlock) {
             DailyUnlockView(
                 unlockedRecipeIds: unlockedRecipeIds,
@@ -1255,11 +1277,19 @@ struct ContentView: View {
                 }
             )
         }
+        .overlay {
+            if deepLinkCoordinator.isExtractingImageRecipes {
+                imageExtractionLoadingOverlay
+            }
+        }
         .onAppear {
             // Mark app as ready to process deep links
             Log.info("ContentView appeared - marking app ready for deep links", category: .ui)
             DeviceLogger.shared.log("✅ [App] ContentView appeared - marking app as ready for deep links")
             deepLinkCoordinator.markAppReady()
+
+            // Inject ModelContext for video job creation
+            deepLinkCoordinator.setModelContext(modelContext)
 
             // Set up notification observer for premium unlock
             setupPremiumUnlockObserver()
@@ -1530,6 +1560,83 @@ struct ContentView: View {
                     .scaleEffect(1.3)
             }
             .padding(40)
+        }
+    }
+
+    /// Loading overlay shown during image recipe extraction
+    @ViewBuilder
+    private var imageExtractionLoadingOverlay: some View {
+        ZStack {
+            // Semi-transparent background
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+
+            // Card-based loading UI
+            VStack(spacing: HeirloomSpacing.lg) {
+                // Recipe icon
+                Image(systemName: "doc.text.image")
+                    .font(.system(size: 56))
+                    .foregroundStyle(HeirloomColors.tomato)
+
+                VStack(spacing: HeirloomSpacing.sm) {
+                    Text(deepLinkCoordinator.imageExtractionProgress)
+                        .font(HeirloomFonts.title3)
+                        .foregroundStyle(HeirloomColors.primaryText)
+                        .multilineTextAlignment(.center)
+
+                    Text("This may take a moment")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.center)
+                }
+
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: HeirloomColors.tomato))
+                    .scaleEffect(1.3)
+            }
+            .padding(HeirloomSpacing.xl)
+            .background(HeirloomColors.cardBackground)
+            .cornerRadius(HeirloomSpacing.cardCornerRadius)
+            .shadow(
+                color: HeirloomShadows.card.color,
+                radius: HeirloomShadows.card.radius,
+                x: HeirloomShadows.card.x,
+                y: HeirloomShadows.card.y
+            )
+            .padding(HeirloomSpacing.xl)
+        }
+    }
+}
+
+// MARK: - Import Progress Sheet Wrapper
+
+/// Wrapper view to fetch ImportJob by ID and show ImportProgressView
+private struct ImportProgressSheetWrapper: View {
+    let jobID: UUID
+
+    @Environment(\.modelContext) private var modelContext
+    @Query private var allJobs: [ImportJob]
+
+    private var job: ImportJob? {
+        allJobs.first { $0.id == jobID }
+    }
+
+    var body: some View {
+        if let job = job {
+            NavigationStack {
+                ImportProgressView(
+                    manager: ServiceContainer.shared.resolve(ImportJobManager.self),
+                    job: job
+                )
+            }
+        } else {
+            NavigationStack {
+                ContentUnavailableView(
+                    "Import Not Found",
+                    systemImage: "doc.questionmark",
+                    description: Text("The import job could not be found.")
+                )
+            }
         }
     }
 }
