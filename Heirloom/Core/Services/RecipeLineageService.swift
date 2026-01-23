@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 /// Service for fetching and managing recipe lineage trees
 @MainActor
@@ -9,11 +10,15 @@ final class RecipeLineageService {
 
     // MARK: - Dependencies
 
-    private let firebaseLineageService: FirebaseLineageService?
+    private let userProfileService: FirebaseUserProfileService
 
-    init(firebaseLineageService: FirebaseLineageService? = nil) {
-        self.firebaseLineageService = firebaseLineageService
+    init(userProfileService: FirebaseUserProfileService? = nil) {
+        self.userProfileService = userProfileService ?? ServiceContainer.shared.resolve(FirebaseUserProfileService.self)
     }
+
+    private lazy var db: Firestore = {
+        Firestore.firestore()
+    }()
 
     // MARK: - Fetch Lineage Tree
 
@@ -21,293 +26,174 @@ final class RecipeLineageService {
     /// - Parameters:
     ///   - recipe: The recipe to build the tree around
     ///   - context: SwiftData model context
-    ///   - maxDepth: Maximum number of generations to fetch up/down (default: 3)
+    ///   - maxDepth: Maximum number of generations to fetch (default: 10)
     /// - Returns: LineageTree with all connected recipes
     func fetchLineageTree(
         for recipe: Recipe,
         context: ModelContext,
-        maxDepth: Int = 3
+        maxDepth: Int = 10
     ) async throws -> LineageTree {
         Log.debug("Fetching lineage tree", category: .general, metadata: ["title": recipe.title, "maxDepth": maxDepth])
 
-        var allRecipes: [Recipe] = [recipe]
-        var edges: [LineageEdge] = []
+        // 1. Get lineage for current recipe
+        let recipeId = recipe.id
+        let descriptor = FetchDescriptor<RecipeLineage>(
+            predicate: #Predicate { $0.currentRecipeId == recipeId }
+        )
+        let localLineage = try? context.fetch(descriptor).first
 
-        // Fetch ancestors (parents, grandparents, etc.)
-        let ancestors = try await fetchAncestors(of: recipe, context: context, maxDepth: maxDepth)
-        allRecipes.append(contentsOf: ancestors.recipes)
-        edges.append(contentsOf: ancestors.edges)
-
-        // Fetch descendants (children, grandchildren, etc.)
-        let descendants = try await fetchDescendants(of: recipe, context: context, maxDepth: maxDepth)
-        allRecipes.append(contentsOf: descendants.recipes)
-        edges.append(contentsOf: descendants.edges)
-
-        // Remove duplicates
-        let uniqueRecipes = Array(Set(allRecipes.map { $0.id }))
-            .compactMap { id in allRecipes.first { $0.id == id } }
-
-        // Create nodes with stats
-        let nodes = uniqueRecipes.map { recipe in
-            createNode(for: recipe)
+        guard let lineage = localLineage else {
+            // No lineage - this is a standalone recipe
+            Log.debug("No lineage found for recipe", category: .general)
+            let node = LineageNode(
+                recipe: recipe,
+                generation: 0,
+                position: .zero,
+                stats: NodeStats(
+                    cookCount: recipe.timesCooked,
+                    shareCount: recipe.totalShares,
+                    viewCount: 0,
+                    rating: nil
+                ),
+                isCurrentUser: true
+            )
+            return LineageTree(root: recipe, nodes: [node], edges: [])
         }
 
-        // Find root (generation 0)
-        let root = uniqueRecipes
-            .sorted { ($0.provenance?.generation ?? 0) < ($1.provenance?.generation ?? 0) }
-            .first ?? recipe
-
-        let tree = LineageTree(root: root, nodes: nodes, edges: edges)
-
-        Log.info("Built lineage tree", category: .general, metadata: ["nodeCount": nodes.count, "edgeCount": edges.count, "rootTitle": root.title])
-        return tree
-    }
-
-    /// Fetch lineage tree from Firebase for shared recipes
-    /// Queries global lineages collection for all recipes in the same family tree
-    func fetchRemoteLineageTree(
-        provenanceHash: String,
-        maxDepth: Int = 3
-    ) async throws -> LineageTree {
-        guard firebaseLineageService != nil else {
-            Log.warning("No Firebase lineage service available for remote fetch", category: .firebase)
-            throw LineageError.notImplemented
-        }
-
-        Log.info("Fetching remote lineage tree from Firebase", category: .firebase, metadata: [
-            "provenanceHash": provenanceHash,
-            "maxDepth": maxDepth
+        // 2. Query Firebase for all recipes in this lineage tree
+        let rootRecipeId = lineage.rootRecipeId
+        Log.debug("Querying Firebase for lineage tree", category: .firebase, metadata: [
+            "rootRecipeId": rootRecipeId.uuidString
         ])
 
-        // Query global lineages collection for matching rootProvenanceHash
-        let db = Firestore.firestore()
-        let query = db.collection("lineages")
-            .whereField("rootProvenanceHash", isEqualTo: provenanceHash)
-            .limit(to: 100) // Safety limit
+        // Query global lineages collection
+        let snapshot = try await db.collection("lineages")
+            .whereField("rootRecipeId", isEqualTo: rootRecipeId.uuidString)
+            .getDocuments()
 
-        let snapshot = try await query.getDocuments()
+        Log.debug("Found lineages in Firebase", category: .firebase, metadata: [
+            "count": snapshot.documents.count
+        ])
 
-        Log.info("Fetched remote lineages", category: .firebase, metadata: ["count": snapshot.documents.count])
-
-        // Convert Firestore documents to lightweight recipe representations
-        var recipes: [Recipe] = []
+        // 3. Build nodes and edges from lineage data
+        var nodes: [LineageNode] = []
         var edges: [LineageEdge] = []
+        var recipesByGeneration: [Int: [(RecipeLineageVersion, String)]] = [:] // [(version, ownerId)]
 
         for doc in snapshot.documents {
             let data = doc.data()
+            let recipeIdString = data["currentRecipeId"] as? String ?? ""
+            let ownerId = data["ownerId"] as? String ?? ""
+            let generation = data["generation"] as? Int ?? 0
+            let parentRecipeIdString = data["parentRecipeId"] as? String
 
-            // Extract basic recipe info from lineage document
-            guard let recipeIdString = data["currentRecipeId"] as? String,
-                  let recipeId = UUID(uuidString: recipeIdString),
-                  let recipeTitle = data["recipeTitle"] as? String,
-                  let generation = data["generation"] as? Int else {
-                Log.warning("Invalid lineage data in remote document", category: .firebase, metadata: ["docId": doc.documentID])
+            guard let recipeIdUUID = UUID(uuidString: recipeIdString) else { continue }
+
+            // Fetch recipe data from Firebase
+            guard let recipeData = try? await fetchRecipeFromFirebase(
+                ownerId: ownerId,
+                recipeId: recipeIdUUID
+            ) else {
+                Log.warning("Failed to fetch recipe data", category: .firebase, metadata: [
+                    "recipeId": recipeIdString,
+                    "ownerId": ownerId
+                ])
                 continue
             }
 
-            // Create lightweight Recipe object for visualization
-            // Note: This is a partial recipe with just enough info for lineage display
-            let recipe = Recipe()
-            recipe.id = recipeId
-            recipe.title = recipeTitle
+            // Get display name for owner
+            let ownerDisplayName = try? await userProfileService.fetchDisplayName(for: ownerId)
 
-            // Create provenance metadata
-            let parentShareId = data["parentShareId"] as? String
-            let sharedByName = data["sharedByName"] as? String
-
-            let provenance = ProvenanceMetadata(
-                sourceType: generation == 0 ? .userCreated : .shared,
-                rootProvenanceHash: provenanceHash,
+            // Create version
+            let version = RecipeLineageVersion(
+                recipeData: recipeData,
                 generation: generation,
-                parentShareID: parentShareId,
-                sharedByName: sharedByName
+                modifiedBy: ownerId,
+                modifiedByName: ownerDisplayName ?? "Someone",
+                modifiedAt: (data["lastModified"] as? Timestamp)?.dateValue() ?? Date(),
+                isCurrent: recipeIdUUID == recipeId
             )
-            recipe.provenance = provenance
 
-            recipes.append(recipe)
+            // Add to generation map
+            if recipesByGeneration[generation] == nil {
+                recipesByGeneration[generation] = []
+            }
+            recipesByGeneration[generation]?.append((version, ownerId))
 
-            // Edge creation will be done after we have all recipes parsed
+            // Create node
+            let isCurrentUser = ownerId == Auth.auth().currentUser?.uid
+            let node = LineageNode(
+                recipe: version.recipe ?? recipe,
+                generation: generation,
+                position: .zero, // Will be calculated by layout engine
+                stats: NodeStats(
+                    cookCount: 0,
+                    shareCount: 0,
+                    viewCount: 0,
+                    rating: nil
+                ),
+                isCurrentUser: isCurrentUser
+            )
+            nodes.append(node)
 
-            Log.debug("Parsed remote recipe", category: .firebase, metadata: [
-                "title": recipeTitle,
-                "generation": generation
-            ])
-        }
-
-        // Find the root recipe (generation 0)
-        guard let root = recipes.first(where: { $0.provenance?.generation == 0 }) else {
-            Log.error("No root recipe found in remote lineage", category: .firebase)
-            throw LineageError.invalidProvenance
-        }
-
-        // Build edges by connecting generations
-        // Each recipe at generation N+1 connects to a recipe at generation N
-        for recipe in recipes where (recipe.provenance?.generation ?? 0) > 0 {
-            let currentGen = recipe.provenance?.generation ?? 0
-            let parentGen = currentGen - 1
-
-            // Find any recipe from the previous generation (simplified - assumes single parent)
-            if let parent = recipes.first(where: { ($0.provenance?.generation ?? 0) == parentGen }) {
+            // Create edge from parent
+            if generation > 0, let parentIdString = parentRecipeIdString,
+               let parentId = UUID(uuidString: parentIdString) {
                 let edge = LineageEdge(
-                    fromID: parent.id,
-                    toID: recipe.id,
-                    label: recipe.provenance?.sharedByName.map { "Shared by \($0)" },
-                    createdAt: recipe.provenance?.createdAt ?? Date()
+                    fromID: parentId,
+                    toID: recipeIdUUID,
+                    label: nil,
+                    createdAt: version.modifiedAt
                 )
                 edges.append(edge)
             }
         }
 
-        // Create nodes with positions and stats (placeholder values for remote recipes)
-        let nodes = recipes.map { recipe in
-            LineageNode(
-                recipe: recipe,
-                generation: recipe.provenance?.generation ?? 0,
-                position: .zero, // Will be calculated by layout engine
-                stats: NodeStats(cookCount: 0, shareCount: 0, viewCount: 0, rating: nil),
-                isCurrentUser: false // Remote recipes are never the current user's
-            )
+        // 4. Find root recipe (generation 0)
+        guard let rootNode = nodes.first(where: { $0.generation == 0 }) else {
+            throw LineageError.invalidProvenance
         }
 
-        let tree = LineageTree(root: root, nodes: nodes, edges: edges)
+        let tree = LineageTree(root: rootNode.recipe, nodes: nodes, edges: edges)
 
-        Log.info("Built remote lineage tree", category: .firebase, metadata: [
+        Log.info("Built lineage tree", category: .general, metadata: [
             "nodeCount": nodes.count,
             "edgeCount": edges.count,
-            "rootTitle": root.title
+            "rootTitle": rootNode.recipe.title
         ])
 
         return tree
     }
 
-    // MARK: - Fetch Ancestors
+    // MARK: - Firebase Helpers
 
-    private func fetchAncestors(
-        of recipe: Recipe,
-        context: ModelContext,
-        maxDepth: Int,
-        currentDepth: Int = 0
-    ) async throws -> (recipes: [Recipe], edges: [LineageEdge]) {
-        guard currentDepth < maxDepth else { return ([], []) }
+    private func fetchRecipeFromFirebase(
+        ownerId: String,
+        recipeId: UUID
+    ) async throws -> [String: Any] {
+        // Use .server source to get fresh data
+        let doc = try await db.collection("users/\(ownerId)/recipes")
+            .document(recipeId.uuidString)
+            .getDocument(source: .server)
 
-        var recipes: [Recipe] = []
-        var edges: [LineageEdge] = []
-
-        // Get parent from provenance
-        guard let provenance = recipe.provenance,
-              let parentHash = provenance.parentShareID else {
-            return ([], [])
+        guard doc.exists, var data = doc.data() else {
+            throw NSError(domain: "RecipeLineageService", code: 404, userInfo: [
+                NSLocalizedDescriptionKey: "Recipe not found"
+            ])
         }
 
-        // Query for all recipes with provenance, then filter in memory
-        // (SwiftData predicates don't handle optional String comparisons well)
-        let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate { recipe in
-                recipe.provenance != nil
-            }
-        )
+        // Fetch ingredients subcollection
+        let ingredientsSnapshot = try await db.collection("users/\(ownerId)/recipes")
+            .document(recipeId.uuidString)
+            .collection("ingredients")
+            .getDocuments(source: .server)
 
-        let allRecipes = try context.fetch(descriptor)
-        let parents = allRecipes.filter { $0.provenance?.rootProvenanceHash == parentHash }
-
-        for parent in parents {
-            recipes.append(parent)
-
-            // Create edge
-            let edge = LineageEdge(
-                fromID: parent.id,
-                toID: recipe.id,
-                label: "Forked",
-                createdAt: recipe.dateAdded
-            )
-            edges.append(edge)
-
-            // Recursively fetch parent's ancestors
-            let ancestorResult = try await fetchAncestors(
-                of: parent,
-                context: context,
-                maxDepth: maxDepth,
-                currentDepth: currentDepth + 1
-            )
-            recipes.append(contentsOf: ancestorResult.recipes)
-            edges.append(contentsOf: ancestorResult.edges)
+        let ingredients = ingredientsSnapshot.documents.map { $0.data() }
+        if !ingredients.isEmpty {
+            data["ingredients"] = ingredients
         }
 
-        return (recipes, edges)
-    }
-
-    // MARK: - Fetch Descendants
-
-    private func fetchDescendants(
-        of recipe: Recipe,
-        context: ModelContext,
-        maxDepth: Int,
-        currentDepth: Int = 0
-    ) async throws -> (recipes: [Recipe], edges: [LineageEdge]) {
-        guard currentDepth < maxDepth else { return ([], []) }
-
-        var recipes: [Recipe] = []
-        var edges: [LineageEdge] = []
-
-        guard let provenance = recipe.provenance else { return ([], []) }
-
-        // Query for children (recipes that have this recipe as parent)
-        let rootHash = provenance.rootProvenanceHash
-
-        // Fetch all recipes with provenance, then filter in memory
-        let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate<Recipe> { childRecipe in
-                childRecipe.provenance != nil
-            }
-        )
-
-        let allRecipes = try context.fetch(descriptor)
-        let children = allRecipes.filter { $0.provenance?.parentShareID == rootHash }
-
-        for child in children {
-            recipes.append(child)
-
-            // Create edge
-            let edge = LineageEdge(
-                fromID: recipe.id,
-                toID: child.id,
-                label: "Forked",
-                createdAt: child.dateAdded
-            )
-            edges.append(edge)
-
-            // Recursively fetch child's descendants
-            let descendantResult = try await fetchDescendants(
-                of: child,
-                context: context,
-                maxDepth: maxDepth,
-                currentDepth: currentDepth + 1
-            )
-            recipes.append(contentsOf: descendantResult.recipes)
-            edges.append(contentsOf: descendantResult.edges)
-        }
-
-        return (recipes, edges)
-    }
-
-    // MARK: - Node Creation
-
-    private func createNode(for recipe: Recipe) -> LineageNode {
-        let generation = recipe.provenance?.generation ?? 0
-        let stats = NodeStats(
-            cookCount: recipe.timesCooked,
-            shareCount: recipe.totalShares,
-            viewCount: 0, // TODO: Track views in analytics
-            rating: nil // TODO: Add rating system
-        )
-
-        return LineageNode(
-            recipe: recipe,
-            generation: generation,
-            position: .zero, // Will be calculated by layout algorithm
-            stats: stats,
-            isCurrentUser: true // TODO: Detect if recipe belongs to current user
-        )
+        return data
     }
 
     // MARK: - Lineage Statistics
@@ -334,46 +220,6 @@ final class RecipeLineageService {
             averagePopularity: avgPopularity,
             mostPopularFork: mostPopular?.recipe
         )
-    }
-
-    /// Find recipes in the same lineage
-    func findSiblings(of recipe: Recipe, context: ModelContext) async throws -> [Recipe] {
-        guard let provenance = recipe.provenance,
-              let parentHash = provenance.parentShareID else {
-            return []
-        }
-
-        // Query for siblings (same parent)
-        let recipeId = recipe.id
-
-        // Fetch all recipes with provenance, then filter in memory
-        let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate<Recipe> { sibling in
-                sibling.provenance != nil
-            }
-        )
-
-        let allRecipes = try context.fetch(descriptor)
-        return allRecipes.filter {
-            $0.provenance?.parentShareID == parentHash && $0.id != recipeId
-        }
-    }
-
-    /// Get direct children of a recipe
-    func getDirectChildren(of recipe: Recipe, context: ModelContext) async throws -> [Recipe] {
-        guard let provenance = recipe.provenance else { return [] }
-
-        let rootHash = provenance.rootProvenanceHash
-
-        // Fetch all recipes with provenance, then filter in memory
-        let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate<Recipe> { child in
-                child.provenance != nil
-            }
-        )
-
-        let allRecipes = try context.fetch(descriptor)
-        return allRecipes.filter { $0.provenance?.parentShareID == rootHash }
     }
 }
 

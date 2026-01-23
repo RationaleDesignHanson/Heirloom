@@ -35,6 +35,7 @@ struct RecipeDetailView: View {
     // Version selector
     @StateObject private var versionViewModel = RecipeVersionSelectorViewModel()
     @State private var selectedVersion: RecipeLineageVersion?
+    @State private var showLineageView = false
 
     // Language toggle (for multilingual recipes)
     @State private var showOriginalLanguage = false
@@ -678,6 +679,12 @@ struct RecipeDetailView: View {
                 recipe.lastViewedVersionId = recipeId
                 try? modelContext.save()
                 Log.debug("Saved last viewed version", category: .database, metadata: ["versionDisplayName": newVersion.displayName])
+            }
+        }
+        .navigationDestination(isPresented: $showLineageView) {
+            LineageContainerView(recipe: recipe) { selectedRecipe in
+                // Handle recipe tap from lineage view
+                Log.debug("Recipe tapped in lineage view", category: .ui, metadata: ["title": selectedRecipe.title])
             }
         }
     }
@@ -1408,6 +1415,31 @@ struct RecipeDetailView: View {
                                     .fill(versionViewModel.versions.count > 1 ? HeirloomColors.familyGreen : (provenance.isOriginal ? HeirloomColors.tomato : HeirloomColors.familyGreen))
                             )
                     }
+                }
+
+                // View Lineage Button (only show if there are multiple versions)
+                if versionViewModel.versions.count > 1 {
+                    Button {
+                        showLineageView = true
+                    } label: {
+                        HStack(spacing: HeirloomSpacing.xs) {
+                            Image(systemName: "network")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.tomato)
+
+                            Text("View Family Tree")
+                                .font(HeirloomFonts.callout)
+                                .foregroundStyle(HeirloomColors.tomato)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(HeirloomFonts.caption2)
+                                .foregroundStyle(HeirloomColors.tomato.opacity(0.6))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, HeirloomSpacing.xs)
                 }
             }
 
