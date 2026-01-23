@@ -121,7 +121,7 @@ struct OnboardingSubscriptionScreen: View {
                     }
 
                     // CTA Buttons
-                    VStack(spacing: 16) {
+                    VStack(spacing: HeirloomSpacing.md) {
                         // Start Trial Button
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -163,7 +163,7 @@ struct OnboardingSubscriptionScreen: View {
                         }
                         .disabled(isLoading)
                     }
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                     // Error Message
                     if let error = errorMessage {

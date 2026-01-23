@@ -23,10 +23,12 @@ struct OnboardingFlexibilityScreen: View {
 
                     // Title
                     Text("Import from any source")
-                        .font(HeirloomFonts.title1)
+                        .font(HeirloomFonts.largeTitle)
                         .foregroundStyle(HeirloomColors.charcoal)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+                        .lineSpacing(2)
+                        .kerning(-0.5)
+                        .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                     // Subtitle
                     Text("Plus powerful features to organize and share")
@@ -34,7 +36,7 @@ struct OnboardingFlexibilityScreen: View {
                         .foregroundStyle(HeirloomColors.secondaryText)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
-                        .padding(.top, 8)
+                        .padding(.top, HeirloomSpacing.sm)
 
                     // 2x2 Grid of Import Method Cards (compact)
                     LazyVGrid(columns: [
@@ -130,7 +132,7 @@ struct OnboardingFlexibilityScreen: View {
                             .background(HeirloomColors.tomato)
                             .cornerRadius(12)
                     }
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                     Spacer()
                         .frame(height: 40)

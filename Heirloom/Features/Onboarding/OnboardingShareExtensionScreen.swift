@@ -29,7 +29,7 @@ struct OnboardingShareExtensionScreen: View {
                     .multilineTextAlignment(.center)
                     .lineSpacing(2)
                     .kerning(-0.5)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                 // Subtitle
                 Text("One tap from the apps you already use")
@@ -37,21 +37,21 @@ struct OnboardingShareExtensionScreen: View {
                     .foregroundStyle(HeirloomColors.secondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
-                    .padding(.top, 8)
+                    .padding(.top, HeirloomSpacing.sm)
 
                 // Share sheet mockup
                 shareSheetMock
-                    .padding(.top, 32)
-                    .padding(.horizontal, 32)
+                    .padding(.top, HeirloomSpacing.onboardingScreenPadding)
+                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                 // Platform flow
                 platformFlow
-                    .padding(.top, 28)
-                    .padding(.horizontal, 32)
+                    .padding(.top, HeirloomSpacing.onboardingSectionSpacing)
+                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                 // 3-step tutorial
                 tutorialSteps
-                    .padding(.top, 28)
+                    .padding(.top, HeirloomSpacing.onboardingSectionSpacing)
                     .padding(.horizontal, 40)
 
                 Spacer()
@@ -70,7 +70,7 @@ struct OnboardingShareExtensionScreen: View {
                         .background(HeirloomColors.tomato)
                         .cornerRadius(12)
                 }
-                .padding(.horizontal, 32)
+                .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                 Spacer()
                     .frame(minHeight: 30, maxHeight: 50)

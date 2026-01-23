@@ -72,7 +72,7 @@ struct OnboardingOrganizationScreen: View {
                         .multilineTextAlignment(.center)
                         .lineSpacing(2)
                         .kerning(-0.5)
-                        .padding(.horizontal, 32)
+                        .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                     // Subtitle
                     Text("Collections, sync, and sharing built in")
@@ -128,7 +128,7 @@ struct OnboardingOrganizationScreen: View {
                             .background(HeirloomColors.tomato)
                             .cornerRadius(12)
                     }
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                     Spacer()
                         .frame(height: 40)

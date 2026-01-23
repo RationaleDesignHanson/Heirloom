@@ -27,7 +27,7 @@ struct OnboardingVideoHeroScreen: View {
                     .multilineTextAlignment(.center)
                     .lineSpacing(2)
                     .kerning(-0.5)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                 // Subtitle
                 Text("AI extracts ingredients and steps from cooking videos")
@@ -35,21 +35,21 @@ struct OnboardingVideoHeroScreen: View {
                     .foregroundStyle(HeirloomColors.secondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
-                    .padding(.top, 8)
+                    .padding(.top, HeirloomSpacing.sm)
 
                 // Mock video card
                 videoCardMock
-                    .padding(.top, 24)
-                    .padding(.horizontal, 32)
+                    .padding(.top, HeirloomSpacing.onboardingSectionSpacing)
+                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                 // 3-Tier Extraction Showcase
                 ThreeTierExtractionView()
-                    .padding(.top, 24)
-                    .padding(.horizontal, 20)
+                    .padding(.top, HeirloomSpacing.onboardingSectionSpacing)
+                    .padding(.horizontal, HeirloomSpacing.lg)
 
                 // Platform support
                 platformSupport
-                    .padding(.top, 20)
+                    .padding(.top, HeirloomSpacing.lg)
 
                 Spacer()
                     .frame(minHeight: 20, maxHeight: 40)
@@ -67,7 +67,7 @@ struct OnboardingVideoHeroScreen: View {
                         .background(HeirloomColors.tomato)
                         .cornerRadius(12)
                 }
-                .padding(.horizontal, 32)
+                .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                 Spacer()
                     .frame(minHeight: 30, maxHeight: 50)
