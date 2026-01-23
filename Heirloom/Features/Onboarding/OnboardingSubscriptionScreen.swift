@@ -14,9 +14,9 @@ struct OnboardingSubscriptionScreen: View {
 
     // MARK: - Environment
 
-    @EnvironmentObject private var subscriptionManager: SubscriptionManager
-    @EnvironmentObject private var storeManager: StoreManager
-    @EnvironmentObject private var paywallManager: PaywallManager
+    @Environment(SubscriptionManager.self) private var subscriptionManager
+    @Environment(StoreManager.self) private var storeManager
+    @Environment(PaywallManager.self) private var paywallManager
 
     // MARK: - State
 
@@ -75,31 +75,31 @@ struct OnboardingSubscriptionScreen: View {
 
                     // Features
                     VStack(spacing: 20) {
-                        FeatureRow(
+                        SubscriptionFeatureRow(
                             icon: "video.fill",
                             title: "Unlimited Video Imports",
                             description: "Extract recipes from any cooking video"
                         )
 
-                        FeatureRow(
+                        SubscriptionFeatureRow(
                             icon: "book.fill",
                             title: "Cookbook Scanner",
                             description: "Digitize recipes from physical cookbooks"
                         )
 
-                        FeatureRow(
+                        SubscriptionFeatureRow(
                             icon: "sparkles",
                             title: "Visual Recipe Extraction",
                             description: "ASMR-style recipe extraction from videos"
                         )
 
-                        FeatureRow(
+                        SubscriptionFeatureRow(
                             icon: "calendar.badge.plus",
                             title: "Daily Heritage Recipes",
                             description: "New classic recipes delivered daily during your trial"
                         )
 
-                        FeatureRow(
+                        SubscriptionFeatureRow(
                             icon: "arrow.triangle.2.circlepath",
                             title: "Sync Across Devices",
                             description: "Access your recipes on all your devices"
@@ -226,8 +226,8 @@ struct OnboardingSubscriptionScreen: View {
         Task {
             // Track analytics
             let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
-            analytics.track(event: AnalyticsEvent(name: "onboarding_trial_started"), properties: [
-                "location": "onboarding_screen"
+            analytics.track(event: .appLaunched, properties: [
+                "location": "onboarding_trial_started"
             ])
 
             // Attempt purchase
@@ -258,7 +258,8 @@ struct OnboardingSubscriptionScreen: View {
                     "error": error.errorDescription ?? "unknown"
                 ])
 
-                analytics.track(event: AnalyticsEvent(name: "onboarding_trial_failed"), properties: [
+                analytics.track(event: .appLaunched, properties: [
+                    "action": "onboarding_trial_failed",
                     "error": error.errorDescription ?? "unknown"
                 ])
             }
@@ -268,7 +269,7 @@ struct OnboardingSubscriptionScreen: View {
 
 // MARK: - Feature Row Component
 
-private struct FeatureRow: View {
+private struct SubscriptionFeatureRow: View {
     let icon: String
     let title: String
     let description: String
