@@ -301,16 +301,5 @@ private struct FeatureRow: View {
 
 // MARK: - Preview
 
-#Preview {
-    OnboardingSubscriptionScreen(
-        onStartTrial: {
-            print("Started trial")
-        },
-        onSkip: {
-            print("Skipped")
-        }
-    )
-    .environmentObject(ServiceContainer.shared.resolve(SubscriptionManager.self))
-    .environmentObject(ServiceContainer.shared.resolve(StoreManager.self))
-    .environmentObject(PaywallManager())
-}
+// Preview disabled due to complex dependency injection requirements
+// Test in app instead
