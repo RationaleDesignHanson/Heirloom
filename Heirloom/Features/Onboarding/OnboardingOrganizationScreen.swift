@@ -11,7 +11,7 @@ import SwiftUI
 struct OnboardingOrganizationScreen: View {
     let onContinue: () -> Void
 
-    // Static data (no SwiftData queries) - 6 diverse recipes showcasing variety
+    // Static data (no SwiftData queries) - 4 diverse recipes (no scrolling needed)
     // Reuse OnboardingConceptScreen types for compatibility with OnboardingConceptRecipeCard
     private let sampleRecipes = [
         OnboardingConceptScreen.SampleRecipe(
@@ -41,20 +41,6 @@ struct OnboardingOrganizationScreen: View {
             collectionIcon: "heart.fill",
             collectionColor: "#FF6B6B",
             imageName: "onboarding-apple-pie"
-        ),
-        OnboardingConceptScreen.SampleRecipe(
-            title: "Roast Chicken",
-            collectionName: "Favorites",
-            collectionIcon: "heart.fill",
-            collectionColor: "#FF6B6B",
-            imageName: "onboarding-roast-chicken"
-        ),
-        OnboardingConceptScreen.SampleRecipe(
-            title: "Meatloaf",
-            collectionName: "Favorites",
-            collectionIcon: "heart.fill",
-            collectionColor: "#FF6B6B",
-            imageName: "onboarding-meatloaf"
         )
     ]
 
