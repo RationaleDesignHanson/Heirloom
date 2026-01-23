@@ -148,7 +148,7 @@ struct OnboardingOrganizationScreen: View {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         onContinue()
                     } label: {
-                        Text("Start Cooking")
+                        Text("Get Started")
                             .font(HeirloomFonts.bodyBold)
                             .foregroundStyle(HeirloomColors.buttonTextLight)
                             .frame(maxWidth: .infinity)

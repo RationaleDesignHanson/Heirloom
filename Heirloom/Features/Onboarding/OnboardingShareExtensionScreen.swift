@@ -127,18 +127,26 @@ struct OnboardingShareExtensionScreen: View {
                     VStack(spacing: 6) {
                         ZStack {
                             Circle()
-                                .fill(HeirloomColors.tomato)
+                                .strokeBorder(HeirloomColors.tomato, lineWidth: 2)
+                                .scaleEffect(isAnimated ? 1.3 : 1.0)
+                                .opacity(isAnimated ? 0.0 : 0.5)
                                 .frame(width: 50, height: 50)
-                                .overlay(
-                                    Circle()
-                                        .strokeBorder(HeirloomColors.tomato, lineWidth: 2)
-                                        .scaleEffect(isAnimated ? 1.3 : 1.0)
-                                        .opacity(isAnimated ? 0.0 : 0.5)
-                                )
 
-                            Image(systemName: "book.fill")
-                                .font(.system(size: 24))
-                                .foregroundStyle(.white)
+                            // Use actual app icon
+                            if let appIcon = UIImage(named: "AppIcon") {
+                                Image(uiImage: appIcon)
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(Circle())
+                            } else {
+                                // Fallback to book icon if AppIcon not found
+                                Circle()
+                                    .fill(HeirloomColors.tomato)
+                                    .frame(width: 50, height: 50)
+                                Image(systemName: "book.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundStyle(.white)
+                            }
                         }
 
                         Text("Heirloom")

@@ -1109,6 +1109,9 @@ struct ContentView: View {
                     }
                 )
                 .environmentObject(notificationService)
+                .environment(ServiceContainer.shared.resolve(SubscriptionManager.self))
+                .environment(ServiceContainer.shared.resolve(StoreManager.self))
+                .environment(ServiceContainer.shared.resolve(PaywallManager.self))
             }
         }
         .sheet(isPresented: $showSignInSheet) {
