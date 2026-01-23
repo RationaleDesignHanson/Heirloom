@@ -17,7 +17,7 @@ final class FeatureFlagManager {
 
     // MARK: - Singleton
 
-    static let shared = FeatureFlagManager()
+    nonisolated(unsafe) static let shared = FeatureFlagManager()
 
     // MARK: - Dependencies
 
@@ -31,11 +31,11 @@ final class FeatureFlagManager {
 
     // MARK: - Initialization
 
-    init(
-        localProvider: LocalFeatureFlagProvider = LocalFeatureFlagProvider(),
+    private init(
+        localProvider: LocalFeatureFlagProvider? = nil,
         remoteProvider: RemoteFeatureFlagProvider? = nil
     ) {
-        self.localProvider = localProvider
+        self.localProvider = localProvider ?? LocalFeatureFlagProvider()
         self.remoteProvider = remoteProvider
 
         // Initialize enabled features set
@@ -134,6 +134,7 @@ final class FeatureFlagManager {
 // MARK: - Feature Flag Provider Protocol
 
 /// Protocol for feature flag providers (local, remote, etc.)
+@MainActor
 protocol FeatureFlagProvider {
     func value(for feature: Feature) -> Bool?
 }
@@ -141,6 +142,7 @@ protocol FeatureFlagProvider {
 // MARK: - Local Feature Flag Provider
 
 /// Manages local feature flag overrides via UserDefaults
+@MainActor
 final class LocalFeatureFlagProvider: FeatureFlagProvider {
 
     private let userDefaults: UserDefaults
