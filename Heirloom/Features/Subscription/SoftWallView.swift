@@ -48,7 +48,7 @@ struct SoftWallView: View {
                             let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
                             analytics.track(event: .appLaunched, properties: [
                                 "action": "soft_wall_debug_bypass",
-                                "trigger": "\(trigger.debugDescription)"
+                                "trigger": trigger.displayName
                             ])
                             // Dismiss soft wall
                             dismiss()

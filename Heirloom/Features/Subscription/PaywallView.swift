@@ -78,7 +78,7 @@ struct PaywallView: View {
                                 let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
                                 analytics.track(event: .appLaunched, properties: [
                                     "action": "paywall_debug_bypass",
-                                    "trigger": "\(trigger?.debugDescription ?? "unknown")"
+                                    "trigger": trigger?.displayName ?? "unknown"
                                 ])
                                 // Dismiss paywall
                                 dismiss()
