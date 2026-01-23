@@ -175,12 +175,15 @@ private struct TimelineItemView: View {
 
                 Spacer()
 
-                // Recipe image thumbnail (if available)
-                if let imageFileName = node.recipe.imageFileName {
-                    AsyncRecipeImage(imageFileName: imageFileName, firebaseImageURL: nil)
-                        .frame(width: 60, height: 60)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
+                // Recipe image thumbnail (placeholder for now)
+                // TODO: Add image loading using imageFileName
+                Circle()
+                    .fill(node.generationColor.opacity(0.2))
+                    .frame(width: 60, height: 60)
+                    .overlay(
+                        Image(systemName: "photo")
+                            .foregroundStyle(node.generationColor)
+                    )
             }
 
             // Relationship to parent
