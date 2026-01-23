@@ -679,11 +679,11 @@ private struct RecipeDetailModifiers: ViewModifier {
                 RecipeCommentListView(recipe: recipe)
             }
         }
-        .sheet(isPresented: $showCardBackEditor) {
-            CardBackEditorView(recipe: recipe)
-        } onDismiss: {
+        .sheet(isPresented: $showCardBackEditor, onDismiss: {
             // Force card back preview to refresh with updated data
             cardBackRefreshTrigger = UUID()
+        }) {
+            CardBackEditorView(recipe: recipe)
         }
         .sheet(isPresented: $showVideoAttributionSheet) {
             VideoAttributionSheet(recipe: recipe) {
