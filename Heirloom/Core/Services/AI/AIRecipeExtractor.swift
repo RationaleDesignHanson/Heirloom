@@ -617,9 +617,9 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
 
     private func buildMultiRecipeExtractionPrompt(for ocrText: String) -> String {
         return """
-        Analyze this OCR text and extract ALL recipes present. Images from vintage cookbooks often contain multiple recipes.
+        Analyze this text and extract ALL recipes present. This may be from OCR (vintage cookbooks), pasted text from websites, or manually typed recipes from Notes.
 
-        OCR TEXT:
+        TEXT:
         \(ocrText)
 
         Instructions:
@@ -629,7 +629,8 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
            - How clear the recipe structure is
            - Completeness of ingredients and instructions
            - Whether it appears to be a complete recipe vs fragment
-        4. Fix OCR errors and standardize as before
+        4. Fix OCR errors and standardize formatting
+        5. CRITICAL: Look for clear recipe boundaries - each new recipe typically starts with a title line followed by metadata (servings, time, source) or ingredients
 
         Return a JSON ARRAY of recipes, even if only one recipe is found:
         [
@@ -658,8 +659,12 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         Guidelines for detection:
         - Look for clear recipe boundaries (blank lines, new titles, "makes X servings")
         - Each recipe typically has: title, ingredients list, instructions
-        - Common separators: blank lines, horizontal rules, page breaks
+        - Common separators: blank lines, horizontal rules, page breaks, or a new title followed by servings/time metadata
         - Vintage cookbooks often have 2-6 recipes per page
+        - Modern typed recipes often have bullet points (•) for metadata and ingredients
+        - Recipe titles are usually followed by metadata like "SERVINGS:", "TIME:", "SOURCE:" on the same or next line
+        - When you see a new title followed by servings/time, that's a NEW recipe - don't combine it with the previous one
+        - Sections like "SPICED CASHEWS", "ASSEMBLY", "CAKE", "BARK" are ingredient sub-groups within a recipe, NOT separate recipes
         - If uncertain whether something is a separate recipe, use confidence score
         - If only ONE recipe is detected, still return it in an array: [{recipe}]
 
@@ -722,7 +727,97 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
           }
         ]
 
-        Now analyze the OCR text and return all detected recipes as a JSON array.
+        Example with TWO modern recipes from Notes (with bullet points):
+        [
+          {
+            "title": "Winter Cabbage Salad with Mandarins and Cashews",
+            "servings": "4",
+            "prep_time": null,
+            "cook_time": "30 minutes",
+            "ingredients": [
+              "1 cup (115 grams) cashews",
+              "2 tablespoons (25 grams) dark brown sugar",
+              "1/2 teaspoon kosher salt",
+              "1/4 teaspoon ground cayenne",
+              "1/2 teaspoon smoked paprika",
+              "1 pound (455 grams) red cabbage, thinly sliced",
+              "1 small fennel bulb, halved and sliced thin (about 1 cup)",
+              "3 scallions, thinly sliced",
+              "Fresh mint leaves, thinly sliced",
+              "3 mandarins, divided",
+              "2 tablespoons white wine vinegar",
+              "3 tablespoons olive oil",
+              "1 teaspoon kosher salt",
+              "Freshly ground black pepper",
+              "1 teaspoon sumac"
+            ],
+            "instructions": [
+              "Heat oven to 400°F. Rinse cashews with water and transfer to a bowl.",
+              "Add sugar, salt, cayenne, and paprika and stir to coat evenly.",
+              "Spread cashews on parchment-lined baking sheet and roast for 8-10 minutes.",
+              "Let nuts cool completely.",
+              "Combine cabbage, fennel, scallions, and mint in a large bowl.",
+              "Juice one mandarin and pour 2 tablespoons juice into small bowl.",
+              "Add vinegar, olive oil, salt, pepper, and sumac and whisk to combine.",
+              "Pour over cabbage mixture.",
+              "Peel remaining mandarins and separate into segments.",
+              "Layer salad with mandarins and cashews on serving plate."
+            ],
+            "notes": "Source: Smitten Kitchen. Sumac adds a dark red color and slightly sour taste.",
+            "confidence": 0.98
+          },
+          {
+            "title": "Gingerbread Yule Log",
+            "servings": "8 to 10",
+            "prep_time": null,
+            "cook_time": "2.5 hours",
+            "ingredients": [
+              "1 cup (200 grams) plus 1/3 cup (65 grams) granulated sugar",
+              "1 cup (235 grams) water",
+              "1 cup (100 grams) fresh cranberries",
+              "3 large eggs",
+              "3/4 cup (145 grams) dark brown sugar",
+              "1/2 cup (150 grams) molasses or treacle",
+              "3 tablespoons (45 grams) mascarpone",
+              "1 teaspoon baking soda",
+              "1/2 teaspoon ground cinnamon",
+              "1 1/2 teaspoons ground ginger",
+              "1/4 teaspoon ground cloves",
+              "1/4 teaspoon kosher salt",
+              "3/4 cup (100 grams) all-purpose flour",
+              "6 ounces (170 grams) white chocolate chips",
+              "1 1/2 cups (355 ml) heavy cream",
+              "1 1/2 teaspoons vanilla extract",
+              "1 1/2 to 3 tablespoons powdered sugar"
+            ],
+            "instructions": [
+              "Make sugared cranberries: Bring 1 cup sugar and 1 cup water to simmer. Remove from heat and add cranberries. Chill for 1-2 hours.",
+              "Drain cranberries and roll in remaining sugar. Chill until dry.",
+              "Make cake: Heat oven to 350°F. Line 10x15-inch pan with parchment.",
+              "Beat eggs until bubbly. Add brown sugar, molasses, and mascarpone and mix.",
+              "Add baking soda, salt, and spices and whisk thoroughly.",
+              "Add flour and stir with scraper until just combined.",
+              "Pour into prepared pan and bake for 8-10 minutes until set.",
+              "Cool 5 minutes, then dust with powdered sugar and roll into log. Cool completely.",
+              "Make bark: Melt 2/3 of chocolate, then stir in remaining chips off heat. Spread on parchment and roll into log. Chill until firm.",
+              "Make cream: Beat heavy cream, vanilla, and sugar until stiff peaks form. Whisk in mascarpone.",
+              "Assemble: Unroll cake, spread with 2/3 cream, re-roll. Cover with remaining cream.",
+              "Unroll chocolate bark and arrange pieces over cake to resemble bark.",
+              "Dust with powdered sugar and decorate with sugared cranberries."
+            ],
+            "notes": "Source: Smitten Kitchen. Can simplify by skipping whipped cream exterior and white chocolate bark.",
+            "confidence": 0.95
+          }
+        ]
+
+        IMPORTANT PARSING RULES:
+        - When you see a recipe title followed by bullet points with SERVINGS/TIME/SOURCE, that's metadata for THAT recipe
+        - Sections like "SPICED CASHEWS", "ASSEMBLY", "CAKE" are ingredient groups, NOT new recipes
+        - Each NEW recipe starts with a clear title (usually capitalized or prominent)
+        - Instructions are the step-by-step cooking directions, usually starting with verbs (Heat, Mix, Add, etc.)
+        - If you see multiple distinct recipe titles (like "Winter Cabbage Salad" then "Gingerbread Yule Log"), those are SEPARATE recipes
+
+        Now analyze the text and return all detected recipes as a JSON array.
         """
     }
 
