@@ -915,6 +915,29 @@ final class ImportJobManager: ObservableObject {
             recipe.ingredients?.append(ingredient)
         }
 
+        // Download and save recipe image if available
+        if let imageURLString = importedRecipe.imageURL,
+           let imageURL = URL(string: imageURLString) {
+            Log.info("Downloading recipe image", category: .network, metadata: ["url": imageURLString])
+            do {
+                let (data, _) = try await URLSession.shared.data(from: imageURL)
+                Log.debug("Downloaded image data", category: .network, metadata: ["bytes": data.count])
+
+                if let image = UIImage(data: data) {
+                    Log.debug("Created UIImage from data", category: .storage)
+                    let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+                    let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
+                    Log.info("Saved recipe image", category: .storage, metadata: ["fileName": fileName])
+                    recipe.imageFileName = fileName
+                } else {
+                    Log.warning("Failed to create UIImage from downloaded data", category: .storage)
+                }
+            } catch {
+                Log.warning("Failed to download recipe image", category: .network, metadata: ["error": error.localizedDescription])
+                // Don't fail the entire import if image download fails
+            }
+        }
+
         return recipe
     }
 
