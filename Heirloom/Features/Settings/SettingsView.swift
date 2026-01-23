@@ -729,7 +729,6 @@ struct SettingsView: View {
             // Feature Flags Debug - VIEW AND TOGGLE FEATURE FLAGS
             NavigationLink {
                 FeatureFlagsDebugView()
-                    .environment(ServiceContainer.shared)
             } label: {
                 HStack {
                     Image(systemName: "flag.checkered")
