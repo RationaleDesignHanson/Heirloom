@@ -124,6 +124,7 @@ struct OnboardingSubscriptionScreen: View {
                     VStack(spacing: 16) {
                         // Start Trial Button
                         Button(action: {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                             startTrial()
                         }) {
                             HStack {
@@ -153,6 +154,7 @@ struct OnboardingSubscriptionScreen: View {
 
                         // Skip Button
                         Button(action: {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             onSkip()
                         }) {
                             Text("Continue with Free Version")

@@ -66,10 +66,12 @@ struct OnboardingOrganizationScreen: View {
                         .frame(height: 30)
 
                     // Title
-                    Text("Beautiful recipes, beautifully organized")
-                        .font(HeirloomFonts.title1)
+                    Text("Beautiful recipes,\nbeautifully organized")
+                        .font(HeirloomFonts.largeTitle)
                         .foregroundStyle(HeirloomColors.charcoal)
                         .multilineTextAlignment(.center)
+                        .lineSpacing(2)
+                        .kerning(-0.5)
                         .padding(.horizontal, 32)
 
                     // Subtitle
@@ -115,6 +117,7 @@ struct OnboardingOrganizationScreen: View {
 
                     // Continue Button
                     Button {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         onContinue()
                     } label: {
                         Text("Start Cooking")

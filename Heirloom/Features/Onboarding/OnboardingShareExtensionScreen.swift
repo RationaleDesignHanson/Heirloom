@@ -59,6 +59,7 @@ struct OnboardingShareExtensionScreen: View {
 
                 // Continue Button
                 Button {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     onContinue()
                 } label: {
                     Text("Continue")
