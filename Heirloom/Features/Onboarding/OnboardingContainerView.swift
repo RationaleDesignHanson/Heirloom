@@ -32,7 +32,6 @@ struct OnboardingContainerView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
             switch currentScreen {
             case .videoHero:
                 OnboardingVideoHeroScreen {
@@ -93,7 +92,6 @@ struct OnboardingContainerView: View {
                     insertion: .move(edge: .trailing),
                     removal: .move(edge: .leading)
                 ))
-            }
             }
         }
         .task {
