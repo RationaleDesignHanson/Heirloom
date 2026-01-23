@@ -88,6 +88,8 @@
 		BEE02532548CCE013ECE7CC7 /* RecipeExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F87D9E0C89E4D0186A97A4D5 /* RecipeExportService.swift */; };
 		C058535CDD02FAABB4A17CAF /* Ingredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFF2A4FC35D119FCC34DE5BA /* Ingredient.swift */; };
 		C3F4F1430F87ACCB0530FA31 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDF86FE4F2B35E61FFD88520 /* Assets.xcassets */; };
+		C502EAA52F2322E600BF1696 /* LineageGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EAA22F2322E600BF1696 /* LineageGraphView.swift */; };
+		C502EAA62F2322E600BF1696 /* LineageTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EAA32F2322E600BF1696 /* LineageTimelineView.swift */; };
 		C513D42C2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42B2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift */; };
 		C513D42D2F15EB0300BFCF7D /* OnboardingConceptScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */; };
 		C513D42E2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */; };
@@ -423,6 +425,8 @@
 		BD00B42E170495E57A417ABD /* TagManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementView.swift; sourceTree = "<group>"; };
 		C32C3088D1605B9E79CC42D6 /* ScalingTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingTypes.swift; sourceTree = "<group>"; };
 		C3793A6177FBDB4B932CC837 /* DataErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataErrorView.swift; sourceTree = "<group>"; };
+		C502EAA22F2322E600BF1696 /* LineageGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineageGraphView.swift; sourceTree = "<group>"; };
+		C502EAA32F2322E600BF1696 /* LineageTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineageTimelineView.swift; sourceTree = "<group>"; };
 		C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingConceptScreen.swift; sourceTree = "<group>"; };
 		C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingRecipeSeeder.swift; sourceTree = "<group>"; };
 		C513D42B2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeScreen.swift; sourceTree = "<group>"; };
@@ -979,6 +983,7 @@
 		8AC18A265A5E4A850FD25D2C /* Recipes */ = {
 			isa = PBXGroup;
 			children = (
+				C502EAA42F2322E600BF1696 /* Lineage */,
 				C5DBEC7A2F200FCC00C1B6BA /* Components */,
 				C5A7BDB32F1714B100D99B07 /* PDFImport */,
 				C58324F22F14803C0096478E /* VideoProcessing */,
@@ -1104,6 +1109,15 @@
 				C32C3088D1605B9E79CC42D6 /* ScalingTypes.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		C502EAA42F2322E600BF1696 /* Lineage */ = {
+			isa = PBXGroup;
+			children = (
+				C502EAA22F2322E600BF1696 /* LineageGraphView.swift */,
+				C502EAA32F2322E600BF1696 /* LineageTimelineView.swift */,
+			);
+			path = Lineage;
 			sourceTree = "<group>";
 		};
 		C513D8582F163AE700BFCF7D /* Heritage */ = {
@@ -2219,6 +2233,8 @@
 				C5B317852F00D80A0087CF6D /* VersionSelectorView.swift in Sources */,
 				C513D42C2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift in Sources */,
 				C513D42D2F15EB0300BFCF7D /* OnboardingConceptScreen.swift in Sources */,
+				C502EAA52F2322E600BF1696 /* LineageGraphView.swift in Sources */,
+				C502EAA62F2322E600BF1696 /* LineageTimelineView.swift in Sources */,
 				C513D42E2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift in Sources */,
 				B257110A3DC8712C4CA232EA /* RecipeImportView.swift in Sources */,
 				28E4E26F3EBD90318EF438B2 /* RecipeListView.swift in Sources */,

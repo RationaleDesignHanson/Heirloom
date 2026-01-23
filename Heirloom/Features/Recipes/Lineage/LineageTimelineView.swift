@@ -164,7 +164,7 @@ private struct TimelineItemView: View {
             HStack {
                 VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(node.recipe.title)
-                        .font(HeirloomFonts.headline)
+                        .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
                         .lineLimit(2)
 
@@ -285,6 +285,7 @@ struct LineageContainerView: View {
     @State private var errorMessage: String?
 
     private var lineageService: RecipeLineageService { ServiceContainer.shared.resolve(RecipeLineageService.self) }
+    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
     var body: some View {
         Group {
@@ -341,7 +342,7 @@ struct LineageContainerView: View {
                 .foregroundStyle(HeirloomColors.tomato)
 
             Text("Failed to Load Lineage")
-                .font(HeirloomFonts.headline)
+                .font(HeirloomFonts.title3)
                 .foregroundStyle(HeirloomColors.primaryText)
 
             Text(message)
@@ -385,8 +386,7 @@ struct LineageContainerView: View {
             }
 
             // Track analytics
-            analytics.track(event: .featureUsed, properties: [
-                "feature": "lineage_view",
+            analytics.track(event: .lineageViewed, properties: [
                 "recipe_id": recipe.id.uuidString,
                 "total_nodes": loadedTree.nodes.count,
                 "max_generation": loadedTree.maxGeneration

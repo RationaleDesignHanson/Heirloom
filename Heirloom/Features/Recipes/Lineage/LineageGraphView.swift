@@ -229,7 +229,7 @@ struct LineageGraphView: View {
                 .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(HeirloomColors.buttonTextLight)
 
-            context.draw(badgeText, at: position)
+            context.draw(badgeText, at: position, anchor: .center)
 
             // Draw title below node
             if scale > 0.7 {
@@ -240,7 +240,8 @@ struct LineageGraphView: View {
 
                 context.draw(
                     titleText,
-                    at: CGPoint(x: position.x, y: position.y + nodeRadius + 15)
+                    at: CGPoint(x: position.x, y: position.y + nodeRadius + 15),
+                    anchor: .center
                 )
             }
         }
