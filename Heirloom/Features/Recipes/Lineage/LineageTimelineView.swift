@@ -175,12 +175,9 @@ private struct TimelineItemView: View {
 
                 Spacer()
 
-                // Recipe image thumbnail
-                if let imageData = node.recipe.images.first?.data,
-                   let uiImage = UIImage(data: imageData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
+                // Recipe image thumbnail (if available)
+                if let imageFileName = node.recipe.imageFileName {
+                    AsyncRecipeImage(imageFileName: imageFileName, firebaseImageURL: nil)
                         .frame(width: 60, height: 60)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 }

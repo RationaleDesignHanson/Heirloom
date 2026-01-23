@@ -233,13 +233,15 @@ struct LineageGraphView: View {
 
             // Draw title below node
             if scale > 0.7 {
-                let titleText = Text(node.displayLabel)
-                    .font(.system(size: 11))
-                    .foregroundColor(HeirloomColors.charcoal)
-                    .lineLimit(2)
+                let resolved = context.resolve(
+                    Text(node.displayLabel)
+                        .font(.system(size: 11))
+                        .foregroundColor(HeirloomColors.charcoal)
+                        .lineLimit(2)
+                )
 
                 context.draw(
-                    titleText,
+                    resolved,
                     at: CGPoint(x: position.x, y: position.y + nodeRadius + 15),
                     anchor: .center
                 )
