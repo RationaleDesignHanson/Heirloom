@@ -122,13 +122,28 @@ class FirebaseUserProfileService {
             return nil
         }
 
-        let displayName = data["displayName"] as? String
-        Log.info("Fetched user profile from Firestore", category: .auth, metadata: [
-            "userId": userId,
-            "displayName": displayName ?? "nil"
-        ])
+        // Try display name first, fall back to email username
+        if let displayName = data["displayName"] as? String, !displayName.isEmpty {
+            Log.info("Fetched user profile from Firestore", category: .auth, metadata: [
+                "userId": userId,
+                "displayName": displayName
+            ])
+            return displayName
+        }
 
-        return displayName
+        // Fallback: Use email username (part before @)
+        if let email = data["email"] as? String, !email.isEmpty {
+            let username = email.components(separatedBy: "@").first ?? email
+            Log.info("Using email username as fallback display name", category: .auth, metadata: [
+                "userId": userId,
+                "email": email,
+                "username": username
+            ])
+            return username
+        }
+
+        Log.warning("No display name or email found in Firestore profile", category: .auth, metadata: ["userId": userId])
+        return nil
     }
 
     /// Clear cache if it has expired

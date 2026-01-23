@@ -67,7 +67,23 @@ class RecipeVersionSelectorViewModel: ObservableObject {
 
             // Add current local version
             // Fetch correct display name for current owner (not sharedByName which is the previous sharer)
-            let ownerDisplayName = try? await userProfileService.fetchDisplayName(for: lineage.ownerId)
+            let ownerDisplayName: String?
+            do {
+                ownerDisplayName = try await userProfileService.fetchDisplayName(for: lineage.ownerId)
+                if ownerDisplayName == nil {
+                    Log.warning("No display name found for current recipe owner", category: .firebase, metadata: [
+                        "ownerId": lineage.ownerId,
+                        "generation": lineage.generation
+                    ])
+                }
+            } catch {
+                Log.error("Failed to fetch current owner display name", category: .firebase, metadata: [
+                    "ownerId": lineage.ownerId,
+                    "error": error.localizedDescription
+                ])
+                ownerDisplayName = nil
+            }
+
             let currentVersion = RecipeLineageVersion(
                 recipe: recipe,
                 generation: lineage.generation,
@@ -296,7 +312,23 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                 let ingredientTexts = ingredientsData.compactMap { $0["originalText"] as? String }
 
                 // Fetch correct display name for owner (not sharedByName which is the previous sharer)
-                let ownerDisplayName = try? await userProfileService.fetchDisplayName(for: ownerId)
+                let ownerDisplayName: String?
+                do {
+                    ownerDisplayName = try await userProfileService.fetchDisplayName(for: ownerId)
+                    if ownerDisplayName == nil {
+                        Log.warning("No display name found for owner", category: .firebase, metadata: [
+                            "ownerId": ownerId,
+                            "generation": generation
+                        ])
+                    }
+                } catch {
+                    Log.error("Failed to fetch display name", category: .firebase, metadata: [
+                        "ownerId": ownerId,
+                        "error": error.localizedDescription
+                    ])
+                    ownerDisplayName = nil
+                }
+
                 let version = RecipeLineageVersion(
                     recipeData: recipeData,
                     generation: generation,
@@ -374,7 +406,23 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                     recipeId: recipeId
                 ) {
                     // Fetch correct display name for owner (not sharedByName which is the previous sharer)
-                    let ownerDisplayName = try? await userProfileService.fetchDisplayName(for: ownerId)
+                    let ownerDisplayName: String?
+                    do {
+                        ownerDisplayName = try await userProfileService.fetchDisplayName(for: ownerId)
+                        if ownerDisplayName == nil {
+                            Log.warning("No display name found for root owner", category: .firebase, metadata: [
+                                "ownerId": ownerId,
+                                "generation": generation
+                            ])
+                        }
+                    } catch {
+                        Log.error("Failed to fetch root owner display name", category: .firebase, metadata: [
+                            "ownerId": ownerId,
+                            "error": error.localizedDescription
+                        ])
+                        ownerDisplayName = nil
+                    }
+
                     let version = RecipeLineageVersion(
                         recipeData: recipeData,
                         generation: generation,

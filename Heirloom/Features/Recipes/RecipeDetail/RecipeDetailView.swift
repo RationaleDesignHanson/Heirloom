@@ -270,20 +270,30 @@ struct RecipeDetailView: View {
             changes.append("Title changed")
         }
 
-        // Check ingredients
-        if let currentRecipe = selected.recipe,
-           let currentIngredients = currentRecipe.ingredients {
-            let currentTexts = currentIngredients.map { $0.originalText }
-            let originalTexts: [String]
-            if let originalRecipe = original.recipe, let ingredients = originalRecipe.ingredients {
-                originalTexts = ingredients.map { $0.originalText }
-            } else if let data = original.recipeData,
-                      let ingredientsData = data["ingredients"] as? [[String: Any]] {
-                originalTexts = ingredientsData.compactMap { $0["originalText"] as? String }
-            } else {
-                originalTexts = []
-            }
+        // Get current ingredients (from recipe or recipeData)
+        let currentTexts: [String]
+        if let currentRecipe = selected.recipe, let currentIngredients = currentRecipe.ingredients {
+            currentTexts = currentIngredients.map { $0.originalText }
+        } else if let data = selected.recipeData,
+                  let ingredientsData = data["ingredients"] as? [[String: Any]] {
+            currentTexts = ingredientsData.compactMap { $0["originalText"] as? String }
+        } else {
+            currentTexts = []
+        }
 
+        // Get original ingredients (from recipe or recipeData)
+        let originalTexts: [String]
+        if let originalRecipe = original.recipe, let ingredients = originalRecipe.ingredients {
+            originalTexts = ingredients.map { $0.originalText }
+        } else if let data = original.recipeData,
+                  let ingredientsData = data["ingredients"] as? [[String: Any]] {
+            originalTexts = ingredientsData.compactMap { $0["originalText"] as? String }
+        } else {
+            originalTexts = []
+        }
+
+        // Compare ingredients
+        if !currentTexts.isEmpty || !originalTexts.isEmpty {
             let addedCount = currentTexts.filter { !originalTexts.contains($0) }.count
             let removedCount = originalTexts.filter { !currentTexts.contains($0) }.count
             let modifiedCount = addedCount + removedCount
@@ -293,19 +303,30 @@ struct RecipeDetailView: View {
             }
         }
 
-        // Check instructions
+        // Get current instructions (from recipe or recipeData)
+        let currentInstructions: [String]
         if let currentRecipe = selected.recipe {
-            let currentInstructions = currentRecipe.instructions
-            let originalInstructions: [String]
-            if let originalRecipe = original.recipe {
-                originalInstructions = originalRecipe.instructions
-            } else if let data = original.recipeData,
-                      let instructions = data["instructions"] as? [String] {
-                originalInstructions = instructions
-            } else {
-                originalInstructions = []
-            }
+            currentInstructions = currentRecipe.instructions
+        } else if let data = selected.recipeData,
+                  let instructions = data["instructions"] as? [String] {
+            currentInstructions = instructions
+        } else {
+            currentInstructions = []
+        }
 
+        // Get original instructions (from recipe or recipeData)
+        let originalInstructions: [String]
+        if let originalRecipe = original.recipe {
+            originalInstructions = originalRecipe.instructions
+        } else if let data = original.recipeData,
+                  let instructions = data["instructions"] as? [String] {
+            originalInstructions = instructions
+        } else {
+            originalInstructions = []
+        }
+
+        // Compare instructions
+        if !currentInstructions.isEmpty || !originalInstructions.isEmpty {
             var modifiedCount = 0
             for (index, instruction) in currentInstructions.enumerated() {
                 if index >= originalInstructions.count || instruction != originalInstructions[index] {
