@@ -542,6 +542,72 @@ private struct RecipeDetailModifiers: ViewModifier {
     let deleteRecipe: () -> Void
     let createUserCopyAndEdit: () -> Void
 
+    // MARK: - Computed Views
+
+    @ViewBuilder
+    private var recipeActionsMenu: some View {
+        Menu {
+            Button {
+                handleShareTapped()
+            } label: {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+            .disabled(recipe.isSampleRecipe || recipe.isHeritageRecipe)
+
+            Button {
+                handleEditTapped()
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+
+            Button {
+                showTagCollectionPicker = true
+            } label: {
+                Label("Organize", systemImage: "tag")
+            }
+
+            Button {
+                showCardPersonalization = true
+            } label: {
+                Label("Personalize Card", systemImage: "paintbrush.fill")
+            }
+
+            Button {
+                duplicateRecipe()
+            } label: {
+                Label("Duplicate", systemImage: "doc.on.doc")
+            }
+
+            Divider()
+
+            Button {
+                showComments = true
+            } label: {
+                let commentCount = recipe.comments?.count ?? 0
+                Label("Comments (\(commentCount))", systemImage: "bubble.left.fill")
+            }
+
+            Button {
+                withAnimation {
+                    isCardFlipped.toggle()
+                }
+            } label: {
+                Label(isCardFlipped ? "Show Front" : "Flip to Back", systemImage: "rectangle.portrait.on.rectangle.portrait.angled")
+            }
+
+            Divider()
+
+            Button(role: .destructive) {
+                showDeleteConfirmation = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .foregroundStyle(HeirloomColors.charcoal)
+        }
+    }
+
     func body(content: Content) -> some View {
         content
             .onAppear {
@@ -565,66 +631,7 @@ private struct RecipeDetailModifiers: ViewModifier {
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button {
-                        handleShareTapped()
-                    } label: {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                    }
-                    .disabled(recipe.isSampleRecipe || recipe.isHeritageRecipe)
-
-                    Button {
-                        handleEditTapped()
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
-                    }
-
-                    Button {
-                        showTagCollectionPicker = true
-                    } label: {
-                        Label("Organize", systemImage: "tag")
-                    }
-
-                    Button {
-                        showCardPersonalization = true
-                    } label: {
-                        Label("Personalize Card", systemImage: "paintbrush.fill")
-                    }
-
-                    Button {
-                        duplicateRecipe()
-                    } label: {
-                        Label("Duplicate", systemImage: "doc.on.doc")
-                    }
-
-                    Divider()
-
-                    Button {
-                        showComments = true
-                    } label: {
-                        let commentCount = recipe.comments?.count ?? 0
-                        Label("Comments (\(commentCount))", systemImage: "bubble.left.fill")
-                    }
-
-                    Button {
-                        withAnimation {
-                            isCardFlipped.toggle()
-                        }
-                    } label: {
-                        Label(isCardFlipped ? "Show Front" : "Flip to Back", systemImage: "rectangle.portrait.on.rectangle.portrait.angled")
-                    }
-
-                    Divider()
-
-                    Button(role: .destructive) {
-                        showDeleteConfirmation = true
-                    } label: {
-                        Label("Delete", systemImage: "trash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .foregroundStyle(HeirloomColors.charcoal)
-                }
+                recipeActionsMenu
             }
         }
         .confirmationDialog(
