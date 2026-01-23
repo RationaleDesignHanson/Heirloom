@@ -513,7 +513,7 @@ private struct RecipeDetailModifiers: ViewModifier {
     let modelContext: ModelContext
     let analytics: AnalyticsService
     let versionViewModel: RecipeVersionSelectorViewModel
-    let notificationService: NotificationService
+    let notificationService: FirebaseNotificationService
 
     @Binding var showDeleteConfirmation: Bool
     @Binding var showEditSheet: Bool
