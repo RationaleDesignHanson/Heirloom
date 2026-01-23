@@ -1267,6 +1267,17 @@ struct ContentView: View {
                 }
             }
         }
+        .sheet(isPresented: $deepLinkCoordinator.showTextRecipeSelectionSheet) {
+            if let result = deepLinkCoordinator.pendingTextRecipeResult {
+                RecipeSelectionView(
+                    recipes: result.recipes,
+                    sourceImage: result.sourceImage
+                )
+                .onDisappear {
+                    deepLinkCoordinator.clearTextRecipeSelection()
+                }
+            }
+        }
         .sheet(isPresented: $showDailyUnlock) {
             DailyUnlockView(
                 unlockedRecipeIds: unlockedRecipeIds,
@@ -1280,6 +1291,8 @@ struct ContentView: View {
         .overlay {
             if deepLinkCoordinator.isExtractingImageRecipes {
                 imageExtractionLoadingOverlay
+            } else if deepLinkCoordinator.isExtractingTextRecipes {
+                textExtractionLoadingOverlay
             }
         }
         .onAppear {
@@ -1580,6 +1593,50 @@ struct ContentView: View {
 
                 VStack(spacing: HeirloomSpacing.sm) {
                     Text(deepLinkCoordinator.imageExtractionProgress)
+                        .font(HeirloomFonts.title3)
+                        .foregroundStyle(HeirloomColors.primaryText)
+                        .multilineTextAlignment(.center)
+
+                    Text("This may take a moment")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.center)
+                }
+
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: HeirloomColors.tomato))
+                    .scaleEffect(1.3)
+            }
+            .padding(HeirloomSpacing.xl)
+            .background(HeirloomColors.cardBackground)
+            .cornerRadius(HeirloomSpacing.cardCornerRadius)
+            .shadow(
+                color: HeirloomShadows.card.color,
+                radius: HeirloomShadows.card.radius,
+                x: HeirloomShadows.card.x,
+                y: HeirloomShadows.card.y
+            )
+            .padding(HeirloomSpacing.xl)
+        }
+    }
+
+    /// Loading overlay shown during text recipe extraction from Notes
+    @ViewBuilder
+    private var textExtractionLoadingOverlay: some View {
+        ZStack {
+            // Semi-transparent background
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+
+            // Card-based loading UI
+            VStack(spacing: HeirloomSpacing.lg) {
+                // Recipe icon
+                Image(systemName: "text.book.closed.fill")
+                    .font(.system(size: 56))
+                    .foregroundStyle(HeirloomColors.tomato)
+
+                VStack(spacing: HeirloomSpacing.sm) {
+                    Text(deepLinkCoordinator.textExtractionProgress)
                         .font(HeirloomFonts.title3)
                         .foregroundStyle(HeirloomColors.primaryText)
                         .multilineTextAlignment(.center)

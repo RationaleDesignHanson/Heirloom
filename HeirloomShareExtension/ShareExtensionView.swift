@@ -17,10 +17,12 @@ struct ShareExtensionView: View {
         case processingURL
         case processingPDF
         case processingImage
+        case processingBulk(Int)  // Processing N items from Notes
         case successVideo
         case successURL
         case successPDF
         case successImage
+        case successBulk(itemCount: Int)
         case error(String)
         case socialMediaInstructions(String)  // Show instructions for TikTok/IG
     }
@@ -87,7 +89,12 @@ struct ShareExtensionView: View {
                 .font(.system(size: 64))
                 .foregroundStyle(.blue)
 
-        case .successVideo, .successURL, .successPDF, .successImage:
+        case .processingBulk:
+            Image(systemName: "doc.on.doc.circle.fill")
+                .font(.system(size: 64))
+                .foregroundStyle(.blue)
+
+        case .successVideo, .successURL, .successPDF, .successImage, .successBulk:
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(.green)
@@ -139,6 +146,13 @@ struct ShareExtensionView: View {
                 ProgressView()
             }
 
+        case .processingBulk(let count):
+            VStack(spacing: 8) {
+                Text("Processing \(count) item\(count == 1 ? "" : "s")...")
+                    .font(.headline)
+                ProgressView()
+            }
+
         case .successVideo:
             VStack(spacing: 8) {
                 Text("Video Saved!")
@@ -171,6 +185,15 @@ struct ShareExtensionView: View {
                 Text("Image Saved!")
                     .font(.headline)
                 Text("Open Heirloom to import")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+        case .successBulk(let itemCount):
+            VStack(spacing: 8) {
+                Text("Saved \(itemCount) Item\(itemCount == 1 ? "" : "s")!")
+                    .font(.headline)
+                Text("Opening Heirloom...")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -241,6 +264,10 @@ struct ShareExtensionView: View {
                 state = .processingImage
                 try await handleImage(imageURL)
 
+            case .bulkContent(let urls, let text, let hasRecipe):
+                state = .processingBulk(urls.count + (hasRecipe ? 1 : 0))
+                try await handleBulkContent(urls: urls, text: text, hasRecipe: hasRecipe)
+
             case .unsupported:
                 state = .error("This content type is not supported")
             }
@@ -285,12 +312,32 @@ struct ShareExtensionView: View {
             }
         }
 
-        // PRIORITY 5: Check for plain text (might contain URL)
+        // PRIORITY 5: Check for plain text (might contain URLs or recipe text)
         if itemProvider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) {
             let text = try await loadText(from: itemProvider)
-            if let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
-               (url.scheme == "http" || url.scheme == "https") {
-                return .url(url)
+
+            // Analyze content using NotesContentAnalyzer
+            let analysis = NotesContentAnalyzer.analyze(text)
+
+            if analysis.shouldUseBulkImport {
+                // Multiple URLs or URLs + recipe text
+                return .bulkContent(
+                    urls: analysis.urls,
+                    text: analysis.plainText,
+                    hasRecipe: analysis.hasRecipeContent
+                )
+            } else if analysis.shouldUseTextImport {
+                // Plain text recipe only
+                return .bulkContent(
+                    urls: [],
+                    text: analysis.plainText,
+                    hasRecipe: true
+                )
+            } else if analysis.urls.count == 1 {
+                // Single URL - use existing flow
+                if let url = URL(string: analysis.urls[0]) {
+                    return .url(url)
+                }
             }
         }
 
@@ -475,6 +522,35 @@ struct ShareExtensionView: View {
         try await openMainApp(withImportID: pendingImportID, successState: .successImage)
     }
 
+    // MARK: - Bulk Content Handling
+
+    private func handleBulkContent(urls: [String], text: String?, hasRecipe: Bool) async throws {
+        let pendingImportID = UUID()
+
+        // Create bulk content structure
+        let bulkContent = BulkImportContent(
+            urls: urls,
+            plainText: text,
+            hasRecipeText: hasRecipe
+        )
+
+        // Create pending import record
+        var pendingImport = PendingVideoImport(
+            id: pendingImportID,
+            sourceType: .shareExtensionBulk,
+            localVideoURL: nil,
+            originalURL: nil,
+            detectedPlatform: .unknown
+        )
+        pendingImport.bulkContent = bulkContent
+
+        // Save to pending imports directory
+        try savePendingImport(pendingImport)
+
+        // Open main app
+        try await openMainApp(withImportID: pendingImportID, successState: .successBulk(itemCount: bulkContent.totalItems))
+    }
+
     // MARK: - Helpers
 
     private func savePendingImport(_ pendingImport: PendingVideoImport) throws {
@@ -646,6 +722,7 @@ enum SharedContent {
     case url(URL)
     case pdf(URL)
     case image(URL)
+    case bulkContent(urls: [String], text: String?, hasRecipe: Bool)
     case unsupported
 }
 
