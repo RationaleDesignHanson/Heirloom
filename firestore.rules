@@ -134,6 +134,22 @@ service cloud.firestore {
     }
 
     // ========================================
+    // USER PROFILES (Top-Level)
+    // ========================================
+    match /userProfiles/{userId} {
+      // Any authenticated user can read profiles (for display names in version history)
+      // This is read-only access to displayName and email fields
+      allow read: if isAuthenticated();
+
+      // Only owner can create/update their own profile
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+
+      // Only owner can delete their profile
+      allow delete: if isOwner(userId);
+    }
+
+    // ========================================
     // FALLBACK: Deny all other access
     // ========================================
     match /{document=**} {
