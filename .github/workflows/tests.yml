@@ -5,6 +5,7 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  workflow_dispatch:
 
 jobs:
   unit-tests:
@@ -35,14 +36,14 @@ jobs:
         xcrun xccov view --report --json TestResults.xcresult > coverage.json
 
     - name: Upload Test Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
         path: TestResults.xcresult
 
     - name: Upload Coverage Report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: coverage-report
@@ -69,7 +70,7 @@ jobs:
           -resultBundlePath UITestResults
 
     - name: Upload UI Test Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: ui-test-results
@@ -85,7 +86,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Download Coverage Report
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: coverage-report
 

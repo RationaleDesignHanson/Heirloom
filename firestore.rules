@@ -69,15 +69,35 @@ service cloud.firestore {
     // ========================================
     match /shares/{shareId} {
       // Anyone with link can read (for accepting shares)
+      // Share links are meant to be shareable, so authenticated users can read
       allow read: if isAuthenticated();
 
-      // Only owner can create shares
+      // Only owner can create shares, with proper validation
       allow create: if isAuthenticated() &&
-                       request.auth.uid == request.resource.data.ownerId;
+                       request.auth.uid == request.resource.data.ownerId &&
+                       request.resource.data.keys().hasAll(['shareId', 'recipeId', 'ownerId', 'ownerName']);
 
-      // ANY authenticated user can update shares (for accepting)
-      // This allows recipients to add themselves to acceptedBy array
-      allow update: if isAuthenticated();
+      // Restricted update: Owner can update all fields OR recipient can add themselves to acceptedBy
+      allow update: if isAuthenticated() && (
+        // Owner can update any fields
+        request.auth.uid == resource.data.ownerId ||
+
+        // Recipient can ONLY add themselves to acceptedBy array (and update related counters)
+        (
+          // Must not change core fields
+          request.resource.data.shareId == resource.data.shareId &&
+          request.resource.data.recipeId == resource.data.recipeId &&
+          request.resource.data.ownerId == resource.data.ownerId &&
+
+          // Can only add themselves to acceptedBy (not remove or add others)
+          request.resource.data.acceptedBy is list &&
+          request.resource.data.acceptedBy.hasAll(resource.data.acceptedBy) &&
+          request.resource.data.acceptedBy.hasOnly(resource.data.acceptedBy.concat([request.auth.uid])) &&
+
+          // Verify they're actually adding themselves (not already in list)
+          !(request.auth.uid in resource.data.acceptedBy)
+        )
+      );
 
       // Only owner can delete
       allow delete: if isAuthenticated() &&

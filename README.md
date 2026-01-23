@@ -1,5 +1,10 @@
 # Heirloom - Recipes Worth Passing Down
 
+[![Tests](https://github.com/RationaleDesignHanson/Heirloom/actions/workflows/tests.yml/badge.svg)](https://github.com/RationaleDesignHanson/Heirloom/actions/workflows/tests.yml)
+[![VideoLab Tests](https://github.com/RationaleDesignHanson/Heirloom/actions/workflows/videolab-tests.yml/badge.svg)](https://github.com/RationaleDesignHanson/Heirloom/actions/workflows/videolab-tests.yml)
+![iOS 17+](https://img.shields.io/badge/iOS-17%2B-blue)
+![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange)
+
 A native iOS 17+ recipe management app built with SwiftUI, SwiftData, and Firebase.
 
 ## 🎯 Current Status
