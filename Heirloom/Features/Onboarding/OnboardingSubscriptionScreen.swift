@@ -61,11 +61,13 @@ struct OnboardingSubscriptionScreen: View {
                             )
 
                         Text("Try Premium Free")
-                            .font(.system(size: 32, weight: .bold, design: .serif))
+                            .font(HeirloomFonts.title1Elevated)
                             .multilineTextAlignment(.center)
+                            .lineSpacing(2)
+                            .kerning(-0.5)
 
                         Text("Start your 14-day free trial")
-                            .font(.title3)
+                            .font(HeirloomFonts.body)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
                     }
@@ -92,9 +94,9 @@ struct OnboardingSubscriptionScreen: View {
                         )
 
                         FeatureRow(
-                            icon: "crown.fill",
-                            title: "Heritage Recipes Unlocked",
-                            description: "Get all 100 heritage recipes instantly"
+                            icon: "calendar.badge.plus",
+                            title: "Daily Heritage Recipes",
+                            description: "New classic recipes delivered daily during your trial"
                         )
 
                         FeatureRow(
@@ -171,7 +173,15 @@ struct OnboardingSubscriptionScreen: View {
 
                     // Legal
                     VStack(spacing: 8) {
+                        // Primary focus on trial and pricing
                         Text("Free for 14 days, then \(storeManager.products[.annual]?.displayPrice ?? "$29.99")/year")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .fontWeight(.medium)
+                            .multilineTextAlignment(.center)
+
+                        // Secondary benefit - daily recipe bonuses
+                        Text("Includes daily heritage recipe bonuses during trial")
                             .font(.caption2)
                             .foregroundColor(.tertiary)
                             .multilineTextAlignment(.center)
