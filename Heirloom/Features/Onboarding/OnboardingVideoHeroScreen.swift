@@ -102,15 +102,22 @@ struct OnboardingVideoHeroScreen: View {
 
     private var videoCardMock: some View {
         ZStack {
-            // Background gradient (pasta colors)
-            LinearGradient(
-                colors: [
-                    Color.orange.opacity(0.3),
-                    Color.red.opacity(0.2)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            // Food video thumbnail (bread kneading action shot)
+            if let image = UIImage(named: "onboarding-video-hero") {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                // Fallback gradient
+                LinearGradient(
+                    colors: [
+                        Color.orange.opacity(0.3),
+                        Color.red.opacity(0.2)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
 
             // Play button overlay
             Image(systemName: "play.circle.fill")

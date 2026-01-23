@@ -11,7 +11,7 @@ import SwiftUI
 struct OnboardingOrganizationScreen: View {
     let onContinue: () -> Void
 
-    // Static data (no SwiftData queries) - 2 separate recipes
+    // Static data (no SwiftData queries) - 6 diverse recipes showcasing variety
     // Reuse OnboardingConceptScreen types for compatibility with OnboardingConceptRecipeCard
     private let sampleRecipes = [
         OnboardingConceptScreen.SampleRecipe(
@@ -27,6 +27,34 @@ struct OnboardingOrganizationScreen: View {
             collectionIcon: "heart.fill",
             collectionColor: "#FF6B6B",
             imageName: "onboarding-tomato-soup"
+        ),
+        OnboardingConceptScreen.SampleRecipe(
+            title: "Pot Roast",
+            collectionName: "Favorites",
+            collectionIcon: "heart.fill",
+            collectionColor: "#FF6B6B",
+            imageName: "onboarding-pot-roast"
+        ),
+        OnboardingConceptScreen.SampleRecipe(
+            title: "Apple Pie",
+            collectionName: "Favorites",
+            collectionIcon: "heart.fill",
+            collectionColor: "#FF6B6B",
+            imageName: "onboarding-apple-pie"
+        ),
+        OnboardingConceptScreen.SampleRecipe(
+            title: "Roast Chicken",
+            collectionName: "Favorites",
+            collectionIcon: "heart.fill",
+            collectionColor: "#FF6B6B",
+            imageName: "onboarding-roast-chicken"
+        ),
+        OnboardingConceptScreen.SampleRecipe(
+            title: "Meatloaf",
+            collectionName: "Favorites",
+            collectionIcon: "heart.fill",
+            collectionColor: "#FF6B6B",
+            imageName: "onboarding-meatloaf"
         )
     ]
 
@@ -35,7 +63,7 @@ struct OnboardingOrganizationScreen: View {
             name: "Favorites",
             icon: "heart.fill",
             color: "#FF6B6B",
-            count: 2,
+            count: 6,
             isHighlighted: true
         ),
         OnboardingConceptScreen.SampleCollection(
