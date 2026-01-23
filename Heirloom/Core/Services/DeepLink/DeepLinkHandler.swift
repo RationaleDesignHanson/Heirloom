@@ -419,10 +419,14 @@ class DeepLinkHandler: ObservableObject {
                     Log.info("Processing recipe text from bulk content", category: .general, metadata: ["textLength": plainText.count])
                     DeviceLogger.shared.log("📝 [DeepLink] Processing recipe text from bulk content")
 
-                    // Show loading UI
+                    // Show loading UI with clearer message
                     await MainActor.run {
                         isExtractingTextRecipes = true
-                        textExtractionProgress = "Extracting recipes from text..."
+                        if bulkContent.urls.isEmpty {
+                            textExtractionProgress = "Extracting recipes from your note..."
+                        } else {
+                            textExtractionProgress = "Processing text recipes from your note..."
+                        }
                     }
 
                     do {
