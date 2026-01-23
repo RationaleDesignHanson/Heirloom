@@ -343,25 +343,25 @@ enum HeirloomError {
                 helpArticleId: "organizing-recipes"
             )
 
-        // Dinner Party Errors
+        // Meal Planning Errors
         case .dinnerPartyCreateFailed(let error):
             return ErrorMessage(
-                title: "Failed to Create Dinner Party",
-                message: "We couldn't create the dinner party. Please try again.\n\nTechnical details: \(error?.localizedDescription ?? "Unknown error")",
+                title: "Failed to Create Meal Plan",
+                message: "We couldn't create the meal plan. Please try again.\n\nTechnical details: \(error?.localizedDescription ?? "Unknown error")",
                 helpArticleId: "dinner-parties"
             )
 
         case .dinnerPartyDeleteFailed(let error):
             return ErrorMessage(
-                title: "Failed to Delete Dinner Party",
-                message: "We couldn't delete the dinner party. Please try again.\n\nTechnical details: \(error?.localizedDescription ?? "Unknown error")",
+                title: "Failed to Delete Meal Plan",
+                message: "We couldn't delete the meal plan. Please try again.\n\nTechnical details: \(error?.localizedDescription ?? "Unknown error")",
                 helpArticleId: "dinner-parties"
             )
 
         case .dinnerPartyEditFailed(let error):
             return ErrorMessage(
-                title: "Failed to Edit Dinner Party",
-                message: "We couldn't save your changes to the dinner party. Please try again.\n\nTechnical details: \(error?.localizedDescription ?? "Unknown error")",
+                title: "Failed to Edit Meal Plan",
+                message: "We couldn't save your changes to the meal plan. Please try again.\n\nTechnical details: \(error?.localizedDescription ?? "Unknown error")",
                 helpArticleId: "dinner-parties"
             )
 

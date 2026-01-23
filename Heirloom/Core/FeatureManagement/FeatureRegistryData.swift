@@ -282,7 +282,7 @@ final class FeatureRegistry {
 
         .dinnerParty: FeatureMetadata(
             feature: .dinnerParty,
-            displayName: "Dinner Party",
+            displayName: "Meal Planning",
             description: "Plan meals, invite guests, manage shopping lists",
             state: .development,
             dependencies: [.recipeManagement, .shoppingLists],

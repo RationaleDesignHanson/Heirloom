@@ -127,9 +127,9 @@ extension EmptyStateView {
     static func noDinnerParties(action: @escaping () -> Void) -> EmptyStateView {
         EmptyStateView(
             icon: "person.3.fill",
-            title: "No Dinner Parties",
-            message: "Plan your next gathering by creating a dinner party. Share recipes and combine shopping lists with friends.",
-            actionTitle: "Create Dinner Party",
+            title: "No Meal Plans",
+            message: "Plan your next gathering by creating a meal plan. Share recipes and combine shopping lists with friends.",
+            actionTitle: "Create Meal Plan",
             action: action
         )
     }
@@ -198,7 +198,7 @@ extension EmptyStateView {
                 return (
                     "bell.fill",
                     "Notifications Disabled",
-                    "Enable notifications to get alerts when cooking timers complete and for dinner party updates."
+                    "Enable notifications to get alerts when cooking timers complete and for meal plan updates."
                 )
             }
         }

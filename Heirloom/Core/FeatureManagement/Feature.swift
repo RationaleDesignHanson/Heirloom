@@ -105,7 +105,7 @@ extension Feature {
         case .dailyHeritageDrop: return "Daily Heritage Drop"
         case .heritageProvenance: return "Heritage Provenance"
         case .discovery: return "Discovery"
-        case .dinnerParty: return "Dinner Party"
+        case .dinnerParty: return "Meal Planning"
         case .shoppingLists: return "Shopping Lists"
         case .stats: return "Stats"
         case .onboarding: return "Onboarding"
