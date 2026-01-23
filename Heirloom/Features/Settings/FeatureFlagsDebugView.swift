@@ -173,6 +173,5 @@ struct FeatureFlagRow: View {
 #Preview {
     NavigationStack {
         FeatureFlagsDebugView()
-            .environment(ServiceContainer.shared)
     }
 }

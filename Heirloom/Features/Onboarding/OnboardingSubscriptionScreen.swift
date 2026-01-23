@@ -310,11 +310,7 @@ private struct FeatureRow: View {
             print("Skipped")
         }
     )
-    .environmentObject(SubscriptionManager(
-        storeManager: StoreManager(logger: LoggingService(), analytics: AnalyticsService()),
-        logger: LoggingService(),
-        analytics: AnalyticsService()
-    ))
-    .environmentObject(StoreManager(logger: LoggingService(), analytics: AnalyticsService()))
+    .environmentObject(ServiceContainer.shared.resolve(SubscriptionManager.self))
+    .environmentObject(ServiceContainer.shared.resolve(StoreManager.self))
     .environmentObject(PaywallManager())
 }
