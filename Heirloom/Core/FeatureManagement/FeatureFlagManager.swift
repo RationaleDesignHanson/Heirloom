@@ -17,7 +17,8 @@ final class FeatureFlagManager {
 
     // MARK: - Singleton
 
-    nonisolated(unsafe) static let shared = FeatureFlagManager()
+    @MainActor
+    static let shared = FeatureFlagManager()
 
     // MARK: - Dependencies
 
