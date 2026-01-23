@@ -29,8 +29,14 @@ actor ImageStorageService {
 
     /// Save an image to the file system with compression
     /// Returns the file name (not full path) to store in Recipe model
+    ///
+    /// NOTE: Generates unique filename with timestamp to support recipe version history.
+    /// Each version gets its own image file instead of overwriting the previous one.
     func saveImage(_ image: UIImage, recipeId: UUID) async throws -> String {
-        let fileName = "recipe-\(recipeId.uuidString).jpg"
+        // Generate unique filename with timestamp for version history support
+        // Format: recipe-{uuid}-{timestamp}.jpg
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let fileName = "recipe-\(recipeId.uuidString)-\(timestamp).jpg"
         let fileURL = imagesDirectory.appendingPathComponent(fileName)
 
         // Compress image to max 1MB
@@ -41,7 +47,11 @@ actor ImageStorageService {
         // Write to disk
         do {
             try compressedData.write(to: fileURL, options: .atomic)
-            Log.info("Saved image", category: .storage, metadata: ["fileName": fileName, "sizeKB": compressedData.count / 1024])
+            Log.info("Saved image with unique filename", category: .storage, metadata: [
+                "fileName": fileName,
+                "sizeKB": compressedData.count / 1024,
+                "timestamp": timestamp
+            ])
 
             // Update cache
             imageCache.setImage(image, for: fileURL)
