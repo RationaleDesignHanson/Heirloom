@@ -53,8 +53,8 @@ struct OnboardingFlexibilityScreen: View {
                         // Image Scan
                         ImportMethodCard(
                             icon: "camera.viewfinder",
-                            title: "Cookbooks & photos",
-                            subtitle: "Scan or upload images",
+                            title: "Cookbooks, notes, PDFs & URLs",
+                            subtitle: "Scan or upload any format",
                             accentColor: .blue
                         )
 

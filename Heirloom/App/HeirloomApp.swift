@@ -832,24 +832,10 @@ struct RootView: View {
                     notificationService.startListening()
                     Log.info("Started notification listener on authenticated app launch", category: .firebase)
 
-                    // Check for premium subscription (sync is premium-only)
-                    let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
-
-                    #if DEBUG
-                    // DEVELOPMENT BYPASS: Enable sync for testing without premium
-                    let shouldEnableSync = true
-                    Log.warning("DEBUG MODE: Bypassing premium check for sync testing", category: .sync)
-                    #else
-                    let shouldEnableSync = subscriptionManager.isPremium
-                    #endif
-
-                    if shouldEnableSync {
-                        // Resolve sync service now (after Firebase is initialized)
-                        let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
-                        syncService.startAutomaticSync()
-                    } else {
-                        Log.info("Sync requires premium subscription - not starting automatic sync", category: .sync)
-                    }
+                    // Cloud sync is now available to all users
+                    // Resolve sync service now (after Firebase is initialized)
+                    let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+                    syncService.startAutomaticSync()
 
                     // Heritage sync moved to AFTER recipe seeding (in ContentView and OnboardingContainerView)
                     // This ensures recipes are seeded before creating the unlock schedule
@@ -865,24 +851,10 @@ struct RootView: View {
                     notificationService.startListening()
                     Log.info("Started notification listener after user sign-in", category: .firebase)
 
-                    // Check for premium subscription (sync is premium-only)
-                    let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
-
-                    #if DEBUG
-                    // DEVELOPMENT BYPASS: Enable sync for testing without premium
-                    let shouldEnableSync = true
-                    Log.warning("DEBUG MODE: Bypassing premium check for sync testing", category: .sync)
-                    #else
-                    let shouldEnableSync = subscriptionManager.isPremium
-                    #endif
-
-                    if shouldEnableSync {
-                        // Resolve sync service now (after Firebase is initialized)
-                        let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
-                        syncService.startAutomaticSync()
-                    } else {
-                        Log.info("Sync requires premium subscription - not starting automatic sync", category: .sync)
-                    }
+                    // Cloud sync is now available to all users
+                    // Resolve sync service now (after Firebase is initialized)
+                    let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+                    syncService.startAutomaticSync()
 
                     // Heritage sync moved to AFTER recipe seeding (in ContentView and OnboardingContainerView)
                     // This ensures recipes are seeded before creating the unlock schedule

@@ -49,8 +49,13 @@ enum HeirloomFonts {
     static let footnote = Font.system(.footnote, weight: .regular)
     static let caption1 = Font.system(.caption, weight: .regular)
     static let caption1Bold = Font.system(.caption, weight: .semibold)
+    static let caption1Medium = Font.system(.caption, weight: .medium)
     static let caption2 = Font.system(.caption2, weight: .regular)
     static let caption2Bold = Font.system(.caption2, weight: .semibold)
+
+    // MARK: - Onboarding-Specific Fonts
+    /// Elevated title for final impact screens (bolder than standard title1)
+    static let title1Elevated = Font.system(.title, design: .serif, weight: .bold)
 
     // MARK: - Special Fonts - Dynamic Type Support
     /// Handwritten-style font that scales with accessibility settings
@@ -109,6 +114,16 @@ enum HeirloomSpacing {
     static let cardPadding: CGFloat = 16
     static let cardCornerRadius: CGFloat = 16
     static let gridSpacing: CGFloat = 16
+
+    // MARK: - Onboarding-Specific Spacing
+    /// Horizontal padding for onboarding screens
+    static let onboardingScreenPadding: CGFloat = 32
+    /// Vertical spacing between major sections in onboarding
+    static let onboardingVerticalSpacing: CGFloat = 40
+    /// Spacing within onboarding sections
+    static let onboardingSectionSpacing: CGFloat = 24
+    /// Spacing between cards in onboarding grids
+    static let onboardingCardSpacing: CGFloat = 16
 }
 
 // MARK: - Shadows

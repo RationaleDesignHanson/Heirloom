@@ -1,0 +1,161 @@
+# SwiftLint Configuration for Heirloom
+# Version: 1.0
+# Last Updated: 2026-01-23
+
+# Disable rules that conflict with project style
+disabled_rules:
+  - trailing_whitespace # We handle this with editor config
+  - todo # TODOs are okay during development
+  - line_length # SwiftUI view builders often exceed this
+  - function_body_length # SwiftUI views can be long
+  - type_body_length # View models can be comprehensive
+  - file_length # Some files are naturally large (generated, migrations)
+  - cyclomatic_complexity # SwiftUI conditionals can be complex
+  - identifier_name # Allow short names like 'id', 'vm', 'db'
+
+# Opt-in rules (enable additional checks)
+opt_in_rules:
+  - empty_count # Use isEmpty instead of count == 0
+  - empty_string # Use isEmpty instead of == ""
+  - contains_over_first_not_nil # Use contains() instead of first(where:) != nil
+  - first_where # Use first(where:) instead of filter().first
+  - sorted_first_last # Use min()/max() instead of sorted().first/last
+  - explicit_init # Avoid .init() when type is obvious
+  - closure_spacing # Space after { and before }
+  - redundant_nil_coalescing # Remove ?? nil
+  - unused_import # Remove unused imports
+  - vertical_whitespace_closing_braces # Remove blank lines before }
+  - vertical_whitespace_opening_braces # Remove blank lines after {
+
+# Only run on Swift source files
+included:
+  - Heirloom
+  - HeirloomTestsV2
+  - HeirloomVideoLab
+
+# Exclude generated and external code
+excluded:
+  - Pods
+  - Carthage
+  - .build
+  - DerivedData
+  - .swiftpm
+  - HeirloomPerformanceTests # Empty directory
+  - HeirloomVideoLabUITests # Template stubs only
+
+# Rule configurations
+type_name:
+  min_length: 2 # Allow short type names like 'AI', 'DB'
+  max_length: 60
+  excluded:
+    - ID # Allow ID as type name
+
+nesting:
+  type_level: 3 # Allow deeper nesting for SwiftUI views
+
+large_tuple:
+  warning: 4 # Allow tuples up to 4 elements
+
+function_parameter_count:
+  warning: 6 # Allow up to 6 parameters
+  error: 8
+
+# Force unwrap/cast are okay in tests
+force_unwrapping:
+  severity: warning # Don't fail build on force unwraps
+
+force_cast:
+  severity: warning # Don't fail build on force casts
+
+# Custom rules
+custom_rules:
+  # Encourage using modern async/await over completion handlers
+  async_over_completion:
+    name: "Prefer async/await"
+    regex: '@escaping \(.*\) -> Void\)'
+    match_kinds:
+      - typeidentifier
+    message: "Consider using async/await instead of completion handlers"
+    severity: warning
+
+  # Discourage print statements (use Log instead)
+  no_print:
+    name: "Use Log instead of print"
+    regex: '\bprint\('
+    match_kinds:
+      - identifier
+    message: "Use Log.debug() instead of print() for better logging"
+    severity: warning
+    excluded: ".*Tests\\.swift" # Allow print in tests
+
+# Analyzer rules (require full compilation, slower but thorough)
+analyzer_rules:
+  - unused_declaration # Warn about unused functions/vars
+  - unused_import # Warn about unused imports
+
+# Reporter (how violations are displayed)
+reporter: "xcode" # Xcode-friendly format for Build Phase integration
+
+# Warnings vs. Errors
+# Treat most issues as warnings (don't block builds)
+# Only critical issues should be errors
+warning_threshold: 100 # Allow up to 100 warnings before failing
+
+# Specific rule severities
+force_try:
+  severity: warning # Allow try! in tests and rare cases
+
+# SwiftUI-specific adjustments
+closure_end_indentation:
+  severity: warning # SwiftUI trailing closures can have odd indentation
+
+# Performance
+# Run in parallel for faster linting
+parallel_linting: true
+
+# Length rules (more permissive for SwiftUI)
+line_length:
+  warning: 140 # Increased from default 120
+  error: 200
+  ignores_function_declarations: true
+  ignores_comments: true
+  ignores_urls: true
+
+function_body_length:
+  warning: 60 # Increased for SwiftUI views
+  error: 100
+
+type_body_length:
+  warning: 400
+  error: 600
+
+file_length:
+  warning: 600
+  error: 1000
+  ignore_comment_only_lines: true
+
+# Naming conventions
+identifier_name:
+  min_length:
+    warning: 2 # Allow 'id', 'vm', 'db', 'ai'
+  max_length:
+    warning: 50
+    error: 60
+  excluded:
+    - id
+    - vm
+    - db
+    - ai
+    - i
+    - j
+    - x
+    - y
+
+# Comments
+# Allow TODO, FIXME, etc. during development
+# (Disabled in disabled_rules above)
+
+# Trailing closures
+# Force trailing closure syntax for readability
+trailing_closure:
+  only_single_muted_parameter: true

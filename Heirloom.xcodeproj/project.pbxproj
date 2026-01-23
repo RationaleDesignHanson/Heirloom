@@ -97,6 +97,7 @@
 		C502EB7A2F2341FD00BF1696 /* PremiumBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB772F2341FD00BF1696 /* PremiumBadge.swift */; };
 		C502EB7B2F2341FD00BF1696 /* FeaturePill.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB762F2341FD00BF1696 /* FeaturePill.swift */; };
 		C502EB7C2F2341FD00BF1696 /* ThreeTierExtractionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C502EB782F2341FD00BF1696 /* ThreeTierExtractionView.swift */; };
+		C502ED0C2F23C94800BF1696 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = C502ED0B2F23C94800BF1696 /* FirebaseCrashlytics */; };
 		C513D42C2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42B2F15EB0300BFCF7D /* OnboardingWelcomeScreen.swift */; };
 		C513D42D2F15EB0300BFCF7D /* OnboardingConceptScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D4292F15EB0300BFCF7D /* OnboardingConceptScreen.swift */; };
 		C513D42E2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D42A2F15EB0300BFCF7D /* OnboardingRecipeSeeder.swift */; };
@@ -699,6 +700,7 @@
 				C56F3E6D2F04A9E000D19743 /* FirebaseCore in Frameworks */,
 				C56F3E712F04A9E000D19743 /* FirebaseStorage in Frameworks */,
 				C56F3E6B2F04A9E000D19743 /* FirebaseAuth in Frameworks */,
+				C502ED0C2F23C94800BF1696 /* FirebaseCrashlytics in Frameworks */,
 				C5E9553E2F056CA2006CD3C2 /* GoogleSignIn in Frameworks */,
 				C58316532F119F060096478E /* WhisperKit in Frameworks */,
 			);
@@ -1910,6 +1912,7 @@
 				E5209DF37ABE613D41FDBEBF /* Resources */,
 				743F7254CFB7CEBC1EDA5A18 /* Frameworks */,
 				C5E955522F05730B006CD3C2 /* Embed Foundation Extensions */,
+				C502ED0E2F23C99D00BF1697 /* Upload Crashlytics dSYMs (Release Only) */,
 			);
 			buildRules = (
 			);
@@ -1925,6 +1928,7 @@
 				C56F3E702F04A9E000D19743 /* FirebaseStorage */,
 				C5E9553D2F056CA2006CD3C2 /* GoogleSignIn */,
 				C58316522F119F060096478E /* WhisperKit */,
+				C502ED0B2F23C94800BF1696 /* FirebaseCrashlytics */,
 			);
 			productName = Heirloom;
 			productReference = 7783D80B7B8AD9C0FBDC0EF7 /* Heirloom.app */;
@@ -2050,6 +2054,30 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C502ED0E2F23C99D00BF1697 /* Upload Crashlytics dSYMs (Release Only) */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"$(PROJECT_DIR)/Heirloom/Resources/GoogleService-Info.plist",
+			);
+			name = "Upload Crashlytics dSYMs (Release Only)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Upload dSYMs to Crashlytics for Release device builds only\n# This ensures production crashes are always symbolicated\n# Only runs for actual device builds (TestFlight/App Store), not simulator\n\nif [ \"${CONFIGURATION}\" = \"Release\" ] && [ \"${EFFECTIVE_PLATFORM_NAME}\" != \"-iphonesimulator\" ]; then\n  # Set the path to GoogleService-Info.plist so Crashlytics can find GOOGLE_APP_ID\n  export GOOGLE_SERVICE_INFO_PLIST=\"${PROJECT_DIR}/Heirloom/Resources/GoogleService-Info.plist\"\n  \"${BUILD_DIR%Build/*}SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4FDBC959138314C7C43945E7 /* Sources */ = {
@@ -2431,7 +2459,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -2558,7 +2586,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2576,7 +2604,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.3;
+				MARKETING_VERSION = 1.12.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2599,7 +2627,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2613,7 +2641,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.3;
+				MARKETING_VERSION = 1.12.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2635,7 +2663,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2645,7 +2673,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.3;
+				MARKETING_VERSION = 1.12.0;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -2666,13 +2694,13 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.3;
+				MARKETING_VERSION = 1.12.0;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -2792,6 +2820,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 204269E1E7116A2340A554FF /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
+		};
+		C502ED0B2F23C94800BF1696 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C56F3E642F04A46600D19743 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
 		};
 		C56F3E6A2F04A9E000D19743 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;

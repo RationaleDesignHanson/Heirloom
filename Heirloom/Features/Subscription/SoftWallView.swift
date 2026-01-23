@@ -11,9 +11,16 @@ import SwiftUI
 struct SoftWallView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showPaywall = false
+    @State private var subscriptionManager: SubscriptionManager
 
     /// The trigger that caused this soft wall to appear
     let trigger: PaywallTrigger
+
+    init(trigger: PaywallTrigger) {
+        self.trigger = trigger
+        let container = ServiceContainer.shared
+        _subscriptionManager = State(initialValue: container.resolve(SubscriptionManager.self))
+    }
 
     var body: some View {
         ZStack {
@@ -22,6 +29,44 @@ struct SoftWallView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: HeirloomSpacing.xl) {
+                // ⭐ Auto Premium debug banner
+                if subscriptionManager.isAutoPremiumEnabled {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Image(systemName: "crown.fill")
+                            Text("AUTO PREMIUM ENABLED")
+                                .font(.caption.bold())
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.orange)
+                        .cornerRadius(8)
+
+                        Button {
+                            // Track bypass
+                            let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+                            analytics.track(event: AnalyticsEvent(name: "soft_wall_debug_bypass"), properties: [
+                                "trigger": trigger.rawValue
+                            ])
+                            // Dismiss soft wall
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.right.circle.fill")
+                                Text("Continue Anyway (Debug)")
+                                    .font(.caption.bold())
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.green)
+                            .cornerRadius(8)
+                        }
+                    }
+                    .padding(.top, 16)
+                }
+
                 Spacer()
 
                 // Lock Icon

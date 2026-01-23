@@ -31,8 +31,9 @@ final class SubscriptionManager {
     private(set) var isRefreshing = false
 
     /// Computed: does user have premium access?
+    /// Returns true if actual premium OR Auto Premium is enabled (debug)
     var isPremium: Bool {
-        status.isPremium
+        return status.isPremium || isAutoPremiumEnabled
     }
 
     /// Computed: is user in trial?
@@ -97,6 +98,39 @@ final class SubscriptionManager {
         static let subscriptionExpiryDate = "subscription_expiry_date"
         static let lastStatusRefresh = "last_subscription_status_refresh"
         static let cachedProductID = "cached_product_id"
+        static let autoPremiumEnabled = "debug_auto_premium_enabled"
+    }
+
+    // MARK: - Auto Premium (Debug Feature)
+
+    /// Enable "Auto Premium" mode for testing
+    /// When enabled: User sees paywalls but they don't block access
+    /// When disabled: Paywalls block access like production
+    /// Defaults: ON in DEBUG builds, OFF in production
+    var isAutoPremiumEnabled: Bool {
+        get {
+            #if DEBUG
+            // Default to true in debug builds if not set
+            if UserDefaults.standard.object(forKey: Keys.autoPremiumEnabled) == nil {
+                return true
+            }
+            return UserDefaults.standard.bool(forKey: Keys.autoPremiumEnabled)
+            #else
+            return false // Always false in production
+            #endif
+        }
+        set {
+            #if DEBUG
+            UserDefaults.standard.set(newValue, forKey: Keys.autoPremiumEnabled)
+            logger.log("Auto Premium \(newValue ? "enabled" : "disabled")", category: .store, level: .info, metadata: nil)
+            #endif
+        }
+    }
+
+    /// Actual premium status (ignores Auto Premium)
+    /// Use this in paywall trigger checks to see if paywall should show
+    var isPremiumActual: Bool {
+        return status.isPremium
     }
 
     // MARK: - Constants

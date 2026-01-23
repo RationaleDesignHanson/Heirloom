@@ -30,7 +30,7 @@ let features: [Feature] = [
     Feature(name: "premiumSubscription", dependencies: [], state: "Released"),
     Feature(name: "videoImport", dependencies: ["recipeManagement", "premiumSubscription"], state: "Released"),
     Feature(name: "asmrProcessing", dependencies: ["videoImport", "premiumSubscription"], state: "Beta"),
-    Feature(name: "cloudSync", dependencies: ["recipeManagement", "premiumSubscription"], state: "Released"),
+    Feature(name: "cloudSync", dependencies: ["recipeManagement"], state: "Released"),
     Feature(name: "cookbookScan", dependencies: ["recipeManagement", "premiumSubscription"], state: "Development"),
 
     // Heritage

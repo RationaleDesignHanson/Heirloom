@@ -19,8 +19,19 @@ class MixpanelService: AnalyticsServiceProtocol {
 
     // MARK: - Initialization
     func initialize() {
-        // Production token: Replace with your actual Mixpanel token
-        let token = isProduction ? "YOUR_PRODUCTION_TOKEN" : "YOUR_DEV_TOKEN"
+        // Read tokens from Info.plist (populated from Config.xcconfig)
+        let token: String
+        if isProduction {
+            token = Bundle.main.object(forInfoDictionaryKey: "MIXPANEL_PRODUCTION_TOKEN") as? String ?? ""
+        } else {
+            token = Bundle.main.object(forInfoDictionaryKey: "MIXPANEL_DEVELOPMENT_TOKEN") as? String ?? ""
+        }
+
+        // Fallback to console analytics if token not configured
+        guard !token.isEmpty && !token.hasPrefix("YOUR_") else {
+            Log.warning("Mixpanel token not configured, falling back to console analytics", category: .general)
+            return
+        }
 
         mixpanel = Mixpanel.initialize(
             token: token,

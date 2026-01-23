@@ -3,6 +3,7 @@ import SwiftData
 import StoreKit
 import FirebaseFirestore
 import FirebaseStorage
+import FirebaseCrashlytics
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
@@ -32,23 +33,20 @@ struct SettingsView: View {
     @State private var isRestoringPurchases = false
     @State private var showDowngradeAlert = false
 
-    // ⚠️ NEW: Firebase Nuke (EXTREMELY DANGEROUS)
-    @State private var showNukePasswordAlert = false
-    @State private var nukePassword = ""
-    @State private var showNukeFinalConfirm = false
-    @State private var isNuking = false
-
     var body: some View {
         NavigationStack {
             List {
                 // Subscription Section
                 subscriptionSection
 
+                // Account Section (moved UP - common user need)
+                accountSection
+
+                // User Experience Section (moved UP - user preferences)
+                userExperienceSection
+
                 // AI Features Section
                 aiSection
-
-                // User Experience Section
-                userExperienceSection
 
                 // Data Management Section
                 dataManagementSection
@@ -56,17 +54,14 @@ struct SettingsView: View {
                 // Heritage Collections Section
                 heritageCollectionsSection
 
-                // Account Section
-                accountSection
-
                 // App Info Section
                 appInfoSection
 
-                // Developer Section (for testing)
-                developerSection
-
                 // Support Section
                 supportSection
+
+                // Developer Section (moved DOWN - debug tools isolated)
+                developerSection
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
@@ -107,35 +102,6 @@ struct SettingsView: View {
                 }
             } message: {
                 Text("To switch from Annual to Monthly, you'll need to manage your subscription in iOS Settings. Your Annual subscription will remain active until it expires, then you can subscribe to Monthly.")
-            }
-            // ⚠️ NEW: Nuke password alert
-            .alert(
-                "☢️ NUCLEAR OPTION",
-                isPresented: $showNukePasswordAlert
-            ) {
-                TextField("Enter Password", text: $nukePassword)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                Button("Cancel", role: .cancel) {
-                    nukePassword = ""
-                }
-                Button("Continue", role: .destructive) {
-                    validateNukePassword()
-                }
-            } message: {
-                Text("⚠️ WARNING: This will DELETE ALL user data from Firebase (users, shares, lineage). Preserves only heritage_recipes and heritage_schedules. Enter password to continue.")
-            }
-            // ⚠️ NEW: Final nuke confirmation
-            .alert(
-                "🔥 FINAL CONFIRMATION",
-                isPresented: $showNukeFinalConfirm
-            ) {
-                Button("Cancel", role: .cancel) {}
-                Button("DELETE EVERYTHING", role: .destructive) {
-                    executeNuke()
-                }
-            } message: {
-                Text("This is your LAST CHANCE. This action will PERMANENTLY DELETE all users, shares, and lineage from Firebase. This CANNOT be undone. Are you absolutely sure?")
             }
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
@@ -206,46 +172,6 @@ struct SettingsView: View {
 
     private var subscriptionSection: some View {
         Section {
-            // ⭐ NEW: Fake Payments Toggle (DEBUG ONLY) - Moved to top for visibility
-            Toggle(isOn: Binding(
-                get: {
-                    ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled
-                },
-                set: { enabled in
-                    UserDefaults.standard.set(enabled, forKey: "debug_fake_payments_enabled")
-
-                    Log.info("Fake payments: \(enabled ? "ENABLED" : "DISABLED")", category: .store)
-
-                    // Show toast notification
-                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-                    if enabled {
-                        toastManager.info(
-                            title: "Fake Payments Enabled",
-                            message: "Subscribe buttons will grant premium without payment"
-                        )
-                    } else {
-                        toastManager.info(
-                            title: "Fake Payments Disabled",
-                            message: "Real StoreKit purchases will be used"
-                        )
-                    }
-                }
-            )) {
-                HStack {
-                    Image(systemName: "theatermasks.fill")
-                        .foregroundStyle(.purple)
-                    VStack(alignment: .leading) {
-                        Text("Fake Payments (Debug)")
-                        Text("Grants premium without real transactions")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .tint(.purple)
-
-            Divider()
-
             // Status row
             LabeledContent("Status", value: subscriptionStatusText)
                 .foregroundStyle(subscriptionStatusColor)
@@ -307,15 +233,6 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                             .padding(.leading, 32)
                     }
-                }
-            }
-
-            // ⭐ NEW: Cancel Fake Subscription (DEBUG ONLY)
-            if subscriptionManager.isPremium && ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled {
-                Button(role: .destructive) {
-                    cancelFakeSubscription()
-                } label: {
-                    Label("Cancel Fake Subscription", systemImage: "xmark.circle.fill")
                 }
             }
 
@@ -463,22 +380,6 @@ struct SettingsView: View {
                 }
             }
 
-            // Test Protection Button (for testing - should be protected)
-            Button(role: .destructive) {
-                testHeritageProtection()
-            } label: {
-                HStack {
-                    Image(systemName: "shield.checkered")
-                        .foregroundStyle(.orange)
-                    Text("Test Heritage Protection")
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Text("(Dev)")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
             Button {
                 showHeritageCleanup = true
             } label: {
@@ -615,19 +516,24 @@ struct SettingsView: View {
 
             NavigationLink {
                 WhatsNewView()
+                    .onAppear {
+                        markWhatsNewAsViewed()
+                    }
             } label: {
                 HStack {
                     Label("What's New", systemImage: "sparkles")
                     Spacer()
-                    Text("NEW")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(HeirloomColors.buttonTextLight)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(
-                            Capsule()
-                                .fill(HeirloomColors.tomato)
-                        )
+                    if showWhatsNewBadge {
+                        Text("NEW")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(
+                                Capsule()
+                                    .fill(HeirloomColors.tomato)
+                            )
+                    }
                 }
             }
 
@@ -666,6 +572,113 @@ struct SettingsView: View {
                 }
             }
 
+            Divider()
+
+            // ⭐ Subscription Testing Tools
+            // Auto Premium Toggle (MOVED FROM SUBSCRIPTION SECTION)
+            Toggle(isOn: Binding(
+                get: {
+                    subscriptionManager.isAutoPremiumEnabled
+                },
+                set: { enabled in
+                    subscriptionManager.isAutoPremiumEnabled = enabled
+
+                    // Show toast notification
+                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                    if enabled {
+                        toastManager.info(
+                            title: "Auto Premium Enabled",
+                            message: "Paywalls will show but won't block access"
+                        )
+                    } else {
+                        toastManager.info(
+                            title: "Auto Premium Disabled",
+                            message: "Paywalls will block access normally"
+                        )
+                    }
+                }
+            )) {
+                HStack {
+                    Image(systemName: "crown.fill")
+                        .foregroundStyle(.orange)
+                    VStack(alignment: .leading) {
+                        Text("Auto Premium (Debug)")
+                        Text("Show paywalls without blocking access")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.orange)
+
+            // Fake Payments Toggle (MOVED FROM SUBSCRIPTION SECTION)
+            Toggle(isOn: Binding(
+                get: {
+                    ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled
+                },
+                set: { enabled in
+                    UserDefaults.standard.set(enabled, forKey: "debug_fake_payments_enabled")
+
+                    Log.info("Fake payments: \(enabled ? "ENABLED" : "DISABLED")", category: .store)
+
+                    // Show toast notification
+                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                    if enabled {
+                        toastManager.info(
+                            title: "Fake Payments Enabled",
+                            message: "Subscribe buttons will grant premium without payment"
+                        )
+                    } else {
+                        toastManager.info(
+                            title: "Fake Payments Disabled",
+                            message: "Real StoreKit purchases will be used"
+                        )
+                    }
+                }
+            )) {
+                HStack {
+                    Image(systemName: "theatermasks.fill")
+                        .foregroundStyle(.purple)
+                    VStack(alignment: .leading) {
+                        Text("Fake Payments (Debug)")
+                        Text("Grants premium without real transactions")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.purple)
+
+            // Cancel Fake Subscription (MOVED FROM SUBSCRIPTION SECTION)
+            if subscriptionManager.isPremium && ServiceContainer.shared.resolve(StoreManager.self).isFakePaymentsEnabled {
+                Button(role: .destructive) {
+                    cancelFakeSubscription()
+                } label: {
+                    Label("Cancel Fake Subscription", systemImage: "xmark.circle.fill")
+                }
+            }
+
+            Divider()
+
+            // ⭐ Feature Testing Tools
+            // Test Heritage Protection (MOVED FROM HERITAGE SECTION)
+            Button(role: .destructive) {
+                testHeritageProtection()
+            } label: {
+                HStack {
+                    Image(systemName: "shield.checkered")
+                        .foregroundStyle(.orange)
+                    Text("Test Heritage Protection")
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Text("(Dev)")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Divider()
+
             // Debug Log Viewer - FILE-BASED LOGGING FOR DEVICE VISIBILITY
             NavigationLink {
                 DebugLogView()
@@ -694,66 +707,43 @@ struct SettingsView: View {
                 }
             }
 
-            // Feature Flags Debug - VIEW AND TOGGLE FEATURE FLAGS
-            // TODO: Re-enable after fixing module visibility
-            // NavigationLink {
-            //     FeatureFlagsDebugView()
-            // } label: {
-            //     HStack {
-            //         Image(systemName: "flag.checkered")
-            //             .foregroundStyle(HeirloomColors.tomato)
-            //         Text("Feature Flags")
-            //         Spacer()
-            //         Text("🚩")
-            //             .font(HeirloomFonts.caption1)
-            //     }
-            // }
-
-            // RevenueCat Toggle - STUB FOR PHASE 3
-            Toggle(isOn: Binding(
-                get: {
-                    UserDefaults.standard.bool(forKey: "feature_revenuecat_enabled")
-                },
-                set: { newValue in
-                    UserDefaults.standard.set(newValue, forKey: "feature_revenuecat_enabled")
-                }
-            )) {
+            #if DEBUG
+            // Test Crashlytics Reporting - VERIFY CRASH REPORTING
+            Button(role: .destructive) {
+                Crashlytics.crashlytics().log("User triggered test crash from Settings")
+                fatalError("Test crash for Crashlytics verification")
+            } label: {
                 HStack {
-                    Image(systemName: "creditcard.fill")
-                        .foregroundStyle(.gray)
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
                     VStack(alignment: .leading) {
-                        Text("Enable RevenueCat (Stub)")
-                        Text("Not yet implemented")
+                        Text("Test Crash Reporting")
+                        Text("Verify Crashlytics is working")
                             .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
                     }
                 }
             }
-            .disabled(true) // Disabled until Phase 3 implementation
+            #endif
 
-            // ⚠️ NEW: NUCLEAR OPTION - DELETE ALL USER DATA FROM FIREBASE
-            Divider()
-
-            Button(role: .destructive) {
-                showNukePasswordAlert = true
+            // Feature Flags Debug - VIEW AND TOGGLE FEATURE FLAGS
+            NavigationLink {
+                FeatureFlagsDebugView()
+                    .environment(ServiceContainer.shared)
             } label: {
                 HStack {
-                    Image(systemName: "flame.fill")
-                        .foregroundStyle(.red)
-                    VStack(alignment: .leading) {
-                        Text("☢️ Nuke Firebase User Data")
-                            .fontWeight(.bold)
-                        Text("⚠️ DANGER: Deletes all users, shares, lineage")
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(.secondary)
-                    }
+                    Image(systemName: "flag.checkered")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    Text("Feature Flags")
+                    Spacer()
+                    Text("🚩")
+                        .font(HeirloomFonts.caption1)
                 }
             }
-            .disabled(isNuking)
         } header: {
             Text("Developer Testing")
         } footer: {
-            Text("Enable 'Force Non-Premium Mode' to test the progressive heritage unlock flow (7 recipes per day). Fake Payments toggle is now in the Subscription section above. RevenueCat integration will be implemented in Phase 3.\n\n⚠️ NUKE WARNING: The nuclear button deletes ALL user data from Firebase (users, shares, lineage). Preserves only heritage_recipes and heritage_schedules. Password required.")
+            Text("Debug features for testing subscription flows and app behavior:\n\n• Auto Premium: See paywalls without blocking access (default ON in debug)\n• Fake Payments: Grant premium without real transactions\n• Force Non-Premium: Test progressive heritage unlock (7 recipes/day)\n• Test Heritage Protection: Verify delete protection for heritage recipes\n\nThese tools are for development only and help ensure the app works correctly for both free and premium users.")
         }
     }
 
@@ -775,28 +765,6 @@ struct SettingsView: View {
                 }
             }
             .pickerStyle(.menu)
-
-            Toggle(isOn: Binding(
-                get: { UserDefaults.standard.object(forKey: "cardFlipHapticsEnabled") as? Bool ?? true },
-                set: { UserDefaults.standard.set($0, forKey: "cardFlipHapticsEnabled") }
-            )) {
-                HStack {
-                    Image(systemName: "hand.tap")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("Card Flip Haptics")
-                }
-            }
-
-            Toggle(isOn: Binding(
-                get: { UserDefaults.standard.object(forKey: "cardFlipSoundEnabled") as? Bool ?? true },
-                set: { UserDefaults.standard.set($0, forKey: "cardFlipSoundEnabled") }
-            )) {
-                HStack {
-                    Image(systemName: "speaker.wave.2")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("Card Flip Sound")
-                }
-            }
         } header: {
             Text("User Experience")
         } footer: {
@@ -1104,60 +1072,6 @@ struct SettingsView: View {
         Log.info("Cancelled fake subscription, restored trial", category: .store)
     }
 
-    // ⚠️ NEW: Nuke Firebase user data (EXTREMELY DANGEROUS)
-    private func validateNukePassword() {
-        let nukeService = FirebaseNukeService()
-
-        if nukeService.validatePassword(nukePassword) {
-            nukePassword = "" // Clear password
-            showNukeFinalConfirm = true
-        } else {
-            nukePassword = ""
-            toastManager.error(
-                title: "Incorrect Password",
-                message: "Access denied"
-            )
-        }
-    }
-
-    private func executeNuke() {
-        isNuking = true
-
-        Task {
-            let nukeService = FirebaseNukeService()
-
-            do {
-                try await nukeService.nukeUserData()
-
-                await MainActor.run {
-                    isNuking = false
-                    toastManager.success(
-                        title: "🔥 Firebase Nuked",
-                        message: "All user data deleted. App state reset."
-                    )
-
-                    // Refresh subscription status to reflect cleared state
-                    Task {
-                        await subscriptionManager.refreshStatus(force: true)
-                    }
-                }
-
-                Log.warning("Firebase nuke completed successfully", category: .store)
-
-            } catch {
-                await MainActor.run {
-                    isNuking = false
-                    toastManager.error(
-                        title: "Nuke Failed",
-                        message: error.localizedDescription
-                    )
-                }
-
-                Log.error("Firebase nuke failed", category: .store, error: error)
-            }
-        }
-    }
-
     private func calculateStorageSize() async {
         // Calculate storage from image files
         let totalSize = await imageStorageService.calculateTotalStorageSize()
@@ -1314,6 +1228,16 @@ struct SettingsView: View {
 
     private var buildNumber: String {
         Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    }
+
+    private var showWhatsNewBadge: Bool {
+        let lastViewedVersion = UserDefaults.standard.string(forKey: "last_viewed_whats_new_version")
+        let currentVersion = appVersion
+        return lastViewedVersion != currentVersion
+    }
+
+    private func markWhatsNewAsViewed() {
+        UserDefaults.standard.set(appVersion, forKey: "last_viewed_whats_new_version")
     }
 
     private func timeAgo(from date: Date) -> String {

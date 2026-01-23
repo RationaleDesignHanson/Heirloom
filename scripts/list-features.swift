@@ -51,7 +51,7 @@ let features: [Feature] = [
     Feature(name: "premiumSubscription", displayName: "Premium Subscription", category: .premium, state: .released, testCoverage: 1.0, requiresPremium: false),
     Feature(name: "videoImport", displayName: "Video Import", category: .premium, state: .released, testCoverage: 0.80, requiresPremium: true),
     Feature(name: "asmrProcessing", displayName: "ASMR Processing", category: .premium, state: .beta, testCoverage: 0.75, requiresPremium: true),
-    Feature(name: "cloudSync", displayName: "Cloud Sync", category: .premium, state: .released, testCoverage: 0.65, requiresPremium: true),
+    Feature(name: "cloudSync", displayName: "Cloud Sync", category: .core, state: .released, testCoverage: 0.65, requiresPremium: false),
     Feature(name: "cookbookScan", displayName: "Cookbook Scan", category: .premium, state: .development, testCoverage: 0.0, requiresPremium: true),
 
     // Heritage

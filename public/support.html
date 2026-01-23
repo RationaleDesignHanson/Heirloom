@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heirloom Support - Recipes Worth Passing Down</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #3D3D3D;
+            background: #FDF6E3;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-family: Georgia, serif;
+            color: #E54B4B;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #D4A574;
+            font-size: 1.1em;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-family: Georgia, serif;
+            color: #2D5A27;
+            font-size: 1.8em;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #FDF6E3;
+            padding-bottom: 5px;
+        }
+
+        h3 {
+            color: #3D3D3D;
+            font-size: 1.3em;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: #F5F5F5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .highlight {
+            background: #FFF9E6;
+            padding: 15px;
+            border-left: 4px solid #D4A574;
+            margin: 20px 0;
+        }
+
+        .contact-box {
+            background: #F0F9F0;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 30px 0;
+            border: 1px solid #2D5A27;
+        }
+
+        a {
+            color: #E54B4B;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .faq-item {
+            margin-bottom: 25px;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #2D5A27;
+            margin-bottom: 5px;
+        }
+
+        .version-info {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Heirloom Support</h1>
+        <p class="subtitle">Recipes Worth Passing Down</p>
+
+        <h2>Getting Started</h2>
+
+        <h3>System Requirements</h3>
+        <ul>
+            <li>iOS 17.0 or later</li>
+            <li>iPhone or iPad</li>
+            <li>iCloud account (optional, for sync across devices)</li>
+            <li>Internet connection (for recipe import and AI features)</li>
+        </ul>
+
+        <h3>First Steps</h3>
+        <ol>
+            <li>Download Heirloom from the App Store or TestFlight</li>
+            <li>Launch the app and grant any requested permissions</li>
+            <li>Start adding recipes by tapping the + button</li>
+            <li>AI features work immediately without any setup</li>
+        </ol>
+
+        <h2>AI Features</h2>
+
+        <div class="highlight">
+            <strong>New in v1.1.0:</strong> AI features now work instantly without requiring an API key. You get 100 free AI-powered recipe imports per day.
+        </div>
+
+        <h3>Default AI Features</h3>
+        <p>Heirloom includes AI-powered features that work out of the box:</p>
+        <ul>
+            <li><strong>Cookbook Scanner:</strong> Snap photos of cookbook recipes and AI extracts ingredients, instructions, and details automatically</li>
+            <li><strong>Smart Ingredient Parsing:</strong> AI understands complex ingredient formats like "1-2 cups flour" or "2 tbsp (1/4 stick) butter"</li>
+            <li><strong>Bulk URL Import:</strong> Import multiple recipe URLs at once, processed in parallel</li>
+        </ul>
+
+        <h3>Daily Quota</h3>
+        <p>With the shared AI key, you can import up to 100 recipes per day. The counter resets at midnight local time. You can check your remaining quota in Settings → AI Features.</p>
+
+        <h3>Unlimited AI Usage (Optional)</h3>
+        <p>For unlimited AI-powered recipe imports:</p>
+        <ol>
+            <li>Open Heirloom → Settings → AI Features</li>
+            <li>Tap "Add Your Own Key (Unlimited)"</li>
+            <li>Visit <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> to create a free account (includes $5 credit)</li>
+            <li>Copy your API key and paste it in Heirloom</li>
+            <li>Your badge will change to "Personal Key" and quota limits are removed</li>
+        </ol>
+
+        <h2>Core Features</h2>
+
+        <h3>Recipe Import</h3>
+        <p>Import recipes from web URLs by tapping the + button and selecting "Import from URL". Heirloom supports 500+ recipe websites including AllRecipes, Serious Eats, King Arthur Baking, NY Times Cooking, and many more.</p>
+
+        <h3>Cookbook Scanner</h3>
+        <p>Digitize printed cookbook recipes:</p>
+        <ol>
+            <li>Tap + → "Scan Cookbook"</li>
+            <li>Take a clear photo of the recipe page (well-lit, flat)</li>
+            <li>AI automatically extracts and structures the recipe</li>
+            <li>Review and save to your collection</li>
+        </ol>
+
+        <h3>Shopping List</h3>
+        <ul>
+            <li>Add recipes to your shopping list from any recipe detail page</li>
+            <li>Ingredients are automatically combined (e.g., 2 cups + 3 cups = 5 cups flour)</li>
+            <li>Export to iOS Reminders to check off items while shopping</li>
+            <li>Group by grocery category for efficient shopping</li>
+        </ul>
+
+        <h3>Cooking Mode</h3>
+        <p>Enter distraction-free cooking mode for step-by-step guidance:</p>
+        <ul>
+            <li>Large, readable text visible from across the kitchen</li>
+            <li>Mark steps complete as you go</li>
+            <li>Tracks how many times you've made each recipe</li>
+            <li>Swipe between steps easily</li>
+        </ul>
+
+        <h3>Recipe Scaling</h3>
+        <p>Adjust serving sizes on the fly. All ingredient quantities recalculate automatically with proper fractions (½, ¾, etc.). Scale from 0.5x to 10x the original recipe.</p>
+
+        <h3>iCloud Sync</h3>
+        <p>Your recipes automatically sync across all your Apple devices via iCloud. Changes on one device appear on all others within seconds.</p>
+
+        <h2>Troubleshooting</h2>
+
+        <h3>Recipe Import Issues</h3>
+
+        <div class="faq-item">
+            <p class="faq-question">Recipe import fails or shows incomplete data</p>
+            <p>Some websites don't provide structured recipe data. Try:</p>
+            <ul>
+                <li>Using the cookbook scanner to photograph the recipe on screen</li>
+                <li>Manually entering the recipe</li>
+                <li>Checking your internet connection</li>
+            </ul>
+        </div>
+
+        <div class="faq-item">
+            <p class="faq-question">Cookbook scanner doesn't recognize text</p>
+            <p>For best results:</p>
+            <ul>
+                <li>Ensure good lighting (natural light works best)</li>
+                <li>Keep the page flat and the camera steady</li>
+                <li>Make sure text is in focus</li>
+                <li>Handwritten recipes may have reduced accuracy</li>
+            </ul>
+        </div>
+
+        <h3>AI Feature Issues</h3>
+
+        <div class="faq-item">
+            <p class="faq-question">AI features not working</p>
+            <ul>
+                <li>Check your internet connection</li>
+                <li>Verify you haven't exceeded the 100/day limit (check Settings → AI Features)</li>
+                <li>If you added a personal API key, verify it's correct</li>
+                <li>The app will automatically fall back to regex parsing if AI is unavailable</li>
+            </ul>
+        </div>
+
+        <div class="faq-item">
+            <p class="faq-question">Hit the 100/day limit</p>
+            <p>Your daily quota resets at midnight local time. You can either:</p>
+            <ul>
+                <li>Wait until midnight for the counter to reset</li>
+                <li>Add your personal Anthropic API key for unlimited usage</li>
+            </ul>
+        </div>
+
+        <h3>iCloud Sync Issues</h3>
+
+        <div class="faq-item">
+            <p class="faq-question">Recipes not syncing between devices</p>
+            <ul>
+                <li>Verify iCloud is enabled: Settings → [Your Name] → iCloud</li>
+                <li>Check that Heirloom has iCloud access</li>
+                <li>Ensure both devices have internet connection</li>
+                <li>First sync can take a few moments</li>
+                <li>Try force-quitting and reopening the app</li>
+            </ul>
+        </div>
+
+        <h3>Shopping List Issues</h3>
+
+        <div class="faq-item">
+            <p class="faq-question">Ingredients not combining correctly</p>
+            <p>Heirloom combines ingredients when they have the same name and compatible units. If ingredients don't combine:</p>
+            <ul>
+                <li>Check that ingredient names match exactly</li>
+                <li>Units must be compatible (cups with cups, not cups with ounces)</li>
+                <li>You can manually edit ingredient quantities in the shopping list</li>
+            </ul>
+        </div>
+
+        <div class="faq-item">
+            <p class="faq-question">Can't export to Reminders</p>
+            <ul>
+                <li>Grant Reminders permission: iOS Settings → Heirloom → Reminders</li>
+                <li>Ensure you have at least one Reminders list created</li>
+                <li>Try creating a new list specifically for groceries</li>
+            </ul>
+        </div>
+
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+            <p class="faq-question">Is Heirloom free?</p>
+            <p>Heirloom is currently in beta testing via TestFlight. Final pricing will be announced before the App Store release. AI features include 100 free imports per day.</p>
+        </div>
+
+        <div class="faq-item">
+            <p class="faq-question">Can I export my recipes?</p>
+            <p>You can share individual recipes as text or images. Full recipe export/import functionality is planned for a future update.</p>
+        </div>
+
+        <div class="faq-item">
+            <p class="faq-question">Does Heirloom work offline?</p>
+            <p>Once recipes are imported, you can view, edit, and cook from them offline. However, importing new recipes from URLs and AI features require an internet connection.</p>
+        </div>
+
+        <div class="faq-item">
+            <p class="faq-question">How many recipes can I store?</p>
+            <p>There's no artificial limit on recipe count. Storage is limited only by your device's available space and iCloud quota.</p>
+        </div>
+
+        <div class="faq-item">
+            <p class="faq-question">What recipe websites are supported?</p>
+            <p>Heirloom supports 500+ recipe websites that use standard schema.org recipe markup, including AllRecipes, Serious Eats, King Arthur Baking, NY Times Cooking, Bon Appétit, Food Network, and many more.</p>
+        </div>
+
+        <div class="faq-item">
+            <p class="faq-question">Can I share recipes with family?</p>
+            <p>You can share recipes as text or images via iOS share sheet. CloudKit sharing for collaborative recipe collections is planned for a future update.</p>
+        </div>
+
+        <h2>Privacy & Security</h2>
+
+        <h3>Data Collection</h3>
+        <p>Heirloom uses Mixpanel for anonymous analytics:</p>
+        <ul>
+            <li>Feature usage patterns (which features are used most)</li>
+            <li>Crash reports (to fix bugs)</li>
+            <li>No personal information is collected</li>
+            <li>No recipe content is sent to analytics</li>
+        </ul>
+
+        <h3>Data Storage</h3>
+        <ul>
+            <li>All recipe data is stored locally on your device</li>
+            <li>iCloud sync uses your personal Apple ID (end-to-end encrypted)</li>
+            <li>Recipe photos stored locally (not synced to save iCloud space)</li>
+            <li>No third parties can access your recipes</li>
+        </ul>
+
+        <h3>AI Privacy</h3>
+        <ul>
+            <li>AI processing via Anthropic's secure API</li>
+            <li>Your recipes are NOT used for AI training (Anthropic policy)</li>
+            <li>Only recipe text is sent to Anthropic (not photos)</li>
+            <li>Personal API keys stored securely in iOS Keychain</li>
+            <li>Shared API key embedded in app (read-only)</li>
+        </ul>
+
+        <h3>Permissions</h3>
+        <p>Heirloom requests the following optional permissions:</p>
+        <ul>
+            <li><strong>Camera:</strong> To photograph cookbook recipes</li>
+            <li><strong>Photo Library:</strong> To add recipe images from your photos</li>
+            <li><strong>Reminders:</strong> To export shopping lists</li>
+        </ul>
+        <p>All permissions are optional. You can use Heirloom without granting any of these.</p>
+
+        <h2>Contact & Feedback</h2>
+
+        <div class="contact-box">
+            <h3>Need Help?</h3>
+            <p>We're here to help! Contact us through:</p>
+            <ul>
+                <li><strong>In-App:</strong> Settings → Send Feedback</li>
+                <li><strong>TestFlight:</strong> Use the feedback form in the TestFlight app</li>
+                <li><strong>Email:</strong> support@rationale.work</li>
+            </ul>
+            <p>We typically respond within 48 hours. For TestFlight issues, please include your iOS version and build number (found in Settings → About).</p>
+        </div>
+
+        <h2>Feature Requests</h2>
+        <p>Have an idea for improving Heirloom? We'd love to hear it! Submit feature requests through the in-app feedback form or email us. Popular requests will be prioritized for future releases.</p>
+
+        <h2>Useful Links</h2>
+        <ul>
+            <li><a href="https://testflight.apple.com/join/gs6EU81Z">Join TestFlight Beta</a></li>
+            <li><a href="https://console.anthropic.com">Get Anthropic API Key (Free $5 Credit)</a></li>
+            <li><a href="https://rationale.work">Rationale - Built by</a></li>
+        </ul>
+
+        <div class="version-info">
+            <p><strong>Current Version:</strong> 1.1.0 (Build 3)</p>
+            <p><strong>Last Updated:</strong> December 2024</p>
+            <p><strong>Compatibility:</strong> iOS 17.0+</p>
+        </div>
+    </div>
+</body>
+</html>

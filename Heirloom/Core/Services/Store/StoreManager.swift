@@ -92,18 +92,23 @@ final class StoreManager {
     private let logger: LoggingService
     private let analytics: AnalyticsService
 
-    // MARK: - RevenueCat Integration (STUBBED)
-    // TODO: Implement RevenueCat SDK integration in Phase 3
-    // - Install RevenueCat SDK via SPM: https://github.com/RevenueCat/purchases-ios
-    // - Configure API key in app initialization
-    // - Replace StoreKit 2 purchase flows with RevenueCat equivalents
-    // - Implement receipt validation via RevenueCat backend
-    // - Set up webhook handlers for subscription events
-
-    /// Feature flag to enable/disable RevenueCat (disabled by default)
+    // MARK: - RevenueCat Integration Point
+    // ============================================================================
+    // **TO SWAP FROM STOREKIT TO REVENUECAT:**
+    //
+    // 1. Change this flag to `true`:
+    /// Feature flag to enable/disable RevenueCat
     private var isRevenueCatEnabled: Bool {
-        UserDefaults.standard.bool(forKey: "feature_revenuecat_enabled")
+        return false  // Change to `true` to enable RevenueCat
+        // UserDefaults.standard.bool(forKey: "feature_revenuecat_enabled")
     }
+    //
+    // 2. Implement `purchaseViaRevenueCat()` method (line ~233)
+    // 3. Add RevenueCat SDK configuration in HeirloomApp.swift init()
+    // 4. See RevenueCatPurchaseService.swift for complete integration guide
+    //
+    // All purchase flows will automatically route through RevenueCat!
+    // ============================================================================
 
     // ⭐ NEW: Fake Payments (DEBUG ONLY - Remove before production)
     // MARK: - Fake Payments (Temporary Debug Feature)

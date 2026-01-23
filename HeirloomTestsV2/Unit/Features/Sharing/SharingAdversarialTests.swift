@@ -24,7 +24,27 @@ final class SharingAdversarialTests: XCTestCase {
         modelContext = try TestRecipeFactory.createTestModelContext()
         mockLogger = MockLoggingService()
         analytics = AnalyticsService()
-        shareService = FirebaseShareService(logger: mockLogger, analytics: analytics)
+
+        // Create real dependencies for FirebaseShareService (they'll work in test mode)
+        let firebaseConfig = FirebaseConfiguration(logger: mockLogger)
+        let firebaseSync = FirebaseSyncService(
+            configuration: firebaseConfig,
+            logger: mockLogger,
+            analytics: analytics
+        )
+        let lineageService = FirebaseLineageService(
+            configuration: firebaseConfig,
+            logger: mockLogger,
+            analytics: analytics
+        )
+
+        shareService = FirebaseShareService(
+            configuration: firebaseConfig,
+            logger: mockLogger,
+            firebaseSync: firebaseSync,
+            lineageService: lineageService,
+            analytics: analytics
+        )
     }
 
     override func tearDown() async throws {
@@ -112,7 +132,11 @@ final class SharingAdversarialTests: XCTestCase {
                 context: modelContext
             )
 
-            let shareResult = try await shareService.createShare(for: recipe)
+            let shareResult = try await shareService.createShare(
+                for: recipe,
+                options: .default,
+                context: modelContext
+            )
             shareIds.insert(shareResult.shareId)
         }
 
@@ -154,7 +178,11 @@ final class SharingAdversarialTests: XCTestCase {
         recipe.instructions = ["<img src=x onerror=alert('XSS')>"]
 
         // When: Create and accept share
-        let shareResult = try await shareService.createShare(for: recipe)
+        let shareResult = try await shareService.createShare(
+            for: recipe,
+            options: .default,
+            context: modelContext
+        )
 
         // Then: Content should be sanitized
         // let acceptedRecipe = try await shareService.acceptShare(shareId: shareResult.shareId, context: modelContext)
@@ -244,7 +272,11 @@ final class SharingAdversarialTests: XCTestCase {
         await withTaskGroup(of: String?.self) { group in
             for _ in 0..<5 {
                 group.addTask {
-                    let result = try? await self.shareService.createShare(for: recipe)
+                    let result = try? await self.shareService.createShare(
+                        for: recipe,
+                        options: .default,
+                        context: self.modelContext
+                    )
                     return result?.shareId
                 }
             }
@@ -304,7 +336,11 @@ final class SharingAdversarialTests: XCTestCase {
         )
 
         // When: Create share
-        let shareResult = try await shareService.createShare(for: recipe)
+        let shareResult = try await shareService.createShare(
+            for: recipe,
+            options: .default,
+            context: modelContext
+        )
 
         // Then: Title should be truncated to reasonable length
         // let acceptedRecipe = try await shareService.acceptShare(shareId: shareResult.shareId, context: modelContext)
@@ -323,7 +359,11 @@ final class SharingAdversarialTests: XCTestCase {
         recipe.instructions = (1...1000).map { "Step \($0)" }
 
         // When: Create share
-        let shareResult = try await shareService.createShare(for: recipe)
+        let shareResult = try await shareService.createShare(
+            for: recipe,
+            options: .default,
+            context: modelContext
+        )
 
         // Then: Should handle large instruction count
         // May truncate or paginate
@@ -434,7 +474,11 @@ final class SharingAdversarialTests: XCTestCase {
         )
 
         // When: Create and accept share
-        let shareResult = try await shareService.createShare(for: recipe)
+        let shareResult = try await shareService.createShare(
+            for: recipe,
+            options: .default,
+            context: modelContext
+        )
         // let acceptedRecipe = try await shareService.acceptShare(shareId: shareResult.shareId, context: modelContext)
 
         // Then: Unicode should be preserved
@@ -454,7 +498,11 @@ final class SharingAdversarialTests: XCTestCase {
         )
 
         // When: Create share
-        let shareResult = try await shareService.createShare(for: recipe)
+        let shareResult = try await shareService.createShare(
+            for: recipe,
+            options: .default,
+            context: modelContext
+        )
 
         // Then: RTL text should be preserved
         XCTAssertNotNil(shareResult, "RTL text preservation interface exists")
@@ -471,7 +519,11 @@ final class SharingAdversarialTests: XCTestCase {
 
         // When: Measure share creation time
         let startTime = Date()
-        let _ = try await shareService.createShare(for: recipe)
+        let _ = try await shareService.createShare(
+            for: recipe,
+            options: .default,
+            context: modelContext
+        )
         let duration = Date().timeIntervalSince(startTime)
 
         // Then: Should complete within 2 seconds

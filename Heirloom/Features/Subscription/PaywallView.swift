@@ -42,20 +42,61 @@ struct PaywallView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: HeirloomSpacing.xl) {
-                // ⭐ NEW: Debug badge when fake payments are active
-                if storeManager.isFakePaymentsEnabled {
-                    HStack {
-                        Image(systemName: "theatermasks.fill")
-                        Text("FAKE PAYMENTS ACTIVE")
-                            .font(.caption.bold())
+                // ⭐ Debug badges
+                VStack(spacing: 8) {
+                    // Fake payments badge
+                    if storeManager.isFakePaymentsEnabled {
+                        HStack {
+                            Image(systemName: "theatermasks.fill")
+                            Text("FAKE PAYMENTS ACTIVE")
+                                .font(.caption.bold())
+                        }
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.purple)
+                        .cornerRadius(8)
                     }
-                    .foregroundStyle(HeirloomColors.buttonTextLight)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.purple)
-                    .cornerRadius(8)
-                    .padding(.top, 8)
+
+                    // Auto Premium badge
+                    if subscriptionManager.isAutoPremiumEnabled {
+                        VStack(spacing: 8) {
+                            HStack {
+                                Image(systemName: "crown.fill")
+                                Text("AUTO PREMIUM ENABLED")
+                                    .font(.caption.bold())
+                            }
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.orange)
+                            .cornerRadius(8)
+
+                            // Continue button (bypass paywall in debug mode)
+                            Button {
+                                // Track bypass
+                                let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+                                analytics.track(event: AnalyticsEvent(name: "paywall_debug_bypass"), properties: [
+                                    "trigger": trigger?.rawValue ?? "unknown"
+                                ])
+                                // Dismiss paywall
+                                dismiss()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "arrow.right.circle.fill")
+                                    Text("Continue Anyway (Debug)")
+                                        .font(.caption.bold())
+                                }
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.green)
+                                .cornerRadius(8)
+                            }
+                        }
+                    }
                 }
+                .padding(.top, 8)
 
                 // Header
                 VStack(spacing: HeirloomSpacing.md) {

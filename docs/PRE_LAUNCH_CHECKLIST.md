@@ -22,11 +22,13 @@ Use this checklist to ensure all critical items are completed before App Store s
 - [x] Rollback procedure documented (`/docs/security/FIRESTORE_ROLLBACK.md`)
 - [x] Security baseline documented (`/docs/security/FIRESTORE_RULES_BASELINE.md`)
 
-### Monitoring & Observability ⚠️ PARTIALLY COMPLETE
+### Monitoring & Observability ✅ COMPLETED
 - [x] Monitoring documentation created (`/docs/monitoring/MONITORING_SETUP.md`)
 - [x] Baseline metrics documented (`/docs/monitoring/BASELINE_METRICS.md`)
-- [ ] **TODO**: Add Firebase Crashlytics to project (**HIGH PRIORITY**)
-- [ ] **TODO**: Configure Mixpanel production token
+- [x] Firebase Crashlytics integrated and configured (2026-01-23)
+- [x] Mixpanel production token configured (2026-01-23)
+- [x] Crashlytics dSYM generation enabled (Debug + Release)
+- [x] Crashlytics upload script configured (Release + Device only)
 - [ ] **TODO**: Set up Slack alerting channels
 - [ ] **TODO**: Test Crashlytics in TestFlight build
 
@@ -220,9 +222,10 @@ swiftlint lint --reporter markdown > swiftlint-report.md
 - [x] Firebase Authentication enabled (Apple, Google)
 - [x] Firestore Database created
 - [x] Cloud Storage enabled
-- [ ] **TODO**: Firestore security rules deployed and tested
+- [x] Firestore security rules fixed and ready for deployment (2026-01-23)
+- [ ] **TODO**: Firestore security rules DEPLOYED to production
 - [ ] **TODO**: Storage security rules reviewed
-- [ ] **TODO**: Firebase Crashlytics enabled
+- [x] Firebase Crashlytics enabled (2026-01-23)
 - [ ] **TODO**: Firebase Performance Monitoring enabled (optional)
 - [ ] **TODO**: Firebase Cloud Functions deployed (if any)
 
@@ -271,7 +274,8 @@ swiftlint lint --reporter markdown > swiftlint-report.md
 
 ### Mixpanel (Analytics)
 - [x] Mixpanel SDK integrated
-- [ ] **TODO**: Production Mixpanel token configured
+- [x] Production Mixpanel token configured (2026-01-23)
+- [x] Development Mixpanel token configured (2026-01-23)
 - [ ] Analytics events verified in Mixpanel dashboard
 - [ ] User properties tracked (recipes count, premium status)
 - [ ] Key funnels created:
@@ -287,12 +291,15 @@ swiftlint lint --reporter markdown > swiftlint-report.md
 - [ ] Audience segmentation configured
 
 ### Crashlytics
-- [ ] **TODO**: Firebase Crashlytics SDK added
-- [ ] Crash reporting tested in debug build
-- [ ] Fatal error handler configured
+- [x] Firebase Crashlytics SDK added (2026-01-23)
+- [x] Crash reporting tested in debug build (2026-01-23)
+- [x] Fatal error handler configured (via FirebaseCrashlytics.Crashlytics)
+- [x] dSYM generation enabled for Debug and Release builds
+- [x] dSYM upload script configured (Release + Device only)
+- [x] Test crash button added to Settings (DEBUG only)
 - [ ] Non-fatal error logging implemented
 - [ ] Breadcrumbs for crash context
-- [ ] Test crash verified in Firebase Console
+- [ ] Test crash verified in TestFlight build
 
 ---
 
@@ -465,17 +472,20 @@ swiftlint lint --reporter markdown > swiftlint-report.md
 
 ### Completed ✅
 - Backups and safety infrastructure
-- CI/CD pipeline fixes
-- Critical security vulnerability fixed (Firestore rules)
+- CI/CD pipeline fixes (GitHub Actions v4, workflow_dispatch)
+- Critical security vulnerability fixed (Firestore rules - needs deployment)
 - Monitoring documentation
 - Build status badges
 - Contributing guidelines
+- **Firebase Crashlytics integration (2026-01-23)**
+- **Mixpanel token configuration (2026-01-23)**
+- **dSYM generation and upload automation (2026-01-23)**
+- **Test crash functionality verified (2026-01-23)**
 
 ### In Progress 🔨
-- Firebase Crashlytics integration
-- Mixpanel token configuration
+- Firestore rules deployment to production
 - Testing infrastructure baseline
-- Firestore rules deployment
+- TestFlight beta testing
 
 ### Not Started ⏳
 - App Store metadata and screenshots

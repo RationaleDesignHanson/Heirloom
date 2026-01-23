@@ -27,6 +27,7 @@ struct OnboardingContainerView: View {
         case shareExtension
         case flexibility
         case organization
+        case subscription // NEW: Optional subscription screen
     }
 
     var body: some View {
@@ -68,8 +69,26 @@ struct OnboardingContainerView: View {
 
             case .organization:
                 OnboardingOrganizationScreen {
-                    completeOnboarding()
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        currentScreen = .subscription
+                    }
                 }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+
+            case .subscription:
+                OnboardingSubscriptionScreen(
+                    onStartTrial: {
+                        // User chose to start trial - complete onboarding
+                        completeOnboarding()
+                    },
+                    onSkip: {
+                        // User chose to continue free - complete onboarding
+                        completeOnboarding()
+                    }
+                )
                 .transition(.asymmetric(
                     insertion: .move(edge: .trailing),
                     removal: .move(edge: .leading)
