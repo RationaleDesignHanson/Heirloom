@@ -355,8 +355,115 @@ class DeepLinkHandler: ObservableObject {
                 return
             }
 
-            // Check if this is a video file import or URL-only import
-            if let fileURL = importData.localVideoURL {
+            // Check for bulk content import FIRST (no file URL)
+            if importData.sourceType == .shareExtensionBulk {
+                // Bulk content from Notes (URLs + optional text recipes)
+                Log.info("Bulk content import detected", category: .general)
+                DeviceLogger.shared.log("📋 [DeepLink] Bulk content import detected")
+
+                guard let bulkContent = importData.bulkContent else {
+                    Log.error("Bulk import missing content", category: .general)
+                    DeviceLogger.shared.log("❌ [DeepLink] Bulk import missing content")
+                    return
+                }
+
+                guard let context = modelContext else {
+                    Log.error("ModelContext not available", category: .general)
+                    DeviceLogger.shared.log("❌ [DeepLink] ModelContext not available - cannot process bulk import")
+                    return
+                }
+
+                // Step 1: If there are URLs, create bulk URL import job
+                if !bulkContent.urls.isEmpty {
+                    Log.info("Processing URLs from bulk content", category: .general, metadata: ["count": bulkContent.urls.count])
+                    DeviceLogger.shared.log("🔗 [DeepLink] Processing \(bulkContent.urls.count) URL(s) from bulk content")
+
+                    do {
+                        let importManager = ServiceContainer.shared.resolve(ImportJobManager.self)
+
+                        // Create bulk URL import job
+                        let job = try importManager.createJob(
+                            urls: bulkContent.urls,
+                            jobName: "Notes Import",
+                            context: context
+                        )
+
+                        Log.info("Bulk URL import job created", category: .general, metadata: ["jobId": job.id.uuidString])
+                        DeviceLogger.shared.log("✅ [DeepLink] Bulk URL import job created: \(job.id.uuidString)")
+
+                        // Show import progress sheet
+                        await MainActor.run {
+                            pendingImportJobID = job.id
+                            showImportProgressSheet = true
+                        }
+
+                        // Start the job (background task)
+                        Task {
+                            do {
+                                try await importManager.startJob(job, context: context)
+                                Log.info("Bulk URL import job completed", category: .general, metadata: ["jobId": job.id.uuidString])
+                                DeviceLogger.shared.log("✅ [DeepLink] Bulk URL import job completed: \(job.id.uuidString)")
+                            } catch {
+                                Log.error("Failed to process bulk URL import job", category: .general, metadata: ["error": error.localizedDescription])
+                                DeviceLogger.shared.log("❌ [DeepLink] Failed to process bulk URL import job: \(error.localizedDescription)")
+                            }
+                        }
+                    } catch {
+                        Log.error("Failed to create bulk URL import job", category: .general, metadata: ["error": error.localizedDescription])
+                        DeviceLogger.shared.log("❌ [DeepLink] Failed to create bulk URL import job: \(error.localizedDescription)")
+                    }
+                }
+
+                // Step 2: If there's recipe text, extract and show selection UI
+                if bulkContent.hasRecipeText, let plainText = bulkContent.plainText {
+                    Log.info("Processing recipe text from bulk content", category: .general, metadata: ["textLength": plainText.count])
+                    DeviceLogger.shared.log("📝 [DeepLink] Processing recipe text from bulk content")
+
+                    // Show loading UI
+                    await MainActor.run {
+                        isExtractingTextRecipes = true
+                        textExtractionProgress = "Extracting recipes from text..."
+                    }
+
+                    do {
+                        // Get AI extractor
+                        let aiExtractor = ServiceContainer.shared.resolve(AIRecipeExtractor.self)
+
+                        // Extract multiple recipes from plain text
+                        Log.info("Extracting recipes from plain text", category: .general)
+                        DeviceLogger.shared.log("🤖 [DeepLink] Extracting recipes from plain text")
+
+                        let result = try await aiExtractor.extractMultipleRecipes(
+                            from: plainText,
+                            sourceImage: nil
+                        )
+
+                        Log.info("Recipe extraction complete", category: .general, metadata: ["count": result.recipes.count])
+                        DeviceLogger.shared.log("✅ [DeepLink] Extracted \(result.recipes.count) recipe(s) from text")
+
+                        // Hide loading UI and show recipe selection sheet
+                        await MainActor.run {
+                            isExtractingTextRecipes = false
+                            textExtractionProgress = ""
+                            pendingTextRecipeResult = result
+                            showTextRecipeSelectionSheet = true
+                        }
+                    } catch {
+                        Log.error("Failed to extract recipes from text", category: .general, metadata: ["error": error.localizedDescription])
+                        DeviceLogger.shared.log("❌ [DeepLink] Failed to extract recipes from text: \(error.localizedDescription)")
+
+                        // Hide loading UI on error
+                        await MainActor.run {
+                            isExtractingTextRecipes = false
+                            textExtractionProgress = ""
+                        }
+                    }
+                }
+
+                // Clean up the pending import after processing
+                await PendingImportManager.shared.delete(id: importID)
+
+            } else if let fileURL = importData.localVideoURL {
                 // Check source type to determine how to handle the file
                 switch importData.sourceType {
                 case .shareExtensionVideo:
@@ -514,113 +621,6 @@ class DeepLinkHandler: ObservableObject {
                             imageExtractionProgress = ""
                         }
                     }
-
-                case .shareExtensionBulk:
-                    // Bulk content from Notes (URLs + optional text recipes)
-                    Log.info("Bulk content import detected", category: .general)
-                    DeviceLogger.shared.log("📋 [DeepLink] Bulk content import detected")
-
-                    guard let bulkContent = importData.bulkContent else {
-                        Log.error("Bulk import missing content", category: .general)
-                        DeviceLogger.shared.log("❌ [DeepLink] Bulk import missing content")
-                        return
-                    }
-
-                    guard let context = modelContext else {
-                        Log.error("ModelContext not available", category: .general)
-                        DeviceLogger.shared.log("❌ [DeepLink] ModelContext not available - cannot process bulk import")
-                        return
-                    }
-
-                    // Step 1: If there are URLs, create bulk URL import job
-                    if !bulkContent.urls.isEmpty {
-                        Log.info("Processing URLs from bulk content", category: .general, metadata: ["count": bulkContent.urls.count])
-                        DeviceLogger.shared.log("🔗 [DeepLink] Processing \(bulkContent.urls.count) URL(s) from bulk content")
-
-                        do {
-                            let importManager = ServiceContainer.shared.resolve(ImportJobManager.self)
-
-                            // Create bulk URL import job
-                            let job = try importManager.createJob(
-                                urls: bulkContent.urls,
-                                jobName: "Notes Import",
-                                context: context
-                            )
-
-                            Log.info("Bulk URL import job created", category: .general, metadata: ["jobId": job.id.uuidString])
-                            DeviceLogger.shared.log("✅ [DeepLink] Bulk URL import job created: \(job.id.uuidString)")
-
-                            // Show import progress sheet
-                            await MainActor.run {
-                                pendingImportJobID = job.id
-                                showImportProgressSheet = true
-                            }
-
-                            // Start the job (background task)
-                            Task {
-                                do {
-                                    try await importManager.startJob(job, context: context)
-                                    Log.info("Bulk URL import job completed", category: .general, metadata: ["jobId": job.id.uuidString])
-                                    DeviceLogger.shared.log("✅ [DeepLink] Bulk URL import job completed: \(job.id.uuidString)")
-                                } catch {
-                                    Log.error("Failed to process bulk URL import job", category: .general, metadata: ["error": error.localizedDescription])
-                                    DeviceLogger.shared.log("❌ [DeepLink] Failed to process bulk URL import job: \(error.localizedDescription)")
-                                }
-                            }
-                        } catch {
-                            Log.error("Failed to create bulk URL import job", category: .general, metadata: ["error": error.localizedDescription])
-                            DeviceLogger.shared.log("❌ [DeepLink] Failed to create bulk URL import job: \(error.localizedDescription)")
-                        }
-                    }
-
-                    // Step 2: If there's recipe text, extract and show selection UI
-                    if bulkContent.hasRecipeText, let plainText = bulkContent.plainText {
-                        Log.info("Processing recipe text from bulk content", category: .general, metadata: ["textLength": plainText.count])
-                        DeviceLogger.shared.log("📝 [DeepLink] Processing recipe text from bulk content")
-
-                        // Show loading UI
-                        await MainActor.run {
-                            isExtractingTextRecipes = true
-                            textExtractionProgress = "Extracting recipes from text..."
-                        }
-
-                        do {
-                            // Get AI extractor
-                            let aiExtractor = ServiceContainer.shared.resolve(AIRecipeExtractor.self)
-
-                            // Extract multiple recipes from plain text
-                            Log.info("Extracting recipes from plain text", category: .general)
-                            DeviceLogger.shared.log("🤖 [DeepLink] Extracting recipes from plain text")
-
-                            let result = try await aiExtractor.extractMultipleRecipes(
-                                from: plainText,
-                                sourceImage: nil
-                            )
-
-                            Log.info("Recipe extraction complete", category: .general, metadata: ["count": result.recipes.count])
-                            DeviceLogger.shared.log("✅ [DeepLink] Extracted \(result.recipes.count) recipe(s) from text")
-
-                            // Hide loading UI and show recipe selection sheet
-                            await MainActor.run {
-                                isExtractingTextRecipes = false
-                                textExtractionProgress = ""
-                                pendingTextRecipeResult = result
-                                showTextRecipeSelectionSheet = true
-                            }
-                        } catch {
-                            Log.error("Failed to extract recipes from text", category: .general, metadata: ["error": error.localizedDescription])
-                            DeviceLogger.shared.log("❌ [DeepLink] Failed to extract recipes from text: \(error.localizedDescription)")
-
-                            // Hide loading UI on error
-                            await MainActor.run {
-                                isExtractingTextRecipes = false
-                                textExtractionProgress = ""
-                            }
-                        }
-                    }
-
-                    // Clean up the pending import after processing
-                    await PendingImportManager.shared.delete(id: importID)
 
                 default:
                     // Legacy or unknown source type - treat as video for backwards compatibility
