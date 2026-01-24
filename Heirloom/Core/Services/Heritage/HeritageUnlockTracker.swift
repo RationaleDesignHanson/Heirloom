@@ -60,6 +60,19 @@ class HeritageUnlockTracker: ObservableObject {
         return max(0, 100 - unlockedRecipeIds.count)
     }
 
+    /// Days remaining in trial period (nil if no trial or expired)
+    var daysRemainingInTrial: Int? {
+        guard let trialStart = trialStartDate else { return nil }
+
+        let calendar = Calendar.current
+        guard let trialEnd = calendar.date(byAdding: .day, value: 14, to: trialStart) else { return nil }
+
+        let daysRemaining = calendar.dateComponents([.day], from: Date(), to: trialEnd).day ?? 0
+
+        // Return nil if trial expired
+        return daysRemaining > 0 ? daysRemaining : nil
+    }
+
     /// Unlock daily batch of heritage recipes
     func unlockDailyBatch(context: ModelContext) async throws {
         // CRITICAL: Check if user is authenticated - if so, use Firebase-backed unlock system

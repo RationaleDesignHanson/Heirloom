@@ -288,12 +288,46 @@ class HeritageOnDemandService {
         return recipe
     }
 
-    /// Fetch heritage collection from local database
+    /// Fetch heritage collection from local database, creating it if it doesn't exist
     private func fetchHeritageCollection(collectionId: String) throws -> RecipeCollection? {
+        // Try to fetch existing collection
         let descriptor = FetchDescriptor<RecipeCollection>(
             predicate: #Predicate { $0.heritageCollectionId == collectionId }
         )
-        return try modelContext.fetch(descriptor).first
+
+        if let existingCollection = try modelContext.fetch(descriptor).first {
+            return existingCollection
+        }
+
+        // Collection doesn't exist - create it dynamically
+        guard let heritageID = RecipeCollection.HeritageCollectionID(rawValue: collectionId) else {
+            Log.warning("Unknown heritage collection ID", category: .heritage, metadata: ["collectionId": collectionId])
+            return nil
+        }
+
+        // Create new collection with metadata from enum
+        let newCollection = RecipeCollection(
+            name: heritageID.displayName,
+            description: heritageID.description,
+            iconName: heritageID.iconName,
+            color: heritageID.color,
+            isSystemCollection: true,
+            heritageCollectionId: collectionId
+        )
+
+        // NOT a blind box - it's a normal revealed collection since it has recipes
+        newCollection.isBlindBox = false
+        newCollection.isRevealed = true
+        newCollection.revealedDate = Date()
+
+        modelContext.insert(newCollection)
+
+        Log.info("Created heritage collection dynamically", category: .heritage, metadata: [
+            "collectionId": collectionId,
+            "name": heritageID.displayName
+        ])
+
+        return newCollection
     }
 
     /// Parse source date string to Date (best effort)

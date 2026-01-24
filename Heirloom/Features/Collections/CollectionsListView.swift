@@ -411,7 +411,12 @@ struct CollectionsListView: View {
                         postTrialBanner(unlockedCount: tracker.totalUnlockedCount)
                     }
 
-                    // Show single mystery collection button that reveals all blind boxes
+                    // Empty heritage state - show download button when no collections exist
+                    if heritageCollections.isEmpty && unlockTracker?.hasUnlocksAvailableToday == true {
+                        emptyHeritageState
+                    }
+
+                    // Show single mystery collection button that reveals all blind boxes (legacy - won't show since seeding disabled)
                     if let firstBlindBox = blindBoxCollections.first {
                         BlindBoxCollectionRow(collection: firstBlindBox) {
                             revealBlindBox(firstBlindBox)
@@ -812,6 +817,78 @@ struct CollectionsListView: View {
             }
         } catch {
             Log.error("Failed to reveal blind boxes", category: .ui, metadata: ["error": error.localizedDescription])
+        }
+    }
+
+    // MARK: - Empty Heritage State
+
+    private var emptyHeritageState: some View {
+        VStack(spacing: HeirloomSpacing.lg) {
+            // Icon
+            Image(systemName: "gift.fill")
+                .font(.system(size: 60))
+                .foregroundStyle(HeirloomColors.familyGreen)
+
+            // Title
+            Text("Daily Heritage Recipes")
+                .font(HeirloomFonts.title2)
+                .foregroundStyle(HeirloomColors.charcoal)
+
+            // Description
+            Text("Unlock 7 classic recipes today")
+                .font(HeirloomFonts.body)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .multilineTextAlignment(.center)
+
+            // Trial countdown badge
+            if let daysRemaining = unlockTracker?.daysRemainingInTrial {
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar")
+                        .font(.caption2)
+                    Text("\(daysRemaining) days left in trial")
+                        .font(HeirloomFonts.caption1)
+                }
+                .foregroundStyle(HeirloomColors.familyGreen)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(HeirloomColors.familyGreen.opacity(0.1))
+                )
+            }
+
+            // Download Button
+            Button {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                downloadTodaysRecipes()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "arrow.down.circle.fill")
+                    Text("Download Today's Recipes")
+                }
+                .font(HeirloomFonts.bodyBold)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
+                .background(HeirloomColors.familyGreen)
+                .cornerRadius(12)
+            }
+        }
+        .padding(40)
+    }
+
+    private func downloadTodaysRecipes() {
+        // Initialize trial period if not started
+        if let tracker = unlockTracker, tracker.trialStartDate == nil {
+            tracker.startTrialPeriod()
+        }
+
+        // Initialize trial subscription if needed
+        subscriptionManager.initializeTrialOnBlindBoxReveal()
+
+        // Download recipes using the same persistence logic
+        Task {
+            await downloadHeritageRecipesWithPersistence()
         }
     }
 

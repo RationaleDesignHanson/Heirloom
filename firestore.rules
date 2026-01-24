@@ -192,6 +192,28 @@ service cloud.firestore {
     }
 
     // ========================================
+    // HERITAGE SCHEDULES (Top-Level - Read-Only)
+    // ========================================
+    match /heritage_schedules/{scheduleId} {
+      // Any authenticated user can read schedules (for daily unlocks)
+      allow read: if isAuthenticated();
+
+      // Only admins can write (via Firebase console/functions)
+      allow write: if false;
+    }
+
+    // ========================================
+    // HERITAGE RECIPES (Top-Level - Read-Only)
+    // ========================================
+    match /heritage_recipes/{recipeId} {
+      // Any authenticated user can read recipes (for downloads)
+      allow read: if isAuthenticated();
+
+      // Only admins can write
+      allow write: if false;
+    }
+
+    // ========================================
     // FALLBACK: Deny all other access
     // ========================================
     match /{document=**} {
