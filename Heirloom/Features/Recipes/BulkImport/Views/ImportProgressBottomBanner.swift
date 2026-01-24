@@ -22,10 +22,12 @@ struct ImportProgressBottomBanner: View {
 
     @State private var selectedJob: ImportJob?
 
-    // Filter to active jobs (only show processing, not completed)
+    // Filter to active jobs (show processing, paused, and failed jobs that can be resumed)
     private var activeJobs: [ImportJob] {
         allJobs.filter { job in
-            job.status == .processing
+            job.status == .processing ||
+            job.status == .paused ||
+            (job.status == .failed && job.canResume)
         }
     }
 
@@ -47,10 +49,20 @@ struct ImportProgressBottomBanner: View {
                     selectedJob = job
                 } label: {
                     HStack(spacing: 12) {
-                        // Icon based on phase
-                        phaseIcon(for: job.phase)
-                            .font(HeirloomFonts.title2)
-                            .foregroundStyle(HeirloomColors.tomato)
+                        // Icon based on status/phase
+                        if job.status == .paused {
+                            Image(systemName: "pause.circle.fill")
+                                .font(HeirloomFonts.title2)
+                                .foregroundStyle(.orange)
+                        } else if job.status == .failed && job.canResume {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(HeirloomFonts.title2)
+                                .foregroundStyle(.orange)
+                        } else {
+                            phaseIcon(for: job.phase)
+                                .font(HeirloomFonts.title2)
+                                .foregroundStyle(HeirloomColors.tomato)
+                        }
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(titleText(for: job))
@@ -116,6 +128,12 @@ struct ImportProgressBottomBanner: View {
             } else {
                 return "Import complete"
             }
+        } else if job.status == .paused {
+            // Paused state
+            return "Import Paused"
+        } else if job.status == .failed && job.canResume {
+            // Failed but can resume
+            return "Import Interrupted"
         } else {
             // Processing state - show phase
             return job.phase.displayName
@@ -133,6 +151,12 @@ struct ImportProgressBottomBanner: View {
             } else {
                 return "\(successCount) recipes added"
             }
+        } else if job.status == .paused {
+            // Paused state - show call to action
+            return "Tap to resume • \(job.completedItems) of \(job.totalItems) recipes"
+        } else if job.status == .failed && job.canResume {
+            // Failed but can resume
+            return "Tap to resume from checkpoint"
         } else {
             // Processing state - show progress
             return "\(job.completedItems) of \(job.totalItems) recipes"

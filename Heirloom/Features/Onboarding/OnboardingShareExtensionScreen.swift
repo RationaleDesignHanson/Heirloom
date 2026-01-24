@@ -32,7 +32,7 @@ struct OnboardingShareExtensionScreen: View {
                     .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
                 // Subtitle
-                Text("One tap from the apps you already use")
+                Text("Share videos, links, or photos to Heirloom from anywhere")
                     .font(HeirloomFonts.body)
                     .foregroundStyle(HeirloomColors.secondaryText)
                     .multilineTextAlignment(.center)
@@ -132,21 +132,14 @@ struct OnboardingShareExtensionScreen: View {
                                 .opacity(isAnimated ? 0.0 : 0.5)
                                 .frame(width: 50, height: 50)
 
-                            // Use actual app icon
-                            if let appIcon = UIImage(named: "AppIcon") {
-                                Image(uiImage: appIcon)
-                                    .resizable()
-                                    .frame(width: 50, height: 50)
-                                    .clipShape(Circle())
-                            } else {
-                                // Fallback to book icon if AppIcon not found
-                                Circle()
-                                    .fill(HeirloomColors.tomato)
-                                    .frame(width: 50, height: 50)
-                                Image(systemName: "book.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundStyle(.white)
-                            }
+                            // Realistic Heirloom app icon representation
+                            Circle()
+                                .fill(HeirloomColors.tomato)
+                                .frame(width: 50, height: 50)
+
+                            Image(systemName: "book.closed.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(.white)
                         }
 
                         Text("Heirloom")

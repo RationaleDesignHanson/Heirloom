@@ -1020,26 +1020,141 @@ struct ShoppingListView: View {
 
     // MARK: - Helper Functions
 
-    /// Normalize ingredient names for better combining
-    /// Examples: "large eggs" → "eggs", "medium onions" → "onions"
+    /// Normalize ingredient names for better combining by extracting the core ingredient name
+    /// Examples: "3 large garlic cloves, minced" → "garlic", "1 large onion, chopped" → "onion"
     private func normalizeIngredientName(_ name: String) -> String {
         var normalized = name.lowercased().trimmingCharacters(in: .whitespaces)
 
-        // Strip common size/quality modifiers from the beginning
-        let prefixesToRemove = [
-            "large ", "medium ", "small ", "extra large ", "xl ", "jumbo ",
-            "fresh ", "dried ", "frozen ", "canned ", "whole ",
-            "ripe ", "unripe ", "raw ", "cooked "
+        // Step 1: Remove leading quantity (numbers, fractions, unicode fractions)
+        normalized = removeLeadingQuantity(from: normalized)
+
+        // Step 2: Remove size/quality descriptors
+        let descriptors = [
+            "large", "medium", "small", "extra large", "xl", "jumbo", "big",
+            "fresh", "dried", "frozen", "canned", "whole",
+            "ripe", "unripe", "raw", "cooked",
+            "organic", "free range", "boneless", "skinless"
         ]
 
-        for prefix in prefixesToRemove {
-            if normalized.hasPrefix(prefix) {
-                normalized = String(normalized.dropFirst(prefix.count))
-                break // Only remove one prefix
+        for descriptor in descriptors {
+            // Remove from anywhere in the text, not just prefix
+            normalized = normalized.replacingOccurrences(of: " \(descriptor) ", with: " ")
+            if normalized.hasPrefix("\(descriptor) ") {
+                normalized = String(normalized.dropFirst(descriptor.count + 1))
             }
         }
 
+        // Step 3: Remove unit words
+        let units = [
+            "clove", "cloves", "piece", "pieces", "slice", "slices",
+            "can", "cans", "package", "packages", "pkg",
+            "cup", "cups", "tbsp", "tablespoon", "tablespoons",
+            "tsp", "teaspoon", "teaspoons",
+            "oz", "oz.", "ounce", "ounces",
+            "lb", "lb.", "pound", "pounds",
+            "gram", "grams", "g", "kg",
+            "bunch", "bunches", "head", "heads",
+            "stick", "sticks", "sprig", "sprigs"
+        ]
+
+        for unit in units {
+            normalized = normalized.replacingOccurrences(of: " \(unit) ", with: " ")
+            if normalized.hasPrefix("\(unit) ") {
+                normalized = String(normalized.dropFirst(unit.count + 1))
+            }
+            if normalized.hasSuffix(" \(unit)") {
+                normalized = String(normalized.dropLast(unit.count + 1))
+            }
+        }
+
+        // Step 4: Remove compound suffixes like "and pepper", "and salt"
+        let compoundSuffixes = [
+            " and pepper", " and salt", " & pepper", " & salt",
+            " and black pepper", " and sea salt"
+        ]
+        for suffix in compoundSuffixes {
+            if normalized.hasSuffix(suffix) {
+                normalized = String(normalized.dropLast(suffix.count))
+            }
+        }
+
+        // Step 5: Extract core name (before comma, parentheses, or "for")
+        if let commaIndex = normalized.firstIndex(of: ",") {
+            normalized = String(normalized[..<commaIndex])
+        }
+        if let parenIndex = normalized.firstIndex(of: "(") {
+            normalized = String(normalized[..<parenIndex])
+        }
+        if normalized.contains(" for ") {
+            let parts = normalized.components(separatedBy: " for ")
+            normalized = parts[0]
+        }
+
+        // Step 6: Clean up extra whitespace
+        normalized = normalized.trimmingCharacters(in: .whitespaces)
+        normalized = normalized.replacingOccurrences(of: "  ", with: " ")
+
+        // Step 7: Singularize (remove trailing 's' if appropriate)
+        // Be careful not to break words like "grass", "glass", "swiss"
+        if normalized.hasSuffix("es") && normalized.count > 3 {
+            // "tomatoes" → "tomatoe" (keep for now)
+        } else if normalized.hasSuffix("s") && !normalized.hasSuffix("ss") && normalized.count > 2 {
+            normalized = String(normalized.dropLast())
+        }
+
         return normalized
+    }
+
+    /// Remove leading quantity from ingredient text (e.g., "3 large garlic" → "large garlic")
+    private func removeLeadingQuantity(from text: String) -> String {
+        var result = text
+        let words = result.split(separator: " ", maxSplits: 3).map(String.init)
+
+        guard !words.isEmpty else { return result }
+
+        var wordsToRemove = 0
+
+        // Check first word for quantity
+        if isQuantityString(words[0]) {
+            wordsToRemove = 1
+
+            // Check second word for fraction (e.g., "1 1/2")
+            if words.count > 1 && isQuantityString(words[1]) {
+                wordsToRemove = 2
+            }
+        }
+
+        if wordsToRemove > 0 {
+            result = words.dropFirst(wordsToRemove).joined(separator: " ")
+        }
+
+        return result
+    }
+
+    /// Check if a string represents a quantity (number, fraction, or unicode fraction)
+    private func isQuantityString(_ str: String) -> Bool {
+        // Check for plain numbers
+        if Double(str) != nil {
+            return true
+        }
+
+        // Check for fractions (1/2, ½, ¼, etc.)
+        let unicodeFractions: Set<Character> = ["¼", "½", "¾", "⅓", "⅔", "⅛", "⅜", "⅝", "⅞"]
+        if str.count == 1, let char = str.first, unicodeFractions.contains(char) {
+            return true
+        }
+
+        // Check for fraction format "1/2" or "1⁄2"
+        if str.contains("/") || str.contains("⁄") {
+            return true
+        }
+
+        // Check for decimal format "0.5"
+        if str.contains(".") && Double(str) != nil {
+            return true
+        }
+
+        return false
     }
 
     // MARK: - Actions

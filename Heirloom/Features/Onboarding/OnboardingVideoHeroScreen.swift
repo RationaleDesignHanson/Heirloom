@@ -21,7 +21,7 @@ struct OnboardingVideoHeroScreen: View {
                     .frame(minHeight: 30, maxHeight: 50)
 
                 // Title
-                Text("Recipes from your\nfavorite creators")
+                Text("Recipes from\nanywhere")
                     .font(HeirloomFonts.largeTitle)
                     .foregroundStyle(HeirloomColors.charcoal)
                     .multilineTextAlignment(.center)

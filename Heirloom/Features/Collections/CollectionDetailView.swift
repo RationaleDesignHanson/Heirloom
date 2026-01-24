@@ -17,6 +17,10 @@ struct CollectionDetailView: View {
     @State private var showDeleteConfirmation = false
     @State private var unlockTracker: HeritageUnlockTracker?
 
+    // Context menu state
+    @State private var recipeToDelete: Recipe?
+    @State private var recipeForCollectionPicker: Recipe?
+
     // Batch selection state (for "All Recipes" collection)
     @State private var isSelectionMode = false
     @State private var selectedRecipeIDs: Set<UUID> = []
@@ -145,6 +149,50 @@ struct CollectionDetailView: View {
                                     RecipeCardView(recipe: recipe)
                                 }
                                 .buttonStyle(.plain)
+                                .contextMenu {
+                                    Button {
+                                        toggleFavorite(recipe)
+                                    } label: {
+                                        Label(
+                                            recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                                            systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
+                                        )
+                                    }
+
+                                    Button {
+                                        toggleShoppingList(recipe)
+                                    } label: {
+                                        Label(
+                                            recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List",
+                                            systemImage: recipe.isInShoppingList ? "cart.badge.minus" : "cart.badge.plus"
+                                        )
+                                    }
+
+                                    Button {
+                                        recipeForCollectionPicker = recipe
+                                    } label: {
+                                        Label("Add to Collection", systemImage: "folder.badge.plus")
+                                    }
+
+                                    // Only show "Remove from Collection" for non-system collections
+                                    if !collection.isSystemCollection {
+                                        Divider()
+
+                                        Button {
+                                            removeRecipeFromCollection(recipe)
+                                        } label: {
+                                            Label("Remove from Collection", systemImage: "minus.circle")
+                                        }
+                                    }
+
+                                    Divider()
+
+                                    Button(role: .destructive) {
+                                        recipeToDelete = recipe
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                             }
                         }
                     }
@@ -232,6 +280,37 @@ struct CollectionDetailView: View {
         .sheet(isPresented: $showVideoImport) {
             UnifiedVideoImportView()
                 .environmentObject(tabCoordinator)
+        }
+        .confirmationDialog(
+            "Delete Recipe?",
+            isPresented: Binding(
+                get: { recipeToDelete != nil },
+                set: { if !$0 { recipeToDelete = nil } }
+            )
+        ) {
+            if let recipe = recipeToDelete {
+                Button("Delete", role: .destructive) {
+                    modelContext.delete(recipe)
+                    try? modelContext.save()
+
+                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                    toastManager.success(title: "Recipe deleted")
+
+                    recipeToDelete = nil
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                recipeToDelete = nil
+            }
+        } message: {
+            if let recipe = recipeToDelete {
+                Text("Are you sure you want to delete \"\(recipe.title)\"? This cannot be undone.")
+            }
+        }
+        .sheet(item: $recipeForCollectionPicker) { recipe in
+            NavigationStack {
+                TagCollectionPickerView(recipe: recipe)
+            }
         }
         .confirmationDialog(
             "Delete \(collection.name)?",
@@ -713,6 +792,111 @@ struct CollectionDetailView: View {
                 toastManager.error(title: "Failed to delete", message: error.localizedDescription)
                 generator.notificationOccurred(.error)
             }
+        }
+    }
+
+    // MARK: - Recipe Context Menu Actions
+
+    private func toggleFavorite(_ recipe: Recipe) {
+        recipe.isFavorite.toggle()
+        recipe.lastModified = Date()
+
+        do {
+            try modelContext.save()
+
+            // Sync to Firebase if active
+            let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
+            if backendConfig.isFirebaseActive {
+                Task {
+                    do {
+                        let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
+                        try await firebaseSync.uploadRecipe(recipe)
+                    } catch {
+                        Log.error("Failed to sync favorite status", category: .sync, error: error)
+                    }
+                }
+            }
+
+            // Haptic feedback
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.impactOccurred()
+
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            let message = recipe.isFavorite ? "Added to favorites" : "Removed from favorites"
+            toastManager.success(title: message)
+        } catch {
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            toastManager.error(
+                title: "Failed to update favorite",
+                message: error.localizedDescription
+            )
+        }
+    }
+
+    private func toggleShoppingList(_ recipe: Recipe) {
+        if let existingCartRecipe = recipe.shoppingCartRecipe(context: modelContext) {
+            // Remove from shopping list
+            modelContext.delete(existingCartRecipe)
+            recipe.isInShoppingList = false
+
+            do {
+                try modelContext.save()
+
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+
+                let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                toastManager.success(title: "Removed from shopping list")
+            } catch {
+                let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                toastManager.error(
+                    title: "Failed to update shopping list",
+                    message: error.localizedDescription
+                )
+            }
+        } else {
+            // Add to shopping list
+            let cartRecipe = ShoppingCartRecipe(recipe: recipe, targetServings: recipe.parsedServingCount)
+            modelContext.insert(cartRecipe)
+            recipe.isInShoppingList = true
+
+            do {
+                try modelContext.save()
+
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+
+                let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                toastManager.success(title: "Added to shopping list")
+            } catch {
+                let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                toastManager.error(
+                    title: "Failed to update shopping list",
+                    message: error.localizedDescription
+                )
+            }
+        }
+    }
+
+    private func removeRecipeFromCollection(_ recipe: Recipe) {
+        guard !collection.isSystemCollection else { return }
+
+        recipe.collections?.removeAll { $0.id == collection.id }
+
+        do {
+            try modelContext.save()
+
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.impactOccurred()
+
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            toastManager.success(title: "Removed from \(collection.name)")
+        } catch {
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            toastManager.error(
+                title: "Failed to remove",
+                message: error.localizedDescription
+            )
         }
     }
 

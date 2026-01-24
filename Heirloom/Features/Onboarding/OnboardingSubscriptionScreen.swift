@@ -152,6 +152,28 @@ struct OnboardingSubscriptionScreen: View {
                         .heirloomShadow(HeirloomShadows.elevated)
                         .disabled(isLoading)
 
+                        // Subscribe Now Button (skip trial)
+                        if let annualProduct = storeManager.products[.annual] {
+                            Button(action: {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                subscribeNow()
+                            }) {
+                                Text("Subscribe Now • \(annualProduct.displayPrice)/year")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 50)
+                                    .background(HeirloomColors.cream)
+                                    .foregroundColor(HeirloomColors.charcoal)
+                                    .cornerRadius(12)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .strokeBorder(HeirloomColors.charcoal.opacity(0.2), lineWidth: 1)
+                                    )
+                            }
+                            .disabled(isLoading)
+                        }
+
                         // Skip Button
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -260,6 +282,52 @@ struct OnboardingSubscriptionScreen: View {
 
                 analytics.track(event: .appLaunched, properties: [
                     "action": "onboarding_trial_failed",
+                    "error": error.errorDescription ?? "unknown"
+                ])
+            }
+        }
+    }
+
+    private func subscribeNow() {
+        isLoading = true
+        errorMessage = nil
+
+        Task {
+            // Track analytics
+            let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+            analytics.track(event: .appLaunched, properties: [
+                "location": "onboarding_subscribe_now"
+            ])
+
+            // Purchase annual subscription immediately (no trial)
+            let result = await storeManager.purchase(.annual)
+
+            switch result {
+            case .success:
+                // Subscription successful
+                Log.info("Direct subscription from onboarding", category: .store)
+                onStartTrial() // Same callback - user is subscribed
+
+            case .cancelled:
+                // User cancelled - just stop loading
+                Log.info("Direct subscription cancelled during onboarding", category: .store)
+                isLoading = false
+
+            case .pending:
+                // Purchase pending - treat as success
+                Log.info("Direct subscription pending", category: .store)
+                onStartTrial()
+
+            case .failed(let error):
+                // Show error but allow continuing
+                errorMessage = error.errorDescription
+                isLoading = false
+                Log.error("Direct subscription failed during onboarding", category: .store, metadata: [
+                    "error": error.errorDescription ?? "unknown"
+                ])
+
+                analytics.track(event: .appLaunched, properties: [
+                    "action": "onboarding_subscribe_failed",
                     "error": error.errorDescription ?? "unknown"
                 ])
             }

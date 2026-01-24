@@ -51,20 +51,6 @@ struct OnboardingOrganizationScreen: View {
             color: "#FF6B6B",
             count: 6,
             isHighlighted: true
-        ),
-        OnboardingConceptScreen.SampleCollection(
-            name: "Quick Meals",
-            icon: "clock.fill",
-            color: "#4ECDC4",
-            count: 0,
-            isHighlighted: false
-        ),
-        OnboardingConceptScreen.SampleCollection(
-            name: "Meal Prep",
-            icon: "tray.2.fill",
-            color: "#95E1D3",
-            count: 0,
-            isHighlighted: false
         )
     ]
 
@@ -122,10 +108,6 @@ struct OnboardingOrganizationScreen: View {
                     .padding(.horizontal, HeirloomSpacing.lg)
                     .allowsHitTesting(false) // Disable taps
 
-                    // Sync Indicator
-                    syncIndicator
-                        .padding(.top, 8)
-
                     Spacer()
                         .frame(height: 20)
 
@@ -159,24 +141,6 @@ struct OnboardingOrganizationScreen: View {
                 showPulse = false
             }
         }
-    }
-
-    // MARK: - Subviews
-
-    private var syncIndicator: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "checkmark.icloud.fill")
-                .font(.system(size: 16))
-                .foregroundStyle(HeirloomColors.familyGreen)
-
-            Text("Syncs across all your devices")
-                .font(HeirloomFonts.caption1)
-                .foregroundStyle(HeirloomColors.secondaryText)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(HeirloomColors.familyGreen.opacity(0.08))
-        .cornerRadius(20)
     }
 
 }
