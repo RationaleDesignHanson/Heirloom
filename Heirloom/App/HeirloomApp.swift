@@ -1101,6 +1101,9 @@ struct ContentView: View {
         Group {
             if hasCompletedOnboarding {
                 mainContent
+                    .environment(ServiceContainer.shared.resolve(SubscriptionManager.self))
+                    .environment(ServiceContainer.shared.resolve(StoreManager.self))
+                    .environment(ServiceContainer.shared.resolve(PaywallManager.self))
             } else {
                 OnboardingContainerView(
                     selectedTab: $tabCoordinator.selectedTab,
@@ -1402,32 +1405,30 @@ struct ContentView: View {
             return
         }
 
-        do {
-            // Create heritage collections (but NO recipes)
-            RecipeCollection.createHeritageCollections(context: modelContainer.mainContext)
+        // DISABLED: Collections now created dynamically when recipes download
+        // This ensures Collections tab is empty initially, showing "Download Today's Recipes" button
+        // RecipeCollection.createHeritageCollections(context: modelContainer.mainContext)
 
-            // Create blind boxes for onboarding
-            let blindBoxSeeder = BlindBoxSeeder(modelContext: modelContainer.mainContext)
-            if !blindBoxSeeder.isSeeded() {
-                try blindBoxSeeder.seedBlindBoxes()
-                Log.info("Heritage blind boxes created", category: .storage)
-                DeviceLogger.shared.log("✅ [Heritage] Blind boxes created (no recipes downloaded)")
-            }
+        // DISABLED: Blind boxes removed - replaced with "Download Today's Recipes" button
+        // Collections appear progressively as recipes are downloaded over 14 days
+        // let blindBoxSeeder = BlindBoxSeeder(modelContext: modelContainer.mainContext)
+        // if !blindBoxSeeder.isSeeded() {
+        //     try blindBoxSeeder.seedBlindBoxes()
+        //     Log.info("Heritage blind boxes created", category: .storage)
+        //     DeviceLogger.shared.log("✅ [Heritage] Blind boxes created (no recipes downloaded)")
+        // }
 
-            // CRITICAL: Check if blind boxes were already revealed on another device
-            // If downloadedRecipeIds exist in Firebase, auto-reveal blind boxes and download recipes
-            await autoRevealBlindBoxesIfNeeded(modelContext: modelContainer.mainContext)
+        // CRITICAL: Check if collections were already created on another device
+        // If downloadedRecipeIds exist in Firebase, recreate collections and download recipes
+        await autoRevealBlindBoxesIfNeeded(modelContext: modelContainer.mainContext)
 
-            // Analytics tracking for heritage setup
-            let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
-            analytics.track(event: .appLaunched, properties: ["heritage_setup": "collections_created"])
-        } catch {
-            Log.error("Failed to setup heritage collections", category: .storage, metadata: ["error": error.localizedDescription])
-            DeviceLogger.shared.log("❌ [Heritage] Failed to setup collections: \(error.localizedDescription)")
-        }
+        // Analytics tracking for heritage setup
+        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+        analytics.track(event: .appLaunched, properties: ["heritage_setup": "collections_created"])
     }
 
-    /// Check Firebase heritageState and auto-reveal blind boxes if already revealed on another device
+    /// Check Firebase heritageState and recreate collections if already downloaded on another device
+    /// NOTE: With blind boxes disabled, this ensures multi-device sync still works
     private func autoRevealBlindBoxesIfNeeded(modelContext: ModelContext) async {
         guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
               let userId = authService.currentUser?.uid else {

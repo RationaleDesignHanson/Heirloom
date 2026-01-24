@@ -582,7 +582,284 @@ struct ShoppingListView: View {
             if let prep = prep {
                 result += " (\(prep))"
             }
-            return result
+
+            // FINAL STEP: Simplify any " + " expressions
+            return simplifyAdditionExpression(result)
+        }
+
+        // MARK: - Addition Expression Simplification
+
+        /// Size descriptors that should NOT be treated as units for combination purposes
+        private static let sizeDescriptors: Set<String> = [
+            "large", "medium", "small", "extra large", "xl", "jumbo", "big",
+            "fresh", "dried", "frozen", "canned", "whole", "ripe", "raw", "cooked"
+        ]
+
+        /// Simplifies addition expressions like "2 large + 3 medium + 3 eggs" → "8 eggs"
+        private func simplifyAdditionExpression(_ text: String) -> String {
+            // Only process if this looks like an addition expression
+            guard text.contains(" + ") else { return text }
+
+            let parts = text.components(separatedBy: " + ")
+            guard parts.count >= 2 else { return text }
+
+            // Extract the ingredient name from the last part
+            guard let (ingredientName, _) = extractIngredientName(from: text) else {
+                return text
+            }
+
+            // Parse each part and collect quantities with their units
+            var quantities: [(qty: Double, unit: String?)] = []
+
+            for part in parts {
+                if let parsed = parseAdditionPart(part.trimmingCharacters(in: .whitespaces), ingredientName: ingredientName) {
+                    quantities.append(parsed)
+                } else {
+                    // Couldn't parse a part - return original
+                    return text
+                }
+            }
+
+            // Check if all parts have compatible units (or no units / size descriptors only)
+            let realUnits = quantities.compactMap { $0.unit }.filter { !Self.sizeDescriptors.contains($0.lowercased()) }
+            let uniqueRealUnits = Set(realUnits.map { normalizeUnit($0) })
+
+            // Case 1: No real units (all unitless or size descriptors) - just sum quantities
+            if uniqueRealUnits.isEmpty {
+                let total = quantities.reduce(0.0) { $0 + $1.qty }
+                let qtyString = formatQuantity(total)
+                return "\(qtyString) \(ingredientName)".trimmingCharacters(in: .whitespaces)
+            }
+
+            // Case 2: Single real unit type - convert and sum
+            if uniqueRealUnits.count == 1 {
+                let targetUnit = uniqueRealUnits.first!
+                var total = 0.0
+
+                for (qty, unit) in quantities {
+                    if let unit = unit, !Self.sizeDescriptors.contains(unit.lowercased()) {
+                        // Has a real unit - convert if needed
+                        let (converted, _) = convertToUnit(qty, fromUnit: normalizeUnit(unit), toUnit: targetUnit)
+                        total += converted
+                    } else {
+                        // No unit or size descriptor - just add quantity
+                        total += qty
+                    }
+                }
+
+                let qtyString = formatQuantity(total)
+                return "\(qtyString) \(targetUnit) \(ingredientName)".trimmingCharacters(in: .whitespaces)
+            }
+
+            // Case 3: Multiple incompatible real units - try to convert to common unit
+            return tryConvertAndCombine(quantities: quantities, ingredientName: ingredientName) ?? text
+        }
+
+        /// Extracts the ingredient name from an addition expression
+        private func extractIngredientName(from text: String) -> (name: String, prep: String?)? {
+            let parts = text.components(separatedBy: " + ")
+            guard let lastPart = parts.last?.trimmingCharacters(in: .whitespaces) else { return nil }
+
+            var words = lastPart.split(separator: " ").map(String.init)
+
+            // Remove leading number
+            if let first = words.first, Double(first) != nil || first.contains("/") || first.contains("⁄") ||
+               first.allSatisfy({ $0.isNumber || $0 == "." || $0 == "/" || "¼½¾⅓⅔⅛⅜⅝⅞".contains($0) }) {
+                words.removeFirst()
+            }
+
+            // Remove unit or size descriptor if present
+            if let first = words.first?.lowercased() {
+                let allUnitsAndDescriptors = Self.sizeDescriptors.union([
+                    "cup", "cups", "tbsp", "tablespoon", "tablespoons", "tsp", "teaspoon", "teaspoons",
+                    "oz", "oz.", "ounce", "ounces", "lb", "lb.", "pound", "pounds",
+                    "gram", "grams", "g", "kg", "kilogram", "kilograms",
+                    "ml", "milliliter", "milliliters", "l", "liter", "liters",
+                    "clove", "cloves", "slice", "slices", "piece", "pieces", "can", "cans",
+                    "pinch", "dash", "bunch", "package", "pkg", "stick", "sticks"
+                ])
+                if allUnitsAndDescriptors.contains(first) {
+                    words.removeFirst()
+                }
+            }
+
+            guard !words.isEmpty else { return nil }
+
+            let name = words.joined(separator: " ")
+            if let parenStart = name.firstIndex(of: "("),
+               let parenEnd = name.lastIndex(of: ")"),
+               parenStart < parenEnd {
+                let prep = String(name[name.index(after: parenStart)..<parenEnd])
+                let cleanName = String(name[..<parenStart]).trimmingCharacters(in: .whitespaces)
+                return (cleanName, prep)
+            }
+
+            return (name, nil)
+        }
+
+        /// Parses a single part of an addition expression
+        private func parseAdditionPart(_ part: String, ingredientName: String) -> (qty: Double, unit: String?)? {
+            var text = part
+
+            // Remove the ingredient name from the end if present
+            let lowerName = ingredientName.lowercased()
+            let lowerText = text.lowercased()
+            if lowerText.hasSuffix(lowerName) {
+                text = String(text.dropLast(ingredientName.count)).trimmingCharacters(in: .whitespaces)
+            }
+
+            guard !text.isEmpty else { return nil }
+
+            let words = text.split(separator: " ").map(String.init)
+            guard !words.isEmpty else { return nil }
+
+            var qty: Double = 0
+            var wordIndex = 0
+
+            if let firstQty = parseQuantityString(words[0]) {
+                qty = firstQty
+                wordIndex = 1
+
+                // Check for mixed number like "1 1/2"
+                if wordIndex < words.count, let fractionPart = parseQuantityString(words[wordIndex]) {
+                    if fractionPart < 1 {
+                        qty += fractionPart
+                        wordIndex += 1
+                    }
+                }
+            } else {
+                return nil
+            }
+
+            let unit = wordIndex < words.count ? words[wordIndex...].joined(separator: " ") : nil
+            return (qty, unit?.isEmpty == true ? nil : unit)
+        }
+
+        /// Parses a quantity string that might be a number, fraction, or unicode fraction
+        private func parseQuantityString(_ str: String) -> Double? {
+            let unicodeFractions: [Character: Double] = [
+                "¼": 0.25, "½": 0.5, "¾": 0.75,
+                "⅓": 1.0/3, "⅔": 2.0/3,
+                "⅛": 0.125, "⅜": 0.375, "⅝": 0.625, "⅞": 0.875
+            ]
+
+            if str.count == 1, let char = str.first, let val = unicodeFractions[char] {
+                return val
+            }
+
+            if let lastChar = str.last, let fracVal = unicodeFractions[lastChar] {
+                let wholePart = String(str.dropLast())
+                if let whole = Double(wholePart) {
+                    return whole + fracVal
+                }
+            }
+
+            if str.contains("/") || str.contains("⁄") {
+                let separator: Character = str.contains("/") ? "/" : "⁄"
+                let parts = str.split(separator: separator)
+                if parts.count == 2,
+                   let num = Double(parts[0]),
+                   let den = Double(parts[1]),
+                   den != 0 {
+                    return num / den
+                }
+            }
+
+            return Double(str)
+        }
+
+        /// Attempts to convert all quantities to a common unit and combine
+        private func tryConvertAndCombine(quantities: [(qty: Double, unit: String?)], ingredientName: String) -> String? {
+            let toTeaspoons: [String: Double] = [
+                "tsp": 1, "teaspoon": 1,
+                "tbsp": 3, "tablespoon": 3,
+                "cup": 48,
+                "pint": 96,
+                "quart": 192,
+                "gallon": 768
+            ]
+
+            let toGrams: [String: Double] = [
+                "g": 1, "gram": 1,
+                "kg": 1000, "kilogram": 1000,
+                "oz": 28.35, "oz.": 28.35, "ounce": 28.35,
+                "lb": 453.6, "lb.": 453.6, "pound": 453.6
+            ]
+
+            var totalTeaspoons: Double = 0
+            var totalGrams: Double = 0
+            var isVolume = false
+            var isWeight = false
+            var hasUnitless = false
+
+            for (qty, unit) in quantities {
+                guard let unit = unit else {
+                    hasUnitless = true
+                    continue
+                }
+
+                let normalized = normalizeUnit(unit)
+
+                if Self.sizeDescriptors.contains(normalized.lowercased()) {
+                    hasUnitless = true
+                    continue
+                }
+
+                if let factor = toTeaspoons[normalized.lowercased()] {
+                    totalTeaspoons += qty * factor
+                    isVolume = true
+                } else if let factor = toGrams[normalized.lowercased()] {
+                    totalGrams += qty * factor
+                    isWeight = true
+                }
+            }
+
+            if (isVolume && isWeight) || (hasUnitless && (isVolume || isWeight)) {
+                return nil
+            }
+
+            if isVolume {
+                let (resultQty, resultUnit) = convertFromTeaspoons(totalTeaspoons)
+                let qtyString = formatQuantity(resultQty)
+                return "\(qtyString) \(resultUnit) \(ingredientName)"
+            }
+
+            if isWeight {
+                let (resultQty, resultUnit) = convertFromGrams(totalGrams)
+                let qtyString = formatQuantity(resultQty)
+                return "\(qtyString) \(resultUnit) \(ingredientName)"
+            }
+
+            return nil
+        }
+
+        private func convertFromTeaspoons(_ tsp: Double) -> (Double, String) {
+            if tsp >= 48 {
+                return (tsp / 48, "cup")
+            } else if tsp >= 3 {
+                return (tsp / 3, "tbsp")
+            } else {
+                return (tsp, "tsp")
+            }
+        }
+
+        private func convertFromGrams(_ g: Double) -> (Double, String) {
+            if g >= 1000 {
+                return (g / 1000, "kg")
+            } else if g >= 453.6 {
+                return (g / 453.6, "lb")
+            } else if g >= 28.35 {
+                return (g / 28.35, "oz")
+            } else {
+                return (g, "g")
+            }
+        }
+
+        private func convertToUnit(_ qty: Double, fromUnit: String, toUnit: String) -> (Double, String) {
+            if fromUnit.lowercased() == toUnit.lowercased() {
+                return (qty, toUnit)
+            }
+            return (qty, fromUnit)
         }
 
         /// Normalize unit for comparison (lowercase, singular form)

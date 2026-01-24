@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Displays the 3-tier extraction cascade for video-to-recipe
-/// Shows Listen (audio) → Read (OCR) → See (visual) with Premium badge
+/// Shows Listen (audio) → Read (OCR) → See (visual)
 struct ThreeTierExtractionView: View {
     @State private var isAnimated = false
 
@@ -32,12 +32,12 @@ struct ThreeTierExtractionView: View {
                 delay: 0.1
             )
 
-            // Tier 3: Visual (Premium)
+            // Tier 3: Visual
             extractionTier(
                 icon: "eye.fill",
                 label: "See",
                 description: "Visual frame analysis",
-                isPremium: true,
+                isPremium: false,
                 delay: 0.2
             )
         }
