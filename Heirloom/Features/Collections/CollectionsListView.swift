@@ -1313,20 +1313,9 @@ struct CollectionRow: View {
             let recipes = collection.recipes ?? []
             return recipes.filter { tracker.isUnlocked($0) }.count
         }
-        // For user collections, compute count from fresh fetch
-        let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate<Recipe> { recipe in
-                recipe.collections.contains { $0.id == collection.id }
-            }
-        )
-
-        do {
-            let recipes = try modelContext.fetch(descriptor)
-            return recipes.count
-        } catch {
-            // Fallback to relationship count
-            return collection.recipes?.count ?? 0
-        }
+        // For user collections, force refresh and use relationship count
+        modelContext.processPendingChanges()
+        return collection.recipes?.count ?? 0
     }
 
     var body: some View {
