@@ -28,6 +28,7 @@ struct RecipeImportView: View {
     @State private var importError: String?
     @State private var isSaving = false
     @State private var showSoftWall = false
+    @State private var navigateToRecipe: Recipe?
 
     // Init for manual URL entry
     init() {
@@ -95,6 +96,9 @@ struct RecipeImportView: View {
             }
             .sheet(isPresented: $showSoftWall) {
                 SoftWallView(trigger: .urlImport)
+            }
+            .navigationDestination(item: $navigateToRecipe) { recipe in
+                RecipeDetailView(recipe: recipe)
             }
         }
     }
@@ -473,10 +477,13 @@ struct RecipeImportView: View {
                 "used_ai_parsing": aiConfig.enableAIParsing
             ])
 
+            // Navigate to new recipe instead of dismissing
+            await MainActor.run {
+                navigateToRecipe = recipe
+            }
+
             // Notify coordinator of recipe creation for cross-tab navigation
             tabCoordinator.didCreateRecipe()
-
-            dismiss()
         } catch {
             toastManager.error(
                 title: "Failed to save recipe",
