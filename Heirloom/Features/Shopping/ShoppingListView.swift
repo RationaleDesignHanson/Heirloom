@@ -447,7 +447,7 @@ struct ShoppingListView: View {
                     return !a.isCheckedOff // unchecked first
                 }
                 // Secondary: Alphabetical by name
-                return a.displayName < b.displayName
+                return a.displayText < b.displayText
             }
             return (key, sortedIngredients)
         })
