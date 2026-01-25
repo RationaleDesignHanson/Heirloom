@@ -1862,6 +1862,9 @@ extension RecipeDetailView {
         recipe.isFavorite.toggle()
         recipe.lastModified = Date()
 
+        // Sync with Favorites collection
+        syncFavoritesCollection()
+
         Log.info("Toggling favorite status", category: .ui, metadata: ["title": recipe.title, "isFavorite": recipe.isFavorite])
         Log.debug("Firebase backend configuration", category: .firebase, metadata: ["isFirebaseActive": backendConfig.isFirebaseActive])
 
@@ -1908,6 +1911,49 @@ extension RecipeDetailView {
 
         // Track analytics
         analytics.trackRecipeFavorited(recipe: recipe, isFavorite: recipe.isFavorite)
+    }
+
+    private func syncFavoritesCollection() {
+        // Fetch Favorites system collection
+        let descriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate { collection in
+                collection.name == "Favorites" && collection.isSystemCollection
+            }
+        )
+
+        guard let favoritesCollection = try? modelContext.fetch(descriptor).first else {
+            // Favorites collection doesn't exist - create it
+            let favorites = RecipeCollection(
+                name: "Favorites",
+                description: "Your favorite recipes",
+                iconName: "heart.fill",
+                color: "#FF6B6B",
+                isSystemCollection: true
+            )
+            modelContext.insert(favorites)
+
+            if recipe.isFavorite {
+                if recipe.collections == nil {
+                    recipe.collections = [favorites]
+                } else {
+                    recipe.collections?.append(favorites)
+                }
+            }
+            return
+        }
+
+        // Sync membership based on isFavorite boolean
+        if recipe.isFavorite {
+            // Add to Favorites if not already there
+            if recipe.collections == nil {
+                recipe.collections = [favoritesCollection]
+            } else if !recipe.collections!.contains(where: { $0.id == favoritesCollection.id }) {
+                recipe.collections?.append(favoritesCollection)
+            }
+        } else {
+            // Remove from Favorites
+            recipe.collections?.removeAll { $0.id == favoritesCollection.id }
+        }
     }
 
     private var isInShoppingCart: Bool {

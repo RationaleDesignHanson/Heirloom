@@ -1299,6 +1299,9 @@ struct CollectionRow: View {
     var totalRecipeCount: Int? = nil // For "All Recipes" collection
     @State private var unlockTracker: HeritageUnlockTracker?
 
+    @Environment(\.modelContext) private var modelContext
+    @Query private var allRecipes: [Recipe] // Force context refresh
+
     private var displayCount: Int {
         // For "All Recipes" collection, show total count from parameter
         if collection.isAllRecipes, let count = totalRecipeCount {
@@ -1310,8 +1313,9 @@ struct CollectionRow: View {
             let recipes = collection.recipes ?? []
             return recipes.filter { tracker.isUnlocked($0) }.count
         }
-        // For user collections, show total count
-        return collection.recipeCount
+        // For user collections, force refresh and use relationship count
+        modelContext.processPendingChanges()
+        return collection.recipes?.count ?? 0
     }
 
     var body: some View {
