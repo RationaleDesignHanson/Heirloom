@@ -377,33 +377,32 @@ struct CollectionsListView: View {
             if heritageCollections.isEmpty && systemCollections.isEmpty && userCollections.isEmpty {
                 emptyUserCollectionsView
             } else {
-                LazyVStack(spacing: HeirloomSpacing.sm) {
+                LazyVStack(spacing: HeirloomSpacing.lg) {
                     // System collections (Favorites, Quick Meals, etc.) - shown first
                     ForEach(systemCollections, id: \.id) { collection in
-                        CollectionRow(
-                            collection: collection,
-                            totalRecipeCount: collection.isAllRecipes ? allRecipes.count : nil
-                        )
-                        .onTapGesture {
-                            selectedCollection = collection
+                        NavigationLink(value: collection) {
+                            CollectionCardView(collection: collection)
                         }
+                        .buttonStyle(.plain)
                     }
 
                     // User collections (with delete context menu) - shown second
                     ForEach(userCollections, id: \.id) { collection in
-                        CollectionRow(collection: collection)
-                            .onTapGesture {
-                                selectedCollection = collection
+                        NavigationLink(value: collection) {
+                            CollectionCardView(collection: collection)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                collectionToDelete = collection
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete Collection", systemImage: "trash")
                             }
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    collectionToDelete = collection
-                                    showDeleteConfirmation = true
-                                } label: {
-                                    Label("Delete Collection", systemImage: "trash")
-                                }
-                            }
+                        }
                     }
+                }
+                .padding(.horizontal, HeirloomSpacing.lg)
 
                     // Post-trial banner (if trial expired and has heritage content)
                     if subscriptionManager.isTrialExpired && !subscriptionManager.isPremium && !heritageCollections.isEmpty,
