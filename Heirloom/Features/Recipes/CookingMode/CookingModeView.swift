@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
+import AVFoundation
 
 struct CookingModeView: View {
     let recipe: Recipe
@@ -495,7 +496,10 @@ struct CookingModeView: View {
     private func timerComplete() {
         cancelTimer()
 
-        // Play haptic feedback
+        // Play audible alarm sound (system sound)
+        AudioServicesPlayAlertSound(SystemSoundID(1005)) // Glass chime
+
+        // Also play haptic feedback for extra emphasis
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
 
