@@ -319,7 +319,7 @@ struct ShoppingListView: View {
                             HStack(spacing: HeirloomSpacing.xs) {
                                 Image(systemName: "square.stack.3d.up.fill")
                                     .font(HeirloomFonts.caption2)
-                                Text("From \(combinedIngredient.recipeCount) recipes")
+                                Text("From \(combinedIngredient.recipeCount) recipe\(combinedIngredient.recipeCount == 1 ? "" : "s")")
                                     .font(HeirloomFonts.caption2)
                                 Image(systemName: "chevron.right")
                                     .font(HeirloomFonts.caption2)
@@ -439,7 +439,20 @@ struct ShoppingListView: View {
             grouped[value.category]?.append(combinedIngredient)
         }
 
-        return grouped
+        // Add stable sort within each category
+        let sortedDict = Dictionary(uniqueKeysWithValues: grouped.map { key, value in
+            let sortedIngredients = value.sorted { a, b in
+                // Primary: Completion status (unchecked first)
+                if a.isCheckedOff != b.isCheckedOff {
+                    return !a.isCheckedOff // unchecked first
+                }
+                // Secondary: Alphabetical by name
+                return a.displayName < b.displayName
+            }
+            return (key, sortedIngredients)
+        })
+
+        return sortedDict
     }
 
     // MARK: - Combined Ingredient Helper
@@ -1013,8 +1026,12 @@ struct ShoppingListView: View {
             scaledIngredients.allSatisfy { $0.originalIngredient.isCheckedOff }
         }
 
-        var recipeCount: Int {
+        var instanceCount: Int {
             scaledIngredients.count
+        }
+
+        var recipeCount: Int {
+            Set(scaledIngredients.map { $0.originalIngredient.recipe.id }).count
         }
     }
 
@@ -1232,12 +1249,14 @@ struct ShoppingListView: View {
     }
 
     private func toggleCombinedIngredient(_ combinedIngredient: CombinedIngredient) {
-        // Toggle all ORIGINAL ingredients in the combined group
-        let newState = !combinedIngredient.isCheckedOff
-        for scaledIngredient in combinedIngredient.scaledIngredients {
-            scaledIngredient.originalIngredient.isCheckedOff = newState
+        withAnimation(.easeInOut(duration: 0.25)) {
+            // Toggle all ORIGINAL ingredients in the combined group
+            let newState = !combinedIngredient.isCheckedOff
+            for scaledIngredient in combinedIngredient.scaledIngredients {
+                scaledIngredient.originalIngredient.isCheckedOff = newState
+            }
+            try? modelContext.save()
         }
-        try? modelContext.save()
 
         // Add haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .light)
