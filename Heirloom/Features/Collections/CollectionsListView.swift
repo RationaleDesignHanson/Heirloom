@@ -1299,6 +1299,9 @@ struct CollectionRow: View {
     var totalRecipeCount: Int? = nil // For "All Recipes" collection
     @State private var unlockTracker: HeritageUnlockTracker?
 
+    @Environment(\.modelContext) private var modelContext
+    @Query private var allRecipes: [Recipe] // Force context refresh
+
     private var displayCount: Int {
         // For "All Recipes" collection, show total count from parameter
         if collection.isAllRecipes, let count = totalRecipeCount {
@@ -1310,8 +1313,20 @@ struct CollectionRow: View {
             let recipes = collection.recipes ?? []
             return recipes.filter { tracker.isUnlocked($0) }.count
         }
-        // For user collections, show total count
-        return collection.recipeCount
+        // For user collections, compute count from fresh fetch
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { recipe in
+                recipe.collections.contains { $0.id == collection.id }
+            }
+        )
+
+        do {
+            let recipes = try modelContext.fetch(descriptor)
+            return recipes.count
+        } catch {
+            // Fallback to relationship count
+            return collection.recipes?.count ?? 0
+        }
     }
 
     var body: some View {
