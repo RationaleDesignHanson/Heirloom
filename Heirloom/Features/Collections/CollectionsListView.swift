@@ -401,8 +401,6 @@ struct CollectionsListView: View {
                             }
                         }
                     }
-                }
-                .padding(.horizontal, HeirloomSpacing.lg)
 
                     // Post-trial banner (if trial expired and has heritage content)
                     if subscriptionManager.isTrialExpired && !subscriptionManager.isPremium && !heritageCollections.isEmpty,
@@ -443,7 +441,7 @@ struct CollectionsListView: View {
                             }
                     }
                 }
-                .padding(.horizontal, HeirloomSpacing.md)
+                .padding(.horizontal, HeirloomSpacing.lg)
             }
         }
     }
