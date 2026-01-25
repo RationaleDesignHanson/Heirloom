@@ -440,8 +440,8 @@ struct ShoppingListView: View {
         }
 
         // Add stable sort within each category
-        let sortedDict = Dictionary(uniqueKeysWithValues: grouped.map { key, value in
-            let sortedIngredients = value.sorted { a, b in
+        let sortedDict = Dictionary(uniqueKeysWithValues: grouped.map { (key: GroceryCategory, value: [CombinedIngredient]) -> (GroceryCategory, [CombinedIngredient]) in
+            let sortedIngredients = value.sorted { (a: CombinedIngredient, b: CombinedIngredient) -> Bool in
                 // Primary: Completion status (unchecked first)
                 if a.isCheckedOff != b.isCheckedOff {
                     return !a.isCheckedOff // unchecked first
@@ -1031,7 +1031,7 @@ struct ShoppingListView: View {
         }
 
         var recipeCount: Int {
-            Set(scaledIngredients.map { $0.originalIngredient.recipe.id }).count
+            Set(scaledIngredients.compactMap { $0.originalIngredient.recipe?.id }).count
         }
     }
 
