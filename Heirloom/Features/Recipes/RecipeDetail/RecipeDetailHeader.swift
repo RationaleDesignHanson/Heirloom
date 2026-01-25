@@ -28,13 +28,32 @@ struct RecipeDetailHeader: View {
                 .foregroundStyle(HeirloomColors.charcoal)
 
             // Source Badge
-            HStack(spacing: HeirloomSpacing.xs) {
-                Image(systemName: recipe.sourceType?.iconName ?? "square.and.pencil")
-                    .font(HeirloomFonts.caption1)
-                Text(recipe.sourceDisplayName)
-                    .font(HeirloomFonts.caption1)
+            if let sourceURL = recipe.sourceURL,
+               let url = URL(string: sourceURL),
+               recipe.sourceType == .url {
+                // Tappable link for URL sources
+                Link(destination: url) {
+                    HStack(spacing: HeirloomSpacing.xs) {
+                        Image(systemName: "globe")
+                            .font(HeirloomFonts.caption1)
+                        Text(recipe.sourceDisplayName)
+                            .font(HeirloomFonts.caption1)
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.system(size: 10))
+                            .opacity(0.7)
+                    }
+                    .foregroundStyle(HeirloomColors.tomato)
+                }
+            } else {
+                // Non-tappable for manual/family/heritage sources
+                HStack(spacing: HeirloomSpacing.xs) {
+                    Image(systemName: recipe.sourceType?.iconName ?? "square.and.pencil")
+                        .font(HeirloomFonts.caption1)
+                    Text(recipe.sourceDisplayName)
+                        .font(HeirloomFonts.caption1)
+                }
+                .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
             }
-            .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
 
             // Action Buttons
             HStack(spacing: HeirloomSpacing.md) {

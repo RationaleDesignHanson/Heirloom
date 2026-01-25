@@ -175,25 +175,27 @@ struct CookingModeView: View {
                 if let ingredients = recipe.ingredients, !ingredients.isEmpty {
                     VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
                         Text("Ingredients")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(HeirloomColors.primaryText)
                             .textCase(.uppercase)
 
-                        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                            ForEach(ingredients.prefix(5)) { ingredient in
-                                HStack(spacing: HeirloomSpacing.xs) {
+                        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                            ForEach(ingredients.prefix(4)) { ingredient in
+                                HStack(spacing: HeirloomSpacing.sm) {
                                     Image(systemName: "circle.fill")
-                                        .font(.system(size: 4))
+                                        .font(.system(size: 8))
                                         .foregroundStyle(HeirloomColors.tomato)
 
                                     Text(scaledIngredientText(ingredient))
-                                        .font(HeirloomFonts.caption1)
-                                        .foregroundStyle(HeirloomColors.secondaryText)
+                                        .font(.system(size: 18, weight: .medium))
+                                        .foregroundStyle(HeirloomColors.primaryText)
+                                        .lineLimit(2)
                                 }
+                                .padding(.vertical, HeirloomSpacing.xxs)
                             }
 
-                            if ingredients.count > 5 {
-                                Text("+ \(ingredients.count - 5) more")
+                            if ingredients.count > 4 {
+                                Text("+ \(ingredients.count - 4) more")
                                     .font(HeirloomFonts.caption2)
                                     .foregroundStyle(HeirloomColors.secondaryText)
                                     .padding(.leading, 8)
