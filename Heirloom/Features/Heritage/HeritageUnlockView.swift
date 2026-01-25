@@ -90,16 +90,22 @@ struct HeritageUnlockView: View {
 
     private var heroSection: some View {
         VStack(spacing: HeirloomSpacing.md) {
-            Image(systemName: "sparkles")
+            Image(systemName: "book.pages.fill")
                 .font(.system(size: 64))
-                .foregroundStyle(.orange.gradient)
+                .foregroundStyle(.brown.gradient)
 
-            Text("Heritage Collection")
+            Text("Heritage Collections")
                 .font(HeirloomFonts.title2)
 
+            Text("Family recipes passed down through generations")
+                .font(HeirloomFonts.body)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, HeirloomSpacing.lg)
+
             if let tracker = unlockTracker {
-                Text("\(tracker.unlockedRecipeIds.count) of 100 unlocked")
-                    .font(HeirloomFonts.body)
+                Text("\(tracker.unlockedRecipeIds.count) of 100 recipes discovered")
+                    .font(HeirloomFonts.subheadline)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
 
@@ -382,25 +388,25 @@ struct HeritageUnlockView: View {
             CollectionCard(
                 id: "presidential-pantry",
                 name: "Presidential Pantry",
-                icon: "flag.fill",
+                icon: "building.columns.fill",
                 color: .blue
             )
             CollectionCard(
                 id: "literary-kitchen",
                 name: "Literary Kitchen",
-                icon: "book.fill",
+                icon: "book.closed.fill",
                 color: .purple
             )
             CollectionCard(
                 id: "ancient-table",
                 name: "Ancient Table",
-                icon: "scroll.fill",
+                icon: "leaf.fill",
                 color: .brown
             )
             CollectionCard(
                 id: "american-foundation",
                 name: "American Foundation",
-                icon: "star.fill",
+                icon: "house.fill",
                 color: .red
             )
         }
