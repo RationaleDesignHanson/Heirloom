@@ -70,6 +70,7 @@ struct CollectionsListView: View {
             collection.type == .fromFriends ||
             collection.type == .videoImports ||
             collection.type == .webImports ||
+            collection.type == .photoImports ||
             collection.type == .cookbook ||
             collection.type == .userCreated
         }

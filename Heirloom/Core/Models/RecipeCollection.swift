@@ -117,6 +117,8 @@ final class RecipeCollection {
             return "\(recipeCount) video recipe\(recipeCount == 1 ? "" : "s")"
         case .webImports:
             return "\(recipeCount) web recipe\(recipeCount == 1 ? "" : "s")"
+        case .photoImports:
+            return "\(recipeCount) photo recipe\(recipeCount == 1 ? "" : "s")"
         case .cookbook:
             if let cookbook = sourceCookbook {
                 return "From \(cookbook)"

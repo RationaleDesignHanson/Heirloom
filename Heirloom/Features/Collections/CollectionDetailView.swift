@@ -964,6 +964,8 @@ struct CollectionDetailView: View {
             return "video"
         case .webImports:
             return "link"
+        case .photoImports:
+            return "photo"
         case .cookbook:
             return "book.closed"
         default:
@@ -981,6 +983,8 @@ struct CollectionDetailView: View {
             return "No Video Imports Yet"
         case .webImports:
             return "No Web Imports Yet"
+        case .photoImports:
+            return "No Photo Imports Yet"
         case .cookbook:
             return "No Cookbook Recipes Yet"
         default:
@@ -998,8 +1002,10 @@ struct CollectionDetailView: View {
             return "Recipes from video transcriptions will appear here. Import a cooking video to get started."
         case .webImports:
             return "Recipes you save from websites will appear here. Try pasting a recipe URL to get started."
+        case .photoImports:
+            return "Recipes from photos (recipe cards, screenshots, handwritten recipes) will appear here. Snap a photo to get started."
         case .cookbook:
-            return "Recipes from scanned cookbooks will appear here. Use the cookbook scanner to get started."
+            return "Recipes from multi-page cookbook scans will appear here. Use the cookbook scanner to get started."
         default:
             return "Add recipes to this collection to see them here."
         }
@@ -1013,6 +1019,8 @@ struct CollectionDetailView: View {
             return "Import Video"
         case .webImports:
             return "Import from Web"
+        case .photoImports:
+            return "Import Photo"
         case .cookbook:
             return "Scan Cookbook"
         case .userCreated:
@@ -1033,6 +1041,10 @@ struct CollectionDetailView: View {
         case .webImports:
             tabCoordinator.willCreateRecipe(from: .collectionDetail)
             showImportRecipe = true
+        case .photoImports:
+            // TODO: Implement single-photo OCR import
+            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+            showImportRecipe = true  // For now, use URL import (can add photo picker later)
         case .cookbook:
             tabCoordinator.willCreateRecipe(from: .collectionDetail)
             showCookbookScanner = true

@@ -77,6 +77,22 @@ class CollectionRouter {
         ])
     }
 
+    /// Route a recipe imported from photo OCR (single image: recipe cards, screenshots, handwritten recipes)
+    func routePhotoImport(_ recipe: Recipe) {
+        let collection = findOrCreateCollection(
+            name: "From Photos",
+            type: .photoImports,
+            iconName: "photo.fill"
+        )
+
+        // Add to collection
+        addRecipeToCollection(recipe, collection: collection)
+
+        Log.info("Routed photo import to From Photos", category: .collections, metadata: [
+            "recipe": recipe.title
+        ])
+    }
+
     /// Route recipes imported from a cookbook
     func routeCookbookImport(_ recipes: [Recipe], cookbookName: String) {
         // Clean up cookbook name

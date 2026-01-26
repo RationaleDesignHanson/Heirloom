@@ -24,7 +24,10 @@ enum CollectionType: String, Codable, CaseIterable {
     /// Recipes imported via URL (not from cookbook)
     case webImports = "webImports"
 
-    /// Recipes imported from a scanned/imported cookbook
+    /// Recipes from single-photo OCR (recipe cards, screenshots, handwritten recipes)
+    case photoImports = "photoImports"
+
+    /// Recipes imported from multi-page cookbook scans (CookbookScannerView)
     case cookbook = "cookbook"
 
     /// User-created custom collections
@@ -39,6 +42,7 @@ enum CollectionType: String, Codable, CaseIterable {
         case .fromFriends: return "From Friends"
         case .videoImports: return "From Videos"
         case .webImports: return "From Web"
+        case .photoImports: return "From Photos"
         case .cookbook: return "From Cookbooks"
         case .userCreated: return "My Collection"
         }
@@ -51,6 +55,7 @@ enum CollectionType: String, Codable, CaseIterable {
         case .fromFriends: return "person.2.fill"
         case .videoImports: return "video.fill"
         case .webImports: return "link"
+        case .photoImports: return "photo.fill"
         case .cookbook: return "book.closed.fill"
         case .userCreated: return "folder.fill"
         }
@@ -60,7 +65,7 @@ enum CollectionType: String, Codable, CaseIterable {
     var isVisibleInMainList: Bool {
         switch self {
         case .system: return false
-        case .theme, .fromFriends, .videoImports, .webImports, .cookbook, .userCreated: return true
+        case .theme, .fromFriends, .videoImports, .webImports, .photoImports, .cookbook, .userCreated: return true
         }
     }
 
@@ -71,8 +76,9 @@ enum CollectionType: String, Codable, CaseIterable {
         case .fromFriends: return 0
         case .videoImports: return 1
         case .webImports: return 2
-        case .cookbook: return 3
-        case .userCreated: return 4
+        case .photoImports: return 3
+        case .cookbook: return 4
+        case .userCreated: return 5
         case .theme: return 10  // Themes appear AFTER My Collections
         case .system: return 99
         }
