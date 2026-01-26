@@ -15,8 +15,7 @@ struct CollectionDetailView: View {
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
     @State private var showDeleteConfirmation = false
-    // TODO: Re-enable for theme unlocking in Phase A3
-    // @State private var unlockTracker: ThemeUnlockTracker?
+    @EnvironmentObject private var unlockTracker: ThemeUnlockTracker
 
     // Context menu state
     @State private var recipeToDelete: Recipe?
@@ -59,12 +58,10 @@ struct CollectionDetailView: View {
             recipe.collections?.contains(where: { $0.id == collection.id }) ?? false
         }
 
-        // TODO: Re-enable filtering for locked theme recipes in Phase A3
         // Filter out locked theme recipes
-        // if collection.type == .theme {
-        //     guard let tracker = unlockTracker else { return collectionRecipes }
-        //     return collectionRecipes.filter { tracker.isUnlocked($0) }
-        // }
+        if collection.type == .theme {
+            return collectionRecipes.filter { unlockTracker.isUnlocked($0) }
+        }
 
         return collectionRecipes
     }

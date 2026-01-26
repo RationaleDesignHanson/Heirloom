@@ -28,6 +28,14 @@ actor ThemeRecipeService {
 
     /// Download all recipes for a specific theme
     func downloadRecipesForTheme(themeId: String, into context: ModelContext) async throws -> [Recipe] {
+        // Get the theme to access unlock schedule
+        let themeDescriptor = FetchDescriptor<RecipeTheme>(
+            predicate: #Predicate { $0.firebaseId == themeId }
+        )
+        guard let theme = try? context.fetch(themeDescriptor).first else {
+            throw ThemeRecipeError.invalidData("Theme not found: \(themeId)")
+        }
+
         // Fetch recipes from Firebase
         let recipesSnapshot = try await firestore
             .collection("themes")
@@ -38,25 +46,34 @@ actor ThemeRecipeService {
 
         var recipes: [Recipe] = []
 
-        for document in recipesSnapshot.documents {
+        for (index, document) in recipesSnapshot.documents.enumerated() {
             do {
-                let recipe = try await parseRecipe(from: document, themeId: themeId)
-
-                // Check if recipe already exists locally
-                let recipeId = recipe.id
-                let descriptor = FetchDescriptor<Recipe>(
-                    predicate: #Predicate { $0.id == recipeId }
+                // Check if recipe already exists locally by Firebase document ID
+                let firebaseDocId = document.documentID
+                let existingDescriptor = FetchDescriptor<Recipe>(
+                    predicate: #Predicate { recipe in
+                        recipe.themeRecipeId == firebaseDocId && recipe.sourceThemeId == themeId
+                    }
                 )
 
-                if let existing = try? context.fetch(descriptor).first {
-                    // Update existing recipe
-                    updateRecipe(existing, from: recipe)
-                    recipes.append(existing)
+                let recipe: Recipe
+                if let existing = try? context.fetch(existingDescriptor).first {
+                    // Recipe already exists - skip to avoid duplicates
+                    recipe = existing
                 } else {
-                    // Insert new recipe
+                    // Parse and insert new recipe
+                    recipe = try await parseRecipe(from: document, themeId: themeId)
                     context.insert(recipe)
-                    recipes.append(recipe)
                 }
+
+                // Assign unlock day based on position and theme schedule
+                recipe.unlockDay = assignUnlockDay(
+                    recipeIndex: index,
+                    totalRecipes: recipesSnapshot.documents.count,
+                    unlockSchedule: theme.unlockSchedule
+                )
+
+                recipes.append(recipe)
             } catch {
                 Log.error("Failed to parse recipe", category: .theme, metadata: [
                     "themeId": themeId,
@@ -74,6 +91,19 @@ actor ThemeRecipeService {
         ])
 
         return recipes
+    }
+
+    /// Assign unlock day to a recipe based on its position and theme schedule
+    /// Distributes recipes evenly across unlock days
+    private func assignUnlockDay(recipeIndex: Int, totalRecipes: Int, unlockSchedule: [Int]) -> Int {
+        guard !unlockSchedule.isEmpty else { return 1 }
+
+        // Distribute recipes evenly across unlock days
+        let recipesPerDay = Double(totalRecipes) / Double(unlockSchedule.count)
+        let dayIndex = Int(Double(recipeIndex) / recipesPerDay)
+        let clampedIndex = min(dayIndex, unlockSchedule.count - 1)
+
+        return unlockSchedule[clampedIndex]
     }
 
     private func parseRecipe(from document: QueryDocumentSnapshot, themeId: String) async throws -> Recipe {
@@ -138,17 +168,6 @@ actor ThemeRecipeService {
         recipe.instructions = instructions
 
         return recipe
-    }
-
-    private func updateRecipe(_ existing: Recipe, from new: Recipe) {
-        existing.title = new.title
-        existing.notes = new.notes
-        existing.prepTime = new.prepTime
-        existing.cookTime = new.cookTime
-        existing.servings = new.servings
-        existing.firebaseImageURL = new.firebaseImageURL
-        existing.instructions = new.instructions
-        // Note: ingredients are complex to update, skip for now
     }
 
     private func formatTime(_ value: Any?) -> String? {

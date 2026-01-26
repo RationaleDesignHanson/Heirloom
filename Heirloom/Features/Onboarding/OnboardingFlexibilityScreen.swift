@@ -79,45 +79,8 @@ struct OnboardingFlexibilityScreen: View {
                     .padding(.horizontal, HeirloomSpacing.lg)
                     .padding(.top, 24)
 
-                    // Divider
-                    Rectangle()
-                        .fill(HeirloomColors.secondaryText.opacity(0.2))
-                        .frame(height: 1)
-                        .padding(.horizontal, 40)
-                        .padding(.vertical, 24)
-
-                    // Feature Pills Section
-                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                        Text("Key Features")
-                            .font(HeirloomFonts.bodyBold)
-                            .foregroundStyle(HeirloomColors.charcoal)
-                            .padding(.horizontal, HeirloomSpacing.lg)
-                            .padding(.bottom, 8)
-
-                        VStack(spacing: HeirloomSpacing.sm) {
-                            FeaturePill(
-                                icon: "arrow.triangle.branch",
-                                title: "Recipe Lineage",
-                                description: "Track recipe versions and edits"
-                            )
-
-                            FeaturePill(
-                                icon: "person.text.rectangle",
-                                title: "Creator Attribution",
-                                description: "Auto-credits original creators"
-                            )
-
-                            FeaturePill(
-                                icon: "calendar",
-                                title: "Meal Planning",
-                                description: "Plan weekly meals & dinner parties"
-                            )
-                        }
-                        .padding(.horizontal, HeirloomSpacing.lg)
-                    }
-
                     Spacer()
-                        .frame(height: 24)
+                        .frame(height: 40)
 
                     // Continue Button
                     Button {

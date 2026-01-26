@@ -161,6 +161,15 @@ class ThemeUnlockTracker: ObservableObject {
         }
     }
 
+    /// Check if a recipe is unlocked (based on unlockDay and current trial day)
+    func isUnlocked(_ recipe: Recipe) -> Bool {
+        // If recipe doesn't have an unlock day, it's unlocked by default
+        guard let unlockDay = recipe.unlockDay else { return true }
+
+        // Recipe is unlocked if its unlock day is <= current trial day
+        return unlockDay <= currentTrialDay
+    }
+
     /// Reset trial (for testing or re-onboarding)
     func resetTrial() {
         userDefaults.removeObject(forKey: Keys.trialStartDate)

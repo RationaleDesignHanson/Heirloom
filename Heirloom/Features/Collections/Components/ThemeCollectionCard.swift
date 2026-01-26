@@ -10,18 +10,22 @@ import SwiftUI
 struct ThemeCollectionCard: View {
     let collection: RecipeCollection
     let currentDay: Int
+    let unlockTracker: ThemeUnlockTracker
 
     private var theme: RecipeTheme? {
         collection.sourceTheme
     }
 
     private var recipeImages: [Recipe] {
-        Array((collection.recipes ?? []).prefix(3))
+        // Get first 3 unlocked recipes for display
+        let unlockedRecipes = (collection.recipes ?? []).filter { unlockTracker.isUnlocked($0) }
+        return Array(unlockedRecipes.prefix(3))
     }
 
     private var unlockProgress: (unlocked: Int, total: Int) {
-        let unlocked = collection.recipes?.count ?? 0
-        let total = theme?.totalRecipes ?? unlocked
+        // Count unlocked recipes vs total recipes
+        let unlocked = (collection.recipes ?? []).filter { unlockTracker.isUnlocked($0) }.count
+        let total = theme?.totalRecipes ?? (collection.recipes?.count ?? 0)
         return (unlocked, total)
     }
 

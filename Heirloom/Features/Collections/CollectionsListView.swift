@@ -450,7 +450,8 @@ struct CollectionsListView: View {
                 NavigationLink(value: collection) {
                     ThemeCollectionCard(
                         collection: collection,
-                        currentDay: themeUnlockTracker.currentTrialDay
+                        currentDay: themeUnlockTracker.currentTrialDay,
+                        unlockTracker: themeUnlockTracker
                     )
                 }
                 .buttonStyle(.plain)
