@@ -13,7 +13,8 @@ struct TrialExpiredView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    @State private var unlockTracker: HeritageUnlockTracker?
+    // TODO: Re-enable for theme unlocking in Phase A3
+    // @State private var unlockTracker: ThemeUnlockTracker?
     @State private var subscriptionManager: SubscriptionManager?
     @State private var showPaywall = false
     @State private var showExportSheet = false
@@ -87,11 +88,12 @@ struct TrialExpiredView: View {
                 .font(HeirloomFonts.title2)
                 .fontWeight(.bold)
 
-            if let tracker = unlockTracker {
-                Text("You unlocked \(tracker.unlockedRecipeIds.count) heritage recipes")
-                    .font(HeirloomFonts.body)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-            }
+            // TODO: Re-enable for theme unlocking in Phase A3
+            // if let tracker = unlockTracker {
+            //     Text("You unlocked \(tracker.unlockedRecipeIds.count) theme recipes")
+            //         .font(HeirloomFonts.body)
+            //         .foregroundStyle(HeirloomColors.secondaryText)
+            // }
         }
         .padding(.top)
     }
@@ -292,9 +294,10 @@ struct TrialExpiredView: View {
     // MARK: - Helpers
 
     private func initializeServices() {
-        if unlockTracker == nil {
-            unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
-        }
+        // TODO: Re-enable for theme unlocking in Phase A3
+        // if unlockTracker == nil {
+        //     unlockTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+        // }
         if subscriptionManager == nil {
             subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
         }

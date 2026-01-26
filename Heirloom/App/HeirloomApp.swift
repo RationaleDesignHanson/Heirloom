@@ -99,6 +99,9 @@ struct HeirloomApp: App {
     // Notification delegate for handling notification taps
     @StateObject private var notificationDelegate = NotificationDelegate()
 
+    // Theme unlock tracker for progressive theme recipe unlocking
+    @StateObject private var themeUnlockTracker = ThemeUnlockTracker()
+
     // Test environment detection - computed once at initialization
     private let isRunningTests: Bool
 
@@ -294,6 +297,7 @@ struct HeirloomApp: App {
                         notificationService: notificationService
                     )
                         .environmentObject(deepLinkCoordinator!)
+                        .environmentObject(themeUnlockTracker)
                     .onOpenURL { url in
                         Log.info("WindowGroup received URL", category: .general, metadata: ["url": url.absoluteString])
                         logger.info("📱 WindowGroup received URL: \(url.absoluteString)")
@@ -313,10 +317,9 @@ struct HeirloomApp: App {
                         checkSharedContainerForPendingImport()
                     }
                     .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
-                        // Schedule collection image refresh when app backgrounds
-                        CollectionImageRefreshTask.scheduleRefresh()
-                        Log.info("App entering background - scheduled collection image refresh", category: .general)
-                        DeviceLogger.shared.log("✅ [App] Scheduled overnight collection image refresh")
+                        // TODO: Schedule collection image refresh when implemented for theme collections
+                        Log.info("App entering background", category: .general)
+                        DeviceLogger.shared.log("✅ [App] Entered background")
                     }
                 } else {
                     // Test environment - show minimal view
@@ -419,13 +422,8 @@ struct HeirloomApp: App {
                 // Create system collections on first launch (handles migration idempotently)
                 RecipeCollection.createSystemCollections(context: container.mainContext)
 
-                // Create heritage collections on first launch
-                RecipeCollection.createHeritageCollections(context: container.mainContext)
-
-                // CRITICAL: DO NOT seed heritage recipes here!
-                // Heritage seeding now happens AFTER sign-in to ensure Firebase state syncs properly
-                // See: preOnboardingSignInView.onChange and OnboardingContainerView.onAppear
-                DeviceLogger.shared.log("✅ [Heritage] Collections created - recipes will seed after auth")
+                // TODO: Theme collections will be created during onboarding theme selection
+                DeviceLogger.shared.log("✅ System collections created")
             }
 
             // Firebase sync configuration
@@ -674,16 +672,16 @@ struct HeirloomApp: App {
             self.handleVideoProcessingBackgroundTask(task: task as! BGProcessingTask)
         }
 
-        // Register collection image refresh background task
-        BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: CollectionImageRefreshTask.taskIdentifier,
-            using: nil
-        ) { task in
-            self.handleCollectionImageRefreshTask(task: task as! BGProcessingTask)
-        }
+        // TODO: Register collection image refresh background task when implemented for theme collections
+        // BGTaskScheduler.shared.register(
+        //     forTaskWithIdentifier: CollectionImageRefreshTask.taskIdentifier,
+        //     using: nil
+        // ) { task in
+        //     self.handleCollectionImageRefreshTask(task: task as! BGProcessingTask)
+        // }
 
         Log.info("Background tasks registered", category: .general)
-        DeviceLogger.shared.log("✅ [BackgroundTasks] Video processing and collection image refresh tasks registered")
+        DeviceLogger.shared.log("✅ [BackgroundTasks] Video processing task registered")
     }
 
     private func handleVideoProcessingBackgroundTask(task: BGProcessingTask) {
@@ -719,38 +717,12 @@ struct HeirloomApp: App {
         }
     }
 
-    private func handleCollectionImageRefreshTask(task: BGProcessingTask) {
-        Log.info("Collection image refresh background task started", category: .general)
-        DeviceLogger.shared.log("🔄 [BackgroundTasks] Collection image refresh started")
-
-        // Schedule expiration handler
-        task.expirationHandler = {
-            Log.warning("Collection image refresh task expired", category: .general)
-            DeviceLogger.shared.log("⚠️ [BackgroundTasks] Image refresh task expired")
-            task.setTaskCompleted(success: false)
-        }
-
-        // Run refresh task
-        Task { @MainActor in
-            guard let container = self.modelContainer else {
-                task.setTaskCompleted(success: false)
-                return
-            }
-
-            let generator = ServiceContainer.shared.resolve(CollectionImageGenerator.self)
-            let refreshTask = CollectionImageRefreshTask(generator: generator, modelContainer: container)
-
-            await refreshTask.refreshCollectionImages()
-
-            // Mark task as complete
-            task.setTaskCompleted(success: true)
-            Log.info("Collection image refresh task completed", category: .general)
-            DeviceLogger.shared.log("✅ [BackgroundTasks] Image refresh completed")
-
-            // Schedule next run
-            CollectionImageRefreshTask.scheduleRefresh()
-        }
-    }
+    // TODO: Implement collection image refresh task for theme collections
+    // private func handleCollectionImageRefreshTask(task: BGProcessingTask) {
+    //     Log.info("Collection image refresh background task started", category: .general)
+    //     DeviceLogger.shared.log("🔄 [BackgroundTasks] Collection image refresh started")
+    //     task.setTaskCompleted(success: false)
+    // }
 
     private func scheduleNextBackgroundTask() {
         let request = BGProcessingTaskRequest(identifier: "com.matthanson.heirloom.video-processing")
@@ -782,7 +754,7 @@ struct HeirloomApp: App {
                 // Filter to ONLY user-created recipes (exclude Heritage, shared, system recipes)
                 let recipesToDelete = oldRecipes.filter { recipe in
                     // NEVER delete Heritage recipes
-                    guard !recipe.isHeritageRecipe else {
+                    guard !recipe.isThemeRecipe else {
                         Log.info("🛡️ PROTECTED: Skipping Heritage recipe from cleanup", category: .database, metadata: ["title": recipe.title])
                         return false
                     }
@@ -1138,11 +1110,10 @@ struct ContentView: View {
     // Notification service (injected from DI container)
     @ObservedObject var notificationService: FirebaseNotificationService
 
-    // Daily unlock state
-    @State private var showDailyUnlock = false
-    @State private var unlockedRecipeIds: [String] = []
-    @State private var currentBatch = 0
-    @State private var totalBatches = 20
+    // Daily unlock celebration state
+    @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
+    @State private var showUnlockCelebration = false
+    @State private var newUnlockInfo: (count: Int, themes: [String]) = (0, [])
 
     var body: some View {
         Group {
@@ -1310,21 +1281,34 @@ struct ContentView: View {
                 }
             }
         }
-        .sheet(isPresented: $showDailyUnlock) {
-            DailyUnlockView(
-                unlockedRecipeIds: unlockedRecipeIds,
-                currentBatch: currentBatch,
-                totalBatches: totalBatches,
-                onDismiss: {
-                    showDailyUnlock = false
-                }
-            )
-        }
+        // TODO: Re-enable for theme unlocking in Phase A3
+        // .sheet(isPresented: $showDailyUnlock) {
+        //     DailyUnlockView(
+        //         unlockedRecipeIds: unlockedRecipeIds,
+        //         currentBatch: currentBatch,
+        //         totalBatches: totalBatches,
+        //         onDismiss: {
+        //             showDailyUnlock = false
+        //         }
+        //     )
+        // }
         .overlay {
             if deepLinkCoordinator.isExtractingImageRecipes {
                 imageExtractionLoadingOverlay
             } else if deepLinkCoordinator.isExtractingTextRecipes {
                 textExtractionLoadingOverlay
+            } else if showUnlockCelebration {
+                UnlockCelebrationView(
+                    newRecipeCount: newUnlockInfo.count,
+                    themeNames: newUnlockInfo.themes,
+                    onDismiss: {
+                        dismissCelebration()
+                    },
+                    onViewRecipes: {
+                        dismissCelebration()
+                        tabCoordinator.selectedTab = 0 // Navigate to Collections tab
+                    }
+                )
             }
         }
         .onAppear {
@@ -1348,227 +1332,198 @@ struct ContentView: View {
     // MARK: - Daily Unlock Logic
 
     private func checkForDailyUnlock() {
-        Task {
-            do {
-                // Get auth service
-                guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
-                      authService.isAuthenticated else {
-                    Log.info("Not authenticated, skipping daily unlock check", category: .firebase)
-                    return
-                }
+        guard themeUnlockTracker.checkForNewUnlocks() else { return }
 
-                // Create unlock service with modelContext from environment
-                let unlockService = HeritageUnlockService(
-                    modelContext: modelContext,
-                    firebaseAuth: authService
-                )
+        Log.info("New theme recipes unlocked - showing celebration", category: .collections)
 
-                // CRITICAL: Sync local state with Firebase first
-                // This restores previously unlocked recipes after app reinstall
-                try await unlockService.syncLocalRecipesWithUserState()
+        // Get themes with new unlocks from tracker
+        Task { @MainActor in
+            let themes = getThemesWithNewUnlocks()
+            let count = countNewRecipes()
 
-                Log.info("Heritage state synced from Firebase", category: .heritage)
+            if count > 0 {
+                newUnlockInfo = (count, themes.map { $0.name })
 
-                // Try to unlock daily batch (will skip if already unlocked today)
-                let newlyUnlocked = try await unlockService.unlockDailyBatch()
+                // Slight delay for better UX
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
 
-                if !newlyUnlocked.isEmpty {
-                    // Get user state for progress display
-                    let userState = try await unlockService.getUserHeritageState()
-
-                    // Show unlock UI
-                    unlockedRecipeIds = newlyUnlocked
-                    currentBatch = userState.currentBatch
-                    totalBatches = userState.totalBatches
-                    showDailyUnlock = true
-
-                    Log.info("Daily unlock triggered", category: .firebase, metadata: [
-                        "newlyUnlocked": newlyUnlocked.count,
-                        "currentBatch": userState.currentBatch
-                    ])
-                }
-            } catch {
-                // Silent fail - don't interrupt user experience
-                Log.warning("Daily unlock check failed", category: .firebase, metadata: ["error": error.localizedDescription])
+                showUnlockCelebration = true
             }
         }
+    }
+
+    private func getThemesWithNewUnlocks() -> [RecipeTheme] {
+        let descriptor = FetchDescriptor<RecipeTheme>()
+        guard let allThemes = try? modelContext.fetch(descriptor) else { return [] }
+
+        return allThemes.filter { theme in
+            themeUnlockTracker.isThemeSelected(theme)
+        }
+    }
+
+    private func countNewRecipes() -> Int {
+        // Count newly unlocked recipes
+        // This is a simplified implementation - in production you'd track which recipes are "new"
+        return themeUnlockTracker.unlockedRecipeIds.count
+    }
+
+    private func dismissCelebration() {
+        withAnimation {
+            showUnlockCelebration = false
+        }
+        themeUnlockTracker.markUnlocksAsSeen()
     }
 
 
     // MARK: - Premium Unlock Observer
 
-    /// Set up observer for premium status changes to unlock all heritage recipes
+    /// Set up observer for premium status changes to unlock all theme recipes
+    /// TODO: Re-implement for theme unlocking in Phase A3
     private func setupPremiumUnlockObserver() {
         // Capture modelContext for use in closure
-        let context = modelContext
-
-        NotificationCenter.default.addObserver(
-            forName: .userBecamePremium,
-            object: nil,
-            queue: .main
-        ) { _ in
-            Task { @MainActor in
-                Log.info("User became premium - unlocking all heritage recipes", category: .store)
-                DeviceLogger.shared.log("✅ [Premium] User became premium - unlocking all heritage recipes")
-
-                do {
-                    // Get auth service
-                    guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
-                          authService.isAuthenticated else {
-                        Log.warning("Not authenticated, cannot unlock heritage recipes", category: .store)
-                        return
-                    }
-
-                    // Create unlock service with captured modelContext
-                    let unlockService = HeritageUnlockService(
-                        modelContext: context,
-                        firebaseAuth: authService
-                    )
-
-                    // Unlock all heritage recipes
-                    try await unlockService.unlockAllRecipes()
-
-                    Log.info("All heritage recipes unlocked successfully", category: .store)
-                    DeviceLogger.shared.log("✅ [Premium] All heritage recipes unlocked")
-
-                    // Note: User will see unlocked recipes next time they browse collections
-                } catch {
-                    Log.error("Failed to unlock all heritage recipes", category: .store, metadata: [
-                        "error": error.localizedDescription
-                    ])
-                    DeviceLogger.shared.log("❌ [Premium] Failed to unlock heritage recipes: \(error.localizedDescription)")
-                }
-            }
-        }
+        // let context = modelContext
+        //
+        // NotificationCenter.default.addObserver(
+        //     forName: .userBecamePremium,
+        //     object: nil,
+        //     queue: .main
+        // ) { _ in
+        //     Task { @MainActor in
+        //         Log.info("User became premium - unlocking all theme recipes", category: .store)
+        //         DeviceLogger.shared.log("✅ [Premium] User became premium - unlocking all theme recipes")
+        //
+        //         do {
+        //             // Get auth service
+        //             guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+        //                   authService.isAuthenticated else {
+        //                 Log.warning("Not authenticated, cannot unlock theme recipes", category: .store)
+        //                 return
+        //             }
+        //
+        //             // Create unlock service with captured modelContext
+        //             let unlockService = ThemeUnlockService(
+        //                 modelContext: context,
+        //                 firebaseAuth: authService
+        //             )
+        //
+        //             // Unlock all theme recipes
+        //             try await unlockService.unlockAllRecipes()
+        //
+        //             Log.info("All theme recipes unlocked successfully", category: .store)
+        //             DeviceLogger.shared.log("✅ [Premium] All theme recipes unlocked")
+        //
+        //             // Note: User will see unlocked recipes next time they browse collections
+        //         } catch {
+        //             Log.error("Failed to unlock all theme recipes", category: .store, metadata: [
+        //                 "error": error.localizedDescription
+        //             ])
+        //             DeviceLogger.shared.log("❌ [Premium] Failed to unlock theme recipes: \(error.localizedDescription)")
+        //         }
+        //     }
+        // }
     }
 
-    // MARK: - Heritage Recipe Seeding
+    // MARK: - Theme Recipe Seeding
 
-    /// Setup heritage collections after user authentication
-    /// NOTE: Recipes are NOT seeded here - they download on-demand when blind boxes are revealed
+    /// Setup theme collections after user authentication
+    /// NOTE: Recipes are NOT seeded here - they download on-demand after theme selection
+    /// TODO: Re-implement for theme system in Phase B2
     private func seedHeritageRecipesAfterAuth() async {
-        guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
-            Log.warning("ModelContainer not available, cannot setup heritage collections", category: .storage)
-            return
-        }
-
-        // DISABLED: Collections now created dynamically when recipes download
-        // This ensures Collections tab is empty initially, showing "Download Today's Recipes" button
-        // RecipeCollection.createHeritageCollections(context: modelContainer.mainContext)
-
-        // DISABLED: Blind boxes removed - replaced with "Download Today's Recipes" button
-        // Collections appear progressively as recipes are downloaded over 14 days
-        // let blindBoxSeeder = BlindBoxSeeder(modelContext: modelContainer.mainContext)
-        // if !blindBoxSeeder.isSeeded() {
-        //     try blindBoxSeeder.seedBlindBoxes()
-        //     Log.info("Heritage blind boxes created", category: .storage)
-        //     DeviceLogger.shared.log("✅ [Heritage] Blind boxes created (no recipes downloaded)")
+        // guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
+        //     Log.warning("ModelContainer not available, cannot setup theme collections", category: .storage)
+        //     return
         // }
-
-        // CRITICAL: Check if collections were already created on another device
-        // If downloadedRecipeIds exist in Firebase, recreate collections and download recipes
-        await autoRevealBlindBoxesIfNeeded(modelContext: modelContainer.mainContext)
-
-        // Analytics tracking for heritage setup
-        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
-        analytics.track(event: .appLaunched, properties: ["heritage_setup": "collections_created"])
+        //
+        // // DISABLED: Collections now created dynamically when recipes download
+        // // This ensures Collections tab is empty initially, showing "Download Today's Recipes" button
+        // // RecipeCollection.createThemeCollections(context: modelContainer.mainContext)
+        //
+        // // DISABLED: Blind boxes removed - replaced with theme selection during onboarding
+        // // Collections appear progressively as recipes are downloaded over 14 days
+        //
+        // // CRITICAL: Check if collections were already created on another device
+        // // If downloadedRecipeIds exist in Firebase, recreate collections and download recipes
+        // await autoRevealThemesIfNeeded(modelContext: modelContainer.mainContext)
+        //
+        // // Analytics tracking for theme setup
+        // let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+        // analytics.track(event: .appLaunched, properties: ["theme_setup": "collections_created"])
     }
 
     /// Check Firebase heritageState and recreate collections if already downloaded on another device
     /// NOTE: With blind boxes disabled, this ensures multi-device sync still works
+    /// TODO: Re-implement for theme system in Phase A3 - sync theme state across devices
     private func autoRevealBlindBoxesIfNeeded(modelContext: ModelContext) async {
-        guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
-              let userId = authService.currentUser?.uid else {
-            Log.info("Not authenticated, skipping auto-reveal check", category: .heritage)
-            return
-        }
-
-        // CRITICAL: Request background time to complete recovery downloads/saves
-        var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
-        await MainActor.run {
-            backgroundTaskID = UIApplication.shared.beginBackgroundTask {
-                if backgroundTaskID != .invalid {
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                    backgroundTaskID = .invalid
-                }
-            }
-        }
-
-        defer {
-            if backgroundTaskID != .invalid {
-                Task { @MainActor in
-                    UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                }
-            }
-        }
-
-        do {
-            let db = Firestore.firestore()
-            let heritageStateDoc = try await db.collection("users").document(userId)
-                .collection("heritageState").document("current").getDocument()
-
-            guard heritageStateDoc.exists,
-                  let data = heritageStateDoc.data(),
-                  let downloadedRecipeIds = data["downloadedRecipeIds"] as? [String],
-                  !downloadedRecipeIds.isEmpty else {
-                Log.info("No existing heritage state found - blind boxes not yet revealed", category: .heritage)
-                return
-            }
-
-            // Blind boxes were already revealed on another device!
-            Log.info("Found existing heritage state - auto-revealing blind boxes", category: .heritage, metadata: [
-                "downloadedRecipeCount": downloadedRecipeIds.count
-            ])
-
-            // Reveal all blind boxes
-            let descriptor = FetchDescriptor<RecipeCollection>(
-                predicate: #Predicate { $0.isBlindBox == true }
-            )
-            let blindBoxes = try modelContext.fetch(descriptor)
-
-            for blindBox in blindBoxes {
-                blindBox.isRevealed = true
-                blindBox.revealedDate = Date()
-            }
-
-            try modelContext.save()
-
-            // Download recipes that should already exist
-            let onDemandService = HeritageOnDemandService(
-                modelContext: modelContext,
-                firebaseAuth: authService
-            )
-
-            let schedule = try await onDemandService.getUserSchedule()
-            let recipes = try await onDemandService.downloadRecipesForDay(day: 1, schedule: schedule)
-
-            Log.info("Auto-downloaded heritage recipes for revealed blind boxes", category: .heritage, metadata: [
-                "recipeCount": recipes.count
-            ])
-            DeviceLogger.shared.log("✅ [Heritage] Auto-revealed blind boxes and downloaded \(recipes.count) recipes from other device")
-
-            // CRITICAL: Triple-save with delays to force WAL checkpoint
-            try? await Task.sleep(nanoseconds: 100_000_000)
-            try modelContext.save()
-            Log.debug("First auto-reveal save complete", category: .heritage)
-
-            try? await Task.sleep(nanoseconds: 100_000_000)
-            try modelContext.save()
-            Log.debug("Second auto-reveal save complete", category: .heritage)
-
-            try? await Task.sleep(nanoseconds: 100_000_000)
-            try modelContext.save()
-            Log.info("✅ Heritage auto-reveal saved to disk (3x saves)", category: .heritage)
-
-            // Wait 3 seconds for iOS to checkpoint WAL
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            Log.info("✅ Heritage auto-reveal complete - safe to continue", category: .heritage)
-
-        } catch {
-            Log.error("Failed to auto-reveal blind boxes", category: .heritage, metadata: [
-                "error": error.localizedDescription
-            ])
-        }
+        // guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+        //       let userId = authService.currentUser?.uid else {
+        //     Log.info("Not authenticated, skipping auto-reveal check", category: .theme)
+        //     return
+        // }
+        //
+        // // CRITICAL: Request background time to complete recovery downloads/saves
+        // var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+        // await MainActor.run {
+        //     backgroundTaskID = UIApplication.shared.beginBackgroundTask {
+        //         if backgroundTaskID != .invalid {
+        //             UIApplication.shared.endBackgroundTask(backgroundTaskID)
+        //             backgroundTaskID = .invalid
+        //         }
+        //     }
+        // }
+        //
+        // defer {
+        //     if backgroundTaskID != .invalid {
+        //         Task { @MainActor in
+        //             UIApplication.shared.endBackgroundTask(backgroundTaskID)
+        //         }
+        //     }
+        // }
+        //
+        // do {
+        //     let db = Firestore.firestore()
+        //     let themeStateDoc = try await db.collection("users").document(userId)
+        //         .collection("themeState").document("current").getDocument()
+        //
+        //     guard themeStateDoc.exists,
+        //           let data = themeStateDoc.data(),
+        //           let downloadedRecipeIds = data["downloadedRecipeIds"] as? [String],
+        //           !downloadedRecipeIds.isEmpty else {
+        //         Log.info("No existing theme state found", category: .theme)
+        //         return
+        //     }
+        //
+        //     // Theme recipes were already downloaded on another device!
+        //     Log.info("Found existing theme state - syncing recipes", category: .theme, metadata: [
+        //         "downloadedRecipeCount": downloadedRecipeIds.count
+        //     ])
+        //
+        //     // Download recipes that should already exist
+        //     let themeService = ThemeRecipeService(
+        //         modelContext: modelContext,
+        //         firebaseAuth: authService
+        //     )
+        //
+        //     let recipes = try await themeService.syncRecipesFromFirebase()
+        //
+        //     Log.info("Auto-synced theme recipes from other device", category: .theme, metadata: [
+        //         "recipeCount": recipes.count
+        //     ])
+        //     DeviceLogger.shared.log("✅ [Theme] Auto-synced \(recipes.count) recipes from other device")
+        //
+        //     // Save with retry logic
+        //     try? await Task.sleep(nanoseconds: 100_000_000)
+        //     try modelContext.save()
+        //
+        //     try? await Task.sleep(nanoseconds: 100_000_000)
+        //     try modelContext.save()
+        //
+        //     Log.info("✅ Theme auto-sync complete", category: .theme)
+        //
+        // } catch {
+        //     Log.error("Failed to auto-sync themes", category: .theme, metadata: [
+        //         "error": error.localizedDescription
+        //     ])
+        // }
     }
 
     /// Elegant loading screen shown during Heritage recipe download after sign-in

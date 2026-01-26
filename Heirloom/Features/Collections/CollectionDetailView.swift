@@ -15,7 +15,8 @@ struct CollectionDetailView: View {
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
     @State private var showDeleteConfirmation = false
-    @State private var unlockTracker: HeritageUnlockTracker?
+    // TODO: Re-enable for theme unlocking in Phase A3
+    // @State private var unlockTracker: ThemeUnlockTracker?
 
     // Context menu state
     @State private var recipeToDelete: Recipe?
@@ -37,6 +38,16 @@ struct CollectionDetailView: View {
         _allRecipes = Query(sort: \Recipe.dateAdded, order: .reverse)
     }
 
+    // Count of user-added (non-theme) recipes
+    private var userAddedRecipeCount: Int {
+        recipes.filter { !$0.isThemeRecipe }.count
+    }
+
+    // Should show the "add your own" nudge
+    private var shouldShowAddNudge: Bool {
+        collection.type == .theme && userAddedRecipeCount == 0 && !recipes.isEmpty
+    }
+
     // Recipes in this collection
     var recipes: [Recipe] {
         // Special handling for "All Recipes" collection - show all recipes
@@ -48,11 +59,12 @@ struct CollectionDetailView: View {
             recipe.collections?.contains(where: { $0.id == collection.id }) ?? false
         }
 
-        // Filter out locked heritage recipes
-        if collection.isHeritageCollection {
-            guard let tracker = unlockTracker else { return collectionRecipes }
-            return collectionRecipes.filter { tracker.isUnlocked($0) }
-        }
+        // TODO: Re-enable filtering for locked theme recipes in Phase A3
+        // Filter out locked theme recipes
+        // if collection.type == .theme {
+        //     guard let tracker = unlockTracker else { return collectionRecipes }
+        //     return collectionRecipes.filter { tracker.isUnlocked($0) }
+        // }
 
         return collectionRecipes
     }
@@ -197,6 +209,12 @@ struct CollectionDetailView: View {
                         }
                     }
                     .padding(.horizontal, HeirloomSpacing.md)
+
+                    // Add recipe nudge (only for theme collections with no user recipes)
+                    if shouldShowAddNudge {
+                        addRecipeNudge
+                            .padding(.top, HeirloomSpacing.lg)
+                    }
                 }
             }
             .padding(.vertical, HeirloomSpacing.lg)
@@ -409,9 +427,10 @@ struct CollectionDetailView: View {
             }
         }
         .onAppear {
-            if unlockTracker == nil {
-                unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
-            }
+            // TODO: Re-enable for Phase A3
+            // if unlockTracker == nil {
+            //     unlockTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+            // }
         }
     }
 
@@ -455,7 +474,7 @@ struct CollectionDetailView: View {
     private struct HeritageRecipeJSON: Codable {
         let id: String
         let title: String
-        let heritageCollectionId: String
+        let sourceThemeId: String
         let servings: String?
         let prepTime: String?
         let cookTime: String?
@@ -903,22 +922,177 @@ struct CollectionDetailView: View {
     // MARK: - Empty State
 
     private var emptyStateView: some View {
-        VStack(spacing: HeirloomSpacing.md) {
-            Image(systemName: "book.closed")
+        VStack(spacing: HeirloomSpacing.lg) {
+            Image(systemName: emptyStateIcon)
                 .font(.system(size: 48))
-                .foregroundStyle(HeirloomColors.charcoal.opacity(0.3))
+                .foregroundStyle(HeirloomColors.warmGray)
 
-            Text("No Recipes Yet")
-                .font(HeirloomFonts.body)
+            Text(emptyStateTitle)
+                .font(HeirloomFonts.bodyBold)
                 .foregroundStyle(HeirloomColors.primaryText)
 
-            Text("Recipes in this collection will appear here")
-                .font(HeirloomFonts.caption1)
+            Text(emptyStateMessage)
+                .font(HeirloomFonts.body)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, HeirloomSpacing.xl)
+
+            if let actionTitle = emptyStateActionTitle {
+                Button {
+                    handleEmptyStateAction()
+                } label: {
+                    Text(actionTitle)
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, HeirloomSpacing.lg)
+                        .padding(.vertical, HeirloomSpacing.md)
+                        .background(HeirloomColors.tomato)
+                        .cornerRadius(12)
+                }
+            }
         }
-        .padding(HeirloomSpacing.xl)
-        .frame(maxWidth: .infinity)
+        .padding(.vertical, HeirloomSpacing.xxl)
+    }
+
+    private var emptyStateIcon: String {
+        switch collection.type {
+        case .theme:
+            return "sparkles"
+        case .fromFriends:
+            return "person.2"
+        case .imports:
+            return "square.and.arrow.down"
+        default:
+            return "rectangle.stack"
+        }
+    }
+
+    private var emptyStateTitle: String {
+        switch collection.type {
+        case .theme:
+            return "Recipes Coming Soon"
+        case .fromFriends:
+            return "No Shared Recipes Yet"
+        case .imports:
+            return "No Imports Yet"
+        default:
+            return "No Recipes Yet"
+        }
+    }
+
+    private var emptyStateMessage: String {
+        switch collection.type {
+        case .theme:
+            return "New \(collection.name) recipes unlock every few days during your trial. Check back soon!"
+        case .fromFriends:
+            return "When friends share recipes with you, they'll appear here. Share the app with friends to start collecting!"
+        case .imports:
+            return "Recipes you save from websites will appear here. Try pasting a recipe URL to get started."
+        default:
+            return "Add recipes to this collection to see them here."
+        }
+    }
+
+    private var emptyStateActionTitle: String? {
+        switch collection.type {
+        case .fromFriends:
+            return "Share App"
+        case .imports:
+            return "Import Recipe"
+        case .userCreated:
+            return "Add Recipe"
+        default:
+            return nil
+        }
+    }
+
+    private func handleEmptyStateAction() {
+        switch collection.type {
+        case .fromFriends:
+            // TODO: Implement share sheet for app
+            break
+        case .imports:
+            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+            showImportRecipe = true
+        case .userCreated:
+            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+            showAddRecipe = true
+        default:
+            break
+        }
+    }
+
+    // MARK: - Add Recipe Nudge
+
+    private var addRecipeNudge: some View {
+        VStack(spacing: 0) {
+            // Divider with text
+            HStack {
+                Rectangle()
+                    .fill(HeirloomColors.warmGray.opacity(0.2))
+                    .frame(height: 1)
+
+                Text(UXCopy.Nudges.addYourOwn)
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .padding(.horizontal, HeirloomSpacing.sm)
+
+                Rectangle()
+                    .fill(HeirloomColors.warmGray.opacity(0.2))
+                    .frame(height: 1)
+            }
+            .padding(.vertical, HeirloomSpacing.lg)
+
+            // Nudge card
+            Button {
+                tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                showAddRecipe = true
+            } label: {
+                HStack(spacing: HeirloomSpacing.md) {
+                    // Icon
+                    ZStack {
+                        Circle()
+                            .fill(HeirloomColors.tomato.opacity(0.1))
+                            .frame(width: 48, height: 48)
+
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(HeirloomColors.tomato)
+                    }
+
+                    // Text
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(UXCopy.Nudges.addRecipeTitle)
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+
+                        Text(UXCopy.Nudges.addRecipeSubtitle(themeName: collection.name))
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                            .lineLimit(2)
+                    }
+
+                    Spacer()
+
+                    // Arrow
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(HeirloomColors.tomato)
+                }
+                .padding(HeirloomSpacing.md)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(HeirloomColors.cardBackground)
+                        .shadow(color: HeirloomColors.tomato.opacity(0.1), radius: 8, x: 0, y: 4)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(HeirloomColors.tomato.opacity(0.2), lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, HeirloomSpacing.md)
     }
 }
 
@@ -928,8 +1102,9 @@ struct CollectionDetailView: View {
         description: "Recipes from First Families",
         iconName: "building.columns.fill",
         color: "#8B0000",
-        isSystemCollection: true,
-        heritageCollectionId: "presidential-pantry"
+        isSystemCollection: false,
+        isAllRecipes: false,
+        collectionType: .theme
     )
 
     NavigationStack {

@@ -29,7 +29,7 @@ struct OnboardingRecipeCard: View {
                 .cornerRadius(12)
 
                 // Heritage badge overlay
-                if recipe.isHeritageRecipe {
+                if recipe.isThemeRecipe {
                     Text("HERITAGE")
                         .font(.system(size: 8, weight: .bold))
                         .foregroundStyle(HeirloomColors.buttonTextLight)

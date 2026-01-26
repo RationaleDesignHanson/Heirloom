@@ -220,17 +220,17 @@ final class FeatureRegistry {
 
         .dailyHeritageDrop: FeatureMetadata(
             feature: .dailyHeritageDrop,
-            displayName: "Daily Heritage Drop",
-            description: "Daily unlocking of heritage recipes during trial",
-            state: .released,
-            dependencies: [.blindBoxCollections, .premiumSubscription],
-            requiredServices: ["HeritageUnlockTracker", "SubscriptionManager", "LoggingService", "AnalyticsService"],
-            testCoverage: 1.0,
-            owner: "Heritage Team",
-            introducedVersion: "1.0.0",
+            displayName: "Daily Theme Drop",
+            description: "Daily unlocking of theme recipes during trial",
+            state: .development, // TODO: Change to .released in Phase A3
+            dependencies: [.premiumSubscription],
+            requiredServices: ["ThemeUnlockTracker", "SubscriptionManager", "LoggingService", "AnalyticsService"],
+            testCoverage: 0.0, // TODO: Update test coverage in Phase A3
+            owner: "Theme Team",
+            introducedVersion: "2.0.0",
             deprecatedVersion: nil,
             removalVersion: nil,
-            documentation: "Daily unlocks of 7 heritage recipes (5 Literary Kitchen, 2 others) during 14-day trial. Stops after trial expires."
+            documentation: "Daily unlocks of theme recipes during 14-day trial. Stops after trial expires. Themes are selected by user during onboarding."
         ),
 
         .heritageProvenance: FeatureMetadata(

@@ -150,8 +150,9 @@ struct RecipeListView: View {
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
-    // Heritage unlock tracking for progressive unlock system
-    @State private var unlockTracker: HeritageUnlockTracker?
+    // TODO: Re-enable for theme unlocking in Phase A3
+    // Theme unlock tracking for progressive unlock system
+    // @State private var unlockTracker: ThemeUnlockTracker?
 
     @State private var searchText = ""
     @State private var showAddRecipe = false
@@ -209,10 +210,11 @@ struct RecipeListView: View {
                     SignInPromptSheet()
                         .presentationDetents([.medium])
                 }
-                .sheet(isPresented: $showHeritageUnlock) {
-                    HeritageUnlockView()
-                        .presentationDetents([.large])
-                }
+                // TODO: Re-enable for Phase A3
+                // .sheet(isPresented: $showHeritageUnlock) {
+                //     ThemeUnlockView()
+                //         .presentationDetents([.large])
+                // }
                 .onAppear {
                     configureUndoService()
                     initializeUnlockTracker()
@@ -302,26 +304,27 @@ struct RecipeListView: View {
 
     @ToolbarContentBuilder
     private var toolbarActions: some ToolbarContent {
-        // Heritage unlock icon with trial countdown
-        ToolbarItem(placement: .topBarTrailing) {
-            if let tracker = unlockTracker, (tracker.totalRecipesRemaining > 0 || tracker.unlockedRecipeIds.count > 0) {
-                Button {
-                    showHeritageUnlock = true
-                } label: {
-                    HStack(spacing: HeirloomSpacing.xs) {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(.orange)
-
-                        if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining, daysRemaining > 0 {
-                            Text("\(daysRemaining)d")
-                                .font(HeirloomFonts.caption2)
-                                .foregroundStyle(.orange)
-                        }
-                    }
-                }
-                .accessibilityLabel("Heritage Collection - \(subscriptionManager.isInTrial ? "\(subscriptionManager.daysRemaining ?? 0) days remaining" : "")")
-            }
-        }
+        // TODO: Re-enable for Phase A3
+        // Theme unlock icon with trial countdown
+        // ToolbarItem(placement: .topBarTrailing) {
+        //     if let tracker = unlockTracker, (tracker.totalRecipesRemaining > 0 || tracker.unlockedRecipeIds.count > 0) {
+        //         Button {
+        //             showHeritageUnlock = true
+        //         } label: {
+        //             HStack(spacing: HeirloomSpacing.xs) {
+        //                 Image(systemName: "sparkles")
+        //                     .foregroundStyle(.orange)
+        //
+        //                 if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining, daysRemaining > 0 {
+        //                     Text("\(daysRemaining)d")
+        //                         .font(HeirloomFonts.caption2)
+        //                         .foregroundStyle(.orange)
+        //                 }
+        //             }
+        //         }
+        //         .accessibilityLabel("Theme Collection - \(subscriptionManager.isInTrial ? "\(subscriptionManager.daysRemaining ?? 0) days remaining" : "")")
+        //     }
+        // }
 
         ToolbarItem(placement: .primaryAction) {
             RecipeListToolbarActions(
@@ -399,10 +402,11 @@ struct RecipeListView: View {
         undoService.configure(modelContext: modelContext)
     }
 
+    // TODO: Re-enable for Phase A3
     private func initializeUnlockTracker() {
-        if unlockTracker == nil {
-            unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
-        }
+        // if unlockTracker == nil {
+        //     unlockTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+        // }
     }
 
     // MARK: - Conflict Resolution Sheet
@@ -628,44 +632,37 @@ struct RecipeListView: View {
 
     // MARK: - Helper Methods
 
-    /// Check if a recipe should be visible (not hidden by unrevealed blind box)
+    /// TODO: Update for theme system in Phase A3
+    /// Check if a recipe should be visible
     private func isRecipeVisible(_ recipe: Recipe) -> Bool {
-        // If recipe is not in a heritage collection, it's always visible
-        guard let heritageId = recipe.heritageCollectionId else {
+        // If recipe is not in a theme collection, it's always visible
+        guard recipe.sourceThemeId != nil else {
             return true
         }
 
-        // UPDATED LOGIC: With on-demand downloads, heritage recipes are only created when unlocked
+        // UPDATED LOGIC: With on-demand downloads, theme recipes are only created when unlocked
         // If the recipe exists in the database, it's been unlocked and should be visible
-        // No need to check blind box status - the existence of the recipe IS the unlock signal
-
-        // However, for backward compatibility with blind box UI, still respect unrevealed blind boxes
-        let allCollections = (try? modelContext.fetch(FetchDescriptor<RecipeCollection>())) ?? []
-
-        if let recipeCollection = allCollections.first(where: { $0.heritageCollectionId == heritageId }) {
-            // If it's a blind box that hasn't been revealed, hide the recipe
-            if recipeCollection.isBlindBox && !recipeCollection.isRevealed {
-                return false
-            }
-        }
-
-        // All other heritage recipes are visible (they only exist if downloaded/unlocked)
+        // All theme recipes are visible (they only exist if downloaded/unlocked)
         return true
     }
 
-    /// Check if a heritage recipe is locked (not yet unlocked during trial)
+    /// TODO: Re-implement for theme recipes in Phase A3
+    /// Check if a theme recipe is locked (not yet unlocked during trial)
     private func isRecipeLocked(_ recipe: Recipe) -> Bool {
-        // Only heritage recipes can be locked
-        guard recipe.isHeritageRecipe else {
+        // Only theme recipes can be locked
+        guard recipe.isThemeRecipe else {
             return false
         }
 
-        // Check unlock status via HeritageUnlockTracker
-        guard let tracker = unlockTracker else {
-            return false
-        }
+        // TODO: Check unlock status via ThemeUnlockTracker in Phase A3
+        // For now, all theme recipes are visible (no locking)
+        return false
 
-        return !tracker.isUnlocked(recipe)
+        // guard let tracker = unlockTracker else {
+        //     return false
+        // }
+        //
+        // return !tracker.isUnlocked(recipe)
     }
 
     // MARK: - Actions

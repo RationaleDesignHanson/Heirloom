@@ -7,6 +7,7 @@ struct CollectionsListView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var notificationService: FirebaseNotificationService
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
+    @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
     @Query(sort: \RecipeCollection.createdDate) private var allCollections: [RecipeCollection]
     @Query(sort: \Recipe.dateAdded, order: .reverse) private var allRecipes: [Recipe]
 
@@ -26,7 +27,8 @@ struct CollectionsListView: View {
     @State private var showHeritageUnlock = false
     @State private var showCollectionPicker = false
     @State private var generatedRecipe: Recipe?
-    @State private var unlockTracker: HeritageUnlockTracker?
+    // TODO: Re-enable for theme unlocking in Phase A3
+    // @State private var unlockTracker: ThemeUnlockTracker?
     @State private var isDownloadingRecipes = false
     @State private var downloadProgress: String = ""
     @State private var selectedCollectionForSettings: RecipeCollection?
@@ -38,48 +40,43 @@ struct CollectionsListView: View {
     private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
-    // Filter heritage collections (founding collections)
-    var heritageCollections: [RecipeCollection] {
-        allCollections.filter { $0.isHeritageCollection }
-    }
+    // MARK: - Filtered Collections
 
-    // Filter blind box collections (unrevealed)
-    var blindBoxCollections: [RecipeCollection] {
-        heritageCollections.filter { $0.isBlindBox && !$0.isRevealed }
-    }
-
-    // Filter revealed heritage collections
-    // Show collections that are either:
-    // 1. Part of the blind box system and revealed
-    // 2. Have at least 1 unlocked recipe (discovered through daily unlocks)
-    var revealedHeritageCollections: [RecipeCollection] {
-        guard let tracker = unlockTracker else {
-            return heritageCollections.filter { $0.isBlindBox && $0.isRevealed }
-        }
-
-        return heritageCollections.filter { collection in
-            // Show if it's a revealed blind box AND has unlocked recipes
-            if collection.isBlindBox && collection.isRevealed {
-                let recipes = collection.recipes ?? []
-                let unlockedCount = recipes.filter { tracker.isUnlocked($0) }.count
-                return unlockedCount > 0
+    /// Collections visible on the main list (no empty, no system)
+    private var visibleCollections: [RecipeCollection] {
+        allCollections
+            .filter { $0.isVisibleInMainList }
+            .sorted { a, b in
+                // Sort by type priority first
+                if a.type.sortPriority != b.type.sortPriority {
+                    return a.type.sortPriority < b.type.sortPriority
+                }
+                // Then by creation date (newer first)
+                return a.createdDate > b.createdDate
             }
+    }
 
-            // Show if it has at least 1 unlocked recipe (non-blind box heritage collections)
-            let recipes = collection.recipes ?? []
-            let unlockedCount = recipes.filter { tracker.isUnlocked($0) }.count
-            return unlockedCount > 0
+    /// Theme collections (shown in their own section)
+    var themeCollections: [RecipeCollection] {
+        visibleCollections.filter { collection in
+            collection.type == .theme &&
+            themeUnlockTracker.selectedThemeIds.contains(collection.sourceTheme?.firebaseId ?? "")
         }
     }
 
-    // Filter user collections (non-system, non-heritage)
-    var userCollections: [RecipeCollection] {
-        allCollections.filter { !$0.isSystemCollection && !$0.isHeritageCollection }
+    /// Non-theme collections
+    private var otherCollections: [RecipeCollection] {
+        visibleCollections.filter { $0.type != .theme }
     }
 
-    // System collections (All Recipes, Favorites, Quick Meals, etc.)
+    // Filter user collections (non-system, non-theme) - kept for existing functionality
+    var userCollections: [RecipeCollection] {
+        allCollections.filter { !$0.isSystemCollection && $0.type != .theme }
+    }
+
+    // System collections (All Recipes, Favorites, Quick Meals, etc.) - kept for existing functionality
     var systemCollections: [RecipeCollection] {
-        let filtered = allCollections.filter { $0.isSystemCollection && !$0.isHeritageCollection }
+        let filtered = allCollections.filter { $0.isSystemCollection && $0.type != .theme }
 
         // Sort to ensure "All Recipes" appears first
         return filtered.sorted { lhs, rhs in
@@ -179,14 +176,15 @@ struct CollectionsListView: View {
                     TagCollectionPickerView(recipe: recipe)
                 }
             }
-            .sheet(isPresented: $showHeritageUnlock) {
-                HeritageUnlockView()
-                    .presentationDetents([.large])
-            }
+            // TODO: Re-enable for theme unlocking in Phase A3
+            // .sheet(isPresented: $showHeritageUnlock) {
+            //     ThemeUnlockView()
+            //         .presentationDetents([.large])
+            // }
             .sheet(item: $selectedCollectionForSettings) { collection in
                 CollectionSettingsView(collection: collection)
             }
-            .navigationDestination(item: $selectedCollection) { collection in
+            .navigationDestination(for: RecipeCollection.self) { collection in
                 CollectionDetailView(collection: collection)
                     .environmentObject(notificationService)
                     .environmentObject(tabCoordinator)
@@ -208,11 +206,14 @@ struct CollectionsListView: View {
         }
     }
 
-    // MARK: - Heritage Schedule Metadata Helper
+    // MARK: - Theme Schedule Metadata Helper (Disabled until Phase A3)
 
-    /// Download Heritage recipes using the EXACT same persistence logic as autoRevealBlindBoxesIfNeeded (which works)
-    /// This is the shared code path for both blind box unlock and recovery
+    /// TODO: Re-implement for theme system in Phase A3
+    /// Download theme recipes using persistence logic
+    /// This is the shared code path for theme unlock and recovery
     private func downloadHeritageRecipesWithPersistence() async {
+        // Implementation will be added in Phase A3
+        /*
         // Show loading
         await MainActor.run {
             isDownloadingRecipes = true
@@ -259,23 +260,24 @@ struct CollectionsListView: View {
             ])
             DeviceLogger.shared.log("✅ [Heritage] Downloaded \(recipes.count) recipes from blind box reveal")
 
-            // CRITICAL: Mark recipes as unlocked in HeritageUnlockTracker
+            // TODO: Re-enable for Phase A3
+            // CRITICAL: Mark recipes as unlocked in ThemeUnlockTracker
             // This ensures the UI shows them as unlocked
-            await MainActor.run {
-                let tracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
-                for recipe in recipes {
-                    tracker.unlockedRecipeIds.insert(recipe.id.uuidString)
-                }
-                tracker.lastUnlockDate = Date()
-                tracker.saveToStorage()
-
-                Log.info("Marked recipes as unlocked in tracker", category: .heritage, metadata: [
-                    "unlockedCount": tracker.unlockedRecipeIds.count
-                ])
-            }
+            // await MainActor.run {
+            //     let tracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+            //     for recipe in recipes {
+            //         tracker.unlockedRecipeIds.insert(recipe.id.uuidString)
+            //     }
+            //     tracker.lastUnlockDate = Date()
+            //     tracker.saveToStorage()
+            //
+            //     Log.info("Marked recipes as unlocked in tracker", category: .theme, metadata: [
+            //         "unlockedCount": tracker.unlockedRecipeIds.count
+            //     ])
+            // }
 
             // CRITICAL: Store heritage schedule metadata locally for recovery system
-            let downloadedRecipeIds = recipes.compactMap { $0.heritageRecipeId }
+            let downloadedRecipeIds = recipes.compactMap { $0.themeRecipeId }
             await MainActor.run {
                 updateHeritageScheduleMetadata(
                     scheduleId: schedule.scheduleId,
@@ -345,6 +347,7 @@ struct CollectionsListView: View {
             "newlyAdded": newRecipeIds.count
         ])
         DeviceLogger.shared.log("✅ [Heritage] Schedule updated: \(expectedIds.count) total recipes expected")
+        */
     }
 
     // MARK: - View Components
@@ -383,113 +386,126 @@ struct CollectionsListView: View {
     }
 
     private var unifiedCollectionsSection: some View {
+        LazyVStack(spacing: HeirloomSpacing.lg) {
+            // Theme collections section
+            if !themeCollections.isEmpty {
+                themeSection
+            }
+
+            // Other collections section (always show if themes exist)
+            if !themeCollections.isEmpty {
+                otherCollectionsSection
+            }
+
+            // Empty state (only if NO collections at all)
+            if visibleCollections.isEmpty {
+                emptyStateView
+            }
+        }
+        .padding(.horizontal, HeirloomSpacing.lg)
+    }
+
+    // MARK: - Theme Section
+
+    private var themeSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            if heritageCollections.isEmpty && systemCollections.isEmpty && userCollections.isEmpty {
-                emptyUserCollectionsView
+            // Trial progress banner
+            if !themeUnlockTracker.isTrialComplete {
+                TrialProgressBanner()
+                    .padding(.bottom, HeirloomSpacing.sm)
+            }
+
+            // Section header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(UXCopy.Collections.discoverySectionTitle)
+                        .font(HeirloomFonts.title3)
+                        .foregroundStyle(HeirloomColors.primaryText)
+                }
+
+                Spacer()
+
+                // New unlocks badge
+                if themeUnlockTracker.hasNewUnlocks {
+                    Text(UXCopy.Unlock.newBadge)
+                        .font(HeirloomFonts.caption2)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(HeirloomColors.tomato)
+                        .foregroundStyle(.white)
+                        .cornerRadius(8)
+                }
+            }
+
+            // Theme collection cards (full width)
+            ForEach(themeCollections) { collection in
+                NavigationLink(value: collection) {
+                    ThemeCollectionCard(
+                        collection: collection,
+                        currentDay: themeUnlockTracker.currentTrialDay
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    // MARK: - Other Collections Section
+
+    private var otherCollectionsSection: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            // Section header
+            Text(UXCopy.Collections.collectionsSectionTitle)
+                .font(HeirloomFonts.title3)
+                .foregroundStyle(HeirloomColors.primaryText)
+
+            // Collection cards or empty state
+            if otherCollections.isEmpty {
+                // Empty state for "Your Collections"
+                VStack(spacing: HeirloomSpacing.sm) {
+                    Text("Create collections to organize your recipes")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.center)
+
+                    Button {
+                        showCreateCollection = true
+                    } label: {
+                        HStack(spacing: HeirloomSpacing.xs) {
+                            Image(systemName: "plus.circle.fill")
+                            Text("Create Collection")
+                        }
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.tomato)
+                    }
+                    .padding(.top, HeirloomSpacing.xs)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, HeirloomSpacing.lg)
             } else {
-                LazyVStack(spacing: HeirloomSpacing.lg) {
-                    // System collections (Favorites, Quick Meals, etc.) - shown first
-                    ForEach(systemCollections, id: \.id) { collection in
-                        NavigationLink(value: collection) {
-                            CollectionCardView(collection: collection)
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            Button {
-                                Task {
-                                    await generateBackgroundForCollection(collection)
-                                }
-                            } label: {
-                                Label("Generate with AI", systemImage: "sparkles")
-                            }
-                            .disabled(isGeneratingBackground)
-
-                            Button {
-                                selectedCollectionForSettings = collection
-                            } label: {
-                                Label("Collection Settings", systemImage: "gear")
-                            }
-                        }
+                ForEach(otherCollections) { collection in
+                    NavigationLink(value: collection) {
+                        StandardCollectionCard(collection: collection)
                     }
-
-                    // User collections (with delete context menu) - shown second
-                    ForEach(userCollections, id: \.id) { collection in
-                        NavigationLink(value: collection) {
-                            CollectionCardView(collection: collection)
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            Button {
-                                Task {
-                                    await generateBackgroundForCollection(collection)
-                                }
-                            } label: {
-                                Label("Generate with AI", systemImage: "sparkles")
-                            }
-                            .disabled(isGeneratingBackground)
-
-                            Button {
-                                selectedCollectionForSettings = collection
-                            } label: {
-                                Label("Collection Settings", systemImage: "gear")
-                            }
-
-                            Button(role: .destructive) {
-                                collectionToDelete = collection
-                                showDeleteConfirmation = true
-                            } label: {
-                                Label("Delete Collection", systemImage: "trash")
-                            }
-                        }
-                    }
-
-                    // Post-trial banner (if trial expired and has heritage content)
-                    if subscriptionManager.isTrialExpired && !subscriptionManager.isPremium && !heritageCollections.isEmpty,
-                       let tracker = unlockTracker {
-                        postTrialBanner(unlockedCount: tracker.totalUnlockedCount)
-                    }
-
-                    // Empty heritage state - show download button when no collections exist
-                    if heritageCollections.isEmpty && unlockTracker?.hasUnlocksAvailableToday == true {
-                        emptyHeritageState
-                    }
-
-                    // Show single mystery collection button that reveals all blind boxes (legacy - won't show since seeding disabled)
-                    if let firstBlindBox = blindBoxCollections.first {
-                        BlindBoxCollectionRow(collection: firstBlindBox) {
-                            revealBlindBox(firstBlindBox)
-                        }
-                    }
-
-                    // Revealed heritage collections - shown last
-                    ForEach(revealedHeritageCollections, id: \.id) { collection in
+                    .buttonStyle(.plain)
+                    .contextMenu {
                         Button {
-                            // Show coach mark on first tap if not seen
-                            if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
-                                showRecipeCoachMark = true
-                            } else {
-                                selectedCollection = collection
+                            Task {
+                                await generateBackgroundForCollection(collection)
                             }
                         } label: {
-                            CollectionCardView(collection: collection)
+                            Label("Generate with AI", systemImage: "sparkles")
                         }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            Button {
-                                Task {
-                                    await generateBackgroundForCollection(collection)
-                                }
-                            } label: {
-                                Label("Generate with AI", systemImage: "sparkles")
-                            }
-                            .disabled(isGeneratingBackground)
+                        .disabled(isGeneratingBackground)
 
-                            Button {
-                                selectedCollectionForSettings = collection
-                            } label: {
-                                Label("Collection Settings", systemImage: "gear")
-                            }
+                        Button {
+                            selectedCollectionForSettings = collection
+                        } label: {
+                            Label("Collection Settings", systemImage: "gear")
+                        }
 
+                        if !collection.isSystemCollection {
                             Button(role: .destructive) {
                                 collectionToDelete = collection
                                 showDeleteConfirmation = true
@@ -499,88 +515,83 @@ struct CollectionsListView: View {
                         }
                     }
                 }
-                .padding(.horizontal, HeirloomSpacing.lg)
             }
         }
+    }
+
+    // MARK: - Empty State
+
+    private var emptyStateView: some View {
+        VStack(spacing: HeirloomSpacing.lg) {
+            Spacer()
+                .frame(height: 60)
+
+            Image(systemName: "rectangle.stack")
+                .font(.system(size: 48))
+                .foregroundStyle(HeirloomColors.warmGray)
+
+            VStack(spacing: HeirloomSpacing.sm) {
+                Text("No Collections Yet")
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(HeirloomColors.primaryText)
+
+                Text("Import recipes, have friends share with you, or create your own collections.")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+
+            Button {
+                showCreateCollection = true
+            } label: {
+                HStack {
+                    Image(systemName: "plus")
+                    Text("Create Collection")
+                }
+                .font(HeirloomFonts.bodyBold)
+                .padding(.horizontal, HeirloomSpacing.lg)
+                .padding(.vertical, HeirloomSpacing.md)
+                .background(HeirloomColors.tomato)
+                .foregroundStyle(.white)
+                .cornerRadius(HeirloomSpacing.cardCornerRadius)
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, HeirloomSpacing.xl)
     }
 
     // MARK: - Post-Trial Banner
 
     @ViewBuilder
+    // TODO: Re-implement for theme system in Phase A3
     private func postTrialBanner(unlockedCount: Int) -> some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            HStack {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-
-                Text("You unlocked \(unlockedCount) heritage recipes")
-                    .font(HeirloomFonts.body)
-                    .fontWeight(.semibold)
-            }
-
-            Text("They're yours forever! Upgrade to unlock the remaining \(100 - unlockedCount) recipes or continue discovering them at $0.99 each.")
-                .font(HeirloomFonts.caption1)
-                .foregroundStyle(.secondary)
-
-            HStack(spacing: HeirloomSpacing.sm) {
-                Button {
-                    // Show PaywallView
-                    showHeritageUnlock = true
-                } label: {
-                    Text("Upgrade to Premium")
-                        .font(HeirloomFonts.caption1)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(HeirloomColors.buttonTextLight)
-                        .padding(.horizontal, HeirloomSpacing.md)
-                        .padding(.vertical, HeirloomSpacing.sm)
-                        .background(HeirloomColors.tomato)
-                        .cornerRadius(8)
-                }
-
-                Button {
-                    // Show individual purchase option
-                    showHeritageUnlock = true
-                } label: {
-                    Text("Buy Individually")
-                        .font(HeirloomFonts.caption1)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(HeirloomColors.tomato)
-                        .padding(.horizontal, HeirloomSpacing.md)
-                        .padding(.vertical, HeirloomSpacing.sm)
-                        .background(HeirloomColors.cream)
-                        .cornerRadius(8)
-                }
-            }
-        }
-        .padding(HeirloomSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
-                .fill(Color.orange.opacity(0.1))
-        )
+        EmptyView()
     }
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        // Heritage unlock icon with trial countdown
-        ToolbarItem(placement: .topBarTrailing) {
-            if let tracker = unlockTracker, (tracker.totalRecipesRemaining > 0 || tracker.unlockedRecipeIds.count > 0) {
-                Button {
-                    showHeritageUnlock = true
-                } label: {
-                    HStack(spacing: HeirloomSpacing.xs) {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(.orange)
-
-                        if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining, daysRemaining > 0 {
-                            Text("\(daysRemaining)d")
-                                .font(HeirloomFonts.caption2)
-                                .foregroundStyle(.orange)
-                        }
-                    }
-                }
-                .accessibilityLabel("Heritage Collection - \(subscriptionManager.isInTrial ? "\(subscriptionManager.daysRemaining ?? 0) days remaining" : "")")
-            }
-        }
+        // TODO: Re-enable theme unlock icon in Phase A3
+        // Theme unlock icon with trial countdown
+        // ToolbarItem(placement: .topBarTrailing) {
+        //     if let tracker = unlockTracker, (tracker.totalRecipesRemaining > 0 || tracker.unlockedRecipeIds.count > 0) {
+        //         Button {
+        //             showHeritageUnlock = true
+        //         } label: {
+        //             HStack(spacing: HeirloomSpacing.xs) {
+        //                 Image(systemName: "sparkles")
+        //                     .foregroundStyle(.orange)
+        //
+        //                 if subscriptionManager.isInTrial, let daysRemaining = subscriptionManager.daysRemaining, daysRemaining > 0 {
+        //                     Text("\(daysRemaining)d")
+        //                         .font(HeirloomFonts.caption2)
+        //                         .foregroundStyle(.orange)
+        //                 }
+        //             }
+        //         }
+        //         .accessibilityLabel("Theme Collection - \(subscriptionManager.isInTrial ? "\(subscriptionManager.daysRemaining ?? 0) days remaining" : "")")
+        //     }
+        // }
 
         ToolbarItem(placement: .primaryAction) {
             RecipeListToolbarActions(
@@ -677,10 +688,11 @@ struct CollectionsListView: View {
     }
 
     private func handleOnAppear() {
-        // Initialize heritage unlock tracker
-        if unlockTracker == nil {
-            unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
-        }
+        // TODO: Re-enable for Phase A3
+        // Initialize theme unlock tracker
+        // if unlockTracker == nil {
+        //     unlockTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+        // }
 
         // Seed blind boxes if just completed onboarding
         seedBlindBoxesIfNeeded()
@@ -709,242 +721,47 @@ struct CollectionsListView: View {
             return
         }
 
+        // TODO: Re-implement cache verification for theme recipes in Phase A3
         // Check immediately (no delay needed - cache is instant)
-        Task {
-            await checkAndPromoteFromCache()
-        }
+        // Task {
+        //     await checkAndPromoteFromCache()
+        // }
     }
 
+    /// TODO: Re-implement cache verification for theme recipes in Phase A3
     /// Check durable cache vs SwiftData and promote missing recipes
     /// The cache survives force-quit because it's stored in UserDefaults with synchronize()
     private func checkAndPromoteFromCache() async {
-        guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
-              authService.isAuthenticated else {
-            Log.debug("Cannot verify Heritage - not authenticated", category: .heritage)
-            return
-        }
-
-        // Load cached recipes from durable storage
-        let cache = ServiceContainer.shared.resolve(HeritageRecipeCache.self)
-        let cachedRecipes = cache.getCachedRecipes()
-
-        guard !cachedRecipes.isEmpty else {
-            Log.debug("No cached recipes found - user hasn't downloaded Heritage yet", category: .heritage)
-            return
-        }
-
-        // Count local Heritage recipes in SwiftData
-        let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate { $0.isHeritageRecipe == true }
-        )
-        let localCount = (try? modelContext.fetchCount(descriptor)) ?? 0
-        let cachedCount = cachedRecipes.count
-
-        Log.info("Heritage cache verification", category: .heritage, metadata: [
-            "cachedCount": cachedCount,
-            "localCount": localCount
-        ])
-        DeviceLogger.shared.log("📊 [Heritage] Cache: \(cachedCount), SwiftData: \(localCount)")
-
-        // If SwiftData has fewer recipes than cache, promote missing ones
-        if localCount < cachedCount {
-            Log.warning("🚨 Heritage recipes missing from SwiftData! Promoting from cache...", category: .heritage, metadata: [
-                "cached": cachedCount,
-                "found": localCount,
-                "missing": cachedCount - localCount
-            ])
-            DeviceLogger.shared.log("🚨 [Heritage] \(cachedCount - localCount) recipes missing! Promoting from cache...")
-
-            await promoteCachedRecipes(cachedRecipes)
-        } else {
-            Log.info("✅ Heritage recipes intact", category: .heritage, metadata: ["count": localCount])
-            DeviceLogger.shared.log("✅ [Heritage] All \(localCount) recipes present")
-        }
+        // Implementation will be added in Phase A3 for theme recipes
     }
 
+    /// TODO: Re-implement for theme recipes in Phase A3
     /// Promote cached recipes to SwiftData by re-downloading from Firebase
     /// Uses cache metadata to identify which recipes to download
-    private func promoteCachedRecipes(_ cachedRecipes: [String: HeritageRecipeCache.CachedRecipe]) async {
-        guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
-              authService.isAuthenticated else {
-            Log.error("Cannot promote recipes - not authenticated", category: .heritage)
-            return
-        }
-
-        // Get existing recipe IDs in SwiftData
-        let descriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate { $0.isHeritageRecipe == true }
-        )
-        let existingRecipes = (try? modelContext.fetch(descriptor)) ?? []
-        let existingIds = Set(existingRecipes.compactMap { $0.heritageRecipeId })
-
-        // Find missing recipes (in cache but not in SwiftData)
-        let missingRecipes = cachedRecipes.values.filter { !existingIds.contains($0.heritageRecipeId) }
-
-        Log.info("Promoting missing recipes from cache", category: .heritage, metadata: [
-            "missingCount": missingRecipes.count
-        ])
-
-        // Re-download missing recipes using HeritageOnDemandService
-        let onDemandService = HeritageOnDemandService(
-            modelContext: modelContext,
-            firebaseAuth: authService
-        )
-
-        var promotedCount = 0
-        for cachedRecipe in missingRecipes {
-            do {
-                // Download recipe from Firebase using its heritageRecipeId
-                let recipe = try await onDemandService.downloadRecipe(recipeId: cachedRecipe.heritageRecipeId)
-                promotedCount += 1
-
-                Log.debug("Promoted recipe from cache", category: .heritage, metadata: [
-                    "heritageRecipeId": cachedRecipe.heritageRecipeId,
-                    "title": recipe.title
-                ])
-            } catch {
-                Log.error("Failed to promote recipe from cache", category: .heritage, metadata: [
-                    "heritageRecipeId": cachedRecipe.heritageRecipeId,
-                    "error": error.localizedDescription
-                ])
-            }
-        }
-
-        // Save all promoted recipes
-        await MainActor.run {
-            do {
-                try modelContext.save()
-                Log.info("✅ Promoted recipes from cache", category: .heritage, metadata: [
-                    "promotedCount": promotedCount,
-                    "expectedCount": missingRecipes.count
-                ])
-                DeviceLogger.shared.log("✅ [Heritage] Promoted \(promotedCount)/\(missingRecipes.count) recipes from cache")
-            } catch {
-                Log.error("Failed to save promoted recipes", category: .heritage, error: error)
-                DeviceLogger.shared.log("❌ [Heritage] Promotion save failed: \(error.localizedDescription)")
-            }
-        }
+    private func promoteCachedRecipes(_ cachedRecipes: [String: Any]) async {
+        // Implementation will be added in Phase A3 for theme recipes
     }
 
+    // TODO: Re-implement theme seeding in Phase A3
     private func seedBlindBoxesIfNeeded() {
-        // Only seed if user just completed onboarding
-        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-        let hasSeenBlindBoxes = UserDefaults.standard.bool(forKey: "hasSeenBlindBoxes")
-
-        if hasCompletedOnboarding && !hasSeenBlindBoxes {
-            let seeder = BlindBoxSeeder(modelContext: modelContext)
-            do {
-                try seeder.seedBlindBoxes()
-                Log.info("Blind boxes created after onboarding", category: .ui)
-            } catch {
-                Log.error("Failed to seed blind boxes", category: .ui, metadata: ["error": error.localizedDescription])
-            }
-        }
+        // Theme seeding will be handled during onboarding in Phase B2
     }
 
+    // TODO: Re-implement theme unlock in Phase A3
     private func revealBlindBox(_ collection: RecipeCollection) {
-        // Reveal ALL blind boxes at once with a single tap
-        let allBlindBoxes = heritageCollections.filter { $0.isBlindBox }
-
-        for blindBox in allBlindBoxes {
-            blindBox.isRevealed = true
-            blindBox.revealedDate = Date()
-        }
-
-        do {
-            try modelContext.save()
-
-            // Initialize SubscriptionManager's trial (if not already started)
-            let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
-            subscriptionManager.initializeTrialOnBlindBoxReveal()
-
-            // Initialize heritage unlock tracker
-            let unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
-
-            // Start trial period if not started
-            if unlockTracker.trialStartDate == nil {
-                unlockTracker.startTrialPeriod()
-            }
-
-            // Download initial recipes using the EXACT same code path as autoRevealBlindBoxesIfNeeded (which WORKS)
-            Task {
-                await downloadHeritageRecipesWithPersistence()
-            }
-        } catch {
-            Log.error("Failed to reveal blind boxes", category: .ui, metadata: ["error": error.localizedDescription])
-        }
+        // Theme unlock will be handled automatically based on user selection in Phase A3
     }
 
-    // MARK: - Empty Heritage State
+    // MARK: - Empty Theme State (Disabled until Phase A3)
 
+    // TODO: Re-implement for theme system in Phase A3
     private var emptyHeritageState: some View {
-        VStack(spacing: HeirloomSpacing.lg) {
-            // Icon
-            Image(systemName: "gift.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(HeirloomColors.familyGreen)
-
-            // Title
-            Text("Daily Heritage Recipes")
-                .font(HeirloomFonts.title2)
-                .foregroundStyle(HeirloomColors.charcoal)
-
-            // Description
-            Text("Unlock 7 classic recipes today")
-                .font(HeirloomFonts.body)
-                .foregroundStyle(HeirloomColors.secondaryText)
-                .multilineTextAlignment(.center)
-
-            // Trial countdown badge
-            if let daysRemaining = unlockTracker?.daysRemainingInTrial {
-                HStack(spacing: 6) {
-                    Image(systemName: "calendar")
-                        .font(.caption2)
-                    Text("\(daysRemaining) days left in trial")
-                        .font(HeirloomFonts.caption1)
-                }
-                .foregroundStyle(HeirloomColors.familyGreen)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(HeirloomColors.familyGreen.opacity(0.1))
-                )
-            }
-
-            // Download Button
-            Button {
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                downloadTodaysRecipes()
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "arrow.down.circle.fill")
-                    Text("Download Today's Recipes")
-                }
-                .font(HeirloomFonts.bodyBold)
-                .foregroundStyle(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 16)
-                .background(HeirloomColors.familyGreen)
-                .cornerRadius(12)
-            }
-        }
-        .padding(40)
+        EmptyView()
     }
 
+    // TODO: Re-implement for theme downloads in Phase A3
     private func downloadTodaysRecipes() {
-        // Initialize trial period if not started
-        if let tracker = unlockTracker, tracker.trialStartDate == nil {
-            tracker.startTrialPeriod()
-        }
-
-        // Initialize trial subscription if needed
-        subscriptionManager.initializeTrialOnBlindBoxReveal()
-
-        // Download recipes using the same persistence logic
-        Task {
-            await downloadHeritageRecipesWithPersistence()
-        }
+        // Theme downloads will be handled automatically after user selection in Phase A3
     }
 
     private var emptyUserCollectionsView: some View {
@@ -1283,7 +1100,7 @@ struct CollectionsListView: View {
     private struct HeritageRecipeJSON: Codable {
         let id: String
         let title: String
-        let heritageCollectionId: String
+        let sourceThemeId: String
         let servings: String?
         let prepTime: String?
         let cookTime: String?
@@ -1342,7 +1159,7 @@ struct CollectionsListView: View {
             recipe.cookTime = json.cookTime
             recipe.notes = json.description
             recipe.instructions = json.instructions
-            recipe.isHeritageRecipe = true
+            recipe.isThemeRecipe = true
 
             modelContext.insert(recipe)
 
@@ -1391,7 +1208,8 @@ struct CollectionsListView: View {
 struct CollectionRow: View {
     let collection: RecipeCollection
     var totalRecipeCount: Int? = nil // For "All Recipes" collection
-    @State private var unlockTracker: HeritageUnlockTracker?
+    // TODO: Re-enable for theme unlocking in Phase A3
+    // @State private var unlockTracker: ThemeUnlockTracker?
 
     @Environment(\.modelContext) private var modelContext
     @Query private var allRecipes: [Recipe] // Force context refresh
@@ -1401,12 +1219,13 @@ struct CollectionRow: View {
         if collection.isAllRecipes, let count = totalRecipeCount {
             return count
         }
-        // For heritage collections, show unlocked count only
-        if collection.isHeritageCollection {
-            guard let tracker = unlockTracker else { return 0 }
-            let recipes = collection.recipes ?? []
-            return recipes.filter { tracker.isUnlocked($0) }.count
-        }
+        // TODO: Re-implement for theme collections in Phase A3
+        // For theme collections, show unlocked count only
+        // if collection.type == .theme {
+        //     guard let tracker = unlockTracker else { return 0 }
+        //     let recipes = collection.recipes ?? []
+        //     return recipes.filter { tracker.isUnlocked($0) }.count
+        // }
         // For user collections, force refresh and use relationship count
         modelContext.processPendingChanges()
         return collection.recipes?.count ?? 0
@@ -1448,9 +1267,10 @@ struct CollectionRow: View {
         )
         .cornerRadius(HeirloomSpacing.cardCornerRadius)
         .onAppear {
-            if unlockTracker == nil {
-                unlockTracker = ServiceContainer.shared.resolve(HeritageUnlockTracker.self)
-            }
+            // TODO: Re-enable for Phase A3
+            // if unlockTracker == nil {
+            //     unlockTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+            // }
         }
     }
 }

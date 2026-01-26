@@ -1,0 +1,498 @@
+{
+  "collectionId": "literary-kitchen",
+  "collectionName": "literary-kitchen",
+  "recipeCount": 25,
+  "recipes": [
+    {
+      "id": "literary-001",
+      "title": "Mrs. Beeton's Beefsteak and Kidney Pudding",
+      "description": "",
+      "prepTime": "45 minutes",
+      "cookTime": "4 hours",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "British",
+        "Victorian"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-002",
+      "title": "Moby-Dick's Chowder",
+      "description": "",
+      "prepTime": "20 minutes",
+      "cookTime": "40 minutes",
+      "servings": "Serves 6-8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "soup",
+        "seafood",
+        "New England"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-003",
+      "title": "Great Gatsby's Champagne Cocktails",
+      "description": "",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "beverage",
+        "cocktail",
+        "champagne",
+        "Jazz Age"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-004",
+      "title": "Alice's Tea Cakes",
+      "description": "",
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Makes 24 cakes",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "tea cakes",
+        "Victorian"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-005",
+      "title": "Little Women's Apple Slump",
+      "description": "",
+      "prepTime": "20 minutes",
+      "cookTime": "40 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "apple",
+        "New England",
+        "dumplings"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-006",
+      "title": "Pride & Prejudice White Soup",
+      "description": "",
+      "prepTime": "30 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "soup",
+        "Regency",
+        "formal"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-007",
+      "title": "A Christmas Carol Roast Goose",
+      "description": "",
+      "prepTime": "30 minutes",
+      "cookTime": "3 hours",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "poultry",
+        "Christmas",
+        "Victorian"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-008",
+      "title": "Hemingway's Death in the Afternoon",
+      "description": "",
+      "prepTime": "2 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "beverage",
+        "cocktail",
+        "absinthe"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-009",
+      "title": "To Kill a Mockingbird's Lane Cake",
+      "description": "",
+      "prepTime": "45 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 12",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "cake",
+        "Southern"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-010",
+      "title": "Laura Ingalls' Vanity Cakes",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "12 minutes",
+      "servings": "Makes 24",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "cookies"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-011",
+      "title": "Sherlock Holmes' Seed Cake",
+      "description": "",
+      "prepTime": "20 minutes",
+      "cookTime": "1 hour",
+      "servings": "Serves 10",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "Victorian"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-012",
+      "title": "Anne of Green Gables' Raspberry Cordial",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Makes 1 quart",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "beverage",
+        "raspberry"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-013",
+      "title": "Wuthering Heights Oatcakes",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Makes 12",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "oat"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-014",
+      "title": "Winnie the Pooh's Honey Buns",
+      "description": "",
+      "prepTime": "2 hours",
+      "cookTime": "15 minutes",
+      "servings": "Makes 12",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "honey",
+        "buns"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-015",
+      "title": "Oliver Twist's Gruel",
+      "description": "",
+      "prepTime": "5 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "breakfast",
+        "gruel"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-016",
+      "title": "The Hobbit's Seed-cakes",
+      "description": "",
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Makes 20",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "cookies"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-017",
+      "title": "Proust's Madeleines",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Makes 24",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "French",
+        "cookies"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-018",
+      "title": "James Bond's Vesper Martini",
+      "description": "",
+      "prepTime": "3 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "beverage",
+        "cocktail"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-019",
+      "title": "The Bell Jar's Avocado Pear",
+      "description": "",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 2",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "salad",
+        "avocado"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-020",
+      "title": "Don Quixote's Olla Podrida",
+      "description": "",
+      "prepTime": "30 minutes",
+      "cookTime": "3 hours",
+      "servings": "Serves 10",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "stew",
+        "Spanish"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-021",
+      "title": "The Old Man and the Sea's Fried Dolphinfish",
+      "description": "",
+      "prepTime": "10 minutes",
+      "cookTime": "8 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "seafood",
+        "Cuban"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-022",
+      "title": "Emma's Wedding Cake",
+      "description": "",
+      "prepTime": "1 hour",
+      "cookTime": "3 hours",
+      "servings": "Serves 20",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "wedding",
+        "fruit cake"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-023",
+      "title": "The Grapes of Wrath's Biscuits",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Makes 12",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "biscuits"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-024",
+      "title": "Babette's Feast Blinis",
+      "description": "",
+      "prepTime": "1 hour 30 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Makes 20",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "appetizer",
+        "Russian",
+        "luxury"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "literary-025",
+      "title": "Catch-22's Milo's Egyptian Cotton",
+      "description": "",
+      "prepTime": "0 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Not edible",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "satire",
+        "absurdist"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    }
+  ]
+}

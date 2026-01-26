@@ -35,8 +35,8 @@ final class TestRecipeFactory {
         if let id = id {
             recipe.id = UUID(uuidString: id) ?? UUID()
         }
-        recipe.isHeritageRecipe = true
-        recipe.heritageCollectionId = collectionId
+        recipe.isThemeRecipe = true
+        recipe.sourceThemeId = collectionId
 
         // Create ingredients using Heirloom module's init
         let ing1 = Heirloom.Ingredient(name: "flour", quantity: 2.0, unit: "cups")
@@ -95,7 +95,7 @@ final class TestRecipeFactory {
             servings: "4",
             cookTime: "30"
         )
-        recipe.isHeritageRecipe = false
+        recipe.isThemeRecipe = false
 
         let ing = Heirloom.Ingredient(name: "water", quantity: 1.0, unit: "cup")
 
@@ -129,7 +129,7 @@ final class TestRecipeFactory {
     ) -> Heirloom.RecipeCollection {
         let collection = RecipeCollection(
             name: title,
-            heritageCollectionId: heritageId
+            sourceThemeId: heritageId
         )
         collection.isBlindBox = true
         collection.isRevealed = isRevealed

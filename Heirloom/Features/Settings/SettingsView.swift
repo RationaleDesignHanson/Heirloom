@@ -26,7 +26,6 @@ struct SettingsView: View {
     @State private var showSignOutConfirmation = false
     @State private var showSignIn = false
     @State private var storageSize: String = "Calculating..."
-    @State private var showHeritageCleanup = false
     @State private var authStateChanged = false // Force view updates when auth state changes
     @State private var isClearingData = false // Show loading indicator while clearing
     @State private var isExporting = false
@@ -50,9 +49,6 @@ struct SettingsView: View {
 
                 // Data Management Section
                 dataManagementSection
-
-                // Heritage Collections Section
-                heritageCollectionsSection
 
                 // App Info Section
                 appInfoSection
@@ -105,9 +101,6 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
-            }
-            .sheet(isPresented: $showHeritageCleanup) {
-                HeritageRecipeCleanupView()
             }
             .onChange(of: firebaseAuth.isAuthenticated) { _, _ in
                 // Toggle state to force view refresh when auth state changes
@@ -326,128 +319,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Heritage Collections Section
-
-    private var heritageCollectionsSection: some View {
-        Section {
-            let heritageCount = recipes.filter { $0.isHeritageRecipe }.count
-            let heritageCollections = recipes.filter { $0.isHeritageRecipe }
-                .compactMap { $0.heritageCollectionId }
-                .reduce(into: Set<String>()) { $0.insert($1) }
-                .count
-
-            // Status Display
-            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                HStack {
-                    Text("Heritage Recipes")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text("\(heritageCount) recipes")
-                        .font(.subheadline.bold())
-                        .foregroundStyle(.primary)
-                }
-
-                if heritageCount > 0 {
-                    HStack {
-                        Text("Collections")
-                            .font(HeirloomFonts.body)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text("\(heritageCollections) unlocked")
-                            .font(.subheadline.bold())
-                            .foregroundStyle(.brown)
-                    }
-                }
-            }
-            .padding(.vertical, 4)
-
-            // Download Heritage Button
-            Button {
-                // Navigate to Collections tab to download Heritage collections
-                Log.info("Navigating to Collections tab to download Heritage recipes", category: .heritage)
-                tabCoordinator.selectedTab = TabNavigationCoordinator.Tab.collections.rawValue
-            } label: {
-                HStack {
-                    Image(systemName: "arrow.down.circle")
-                        .foregroundStyle(.brown)
-                    Text("Download Heritage Collections")
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Button {
-                showHeritageCleanup = true
-            } label: {
-                HStack {
-                    Image(systemName: "sparkles")
-                        .foregroundStyle(.brown)
-                    Text("Review Unused Heritage Recipes")
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        } header: {
-            Text("Heritage Collections")
-        } footer: {
-            Text("Heritage recipes are protected from deletion. Test Protection verifies the safeguard is working.")
-        }
-    }
-
-    // MARK: - Heritage Protection Test
-
-    private func testHeritageProtection() {
-        let heritageRecipes = recipes.filter { $0.isHeritageRecipe }
-
-        guard !heritageRecipes.isEmpty else {
-            showAlert(title: "No Heritage Recipes", message: "Download Heritage collections first to test protection.")
-            return
-        }
-
-        Log.info("🛡️ Testing Heritage protection - attempting to delete \(heritageRecipes.count) recipes", category: .heritage)
-
-        var deletedCount = 0
-        var protectedCount = 0
-
-        for recipe in heritageRecipes {
-            if recipe.isHeritageRecipe {
-                // This should be protected by the migration code
-                Log.info("🛡️ PROTECTED: Heritage recipe should not be deletable", category: .heritage, metadata: ["title": recipe.title])
-                protectedCount += 1
-            } else {
-                deletedCount += 1
-            }
-        }
-
-        let message = """
-        Protection Test Results:
-
-        ✅ Protected: \(protectedCount) recipes
-        ❌ Would delete: \(deletedCount) recipes
-
-        Heritage recipes are safeguarded from migration cleanup. Even if UserDefaults is cleared or app is reinstalled, these recipes cannot be deleted by system migrations.
-        """
-
-        showAlert(title: "🛡️ Protection Verified", message: message)
-    }
-
-    private func showAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            rootViewController.present(alert, animated: true)
-        }
-    }
-
     // MARK: - Account Section
 
     private var accountSection: some View {
@@ -655,25 +526,6 @@ struct SettingsView: View {
                     cancelFakeSubscription()
                 } label: {
                     Label("Cancel Fake Subscription", systemImage: "xmark.circle.fill")
-                }
-            }
-
-            Divider()
-
-            // ⭐ Feature Testing Tools
-            // Test Heritage Protection (MOVED FROM HERITAGE SECTION)
-            Button(role: .destructive) {
-                testHeritageProtection()
-            } label: {
-                HStack {
-                    Image(systemName: "shield.checkered")
-                        .foregroundStyle(.orange)
-                    Text("Test Heritage Protection")
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Text("(Dev)")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(.secondary)
                 }
             }
 

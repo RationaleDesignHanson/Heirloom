@@ -211,7 +211,7 @@ final class RecipeCollectionValidationTests: XCTestCase {
         // Arrange & Act
         let collection = Heirloom.RecipeCollection(
             name: "Presidential Pantry",
-            heritageCollectionId: "presidential-pantry"
+            sourceThemeId: "presidential-pantry"
         )
 
         context.insert(collection)
@@ -219,7 +219,7 @@ final class RecipeCollectionValidationTests: XCTestCase {
 
         // Act & Assert
         XCTAssertTrue(collection.isHeritageCollection)
-        XCTAssertEqual(collection.heritageCollectionId, "presidential-pantry")
+        XCTAssertEqual(collection.sourceThemeId, "presidential-pantry")
     }
 
     func testRecipeCollection_HeritageCollection_NotHeritageWithoutID() throws {
@@ -231,7 +231,7 @@ final class RecipeCollectionValidationTests: XCTestCase {
 
         // Act & Assert
         XCTAssertFalse(collection.isHeritageCollection)
-        XCTAssertNil(collection.heritageCollectionId)
+        XCTAssertNil(collection.sourceThemeId)
     }
 
     func testRecipeCollection_HeritageCollectionID_AllCases() throws {

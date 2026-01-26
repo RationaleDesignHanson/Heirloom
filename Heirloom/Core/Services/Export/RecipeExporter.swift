@@ -56,8 +56,8 @@ final class RecipeExporter {
                 isFavorite: recipe.isFavorite,
                 timesCooked: recipe.timesCooked,
                 lastCooked: recipe.lastCooked?.iso8601,
-                isHeritageRecipe: recipe.isHeritageRecipe,
-                heritageCollectionId: recipe.heritageCollectionId,
+                isThemeRecipe: recipe.isThemeRecipe,
+                sourceThemeId: recipe.sourceThemeId,
                 historicalText: recipe.historicalText,
                 historicalContext: recipe.historicalContext
             )
@@ -359,7 +359,7 @@ final class RecipeExporter {
             ingredients: recipe.ingredients?.map { $0.originalText } ?? [],
             instructions: recipe.instructions,
             collectionName: recipe.collections?.first?.name,
-            isHeritage: recipe.isHeritageRecipe,
+            isHeritage: recipe.isThemeRecipe,
             createdDate: formatter.string(from: recipe.dateAdded),
             modifiedDate: formatter.string(from: recipe.lastModified),
             source: recipe.sourceURL,
@@ -399,8 +399,8 @@ struct RecipeExportData: Codable {
     let isFavorite: Bool
     let timesCooked: Int
     let lastCooked: String?
-    let isHeritageRecipe: Bool
-    let heritageCollectionId: String?
+    let isThemeRecipe: Bool
+    let sourceThemeId: String?
     let historicalText: String?
     let historicalContext: String?
 }

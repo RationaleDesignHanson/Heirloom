@@ -7,139 +7,163 @@
 
 import SwiftUI
 
-/// Fourth onboarding screen - Organization with collections and sync
+/// Fourth onboarding screen - Heirloom sharing feature
 struct OnboardingOrganizationScreen: View {
     let onContinue: () -> Void
 
-    // Static data (no SwiftData queries) - 4 diverse recipes (no scrolling needed)
-    // Reuse OnboardingConceptScreen types for compatibility with OnboardingConceptRecipeCard
-    private let sampleRecipes = [
-        OnboardingConceptScreen.SampleRecipe(
-            title: "Classic Grilled Cheese",
-            collectionName: "Favorites",
-            collectionIcon: "heart.fill",
-            collectionColor: "#FF6B6B",
-            imageName: "onboarding-grilled-cheese"
-        ),
-        OnboardingConceptScreen.SampleRecipe(
-            title: "Tomato Soup",
-            collectionName: "Favorites",
-            collectionIcon: "heart.fill",
-            collectionColor: "#FF6B6B",
-            imageName: "onboarding-tomato-soup"
-        ),
-        OnboardingConceptScreen.SampleRecipe(
-            title: "Pot Roast",
-            collectionName: "Favorites",
-            collectionIcon: "heart.fill",
-            collectionColor: "#FF6B6B",
-            imageName: "onboarding-pot-roast"
-        ),
-        OnboardingConceptScreen.SampleRecipe(
-            title: "Apple Pie",
-            collectionName: "Favorites",
-            collectionIcon: "heart.fill",
-            collectionColor: "#FF6B6B",
-            imageName: "onboarding-apple-pie"
-        )
-    ]
-
-    private let collections: [OnboardingConceptScreen.SampleCollection] = [
-        OnboardingConceptScreen.SampleCollection(
-            name: "Favorites",
-            icon: "heart.fill",
-            color: "#FF6B6B",
-            count: 6,
-            isHighlighted: true
-        )
-    ]
-
-    @State private var showPulse = true
+    @State private var animateShare = false
+    @State private var showLineage = false
 
     var body: some View {
         ZStack {
             HeirloomColors.cream.ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: HeirloomSpacing.lg) {
-                    Spacer()
-                        .frame(height: 30)
+            VStack(spacing: 0) {
+                Spacer()
+                    .frame(height: 60)
 
-                    // Title
-                    Text("Beautiful recipes,\nbeautifully organized")
-                        .font(HeirloomFonts.largeTitle)
-                        .foregroundStyle(HeirloomColors.charcoal)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(2)
-                        .kerning(-0.5)
-                        .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
-
-                    // Subtitle
-                    Text("Collections, sync, and sharing built in")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-
-                    // Recipe Cards (static, non-tappable) - Match Recipes tab layout
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing),
-                            GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
-                        ],
-                        spacing: HeirloomSpacing.gridSpacing
-                    ) {
-                        ForEach(sampleRecipes.indices, id: \.self) { index in
-                            OnboardingConceptRecipeCard(recipe: sampleRecipes[index])
-                        }
-                    }
-                    .padding(.horizontal, HeirloomSpacing.lg)
-                    .allowsHitTesting(false) // Disable taps
-
-                    // Collection Rows (static, non-tappable)
-                    VStack(spacing: HeirloomSpacing.sm) {
-                        ForEach(collections, id: \.name) { collection in
-                            OnboardingConceptCollectionRow(
-                                collection: collection,
-                                showPulse: showPulse && collection.isHighlighted
-                            )
-                        }
-                    }
-                    .padding(.horizontal, HeirloomSpacing.lg)
-                    .allowsHitTesting(false) // Disable taps
-
-                    Spacer()
-                        .frame(height: 20)
-
-                    // Continue Button
-                    Button {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        onContinue()
-                    } label: {
-                        Text("Get Started")
-                            .font(HeirloomFonts.bodyBold)
-                            .foregroundStyle(HeirloomColors.buttonTextLight)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(HeirloomColors.tomato)
-                            .cornerRadius(12)
-                    }
+                // Title
+                Text("Share family recipes\nwith family")
+                    .font(HeirloomFonts.largeTitle)
+                    .foregroundStyle(HeirloomColors.charcoal)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+                    .kerning(-0.5)
                     .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
-                    Spacer()
-                        .frame(height: 40)
+                // Subtitle
+                Text("Every recipe remembers where it came from")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                    .padding(.top, 12)
+
+                Spacer()
+                    .frame(height: 40)
+
+                // Sharing visualization
+                sharingVisualization
+                    .padding(.horizontal, 40)
+
+                Spacer()
+
+                // Continue Button
+                Button {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    onContinue()
+                } label: {
+                    Text("Continue")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.buttonTextLight)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(HeirloomColors.tomato)
+                        .cornerRadius(12)
                 }
+                .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
+                .padding(.bottom, 40)
             }
         }
         .onAppear {
-            // Pulse animation for Favorites (run twice, then stop)
-            withAnimation(.easeInOut(duration: 1.0).repeatCount(2, autoreverses: true)) {
-                showPulse = true
+            // Animate sharing flow
+            withAnimation(.easeInOut(duration: 0.8).delay(0.3)) {
+                animateShare = true
             }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                showPulse = false
+            withAnimation(.easeInOut(duration: 0.6).delay(1.2)) {
+                showLineage = true
             }
+        }
+    }
+
+    // MARK: - Sharing Visualization
+
+    private var sharingVisualization: some View {
+        VStack(spacing: 32) {
+            // Top person (sender)
+            VStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(HeirloomColors.warmGray.opacity(0.2))
+                        .frame(width: 64, height: 64)
+
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(HeirloomColors.warmGray)
+                }
+
+                Text("You")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+
+            // Recipe card with lineage indicator
+            VStack(spacing: 0) {
+                // Recipe card
+                HStack(spacing: 12) {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(HeirloomColors.warmGray.opacity(0.2))
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Image(systemName: "doc.text.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(HeirloomColors.warmGray)
+                        )
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Grandma's Apple Pie")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+
+                        if showLineage {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.triangle.branch")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(HeirloomColors.tomato)
+
+                                Text("From Mom")
+                                    .font(HeirloomFonts.caption2)
+                                    .foregroundStyle(HeirloomColors.secondaryText)
+                            }
+                            .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                        }
+                    }
+
+                    Spacer()
+                }
+                .padding(12)
+                .background(HeirloomColors.cardBackground)
+                .cornerRadius(12)
+                .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+            }
+            .opacity(animateShare ? 1 : 0)
+            .offset(y: animateShare ? 0 : -20)
+
+            // Arrow
+            Image(systemName: "arrow.down")
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundStyle(HeirloomColors.tomato)
+                .opacity(animateShare ? 1 : 0)
+
+            // Bottom person (recipient)
+            VStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(HeirloomColors.tomato.opacity(0.2))
+                        .frame(width: 64, height: 64)
+
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(HeirloomColors.tomato)
+                }
+
+                Text("Family & Friends")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+            .opacity(animateShare ? 1 : 0)
+            .offset(y: animateShare ? 0 : 20)
         }
     }
 

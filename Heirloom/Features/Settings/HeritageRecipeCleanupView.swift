@@ -254,8 +254,8 @@ private struct CleanupRecipeRow: View {
                         .fontWeight(.medium)
                         .foregroundStyle(.primary)
 
-                    if let collectionId = recipe.heritageCollectionId {
-                        Text(collectionId)
+                    if let themeId = recipe.sourceThemeId {
+                        Text(themeId)
                             .font(HeirloomFonts.caption1)
                             .foregroundStyle(.brown)
                     }
@@ -285,11 +285,11 @@ private struct CleanupRecipeRow: View {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try! ModelContainer(for: Recipe.self, configurations: config)
 
-        // Create sample heritage recipes
+        // Create sample theme recipes
         for i in 1...5 {
-            let recipe = Recipe(title: "Heritage Recipe \(i)")
-            recipe.isHeritageRecipe = true
-            recipe.heritageCollectionId = "1950s-american-classics"
+            let recipe = Recipe(title: "Theme Recipe \(i)")
+            recipe.isThemeRecipe = true
+            recipe.sourceThemeId = "1950s-american-classics"
             recipe.dateAdded = Calendar.current.date(byAdding: .day, value: -35, to: Date())!
             container.mainContext.insert(recipe)
         }

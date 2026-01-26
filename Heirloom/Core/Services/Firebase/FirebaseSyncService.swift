@@ -590,7 +590,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         }
 
         // DIAGNOSTIC: Count Heritage recipes BEFORE sync
-        let heritageCountBefore = (try? context.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isHeritageRecipe }.count ?? 0
+        let heritageCountBefore = (try? context.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isThemeRecipe }.count ?? 0
         Log.info("🔍 SYNC START - Heritage recipes BEFORE sync", category: .sync, metadata: ["count": heritageCountBefore])
 
         isSyncing = true
@@ -598,7 +598,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             isSyncing = false
 
             // DIAGNOSTIC: Count Heritage recipes AFTER sync
-            let heritageCountAfter = (try? context.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isHeritageRecipe }.count ?? 0
+            let heritageCountAfter = (try? context.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isThemeRecipe }.count ?? 0
             Log.info("🔍 SYNC END - Heritage recipes AFTER sync", category: .sync, metadata: ["count": heritageCountAfter])
 
             if heritageCountBefore != heritageCountAfter {
@@ -849,14 +849,14 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         logger.log("🔍 [Firebase] Found \(allRecipes.count) total recipes", category: .sync, level: .info, metadata: nil)
 
         // Count Heritage recipes for diagnostic
-        let heritageCount = allRecipes.filter { $0.isHeritageRecipe }.count
+        let heritageCount = allRecipes.filter { $0.isThemeRecipe }.count
         logger.log("🔍 [Firebase] Heritage recipes in database: \(heritageCount)", category: .sync, level: .info, metadata: nil)
 
         // Filter for unsynced recipes (EXCLUDING heritage and onboarding recipes)
         let unsynced = allRecipes.filter { recipe in
             // CRITICAL: Never sync heritage recipes to Firebase
             // Heritage recipes are read-only system content
-            guard !recipe.isHeritageRecipe else {
+            guard !recipe.isThemeRecipe else {
                 Log.debug("Skipping Heritage recipe from sync", category: .sync, metadata: ["title": recipe.title])
                 return false
             }
@@ -1187,10 +1187,10 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         data["createdDate"] = Timestamp(date: collection.createdDate)
         data["recipeIds"] = collection.recipes?.map { $0.id.uuidString } ?? []
 
-        // Heritage-specific fields
-        data["isBlindBox"] = collection.isBlindBox
-        data["isRevealed"] = collection.isRevealed
-        data["heritageCollectionId"] = collection.heritageCollectionId as Any
+        // Theme-specific fields
+        // TODO: Update for theme system in Phase A3
+        // data["sourceThemeId"] = collection.sourceTheme?.firebaseId as Any
+        data["collectionType"] = collection.collectionType
         data["iconName"] = collection.iconName
         data["color"] = collection.color
         data["isSystemCollection"] = collection.isSystemCollection
@@ -1232,10 +1232,11 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 existing.name = data["name"] as? String ?? existing.name
                 existing.desc = data["desc"] as? String
 
-                // Update heritage-specific fields
-                existing.isBlindBox = data["isBlindBox"] as? Bool ?? existing.isBlindBox
-                existing.isRevealed = data["isRevealed"] as? Bool ?? existing.isRevealed
-                existing.heritageCollectionId = data["heritageCollectionId"] as? String
+                // Update theme-specific fields
+                // TODO: Update for theme system in Phase A3
+                if let collectionTypeStr = data["collectionType"] as? String {
+                    existing.collectionType = collectionTypeStr
+                }
                 existing.iconName = data["iconName"] as? String ?? existing.iconName
                 existing.color = data["color"] as? String ?? existing.color
                 existing.isSystemCollection = data["isSystemCollection"] as? Bool ?? existing.isSystemCollection
@@ -1255,10 +1256,11 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                     collection.createdDate = createdDate
                 }
 
-                // Set heritage-specific fields
-                collection.isBlindBox = data["isBlindBox"] as? Bool ?? false
-                collection.isRevealed = data["isRevealed"] as? Bool ?? false
-                collection.heritageCollectionId = data["heritageCollectionId"] as? String
+                // Set theme-specific fields
+                // TODO: Update for theme system in Phase A3
+                if let collectionTypeStr = data["collectionType"] as? String {
+                    collection.collectionType = collectionTypeStr
+                }
                 collection.isSystemCollection = data["isSystemCollection"] as? Bool ?? false
                 collection.isAllRecipes = data["isAllRecipes"] as? Bool ?? false
 

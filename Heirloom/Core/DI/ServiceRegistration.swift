@@ -334,18 +334,19 @@ extension ServiceContainer {
             HeritageRecipeCleanupService()
         }
 
-        // HeritageUnlockTracker - Manages progressive unlock of heritage recipes during trial
-        register(HeritageUnlockTracker.self, lifecycle: .singleton) { _ in
-            HeritageUnlockTracker()
-        }
+        // TODO: Re-enable for theme unlocking in Phase A3
+        // ThemeUnlockTracker - Manages progressive unlock of theme recipes during trial
+        // register(ThemeUnlockTracker.self, lifecycle: .singleton) { _ in
+        //     ThemeUnlockTracker()
+        // }
 
-        // HeritageRecipeCache - Durable cache for heritage recipes (survives force-quit)
-        register(HeritageRecipeCache.self, lifecycle: .singleton) { _ in
-            HeritageRecipeCache()
-        }
+        // ThemeRecipeCache - Durable cache for theme recipes (survives force-quit)
+        // register(ThemeRecipeCache.self, lifecycle: .singleton) { _ in
+        //     ThemeRecipeCache()
+        // }
 
-        // HeritageOnDemandService - Note: Requires modelContext at init, instantiate directly where needed
-        // Example: HeritageOnDemandService(modelContext: modelContext, firebaseAuth: authService)
+        // ThemeRecipeService - Note: Requires modelContext at init, instantiate directly where needed
+        // Example: ThemeRecipeService(modelContext: modelContext, firebaseAuth: authService)
 
         // MARK: - AI Services
 

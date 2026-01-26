@@ -70,7 +70,8 @@ final class CollectionsFirstMigration {
                 iconName: "book.closed.fill",
                 color: "#FF6B6B",
                 isSystemCollection: true,
-                isAllRecipes: true
+                isAllRecipes: true,
+                collectionType: .system
             )
             context.insert(allRecipes)
 

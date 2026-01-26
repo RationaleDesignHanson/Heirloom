@@ -5,8 +5,8 @@ import SwiftData
 /// This enables future migrations without breaking existing installations
 ///
 /// Heritage Collections (Cold Start):
-/// - Recipe: Added isHeritageRecipe, heritageCollectionId, blurhash, imageVariants, historicalText, historicalContext
-/// - RecipeCollection: Added heritageCollectionId for founding collections
+/// - Recipe: Added isThemeRecipe, sourceThemeId, blurhash, imageVariants, historicalText, historicalContext
+/// - RecipeCollection: Added sourceThemeId for founding collections
 enum SchemaV1: VersionedSchema {
     static var versionIdentifier = Schema.Version(1, 0, 0)
 
@@ -17,7 +17,7 @@ enum SchemaV1: VersionedSchema {
             RecipeLineage.self,  // ADDED: Heirloom sharing lineage tracking for family recipe trees
             Ingredient.self,
             Tag.self,
-            RecipeCollection.self,  // UPDATED: Added heritageCollectionId for founding collections
+            RecipeCollection.self,  // UPDATED: Added sourceThemeId for founding collections
             RecipeCardStyle.self,
             RecipeSticker.self,
             RecipeAnnotation.self,

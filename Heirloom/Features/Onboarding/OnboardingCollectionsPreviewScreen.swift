@@ -14,11 +14,11 @@ struct OnboardingCollectionsPreviewScreen: View {
     let onComplete: () -> Void
     @EnvironmentObject private var notificationService: FirebaseNotificationService
 
-    @Query(filter: #Predicate<RecipeCollection> { $0.heritageCollectionId != nil })
-    private var heritageCollections: [RecipeCollection]
+    @Query(filter: #Predicate<RecipeCollection> { $0.collectionType == "theme" })
+    private var themeCollections: [RecipeCollection]
 
-    @Query(filter: #Predicate<Recipe> { $0.isHeritageRecipe == true })
-    private var heritageRecipes: [Recipe]
+    @Query(filter: #Predicate<Recipe> { $0.isThemeRecipe == true })
+    private var themeRecipes: [Recipe]
 
     @State private var selectedRecipe: Recipe?
     @State private var selectedCollection: RecipeCollection?
@@ -26,12 +26,12 @@ struct OnboardingCollectionsPreviewScreen: View {
     // MARK: - Computed Data
 
     private var displayedCollections: (primary: RecipeCollection?, secondary: RecipeCollection?) {
-        OnboardingDataSelector.selectCollectionsForPreview(from: heritageCollections)
+        OnboardingDataSelector.selectCollectionsForPreview(from: themeCollections)
     }
 
     private var displayedRecipes: [Recipe] {
         OnboardingDataSelector.selectRecipesForPreview(
-            from: heritageRecipes,
+            from: themeRecipes,
             primaryCollection: displayedCollections.primary,
             secondaryCollection: displayedCollections.secondary
         )
@@ -39,8 +39,8 @@ struct OnboardingCollectionsPreviewScreen: View {
 
     private var canShowPreview: Bool {
         OnboardingDataSelector.canShowOnboardingPreview(
-            collections: heritageCollections,
-            recipes: heritageRecipes
+            collections: themeCollections,
+            recipes: themeRecipes
         )
     }
 
@@ -114,8 +114,8 @@ struct OnboardingCollectionsPreviewScreen: View {
                     Button {
                         selectedRecipe = recipe
                     } label: {
-                        if let collection = heritageCollections.first(where: {
-                            $0.heritageCollectionId == recipe.heritageCollectionId
+                        if let collection = themeCollections.first(where: {
+                            $0.sourceTheme?.firebaseId == recipe.sourceThemeId
                         }) {
                             OnboardingRecipeCard(recipe: recipe, collection: collection)
                         } else {
@@ -227,7 +227,7 @@ struct OnboardingCollectionsPreviewScreen: View {
     let config = FirebaseConfiguration(logger: HeirloomLogger())
     let notificationService = FirebaseNotificationService(configuration: config, logger: HeirloomLogger())
 
-    return OnboardingCollectionsPreviewScreen(onComplete: {})
+    OnboardingCollectionsPreviewScreen(onComplete: {})
         .modelContainer(for: [Recipe.self, RecipeCollection.self], inMemory: true)
         .environmentObject(notificationService)
 }

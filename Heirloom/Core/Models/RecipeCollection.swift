@@ -12,12 +12,15 @@ final class RecipeCollection {
     var createdDate: Date = Date()
     var isSystemCollection: Bool = false // For built-in collections like "Favorites"
     var isAllRecipes: Bool = false // Special "All Recipes" collection that shows all recipes
-    var heritageCollectionId: String? // ID for founding heritage collections (e.g., "presidential-pantry")
 
-    // Blind Box (Onboarding Feature)
-    var isBlindBox: Bool = false // Indicates this is a blind box collection for post-onboarding reveal
-    var isRevealed: Bool = false // Whether the blind box has been revealed by the user
-    var revealedDate: Date? // When the blind box was revealed
+    // MARK: - Theme System (Collections 2.1)
+    var collectionType: String = "userCreated" // CollectionType rawValue
+
+    @Relationship(deleteRule: .nullify)
+    var sourceTheme: RecipeTheme?
+
+    var sourceCookbook: String?
+    var sourceURL: String?
 
     // Custom Backgrounds
     var customBackgroundImagePath: String? // User-selected background image filename (local storage)
@@ -36,7 +39,7 @@ final class RecipeCollection {
         color: String = "#FF6B6B",
         isSystemCollection: Bool = false,
         isAllRecipes: Bool = false,
-        heritageCollectionId: String? = nil
+        collectionType: CollectionType = .userCreated
     ) {
         self.id = UUID()
         self.name = name
@@ -46,7 +49,7 @@ final class RecipeCollection {
         self.createdDate = Date()
         self.isSystemCollection = isSystemCollection
         self.isAllRecipes = isAllRecipes
-        self.heritageCollectionId = heritageCollectionId
+        self.collectionType = collectionType.rawValue
     }
 
     // MARK: - Computed Properties
@@ -72,7 +75,54 @@ final class RecipeCollection {
     }
 
     var isHeritageCollection: Bool {
-        heritageCollectionId != nil
+        type == .theme
+    }
+
+    /// Computed property for collection type enum
+    var type: CollectionType {
+        get { CollectionType(rawValue: collectionType) ?? .userCreated }
+        set { collectionType = newValue.rawValue }
+    }
+
+    var isVisibleInMainList: Bool {
+        // System collections and "All Recipes" are hidden
+        if isSystemCollection || isAllRecipes {
+            return false
+        }
+
+        // Empty non-theme collections are hidden
+        if type != .theme && recipeCount == 0 {
+            return false
+        }
+
+        return true
+    }
+
+    var subtitleText: String {
+        switch type {
+        case .theme:
+            if let theme = sourceTheme {
+                let unlockedCount = recipes?.count ?? 0
+                let totalCount = theme.totalRecipes
+                if unlockedCount < totalCount {
+                    return "\(unlockedCount) of \(totalCount) recipes unlocked"
+                } else {
+                    return "All \(totalCount) recipes unlocked"
+                }
+            }
+            return "\(recipeCount) recipes"
+        case .fromFriends:
+            return "\(recipeCount) shared recipe\(recipeCount == 1 ? "" : "s")"
+        case .imports:
+            return "\(recipeCount) imported recipe\(recipeCount == 1 ? "" : "s")"
+        case .cookbook:
+            if let cookbook = sourceCookbook {
+                return "From \(cookbook)"
+            }
+            return "\(recipeCount) recipes"
+        default:
+            return "\(recipeCount) recipe\(recipeCount == 1 ? "" : "s")"
+        }
     }
 
     // MARK: - Predefined Icons
@@ -152,80 +202,4 @@ final class RecipeCollection {
         }
     }
 
-    // MARK: - Heritage Collections
-
-    /// Heritage collection identifiers
-    enum HeritageCollectionID: String, CaseIterable {
-        case presidentialPantry = "presidential-pantry"
-        case literaryKitchen = "literary-kitchen"
-        case ancientTable = "ancient-table"
-        case americanFoundation = "american-foundation"
-
-        var displayName: String {
-            switch self {
-            case .presidentialPantry: return "Presidential Pantry"
-            case .literaryKitchen: return "Literary Kitchen"
-            case .ancientTable: return "Ancient Table"
-            case .americanFoundation: return "American Foundation"
-            }
-        }
-
-        var description: String {
-            switch self {
-            case .presidentialPantry:
-                return "Recipes from First Families spanning 1800s-1900s"
-            case .literaryKitchen:
-                return "Dishes from literary works and authors' tables"
-            case .ancientTable:
-                return "Ancient recipes from classical civilizations"
-            case .americanFoundation:
-                return "Foundational American recipes from colonial era"
-            }
-        }
-
-        var color: String {
-            switch self {
-            case .presidentialPantry: return "#8B0000"  // Deep red
-            case .literaryKitchen: return "#2F4F4F"     // Dark slate gray
-            case .ancientTable: return "#8B4513"        // Saddle brown/terracotta
-            case .americanFoundation: return "#CD853F"  // Peru/amber
-            }
-        }
-
-        var iconName: String {
-            switch self {
-            case .presidentialPantry: return "building.columns.fill"
-            case .literaryKitchen: return "book.closed.fill"
-            case .ancientTable: return "scroll.fill"
-            case .americanFoundation: return "flag.fill"
-            }
-        }
-    }
-
-    /// Create the 4 founding heritage collections
-    static func createHeritageCollections(context: ModelContext) {
-        // Check if heritage collections already exist
-        var descriptor = FetchDescriptor<RecipeCollection>()
-        descriptor.predicate = #Predicate<RecipeCollection> { collection in
-            collection.heritageCollectionId != nil
-        }
-        let heritageExists = (try? context.fetch(descriptor))?.isEmpty == false
-
-        guard !heritageExists else { return }
-
-        // Create all 4 founding collections
-        for collectionID in HeritageCollectionID.allCases {
-            let collection = RecipeCollection(
-                name: collectionID.displayName,
-                description: collectionID.description,
-                iconName: collectionID.iconName,
-                color: collectionID.color,
-                isSystemCollection: true,
-                heritageCollectionId: collectionID.rawValue
-            )
-            context.insert(collection)
-        }
-
-        try? context.save()
-    }
 }

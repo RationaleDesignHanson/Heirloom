@@ -295,7 +295,7 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
                 // CHECK: Is this a Heritage reference? If so, skip it - Heritage recipes managed separately
                 if let isHeritageReference = data["isHeritageReference"] as? Bool, isHeritageReference {
                     Log.debug("Skipping Heritage reference in sync (managed separately)", category: .sync, metadata: [
-                        "heritageRecipeId": data["heritageRecipeId"] as? String ?? "unknown"
+                        "themeRecipeId": data["themeRecipeId"] as? String ?? "unknown"
                     ])
                     continue
                 }

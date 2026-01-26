@@ -1,0 +1,1110 @@
+{
+  "themeId": "boston-cooking-school",
+  "themeName": "Boston Cooking School",
+  "recipes": [
+    {
+      "id": "boston-cooking-school-001",
+      "title": "Parker House Rolls",
+      "description": "The iconic folded dinner roll created at Boston's Parker House Hotel\u2014tender, buttery, and perfect.",
+      "ingredients": [
+        {
+          "name": "warm milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "active dry yeast",
+          "amount": 2.25,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "sugar",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons",
+          "notes": "melted, plus more for brushing"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 3.5,
+          "unit": "cups"
+        }
+      ],
+      "instructions": [
+        "Dissolve yeast in warm milk (110\u00b0F). Let stand 5 minutes until foamy.",
+        "Add sugar, melted butter, salt, and egg. Mix well.",
+        "Gradually add flour to form a soft dough.",
+        "Knead until smooth and elastic, about 8 minutes.",
+        "Place in a greased bowl, cover, and let rise 1 hour until doubled.",
+        "Punch down. Roll dough to 1/2-inch thickness.",
+        "Cut with a 2.5-inch round cutter. Brush each round with melted butter.",
+        "Fold in half, pressing edges lightly. Place on greased baking sheets.",
+        "Cover and let rise 30 minutes.",
+        "Bake at 375\u00b0F (190\u00b0C) for 15-18 minutes until golden.",
+        "Brush hot rolls with more butter."
+      ],
+      "prepTime": 30,
+      "cookTime": 18,
+      "servings": 24,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Created at Boston's Parker House Hotel around 1870, these rolls became a standard in Fannie Farmer's groundbreaking cookbook. The signature fold creates layers of buttery tenderness.",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "baking",
+        "classic",
+        "dinner rolls"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-002",
+      "title": "Boston Baked Beans",
+      "description": "The definitive New England baked beans, slow-cooked with molasses and salt pork.",
+      "ingredients": [
+        {
+          "name": "navy beans",
+          "amount": 2,
+          "unit": "cups",
+          "notes": "dried"
+        },
+        {
+          "name": "salt pork",
+          "amount": 0.25,
+          "unit": "pound",
+          "preparation": "scored"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "notes": "whole"
+        },
+        {
+          "name": "molasses",
+          "amount": 0.33,
+          "unit": "cup"
+        },
+        {
+          "name": "brown sugar",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "dry mustard",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "boiling water",
+          "amount": 2,
+          "unit": "cups"
+        }
+      ],
+      "instructions": [
+        "Soak beans overnight. Drain, cover with fresh water, and simmer until skins crack when blown upon, about 45 minutes.",
+        "Preheat oven to 300\u00b0F (150\u00b0C).",
+        "Place whole onion in bottom of bean pot. Add drained beans.",
+        "Mix molasses, brown sugar, mustard, salt, pepper, and boiling water. Pour over beans.",
+        "Score salt pork and press into top of beans.",
+        "Cover and bake 6-8 hours, adding water as needed to keep beans covered.",
+        "Uncover for last hour to brown the pork."
+      ],
+      "prepTime": 20,
+      "cookTime": 480,
+      "servings": 8,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Fannie Farmer's baked beans recipe codified what Boston housewives had made for generations. The slow baking transforms humble beans into something transcendent.",
+      "unlockDay": 2,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "side dish",
+        "classic",
+        "make-ahead"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-003",
+      "title": "Fannie Farmer Sugar Cookies",
+      "description": "The original standardized sugar cookie recipe, perfect for rolling and cutting.",
+      "ingredients": [
+        {
+          "name": "butter",
+          "amount": 1,
+          "unit": "cup",
+          "notes": "softened"
+        },
+        {
+          "name": "sugar",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "baking powder",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        }
+      ],
+      "instructions": [
+        "Beat butter and sugar until light and fluffy.",
+        "Add eggs and vanilla; beat well.",
+        "Whisk flour, baking powder, and salt. Add to butter mixture.",
+        "Divide dough in half. Wrap in plastic and refrigerate 1 hour.",
+        "Preheat oven to 375\u00b0F (190\u00b0C). Line baking sheets with parchment.",
+        "Roll dough to 1/4-inch thickness on floured surface.",
+        "Cut with cookie cutters. Place on prepared sheets.",
+        "Bake 8-10 minutes until edges are barely golden.",
+        "Cool on pan 2 minutes, then transfer to rack."
+      ],
+      "prepTime": 20,
+      "cookTime": 10,
+      "servings": 48,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Before Fannie Farmer, recipes called for 'a lump of butter the size of an egg.' Her standardized measurements made this cookie recipe\u2014and countless others\u2014reproducible.",
+      "unlockDay": 3,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "cookies",
+        "baking",
+        "kid-friendly"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-004",
+      "title": "Indian Pudding",
+      "description": "A colonial-era cornmeal and molasses pudding, baked slowly until custardy.",
+      "ingredients": [
+        {
+          "name": "milk",
+          "amount": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "cornmeal",
+          "amount": 0.33,
+          "unit": "cup"
+        },
+        {
+          "name": "molasses",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "sugar",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "butter",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ginger",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cinnamon",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large"
+        },
+        {
+          "name": "vanilla ice cream",
+          "group": "For serving"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 300\u00b0F (150\u00b0C). Butter a 2-quart baking dish.",
+        "Scald 3 cups milk in a saucepan.",
+        "Slowly whisk in cornmeal. Cook, stirring, until thickened, about 5 minutes.",
+        "Remove from heat. Add molasses, sugar, butter, salt, ginger, and cinnamon.",
+        "Beat eggs with remaining 1 cup cold milk. Stir into cornmeal mixture.",
+        "Pour into prepared dish.",
+        "Bake 2-3 hours until set but still slightly jiggly.",
+        "Serve warm with vanilla ice cream."
+      ],
+      "prepTime": 15,
+      "cookTime": 180,
+      "servings": 8,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "This pudding dates to colonial times when cornmeal was called 'Indian meal.' The long, slow bake creates a custardy texture with a caramelized top.",
+      "unlockDay": 5,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "traditional",
+        "comfort food"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-005",
+      "title": "Boston Brown Bread",
+      "description": "Traditional steamed bread made with rye, cornmeal, and molasses\u2014essential with baked beans.",
+      "ingredients": [
+        {
+          "name": "rye flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "cornmeal",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "whole wheat flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "baking soda",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "buttermilk",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "molasses",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "raisins",
+          "amount": 1,
+          "unit": "cup",
+          "isOptional": true
+        }
+      ],
+      "instructions": [
+        "Grease two 1-pound coffee cans or a 2-quart pudding mold.",
+        "Whisk rye flour, cornmeal, whole wheat flour, baking soda, and salt.",
+        "Add buttermilk and molasses. Stir until combined. Fold in raisins if using.",
+        "Fill molds 2/3 full. Cover tightly with foil.",
+        "Place on a rack in a large pot. Add boiling water to come halfway up molds.",
+        "Cover pot and steam 2.5-3 hours, adding water as needed.",
+        "Remove from molds. Slice while warm with a string or serrated knife."
+      ],
+      "prepTime": 15,
+      "cookTime": 180,
+      "servings": 12,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "This steamed bread has been a New England tradition since colonial times. The three flours create a dense, moist texture that's perfect spread with cream cheese or butter.",
+      "unlockDay": 7,
+      "sortOrder": 1,
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "traditional",
+        "New England"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-006",
+      "title": "Old-Fashioned Gingerbread",
+      "description": "Moist, warmly spiced gingerbread that fills the kitchen with its aroma.",
+      "ingredients": [
+        {
+          "name": "butter",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "sugar",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "molasses",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 2.5,
+          "unit": "cups"
+        },
+        {
+          "name": "baking soda",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "cinnamon",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "ginger",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "cloves",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "hot water",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "whipped cream",
+          "group": "For serving"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350\u00b0F (175\u00b0C). Grease a 9x13 inch pan.",
+        "Beat butter and sugar until fluffy. Add egg and molasses; beat well.",
+        "Whisk flour, baking soda, cinnamon, ginger, cloves, and salt.",
+        "Add flour mixture alternately with hot water, beginning and ending with flour.",
+        "Pour into prepared pan.",
+        "Bake 35-40 minutes until a toothpick comes out clean.",
+        "Serve warm with whipped cream."
+      ],
+      "prepTime": 15,
+      "cookTime": 40,
+      "servings": 12,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Gingerbread has been an American favorite since colonial times. This soft, cake-style version was a staple of New England baking, perfect with afternoon tea or as dessert.",
+      "unlockDay": 9,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "baking",
+        "spiced",
+        "comfort food"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-007",
+      "title": "Fannie Farmer Popovers",
+      "description": "Dramatically puffed, hollow rolls with crispy exteriors and tender interiors.",
+      "ingredients": [
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large"
+        },
+        {
+          "name": "milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "butter",
+          "amount": 1,
+          "unit": "tablespoon",
+          "notes": "melted"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 450\u00b0F (230\u00b0C). Generously grease a popover pan or 6-cup muffin tin.",
+        "Beat eggs. Add milk, flour, salt, and melted butter. Beat until smooth.",
+        "Fill each cup about 2/3 full.",
+        "Bake at 450\u00b0F for 20 minutes.",
+        "Reduce temperature to 350\u00b0F (175\u00b0C) without opening oven. Bake 15-20 minutes more until deeply golden.",
+        "Pierce each popover with a knife to release steam.",
+        "Serve immediately with butter."
+      ],
+      "prepTime": 10,
+      "cookTime": 40,
+      "servings": 6,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Fannie Farmer's popover recipe was precise: the high initial heat creates steam, making them 'pop' dramatically over the pan. The key is never opening the oven until they're done.",
+      "unlockDay": 11,
+      "sortOrder": 1,
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "baking",
+        "breakfast"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-008",
+      "title": "Boston Cream Pie",
+      "description": "Fannie Farmer's legendary cake: two layers of sponge with pastry cream, topped with chocolate glaze.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 1.5,
+          "unit": "cups",
+          "group": "For cake"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1.5,
+          "unit": "teaspoons",
+          "group": "For cake"
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "group": "For cake"
+        },
+        {
+          "name": "butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "notes": "softened",
+          "group": "For cake"
+        },
+        {
+          "name": "sugar",
+          "amount": 1,
+          "unit": "cup",
+          "group": "For cake"
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "group": "For cake"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon",
+          "group": "For cake"
+        },
+        {
+          "name": "milk",
+          "amount": 0.75,
+          "unit": "cup",
+          "group": "For cake"
+        },
+        {
+          "name": "egg yolks",
+          "amount": 3,
+          "unit": "large",
+          "group": "For filling"
+        },
+        {
+          "name": "sugar",
+          "amount": 0.5,
+          "unit": "cup",
+          "group": "For filling"
+        },
+        {
+          "name": "cornstarch",
+          "amount": 3,
+          "unit": "tablespoons",
+          "group": "For filling"
+        },
+        {
+          "name": "milk",
+          "amount": 2,
+          "unit": "cups",
+          "group": "For filling"
+        },
+        {
+          "name": "vanilla",
+          "amount": 1,
+          "unit": "teaspoon",
+          "group": "For filling"
+        },
+        {
+          "name": "semisweet chocolate",
+          "amount": 4,
+          "unit": "ounces",
+          "group": "For glaze"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "group": "For glaze"
+        },
+        {
+          "name": "corn syrup",
+          "amount": 1,
+          "unit": "tablespoon",
+          "group": "For glaze"
+        }
+      ],
+      "instructions": [
+        "For cake: Preheat oven to 350\u00b0F (175\u00b0C). Grease two 9-inch round pans.",
+        "Whisk flour, baking powder, and salt. Beat butter and sugar until fluffy. Add eggs and vanilla.",
+        "Add flour mixture alternately with milk. Divide between pans.",
+        "Bake 25-30 minutes. Cool completely.",
+        "For filling: Whisk yolks, sugar, and cornstarch. Heat milk until simmering.",
+        "Slowly whisk hot milk into yolks. Return to pot and cook, stirring, until thick.",
+        "Remove from heat, add vanilla. Cover and chill.",
+        "For glaze: Melt chocolate with butter and corn syrup. Cool slightly.",
+        "Place one cake layer on plate. Spread with pastry cream. Top with second layer.",
+        "Pour chocolate glaze over top, letting it drip down sides."
+      ],
+      "prepTime": 40,
+      "cookTime": 30,
+      "servings": 12,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Despite its name, this is actually a cake\u2014created at Boston's Parker House Hotel in the 1850s. Fannie Farmer standardized the recipe, making it reproducible for home cooks across America.",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "difficulty": "hard",
+      "tags": [
+        "dessert",
+        "cake",
+        "chocolate",
+        "classic"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-009",
+      "title": "New England Fish Chowder",
+      "description": "Creamy, chunky fish chowder that defines New England cooking.",
+      "ingredients": [
+        {
+          "name": "salt pork or bacon",
+          "amount": 4,
+          "unit": "ounces",
+          "preparation": "diced"
+        },
+        {
+          "name": "onions",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "name": "potatoes",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": "cubed"
+        },
+        {
+          "name": "water",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "cod or haddock",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": "cut into chunks"
+        },
+        {
+          "name": "whole milk",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "oyster crackers",
+          "group": "For serving"
+        }
+      ],
+      "instructions": [
+        "Render salt pork in a large pot until crispy. Remove cracklings and set aside.",
+        "Add onions to fat and cook until softened.",
+        "Add potatoes and water. Simmer until potatoes are tender, about 15 minutes.",
+        "Add fish. Simmer gently until fish is cooked through, about 10 minutes.",
+        "Add milk, cream, butter, salt, and pepper. Heat through but do not boil.",
+        "Let stand 30 minutes for flavors to meld. Reheat gently.",
+        "Serve topped with reserved cracklings and oyster crackers."
+      ],
+      "prepTime": 20,
+      "cookTime": 35,
+      "servings": 6,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Chowder has been a New England staple since colonial times. Fannie Farmer's version emphasizes the cream and fish, creating the prototype for all fish chowders that followed.",
+      "unlockDay": 2,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "soup",
+        "seafood",
+        "New England",
+        "comfort food"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-010",
+      "title": "Welsh Rarebit",
+      "description": "A rich cheese sauce spooned over toast\u2014simple, satisfying supper or lunch.",
+      "ingredients": [
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "flour",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "milk",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "sharp cheddar cheese",
+          "amount": 2,
+          "unit": "cups",
+          "preparation": "shredded"
+        },
+        {
+          "name": "egg yolk",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "dry mustard",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cayenne pepper",
+          "amount": 0.125,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "toast",
+          "amount": 4,
+          "unit": "slices"
+        }
+      ],
+      "instructions": [
+        "Melt butter in a double boiler or heavy saucepan over low heat.",
+        "Whisk in flour. Cook 1 minute.",
+        "Gradually add milk, whisking constantly.",
+        "Add cheese and stir until melted and smooth.",
+        "Beat egg yolk with a little of the hot cheese mixture to temper.",
+        "Return to pot. Add mustard, Worcestershire, cayenne, and salt.",
+        "Cook, stirring, until thickened. Do not boil.",
+        "Pour over toast and serve immediately."
+      ],
+      "prepTime": 10,
+      "cookTime": 15,
+      "servings": 4,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Welsh Rarebit was a popular supper dish in the late 1800s. Fannie Farmer's recipe includes the trick of tempering the egg yolk to prevent curdling.",
+      "unlockDay": 3,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "lunch",
+        "quick",
+        "cheese",
+        "vegetarian"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-011",
+      "title": "New England Clam Fritters",
+      "description": "Light, crispy fritters studded with tender clams\u2014a seaside favorite.",
+      "ingredients": [
+        {
+          "name": "canned clams",
+          "amount": 10,
+          "unit": "ounces",
+          "notes": "drained, chopped, juice reserved"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "clam juice",
+          "amount": 0.5,
+          "unit": "cup",
+          "notes": "from canned clams, plus milk if needed"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "cups",
+          "group": "For frying"
+        },
+        {
+          "name": "lemon wedges",
+          "group": "For serving"
+        },
+        {
+          "name": "tartar sauce",
+          "group": "For serving"
+        }
+      ],
+      "instructions": [
+        "Whisk flour, baking powder, salt, and pepper.",
+        "Beat egg with clam juice and enough milk to equal 2/3 cup liquid.",
+        "Add wet ingredients to dry and stir until just combined.",
+        "Fold in chopped clams.",
+        "Heat oil to 375\u00b0F (190\u00b0C) in a deep pot.",
+        "Drop batter by tablespoons into hot oil.",
+        "Fry until golden brown, about 2-3 minutes, turning once.",
+        "Drain on paper towels. Serve immediately with lemon and tartar sauce."
+      ],
+      "prepTime": 15,
+      "cookTime": 15,
+      "servings": 4,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Clam fritters were a popular way to stretch precious shellfish. Fannie Farmer's batter creates a light, crispy coating that lets the clam flavor shine through.",
+      "unlockDay": 5,
+      "sortOrder": 2,
+      "difficulty": "medium",
+      "tags": [
+        "seafood",
+        "appetizer",
+        "fried"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-012",
+      "title": "Codfish Balls",
+      "description": "Crispy outside, fluffy inside\u2014the classic New England breakfast.",
+      "ingredients": [
+        {
+          "name": "salt cod",
+          "amount": 0.5,
+          "unit": "pound"
+        },
+        {
+          "name": "potatoes",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": "peeled and quartered"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "cups",
+          "group": "For frying"
+        }
+      ],
+      "instructions": [
+        "Soak salt cod in cold water 24-48 hours, changing water several times.",
+        "Drain cod and place in a pot with potatoes. Cover with fresh water.",
+        "Bring to a boil and cook until potatoes are tender, about 20 minutes.",
+        "Drain well. Mash together with butter, egg, and pepper.",
+        "Shape into balls or patties.",
+        "Heat oil to 375\u00b0F (190\u00b0C).",
+        "Fry in batches until golden brown, about 3 minutes.",
+        "Drain on paper towels. Serve hot."
+      ],
+      "prepTime": 40,
+      "cookTime": 30,
+      "servings": 6,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Salt cod was a New England staple before refrigeration. These crispy balls, served with baked beans and brown bread, were the traditional Saturday night supper.",
+      "unlockDay": 7,
+      "sortOrder": 2,
+      "difficulty": "medium",
+      "tags": [
+        "seafood",
+        "breakfast",
+        "traditional",
+        "fried"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-013",
+      "title": "Creamed Oysters on Toast",
+      "description": "Delicate oysters in a rich cream sauce\u2014an elegant supper from the Gilded Age.",
+      "ingredients": [
+        {
+          "name": "shucked oysters",
+          "amount": 1,
+          "unit": "pint",
+          "notes": "with liquor"
+        },
+        {
+          "name": "butter",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "flour",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "oyster liquor plus milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.125,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cayenne pepper",
+          "amount": 0.0625,
+          "unit": "teaspoon",
+          "notes": "pinch"
+        },
+        {
+          "name": "toast points",
+          "amount": 8,
+          "group": "For serving"
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped"
+        }
+      ],
+      "instructions": [
+        "Drain oysters, reserving liquor. Add milk to liquor to make 1 cup.",
+        "Melt butter in a saucepan. Whisk in flour and cook 1 minute.",
+        "Gradually whisk in oyster liquor mixture and cream.",
+        "Cook until thickened, about 3-4 minutes.",
+        "Add oysters, salt, white pepper, and cayenne.",
+        "Cook gently just until oyster edges curl, about 2-3 minutes. Do not overcook.",
+        "Spoon over toast points. Garnish with parsley."
+      ],
+      "prepTime": 10,
+      "cookTime": 10,
+      "servings": 4,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "In the late 1800s, oysters were abundant and inexpensive. This elegant preparation transformed them into refined supper fare suitable for the finest tables.",
+      "unlockDay": 9,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "seafood",
+        "elegant",
+        "quick"
+      ]
+    },
+    {
+      "id": "boston-cooking-school-014",
+      "title": "Lobster Newburg",
+      "description": "Succulent lobster in a rich, sherry-laced cream sauce\u2014Gilded Age elegance.",
+      "ingredients": [
+        {
+          "name": "cooked lobster meat",
+          "amount": 1,
+          "unit": "pound",
+          "preparation": "cut into chunks"
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "dry sherry",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "egg yolks",
+          "amount": 3,
+          "unit": "large"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cayenne pepper",
+          "amount": 0.0625,
+          "unit": "teaspoon",
+          "notes": "pinch"
+        },
+        {
+          "name": "toast points or puff pastry shells",
+          "group": "For serving"
+        }
+      ],
+      "instructions": [
+        "Melt butter in a heavy saucepan over medium heat.",
+        "Add lobster and cook gently for 2 minutes.",
+        "Add sherry and simmer 1 minute.",
+        "Whisk egg yolks with cream. Slowly add to the pan, stirring constantly.",
+        "Cook over low heat, stirring, until sauce thickens enough to coat a spoon. Do not boil.",
+        "Season with salt and cayenne.",
+        "Serve immediately over toast points or in puff pastry shells."
+      ],
+      "prepTime": 15,
+      "cookTime": 10,
+      "servings": 4,
+      "source": "Boston Cooking-School Cook Book, Fannie Farmer, 1896",
+      "story": "Created at Delmonico's restaurant in New York, Lobster Newburg became a Gilded Age favorite. Fannie Farmer's recipe made this elegant dish accessible to home cooks.",
+      "unlockDay": 11,
+      "sortOrder": 2,
+      "difficulty": "medium",
+      "tags": [
+        "seafood",
+        "elegant",
+        "special occasion"
+      ]
+    }
+  ]
+}

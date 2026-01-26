@@ -7,6 +7,8 @@
 //
 
 import SwiftUI
+import UIKit
+import StoreKit
 
 /// Subscription offer screen shown at end of onboarding
 /// Presents trial offer with option to skip
@@ -22,6 +24,7 @@ struct OnboardingSubscriptionScreen: View {
 
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var isLoadingProducts = true
 
     // MARK: - Callbacks
 
@@ -108,7 +111,7 @@ struct OnboardingSubscriptionScreen: View {
                     .padding(.horizontal, 24)
 
                     // Pricing
-                    if let annualProduct = storeManager.products[.annual] {
+                    if let annualProduct = storeManager.products[ProductIdentifier.annual] {
                         VStack(spacing: 8) {
                             Text("Then \(annualProduct.displayPrice)/year")
                                 .font(.headline)
@@ -122,7 +125,75 @@ struct OnboardingSubscriptionScreen: View {
 
                     // CTA Buttons
                     VStack(spacing: HeirloomSpacing.md) {
-                        // Start Trial Button
+                        if isLoadingProducts {
+                            // Loading indicator while products load
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                                .frame(height: 64)
+                        } else if let annualProduct = storeManager.products[ProductIdentifier.annual] {
+                        // Subscribe Now Button - PRIMARY UPSELL
+                            VStack(spacing: 8) {
+                                // Best Value Badge
+                                HStack {
+                                    Spacer()
+                                    Text("BEST VALUE")
+                                        .font(.caption2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 4)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color.green)
+                                        )
+                                    Spacer()
+                                }
+
+                                Button(action: {
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    subscribeNow()
+                                }) {
+                                    VStack(spacing: 4) {
+                                        Text("Subscribe Now")
+                                            .font(.headline)
+                                            .fontWeight(.bold)
+                                        Text("\(annualProduct.displayPrice)/year • Full Access")
+                                            .font(.caption)
+                                            .opacity(0.9)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 64)
+                                    .background(
+                                        LinearGradient(
+                                            colors: [Color.green, Color.green.opacity(0.8)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .foregroundColor(.white)
+                                    .cornerRadius(16)
+                                }
+                                .heirloomShadow(HeirloomShadows.elevated)
+                                .disabled(isLoading)
+                            }
+                        }
+
+                        // Divider with "OR"
+                        HStack {
+                            Rectangle()
+                                .fill(Color.secondary.opacity(0.3))
+                                .frame(height: 1)
+                            Text("OR")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 8)
+                            Rectangle()
+                                .fill(Color.secondary.opacity(0.3))
+                                .frame(height: 1)
+                        }
+                        .padding(.vertical, 4)
+
+                        // Start Trial Button - SECONDARY OPTION
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                             startTrial()
@@ -131,59 +202,41 @@ struct OnboardingSubscriptionScreen: View {
                                 if isLoading {
                                     ProgressView()
                                         .progressViewStyle(.circular)
-                                        .tint(.white)
+                                        .tint(HeirloomColors.charcoal)
                                 } else {
-                                    Text("Start Free Trial")
-                                        .font(.headline)
+                                    VStack(spacing: 2) {
+                                        Text("Try Free for 14 Days")
+                                            .font(.headline)
+                                        Text("Then \(storeManager.products[.annual]?.displayPrice ?? "$29.99")/year")
+                                            .font(.caption)
+                                            .opacity(0.7)
+                                    }
                                 }
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color.orange, Color.pink],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
+                            .background(HeirloomColors.cream)
+                            .foregroundColor(HeirloomColors.charcoal)
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .strokeBorder(HeirloomColors.charcoal.opacity(0.2), lineWidth: 1.5)
                             )
-                            .foregroundColor(.white)
-                            .cornerRadius(16)
                         }
-                        .heirloomShadow(HeirloomShadows.elevated)
                         .disabled(isLoading)
 
-                        // Subscribe Now Button (skip trial)
-                        if let annualProduct = storeManager.products[.annual] {
-                            Button(action: {
-                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                subscribeNow()
-                            }) {
-                                Text("Subscribe Now • \(annualProduct.displayPrice)/year")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 50)
-                                    .background(HeirloomColors.cream)
-                                    .foregroundColor(HeirloomColors.charcoal)
-                                    .cornerRadius(12)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .strokeBorder(HeirloomColors.charcoal.opacity(0.2), lineWidth: 1)
-                                    )
-                            }
-                            .disabled(isLoading)
-                        }
-
-                        // Skip Button
+                        // Skip Button - MINIMAL
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             onSkip()
                         }) {
-                            Text("Continue with Free Version")
-                                .font(.subheadline)
+                            Text("Continue with Limited Features")
+                                .font(.caption)
                                 .foregroundColor(.secondary)
+                                .underline()
                         }
                         .disabled(isLoading)
+                        .padding(.top, 4)
                     }
                     .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
@@ -229,12 +282,17 @@ struct OnboardingSubscriptionScreen: View {
             if storeManager.products.isEmpty {
                 do {
                     try await storeManager.loadProducts()
+                    isLoadingProducts = false
                 } catch {
                     errorMessage = "Could not load subscription options"
+                    isLoadingProducts = false
                     Log.error("Failed to load products during onboarding", category: .store, metadata: [
                         "error": error.localizedDescription
                     ])
                 }
+            } else {
+                // Products already loaded
+                isLoadingProducts = false
             }
         }
     }

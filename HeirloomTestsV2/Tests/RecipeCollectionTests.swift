@@ -43,7 +43,7 @@ final class RecipeCollectionTests: XCTestCase {
         XCTAssertEqual(collection.iconName, "folder.fill") // Default icon
         XCTAssertEqual(collection.color, "#FF6B6B") // Default color
         XCTAssertFalse(collection.isSystemCollection)
-        XCTAssertNil(collection.heritageCollectionId)
+        XCTAssertNil(collection.sourceThemeId)
         XCTAssertNotNil(collection.id)
         XCTAssertNotNil(collection.createdDate)
     }
@@ -369,7 +369,7 @@ final class RecipeCollectionTests: XCTestCase {
         // Arrange & Act
         let collection = Heirloom.RecipeCollection(
             name: "Presidential Pantry",
-            heritageCollectionId: "presidential-pantry"
+            sourceThemeId: "presidential-pantry"
         )
 
         context.insert(collection)
@@ -377,7 +377,7 @@ final class RecipeCollectionTests: XCTestCase {
 
         // Assert
         XCTAssertTrue(collection.isHeritageCollection)
-        XCTAssertEqual(collection.heritageCollectionId, "presidential-pantry")
+        XCTAssertEqual(collection.sourceThemeId, "presidential-pantry")
     }
 
     func testRecipeCollection_HeritageCollectionID_AllCasesExist() throws {
@@ -412,7 +412,7 @@ final class RecipeCollectionTests: XCTestCase {
 
         // Assert
         let descriptor = FetchDescriptor<Heirloom.RecipeCollection>(
-            predicate: #Predicate { $0.heritageCollectionId != nil }
+            predicate: #Predicate { $0.sourceThemeId != nil }
         )
         let results = try context.fetch(descriptor)
 
@@ -428,7 +428,7 @@ final class RecipeCollectionTests: XCTestCase {
 
         // Assert - Should still only have 4 heritage collections
         let descriptor = FetchDescriptor<Heirloom.RecipeCollection>(
-            predicate: #Predicate { $0.heritageCollectionId != nil }
+            predicate: #Predicate { $0.sourceThemeId != nil }
         )
         let results = try context.fetch(descriptor)
 
@@ -441,7 +441,7 @@ final class RecipeCollectionTests: XCTestCase {
 
         // Assert - Check Presidential Pantry specifically
         let descriptor = FetchDescriptor<Heirloom.RecipeCollection>(
-            predicate: #Predicate { $0.heritageCollectionId == "presidential-pantry" }
+            predicate: #Predicate { $0.sourceThemeId == "presidential-pantry" }
         )
         let results = try context.fetch(descriptor)
 
@@ -508,7 +508,7 @@ final class RecipeCollectionTests: XCTestCase {
 
         // Act
         let descriptor = FetchDescriptor<Heirloom.RecipeCollection>(
-            predicate: #Predicate { $0.heritageCollectionId != nil }
+            predicate: #Predicate { $0.sourceThemeId != nil }
         )
         let results = try context.fetch(descriptor)
 

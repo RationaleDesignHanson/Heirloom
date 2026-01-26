@@ -1,0 +1,1109 @@
+{
+  "themeId": "sunday-suppers",
+  "themeName": "Sunday Suppers",
+  "recipes": [
+    {
+      "id": "sunday-suppers-001",
+      "title": "Perfect Roast Chicken",
+      "description": "Crispy-skinned, juicy roast chicken\u2014the Sunday dinner that defines home cooking.",
+      "ingredients": [
+        {
+          "name": "whole chicken",
+          "amount": 4,
+          "unit": "pounds"
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons",
+          "notes": "softened"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped"
+        },
+        {
+          "name": "fresh rosemary",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": "chopped"
+        },
+        {
+          "name": "garlic",
+          "amount": 4,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "lemon",
+          "amount": 1,
+          "preparation": "halved"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "quartered"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "olive oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        }
+      ],
+      "instructions": [
+        "Remove chicken from refrigerator 1 hour before cooking.",
+        "Preheat oven to 425\u00b0F (220\u00b0C).",
+        "Mix butter with thyme, rosemary, garlic, and half the salt and pepper.",
+        "Gently loosen skin over breast and thighs. Spread herb butter under skin.",
+        "Season cavity with remaining salt and pepper. Stuff with lemon and onion.",
+        "Truss legs together with kitchen twine. Tuck wing tips under.",
+        "Rub skin with olive oil and season generously with salt.",
+        "Roast 1 hour 15 minutes until thigh reaches 165\u00b0F (74\u00b0C) and juices run clear.",
+        "Rest 15 minutes before carving."
+      ],
+      "prepTime": 20,
+      "cookTime": 75,
+      "servings": 6,
+      "source": "Classic American home cooking",
+      "story": "A perfectly roasted chicken is the mark of a good cook. The high-heat method creates crackling skin while the herb butter bastes the meat from within. Sunday dinner at its finest.",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "Sunday dinner",
+        "classic",
+        "roast"
+      ]
+    },
+    {
+      "id": "sunday-suppers-002",
+      "title": "Brown Sugar Glazed Ham",
+      "description": "A spiral-cut ham with a crackling sweet glaze\u2014the centerpiece of holiday tables.",
+      "ingredients": [
+        {
+          "name": "spiral-cut ham",
+          "amount": 8,
+          "unit": "pounds",
+          "notes": "bone-in"
+        },
+        {
+          "name": "brown sugar",
+          "amount": 1,
+          "unit": "cup",
+          "notes": "packed"
+        },
+        {
+          "name": "Dijon mustard",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "honey",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "orange juice",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "ground cloves",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cinnamon",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "whole cloves",
+          "amount": 20,
+          "notes": "for studding",
+          "isOptional": true
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 325\u00b0F (165\u00b0C). Place ham cut-side down in a roasting pan.",
+        "Cover loosely with foil. Bake 10-12 minutes per pound until internal temp reaches 130\u00b0F (54\u00b0C).",
+        "Meanwhile, mix brown sugar, mustard, honey, orange juice, ground cloves, and cinnamon.",
+        "Remove ham from oven. Increase temperature to 425\u00b0F (220\u00b0C).",
+        "Score top of ham in diamond pattern if desired. Stud with whole cloves.",
+        "Brush glaze generously over ham.",
+        "Return to oven uncovered. Bake 15-20 minutes until glaze is caramelized, brushing twice more.",
+        "Let rest 15 minutes before carving."
+      ],
+      "prepTime": 15,
+      "cookTime": 120,
+      "servings": 16,
+      "source": "American holiday tradition",
+      "story": "Glazed ham is the traditional centerpiece for Easter and Christmas dinners. The spiral cut makes carving effortless, and the sweet-savory glaze forms a crackling crust.",
+      "unlockDay": 3,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "holiday",
+        "special occasion"
+      ]
+    },
+    {
+      "id": "sunday-suppers-003",
+      "title": "Buttermilk Fried Chicken",
+      "description": "Perfectly crispy, deeply seasoned fried chicken\u2014the Southern Sunday dinner tradition.",
+      "ingredients": [
+        {
+          "name": "chicken pieces",
+          "amount": 4,
+          "unit": "pounds",
+          "notes": "8-10 pieces"
+        },
+        {
+          "name": "buttermilk",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "hot sauce",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "paprika",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "garlic powder",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "onion powder",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cayenne pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "vegetable shortening or oil",
+          "amount": 3,
+          "unit": "cups",
+          "group": "For frying"
+        }
+      ],
+      "instructions": [
+        "Combine buttermilk and hot sauce. Submerge chicken and refrigerate 4 hours or overnight.",
+        "Mix flour with paprika, garlic powder, onion powder, cayenne, salt, and pepper.",
+        "Remove chicken from buttermilk, shaking off excess.",
+        "Dredge thoroughly in seasoned flour. Let rest 15 minutes.",
+        "Heat shortening in a cast-iron skillet to 350\u00b0F (175\u00b0C). Oil should be 1 inch deep.",
+        "Fry chicken in batches, turning occasionally. Dark meat: 15-18 minutes. White meat: 12-15 minutes.",
+        "Drain on a wire rack. Season with salt while hot."
+      ],
+      "prepTime": 30,
+      "cookTime": 45,
+      "servings": 6,
+      "source": "Southern American tradition",
+      "story": "Fried chicken after church was a weekly ritual in the South. The long buttermilk soak tenderizes the meat and creates an impossibly crunchy crust.",
+      "unlockDay": 5,
+      "sortOrder": 1,
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "Southern",
+        "fried",
+        "classic"
+      ]
+    },
+    {
+      "id": "sunday-suppers-004",
+      "title": "Roast Leg of Lamb",
+      "description": "Herb-crusted lamb roasted to pink perfection\u2014the elegant Sunday dinner.",
+      "ingredients": [
+        {
+          "name": "bone-in leg of lamb",
+          "amount": 7,
+          "unit": "pounds"
+        },
+        {
+          "name": "garlic",
+          "amount": 8,
+          "unit": "cloves",
+          "preparation": "sliced"
+        },
+        {
+          "name": "fresh rosemary",
+          "amount": 3,
+          "unit": "tablespoons",
+          "preparation": "chopped"
+        },
+        {
+          "name": "fresh mint",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped"
+        },
+        {
+          "name": "olive oil",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "lemon zest",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "salt",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "black pepper",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "mint jelly",
+          "group": "For serving"
+        }
+      ],
+      "instructions": [
+        "Remove lamb from refrigerator 2 hours before cooking.",
+        "Preheat oven to 450\u00b0F (230\u00b0C).",
+        "Make small slits all over lamb. Insert garlic slices.",
+        "Mix rosemary, mint, olive oil, lemon zest, salt, and pepper into a paste.",
+        "Rub paste all over lamb.",
+        "Place lamb on a rack in a roasting pan.",
+        "Roast 20 minutes at 450\u00b0F, then reduce to 325\u00b0F (165\u00b0C).",
+        "Continue roasting until internal temp reaches 135\u00b0F (57\u00b0C) for medium-rare, about 15 minutes per pound.",
+        "Rest 20 minutes before carving. Serve with mint jelly."
+      ],
+      "prepTime": 30,
+      "cookTime": 120,
+      "servings": 10,
+      "source": "American Easter and Sunday dinner tradition",
+      "story": "Roast lamb is the traditional centerpiece for Easter dinner, but it deserves more frequent appearances. The high-heat start creates a beautiful crust while the lower roast keeps it juicy.",
+      "unlockDay": 7,
+      "sortOrder": 1,
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "holiday",
+        "roast",
+        "elegant"
+      ]
+    },
+    {
+      "id": "sunday-suppers-005",
+      "title": "Herb-Crusted Pork Loin Roast",
+      "description": "Juicy pork loin with a fragrant herb crust\u2014elegant enough for company, simple enough for family.",
+      "ingredients": [
+        {
+          "name": "boneless pork loin",
+          "amount": 4,
+          "unit": "pounds"
+        },
+        {
+          "name": "olive oil",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "garlic",
+          "amount": 6,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "fresh rosemary",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped"
+        },
+        {
+          "name": "fresh sage",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": "chopped"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 1,
+          "unit": "tablespoon",
+          "preparation": "chopped"
+        },
+        {
+          "name": "Dijon mustard",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "black pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "apple cider",
+          "amount": 1,
+          "unit": "cup",
+          "group": "For pan"
+        }
+      ],
+      "instructions": [
+        "Remove pork from refrigerator 1 hour before cooking.",
+        "Preheat oven to 400\u00b0F (200\u00b0C).",
+        "Mix olive oil, garlic, rosemary, sage, thyme, mustard, salt, and pepper into a paste.",
+        "Rub paste all over pork, pressing it into the meat.",
+        "Place pork on a rack in a roasting pan. Pour cider into pan.",
+        "Roast 55-65 minutes until internal temp reaches 145\u00b0F (63\u00b0C).",
+        "Rest 15 minutes\u2014temperature will rise to 150\u00b0F (66\u00b0C).",
+        "Slice and serve with pan juices."
+      ],
+      "prepTime": 20,
+      "cookTime": 65,
+      "servings": 8,
+      "source": "American Sunday dinner tradition",
+      "story": "Pork loin is leaner than it used to be, so it needs to be treated carefully. The herb crust adds flavor and helps keep it moist. Don't skip the resting time.",
+      "unlockDay": 9,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "pork",
+        "roast",
+        "Sunday dinner"
+      ]
+    },
+    {
+      "id": "sunday-suppers-006",
+      "title": "Braised Beef Short Ribs",
+      "description": "Deeply caramelized short ribs braised until falling off the bone\u2014the ultimate comfort food.",
+      "ingredients": [
+        {
+          "name": "bone-in beef short ribs",
+          "amount": 5,
+          "unit": "pounds"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "onions",
+          "amount": 2,
+          "unit": "large",
+          "preparation": "sliced"
+        },
+        {
+          "name": "carrots",
+          "amount": 4,
+          "unit": "medium",
+          "preparation": "chunked"
+        },
+        {
+          "name": "celery",
+          "amount": 4,
+          "unit": "stalks",
+          "preparation": "chunked"
+        },
+        {
+          "name": "garlic",
+          "amount": 6,
+          "unit": "cloves",
+          "preparation": "smashed"
+        },
+        {
+          "name": "tomato paste",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "red wine",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "beef broth",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 6,
+          "unit": "sprigs"
+        },
+        {
+          "name": "bay leaves",
+          "amount": 2
+        },
+        {
+          "name": "salt",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "black pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 325\u00b0F (165\u00b0C). Season ribs with salt and pepper.",
+        "Heat oil in a Dutch oven over high heat. Brown ribs on all sides in batches. Remove.",
+        "Add onions, carrots, and celery. Cook until caramelized, about 10 minutes.",
+        "Add garlic and tomato paste; cook 2 minutes.",
+        "Add wine, scraping up browned bits. Simmer until reduced by half.",
+        "Add broth, thyme, and bay leaves. Return ribs to pot.",
+        "Cover and braise 3 hours until meat is falling off the bone.",
+        "Skim fat from sauce. Discard bay leaves and thyme.",
+        "Serve ribs with braising liquid and vegetables."
+      ],
+      "prepTime": 30,
+      "cookTime": 200,
+      "servings": 6,
+      "source": "Classic American home cooking",
+      "story": "Short ribs were once a budget cut, prized by home cooks who knew that time in a low oven transforms tough meat into silk. The wine-rich braising liquid becomes a luxurious sauce.",
+      "unlockDay": 11,
+      "sortOrder": 1,
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "comfort food",
+        "special occasion"
+      ]
+    },
+    {
+      "id": "sunday-suppers-007",
+      "title": "Sunday Beef Pot Roast",
+      "description": "Falling-apart tender beef braised with root vegetables\u2014the meal that fills the house with warmth.",
+      "ingredients": [
+        {
+          "name": "beef chuck roast",
+          "amount": 4,
+          "unit": "pounds"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "onions",
+          "amount": 2,
+          "unit": "large",
+          "preparation": "quartered"
+        },
+        {
+          "name": "carrots",
+          "amount": 6,
+          "unit": "medium",
+          "preparation": "cut in chunks"
+        },
+        {
+          "name": "potatoes",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": "quartered"
+        },
+        {
+          "name": "celery",
+          "amount": 4,
+          "unit": "stalks",
+          "preparation": "cut in chunks"
+        },
+        {
+          "name": "garlic",
+          "amount": 4,
+          "unit": "cloves",
+          "preparation": "smashed"
+        },
+        {
+          "name": "beef broth",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "red wine",
+          "amount": 1,
+          "unit": "cup",
+          "isOptional": true
+        },
+        {
+          "name": "tomato paste",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "fresh thyme",
+          "amount": 4,
+          "unit": "sprigs"
+        },
+        {
+          "name": "bay leaves",
+          "amount": 2
+        },
+        {
+          "name": "salt",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "black pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 325\u00b0F (165\u00b0C).",
+        "Season roast generously with salt and pepper.",
+        "Heat oil in a Dutch oven over high heat. Sear roast on all sides until well browned. Remove.",
+        "Add onions, carrots, and celery. Cook 5 minutes.",
+        "Add garlic and tomato paste; cook 1 minute.",
+        "Add broth, wine if using, thyme, and bay leaves. Bring to simmer.",
+        "Return roast to pot. Cover and braise in oven 2.5 hours.",
+        "Add potatoes. Continue braising 1 hour until beef is fork-tender.",
+        "Let rest 15 minutes. Slice beef and serve with vegetables and pan juices."
+      ],
+      "prepTime": 25,
+      "cookTime": 210,
+      "servings": 8,
+      "source": "American Sunday dinner tradition",
+      "story": "Pot roast went into the oven after church and emerged just as the family gathered. The long braise transforms an economical cut into something extraordinary.",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "Sunday dinner",
+        "comfort food"
+      ]
+    },
+    {
+      "id": "sunday-suppers-008",
+      "title": "Classic Meat Lasagna",
+      "description": "Layers of pasta, rich meat sauce, and three cheeses\u2014the Italian-American Sunday tradition.",
+      "ingredients": [
+        {
+          "name": "lasagna noodles",
+          "amount": 1,
+          "unit": "pound"
+        },
+        {
+          "name": "ground beef",
+          "amount": 1,
+          "unit": "pound",
+          "group": "For meat sauce"
+        },
+        {
+          "name": "Italian sausage",
+          "amount": 1,
+          "unit": "pound",
+          "notes": "removed from casings",
+          "group": "For meat sauce"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced",
+          "group": "For meat sauce"
+        },
+        {
+          "name": "garlic",
+          "amount": 4,
+          "unit": "cloves",
+          "preparation": "minced",
+          "group": "For meat sauce"
+        },
+        {
+          "name": "crushed tomatoes",
+          "amount": 28,
+          "unit": "ounces",
+          "group": "For meat sauce"
+        },
+        {
+          "name": "tomato paste",
+          "amount": 6,
+          "unit": "ounces",
+          "group": "For meat sauce"
+        },
+        {
+          "name": "Italian seasoning",
+          "amount": 2,
+          "unit": "tablespoons",
+          "group": "For meat sauce"
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons",
+          "group": "For meat sauce"
+        },
+        {
+          "name": "ricotta cheese",
+          "amount": 32,
+          "unit": "ounces",
+          "group": "For cheese filling"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large",
+          "group": "For cheese filling"
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 0.25,
+          "unit": "cup",
+          "preparation": "chopped",
+          "group": "For cheese filling"
+        },
+        {
+          "name": "mozzarella cheese",
+          "amount": 4,
+          "unit": "cups",
+          "preparation": "shredded"
+        },
+        {
+          "name": "Parmesan cheese",
+          "amount": 1,
+          "unit": "cup",
+          "preparation": "grated"
+        }
+      ],
+      "instructions": [
+        "Cook lasagna noodles according to package. Drain and lay flat on oiled sheet.",
+        "Brown beef and sausage. Add onion; cook until soft. Add garlic, cook 1 minute.",
+        "Stir in tomatoes, tomato paste, Italian seasoning, and salt. Simmer 30 minutes.",
+        "Mix ricotta, egg, and parsley.",
+        "Preheat oven to 375\u00b0F (190\u00b0C).",
+        "Spread 1 cup meat sauce in a 9x13 pan. Layer: noodles, ricotta mixture, meat sauce, mozzarella, Parmesan.",
+        "Repeat layers twice. Top with remaining noodles, sauce, and cheeses.",
+        "Cover with foil. Bake 45 minutes. Uncover; bake 15 minutes more.",
+        "Rest 15 minutes before cutting."
+      ],
+      "prepTime": 45,
+      "cookTime": 90,
+      "servings": 12,
+      "source": "Italian-American Sunday dinner tradition",
+      "story": "Lasagna came to represent Italian-American abundance\u2014layers upon layers of goodness. Making it is a labor of love, but it feeds a crowd and gets better the next day.",
+      "unlockDay": 3,
+      "sortOrder": 2,
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "Italian",
+        "crowd-pleaser",
+        "make-ahead"
+      ]
+    },
+    {
+      "id": "sunday-suppers-009",
+      "title": "Perfect Mashed Potatoes",
+      "description": "Creamy, buttery, impossibly smooth\u2014the essential side dish done right.",
+      "ingredients": [
+        {
+          "name": "russet potatoes",
+          "amount": 3,
+          "unit": "pounds",
+          "preparation": "peeled and quartered"
+        },
+        {
+          "name": "butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "notes": "cut into pieces"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 0.75,
+          "unit": "cup",
+          "notes": "warmed"
+        },
+        {
+          "name": "sour cream",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "chives",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "minced",
+          "isOptional": true
+        }
+      ],
+      "instructions": [
+        "Place potatoes in a large pot of cold salted water. Bring to boil.",
+        "Cook until fork-tender, about 20-25 minutes. Drain well.",
+        "Return potatoes to hot pot for 1 minute to dry out excess moisture.",
+        "Press potatoes through a ricer or mash thoroughly.",
+        "Add butter and stir until melted.",
+        "Gradually stir in warm cream and sour cream.",
+        "Season with salt and white pepper. Beat until fluffy.",
+        "Top with chives if desired. Serve immediately."
+      ],
+      "prepTime": 15,
+      "cookTime": 30,
+      "servings": 8,
+      "source": "Classic American cooking",
+      "story": "The secret to great mashed potatoes: warm your cream, dry your potatoes after draining, and never overwork them or they'll turn gluey. Simple, but technique matters.",
+      "unlockDay": 5,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "side dish",
+        "comfort food",
+        "vegetarian"
+      ]
+    },
+    {
+      "id": "sunday-suppers-010",
+      "title": "Homemade Dinner Rolls",
+      "description": "Soft, pillowy rolls fresh from the oven\u2014nothing compares.",
+      "ingredients": [
+        {
+          "name": "warm milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "active dry yeast",
+          "amount": 2.25,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "sugar",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "butter",
+          "amount": 0.33,
+          "unit": "cup",
+          "notes": "melted"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 4,
+          "unit": "cups"
+        },
+        {
+          "name": "melted butter",
+          "amount": 3,
+          "unit": "tablespoons",
+          "group": "For brushing"
+        }
+      ],
+      "instructions": [
+        "Dissolve yeast in warm milk with a pinch of sugar. Let stand 5 minutes.",
+        "Add sugar, melted butter, egg, and salt. Mix well.",
+        "Gradually add flour to form a soft dough.",
+        "Knead until smooth and elastic, about 8 minutes.",
+        "Place in a greased bowl. Cover and let rise 1 hour until doubled.",
+        "Punch down. Divide into 24 pieces. Shape into balls.",
+        "Place in a greased 9x13 pan, just touching.",
+        "Cover and let rise 45 minutes until doubled.",
+        "Bake at 375\u00b0F (190\u00b0C) for 20-25 minutes until golden.",
+        "Brush immediately with melted butter."
+      ],
+      "prepTime": 30,
+      "cookTime": 25,
+      "servings": 24,
+      "source": "American home baking tradition",
+      "story": "Homemade rolls require time, but the aroma of bread baking and the pride of serving something made from scratch makes Sunday dinner special.",
+      "unlockDay": 7,
+      "sortOrder": 2,
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "baking",
+        "Sunday dinner"
+      ]
+    },
+    {
+      "id": "sunday-suppers-011",
+      "title": "Classic Apple Pie",
+      "description": "The American dessert\u2014tender spiced apples in a buttery, flaky crust.",
+      "ingredients": [
+        {
+          "name": "pie dough",
+          "amount": 2,
+          "unit": "rounds",
+          "notes": "for double-crust"
+        },
+        {
+          "name": "Granny Smith apples",
+          "amount": 3,
+          "unit": "pounds",
+          "preparation": "peeled and sliced"
+        },
+        {
+          "name": "granulated sugar",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "brown sugar",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "flour",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "cinnamon",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "lemon juice",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "cut into pieces"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "notes": "beaten for egg wash"
+        },
+        {
+          "name": "coarse sugar",
+          "amount": 1,
+          "unit": "tablespoon"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 425\u00b0F (220\u00b0C). Line a 9-inch pie plate with bottom crust.",
+        "Toss apples with sugars, flour, cinnamon, nutmeg, salt, and lemon juice.",
+        "Pile filling into crust, mounding in center. Dot with butter.",
+        "Top with second crust. Trim and crimp edges. Cut decorative vents.",
+        "Brush with egg wash. Sprinkle with coarse sugar.",
+        "Bake 25 minutes at 425\u00b0F.",
+        "Reduce to 375\u00b0F (190\u00b0C) and bake 35-40 minutes more until golden and bubbling.",
+        "Cool at least 2 hours before slicing."
+      ],
+      "prepTime": 30,
+      "cookTime": 65,
+      "servings": 8,
+      "source": "American baking tradition",
+      "story": "Apple pie is so American it's clich\u00e9\u2014but for good reason. The combination of tart apples, warm spices, and buttery crust is simply perfect. Serve warm with vanilla ice cream.",
+      "unlockDay": 9,
+      "sortOrder": 2,
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pie",
+        "classic",
+        "fall"
+      ]
+    },
+    {
+      "id": "sunday-suppers-012",
+      "title": "Classic Chocolate Layer Cake",
+      "description": "Rich, moist chocolate cake with silky chocolate frosting\u2014the birthday cake everyone wants.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups",
+          "group": "For cake"
+        },
+        {
+          "name": "sugar",
+          "amount": 2,
+          "unit": "cups",
+          "group": "For cake"
+        },
+        {
+          "name": "cocoa powder",
+          "amount": 0.75,
+          "unit": "cup",
+          "group": "For cake"
+        },
+        {
+          "name": "baking soda",
+          "amount": 2,
+          "unit": "teaspoons",
+          "group": "For cake"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1,
+          "unit": "teaspoon",
+          "group": "For cake"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon",
+          "group": "For cake"
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large",
+          "group": "For cake"
+        },
+        {
+          "name": "buttermilk",
+          "amount": 1,
+          "unit": "cup",
+          "group": "For cake"
+        },
+        {
+          "name": "hot coffee",
+          "amount": 1,
+          "unit": "cup",
+          "group": "For cake"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 0.5,
+          "unit": "cup",
+          "group": "For cake"
+        },
+        {
+          "name": "vanilla",
+          "amount": 2,
+          "unit": "teaspoons",
+          "group": "For cake"
+        },
+        {
+          "name": "butter",
+          "amount": 1,
+          "unit": "cup",
+          "notes": "softened",
+          "group": "For frosting"
+        },
+        {
+          "name": "cocoa powder",
+          "amount": 0.75,
+          "unit": "cup",
+          "group": "For frosting"
+        },
+        {
+          "name": "powdered sugar",
+          "amount": 4,
+          "unit": "cups",
+          "group": "For frosting"
+        },
+        {
+          "name": "heavy cream",
+          "amount": 0.5,
+          "unit": "cup",
+          "group": "For frosting"
+        },
+        {
+          "name": "vanilla",
+          "amount": 1,
+          "unit": "teaspoon",
+          "group": "For frosting"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 350\u00b0F (175\u00b0C). Grease and flour two 9-inch round pans.",
+        "Whisk flour, sugar, cocoa, baking soda, baking powder, and salt.",
+        "Add eggs, buttermilk, oil, and vanilla. Beat 2 minutes.",
+        "Stir in hot coffee (batter will be thin).",
+        "Divide between pans. Bake 30-35 minutes until toothpick comes out clean.",
+        "Cool in pans 10 minutes, then turn out onto racks.",
+        "For frosting: Beat butter until fluffy. Add cocoa and beat.",
+        "Alternately add powdered sugar and cream, beating until spreadable. Add vanilla.",
+        "Frost cooled cake layers."
+      ],
+      "prepTime": 25,
+      "cookTime": 35,
+      "servings": 12,
+      "source": "American baking tradition",
+      "story": "The coffee in the batter is the secret\u2014it doesn't taste like coffee but deepens the chocolate flavor dramatically. This is the chocolate cake against which all others are measured.",
+      "unlockDay": 11,
+      "sortOrder": 2,
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cake",
+        "chocolate",
+        "birthday"
+      ]
+    }
+  ]
+}

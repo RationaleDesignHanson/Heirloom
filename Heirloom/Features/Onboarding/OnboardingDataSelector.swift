@@ -23,10 +23,10 @@ class OnboardingDataSelector {
         from collections: [RecipeCollection]
     ) -> (primary: RecipeCollection?, secondary: RecipeCollection?) {
         // Find Literary Kitchen (always primary)
-        let literaryKitchen = collections.first { $0.heritageCollectionId == "literary-kitchen" }
+        let literaryKitchen = collections.first { $0.sourceTheme?.firebaseId == "literary-kitchen" }
 
         // Get other collections (excluding Literary Kitchen)
-        let otherCollections = collections.filter { $0.heritageCollectionId != "literary-kitchen" }
+        let otherCollections = collections.filter { $0.sourceTheme?.firebaseId != "literary-kitchen" }
 
         // Select random other collection
         let randomOther = otherCollections.randomElement()
@@ -52,7 +52,7 @@ class OnboardingDataSelector {
         // Select 1 recipe from primary collection (Literary Kitchen)
         if let primaryCollection = primaryCollection {
             let primaryRecipes = recipes.filter { recipe in
-                recipe.heritageCollectionId == primaryCollection.heritageCollectionId
+                recipe.sourceThemeId == primaryCollection.sourceTheme?.firebaseId
             }
             if let randomPrimary = primaryRecipes.randomElement() {
                 selectedRecipes.append(randomPrimary)
@@ -62,7 +62,7 @@ class OnboardingDataSelector {
         // Select 1 recipe from secondary collection
         if let secondaryCollection = secondaryCollection {
             let secondaryRecipes = recipes.filter { recipe in
-                recipe.heritageCollectionId == secondaryCollection.heritageCollectionId
+                recipe.sourceThemeId == secondaryCollection.sourceTheme?.firebaseId
             }
             if let randomSecondary = secondaryRecipes.randomElement() {
                 selectedRecipes.append(randomSecondary)
@@ -87,7 +87,7 @@ class OnboardingDataSelector {
         guard collections.count >= 2 else { return false }
 
         // Need Literary Kitchen to be present
-        guard collections.contains(where: { $0.heritageCollectionId == "literary-kitchen" }) else {
+        guard collections.contains(where: { $0.sourceTheme?.firebaseId == "literary-kitchen" }) else {
             return false
         }
 

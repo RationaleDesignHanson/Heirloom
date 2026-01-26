@@ -1,0 +1,250 @@
+{
+  "themeId": "american-foundation",
+  "themeName": "American Foundation",
+  "category": "historical",
+  "description": "Colonial and early American recipes that shaped a nation's culinary identity",
+  "sortOrder": 14,
+  "recipes": [
+    {
+      "id": "american-foundation-001",
+      "title": "Colonial Brown Bread",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 minutes",
+      "cookTime": "3 hours (steaming)",
+      "servings": "Makes 2 loaves",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "colonial",
+        "New England"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 1,
+      "sortOrder": 1
+    },
+    {
+      "id": "american-foundation-002",
+      "title": "Shaker Lemon Pie",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "24 hours (for maceration)",
+      "cookTime": "45 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pie",
+        "Shaker",
+        "lemon"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 2,
+      "sortOrder": 2
+    },
+    {
+      "id": "american-foundation-003",
+      "title": "Johnnycakes",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "10 min",
+      "cookTime": "15 min",
+      "servings": "Makes 12",
+      "difficulty": "medium",
+      "tags": [
+        "breakfast",
+        "cornmeal",
+        "pancakes"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 3,
+      "sortOrder": 3
+    },
+    {
+      "id": "american-foundation-004",
+      "title": "Succotash",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 min",
+      "cookTime": "25 min",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "corn",
+        "beans"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 4,
+      "sortOrder": 4
+    },
+    {
+      "id": "american-foundation-005",
+      "title": "Pumpkin Butter",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "30 min",
+      "cookTime": "2 hrs",
+      "servings": "Makes 4 pints",
+      "difficulty": "medium",
+      "tags": [
+        "condiment",
+        "pumpkin",
+        "preserved"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 5,
+      "sortOrder": 5
+    },
+    {
+      "id": "american-foundation-006",
+      "title": "Apple Pandowdy",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "30 min",
+      "cookTime": "1 hr",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "apple",
+        "colonial"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 6,
+      "sortOrder": 6
+    },
+    {
+      "id": "american-foundation-007",
+      "title": "Hasty Pudding",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "5 min",
+      "cookTime": "20 min",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cornmeal",
+        "pudding"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 7,
+      "sortOrder": 7
+    },
+    {
+      "id": "american-foundation-008",
+      "title": "Election Cake",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "3 hrs",
+      "cookTime": "45 min",
+      "servings": "Makes 2 loaves",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cake",
+        "fruit"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 8,
+      "sortOrder": 8
+    },
+    {
+      "id": "american-foundation-009",
+      "title": "Switchel",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "10 min",
+      "cookTime": "0 min",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "vinegar",
+        "ginger"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 9,
+      "sortOrder": 9
+    },
+    {
+      "id": "american-foundation-010",
+      "title": "Syllabub",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 min",
+      "cookTime": "2 hrs chill",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "wine",
+        "cream"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 10,
+      "sortOrder": 10
+    },
+    {
+      "id": "american-foundation-011",
+      "title": "Mincemeat",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "1 hr",
+      "cookTime": "3 hrs",
+      "servings": "Makes 8 pies",
+      "difficulty": "medium",
+      "tags": [
+        "condiment",
+        "preserved",
+        "pie filling"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 11,
+      "sortOrder": 11
+    },
+    {
+      "id": "american-foundation-012",
+      "title": "Corn Dodgers",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 min",
+      "cookTime": "20 min",
+      "servings": "Makes 16",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "cornmeal",
+        "military"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 12,
+      "sortOrder": 12
+    }
+  ]
+}

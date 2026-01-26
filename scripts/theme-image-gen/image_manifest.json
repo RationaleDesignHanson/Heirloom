@@ -1,0 +1,1751 @@
+{
+  "total_recipes": 186,
+  "themes": {
+    "automat-classics": {
+      "name": "Automat Classics",
+      "recipes": [
+        "automat-mac-cheese",
+        "automat-baked-beans",
+        "automat-rice-pudding",
+        "automat-creamed-spinach",
+        "automat-chicken-pot-pie",
+        "automat-beef-stew",
+        "automat-fish-cakes",
+        "automat-meatloaf",
+        "automat-coconut-custard-pie",
+        "automat-swedish-meatballs",
+        "automat-tapioca-pudding",
+        "automat-salisbury-steak",
+        "automat-apple-pie",
+        "automat-franks-beans"
+      ]
+    },
+    "railroad-dining": {
+      "name": "Golden Age of Rail",
+      "recipes": [
+        "harvey-house-hash",
+        "pullman-chicken-ala-king",
+        "harvey-house-salad",
+        "railroad-cinnamon-rolls",
+        "harvey-house-chili",
+        "dining-car-waldorf-salad",
+        "railroad-pot-roast",
+        "harvey-house-coconut-cake",
+        "dining-car-salmon-croquettes",
+        "railroad-bread-pudding",
+        "harvey-house-lemon-pie",
+        "railroad-club-sandwich"
+      ]
+    },
+    "victory-kitchen": {
+      "name": "Victory Kitchen",
+      "recipes": [
+        "victory-garden-soup",
+        "mock-apple-pie",
+        "oatmeal-war-bread",
+        "meatless-monday-loaf",
+        "sugarless-spice-cookies",
+        "stretched-meat-patties",
+        "eggless-milkless-cake",
+        "spam-and-eggs",
+        "potato-scallop",
+        "honey-oatmeal-cookies",
+        "liver-and-onions",
+        "carrot-cookies",
+        "salmon-loaf",
+        "wheatless-cornmeal-muffins"
+      ]
+    },
+    "navy-mess": {
+      "name": "Navy Mess Hall",
+      "recipes": [
+        "navy-sos",
+        "navy-bean-soup",
+        "navy-goulash",
+        "navy-biscuits",
+        "navy-pot-roast",
+        "navy-rice-pudding",
+        "navy-sloppy-joes",
+        "navy-coleslaw",
+        "navy-meatballs-gravy",
+        "navy-cornbread",
+        "navy-chicken-gravy",
+        "navy-chocolate-pudding",
+        "navy-beef-stroganoff",
+        "navy-apple-brown-betty"
+      ]
+    },
+    "boston-cooking-school": {
+      "name": "Boston Cooking School",
+      "recipes": [
+        "fannie-farmer-parker-house-rolls",
+        "fannie-farmer-boston-cream-pie",
+        "fannie-farmer-baked-beans",
+        "fannie-farmer-fish-chowder",
+        "fannie-farmer-sugar-cookies",
+        "fannie-farmer-welsh-rarebit",
+        "fannie-farmer-indian-pudding",
+        "fannie-farmer-clam-fritters",
+        "fannie-farmer-brown-bread",
+        "fannie-farmer-codfish-balls",
+        "fannie-farmer-gingerbread",
+        "fannie-farmer-creamed-oysters",
+        "fannie-farmer-popovers",
+        "fannie-farmer-lobster-newburg"
+      ]
+    },
+    "southern-roots": {
+      "name": "Southern Roots",
+      "recipes": [
+        "abby-fisher-oyster-gumbo",
+        "abby-fisher-sweet-potato-pie",
+        "malinda-russell-catfish-stew",
+        "rufus-estes-chicken-croquettes",
+        "southern-fried-chicken",
+        "southern-collard-greens",
+        "hoppin-john",
+        "southern-cornbread",
+        "shrimp-and-grits",
+        "southern-peach-cobbler",
+        "red-beans-rice",
+        "southern-pound-cake",
+        "southern-smothered-pork-chops",
+        "banana-pudding"
+      ]
+    },
+    "scandinavian-heritage": {
+      "name": "Scandinavian Heritage",
+      "recipes": [
+        "swedish-meatballs",
+        "norwegian-lefse",
+        "danish-aebleskiver",
+        "swedish-cardamom-bread",
+        "norwegian-fish-pudding",
+        "swedish-pancakes",
+        "danish-roast-pork",
+        "norwegian-rice-pudding",
+        "swedish-gravlax",
+        "norwegian-krumkake",
+        "swedish-mashed-root-vegetables",
+        "danish-butter-cookies"
+      ]
+    },
+    "german-american": {
+      "name": "German-American Kitchen",
+      "recipes": [
+        "sauerbraten",
+        "kartoffelpuffer",
+        "schnitzel",
+        "german-red-cabbage",
+        "spaetzle",
+        "rouladen",
+        "german-apple-cake",
+        "bratwurst",
+        "german-potato-salad",
+        "black-forest-cake",
+        "lebkuchen",
+        "german-pork-schnitzel",
+        "stollen",
+        "german-lentil-soup"
+      ]
+    },
+    "quick-weeknight": {
+      "name": "Quick Weeknight Classics",
+      "recipes": [
+        "tuna-noodle-casserole",
+        "hamburger-helper-style",
+        "baked-pork-chops",
+        "chicken-rice-casserole",
+        "sloppy-joes-quick",
+        "skillet-mac-cheese",
+        "sheet-pan-chicken",
+        "salisbury-steak-quick",
+        "tacos-ground-beef",
+        "baked-spaghetti",
+        "fried-rice-quick",
+        "stuffed-peppers-quick",
+        "chicken-stir-fry",
+        "beef-bean-burritos"
+      ]
+    },
+    "sunday-suppers": {
+      "name": "Sunday Suppers",
+      "recipes": [
+        "classic-roast-chicken",
+        "beef-pot-roast",
+        "baked-ham",
+        "lasagna-classic",
+        "fried-chicken-sunday",
+        "mashed-potatoes-perfect",
+        "leg-of-lamb",
+        "parker-house-rolls-sunday",
+        "pork-roast-sunday",
+        "apple-pie-sunday",
+        "braised-short-ribs",
+        "chocolate-cake-sunday"
+      ]
+    },
+    "presidential-pantry": {
+      "name": "Presidential Pantry",
+      "recipes": [
+        "presidential-001",
+        "presidential-002",
+        "presidential-003",
+        "presidential-004",
+        "presidential-005",
+        "presidential-006",
+        "presidential-007",
+        "presidential-008",
+        "presidential-009",
+        "presidential-010",
+        "presidential-011",
+        "presidential-012",
+        "presidential-013",
+        "presidential-014"
+      ]
+    },
+    "literary-kitchen": {
+      "name": "Literary Kitchen",
+      "recipes": [
+        "literary-001",
+        "literary-002",
+        "literary-003",
+        "literary-004",
+        "literary-005",
+        "literary-006",
+        "literary-007",
+        "literary-008",
+        "literary-009",
+        "literary-010",
+        "literary-011",
+        "literary-012",
+        "literary-013",
+        "literary-014"
+      ]
+    },
+    "ancient-table": {
+      "name": "Ancient Table",
+      "recipes": [
+        "ancient-001",
+        "ancient-002",
+        "ancient-003",
+        "ancient-004",
+        "ancient-005",
+        "ancient-006",
+        "ancient-007",
+        "ancient-008",
+        "ancient-009",
+        "ancient-010",
+        "ancient-011",
+        "ancient-012"
+      ]
+    },
+    "american-foundation": {
+      "name": "American Foundation",
+      "recipes": [
+        "american-001",
+        "american-002",
+        "american-003",
+        "american-004",
+        "american-005",
+        "american-006",
+        "american-007",
+        "american-008",
+        "american-009",
+        "american-010",
+        "american-011",
+        "american-012"
+      ]
+    }
+  },
+  "recipes": [
+    {
+      "id": "automat-mac-cheese",
+      "title": "Horn & Hardart Macaroni and Cheese",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-mac-cheese.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "automat-baked-beans",
+      "title": "Automat Boston Baked Beans",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-baked-beans.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "automat-rice-pudding",
+      "title": "Creamy Automat Rice Pudding",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-rice-pudding.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "automat-creamed-spinach",
+      "title": "Automat Creamed Spinach",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-creamed-spinach.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "automat-chicken-pot-pie",
+      "title": "Horn & Hardart Chicken Pot Pie",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-chicken-pot-pie.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "automat-beef-stew",
+      "title": "Automat Beef Stew",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-beef-stew.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "automat-fish-cakes",
+      "title": "Automat Cod Fish Cakes",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-fish-cakes.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "automat-meatloaf",
+      "title": "Automat Meatloaf with Gravy",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-meatloaf.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "automat-coconut-custard-pie",
+      "title": "Automat Coconut Custard Pie",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-coconut-custard-pie.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "automat-swedish-meatballs",
+      "title": "Automat Swedish Meatballs",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-swedish-meatballs.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "automat-tapioca-pudding",
+      "title": "Old-Fashioned Tapioca Pudding",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-tapioca-pudding.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "automat-salisbury-steak",
+      "title": "Automat Salisbury Steak",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-salisbury-steak.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "automat-apple-pie",
+      "title": "Automat Apple Pie",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-apple-pie.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "automat-franks-beans",
+      "title": "Automat Franks and Beans",
+      "theme_id": "automat-classics",
+      "theme_name": "Automat Classics",
+      "image_filename": "automat-classics-automat-franks-beans.webp",
+      "unlock_day": 14
+    },
+    {
+      "id": "harvey-house-hash",
+      "title": "Harvey House Corned Beef Hash",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-harvey-house-hash.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "pullman-chicken-ala-king",
+      "title": "Pullman Car Chicken \u00e0 la King",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-pullman-chicken-ala-king.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "harvey-house-salad",
+      "title": "Harvey House Tossed Green Salad",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-harvey-house-salad.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "railroad-cinnamon-rolls",
+      "title": "Santa Fe Railroad Cinnamon Rolls",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-railroad-cinnamon-rolls.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "harvey-house-chili",
+      "title": "Harvey House Chili con Carne",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-harvey-house-chili.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "dining-car-waldorf-salad",
+      "title": "Pullman Waldorf Salad",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-dining-car-waldorf-salad.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "railroad-pot-roast",
+      "title": "Great Northern Railway Pot Roast",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-railroad-pot-roast.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "harvey-house-coconut-cake",
+      "title": "Harvey House Coconut Layer Cake",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-harvey-house-coconut-cake.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "dining-car-salmon-croquettes",
+      "title": "Pennsylvania Railroad Salmon Croquettes",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-dining-car-salmon-croquettes.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "railroad-bread-pudding",
+      "title": "Southern Pacific Bread Pudding",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-railroad-bread-pudding.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "harvey-house-lemon-pie",
+      "title": "Harvey House Lemon Meringue Pie",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-harvey-house-lemon-pie.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "railroad-club-sandwich",
+      "title": "The Classic Railroad Club Sandwich",
+      "theme_id": "railroad-dining",
+      "theme_name": "Golden Age of Rail",
+      "image_filename": "railroad-dining-railroad-club-sandwich.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "victory-garden-soup",
+      "title": "Victory Garden Vegetable Soup",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-victory-garden-soup.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "mock-apple-pie",
+      "title": "Mock Apple Pie (Ritz Cracker)",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-mock-apple-pie.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "oatmeal-war-bread",
+      "title": "Oatmeal War Bread",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-oatmeal-war-bread.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "meatless-monday-loaf",
+      "title": "Meatless Monday Lentil Loaf",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-meatless-monday-loaf.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "sugarless-spice-cookies",
+      "title": "Sugarless Spice Cookies",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-sugarless-spice-cookies.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "stretched-meat-patties",
+      "title": "Stretched Meat Patties",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-stretched-meat-patties.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "eggless-milkless-cake",
+      "title": "Eggless Milkless Cake",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-eggless-milkless-cake.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "spam-and-eggs",
+      "title": "SPAM and Eggs",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-spam-and-eggs.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "potato-scallop",
+      "title": "Scalloped Potatoes",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-potato-scallop.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "honey-oatmeal-cookies",
+      "title": "Honey-Oatmeal Drop Cookies",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-honey-oatmeal-cookies.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "liver-and-onions",
+      "title": "Liver and Onions",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-liver-and-onions.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "carrot-cookies",
+      "title": "Victory Carrot Cookies",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-carrot-cookies.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "salmon-loaf",
+      "title": "Victory Salmon Loaf",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-salmon-loaf.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "wheatless-cornmeal-muffins",
+      "title": "Wheatless Cornmeal Muffins",
+      "theme_id": "victory-kitchen",
+      "theme_name": "Victory Kitchen",
+      "image_filename": "victory-kitchen-wheatless-cornmeal-muffins.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "navy-sos",
+      "title": "Navy S.O.S. (Creamed Chipped Beef)",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-sos.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "navy-bean-soup",
+      "title": "Navy Bean Soup",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-bean-soup.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "navy-goulash",
+      "title": "Navy Goulash (American Chop Suey)",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-goulash.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "navy-biscuits",
+      "title": "Navy Ship's Biscuits",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-biscuits.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "navy-pot-roast",
+      "title": "Navy Pot Roast",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-pot-roast.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "navy-rice-pudding",
+      "title": "Mess Hall Rice Pudding",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-rice-pudding.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "navy-sloppy-joes",
+      "title": "Navy Sloppy Joes",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-sloppy-joes.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "navy-coleslaw",
+      "title": "Mess Hall Coleslaw",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-coleslaw.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "navy-meatballs-gravy",
+      "title": "Navy Meatballs with Brown Gravy",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-meatballs-gravy.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "navy-cornbread",
+      "title": "Navy Cornbread",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-cornbread.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "navy-chicken-gravy",
+      "title": "Navy Creamed Chicken",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-chicken-gravy.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "navy-chocolate-pudding",
+      "title": "Navy Chocolate Pudding",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-chocolate-pudding.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "navy-beef-stroganoff",
+      "title": "Navy Beef Stroganoff",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-beef-stroganoff.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "navy-apple-brown-betty",
+      "title": "Navy Apple Brown Betty",
+      "theme_id": "navy-mess",
+      "theme_name": "Navy Mess Hall",
+      "image_filename": "navy-mess-navy-apple-brown-betty.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "fannie-farmer-parker-house-rolls",
+      "title": "Parker House Rolls",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-parker-house-rolls.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "fannie-farmer-boston-cream-pie",
+      "title": "Boston Cream Pie",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-boston-cream-pie.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "fannie-farmer-baked-beans",
+      "title": "Boston Baked Beans",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-baked-beans.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "fannie-farmer-fish-chowder",
+      "title": "New England Fish Chowder",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-fish-chowder.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "fannie-farmer-sugar-cookies",
+      "title": "Fannie Farmer Sugar Cookies",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-sugar-cookies.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "fannie-farmer-welsh-rarebit",
+      "title": "Welsh Rarebit",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-welsh-rarebit.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "fannie-farmer-indian-pudding",
+      "title": "Indian Pudding",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-indian-pudding.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "fannie-farmer-clam-fritters",
+      "title": "New England Clam Fritters",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-clam-fritters.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "fannie-farmer-brown-bread",
+      "title": "Boston Brown Bread",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-brown-bread.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "fannie-farmer-codfish-balls",
+      "title": "Codfish Balls",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-codfish-balls.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "fannie-farmer-gingerbread",
+      "title": "Old-Fashioned Gingerbread",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-gingerbread.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "fannie-farmer-creamed-oysters",
+      "title": "Creamed Oysters on Toast",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-creamed-oysters.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "fannie-farmer-popovers",
+      "title": "Fannie Farmer Popovers",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-popovers.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "fannie-farmer-lobster-newburg",
+      "title": "Lobster Newburg",
+      "theme_id": "boston-cooking-school",
+      "theme_name": "Boston Cooking School",
+      "image_filename": "boston-cooking-school-fannie-farmer-lobster-newburg.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "abby-fisher-oyster-gumbo",
+      "title": "Mrs. Fisher's Oyster Gumbo",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-abby-fisher-oyster-gumbo.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "abby-fisher-sweet-potato-pie",
+      "title": "Mrs. Fisher's Sweet Potato Pie",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-abby-fisher-sweet-potato-pie.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "malinda-russell-catfish-stew",
+      "title": "Mrs. Russell's Tennessee Catfish Stew",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-malinda-russell-catfish-stew.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "rufus-estes-chicken-croquettes",
+      "title": "Rufus Estes' Chicken Croquettes",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-rufus-estes-chicken-croquettes.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "southern-fried-chicken",
+      "title": "Southern Buttermilk Fried Chicken",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-southern-fried-chicken.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "southern-collard-greens",
+      "title": "Slow-Cooked Collard Greens",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-southern-collard-greens.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "hoppin-john",
+      "title": "Hoppin' John",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-hoppin-john.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "southern-cornbread",
+      "title": "Southern Skillet Cornbread",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-southern-cornbread.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "shrimp-and-grits",
+      "title": "Lowcountry Shrimp and Grits",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-shrimp-and-grits.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "southern-peach-cobbler",
+      "title": "Southern Peach Cobbler",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-southern-peach-cobbler.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "red-beans-rice",
+      "title": "New Orleans Red Beans and Rice",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-red-beans-rice.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "southern-pound-cake",
+      "title": "Old-Fashioned Pound Cake",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-southern-pound-cake.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "southern-smothered-pork-chops",
+      "title": "Smothered Pork Chops",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-southern-smothered-pork-chops.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "banana-pudding",
+      "title": "Southern Banana Pudding",
+      "theme_id": "southern-roots",
+      "theme_name": "Southern Roots",
+      "image_filename": "southern-roots-banana-pudding.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "swedish-meatballs",
+      "title": "Swedish Meatballs (K\u00f6ttbullar)",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-swedish-meatballs.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "norwegian-lefse",
+      "title": "Norwegian Lefse",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-norwegian-lefse.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "danish-aebleskiver",
+      "title": "Danish Aebleskiver",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-danish-aebleskiver.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "swedish-cardamom-bread",
+      "title": "Swedish Cardamom Bread (Kardemummabullar)",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-swedish-cardamom-bread.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "norwegian-fish-pudding",
+      "title": "Norwegian Fish Pudding (Fiskepudding)",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-norwegian-fish-pudding.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "swedish-pancakes",
+      "title": "Swedish Pancakes",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-swedish-pancakes.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "danish-roast-pork",
+      "title": "Danish Roast Pork with Crackling (Fl\u00e6skesteg)",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-danish-roast-pork.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "norwegian-rice-pudding",
+      "title": "Norwegian Rice Pudding (Riskrem)",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-norwegian-rice-pudding.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "swedish-gravlax",
+      "title": "Swedish Gravlax",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-swedish-gravlax.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "norwegian-krumkake",
+      "title": "Norwegian Krumkake",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-norwegian-krumkake.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "swedish-mashed-root-vegetables",
+      "title": "Swedish Rotmos (Mashed Root Vegetables)",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-swedish-mashed-root-vegetables.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "danish-butter-cookies",
+      "title": "Danish Butter Cookies",
+      "theme_id": "scandinavian-heritage",
+      "theme_name": "Scandinavian Heritage",
+      "image_filename": "scandinavian-heritage-danish-butter-cookies.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "sauerbraten",
+      "title": "Sauerbraten (German Pot Roast)",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-sauerbraten.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "kartoffelpuffer",
+      "title": "Kartoffelpuffer (German Potato Pancakes)",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-kartoffelpuffer.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "schnitzel",
+      "title": "Wiener Schnitzel",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-schnitzel.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "german-red-cabbage",
+      "title": "Rotkohl (German Red Cabbage)",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-german-red-cabbage.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "spaetzle",
+      "title": "Sp\u00e4tzle (German Egg Noodles)",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-spaetzle.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "rouladen",
+      "title": "Rouladen (Beef Rolls)",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-rouladen.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "german-apple-cake",
+      "title": "German Apple Cake (Apfelkuchen)",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-german-apple-cake.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "bratwurst",
+      "title": "Beer-Braised Bratwurst",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-bratwurst.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "german-potato-salad",
+      "title": "German Potato Salad (Warm)",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-german-potato-salad.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "black-forest-cake",
+      "title": "Black Forest Cake",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-black-forest-cake.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "lebkuchen",
+      "title": "Lebkuchen (German Spice Cookies)",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-lebkuchen.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "german-pork-schnitzel",
+      "title": "J\u00e4gerschnitzel (Hunter's Schnitzel)",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-german-pork-schnitzel.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "stollen",
+      "title": "Christmas Stollen",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-stollen.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "german-lentil-soup",
+      "title": "German Lentil Soup (Linsensuppe)",
+      "theme_id": "german-american",
+      "theme_name": "German-American Kitchen",
+      "image_filename": "german-american-german-lentil-soup.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "tuna-noodle-casserole",
+      "title": "Classic Tuna Noodle Casserole",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-tuna-noodle-casserole.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "hamburger-helper-style",
+      "title": "Homemade Beef Stroganoff Skillet",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-hamburger-helper-style.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "baked-pork-chops",
+      "title": "Shake-and-Bake Style Pork Chops",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-baked-pork-chops.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "chicken-rice-casserole",
+      "title": "Chicken and Rice Casserole",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-chicken-rice-casserole.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "sloppy-joes-quick",
+      "title": "Classic Sloppy Joes",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-sloppy-joes-quick.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "skillet-mac-cheese",
+      "title": "Stovetop Mac and Cheese",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-skillet-mac-cheese.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "sheet-pan-chicken",
+      "title": "Sheet Pan Chicken and Vegetables",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-sheet-pan-chicken.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "salisbury-steak-quick",
+      "title": "Quick Salisbury Steak",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-salisbury-steak-quick.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "tacos-ground-beef",
+      "title": "Classic Ground Beef Tacos",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-tacos-ground-beef.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "baked-spaghetti",
+      "title": "Baked Spaghetti",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-baked-spaghetti.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "fried-rice-quick",
+      "title": "Easy Fried Rice",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-fried-rice-quick.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "stuffed-peppers-quick",
+      "title": "Classic Stuffed Peppers",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-stuffed-peppers-quick.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "chicken-stir-fry",
+      "title": "Quick Chicken Stir-Fry",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-chicken-stir-fry.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "beef-bean-burritos",
+      "title": "Beef and Bean Burritos",
+      "theme_id": "quick-weeknight",
+      "theme_name": "Quick Weeknight Classics",
+      "image_filename": "quick-weeknight-beef-bean-burritos.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "classic-roast-chicken",
+      "title": "Perfect Roast Chicken",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-classic-roast-chicken.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "beef-pot-roast",
+      "title": "Sunday Beef Pot Roast",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-beef-pot-roast.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "baked-ham",
+      "title": "Brown Sugar Glazed Ham",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-baked-ham.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "lasagna-classic",
+      "title": "Classic Meat Lasagna",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-lasagna-classic.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "fried-chicken-sunday",
+      "title": "Buttermilk Fried Chicken",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-fried-chicken-sunday.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "mashed-potatoes-perfect",
+      "title": "Perfect Mashed Potatoes",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-mashed-potatoes-perfect.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "leg-of-lamb",
+      "title": "Roast Leg of Lamb",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-leg-of-lamb.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "parker-house-rolls-sunday",
+      "title": "Homemade Dinner Rolls",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-parker-house-rolls-sunday.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "pork-roast-sunday",
+      "title": "Herb-Crusted Pork Loin Roast",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-pork-roast-sunday.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "apple-pie-sunday",
+      "title": "Classic Apple Pie",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-apple-pie-sunday.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "braised-short-ribs",
+      "title": "Braised Beef Short Ribs",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-braised-short-ribs.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "chocolate-cake-sunday",
+      "title": "Classic Chocolate Layer Cake",
+      "theme_id": "sunday-suppers",
+      "theme_name": "Sunday Suppers",
+      "image_filename": "sunday-suppers-chocolate-cake-sunday.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "presidential-001",
+      "title": "Martha Washington's Great Cake",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-001.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "presidential-002",
+      "title": "Thomas Jefferson's Ice Cream",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-002.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "presidential-003",
+      "title": "Abraham Lincoln's Gingerbread",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-003.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "presidential-004",
+      "title": "Eleanor Roosevelt's Scrambled Eggs",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-004.webp",
+      "unlock_day": 4
+    },
+    {
+      "id": "presidential-005",
+      "title": "Dolley Madison's Oyster Soup",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-005.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "presidential-006",
+      "title": "Jacqueline Kennedy's Chicken Casserole",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-006.webp",
+      "unlock_day": 6
+    },
+    {
+      "id": "presidential-007",
+      "title": "FDR's Favorite Grilled Cheese",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-007.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "presidential-008",
+      "title": "Harry Truman's Ozark Pudding",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-008.webp",
+      "unlock_day": 8
+    },
+    {
+      "id": "presidential-009",
+      "title": "LBJ's Pedernales River Chili",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-009.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "presidential-010",
+      "title": "George Washington's Hoecakes",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-010.webp",
+      "unlock_day": 10
+    },
+    {
+      "id": "presidential-011",
+      "title": "John Adams' Indian Pudding",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-011.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "presidential-012",
+      "title": "Reagan's California Cobb Salad",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-012.webp",
+      "unlock_day": 12
+    },
+    {
+      "id": "presidential-013",
+      "title": "Calvin Coolidge's Chicken Pie",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-013.webp",
+      "unlock_day": 13
+    },
+    {
+      "id": "presidential-014",
+      "title": "James Monroe's Spoon Bread",
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "image_filename": "presidential-pantry-presidential-014.webp",
+      "unlock_day": 14
+    },
+    {
+      "id": "literary-001",
+      "title": "Mrs. Beeton's Beefsteak and Kidney Pudding",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-001.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "literary-002",
+      "title": "Moby-Dick's Chowder",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-002.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "literary-003",
+      "title": "Great Gatsby's Champagne Cocktails",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-003.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "literary-004",
+      "title": "Alice's Tea Cakes",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-004.webp",
+      "unlock_day": 4
+    },
+    {
+      "id": "literary-005",
+      "title": "Little Women's Apple Slump",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-005.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "literary-006",
+      "title": "Pride & Prejudice White Soup",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-006.webp",
+      "unlock_day": 6
+    },
+    {
+      "id": "literary-007",
+      "title": "A Christmas Carol Roast Goose",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-007.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "literary-008",
+      "title": "Hemingway's Death in the Afternoon",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-008.webp",
+      "unlock_day": 8
+    },
+    {
+      "id": "literary-009",
+      "title": "To Kill a Mockingbird's Lane Cake",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-009.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "literary-010",
+      "title": "Laura Ingalls' Vanity Cakes",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-010.webp",
+      "unlock_day": 10
+    },
+    {
+      "id": "literary-011",
+      "title": "Sherlock Holmes' Seed Cake",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-011.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "literary-012",
+      "title": "Anne of Green Gables' Raspberry Cordial",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-012.webp",
+      "unlock_day": 12
+    },
+    {
+      "id": "literary-013",
+      "title": "Wuthering Heights Oatcakes",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-013.webp",
+      "unlock_day": 13
+    },
+    {
+      "id": "literary-014",
+      "title": "Winnie the Pooh's Honey Buns",
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "image_filename": "literary-kitchen-literary-014.webp",
+      "unlock_day": 14
+    },
+    {
+      "id": "ancient-001",
+      "title": "Apicius' Conditum Paradoxum",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-001.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "ancient-002",
+      "title": "Roman Patina de Piris",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-002.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "ancient-003",
+      "title": "Greek Olive & Honey Cakes",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-003.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "ancient-004",
+      "title": "Roman Garum Sauce",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-004.webp",
+      "unlock_day": 4
+    },
+    {
+      "id": "ancient-005",
+      "title": "Egyptian Flatbread",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-005.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "ancient-006",
+      "title": "Mesopotamian Beer Bread",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-006.webp",
+      "unlock_day": 6
+    },
+    {
+      "id": "ancient-007",
+      "title": "Greek Lentil Soup",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-007.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "ancient-008",
+      "title": "Roman Moretum",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-008.webp",
+      "unlock_day": 8
+    },
+    {
+      "id": "ancient-009",
+      "title": "Persian Rice Pilaf",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-009.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "ancient-010",
+      "title": "Byzantine Honey Fritters",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-010.webp",
+      "unlock_day": 10
+    },
+    {
+      "id": "ancient-011",
+      "title": "Greek Barley Cakes",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-011.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "ancient-012",
+      "title": "Roman Stuffed Dormice",
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "image_filename": "ancient-table-ancient-012.webp",
+      "unlock_day": 12
+    },
+    {
+      "id": "american-001",
+      "title": "Colonial Brown Bread",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-001.webp",
+      "unlock_day": 1
+    },
+    {
+      "id": "american-002",
+      "title": "Shaker Lemon Pie",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-002.webp",
+      "unlock_day": 2
+    },
+    {
+      "id": "american-003",
+      "title": "Johnnycakes",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-003.webp",
+      "unlock_day": 3
+    },
+    {
+      "id": "american-004",
+      "title": "Succotash",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-004.webp",
+      "unlock_day": 4
+    },
+    {
+      "id": "american-005",
+      "title": "Pumpkin Butter",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-005.webp",
+      "unlock_day": 5
+    },
+    {
+      "id": "american-006",
+      "title": "Apple Pandowdy",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-006.webp",
+      "unlock_day": 6
+    },
+    {
+      "id": "american-007",
+      "title": "Hasty Pudding",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-007.webp",
+      "unlock_day": 7
+    },
+    {
+      "id": "american-008",
+      "title": "Election Cake",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-008.webp",
+      "unlock_day": 8
+    },
+    {
+      "id": "american-009",
+      "title": "Switchel",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-009.webp",
+      "unlock_day": 9
+    },
+    {
+      "id": "american-010",
+      "title": "Syllabub",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-010.webp",
+      "unlock_day": 10
+    },
+    {
+      "id": "american-011",
+      "title": "Mincemeat",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-011.webp",
+      "unlock_day": 11
+    },
+    {
+      "id": "american-012",
+      "title": "Corn Dodgers",
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "image_filename": "american-foundation-american-012.webp",
+      "unlock_day": 12
+    }
+  ]
+}

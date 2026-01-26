@@ -366,8 +366,8 @@ final class RecipeTests: XCTestCase {
         // Arrange & Act
         let recipe = Heirloom.Recipe(title: "")
         recipe.title = "Historic Recipe"
-        recipe.isHeritageRecipe = true
-        recipe.heritageCollectionId = "french-classics"
+        recipe.isThemeRecipe = true
+        recipe.sourceThemeId = "french-classics"
         recipe.historicalText = "Original recipe from 1850"
         recipe.historicalContext = "Popular in French countryside"
         recipe.blurhash = "L6PZfSi_.AyE_3t7t7R**0o#DgR4"
@@ -376,8 +376,8 @@ final class RecipeTests: XCTestCase {
         try context.save()
 
         // Assert
-        XCTAssertTrue(recipe.isHeritageRecipe)
-        XCTAssertEqual(recipe.heritageCollectionId, "french-classics")
+        XCTAssertTrue(recipe.isThemeRecipe)
+        XCTAssertEqual(recipe.sourceThemeId, "french-classics")
         XCTAssertEqual(recipe.historicalText, "Original recipe from 1850")
         XCTAssertEqual(recipe.historicalContext, "Popular in French countryside")
         XCTAssertNotNil(recipe.blurhash)

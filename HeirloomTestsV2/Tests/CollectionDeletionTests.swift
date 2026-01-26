@@ -249,7 +249,7 @@ final class CollectionDeletionTests: XCTestCase {
         let heritageCollection = Heirloom.RecipeCollection(
             name: "Presidential Pantry",
             isSystemCollection: false,
-            heritageCollectionId: "presidential-pantry"
+            sourceThemeId: "presidential-pantry"
         )
         context.insert(heritageCollection)
         try context.save()

@@ -552,7 +552,7 @@ private struct RecipeDetailModifiers: ViewModifier {
             } label: {
                 Label("Share", systemImage: "square.and.arrow.up")
             }
-            .disabled(recipe.isSampleRecipe || recipe.isHeritageRecipe)
+            .disabled(recipe.isSampleRecipe || recipe.isThemeRecipe)
 
             Button {
                 handleEditTapped()
@@ -1820,7 +1820,7 @@ extension RecipeDetailView {
             return
         }
 
-        if recipe.isHeritageRecipe {
+        if recipe.isThemeRecipe {
             toastManager.info(
                 title: "Heritage recipes can't be shared",
                 message: "All users receive these automatically"
@@ -2170,7 +2170,7 @@ extension RecipeDetailView {
     // MARK: - Heritage Recipe Lifecycle
 
     private func handleEditTapped() {
-        if recipe.isHeritageRecipe {
+        if recipe.isThemeRecipe {
             // Show confirmation dialog for heritage recipes
             showHeritageEditConfirmation = true
         } else {

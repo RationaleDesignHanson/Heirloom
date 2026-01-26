@@ -104,17 +104,17 @@ struct RecipeCardBackView: View {
 
         // MARK: - Heritage Sections
         case .heritageCollectionBadge:
-            if recipe.isHeritageRecipe {
+            if recipe.isThemeRecipe {
                 HeritageCollectionBadgeView(recipe: recipe, cardBack: cardBack)
             }
 
         case .heritageProvenance:
-            if recipe.isHeritageRecipe {
+            if recipe.isThemeRecipe {
                 HeritageProvenanceView(recipe: recipe, cardBack: cardBack)
             }
 
         case .historicalText:
-            if recipe.isHeritageRecipe, let historicalText = recipe.historicalText {
+            if recipe.isThemeRecipe, let historicalText = recipe.historicalText {
                 HistoricalTextView(text: historicalText, cardBack: cardBack)
             }
         }
@@ -486,7 +486,7 @@ struct HistoricalTextView: View {
 
 #Preview {
     let recipe = Recipe.sample()
-    recipe.isHeritageRecipe = true
+    recipe.isThemeRecipe = true
     recipe.heritageCollection = "1950s American Classics"
     recipe.historicalText = "This recipe was featured in the 1952 Better Homes & Gardens cookbook and became a staple of mid-century American cuisine."
 

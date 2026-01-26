@@ -1,0 +1,235 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ========================================
+    // HELPER FUNCTIONS
+    // ========================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ========================================
+    // USER RECIPES (User-Scoped)
+    // ========================================
+    match /users/{userId}/recipes/{recipeId} {
+      // Any authenticated user can read recipes (for accepting shares)
+      // Shares are access-controlled via share IDs
+      allow read: if isAuthenticated();
+
+      // Users can create their own recipes
+      allow create: if isOwner(userId);
+
+      // Users can update their own recipes
+      allow update: if isOwner(userId);
+
+      // Users can delete their own recipes
+      allow delete: if isOwner(userId);
+
+      // Ingredients subcollection
+      match /ingredients/{ingredientId} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+
+      // Card back subcollection
+      match /cardBack/{document=**} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+
+      // Operations subcollection (for CRDT)
+      match /operations/{operationId} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // ========================================
+    // RECIPE VERSIONS (User-Scoped)
+    // ========================================
+    match /users/{userId}/recipeVersions/{versionId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
+    // SHARES (Top-Level)
+    // ========================================
+    match /shares/{shareId} {
+      // Anyone with link can read (for accepting shares)
+      // Share links are meant to be shareable, so authenticated users can read
+      allow read: if isAuthenticated();
+
+      // Only owner can create shares, with proper validation
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == request.resource.data.ownerId &&
+                       request.resource.data.keys().hasAll(['shareId', 'recipeId', 'ownerId', 'ownerName']);
+
+      // Restricted update: Owner can update all fields OR recipient can add themselves to acceptedBy
+      allow update: if isAuthenticated() && (
+        // Owner can update any fields
+        request.auth.uid == resource.data.ownerId ||
+
+        // Recipient can ONLY add themselves to acceptedBy array (and update related counters)
+        (
+          // Must not change core fields
+          request.resource.data.shareId == resource.data.shareId &&
+          request.resource.data.recipeId == resource.data.recipeId &&
+          request.resource.data.ownerId == resource.data.ownerId &&
+
+          // Can only add themselves to acceptedBy (not remove or add others)
+          request.resource.data.acceptedBy is list &&
+          request.resource.data.acceptedBy.hasAll(resource.data.acceptedBy) &&
+          request.resource.data.acceptedBy.hasOnly(resource.data.acceptedBy.concat([request.auth.uid])) &&
+
+          // Verify they're actually adding themselves (not already in list)
+          !(request.auth.uid in resource.data.acceptedBy)
+        )
+      );
+
+      // Only owner can delete
+      allow delete: if isAuthenticated() &&
+                       request.auth.uid == resource.data.ownerId;
+    }
+
+    // ========================================
+    // USER LINEAGES (User-Scoped)
+    // ========================================
+    match /users/{userId}/lineages/{lineageId} {
+      // Users can read their own lineages
+      allow read: if isOwner(userId);
+
+      // Users can write their own lineages
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
+    // LINEAGES INDEX (Top-Level - for querying across users)
+    // ========================================
+    match /lineages/{lineageId} {
+      // Any authenticated user can read (for querying family trees)
+      allow read: if isAuthenticated();
+
+      // Only owner can create lineages
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == request.resource.data.ownerId;
+
+      // Only owner can update lineages
+      allow update: if isAuthenticated() &&
+                       request.auth.uid == resource.data.ownerId;
+
+      // Only owner can delete lineages
+      allow delete: if isAuthenticated() &&
+                       request.auth.uid == resource.data.ownerId;
+    }
+
+    // ========================================
+    // USER NOTIFICATIONS
+    // ========================================
+    match /users/{userId}/notifications/{notificationId} {
+      // Users can only read their own notifications
+      allow read: if isOwner(userId);
+
+      // Any authenticated user can create notifications (for lineage tracking)
+      // This allows descendants to notify ancestors of modifications
+      allow create: if isAuthenticated();
+
+      // Users can update their own (mark as read)
+      allow update: if isOwner(userId);
+
+      // Users can delete their own notifications
+      allow delete: if isOwner(userId);
+    }
+
+    // ========================================
+    // USER PROFILES (Top-Level)
+    // ========================================
+    match /userProfiles/{userId} {
+      // Any authenticated user can read profiles (for display names in version history)
+      // This is read-only access to displayName and email fields
+      allow read: if isAuthenticated();
+
+      // Only owner can create/update their own profile
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+
+      // Only owner can delete their profile
+      allow delete: if isOwner(userId);
+    }
+
+    // ========================================
+    // USER COLLECTIONS (User-Scoped)
+    // ========================================
+    match /users/{userId}/collections/{collectionId} {
+      // Users can read their own collections
+      allow read: if isOwner(userId);
+
+      // Users can write their own collections
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
+    // THEME STATE (User-Scoped)
+    // Tracks user theme selection and unlock progress
+    // ========================================
+    match /users/{userId}/themeState/{document=**} {
+      // Users can read their own theme state
+      allow read: if isOwner(userId);
+
+      // Users can write their own theme state
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
+    // THEMES (Top-Level - Read-Only)
+    // Curated recipe themes for discovery
+    // ========================================
+    match /themes/{themeId} {
+      // Any authenticated user can read themes
+      allow read: if isAuthenticated();
+
+      // Only admins can write (via Firebase console/functions)
+      allow write: if false;
+
+      // Theme recipes (subcollection)
+      match /recipes/{recipeId} {
+        // Any authenticated user can read theme recipes
+        allow read: if isAuthenticated();
+
+        // Only admins can write
+        allow write: if false;
+
+        // Ingredients subcollection
+        match /ingredients/{ingredientId} {
+          allow read: if isAuthenticated();
+          allow write: if false;
+        }
+
+        // Instructions subcollection
+        match /instructions/{instructionId} {
+          allow read: if isAuthenticated();
+          allow write: if false;
+        }
+      }
+    }
+
+    // ========================================
+    // FALLBACK: Deny all other access
+    // ========================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

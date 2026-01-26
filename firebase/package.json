@@ -1,0 +1,22 @@
+{
+  "name": "heirloom-firebase-seeding",
+  "version": "1.0.0",
+  "description": "Firebase seeding scripts for Heirloom theme collections",
+  "scripts": {
+    "seed-themes": "node seed-themes.js",
+    "seed-recipes": "node seed-recipes.js",
+    "seed-recipes:dry-run": "node seed-recipes.js --dry-run",
+    "seed-all": "node seed-themes.js && node seed-recipes.js",
+    "cleanup-images": "node cleanup-old-images.js",
+    "upload-images": "node upload-images.js",
+    "upload-images:themes": "node upload-images.js --themes-only",
+    "upload-images:recipes": "node upload-images.js --recipes-only"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "google-auth-library": "^10.5.0"
+  },
+  "author": "Heirloom",
+  "license": "UNLICENSED",
+  "private": true
+}

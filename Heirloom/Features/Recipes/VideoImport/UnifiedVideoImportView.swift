@@ -24,6 +24,9 @@ struct UnifiedVideoImportView: View {
     // Initialization state
     @State private var isProcessorReady = false
 
+    // Collection picker
+    @State private var showCollectionPicker = false
+
     init(pendingImportID: UUID? = nil) {
         self.pendingImportID = pendingImportID
     }
@@ -321,10 +324,20 @@ struct UnifiedVideoImportView: View {
                     .foregroundColor(.secondary)
             }
 
-            Button("Done") {
-                dismiss()
+            Button("Add to Collection") {
+                saveAndShowCollectionPicker()
             }
             .buttonStyle(.borderedProminent)
+
+            Button("Done") {
+                saveRecipeAndDismiss()
+            }
+            .buttonStyle(.bordered)
+        }
+        .sheet(isPresented: $showCollectionPicker) {
+            if let recipe = importedRecipe {
+                TagCollectionPickerView(recipe: recipe)
+            }
         }
     }
 
@@ -350,6 +363,66 @@ struct UnifiedVideoImportView: View {
             }
             .buttonStyle(.borderedProminent)
         }
+    }
+
+    // MARK: - Recipe Saving
+
+    private func saveAndShowCollectionPicker() {
+        guard let recipe = importedRecipe else { return }
+
+        // Insert recipe into SwiftData if not already inserted
+        if recipe.modelContext == nil {
+            modelContext.insert(recipe)
+
+            // Insert ingredients
+            if let ingredients = recipe.ingredients {
+                for ingredient in ingredients {
+                    modelContext.insert(ingredient)
+                }
+            }
+
+            try? modelContext.save()
+            Log.info("Video recipe saved to SwiftData", category: .video, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "title": recipe.title
+            ])
+        }
+
+        showCollectionPicker = true
+    }
+
+    private func saveRecipeAndDismiss() {
+        guard let recipe = importedRecipe else {
+            dismiss()
+            return
+        }
+
+        // Insert recipe into SwiftData if not already inserted
+        if recipe.modelContext == nil {
+            modelContext.insert(recipe)
+
+            // Insert ingredients
+            if let ingredients = recipe.ingredients {
+                for ingredient in ingredients {
+                    modelContext.insert(ingredient)
+                }
+            }
+
+            try? modelContext.save()
+            Log.info("Video recipe saved to SwiftData", category: .video, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "title": recipe.title
+            ])
+
+            // Show toast
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            toastManager.success(
+                title: "Recipe Saved",
+                message: "Find it in All Recipes"
+            )
+        }
+
+        dismiss()
     }
 
     // MARK: - Processing

@@ -1,0 +1,90 @@
+{
+  "total_themes": 14,
+  "covers_generated": 14,
+  "covers": [
+    {
+      "theme_id": "theme-01-automat-classics",
+      "title": "Automat Classics",
+      "filename": "theme-01-automat-classics-cover.webp",
+      "era": "1920s-1950s"
+    },
+    {
+      "theme_id": "theme-02-railroad-dining",
+      "title": "Golden Age of Rail",
+      "filename": "theme-02-railroad-dining-cover.webp",
+      "era": "1920s-1950s"
+    },
+    {
+      "theme_id": "theme-03-victory-kitchen",
+      "title": "Victory Kitchen",
+      "filename": "theme-03-victory-kitchen-cover.webp",
+      "era": "1940s"
+    },
+    {
+      "theme_id": "theme-04-navy-mess",
+      "title": "Navy Mess Hall",
+      "filename": "theme-04-navy-mess-cover.webp",
+      "era": "Timeless Naval Tradition"
+    },
+    {
+      "theme_id": "theme-05-boston-cooking",
+      "title": "Boston Cooking School",
+      "filename": "theme-05-boston-cooking-cover.webp",
+      "era": "1890s-1920s"
+    },
+    {
+      "theme_id": "theme-06-southern-roots",
+      "title": "Southern Roots",
+      "filename": "theme-06-southern-roots-cover.webp",
+      "era": "Traditional Southern"
+    },
+    {
+      "theme_id": "theme-07-scandinavian",
+      "title": "Scandinavian Heritage",
+      "filename": "theme-07-scandinavian-cover.webp",
+      "era": "Nordic Heritage"
+    },
+    {
+      "theme_id": "theme-08-german-american",
+      "title": "German-American Heritage",
+      "filename": "theme-08-german-american-cover.webp",
+      "era": "Old World Heritage"
+    },
+    {
+      "theme_id": "theme-09-quick-weeknight",
+      "title": "Quick Weeknight Meals",
+      "filename": "theme-09-quick-weeknight-cover.webp",
+      "era": "1950s-1960s"
+    },
+    {
+      "theme_id": "theme-10-sunday-suppers",
+      "title": "Sunday Suppers",
+      "filename": "theme-10-sunday-suppers-cover.webp",
+      "era": "Timeless Family Tradition"
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "title": "Presidential Pantry",
+      "filename": "presidential-pantry-cover.webp",
+      "era": "1700s-1900s"
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "title": "Literary Kitchen",
+      "filename": "literary-kitchen-cover.webp",
+      "era": "Victorian-Edwardian"
+    },
+    {
+      "theme_id": "ancient-table",
+      "title": "Ancient Table",
+      "filename": "ancient-table-cover.webp",
+      "era": "Ancient Greece & Rome"
+    },
+    {
+      "theme_id": "american-foundation",
+      "title": "American Foundation",
+      "filename": "american-foundation-cover.webp",
+      "era": "1700s-1800s"
+    }
+  ]
+}

@@ -68,7 +68,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         // If sharing a heritage or sample recipe, create a user copy and share that instead
         // This prevents ID collisions across devices (samples have same IDs)
         var recipeToShare: Recipe
-        if recipe.isHeritageRecipe {
+        if recipe.isThemeRecipe {
             Log.info("Heritage recipe detected - creating user copy before sharing", category: .firebase, metadata: [
                 "originalRecipeId": recipe.id.uuidString,
                 "title": recipe.title

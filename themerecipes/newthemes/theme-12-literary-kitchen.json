@@ -1,0 +1,288 @@
+{
+  "themeId": "literary-kitchen",
+  "themeName": "Literary Kitchen",
+  "category": "historical",
+  "description": "Dishes inspired by classic literature, from Moby-Dick to The Great Gatsby",
+  "sortOrder": 12,
+  "recipes": [
+    {
+      "id": "literary-kitchen-001",
+      "title": "Mrs. Beeton's Beefsteak and Kidney Pudding",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "45 minutes",
+      "cookTime": "4 hours",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "British",
+        "Victorian"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 1,
+      "sortOrder": 1
+    },
+    {
+      "id": "literary-kitchen-002",
+      "title": "Moby-Dick's Chowder",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "20 minutes",
+      "cookTime": "40 minutes",
+      "servings": "Serves 6-8",
+      "difficulty": "medium",
+      "tags": [
+        "soup",
+        "seafood",
+        "New England"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 2,
+      "sortOrder": 2
+    },
+    {
+      "id": "literary-kitchen-003",
+      "title": "Great Gatsby's Champagne Cocktails",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "cocktail",
+        "champagne",
+        "Jazz Age"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 3,
+      "sortOrder": 3
+    },
+    {
+      "id": "literary-kitchen-004",
+      "title": "Alice's Tea Cakes",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Makes 24 cakes",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "tea cakes",
+        "Victorian"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 4,
+      "sortOrder": 4
+    },
+    {
+      "id": "literary-kitchen-005",
+      "title": "Little Women's Apple Slump",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "20 minutes",
+      "cookTime": "40 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "apple",
+        "New England",
+        "dumplings"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 5,
+      "sortOrder": 5
+    },
+    {
+      "id": "literary-kitchen-006",
+      "title": "Pride & Prejudice White Soup",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "30 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "tags": [
+        "soup",
+        "Regency",
+        "formal"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 6,
+      "sortOrder": 6
+    },
+    {
+      "id": "literary-kitchen-007",
+      "title": "A Christmas Carol Roast Goose",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "30 minutes",
+      "cookTime": "3 hours",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "poultry",
+        "Christmas",
+        "Victorian"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 7,
+      "sortOrder": 7
+    },
+    {
+      "id": "literary-kitchen-008",
+      "title": "Hemingway's Death in the Afternoon",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "2 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "cocktail",
+        "absinthe"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 8,
+      "sortOrder": 8
+    },
+    {
+      "id": "literary-kitchen-009",
+      "title": "To Kill a Mockingbird's Lane Cake",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "45 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 12",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cake",
+        "Southern"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 9,
+      "sortOrder": 9
+    },
+    {
+      "id": "literary-kitchen-010",
+      "title": "Laura Ingalls' Vanity Cakes",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 minutes",
+      "cookTime": "12 minutes",
+      "servings": "Makes 24",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cookies"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 10,
+      "sortOrder": 10
+    },
+    {
+      "id": "literary-kitchen-011",
+      "title": "Sherlock Holmes' Seed Cake",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "20 minutes",
+      "cookTime": "1 hour",
+      "servings": "Serves 10",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "Victorian"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 11,
+      "sortOrder": 11
+    },
+    {
+      "id": "literary-kitchen-012",
+      "title": "Anne of Green Gables' Raspberry Cordial",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Makes 1 quart",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "raspberry"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 12,
+      "sortOrder": 12
+    },
+    {
+      "id": "literary-kitchen-013",
+      "title": "Wuthering Heights Oatcakes",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Makes 12",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "oat"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 13,
+      "sortOrder": 13
+    },
+    {
+      "id": "literary-kitchen-014",
+      "title": "Winnie the Pooh's Honey Buns",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "2 hours",
+      "cookTime": "15 minutes",
+      "servings": "Makes 12",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "honey",
+        "buns"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 14,
+      "sortOrder": 14
+    }
+  ]
+}

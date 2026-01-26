@@ -745,7 +745,7 @@ struct RecipeEditorView: View {
 
         Task {
             // DIAGNOSTIC: Count Heritage recipes BEFORE save
-            let heritageCountBefore = (try? modelContext.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isHeritageRecipe }.count ?? 0
+            let heritageCountBefore = (try? modelContext.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isThemeRecipe }.count ?? 0
             Log.info("🔍 SAVE START - Heritage recipes BEFORE save", category: .database, metadata: ["count": heritageCountBefore])
 
             do {
@@ -1113,7 +1113,7 @@ struct RecipeEditorView: View {
             }
 
             // DIAGNOSTIC: Count Heritage recipes AFTER save
-            let heritageCountAfter = (try? modelContext.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isHeritageRecipe }.count ?? 0
+            let heritageCountAfter = (try? modelContext.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isThemeRecipe }.count ?? 0
             Log.info("🔍 SAVE END - Heritage recipes AFTER save", category: .database, metadata: ["count": heritageCountAfter])
 
             if heritageCountBefore != heritageCountAfter {

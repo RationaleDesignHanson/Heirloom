@@ -1,0 +1,289 @@
+{
+  "themeId": "presidential-pantry",
+  "themeName": "Presidential Pantry",
+  "category": "historical",
+  "description": "Recipes from the White House kitchens spanning American presidents from Washington to Reagan",
+  "sortOrder": 11,
+  "recipes": [
+    {
+      "id": "presidential-001",
+      "title": "Martha Washington's Great Cake",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "2 hours",
+      "cookTime": "4 hours",
+      "servings": "Makes 1 large cake (serves 40)",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "holiday",
+        "entertaining"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 1,
+      "sortOrder": 1
+    },
+    {
+      "id": "presidential-002",
+      "title": "Thomas Jefferson's Ice Cream",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "30 minutes",
+      "cookTime": "20 minutes (plus freezing)",
+      "servings": "Serves 8-10",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "frozen"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 2,
+      "sortOrder": 2
+    },
+    {
+      "id": "presidential-003",
+      "title": "Abraham Lincoln's Gingerbread",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "20 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 12",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "cake",
+        "gingerbread"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 3,
+      "sortOrder": 3
+    },
+    {
+      "id": "presidential-004",
+      "title": "Eleanor Roosevelt's Scrambled Eggs",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "5 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "tags": [
+        "breakfast",
+        "eggs",
+        "main dish"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 4,
+      "sortOrder": 4
+    },
+    {
+      "id": "presidential-005",
+      "title": "Dolley Madison's Oyster Soup",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "soup",
+        "seafood",
+        "appetizer"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 5,
+      "sortOrder": 5
+    },
+    {
+      "id": "presidential-006",
+      "title": "Jacqueline Kennedy's Chicken Casserole",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "casserole",
+        "chicken"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 6,
+      "sortOrder": 6
+    },
+    {
+      "id": "presidential-007",
+      "title": "FDR's Favorite Grilled Cheese",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "5 minutes",
+      "cookTime": "8 minutes",
+      "servings": "Serves 1",
+      "difficulty": "medium",
+      "tags": [
+        "lunch",
+        "sandwich",
+        "comfort food"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 7,
+      "sortOrder": 7
+    },
+    {
+      "id": "presidential-008",
+      "title": "Harry Truman's Ozark Pudding",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pudding",
+        "apple"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 8,
+      "sortOrder": 8
+    },
+    {
+      "id": "presidential-009",
+      "title": "LBJ's Pedernales River Chili",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "20 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "servings": "Serves 10",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "chili",
+        "Texas",
+        "beef"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 9,
+      "sortOrder": 9
+    },
+    {
+      "id": "presidential-010",
+      "title": "George Washington's Hoecakes",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "10 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Makes 12 cakes",
+      "difficulty": "medium",
+      "tags": [
+        "breakfast",
+        "bread",
+        "cornmeal"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 10,
+      "sortOrder": 10
+    },
+    {
+      "id": "presidential-011",
+      "title": "John Adams' Indian Pudding",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "pudding",
+        "New England"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 11,
+      "sortOrder": 11
+    },
+    {
+      "id": "presidential-012",
+      "title": "Reagan's California Cobb Salad",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "25 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "tags": [
+        "salad",
+        "lunch",
+        "California"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 12,
+      "sortOrder": 12
+    },
+    {
+      "id": "presidential-013",
+      "title": "Calvin Coolidge's Chicken Pie",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "40 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "pie",
+        "chicken"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 13,
+      "sortOrder": 13
+    },
+    {
+      "id": "presidential-014",
+      "title": "James Monroe's Spoon Bread",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 minutes",
+      "cookTime": "40 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "bread",
+        "Southern"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 14,
+      "sortOrder": 14
+    }
+  ]
+}

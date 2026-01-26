@@ -44,11 +44,6 @@ struct OnboardingShareExtensionScreen: View {
                     .padding(.top, HeirloomSpacing.onboardingScreenPadding)
                     .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
-                // Platform flow
-                platformFlow
-                    .padding(.top, HeirloomSpacing.onboardingSectionSpacing)
-                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
-
                 // 3-step tutorial
                 tutorialSteps
                     .padding(.top, HeirloomSpacing.onboardingSectionSpacing)

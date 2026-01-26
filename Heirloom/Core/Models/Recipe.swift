@@ -19,6 +19,7 @@ final class Recipe {
     var sourcePerson: String?
     var sourceDate: String?
     var sourceStory: String?
+    var sourceCookbook: String? // Name of cookbook for PDF imports
 
     // MARK: - Content
     /// Image stored in file system, not database (per Systems Architect recommendation)
@@ -31,16 +32,19 @@ final class Recipe {
     /// Firebase Storage URL for synced images
     var firebaseImageURL: String?
 
-    // MARK: - Heritage Collections (Cold Start)
-    /// Flag indicating this is a heritage recipe from founding collections
-    var isHeritageRecipe: Bool = false
+    // MARK: - Theme Collections (Collections 2.1)
+    /// Flag indicating this is a theme recipe from curated collections
+    var isThemeRecipe: Bool = false
 
-    /// Unique heritage recipe ID from JSON (e.g., "presidential-001", "literary-002")
+    /// Unique theme recipe ID from Firebase (e.g., "automat-001", "presidential-002")
     /// Used for progressive unlock tracking to identify individual recipes
-    var heritageRecipeId: String?
+    var themeRecipeId: String?
 
-    /// ID of the founding heritage collection this recipe belongs to
-    var heritageCollectionId: String?
+    /// ID of the theme this recipe belongs to
+    var sourceThemeId: String?
+
+    /// Day on which this theme recipe unlocks (1-14)
+    var unlockDay: Int?
 
     /// Blurhash for progressive image loading placeholder
     var blurhash: String?
@@ -49,10 +53,10 @@ final class Recipe {
     /// Keys: "hero", "card", "thumbnail", "collection-cover"
     var imageVariants: [String: String]?
 
-    /// Original historical text for Artifact View (heritage recipes only)
+    /// Original historical text for Artifact View (theme recipes only)
     var historicalText: String?
 
-    /// Historical context and background story (heritage recipes only)
+    /// Historical context and background story (theme recipes only)
     var historicalContext: String?
 
     @Relationship(deleteRule: .cascade, inverse: \Ingredient.recipe)
@@ -136,6 +140,9 @@ final class Recipe {
     // MARK: - CloudKit Sync Metadata
     /// CloudKit record ID for manual sync (hybrid architecture)
     var cloudKitRecordID: String?
+
+    /// Firebase document ID for theme recipes synced from Firebase
+    var firebaseId: String?
 
     /// Last time this recipe was successfully synced to CloudKit
     var lastSyncedAt: Date?
@@ -294,12 +301,12 @@ extension Recipe {
         case .manual:
             return Recipe.currentUserDisplayName()
         case .heritage:
-            // For heritage recipes, show the collection name if available
-            if let collectionId = heritageCollectionId,
-               let collection = collections?.first(where: { $0.heritageCollectionId == collectionId }) {
+            // For theme recipes, show the collection name if available
+            if let themeId = sourceThemeId,
+               let collection = collections?.first(where: { $0.sourceTheme?.firebaseId == themeId }) {
                 return collection.name
             }
-            return "Heritage Collection"
+            return "Theme Collection"
         case .video:
             // For video imports, extract creator name from sourceAttribution
             if let attribution = provenance?.sourceAttribution,
@@ -811,7 +818,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .family: return "Family"
         case .manual: return "My Recipe"
         case .scan: return "Scanned"
-        case .heritage: return "Heritage Collection"
+        case .heritage: return "Theme Collection"
         case .video: return "Video Import"
         }
     }
@@ -865,10 +872,10 @@ extension Recipe {
     }
 }
 
-// MARK: - Heritage Recipe Lifecycle
+// MARK: - Theme Recipe Lifecycle
 extension Recipe {
     /// Creates a deep copy of the recipe for user personalization
-    /// Used when editing or sharing heritage recipes to create user's own version
+    /// Used when editing or sharing theme recipes to create user's own version
     /// - Parameter context: ModelContext to insert the copy into
     /// - Returns: New Recipe instance with copied data
     func createUserCopy(context: ModelContext) -> Recipe {
@@ -899,17 +906,17 @@ extension Recipe {
         copy.blurhash = blurhash
         copy.imageVariants = imageVariants
 
-        // Heritage metadata - preserve but mark as user's copy
-        if isHeritageRecipe {
-            copy.isHeritageRecipe = false  // User copy is no longer "official" heritage
-            copy.heritageCollectionId = heritageCollectionId  // Keep collection reference
+        // Theme metadata - preserve but mark as user's copy
+        if isThemeRecipe {
+            copy.isThemeRecipe = false  // User copy is no longer "official" theme recipe
+            copy.sourceThemeId = sourceThemeId  // Keep theme reference
             copy.historicalText = historicalText
             copy.historicalContext = historicalContext
 
-            // Update provenance to show it's derived from heritage
+            // Update provenance to show it's derived from theme collection
             if let originalProvenance = provenance {
                 copy.provenance = ProvenanceMetadata(
-                    sourceType: .shared,  // Mark as derived from heritage
+                    sourceType: .shared,  // Mark as derived from theme
                     sourceURL: originalProvenance.sourceURL,
                     sourceAttribution: originalProvenance.sourceAttribution,
                     generation: originalProvenance.generation + 1,
@@ -1046,18 +1053,18 @@ extension Recipe {
             ])
         }
 
-        Log.info("Created user copy of heritage recipe", category: .database, metadata: [
+        Log.info("Created user copy of theme recipe", category: .database, metadata: [
             "original": title,
-            "isHeritageOriginal": isHeritageRecipe
+            "isThemeOriginal": isThemeRecipe
         ])
 
         return copy
     }
 
-    /// Check if this unmodified heritage recipe should be considered for cleanup
-    /// Returns true if the recipe is heritage, unmodified, and has been around long enough
+    /// Check if this unmodified theme recipe should be considered for cleanup
+    /// Returns true if the recipe is a theme recipe, unmodified, and has been around long enough
     var shouldConsiderForCleanup: Bool {
-        guard isHeritageRecipe else { return false }
+        guard isThemeRecipe else { return false }
 
         // Never cleanup if user has personalized it
         if timesCooked > 0 || isFavorite || notes != nil && !notes!.isEmpty {
@@ -1132,10 +1139,10 @@ extension Recipe {
     }
 
     /// Check if recipe has been significantly modified from its original form
-    /// Used to determine if a modified sample/heritage recipe can be shared
+    /// Used to determine if a modified sample/theme recipe can be shared
     var hasSignificantModifications: Bool {
-        // Must be based on sample or heritage
-        guard isSampleRecipe || isHeritageRecipe else {
+        // Must be based on sample or theme
+        guard isSampleRecipe || isThemeRecipe else {
             return false // Not applicable
         }
 
@@ -1147,12 +1154,12 @@ extension Recipe {
             return true // Title change alone = significant
         }
 
-        // 2. For heritage recipes, any title change = significant
-        if isHeritageRecipe {
-            // We don't track original heritage titles, but if user created this
+        // 2. For theme recipes, any title change = significant
+        if isThemeRecipe {
+            // We don't track original theme titles, but if user created this
             // as a personal copy, provenance will show it
             if let provenance = provenance, provenance.sourceType == .imported {
-                // This is the original heritage recipe, not a copy
+                // This is the original theme recipe, not a copy
                 return false
             }
         }
@@ -1190,9 +1197,9 @@ extension Recipe {
             return (false, "Sample recipes can't be shared - everyone already has this recipe.")
         }
 
-        // 2. Heritage recipes can never be shared - all users receive them automatically
-        if isHeritageRecipe {
-            return (false, "Heritage recipes can't be shared - all users receive these automatically through the heritage system.")
+        // 2. Theme recipes can never be shared - all users receive them automatically
+        if isThemeRecipe {
+            return (false, "Theme recipes can't be shared - all users receive these automatically through the theme system.")
         }
 
         // 3. Recipe can be shared

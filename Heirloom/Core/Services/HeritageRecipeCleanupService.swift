@@ -40,7 +40,7 @@ final class HeritageRecipeCleanupService: ObservableObject {
         // Create fetch descriptor for heritage recipes
         let fetchDescriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate<Recipe> { recipe in
-                recipe.isHeritageRecipe == true
+                recipe.isThemeRecipe == true
             },
             sortBy: [SortDescriptor(\Recipe.dateAdded, order: .forward)]
         )
@@ -144,7 +144,7 @@ final class HeritageRecipeCleanupService: ObservableObject {
         let eligible = try await fetchRecipesForCleanup(context: context)
 
         let collectionCounts = Dictionary(grouping: eligible) { recipe in
-            recipe.heritageCollectionId ?? "unknown"
+            recipe.sourceThemeId ?? "unknown"
         }.mapValues { $0.count }
 
         let oldestDate = eligible.map { $0.dateAdded }.min()

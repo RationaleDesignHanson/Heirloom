@@ -20,6 +20,7 @@ enum SchemaV2: VersionedSchema {
             Ingredient.self,
             Tag.self,
             RecipeCollection.self,
+            RecipeTheme.self,
             RecipeCardStyle.self,
             RecipeSticker.self,
             RecipeAnnotation.self,

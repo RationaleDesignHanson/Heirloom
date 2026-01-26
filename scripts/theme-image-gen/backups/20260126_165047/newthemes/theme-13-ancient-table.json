@@ -1,0 +1,250 @@
+{
+  "themeId": "ancient-table",
+  "themeName": "Ancient Table",
+  "category": "historical",
+  "description": "Culinary treasures from Rome, Greece, Egypt, and ancient civilizations",
+  "sortOrder": 13,
+  "recipes": [
+    {
+      "id": "ancient-001",
+      "title": "Apicius' Conditum Paradoxum",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes (plus aging)",
+      "servings": "Makes 1 amphora (about 6 bottles)",
+      "difficulty": "medium",
+      "tags": [
+        "beverage",
+        "spiced wine",
+        "Roman"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 1,
+      "sortOrder": 1
+    },
+    {
+      "id": "ancient-002",
+      "title": "Roman Patina de Piris",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "fruit",
+        "Roman",
+        "custard"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 2,
+      "sortOrder": 2
+    },
+    {
+      "id": "ancient-003",
+      "title": "Greek Olive & Honey Cakes",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "30 min",
+      "cookTime": "25 min",
+      "servings": "Makes 20",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "Greek",
+        "honey"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 3,
+      "sortOrder": 3
+    },
+    {
+      "id": "ancient-004",
+      "title": "Roman Garum Sauce",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "5 min",
+      "cookTime": "0 min",
+      "servings": "Makes 2 cups",
+      "difficulty": "medium",
+      "tags": [
+        "condiment",
+        "Roman",
+        "fermented"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 4,
+      "sortOrder": 4
+    },
+    {
+      "id": "ancient-005",
+      "title": "Egyptian Flatbread",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 min",
+      "cookTime": "10 min",
+      "servings": "Makes 8",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "Egyptian",
+        "flatbread"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 5,
+      "sortOrder": 5
+    },
+    {
+      "id": "ancient-006",
+      "title": "Mesopotamian Beer Bread",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "2 hrs",
+      "cookTime": "45 min",
+      "servings": "Makes 2 loaves",
+      "difficulty": "medium",
+      "tags": [
+        "bread",
+        "Mesopotamian",
+        "beer"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 6,
+      "sortOrder": 6
+    },
+    {
+      "id": "ancient-007",
+      "title": "Greek Lentil Soup",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 min",
+      "cookTime": "40 min",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "soup",
+        "Greek",
+        "lentils"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 7,
+      "sortOrder": 7
+    },
+    {
+      "id": "ancient-008",
+      "title": "Roman Moretum",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "15 min",
+      "cookTime": "0 min",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "tags": [
+        "appetizer",
+        "Roman",
+        "cheese"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 8,
+      "sortOrder": 8
+    },
+    {
+      "id": "ancient-009",
+      "title": "Persian Rice Pilaf",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "10 min",
+      "cookTime": "35 min",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "tags": [
+        "side dish",
+        "Persian",
+        "rice"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 9,
+      "sortOrder": 9
+    },
+    {
+      "id": "ancient-010",
+      "title": "Byzantine Honey Fritters",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "20 min",
+      "cookTime": "15 min",
+      "servings": "Makes 20",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "Byzantine",
+        "fried"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 10,
+      "sortOrder": 10
+    },
+    {
+      "id": "ancient-011",
+      "title": "Greek Barley Cakes",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "20 min",
+      "cookTime": "30 min",
+      "servings": "Makes 12",
+      "difficulty": "medium",
+      "tags": [
+        "dessert",
+        "Greek",
+        "barley"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 11,
+      "sortOrder": 11
+    },
+    {
+      "id": "ancient-012",
+      "title": "Roman Stuffed Dormice",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": "45 min",
+      "cookTime": "20 min",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "Roman",
+        "exotic"
+      ],
+      "source": "",
+      "story": "",
+      "unlockDay": 12,
+      "sortOrder": 12
+    }
+  ]
+}

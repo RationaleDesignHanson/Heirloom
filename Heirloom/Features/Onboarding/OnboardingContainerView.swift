@@ -13,8 +13,10 @@ struct OnboardingContainerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var notificationService: FirebaseNotificationService
+    @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
     @State private var currentScreen: OnboardingScreen = .videoHero
     @State private var hasSeededHeritage = false
+    @State private var selectedThemeIds: [String] = []
 
     /// Binding to control which tab should be selected after onboarding
     @Binding var selectedTab: Int
@@ -27,7 +29,8 @@ struct OnboardingContainerView: View {
         case shareExtension
         case flexibility
         case organization
-        case subscription // NEW: Optional subscription screen
+        case themeSelection // NEW: Theme selection
+        case subscription
     }
 
     var body: some View {
@@ -69,13 +72,25 @@ struct OnboardingContainerView: View {
             case .organization:
                 OnboardingOrganizationScreen {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .subscription
+                        currentScreen = .themeSelection
                     }
                 }
                 .transition(.asymmetric(
                     insertion: .move(edge: .trailing),
                     removal: .move(edge: .leading)
                 ))
+
+            case .themeSelection:
+                ThemeSelectionScreen { themeIds in
+                    handleThemeSelection(themeIds)
+                }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+                .task {
+                    await loadThemesIfNeeded()
+                }
 
             case .subscription:
                 OnboardingSubscriptionScreen(
@@ -114,6 +129,120 @@ struct OnboardingContainerView: View {
 
     // MARK: - Private Methods
 
+    // MARK: - Theme Selection Handler
+
+    private func handleThemeSelection(_ themeIds: [String]) {
+        selectedThemeIds = themeIds
+
+        // Start the trial
+        themeUnlockTracker.startTrial(withThemeIds: themeIds)
+
+        // Create collections for selected themes
+        createThemeCollections(for: themeIds)
+
+        // Download initial recipes
+        Task {
+            await downloadInitialRecipes(for: themeIds)
+        }
+
+        // Continue to subscription
+        withAnimation(.easeInOut(duration: 0.3)) {
+            currentScreen = .subscription
+        }
+    }
+
+    // MARK: - Theme Loading
+
+    private func loadThemesIfNeeded() async {
+        let descriptor = FetchDescriptor<RecipeTheme>()
+        let existingThemes = (try? modelContext.fetch(descriptor)) ?? []
+
+        // Only load if we don't have themes
+        if existingThemes.isEmpty {
+            let loader = ThemeLoader()
+            do {
+                _ = try await loader.loadThemes(into: modelContext)
+                Log.info("Loaded themes from Firebase", category: .onboarding)
+            } catch {
+                Log.error("Failed to load themes", category: .onboarding, error: error)
+            }
+        }
+    }
+
+    // MARK: - Collection Creation
+
+    private func createThemeCollections(for themeIds: [String]) {
+        let descriptor = FetchDescriptor<RecipeTheme>()
+        guard let allThemes = try? modelContext.fetch(descriptor) else { return }
+
+        let selectedThemes = allThemes.filter { themeIds.contains($0.firebaseId) }
+
+        for theme in selectedThemes {
+            // Check if collection already exists
+            let themeName = theme.name
+            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate<RecipeCollection> { collection in
+                    collection.name == themeName && collection.collectionType == "theme"
+                }
+            )
+
+            if let existing = try? modelContext.fetch(collectionDescriptor).first {
+                // Link existing collection to theme
+                existing.sourceTheme = theme
+                theme.collection = existing
+            } else {
+                // Create new collection
+                let collection = RecipeCollection(
+                    name: theme.name,
+                    iconName: theme.iconName,
+                    collectionType: .theme
+                )
+                collection.sourceTheme = theme
+                theme.collection = collection
+                modelContext.insert(collection)
+            }
+        }
+
+        do {
+            try modelContext.save()
+            Log.info("Created collections for \(selectedThemes.count) themes", category: .onboarding)
+        } catch {
+            Log.error("Failed to create theme collections", category: .onboarding, error: error)
+        }
+    }
+
+    private func downloadInitialRecipes(for themeIds: [String]) async {
+        do {
+            Log.info("Downloading initial recipes for \(themeIds.count) themes", category: .onboarding)
+
+            let recipeService = ThemeRecipeService()
+            let recipes = try await recipeService.downloadRecipes(for: themeIds, into: modelContext)
+
+            // Link recipes to their collections
+            let allThemes = try? modelContext.fetch(FetchDescriptor<RecipeTheme>())
+            for recipe in recipes {
+                guard let themeId = recipe.sourceThemeId,
+                      let theme = allThemes?.first(where: { $0.firebaseId == themeId }),
+                      let collection = theme.collection else {
+                    continue
+                }
+
+                // Add recipe to collection
+                if collection.recipes == nil {
+                    collection.recipes = [recipe]
+                } else {
+                    collection.recipes?.append(recipe)
+                }
+            }
+
+            try modelContext.save()
+
+            Log.info("Downloaded and linked \(recipes.count) recipes to collections", category: .onboarding)
+        } catch {
+            Log.error("Failed to download initial recipes", category: .onboarding, error: error)
+        }
+    }
+
     private func completeOnboarding() {
         // Mark onboarding as complete
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
@@ -135,42 +264,35 @@ struct OnboardingContainerView: View {
         onComplete()
     }
 
+    // TODO: Re-implement for theme system in Phase B2
     private func seedHeritageRecipesIfNeeded() async {
         // Prevent duplicate seeding
-        guard !hasSeededHeritage else {
-            Log.info("Heritage recipes already seeded in this onboarding session", category: .storage)
-            return
-        }
-
-        // Check if user is authenticated via FirebaseAuthService
-        guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
-              authService.isAuthenticated else {
-            Log.info("Not authenticated during onboarding - heritage seeding will happen after sign-in", category: .storage)
-            return
-        }
-
-        do {
-            // Create heritage collections (but NO recipes)
-            RecipeCollection.createHeritageCollections(context: modelContext)
-
-            // Create blind boxes for onboarding
-            let blindBoxSeeder = BlindBoxSeeder(modelContext: modelContext)
-            if !blindBoxSeeder.isSeeded() {
-                try blindBoxSeeder.seedBlindBoxes()
-                Log.info("Heritage blind boxes created during onboarding", category: .storage)
-                DeviceLogger.shared.log("✅ [Heritage] Blind boxes created during onboarding (no recipes downloaded)")
-            }
-
-            // Analytics tracking for heritage setup during onboarding
-            let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
-            analytics.track(event: AnalyticsEvent.appLaunched, properties: ["heritage_setup": "collections_created"])
-
-            // Mark as complete to prevent duplicate attempts
-            hasSeededHeritage = true
-        } catch {
-            Log.error("Failed to setup heritage collections during onboarding", category: .storage, metadata: ["error": error.localizedDescription])
-            DeviceLogger.shared.log("❌ [Heritage] Failed to setup collections during onboarding: \(error.localizedDescription)")
-        }
+        // guard !hasSeededHeritage else {
+        //     Log.info("Theme recipes already seeded in this onboarding session", category: .storage)
+        //     return
+        // }
+        //
+        // // Check if user is authenticated via FirebaseAuthService
+        // guard let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
+        //       authService.isAuthenticated else {
+        //     Log.info("Not authenticated during onboarding - theme seeding will happen after sign-in", category: .storage)
+        //     return
+        // }
+        //
+        // do {
+        //     // Theme collections will be created based on user selection during onboarding
+        //     // No pre-seeding needed - themes are loaded from Firebase after user selects them
+        //
+        //     // Analytics tracking for theme setup during onboarding
+        //     let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+        //     analytics.track(event: AnalyticsEvent.appLaunched, properties: ["theme_setup": "pending_selection"])
+        //
+        //     // Mark as complete to prevent duplicate attempts
+        //     hasSeededHeritage = true
+        // } catch {
+        //     Log.error("Failed to setup theme collections during onboarding", category: .storage, metadata: ["error": error.localizedDescription])
+        //     DeviceLogger.shared.log("❌ [Theme] Failed to setup collections during onboarding: \(error.localizedDescription)")
+        // }
     }
 }
 

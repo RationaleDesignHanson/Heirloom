@@ -24,7 +24,7 @@ struct RecipeCardBackPreview: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 12) {
                     // Heritage badge (if applicable)
-                    if recipe.isHeritageRecipe, cardBack.visibleSections.contains(.heritageCollectionBadge) {
+                    if recipe.isThemeRecipe, cardBack.visibleSections.contains(.heritageCollectionBadge) {
                         HeritageCollectionBadgeCompactView(recipe: recipe)
                     }
 
@@ -39,7 +39,7 @@ struct RecipeCardBackPreview: View {
                     }
 
                     // Heritage historical text (if applicable)
-                    if recipe.isHeritageRecipe,
+                    if recipe.isThemeRecipe,
                        let historicalText = recipe.historicalText,
                        cardBack.visibleSections.contains(.historicalText) {
                         HistoricalTextCompactView(text: historicalText)
@@ -65,7 +65,7 @@ struct RecipeCardBackPreview: View {
     // MARK: - Background
     @ViewBuilder
     private var backgroundView: some View {
-        if recipe.isHeritageRecipe {
+        if recipe.isThemeRecipe {
             // Vintage background for heritage recipes
             LinearGradient(
                 colors: [
@@ -123,7 +123,7 @@ struct HeritageCollectionBadgeCompactView: View {
                     .font(HeirloomFonts.caption2)
                     .foregroundColor(.secondary)
 
-                if let collection = recipe.heritageCollectionId {
+                if let collection = recipe.sourceThemeId {
                     Text(collection)
                         .font(HeirloomFonts.body)
                         .fontWeight(.semibold)
@@ -251,8 +251,8 @@ struct HistoricalTextCompactView: View {
 #Preview("Heritage Recipe") {
     @Previewable @State var previewData: (Recipe, RecipeCardBack) = {
         let recipe = Recipe.example
-        recipe.isHeritageRecipe = true
-        recipe.heritageCollectionId = "1950s-american-classics"
+        recipe.isThemeRecipe = true
+        recipe.sourceThemeId = "1950s-american-classics"
         recipe.historicalText = "This recipe was featured in the 1952 Better Homes & Gardens cookbook and became a staple of mid-century American cuisine."
 
         let cardBack = RecipeCardBack.sample(with: recipe)

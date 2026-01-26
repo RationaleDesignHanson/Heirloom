@@ -1,0 +1,508 @@
+{
+  "collectionId": "american-foundation",
+  "collectionName": "american-foundation",
+  "recipeCount": 25,
+  "recipes": [
+    {
+      "id": "american-001",
+      "title": "Colonial Brown Bread",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "3 hours (steaming)",
+      "servings": "Makes 2 loaves",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "colonial",
+        "New England"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-002",
+      "title": "Shaker Lemon Pie",
+      "description": "",
+      "prepTime": "24 hours (for maceration)",
+      "cookTime": "45 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "pie",
+        "Shaker",
+        "lemon"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-003",
+      "title": "Johnnycakes",
+      "description": "",
+      "prepTime": "10 min",
+      "cookTime": "15 min",
+      "servings": "Makes 12",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "breakfast",
+        "cornmeal",
+        "pancakes"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-004",
+      "title": "Succotash",
+      "description": "",
+      "prepTime": "15 min",
+      "cookTime": "25 min",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "side dish",
+        "corn",
+        "beans"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-005",
+      "title": "Pumpkin Butter",
+      "description": "",
+      "prepTime": "30 min",
+      "cookTime": "2 hrs",
+      "servings": "Makes 4 pints",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "condiment",
+        "pumpkin",
+        "preserved"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-006",
+      "title": "Apple Pandowdy",
+      "description": "",
+      "prepTime": "30 min",
+      "cookTime": "1 hr",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "apple",
+        "colonial"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-007",
+      "title": "Hasty Pudding",
+      "description": "",
+      "prepTime": "5 min",
+      "cookTime": "20 min",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "cornmeal",
+        "pudding"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-008",
+      "title": "Election Cake",
+      "description": "",
+      "prepTime": "3 hrs",
+      "cookTime": "45 min",
+      "servings": "Makes 2 loaves",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "cake",
+        "fruit"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-009",
+      "title": "Switchel",
+      "description": "",
+      "prepTime": "10 min",
+      "cookTime": "0 min",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "beverage",
+        "vinegar",
+        "ginger"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-010",
+      "title": "Syllabub",
+      "description": "",
+      "prepTime": "15 min",
+      "cookTime": "2 hrs chill",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "wine",
+        "cream"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-011",
+      "title": "Mincemeat",
+      "description": "",
+      "prepTime": "1 hr",
+      "cookTime": "3 hrs",
+      "servings": "Makes 8 pies",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "condiment",
+        "preserved",
+        "pie filling"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-012",
+      "title": "Corn Dodgers",
+      "description": "",
+      "prepTime": "15 min",
+      "cookTime": "20 min",
+      "servings": "Makes 16",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "cornmeal",
+        "military"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-013",
+      "title": "Samp and Beans",
+      "description": "",
+      "prepTime": "overnight soak",
+      "cookTime": "3 hrs",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "hominy",
+        "beans"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-014",
+      "title": "Rye and Injun Bread",
+      "description": "",
+      "prepTime": "2 hrs",
+      "cookTime": "45 min",
+      "servings": "Makes 2 loaves",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "rye",
+        "cornmeal"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-015",
+      "title": "Pone",
+      "description": "",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "cornmeal",
+        "Native American"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-016",
+      "title": "Flummery",
+      "description": "",
+      "prepTime": "15 min",
+      "cookTime": "4 hrs chill",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "pudding",
+        "molded"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-017",
+      "title": "Persimmon Pudding",
+      "description": "",
+      "prepTime": "30 min",
+      "cookTime": "1 hr",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "persimmon",
+        "Southern"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-018",
+      "title": "Hominy Grits",
+      "description": "",
+      "prepTime": "5 min",
+      "cookTime": "25 min",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "breakfast",
+        "cornmeal",
+        "grits"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-019",
+      "title": "Shrub",
+      "description": "",
+      "prepTime": "20 min",
+      "cookTime": "1 week",
+      "servings": "Makes 2 quarts",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "beverage",
+        "vinegar",
+        "fruit"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-020",
+      "title": "Indian Pudding (Baked)",
+      "description": "",
+      "prepTime": "20 min",
+      "cookTime": "3 hrs",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "cornmeal",
+        "baked"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-021",
+      "title": "Corn Oysters",
+      "description": "",
+      "prepTime": "20 min",
+      "cookTime": "15 min",
+      "servings": "Makes 20",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "appetizer",
+        "corn",
+        "fritters"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-022",
+      "title": "Anadama Bread",
+      "description": "",
+      "prepTime": "2 hrs 30 min",
+      "cookTime": "40 min",
+      "servings": "Makes 2 loaves",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "cornmeal",
+        "molasses"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-023",
+      "title": "Sally Lunn Bread",
+      "description": "",
+      "prepTime": "2 hrs",
+      "cookTime": "30 min",
+      "servings": "Makes 1 loaf",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "eggs",
+        "sweet"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-024",
+      "title": "Ash Cakes",
+      "description": "",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Makes 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "cornmeal",
+        "primitive"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "american-025",
+      "title": "Spider Corn Cake",
+      "description": "",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "bread",
+        "cornmeal",
+        "hearth"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    }
+  ]
+}

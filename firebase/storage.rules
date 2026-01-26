@@ -1,0 +1,66 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ========================================
+    // THEME COVER IMAGES (Read-Only)
+    // Cover images for theme collections
+    // ========================================
+    match /themes/{imageFile} {
+      allow read: if request.auth != null; // Authenticated users only
+      allow write: if false; // Admin only via console
+    }
+
+    // ========================================
+    // THEME RECIPE IMAGES (Read-Only)
+    // Recipe images organized by theme
+    // ========================================
+    match /recipes/{themeId}/{imageFile} {
+      allow read: if request.auth != null; // Authenticated users only
+      allow write: if false; // Admin only via console
+    }
+
+    // ========================================
+    // RECIPE IMAGES (Public CDN)
+    // Public recipe images for CDN caching
+    // ========================================
+    match /recipe-images/{recipeId}/{imageFile} {
+      allow read: if true; // Public read (CDN-cached)
+      allow write: if false; // Server only
+    }
+
+    // ========================================
+    // USER RECIPE IMAGES (User-Scoped)
+    // User-owned recipe images for Firebase sync
+    // ========================================
+    match /users/{userId}/recipes/{recipeId}/{imageFile} {
+      allow read: if request.auth != null; // Any authenticated user (for sharing)
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ========================================
+    // IMPORT CACHE (Server Only)
+    // Temporary cache for URL imports
+    // ========================================
+    match /import-cache/{urlHash}/{file} {
+      allow read, write: if false; // Server only
+    }
+
+    // ========================================
+    // TEMPORARY UPLOADS (User-Scoped)
+    // Temporary storage for user uploads
+    // ========================================
+    match /temp-uploads/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ========================================
+    // FALLBACK: Deny all other access
+    // ========================================
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

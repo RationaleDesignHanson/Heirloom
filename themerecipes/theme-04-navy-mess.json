@@ -1,0 +1,1174 @@
+{
+  "themeId": "navy-mess",
+  "themeName": "Navy Mess Hall",
+  "recipes": [
+    {
+      "id": "navy-mess-001",
+      "title": "Navy S.O.S. (Creamed Chipped Beef)",
+      "description": "The legendary Navy breakfast that sailors loved to hate\u2014and secretly craved. Creamy, savory, and utterly satisfying.",
+      "ingredients": [
+        {
+          "name": "dried chipped beef",
+          "amount": 8,
+          "unit": "ounces",
+          "notes": "or deli roast beef, chopped"
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "milk",
+          "amount": 2.5,
+          "unit": "cups"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "toast or biscuits",
+          "amount": 8,
+          "unit": "slices",
+          "group": "For serving"
+        }
+      ],
+      "instructions": [
+        "If using dried chipped beef, rinse briefly under warm water to remove excess salt. Pat dry and tear into pieces.",
+        "Melt butter in a large skillet over medium heat.",
+        "Add beef and cook, stirring, for 2 minutes.",
+        "Sprinkle flour over the beef and stir to coat. Cook 1 minute.",
+        "Gradually pour in milk, whisking constantly to prevent lumps.",
+        "Cook, stirring frequently, until thick and creamy, about 5-7 minutes.",
+        "Season with pepper (salt likely not needed due to beef).",
+        "Serve immediately ladled over toast or split biscuits."
+      ],
+      "prepTime": 5,
+      "cookTime": 15,
+      "servings": 4,
+      "source": "US Navy Cook Book, 1944",
+      "story": "S.O.S. stands for 'Same Old Stuff' (or something saltier). Despite the nickname, this dish became a breakfast staple that sailors genuinely missed after leaving the service. The secret is in the creamy white sauce.",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "breakfast",
+        "classic",
+        "quick",
+        "comfort food"
+      ]
+    },
+    {
+      "id": "navy-mess-002",
+      "title": "Navy Goulash (American Chop Suey)",
+      "description": "Not quite Hungarian, not quite Chinese\u2014this uniquely American one-pot wonder fed mess halls coast to coast.",
+      "ingredients": [
+        {
+          "name": "elbow macaroni",
+          "amount": 1,
+          "unit": "pound"
+        },
+        {
+          "name": "ground beef",
+          "amount": 1.5,
+          "unit": "pounds"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "name": "green bell pepper",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "crushed tomatoes",
+          "amount": 28,
+          "unit": "ounces",
+          "notes": "canned"
+        },
+        {
+          "name": "tomato paste",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "beef broth",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "Italian seasoning",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "sugar",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "Parmesan cheese",
+          "group": "For serving"
+        }
+      ],
+      "instructions": [
+        "Cook macaroni according to package directions. Drain and set aside.",
+        "Brown ground beef in a large Dutch oven over medium-high heat. Drain excess fat.",
+        "Add onion and bell pepper. Cook until softened, about 5 minutes.",
+        "Add garlic and cook 1 minute.",
+        "Stir in crushed tomatoes, tomato paste, broth, Italian seasoning, sugar, salt, and pepper.",
+        "Simmer 15 minutes to blend flavors.",
+        "Stir in cooked macaroni. Heat through.",
+        "Serve topped with Parmesan cheese."
+      ],
+      "prepTime": 15,
+      "cookTime": 30,
+      "servings": 8,
+      "source": "US Navy Cook Book, 1944",
+      "story": "Called 'American Chop Suey' in New England and 'goulash' everywhere else, this dish has no connection to either Asian or Hungarian cuisine. It's pure American mess hall ingenuity.",
+      "unlockDay": 2,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "one-pot",
+        "crowd-pleaser",
+        "family favorite"
+      ]
+    },
+    {
+      "id": "navy-mess-003",
+      "title": "Navy Pot Roast",
+      "description": "Slowly braised beef that filled the mess hall with irresistible aromas on Sunday evenings.",
+      "ingredients": [
+        {
+          "name": "beef chuck roast",
+          "amount": 4,
+          "unit": "pounds"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "onions",
+          "amount": 2,
+          "unit": "large",
+          "preparation": "quartered"
+        },
+        {
+          "name": "carrots",
+          "amount": 6,
+          "unit": "medium",
+          "preparation": "cut in chunks"
+        },
+        {
+          "name": "potatoes",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": "quartered"
+        },
+        {
+          "name": "celery",
+          "amount": 4,
+          "unit": "stalks",
+          "preparation": "cut in chunks"
+        },
+        {
+          "name": "beef broth",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "tomato paste",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "bay leaves",
+          "amount": 2
+        },
+        {
+          "name": "dried thyme",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 2,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "black pepper",
+          "amount": 1,
+          "unit": "teaspoon"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 325\u00b0F (165\u00b0C).",
+        "Season roast generously with salt and pepper.",
+        "Heat oil in a Dutch oven over high heat. Sear roast on all sides until well browned, about 10 minutes. Remove.",
+        "Add onions, carrots, celery. Cook 5 minutes.",
+        "Stir in tomato paste, then broth. Add bay leaves and thyme.",
+        "Return roast to pot. Bring to a simmer.",
+        "Cover and transfer to oven. Braise 2 hours.",
+        "Add potatoes. Continue cooking until beef is fork-tender, about 1 hour more.",
+        "Let rest 15 minutes. Slice beef against the grain.",
+        "Serve with vegetables and pan juices."
+      ],
+      "prepTime": 20,
+      "cookTime": 180,
+      "servings": 8,
+      "source": "US Navy Cook Book, 1944",
+      "story": "Sunday dinner at sea meant pot roast. Cooks started the roasts early in the morning, and by evening chow, the entire ship smelled like home.",
+      "unlockDay": 3,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "comfort food",
+        "Sunday dinner"
+      ]
+    },
+    {
+      "id": "navy-mess-004",
+      "title": "Navy Sloppy Joes",
+      "description": "Tangy, sweet ground beef spooned over soft buns\u2014mess hall comfort at its finest.",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 2,
+          "unit": "pounds"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "name": "green bell pepper",
+          "amount": 1,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "ketchup",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "tomato sauce",
+          "amount": 8,
+          "unit": "ounces"
+        },
+        {
+          "name": "brown sugar",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "yellow mustard",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "cider vinegar",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "hamburger buns",
+          "amount": 10,
+          "group": "For serving"
+        }
+      ],
+      "instructions": [
+        "Brown ground beef in a large skillet over medium-high heat. Drain fat.",
+        "Add onion and bell pepper. Cook until softened, about 5 minutes.",
+        "Add garlic and cook 1 minute.",
+        "Stir in ketchup, tomato sauce, brown sugar, Worcestershire, mustard, vinegar, and salt.",
+        "Reduce heat and simmer 20-30 minutes until thick.",
+        "Spoon onto hamburger buns and serve."
+      ],
+      "prepTime": 10,
+      "cookTime": 35,
+      "servings": 10,
+      "source": "US Navy Cook Book, 1944",
+      "story": "Mess cooks made hundreds of pounds of sloppy joe filling at a time. The sweet-tangy sauce became a nostalgic favorite that sailors continued making long after their service ended.",
+      "unlockDay": 5,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "quick",
+        "crowd-pleaser",
+        "kid-friendly"
+      ]
+    },
+    {
+      "id": "navy-mess-005",
+      "title": "Navy Meatballs with Brown Gravy",
+      "description": "Savory meatballs swimming in rich gravy, served over mashed potatoes or rice.",
+      "ingredients": [
+        {
+          "name": "ground beef",
+          "amount": 2,
+          "unit": "pounds"
+        },
+        {
+          "name": "breadcrumbs",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "milk",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "onion",
+          "amount": 0.33,
+          "unit": "cup",
+          "preparation": "finely minced"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 2,
+          "unit": "tablespoons",
+          "group": "For cooking"
+        },
+        {
+          "name": "butter",
+          "amount": 3,
+          "unit": "tablespoons",
+          "group": "For gravy"
+        },
+        {
+          "name": "flour",
+          "amount": 3,
+          "unit": "tablespoons",
+          "group": "For gravy"
+        },
+        {
+          "name": "beef broth",
+          "amount": 3,
+          "unit": "cups",
+          "group": "For gravy"
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "teaspoon",
+          "group": "For gravy"
+        }
+      ],
+      "instructions": [
+        "Soak breadcrumbs in milk for 5 minutes.",
+        "Combine beef, soaked breadcrumbs, egg, onion, salt, and pepper. Mix gently.",
+        "Roll into 1.5-inch meatballs (about 24).",
+        "Heat oil in a large skillet. Brown meatballs in batches. Remove and set aside.",
+        "Pour off excess fat. Add butter to skillet and melt.",
+        "Whisk in flour and cook 2 minutes until golden.",
+        "Gradually add broth, whisking constantly. Add Worcestershire.",
+        "Return meatballs to skillet. Simmer 20 minutes until cooked through.",
+        "Serve over mashed potatoes or rice."
+      ],
+      "prepTime": 20,
+      "cookTime": 35,
+      "servings": 6,
+      "source": "US Navy Cook Book, 1944",
+      "story": "Meatballs stretched meat further than burgers or steaks, making them mess hall favorites. The rich brown gravy made even the simplest meal feel special.",
+      "unlockDay": 7,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "comfort food",
+        "crowd-pleaser"
+      ]
+    },
+    {
+      "id": "navy-mess-006",
+      "title": "Navy Creamed Chicken",
+      "description": "Tender chicken in a rich white sauce, served over toast points or biscuits.",
+      "ingredients": [
+        {
+          "name": "chicken breast",
+          "amount": 1.5,
+          "unit": "pounds",
+          "preparation": "cooked and cubed"
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "onion",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "diced"
+        },
+        {
+          "name": "celery",
+          "amount": 0.5,
+          "unit": "cup",
+          "preparation": "diced"
+        },
+        {
+          "name": "flour",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "chicken broth",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "frozen peas",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "white pepper",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "toast or biscuits",
+          "group": "For serving"
+        }
+      ],
+      "instructions": [
+        "Melt butter in a large saucepan over medium heat.",
+        "Add onion and celery; cook until softened, about 5 minutes.",
+        "Sprinkle flour over vegetables and stir. Cook 1 minute.",
+        "Gradually whisk in broth and milk. Cook until thickened, about 5 minutes.",
+        "Add chicken, peas, salt, and pepper. Heat through.",
+        "Serve over toast points or split biscuits."
+      ],
+      "prepTime": 15,
+      "cookTime": 20,
+      "servings": 6,
+      "source": "US Navy Cook Book, 1944",
+      "story": "Creamed chicken was a mess hall go-to when chicken was available. The white sauce stretched the protein while making it feel substantial and satisfying.",
+      "unlockDay": 9,
+      "sortOrder": 1,
+      "difficulty": "easy",
+      "tags": [
+        "main dish",
+        "comfort food",
+        "quick"
+      ]
+    },
+    {
+      "id": "navy-mess-007",
+      "title": "Navy Beef Stroganoff",
+      "description": "Tender beef in a creamy mushroom sauce, served over egg noodles.",
+      "ingredients": [
+        {
+          "name": "beef sirloin",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": "sliced into thin strips"
+        },
+        {
+          "name": "butter",
+          "amount": 4,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "sliced"
+        },
+        {
+          "name": "mushrooms",
+          "amount": 8,
+          "unit": "ounces",
+          "preparation": "sliced"
+        },
+        {
+          "name": "garlic",
+          "amount": 2,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "flour",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "beef broth",
+          "amount": 1.5,
+          "unit": "cups"
+        },
+        {
+          "name": "sour cream",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "Worcestershire sauce",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "egg noodles",
+          "amount": 1,
+          "unit": "pound",
+          "group": "For serving"
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped"
+        }
+      ],
+      "instructions": [
+        "Season beef with salt and pepper.",
+        "Melt 2 tablespoons butter in a large skillet over high heat. Brown beef in batches. Remove and set aside.",
+        "Add remaining butter. Saut\u00e9 onion and mushrooms until golden, about 8 minutes. Add garlic and cook 1 minute.",
+        "Sprinkle flour over vegetables and stir. Cook 1 minute.",
+        "Add broth and Worcestershire. Bring to a simmer.",
+        "Return beef to skillet. Simmer 5 minutes.",
+        "Remove from heat. Stir in sour cream until smooth.",
+        "Serve over buttered egg noodles, garnished with parsley."
+      ],
+      "prepTime": 20,
+      "cookTime": 25,
+      "servings": 6,
+      "source": "US Navy Cook Book, 1944",
+      "story": "This Russian-inspired dish became an American mess hall favorite. The creamy mushroom sauce made even tougher cuts of beef taste elegant.",
+      "unlockDay": 11,
+      "sortOrder": 1,
+      "difficulty": "medium",
+      "tags": [
+        "main dish",
+        "comfort food",
+        "elegant"
+      ]
+    },
+    {
+      "id": "navy-mess-008",
+      "title": "Navy Bean Soup",
+      "description": "The soup that's served in the U.S. Senate dining room to this day\u2014hearty, humble, and historic.",
+      "ingredients": [
+        {
+          "name": "navy beans",
+          "amount": 1,
+          "unit": "pound",
+          "notes": "dried"
+        },
+        {
+          "name": "ham hock",
+          "amount": 1,
+          "unit": "large",
+          "notes": "about 1 pound"
+        },
+        {
+          "name": "onion",
+          "amount": 1,
+          "unit": "large",
+          "preparation": "diced"
+        },
+        {
+          "name": "celery",
+          "amount": 2,
+          "unit": "stalks",
+          "preparation": "diced"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "diced"
+        },
+        {
+          "name": "garlic",
+          "amount": 3,
+          "unit": "cloves",
+          "preparation": "minced"
+        },
+        {
+          "name": "bay leaf",
+          "amount": 1
+        },
+        {
+          "name": "water",
+          "amount": 10,
+          "unit": "cups"
+        },
+        {
+          "name": "salt",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "fresh parsley",
+          "amount": 2,
+          "unit": "tablespoons",
+          "preparation": "chopped"
+        }
+      ],
+      "instructions": [
+        "Rinse beans and soak overnight in cold water. Drain.",
+        "Place beans, ham hock, and water in a large pot. Bring to a boil.",
+        "Reduce heat and simmer 1 hour.",
+        "Add onion, celery, carrots, garlic, and bay leaf.",
+        "Continue simmering until beans are very tender, about 1 more hour.",
+        "Remove ham hock. When cool enough to handle, shred meat and return to pot. Discard bone.",
+        "Remove bay leaf. Season with salt and pepper.",
+        "For creamier soup, mash some beans against the side of the pot.",
+        "Serve hot, garnished with parsley."
+      ],
+      "prepTime": 15,
+      "cookTime": 120,
+      "servings": 8,
+      "source": "US Navy Cook Book, 1944",
+      "story": "This soup has been served in the U.S. Senate dining room since 1903. The Navy's version fed thousands of sailors daily. Simple, filling, and budget-friendly, it's American culinary democracy at its finest.",
+      "unlockDay": 1,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "soup",
+        "hearty",
+        "make-ahead",
+        "budget-friendly"
+      ]
+    },
+    {
+      "id": "navy-mess-009",
+      "title": "Navy Ship's Biscuits",
+      "description": "Tall, fluffy buttermilk biscuits that emerged from ship's galleys by the dozen each morning.",
+      "ingredients": [
+        {
+          "name": "all-purpose flour",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "sugar",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.75,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "baking soda",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cold butter",
+          "amount": 6,
+          "unit": "tablespoons",
+          "preparation": "cubed"
+        },
+        {
+          "name": "buttermilk",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons",
+          "notes": "melted, for brushing"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 450\u00b0F (230\u00b0C). Line a baking sheet with parchment.",
+        "Whisk flour, baking powder, sugar, salt, and baking soda.",
+        "Cut in cold butter using a pastry blender until mixture resembles coarse crumbs.",
+        "Add buttermilk and stir just until dough comes together.",
+        "Turn onto a floured surface. Pat to 1-inch thickness.",
+        "Cut with a 2.5-inch biscuit cutter, pressing straight down (don't twist).",
+        "Place on baking sheet, sides touching for soft biscuits or apart for crispy.",
+        "Brush tops with melted butter.",
+        "Bake 12-15 minutes until golden brown.",
+        "Serve hot with butter and jam or alongside main dishes."
+      ],
+      "prepTime": 15,
+      "cookTime": 15,
+      "servings": 8,
+      "source": "US Navy Cook Book, 1944",
+      "story": "Ship's cooks baked hundreds of biscuits daily in galleys pitching with the waves. The secret to tall, flaky biscuits is cold butter and handling the dough as little as possible.",
+      "unlockDay": 2,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "bread",
+        "breakfast",
+        "quick",
+        "baking"
+      ]
+    },
+    {
+      "id": "navy-mess-010",
+      "title": "Mess Hall Rice Pudding",
+      "description": "Creamy baked rice pudding that satisfied sweet cravings with simple, available ingredients.",
+      "ingredients": [
+        {
+          "name": "cooked white rice",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "whole milk",
+          "amount": 2,
+          "unit": "cups"
+        },
+        {
+          "name": "eggs",
+          "amount": 2,
+          "unit": "large"
+        },
+        {
+          "name": "sugar",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "cinnamon",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "raisins",
+          "amount": 0.5,
+          "unit": "cup"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon",
+          "group": "For topping"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 325\u00b0F (165\u00b0C). Butter an 8x8 baking dish.",
+        "Whisk eggs, milk, sugar, vanilla, and cinnamon until combined.",
+        "Stir in rice and raisins.",
+        "Pour into prepared dish. Dot with butter. Sprinkle with nutmeg.",
+        "Bake 50-60 minutes until set and golden on top.",
+        "Serve warm or cold."
+      ],
+      "prepTime": 10,
+      "cookTime": 60,
+      "servings": 8,
+      "source": "US Navy Cook Book, 1944",
+      "story": "Rice was a mess hall staple, and this pudding transformed leftovers into comfort dessert. It was served warm from massive baking pans, a sweet ending to days at sea.",
+      "unlockDay": 3,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "comfort food",
+        "baking"
+      ]
+    },
+    {
+      "id": "navy-mess-011",
+      "title": "Mess Hall Coleslaw",
+      "description": "Crisp, creamy coleslaw that accompanied nearly every Navy meal.",
+      "ingredients": [
+        {
+          "name": "green cabbage",
+          "amount": 1,
+          "unit": "medium head",
+          "preparation": "shredded"
+        },
+        {
+          "name": "carrots",
+          "amount": 2,
+          "unit": "medium",
+          "preparation": "shredded"
+        },
+        {
+          "name": "mayonnaise",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "sugar",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "cider vinegar",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "celery seed",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.75,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "black pepper",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        }
+      ],
+      "instructions": [
+        "Combine cabbage and carrots in a large bowl.",
+        "Whisk together mayonnaise, sugar, vinegar, celery seed, salt, and pepper.",
+        "Pour dressing over cabbage mixture and toss well.",
+        "Refrigerate at least 1 hour before serving to let flavors meld.",
+        "Stir before serving. Adjust seasoning if needed."
+      ],
+      "prepTime": 15,
+      "cookTime": 0,
+      "servings": 8,
+      "source": "US Navy Cook Book, 1944",
+      "story": "Coleslaw was served at nearly every meal\u2014it kept well, used readily available ingredients, and provided essential vitamins during long deployments.",
+      "unlockDay": 5,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "side dish",
+        "quick",
+        "make-ahead"
+      ]
+    },
+    {
+      "id": "navy-mess-012",
+      "title": "Navy Cornbread",
+      "description": "Golden, slightly sweet cornbread that accompanied chili, beans, and barbecue.",
+      "ingredients": [
+        {
+          "name": "cornmeal",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "all-purpose flour",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "sugar",
+          "amount": 0.33,
+          "unit": "cup"
+        },
+        {
+          "name": "baking powder",
+          "amount": 1,
+          "unit": "tablespoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.5,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "egg",
+          "amount": 1,
+          "unit": "large"
+        },
+        {
+          "name": "milk",
+          "amount": 1,
+          "unit": "cup"
+        },
+        {
+          "name": "vegetable oil",
+          "amount": 0.33,
+          "unit": "cup"
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 400\u00b0F (200\u00b0C). Grease an 8x8 or 9x9 baking pan.",
+        "Whisk cornmeal, flour, sugar, baking powder, and salt.",
+        "Beat egg with milk and oil.",
+        "Add wet ingredients to dry and stir just until combined.",
+        "Pour into prepared pan.",
+        "Bake 20-25 minutes until golden and a toothpick comes out clean.",
+        "Cut into squares and serve warm with butter."
+      ],
+      "prepTime": 10,
+      "cookTime": 25,
+      "servings": 9,
+      "source": "US Navy Cook Book, 1944",
+      "story": "This Northern-style cornbread, slightly sweeter than its Southern cousin, was baked in massive sheet pans and cut into squares for easy serving in the chow line.",
+      "unlockDay": 7,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "bread",
+        "baking",
+        "quick",
+        "side dish"
+      ]
+    },
+    {
+      "id": "navy-mess-013",
+      "title": "Navy Chocolate Pudding",
+      "description": "Rich, homemade chocolate pudding that was mess hall dessert at its finest.",
+      "ingredients": [
+        {
+          "name": "sugar",
+          "amount": 0.75,
+          "unit": "cup"
+        },
+        {
+          "name": "cocoa powder",
+          "amount": 0.33,
+          "unit": "cup"
+        },
+        {
+          "name": "cornstarch",
+          "amount": 3,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "whole milk",
+          "amount": 3,
+          "unit": "cups"
+        },
+        {
+          "name": "butter",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "vanilla extract",
+          "amount": 1.5,
+          "unit": "teaspoons"
+        },
+        {
+          "name": "whipped cream",
+          "group": "For serving",
+          "isOptional": true
+        }
+      ],
+      "instructions": [
+        "Whisk sugar, cocoa, cornstarch, and salt in a saucepan.",
+        "Gradually whisk in milk until smooth.",
+        "Cook over medium heat, stirring constantly, until mixture thickens and begins to bubble, about 8-10 minutes.",
+        "Continue cooking 1 minute more.",
+        "Remove from heat. Stir in butter and vanilla.",
+        "Pour into serving dishes. Press plastic wrap directly onto surface to prevent skin.",
+        "Chill at least 2 hours. Serve with whipped cream if desired."
+      ],
+      "prepTime": 5,
+      "cookTime": 12,
+      "servings": 6,
+      "source": "US Navy Cook Book, 1944",
+      "story": "Chocolate pudding made from scratch was a treat at sea. Mess cooks made it in massive batches, and sailors who got seconds considered themselves lucky.",
+      "unlockDay": 9,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "chocolate",
+        "classic"
+      ]
+    },
+    {
+      "id": "navy-mess-014",
+      "title": "Navy Apple Brown Betty",
+      "description": "Layers of spiced apples and buttery breadcrumbs, baked until golden and bubbling.",
+      "ingredients": [
+        {
+          "name": "bread",
+          "amount": 6,
+          "unit": "slices",
+          "notes": "day-old, cubed"
+        },
+        {
+          "name": "butter",
+          "amount": 0.5,
+          "unit": "cup",
+          "notes": "melted"
+        },
+        {
+          "name": "apples",
+          "amount": 2,
+          "unit": "pounds",
+          "preparation": "peeled, cored, sliced"
+        },
+        {
+          "name": "brown sugar",
+          "amount": 0.75,
+          "unit": "cup",
+          "notes": "packed"
+        },
+        {
+          "name": "cinnamon",
+          "amount": 1,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "nutmeg",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "salt",
+          "amount": 0.25,
+          "unit": "teaspoon"
+        },
+        {
+          "name": "lemon juice",
+          "amount": 2,
+          "unit": "tablespoons"
+        },
+        {
+          "name": "water or apple cider",
+          "amount": 0.25,
+          "unit": "cup"
+        },
+        {
+          "name": "vanilla ice cream",
+          "group": "For serving",
+          "isOptional": true
+        }
+      ],
+      "instructions": [
+        "Preheat oven to 375\u00b0F (190\u00b0C). Butter an 8x8 baking dish.",
+        "Toss bread cubes with melted butter.",
+        "Mix brown sugar, cinnamon, nutmeg, and salt.",
+        "Layer one-third of bread cubes in dish. Top with half the apples and half the sugar mixture.",
+        "Repeat layers. Top with remaining bread cubes.",
+        "Mix lemon juice and water; pour over top.",
+        "Cover with foil and bake 40 minutes.",
+        "Uncover and bake 15-20 minutes more until golden and apples are tender.",
+        "Serve warm with vanilla ice cream."
+      ],
+      "prepTime": 20,
+      "cookTime": 60,
+      "servings": 8,
+      "source": "US Navy Cook Book, 1944",
+      "story": "Apple Brown Betty was a thrifty way to use stale bread and abundant apples. It emerged from Navy ovens fragrant with cinnamon, a homey dessert far from home.",
+      "unlockDay": 11,
+      "sortOrder": 2,
+      "difficulty": "easy",
+      "tags": [
+        "dessert",
+        "baking",
+        "comfort food",
+        "fall"
+      ]
+    }
+  ]
+}

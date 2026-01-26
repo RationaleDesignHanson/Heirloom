@@ -1,0 +1,30 @@
+{
+  "exportDate": "2026-01-26T21:16:56.240Z",
+  "totalRecipes": 100,
+  "collections": [
+    {
+      "id": "american-foundation",
+      "name": "american-foundation",
+      "recipeCount": 25,
+      "filename": "heritage-american-foundation.json"
+    },
+    {
+      "id": "ancient-table",
+      "name": "ancient-table",
+      "recipeCount": 25,
+      "filename": "heritage-ancient-table.json"
+    },
+    {
+      "id": "literary-kitchen",
+      "name": "literary-kitchen",
+      "recipeCount": 25,
+      "filename": "heritage-literary-kitchen.json"
+    },
+    {
+      "id": "presidential-pantry",
+      "name": "presidential-pantry",
+      "recipeCount": 25,
+      "filename": "heritage-presidential-pantry.json"
+    }
+  ]
+}

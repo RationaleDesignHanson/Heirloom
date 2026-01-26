@@ -1,0 +1,508 @@
+{
+  "collectionId": "presidential-pantry",
+  "collectionName": "presidential-pantry",
+  "recipeCount": 25,
+  "recipes": [
+    {
+      "id": "presidential-001",
+      "title": "Martha Washington's Great Cake",
+      "description": "",
+      "prepTime": "2 hours",
+      "cookTime": "4 hours",
+      "servings": "Makes 1 large cake (serves 40)",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "holiday",
+        "entertaining"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-002",
+      "title": "Thomas Jefferson's Ice Cream",
+      "description": "",
+      "prepTime": "30 minutes",
+      "cookTime": "20 minutes (plus freezing)",
+      "servings": "Serves 8-10",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "frozen"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-003",
+      "title": "Abraham Lincoln's Gingerbread",
+      "description": "",
+      "prepTime": "20 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 12",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "cake",
+        "gingerbread"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-004",
+      "title": "Eleanor Roosevelt's Scrambled Eggs",
+      "description": "",
+      "prepTime": "5 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "breakfast",
+        "eggs",
+        "main dish"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-005",
+      "title": "Dolley Madison's Oyster Soup",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "soup",
+        "seafood",
+        "appetizer"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-006",
+      "title": "Jacqueline Kennedy's Chicken Casserole",
+      "description": "",
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "casserole",
+        "chicken"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-007",
+      "title": "FDR's Favorite Grilled Cheese",
+      "description": "",
+      "prepTime": "5 minutes",
+      "cookTime": "8 minutes",
+      "servings": "Serves 1",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "lunch",
+        "sandwich",
+        "comfort food"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-008",
+      "title": "Harry Truman's Ozark Pudding",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "35 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "pudding",
+        "apple"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-009",
+      "title": "LBJ's Pedernales River Chili",
+      "description": "",
+      "prepTime": "20 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "servings": "Serves 10",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "chili",
+        "Texas",
+        "beef"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-010",
+      "title": "George Washington's Hoecakes",
+      "description": "",
+      "prepTime": "10 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Makes 12 cakes",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "breakfast",
+        "bread",
+        "cornmeal"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-011",
+      "title": "John Adams' Indian Pudding",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "pudding",
+        "New England"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-012",
+      "title": "Reagan's California Cobb Salad",
+      "description": "",
+      "prepTime": "25 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "salad",
+        "lunch",
+        "California"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-013",
+      "title": "Calvin Coolidge's Chicken Pie",
+      "description": "",
+      "prepTime": "40 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "pie",
+        "chicken"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-014",
+      "title": "James Monroe's Spoon Bread",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "40 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "side dish",
+        "bread",
+        "Southern"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-015",
+      "title": "Herbert Hoover's Waldorf Salad",
+      "description": "",
+      "prepTime": "20 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "salad",
+        "appetizer",
+        "apple"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-016",
+      "title": "Ulysses S. Grant's Rice Pudding",
+      "description": "",
+      "prepTime": "10 minutes",
+      "cookTime": "2 hours",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "pudding",
+        "rice"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-017",
+      "title": "William Howard Taft's Steak",
+      "description": "",
+      "prepTime": "5 minutes",
+      "cookTime": "12 minutes",
+      "servings": "Serves 2",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "beef",
+        "steak"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-018",
+      "title": "Benjamin Harrison's Corn Relish",
+      "description": "",
+      "prepTime": "30 minutes",
+      "cookTime": "30 minutes",
+      "servings": "Makes 4 pints",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "condiment",
+        "preserved",
+        "corn"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-019",
+      "title": "Rutherford B. Hayes' Mashed Potatoes",
+      "description": "",
+      "prepTime": "20 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "side dish",
+        "potato"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-020",
+      "title": "James Buchanan's Sauerkraut",
+      "description": "",
+      "prepTime": "30 minutes",
+      "cookTime": "1 hour 30 minutes",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "pork",
+        "German"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-021",
+      "title": "Grover Cleveland's Corned Beef Hash",
+      "description": "",
+      "prepTime": "15 minutes",
+      "cookTime": "25 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "breakfast",
+        "beef",
+        "hash"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-022",
+      "title": "Chester Arthur's Lobster Newburg",
+      "description": "",
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "main dish",
+        "seafood",
+        "lobster",
+        "luxury"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-023",
+      "title": "Millard Fillmore's Apple Dumplings",
+      "description": "",
+      "prepTime": "30 minutes",
+      "cookTime": "45 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "apple",
+        "dumplings"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-024",
+      "title": "Franklin Pierce's Rum Punch",
+      "description": "",
+      "prepTime": "10 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 12",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "beverage",
+        "cocktail",
+        "rum",
+        "punch"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    },
+    {
+      "id": "presidential-025",
+      "title": "William McKinley's Gingerbread Cookies",
+      "description": "",
+      "prepTime": "30 minutes",
+      "cookTime": "12 minutes",
+      "servings": "Makes 36 cookies",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
+      "tags": [
+        "dessert",
+        "cookies",
+        "gingerbread"
+      ],
+      "source": "",
+      "story": "",
+      "ingredients": [],
+      "instructions": []
+    }
+  ]
+}
