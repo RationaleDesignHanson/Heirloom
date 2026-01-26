@@ -159,7 +159,12 @@ class AIConfiguration: ObservableObject, AIConfigurationProtocol {
             }
             return nil
         case .openai:
-            return nil // No default OpenAI key configured
+            let key = Bundle.main.object(forInfoDictionaryKey: "DEFAULT_OPENAI_KEY") as? String
+            // Validate it's not the placeholder
+            if let key = key, key != "YOUR_OPENAI_API_KEY_HERE", !key.isEmpty {
+                return key
+            }
+            return nil
         }
     }
 
