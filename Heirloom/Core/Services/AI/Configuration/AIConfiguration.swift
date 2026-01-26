@@ -84,6 +84,18 @@ class AIConfiguration: ObservableObject, AIConfigurationProtocol {
         return keychain.get(provider.keychainKey)
     }
 
+    /// Get API key for a provider with fallback to default key
+    /// Checks user-provided key first, then falls back to default key from bundle
+    func apiKeyWithFallback(for provider: AIProvider) -> String? {
+        // User-provided key takes precedence
+        if let userKey = apiKey(for: provider), !userKey.isEmpty {
+            return userKey
+        }
+
+        // Fall back to default key from bundle
+        return defaultAPIKey(for: provider)
+    }
+
     /// Set API key for a provider
     func setAPIKey(_ key: String?, for provider: AIProvider) {
         if let key = key {

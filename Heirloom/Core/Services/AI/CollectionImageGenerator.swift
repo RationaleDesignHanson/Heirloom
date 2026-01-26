@@ -13,8 +13,8 @@ actor CollectionImageGenerator {
 
     /// Generate background image for collection
     func generateBackground(for collection: RecipeCollection) async throws -> String {
-        // Check for API key
-        guard let apiKey = await aiConfig.apiKey(for: .openai) else {
+        // Check for API key (with fallback to default key)
+        guard let apiKey = await aiConfig.apiKeyWithFallback(for: .openai) else {
             throw ImageGenerationError.noAPIKey
         }
 
