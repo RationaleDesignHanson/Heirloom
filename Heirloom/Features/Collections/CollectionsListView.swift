@@ -388,6 +388,13 @@ struct CollectionsListView: View {
                             CollectionCardView(collection: collection)
                         }
                         .buttonStyle(.plain)
+                        .contextMenu {
+                            Button {
+                                selectedCollectionForSettings = collection
+                            } label: {
+                                Label("Collection Settings", systemImage: "gear")
+                            }
+                        }
                     }
 
                     // User collections (with delete context menu) - shown second
@@ -444,6 +451,12 @@ struct CollectionsListView: View {
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
+                            Button {
+                                selectedCollectionForSettings = collection
+                            } label: {
+                                Label("Collection Settings", systemImage: "gear")
+                            }
+
                             Button(role: .destructive) {
                                 collectionToDelete = collection
                                 showDeleteConfirmation = true
