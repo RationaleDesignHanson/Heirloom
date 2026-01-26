@@ -11,37 +11,44 @@ struct CollectionCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Image collage section
-            GeometryReader { geometry in
-                HStack(spacing: 2) {
-                    // Large image (60% width)
-                    if let firstRecipe = recipeImages.first {
-                        recipeImageView(firstRecipe)
-                            .frame(width: geometry.size.width * 0.6)
-                    } else {
-                        placeholderView
-                            .frame(width: geometry.size.width * 0.6)
-                    }
-
-                    // Stacked small images (40% width)
-                    VStack(spacing: 2) {
-                        if recipeImages.count > 1 {
-                            recipeImageView(recipeImages[1])
+            // Background section - custom or recipe collage
+            if collection.useCustomBackground {
+                customBackgroundView
+                    .frame(height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            } else {
+                // Image collage section
+                GeometryReader { geometry in
+                    HStack(spacing: 2) {
+                        // Large image (60% width)
+                        if let firstRecipe = recipeImages.first {
+                            recipeImageView(firstRecipe)
+                                .frame(width: geometry.size.width * 0.6)
                         } else {
                             placeholderView
+                                .frame(width: geometry.size.width * 0.6)
                         }
 
-                        if recipeImages.count > 2 {
-                            recipeImageView(recipeImages[2])
-                        } else {
-                            placeholderView
+                        // Stacked small images (40% width)
+                        VStack(spacing: 2) {
+                            if recipeImages.count > 1 {
+                                recipeImageView(recipeImages[1])
+                            } else {
+                                placeholderView
+                            }
+
+                            if recipeImages.count > 2 {
+                                recipeImageView(recipeImages[2])
+                            } else {
+                                placeholderView
+                            }
                         }
+                        .frame(width: geometry.size.width * 0.4 - 2)
                     }
-                    .frame(width: geometry.size.width * 0.4 - 2)
                 }
+                .frame(height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
-            .frame(height: 200)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
             // Info bar
             HStack {
@@ -88,5 +95,19 @@ struct CollectionCardView: View {
                     .font(.title)
                     .foregroundStyle(HeirloomColors.warmGray)
             }
+    }
+
+    @ViewBuilder
+    private var customBackgroundView: some View {
+        if let bgPath = collection.customBackgroundImagePath ?? collection.generatedBackgroundImagePath {
+            AsyncRecipeImage(
+                imageFileName: bgPath,
+                firebaseImageURL: nil,
+                placeholder: collection.iconName
+            )
+        } else {
+            // Fallback to collage if custom background enabled but no image
+            placeholderView
+        }
     }
 }

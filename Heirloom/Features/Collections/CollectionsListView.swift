@@ -29,6 +29,7 @@ struct CollectionsListView: View {
     @State private var unlockTracker: HeritageUnlockTracker?
     @State private var isDownloadingRecipes = false
     @State private var downloadProgress: String = ""
+    @State private var selectedCollectionForSettings: RecipeCollection?
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
     // Filter heritage collections (founding collections)
@@ -175,6 +176,9 @@ struct CollectionsListView: View {
             .sheet(isPresented: $showHeritageUnlock) {
                 HeritageUnlockView()
                     .presentationDetents([.large])
+            }
+            .sheet(item: $selectedCollectionForSettings) { collection in
+                CollectionSettingsView(collection: collection)
             }
             .navigationDestination(item: $selectedCollection) { collection in
                 CollectionDetailView(collection: collection)
@@ -393,6 +397,12 @@ struct CollectionsListView: View {
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
+                            Button {
+                                selectedCollectionForSettings = collection
+                            } label: {
+                                Label("Collection Settings", systemImage: "gear")
+                            }
+
                             Button(role: .destructive) {
                                 collectionToDelete = collection
                                 showDeleteConfirmation = true
