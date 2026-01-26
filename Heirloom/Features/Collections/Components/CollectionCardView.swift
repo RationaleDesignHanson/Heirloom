@@ -46,7 +46,7 @@ struct CollectionCardView: View {
             // Info bar
             HStack {
                 Text(collection.name)
-                    .font(HeirloomFonts.headline)
+                    .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.primaryText)
 
                 Spacer()
@@ -70,8 +70,8 @@ struct CollectionCardView: View {
     @ViewBuilder
     private func recipeImageView(_ recipe: Recipe) -> some View {
         Group {
-            if let imagePath = recipe.imagePath,
-               let uiImage = ImageStorageService.shared.loadImage(fileName: imagePath) {
+            if let imageFileName = recipe.imageFileName,
+               let uiImage = ImageStorageService.shared.loadImage(fileName: imageFileName) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
