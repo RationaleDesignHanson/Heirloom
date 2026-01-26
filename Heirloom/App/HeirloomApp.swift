@@ -312,6 +312,12 @@ struct HeirloomApp: App {
                         DeviceLogger.shared.log("✅ [App] App entering foreground - checking for pending imports")
                         checkSharedContainerForPendingImport()
                     }
+                    .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+                        // Schedule collection image refresh when app backgrounds
+                        CollectionImageRefreshTask.scheduleRefresh()
+                        Log.info("App entering background - scheduled collection image refresh", category: .general)
+                        DeviceLogger.shared.log("✅ [App] Scheduled overnight collection image refresh")
+                    }
                 } else {
                     // Test environment - show minimal view
                     Text("Test Environment")
@@ -668,8 +674,16 @@ struct HeirloomApp: App {
             self.handleVideoProcessingBackgroundTask(task: task as! BGProcessingTask)
         }
 
-        Log.info("Background tasks registered", category: .video)
-        DeviceLogger.shared.log("✅ [BackgroundTasks] Video processing task registered")
+        // Register collection image refresh background task
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: CollectionImageRefreshTask.taskIdentifier,
+            using: nil
+        ) { task in
+            self.handleCollectionImageRefreshTask(task: task as! BGProcessingTask)
+        }
+
+        Log.info("Background tasks registered", category: .general)
+        DeviceLogger.shared.log("✅ [BackgroundTasks] Video processing and collection image refresh tasks registered")
     }
 
     private func handleVideoProcessingBackgroundTask(task: BGProcessingTask) {
@@ -702,6 +716,39 @@ struct HeirloomApp: App {
 
             // Schedule next background task if there are still jobs
             scheduleNextBackgroundTask()
+        }
+    }
+
+    private func handleCollectionImageRefreshTask(task: BGProcessingTask) {
+        Log.info("Collection image refresh background task started", category: .general)
+        DeviceLogger.shared.log("🔄 [BackgroundTasks] Collection image refresh started")
+
+        // Schedule expiration handler
+        task.expirationHandler = {
+            Log.warning("Collection image refresh task expired", category: .general)
+            DeviceLogger.shared.log("⚠️ [BackgroundTasks] Image refresh task expired")
+            task.setTaskCompleted(success: false)
+        }
+
+        // Run refresh task
+        Task { @MainActor in
+            guard let container = self.modelContainer else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+
+            let generator = ServiceContainer.shared.resolve(CollectionImageGenerator.self)
+            let refreshTask = CollectionImageRefreshTask(generator: generator, modelContainer: container)
+
+            await refreshTask.refreshCollectionImages()
+
+            // Mark task as complete
+            task.setTaskCompleted(success: true)
+            Log.info("Collection image refresh task completed", category: .general)
+            DeviceLogger.shared.log("✅ [BackgroundTasks] Image refresh completed")
+
+            // Schedule next run
+            CollectionImageRefreshTask.scheduleRefresh()
         }
     }
 
