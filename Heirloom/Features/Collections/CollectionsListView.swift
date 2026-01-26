@@ -30,7 +30,13 @@ struct CollectionsListView: View {
     @State private var isDownloadingRecipes = false
     @State private var downloadProgress: String = ""
     @State private var selectedCollectionForSettings: RecipeCollection?
+    @State private var isGeneratingBackground = false
+    @State private var generatingCollectionId: UUID?
+
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
+    private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
+    private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
     // Filter heritage collections (founding collections)
     var heritageCollections: [RecipeCollection] {
@@ -390,6 +396,15 @@ struct CollectionsListView: View {
                         .buttonStyle(.plain)
                         .contextMenu {
                             Button {
+                                Task {
+                                    await generateBackgroundForCollection(collection)
+                                }
+                            } label: {
+                                Label("Generate with AI", systemImage: "sparkles")
+                            }
+                            .disabled(isGeneratingBackground)
+
+                            Button {
                                 selectedCollectionForSettings = collection
                             } label: {
                                 Label("Collection Settings", systemImage: "gear")
@@ -404,6 +419,15 @@ struct CollectionsListView: View {
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
+                            Button {
+                                Task {
+                                    await generateBackgroundForCollection(collection)
+                                }
+                            } label: {
+                                Label("Generate with AI", systemImage: "sparkles")
+                            }
+                            .disabled(isGeneratingBackground)
+
                             Button {
                                 selectedCollectionForSettings = collection
                             } label: {
@@ -451,6 +475,15 @@ struct CollectionsListView: View {
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
+                            Button {
+                                Task {
+                                    await generateBackgroundForCollection(collection)
+                                }
+                            } label: {
+                                Label("Generate with AI", systemImage: "sparkles")
+                            }
+                            .disabled(isGeneratingBackground)
+
                             Button {
                                 selectedCollectionForSettings = collection
                             } label: {
@@ -1097,6 +1130,45 @@ struct CollectionsListView: View {
     private func handleVideoImport() {
         tabCoordinator.willCreateRecipe(from: .collectionsTab)
         showVideoImport = true
+    }
+
+    private func generateBackgroundForCollection(_ collection: RecipeCollection) async {
+        guard !isGeneratingBackground else {
+            toastManager.info(title: "Generation in Progress", message: "Please wait for the current generation to finish")
+            return
+        }
+
+        isGeneratingBackground = true
+        generatingCollectionId = collection.id
+
+        // Show toast that generation started
+        await MainActor.run {
+            toastManager.info(title: "Generating Background", message: "Creating AI image for \(collection.name)...")
+        }
+
+        do {
+            // Generate AI image
+            let imagePath = try await collectionImageGenerator.generateBackground(for: collection)
+
+            await MainActor.run {
+                // Update collection with generated image
+                collection.generatedBackgroundImagePath = imagePath
+                collection.lastImageGenerationDate = Date()
+                collection.lastRecipeCountAtGeneration = collection.recipes?.count ?? 0
+                collection.useCustomBackground = true
+                try? modelContext.save()
+
+                isGeneratingBackground = false
+                generatingCollectionId = nil
+                toastManager.success(title: "Background Generated", message: "AI created a custom image for \(collection.name)")
+            }
+        } catch {
+            await MainActor.run {
+                isGeneratingBackground = false
+                generatingCollectionId = nil
+                toastManager.error(title: "Generation Failed", message: error.localizedDescription)
+            }
+        }
     }
 
     private func handleAddCollection() {
