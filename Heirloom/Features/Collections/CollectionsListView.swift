@@ -422,23 +422,25 @@ struct CollectionsListView: View {
 
                     // Revealed heritage collections - shown last
                     ForEach(revealedHeritageCollections, id: \.id) { collection in
-                        CollectionRow(collection: collection)
-                            .onTapGesture {
-                                // Show coach mark on first tap if not seen
-                                if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
-                                    showRecipeCoachMark = true
-                                } else {
-                                    selectedCollection = collection
-                                }
+                        Button {
+                            // Show coach mark on first tap if not seen
+                            if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
+                                showRecipeCoachMark = true
+                            } else {
+                                selectedCollection = collection
                             }
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    collectionToDelete = collection
-                                    showDeleteConfirmation = true
-                                } label: {
-                                    Label("Delete Collection", systemImage: "trash")
-                                }
+                        } label: {
+                            CollectionCardView(collection: collection)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                collectionToDelete = collection
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete Collection", systemImage: "trash")
                             }
+                        }
                     }
                 }
                 .padding(.horizontal, HeirloomSpacing.lg)
