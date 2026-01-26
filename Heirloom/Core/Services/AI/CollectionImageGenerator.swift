@@ -28,13 +28,7 @@ actor CollectionImageGenerator {
         // Download and save locally
         let localPath = try await downloadAndSave(imageURL: imageURL, collectionId: collection.id)
 
-        // Update collection metadata
-        await MainActor.run {
-            collection.generatedBackgroundImagePath = localPath
-            collection.lastImageGenerationDate = Date()
-            collection.lastRecipeCountAtGeneration = collection.recipes?.count ?? 0
-        }
-
+        // Return path - caller will update collection metadata
         return localPath
     }
 

@@ -156,9 +156,13 @@ struct CollectionSettingsView: View {
 
         do {
             // Generate AI image
-            _ = try await collectionImageGenerator.generateBackground(for: collection)
+            let imagePath = try await collectionImageGenerator.generateBackground(for: collection)
 
             await MainActor.run {
+                // Update collection with generated image
+                collection.generatedBackgroundImagePath = imagePath
+                collection.lastImageGenerationDate = Date()
+                collection.lastRecipeCountAtGeneration = collection.recipes?.count ?? 0
                 collection.useCustomBackground = true
                 try? modelContext.save()
                 toastManager.success(title: "Background Generated", message: "AI created a custom image for your collection")
