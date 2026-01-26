@@ -12,8 +12,9 @@ struct CollectionCardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Background section - custom or recipe collage
-            if collection.useCustomBackground {
+            // Background section - custom/generated or recipe collage
+            // Show custom/generated background if enabled OR if generated image exists
+            if collection.useCustomBackground || collection.generatedBackgroundImagePath != nil {
                 customBackgroundView
                     .frame(height: 200)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
