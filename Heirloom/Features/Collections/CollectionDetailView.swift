@@ -960,8 +960,12 @@ struct CollectionDetailView: View {
             return "sparkles"
         case .fromFriends:
             return "person.2"
-        case .imports:
-            return "square.and.arrow.down"
+        case .videoImports:
+            return "video"
+        case .webImports:
+            return "link"
+        case .cookbook:
+            return "book.closed"
         default:
             return "rectangle.stack"
         }
@@ -973,8 +977,12 @@ struct CollectionDetailView: View {
             return "Recipes Coming Soon"
         case .fromFriends:
             return "No Shared Recipes Yet"
-        case .imports:
-            return "No Imports Yet"
+        case .videoImports:
+            return "No Video Imports Yet"
+        case .webImports:
+            return "No Web Imports Yet"
+        case .cookbook:
+            return "No Cookbook Recipes Yet"
         default:
             return "No Recipes Yet"
         }
@@ -986,8 +994,12 @@ struct CollectionDetailView: View {
             return "New \(collection.name) recipes unlock every few days during your trial. Check back soon!"
         case .fromFriends:
             return "When friends share recipes with you, they'll appear here. Share the app with friends to start collecting!"
-        case .imports:
+        case .videoImports:
+            return "Recipes from video transcriptions will appear here. Import a cooking video to get started."
+        case .webImports:
             return "Recipes you save from websites will appear here. Try pasting a recipe URL to get started."
+        case .cookbook:
+            return "Recipes from scanned cookbooks will appear here. Use the cookbook scanner to get started."
         default:
             return "Add recipes to this collection to see them here."
         }
@@ -997,8 +1009,12 @@ struct CollectionDetailView: View {
         switch collection.type {
         case .fromFriends:
             return "Share App"
-        case .imports:
-            return "Import Recipe"
+        case .videoImports:
+            return "Import Video"
+        case .webImports:
+            return "Import from Web"
+        case .cookbook:
+            return "Scan Cookbook"
         case .userCreated:
             return "Add Recipe"
         default:
@@ -1011,9 +1027,15 @@ struct CollectionDetailView: View {
         case .fromFriends:
             // TODO: Implement share sheet for app
             break
-        case .imports:
+        case .videoImports:
+            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+            showVideoImport = true
+        case .webImports:
             tabCoordinator.willCreateRecipe(from: .collectionDetail)
             showImportRecipe = true
+        case .cookbook:
+            tabCoordinator.willCreateRecipe(from: .collectionDetail)
+            showCookbookScanner = true
         case .userCreated:
             tabCoordinator.willCreateRecipe(from: .collectionDetail)
             showAddRecipe = true

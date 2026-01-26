@@ -18,8 +18,11 @@ enum CollectionType: String, Codable, CaseIterable {
     /// Recipes shared by friends
     case fromFriends = "fromFriends"
 
+    /// Recipes imported from video transcription
+    case videoImports = "videoImports"
+
     /// Recipes imported via URL (not from cookbook)
-    case imports = "imports"
+    case webImports = "webImports"
 
     /// Recipes imported from a scanned/imported cookbook
     case cookbook = "cookbook"
@@ -34,8 +37,9 @@ enum CollectionType: String, Codable, CaseIterable {
         case .system: return "System"
         case .theme: return "Discovery"
         case .fromFriends: return "From Friends"
-        case .imports: return "My Imports"
-        case .cookbook: return "Cookbook"
+        case .videoImports: return "From Videos"
+        case .webImports: return "From Web"
+        case .cookbook: return "From Cookbooks"
         case .userCreated: return "My Collection"
         }
     }
@@ -45,7 +49,8 @@ enum CollectionType: String, Codable, CaseIterable {
         case .system: return "gear"
         case .theme: return "sparkles"
         case .fromFriends: return "person.2.fill"
-        case .imports: return "square.and.arrow.down.fill"
+        case .videoImports: return "video.fill"
+        case .webImports: return "link"
         case .cookbook: return "book.closed.fill"
         case .userCreated: return "folder.fill"
         }
@@ -55,18 +60,20 @@ enum CollectionType: String, Codable, CaseIterable {
     var isVisibleInMainList: Bool {
         switch self {
         case .system: return false
-        case .theme, .fromFriends, .imports, .cookbook, .userCreated: return true
+        case .theme, .fromFriends, .videoImports, .webImports, .cookbook, .userCreated: return true
         }
     }
 
     /// Sort priority for collections list (lower = higher priority)
+    /// NOTE: My Collections section appears ABOVE Your Discoveries (themes)
     var sortPriority: Int {
         switch self {
-        case .theme: return 0
-        case .fromFriends: return 1
-        case .imports: return 2
+        case .fromFriends: return 0
+        case .videoImports: return 1
+        case .webImports: return 2
         case .cookbook: return 3
         case .userCreated: return 4
+        case .theme: return 10  // Themes appear AFTER My Collections
         case .system: return 99
         }
     }

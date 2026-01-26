@@ -56,7 +56,7 @@ struct CollectionsListView: View {
             }
     }
 
-    /// Theme collections (shown in their own section)
+    /// Theme collections (shown in "Your Discoveries" section - AFTER My Collections)
     var themeCollections: [RecipeCollection] {
         visibleCollections.filter { collection in
             collection.type == .theme &&
@@ -64,9 +64,15 @@ struct CollectionsListView: View {
         }
     }
 
-    /// Non-theme collections
-    private var otherCollections: [RecipeCollection] {
-        visibleCollections.filter { $0.type != .theme }
+    /// My Collections (shown BEFORE themes) - includes all import types and user-created
+    private var myCollections: [RecipeCollection] {
+        visibleCollections.filter { collection in
+            collection.type == .fromFriends ||
+            collection.type == .videoImports ||
+            collection.type == .webImports ||
+            collection.type == .cookbook ||
+            collection.type == .userCreated
+        }
     }
 
     // Filter user collections (non-system, non-theme) - kept for existing functionality
@@ -387,14 +393,14 @@ struct CollectionsListView: View {
 
     private var unifiedCollectionsSection: some View {
         LazyVStack(spacing: HeirloomSpacing.lg) {
-            // Theme collections section
-            if !themeCollections.isEmpty {
-                themeSection
+            // My Collections section (FIRST - appears above themes)
+            if !myCollections.isEmpty {
+                myCollectionsSection
             }
 
-            // Other collections section (always show if themes exist)
+            // Theme collections section (SECOND - appears below My Collections)
             if !themeCollections.isEmpty {
-                otherCollectionsSection
+                themeSection
             }
 
             // Empty state (only if NO collections at all)
@@ -451,67 +457,43 @@ struct CollectionsListView: View {
         }
     }
 
-    // MARK: - Other Collections Section
+    // MARK: - My Collections Section (imports, cookbooks, user-created)
 
-    private var otherCollectionsSection: some View {
+    private var myCollectionsSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             // Section header
-            Text(UXCopy.Collections.collectionsSectionTitle)
+            Text("My Collections")
                 .font(HeirloomFonts.title3)
                 .foregroundStyle(HeirloomColors.primaryText)
 
-            // Collection cards or empty state
-            if otherCollections.isEmpty {
-                // Empty state for "Your Collections"
-                VStack(spacing: HeirloomSpacing.sm) {
-                    Text("Create collections to organize your recipes")
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .multilineTextAlignment(.center)
+            // Collection cards
+            ForEach(myCollections) { collection in
+                NavigationLink(value: collection) {
+                    StandardCollectionCard(collection: collection)
+                }
+                .buttonStyle(.plain)
+                .contextMenu {
+                    Button {
+                        Task {
+                            await generateBackgroundForCollection(collection)
+                        }
+                    } label: {
+                        Label("Generate with AI", systemImage: "sparkles")
+                    }
+                    .disabled(isGeneratingBackground)
 
                     Button {
-                        showCreateCollection = true
+                        selectedCollectionForSettings = collection
                     } label: {
-                        HStack(spacing: HeirloomSpacing.xs) {
-                            Image(systemName: "plus.circle.fill")
-                            Text("Create Collection")
-                        }
-                        .font(HeirloomFonts.body)
-                        .foregroundStyle(HeirloomColors.tomato)
+                        Label("Collection Settings", systemImage: "gear")
                     }
-                    .padding(.top, HeirloomSpacing.xs)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, HeirloomSpacing.lg)
-            } else {
-                ForEach(otherCollections) { collection in
-                    NavigationLink(value: collection) {
-                        StandardCollectionCard(collection: collection)
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        Button {
-                            Task {
-                                await generateBackgroundForCollection(collection)
-                            }
-                        } label: {
-                            Label("Generate with AI", systemImage: "sparkles")
-                        }
-                        .disabled(isGeneratingBackground)
 
-                        Button {
-                            selectedCollectionForSettings = collection
+                    if !collection.isSystemCollection {
+                        Button(role: .destructive) {
+                            collectionToDelete = collection
+                            showDeleteConfirmation = true
                         } label: {
-                            Label("Collection Settings", systemImage: "gear")
-                        }
-
-                        if !collection.isSystemCollection {
-                            Button(role: .destructive) {
-                                collectionToDelete = collection
-                                showDeleteConfirmation = true
-                            } label: {
-                                Label("Delete Collection", systemImage: "trash")
-                            }
+                            Label("Delete Collection", systemImage: "trash")
                         }
                     }
                 }

@@ -44,9 +44,9 @@ class CollectionRouter {
     /// Route a recipe imported from a URL
     func routeURLImport(_ recipe: Recipe, sourceURL: URL) {
         let collection = findOrCreateCollection(
-            name: "My Imports",
-            type: .imports,
-            iconName: "square.and.arrow.down.fill"
+            name: "From Web",
+            type: .webImports,
+            iconName: "link"
         )
 
         // Set source metadata
@@ -55,9 +55,25 @@ class CollectionRouter {
         // Add to collection
         addRecipeToCollection(recipe, collection: collection)
 
-        Log.info("Routed URL import to My Imports", category: .collections, metadata: [
+        Log.info("Routed URL import to From Web", category: .collections, metadata: [
             "recipe": recipe.title,
             "source": sourceURL.host ?? "unknown"
+        ])
+    }
+
+    /// Route a recipe imported from video transcription
+    func routeVideoImport(_ recipe: Recipe) {
+        let collection = findOrCreateCollection(
+            name: "From Videos",
+            type: .videoImports,
+            iconName: "video.fill"
+        )
+
+        // Add to collection
+        addRecipeToCollection(recipe, collection: collection)
+
+        Log.info("Routed video import to From Videos", category: .collections, metadata: [
+            "recipe": recipe.title
         ])
     }
 

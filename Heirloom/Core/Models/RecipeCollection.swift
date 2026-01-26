@@ -113,8 +113,10 @@ final class RecipeCollection {
             return "\(recipeCount) recipes"
         case .fromFriends:
             return "\(recipeCount) shared recipe\(recipeCount == 1 ? "" : "s")"
-        case .imports:
-            return "\(recipeCount) imported recipe\(recipeCount == 1 ? "" : "s")"
+        case .videoImports:
+            return "\(recipeCount) video recipe\(recipeCount == 1 ? "" : "s")"
+        case .webImports:
+            return "\(recipeCount) web recipe\(recipeCount == 1 ? "" : "s")"
         case .cookbook:
             if let cookbook = sourceCookbook {
                 return "From \(cookbook)"

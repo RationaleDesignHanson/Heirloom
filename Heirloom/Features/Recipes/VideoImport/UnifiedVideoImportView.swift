@@ -382,7 +382,12 @@ struct UnifiedVideoImportView: View {
             }
 
             try? modelContext.save()
-            Log.info("Video recipe saved to SwiftData", category: .video, metadata: [
+
+            // Route to "From Videos" collection
+            let router = CollectionRouter(modelContext: modelContext)
+            router.routeVideoImport(recipe)
+
+            Log.info("Video recipe saved to SwiftData and routed to From Videos", category: .video, metadata: [
                 "recipeId": recipe.id.uuidString,
                 "title": recipe.title
             ])
@@ -409,7 +414,12 @@ struct UnifiedVideoImportView: View {
             }
 
             try? modelContext.save()
-            Log.info("Video recipe saved to SwiftData", category: .video, metadata: [
+
+            // Route to "From Videos" collection
+            let router = CollectionRouter(modelContext: modelContext)
+            router.routeVideoImport(recipe)
+
+            Log.info("Video recipe saved to SwiftData and routed to From Videos", category: .video, metadata: [
                 "recipeId": recipe.id.uuidString,
                 "title": recipe.title
             ])
@@ -418,7 +428,7 @@ struct UnifiedVideoImportView: View {
             let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
             toastManager.success(
                 title: "Recipe Saved",
-                message: "Find it in All Recipes"
+                message: "Find it in From Videos"
             )
         }
 
