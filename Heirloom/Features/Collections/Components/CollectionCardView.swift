@@ -69,15 +69,14 @@ struct CollectionCardView: View {
 
     @ViewBuilder
     private func recipeImageView(_ recipe: Recipe) -> some View {
-        Group {
-            if let imageFileName = recipe.imageFileName,
-               let uiImage = ImageStorageService.shared.loadImage(fileName: imageFileName) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else {
-                placeholderView
-            }
+        if recipe.imageFileName != nil {
+            AsyncRecipeImage(
+                imageFileName: recipe.imageFileName,
+                firebaseImageURL: recipe.firebaseImageURL,
+                placeholder: collection.iconName
+            )
+        } else {
+            placeholderView
         }
     }
 
