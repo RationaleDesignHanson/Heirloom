@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import UIKit
 
 struct CollectionSettingsView: View {
     @Bindable var collection: RecipeCollection
@@ -8,9 +9,11 @@ struct CollectionSettingsView: View {
 
     private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
 
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var isProcessingImage = false
+    @State private var isGeneratingImage = false
 
     var body: some View {
         NavigationStack {
@@ -64,8 +67,30 @@ struct CollectionSettingsView: View {
                             }
                         }
 
+                        Button {
+                            Task {
+                                await generateBackground()
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "sparkles")
+                                Text("Generate with AI")
+                                Spacer()
+                                if isGeneratingImage {
+                                    ProgressView()
+                                }
+                            }
+                        }
+                        .disabled(isGeneratingImage)
+
+                        if isGeneratingImage {
+                            Text("Generating themed background...")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                        }
+
                         // Preview current background
-                        if let bgPath = collection.customBackgroundImagePath {
+                        if let bgPath = collection.customBackgroundImagePath ?? collection.generatedBackgroundImagePath {
                             AsyncRecipeImage(
                                 imageFileName: bgPath,
                                 firebaseImageURL: nil,
@@ -121,6 +146,26 @@ struct CollectionSettingsView: View {
         } catch {
             await MainActor.run {
                 toastManager.error(title: "Failed to save background", message: error.localizedDescription)
+            }
+        }
+    }
+
+    private func generateBackground() async {
+        isGeneratingImage = true
+        defer { isGeneratingImage = false }
+
+        do {
+            // Generate AI image
+            _ = try await collectionImageGenerator.generateBackground(for: collection)
+
+            await MainActor.run {
+                collection.useCustomBackground = true
+                try? modelContext.save()
+                toastManager.success(title: "Background Generated", message: "AI created a custom image for your collection")
+            }
+        } catch {
+            await MainActor.run {
+                toastManager.error(title: "Generation Failed", message: error.localizedDescription)
             }
         }
     }
