@@ -487,6 +487,13 @@ extension ServiceContainer {
             return AIRecipeDetector(aiConfig: aiConfig, aiService: aiService)
         }
 
+        // CollectionImageGenerator (DALL-E collection backgrounds)
+        register(CollectionImageGenerator.self, lifecycle: .singleton) { container in
+            let aiConfig = container.resolve(AIConfiguration.self)
+            let imageStorage = container.resolve(ImageStorageService.self)
+            return CollectionImageGenerator(aiConfig: aiConfig, imageStorage: imageStorage)
+        }
+
         // MARK: - OCR
         // Note: EnhancedOCRService doesn't fully implement OCRServiceProtocol yet
         // Registering concrete type only for now

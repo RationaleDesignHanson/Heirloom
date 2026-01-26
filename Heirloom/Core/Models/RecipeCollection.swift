@@ -19,6 +19,13 @@ final class RecipeCollection {
     var isRevealed: Bool = false // Whether the blind box has been revealed by the user
     var revealedDate: Date? // When the blind box was revealed
 
+    // Custom Backgrounds
+    var customBackgroundImagePath: String? // User-selected background image filename (local storage)
+    var generatedBackgroundImagePath: String? // AI-generated background image filename
+    var useCustomBackground: Bool = false // Whether to show custom/generated background instead of recipe collage
+    var lastImageGenerationDate: Date? // Date when background was last generated
+    var lastRecipeCountAtGeneration: Int = 0 // Recipe count at time of last generation (for staleness detection)
+
     // Relationships
     @Relationship(inverse: \Recipe.collections) var recipes: [Recipe]?
 

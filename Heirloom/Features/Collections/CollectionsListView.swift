@@ -29,7 +29,14 @@ struct CollectionsListView: View {
     @State private var unlockTracker: HeritageUnlockTracker?
     @State private var isDownloadingRecipes = false
     @State private var downloadProgress: String = ""
+    @State private var selectedCollectionForSettings: RecipeCollection?
+    @State private var isGeneratingBackground = false
+    @State private var generatingCollectionId: UUID?
+
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
+    private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
+    private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
     // Filter heritage collections (founding collections)
     var heritageCollections: [RecipeCollection] {
@@ -175,6 +182,9 @@ struct CollectionsListView: View {
             .sheet(isPresented: $showHeritageUnlock) {
                 HeritageUnlockView()
                     .presentationDetents([.large])
+            }
+            .sheet(item: $selectedCollectionForSettings) { collection in
+                CollectionSettingsView(collection: collection)
             }
             .navigationDestination(item: $selectedCollection) { collection in
                 CollectionDetailView(collection: collection)
@@ -377,32 +387,60 @@ struct CollectionsListView: View {
             if heritageCollections.isEmpty && systemCollections.isEmpty && userCollections.isEmpty {
                 emptyUserCollectionsView
             } else {
-                LazyVStack(spacing: HeirloomSpacing.sm) {
+                LazyVStack(spacing: HeirloomSpacing.lg) {
                     // System collections (Favorites, Quick Meals, etc.) - shown first
                     ForEach(systemCollections, id: \.id) { collection in
-                        CollectionRow(
-                            collection: collection,
-                            totalRecipeCount: collection.isAllRecipes ? allRecipes.count : nil
-                        )
-                        .onTapGesture {
-                            selectedCollection = collection
+                        NavigationLink(value: collection) {
+                            CollectionCardView(collection: collection)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button {
+                                Task {
+                                    await generateBackgroundForCollection(collection)
+                                }
+                            } label: {
+                                Label("Generate with AI", systemImage: "sparkles")
+                            }
+                            .disabled(isGeneratingBackground)
+
+                            Button {
+                                selectedCollectionForSettings = collection
+                            } label: {
+                                Label("Collection Settings", systemImage: "gear")
+                            }
                         }
                     }
 
                     // User collections (with delete context menu) - shown second
                     ForEach(userCollections, id: \.id) { collection in
-                        CollectionRow(collection: collection)
-                            .onTapGesture {
-                                selectedCollection = collection
-                            }
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    collectionToDelete = collection
-                                    showDeleteConfirmation = true
-                                } label: {
-                                    Label("Delete Collection", systemImage: "trash")
+                        NavigationLink(value: collection) {
+                            CollectionCardView(collection: collection)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button {
+                                Task {
+                                    await generateBackgroundForCollection(collection)
                                 }
+                            } label: {
+                                Label("Generate with AI", systemImage: "sparkles")
                             }
+                            .disabled(isGeneratingBackground)
+
+                            Button {
+                                selectedCollectionForSettings = collection
+                            } label: {
+                                Label("Collection Settings", systemImage: "gear")
+                            }
+
+                            Button(role: .destructive) {
+                                collectionToDelete = collection
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete Collection", systemImage: "trash")
+                            }
+                        }
                     }
 
                     // Post-trial banner (if trial expired and has heritage content)
@@ -425,26 +463,43 @@ struct CollectionsListView: View {
 
                     // Revealed heritage collections - shown last
                     ForEach(revealedHeritageCollections, id: \.id) { collection in
-                        CollectionRow(collection: collection)
-                            .onTapGesture {
-                                // Show coach mark on first tap if not seen
-                                if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
-                                    showRecipeCoachMark = true
-                                } else {
-                                    selectedCollection = collection
-                                }
+                        Button {
+                            // Show coach mark on first tap if not seen
+                            if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
+                                showRecipeCoachMark = true
+                            } else {
+                                selectedCollection = collection
                             }
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    collectionToDelete = collection
-                                    showDeleteConfirmation = true
-                                } label: {
-                                    Label("Delete Collection", systemImage: "trash")
+                        } label: {
+                            CollectionCardView(collection: collection)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button {
+                                Task {
+                                    await generateBackgroundForCollection(collection)
                                 }
+                            } label: {
+                                Label("Generate with AI", systemImage: "sparkles")
                             }
+                            .disabled(isGeneratingBackground)
+
+                            Button {
+                                selectedCollectionForSettings = collection
+                            } label: {
+                                Label("Collection Settings", systemImage: "gear")
+                            }
+
+                            Button(role: .destructive) {
+                                collectionToDelete = collection
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete Collection", systemImage: "trash")
+                            }
+                        }
                     }
                 }
-                .padding(.horizontal, HeirloomSpacing.md)
+                .padding(.horizontal, HeirloomSpacing.lg)
             }
         }
     }
@@ -1075,6 +1130,45 @@ struct CollectionsListView: View {
     private func handleVideoImport() {
         tabCoordinator.willCreateRecipe(from: .collectionsTab)
         showVideoImport = true
+    }
+
+    private func generateBackgroundForCollection(_ collection: RecipeCollection) async {
+        guard !isGeneratingBackground else {
+            toastManager.info(title: "Generation in Progress", message: "Please wait for the current generation to finish")
+            return
+        }
+
+        isGeneratingBackground = true
+        generatingCollectionId = collection.id
+
+        // Show toast that generation started
+        await MainActor.run {
+            toastManager.info(title: "Generating Background", message: "Creating AI image for \(collection.name)...")
+        }
+
+        do {
+            // Generate AI image
+            let imagePath = try await collectionImageGenerator.generateBackground(for: collection)
+
+            await MainActor.run {
+                // Update collection with generated image
+                collection.generatedBackgroundImagePath = imagePath
+                collection.lastImageGenerationDate = Date()
+                collection.lastRecipeCountAtGeneration = collection.recipes?.count ?? 0
+                collection.useCustomBackground = true
+                try? modelContext.save()
+
+                isGeneratingBackground = false
+                generatingCollectionId = nil
+                toastManager.success(title: "Background Generated", message: "AI created a custom image for \(collection.name)")
+            }
+        } catch {
+            await MainActor.run {
+                isGeneratingBackground = false
+                generatingCollectionId = nil
+                toastManager.error(title: "Generation Failed", message: error.localizedDescription)
+            }
+        }
     }
 
     private func handleAddCollection() {

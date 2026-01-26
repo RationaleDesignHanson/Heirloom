@@ -27,6 +27,33 @@ actor ImageStorageService {
 
     // MARK: - Save Image
 
+    /// Save an image with a custom filename (for collection backgrounds, etc.)
+    /// Returns the file name (not full path)
+    func saveImage(_ image: UIImage, fileName: String) async throws -> String {
+        let fileURL = imagesDirectory.appendingPathComponent(fileName)
+
+        // Compress image to max 1MB
+        guard let compressedData = await compressImage(image, maxBytes: maxImageSizeBytes) else {
+            throw ImageError.compressionFailed
+        }
+
+        // Write to disk
+        do {
+            try compressedData.write(to: fileURL, options: .atomic)
+            Log.info("Saved image with custom filename", category: .storage, metadata: [
+                "fileName": fileName,
+                "sizeKB": compressedData.count / 1024
+            ])
+
+            // Update cache
+            imageCache.setImage(image, for: fileURL)
+
+            return fileName
+        } catch {
+            throw ImageError.writeFailed(error)
+        }
+    }
+
     /// Save an image to the file system with compression
     /// Returns the file name (not full path) to store in Recipe model
     ///
