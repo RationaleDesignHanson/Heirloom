@@ -1,7 +1,8 @@
 import SwiftUI
+import SwiftData
 
 struct CollectionCardView: View {
-    let collection: RecipeCollection
+    @Bindable var collection: RecipeCollection
 
     @Environment(\.modelContext) private var modelContext
 
