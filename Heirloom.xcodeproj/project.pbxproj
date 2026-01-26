@@ -120,6 +120,11 @@
 		C513D8602F163B0500BFCF7D /* TrialExpiredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D85E2F163B0500BFCF7D /* TrialExpiredView.swift */; };
 		C513E3B02F168E8C00BFCF7D /* ButtonEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513E3AF2F168E8C00BFCF7D /* ButtonEffects.swift */; };
 		C523BEF02F19AD1B00080AEB /* HeritageRecipeCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = C523BEEF2F19AD1B00080AEB /* HeritageRecipeCache.swift */; };
+		C5364BCE2F26F038003D342E /* CollectionCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364BCC2F26F038003D342E /* CollectionCardView.swift */; };
+		C5364BD02F26F0C4003D342E /* UniversalURLResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364BCF2F26F0C4003D342E /* UniversalURLResolver.swift */; };
+		C5364BD12F26F0CA003D342E /* UniversalURLResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364BCF2F26F0C4003D342E /* UniversalURLResolver.swift */; };
+		C5364C9D2F26F503003D342E /* CollectionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364C9C2F26F503003D342E /* CollectionSettingsView.swift */; };
+		C5364C9F2F26FD46003D342E /* CollectionImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364C9E2F26FD46003D342E /* CollectionImageGenerator.swift */; };
 		C568873C2F057B02006EA0B1 /* HeirloomShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */; };
 		C568877B2F06B4AE006EA0B1 /* CRDTMergeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */; };
@@ -469,6 +474,10 @@
 		C513D85E2F163B0500BFCF7D /* TrialExpiredView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialExpiredView.swift; sourceTree = "<group>"; };
 		C513E3AF2F168E8C00BFCF7D /* ButtonEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonEffects.swift; sourceTree = "<group>"; };
 		C523BEEF2F19AD1B00080AEB /* HeritageRecipeCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeritageRecipeCache.swift; sourceTree = "<group>"; };
+		C5364BCC2F26F038003D342E /* CollectionCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionCardView.swift; sourceTree = "<group>"; };
+		C5364BCF2F26F0C4003D342E /* UniversalURLResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniversalURLResolver.swift; sourceTree = "<group>"; };
+		C5364C9C2F26F503003D342E /* CollectionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionSettingsView.swift; sourceTree = "<group>"; };
+		C5364C9E2F26FD46003D342E /* CollectionImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionImageGenerator.swift; sourceTree = "<group>"; };
 		C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HeirloomShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FirebaseSyncService+CRDT.swift"; sourceTree = "<group>"; };
 		C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRDTMergeEngine.swift; sourceTree = "<group>"; };
@@ -766,6 +775,8 @@
 		1AED6E5E3EE7F59B5A26A3B1 /* Collections */ = {
 			isa = PBXGroup;
 			children = (
+				C5364C9C2F26F503003D342E /* CollectionSettingsView.swift */,
+				C5364BCD2F26F038003D342E /* Components */,
 				C513D42F2F15EB1000BFCF7D /* BlindBoxCollectionRow.swift */,
 				C583FFD42F0CB81B0096478E /* CollectionDetailView.swift */,
 				C583FFD22F0CB7970096478E /* CollectionsListView.swift */,
@@ -893,6 +904,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5364BCF2F26F0C4003D342E /* UniversalURLResolver.swift */,
 				C5DBE8832F1EE59C00C1B6BA /* Migration */,
 				C5A7C0422F1810F800D99B07 /* HeritageUnlockService.swift */,
 				C5A7BDAE2F1713FA00D99B07 /* PDF */,
@@ -1192,6 +1204,14 @@
 				C513D85A2F163AFD00BFCF7D /* HeritageUnlockView.swift */,
 			);
 			path = Heritage;
+			sourceTree = "<group>";
+		};
+		C5364BCD2F26F038003D342E /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				C5364BCC2F26F038003D342E /* CollectionCardView.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 		C568877A2F06B4AE006EA0B1 /* CRDT */ = {
@@ -1811,6 +1831,7 @@
 		D1410A1826A4F1BF9127D673 /* AI */ = {
 			isa = PBXGroup;
 			children = (
+				C5364C9E2F26FD46003D342E /* CollectionImageGenerator.swift */,
 				C583FFBF2F0CB3860096478E /* AIRecipeDetector.swift */,
 				C583FFC02F0CB3860096478E /* DinnerPartySummaryService.swift */,
 				C583FFC12F0CB3860096478E /* RecipeTimelineCalculator.swift */,
@@ -2158,10 +2179,12 @@
 				D31562B77568A50A609130FA /* CardStyle.swift in Sources */,
 				11E7D54E3CFB003AE848298C /* CategoryDetectionService.swift in Sources */,
 				C58324ED2F147C810096478E /* VideoProcessingJobManager.swift in Sources */,
+				C5364C9F2F26FD46003D342E /* CollectionImageGenerator.swift in Sources */,
 				C5E955352F0553FE006CD3C2 /* FirebaseNotificationService.swift in Sources */,
 				C583FF9D2F0C9CA90096478E /* HeritageRecipeCleanupView.swift in Sources */,
 				C5B317872F00D8330087CF6D /* RecipeVersionService.swift in Sources */,
 				C56F3DCD2F02283700D19743 /* DeviceLogger.swift in Sources */,
+				C5364BCE2F26F038003D342E /* CollectionCardView.swift in Sources */,
 				73CD8315C072A52F2AAEBB5C /* CloudRecipeImportService.swift in Sources */,
 				1BAA4B71E9134A38B8F2EC28 /* LanguageDetectionService.swift in Sources */,
 				7109F22C39414BD9B2F3FC92 /* UnitConversionService.swift in Sources */,
@@ -2193,6 +2216,7 @@
 				C583FFAF2F0CAA6E0096478E /* FirebaseRecordConverter.swift in Sources */,
 				2F46430BA53D29AE89C05522 /* EmptyStateView.swift in Sources */,
 				C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */,
+				C5364BD02F26F0C4003D342E /* UniversalURLResolver.swift in Sources */,
 				C5B3177C2F00D6570087CF6D /* ShortURLService.swift in Sources */,
 				8ADFA5839933EC3D8374AFB5 /* EnhancedOCRService.swift in Sources */,
 				C58309142F0FD6510096478E /* DinnerPartyShoppingSync.swift in Sources */,
@@ -2251,6 +2275,7 @@
 				C583FFC52F0CB3860096478E /* AIRecipeDetector.swift in Sources */,
 				C583FFC62F0CB3860096478E /* ShoppingListSummaryService.swift in Sources */,
 				C5B317802F00D70B0087CF6D /* AccessibilityIdentifiers.swift in Sources */,
+				C5364C9D2F26F503003D342E /* CollectionSettingsView.swift in Sources */,
 				C5B317812F00D70B0087CF6D /* ErrorMessages.swift in Sources */,
 				74DC70C5F9BED2FC3AD88944 /* Recipe.swift in Sources */,
 				51CA3B615505A24056B0B85B /* RecipeCardBack.swift in Sources */,
@@ -2423,6 +2448,7 @@
 				C5DBEC942F201F5300C1B6BA /* ProvenanceMetadata.swift in Sources */,
 				C5DBEC672F200E6600C1B6BA /* ExtractionMode.swift in Sources */,
 				C5DBEC8A2F2010C300C1B6BA /* RecipeKeywords.swift in Sources */,
+				C5364BD12F26F0CA003D342E /* UniversalURLResolver.swift in Sources */,
 				C5DBEC682F200E6600C1B6BA /* OnScreenTextResult.swift in Sources */,
 				C5DBEC692F200E6600C1B6BA /* PendingVideoImport.swift in Sources */,
 				C5DBEC6A2F200E6600C1B6BA /* VideoImportResult.swift in Sources */,
@@ -2592,6 +2618,7 @@
 				CODE_SIGN_ENTITLEMENTS = Heirloom/Heirloom.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEAD_CODE_STRIPPING = YES;
+				DEFAULT_OPENAI_KEY = "$(DEFAULT_OPENAI_KEY)";
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -2617,7 +2644,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2635,7 +2662,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2658,7 +2685,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeirloomShareExtension/HeirloomShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2672,7 +2699,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2694,7 +2721,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2704,7 +2731,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -2725,13 +2752,13 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -2753,6 +2780,7 @@
 				CODE_SIGN_ENTITLEMENTS = Heirloom/Heirloom.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEAD_CODE_STRIPPING = YES;
+				DEFAULT_OPENAI_KEY = "$(DEFAULT_OPENAI_KEY)";
 				DEVELOPMENT_TEAM = Q2HHH2GDN8;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;

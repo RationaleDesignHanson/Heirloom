@@ -84,6 +84,18 @@ class AIConfiguration: ObservableObject, AIConfigurationProtocol {
         return keychain.get(provider.keychainKey)
     }
 
+    /// Get API key for a provider with fallback to default key
+    /// Checks user-provided key first, then falls back to default key from bundle
+    func apiKeyWithFallback(for provider: AIProvider) -> String? {
+        // User-provided key takes precedence
+        if let userKey = apiKey(for: provider), !userKey.isEmpty {
+            return userKey
+        }
+
+        // Fall back to default key from bundle
+        return defaultAPIKey(for: provider)
+    }
+
     /// Set API key for a provider
     func setAPIKey(_ key: String?, for provider: AIProvider) {
         if let key = key {
@@ -159,7 +171,12 @@ class AIConfiguration: ObservableObject, AIConfigurationProtocol {
             }
             return nil
         case .openai:
-            return nil // No default OpenAI key configured
+            let key = Bundle.main.object(forInfoDictionaryKey: "DEFAULT_OPENAI_KEY") as? String
+            // Validate it's not the placeholder
+            if let key = key, key != "YOUR_OPENAI_API_KEY_HERE", !key.isEmpty {
+                return key
+            }
+            return nil
         }
     }
 

@@ -382,8 +382,32 @@ struct ShareExtensionView: View {
     private func handleURL(_ url: URL) async throws {
         print("⚠️ Share Extension: handleURL called with: \(url.absoluteString)")
 
-        // Check if this is a social media platform (TikTok, Instagram, YouTube, Facebook)
-        let host = url.host?.lowercased() ?? ""
+        // STEP 1: Detect and resolve wrapped URLs (Apple News, AMP, Flipboard, Instapaper)
+        let resolver = UniversalURLResolver()
+        let resolvedURL: URL
+
+        if let wrapper = await resolver.detectWrapper(url) {
+            print("⚠️ Share Extension: Detected \(wrapper.displayName) URL")
+
+            do {
+                resolvedURL = try await resolver.resolve(url)
+                print("✅ Share Extension: Resolved \(wrapper.displayName) URL to: \(resolvedURL.absoluteString)")
+            } catch UniversalURLResolver.ResolutionError.paywallContent {
+                let serviceName = wrapper == .appleNews ? "Apple News+" : "this service"
+                state = .error("This recipe is only available in \(serviceName) and can't be imported. Try opening the recipe in Safari.")
+                return
+            } catch {
+                print("❌ Share Extension: Resolution failed: \(error)")
+                state = .error("Couldn't resolve the link. Try copying the recipe URL from Safari instead.")
+                return
+            }
+        } else {
+            // Not a wrapped URL, use original
+            resolvedURL = url
+        }
+
+        // STEP 2: Check if this is a social media platform (TikTok, Instagram, YouTube, Facebook)
+        let host = resolvedURL.host?.lowercased() ?? ""
 
         // Detect social media platforms
         let isSocialMedia = host.contains("tiktok") ||
@@ -412,16 +436,16 @@ struct ShareExtensionView: View {
             return
         }
 
-        // Not social media - assume it's a recipe URL
+        // STEP 3: Not social media - assume it's a recipe URL
         // Use same polling mechanism as videos - more reliable than context.open()
 
-        // 1. Create pending import record with URL
+        // Create pending import record with resolved URL
         let pendingImportID = UUID()
         let pendingImport = PendingVideoImport(
             id: pendingImportID,
             sourceType: .shareExtensionURL,
             localVideoURL: nil,
-            originalURL: url,
+            originalURL: resolvedURL, // Use resolved URL
             detectedPlatform: .unknown
         )
 
