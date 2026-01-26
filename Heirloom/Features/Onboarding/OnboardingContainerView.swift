@@ -218,20 +218,31 @@ struct OnboardingContainerView: View {
             let recipeService = ThemeRecipeService()
             let recipes = try await recipeService.downloadRecipes(for: themeIds, into: modelContext)
 
-            // Link recipes to their collections
-            let allThemes = try? modelContext.fetch(FetchDescriptor<RecipeTheme>())
-            for recipe in recipes {
-                guard let themeId = recipe.sourceThemeId,
-                      let theme = allThemes?.first(where: { $0.firebaseId == themeId }),
-                      let collection = theme.collection else {
+            // Link recipes to their collections by fetching collections directly
+            // (avoids SwiftData duplicate registration error from theme.collection relationship)
+            for themeId in themeIds {
+                let recipesForTheme = recipes.filter { $0.sourceThemeId == themeId }
+
+                // Fetch collection directly by theme name and type
+                let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+                    predicate: #Predicate<RecipeCollection> { collection in
+                        collection.collectionType == "theme" &&
+                        collection.sourceTheme?.firebaseId == themeId
+                    }
+                )
+
+                guard let collection = try? modelContext.fetch(collectionDescriptor).first else {
+                    Log.warning("Collection not found for theme", category: .onboarding, metadata: ["themeId": themeId])
                     continue
                 }
 
-                // Add recipe to collection
-                if collection.recipes == nil {
-                    collection.recipes = [recipe]
-                } else {
-                    collection.recipes?.append(recipe)
+                // Add recipes to collection
+                for recipe in recipesForTheme {
+                    if collection.recipes == nil {
+                        collection.recipes = [recipe]
+                    } else if !(collection.recipes?.contains(where: { $0.id == recipe.id }) ?? false) {
+                        collection.recipes?.append(recipe)
+                    }
                 }
             }
 
