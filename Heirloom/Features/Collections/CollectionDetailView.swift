@@ -226,7 +226,10 @@ struct CollectionDetailView: View {
                         showVideoImport = true
                     },
                     onAddCollection: {}, // Not applicable within a collection detail view
-                    onAddNormalSample: addNormalSampleRecipe
+                    onAddNormalSample: addNormalSampleRecipe,
+                    onCollectionSettings: {
+                        showCollectionSettings = true
+                    }
                 )
             }
         }

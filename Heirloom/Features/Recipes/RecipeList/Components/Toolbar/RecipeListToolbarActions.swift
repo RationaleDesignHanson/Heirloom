@@ -21,6 +21,7 @@ struct RecipeListToolbarActions: View {
     let onVideoImport: () -> Void
     let onAddCollection: () -> Void
     let onAddNormalSample: () -> Void
+    let onCollectionSettings: (() -> Void)? // Optional - only shown in collection detail views
 
     // Track menu presentation state for shimmer control
     @State private var isMenuPresented = false
@@ -102,6 +103,17 @@ struct RecipeListToolbarActions: View {
                 .accessibilityHint("Select a cooking video from camera roll or share from Instagram/TikTok")
 
                 Divider()
+
+                // Collection Settings (if in collection detail view)
+                if let onCollectionSettings = onCollectionSettings {
+                    Button {
+                        onCollectionSettings()
+                    } label: {
+                        Label("Collection Settings", systemImage: "gear")
+                    }
+                    .accessibilityLabel("Collection Settings")
+                    .accessibilityHint("Edit collection name, icon, and settings")
+                }
 
                 Button {
                     onAddCollection()
