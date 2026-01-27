@@ -64,14 +64,25 @@ struct StandardCollectionCard: View {
 
     @ViewBuilder
     private var thumbnailView: some View {
-        if let recipe = previewRecipe,
-           recipe.imageFileName != nil {
+        // Priority 1: Collection's custom or generated background
+        if let bgPath = collection.customBackgroundImagePath ?? collection.generatedBackgroundImagePath {
+            AsyncRecipeImage(
+                imageFileName: bgPath,
+                firebaseImageURL: nil,
+                placeholder: collection.iconName
+            )
+        }
+        // Priority 2: First recipe's image
+        else if let recipe = previewRecipe,
+                recipe.imageFileName != nil {
             AsyncRecipeImage(
                 imageFileName: recipe.imageFileName,
                 firebaseImageURL: recipe.firebaseImageURL,
                 placeholder: collection.iconName
             )
-        } else {
+        }
+        // Priority 3: Placeholder
+        else {
             placeholderView
         }
     }

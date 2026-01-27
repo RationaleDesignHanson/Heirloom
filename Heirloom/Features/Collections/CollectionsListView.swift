@@ -458,6 +458,22 @@ struct CollectionsListView: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .contextMenu {
+                    Button {
+                        Task {
+                            await generateBackgroundForCollection(collection)
+                        }
+                    } label: {
+                        Label("Generate with AI", systemImage: "sparkles")
+                    }
+                    .disabled(isGeneratingBackground)
+
+                    Button {
+                        selectedCollectionForSettings = collection
+                    } label: {
+                        Label("Collection Settings", systemImage: "gear")
+                    }
+                }
             }
         }
     }
