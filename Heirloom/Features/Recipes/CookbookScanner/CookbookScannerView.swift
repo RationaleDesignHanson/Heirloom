@@ -589,11 +589,11 @@ struct CookbookScannerView: View {
         }
 
         do {
-            // Create photo library import job for Cookbook Pages collection
+            // Create photo library import job for Photo Imports collection
             let job = try await importManager.createPhotoLibraryImportJob(
                 images: images,
-                collectionName: "Cookbook Pages",
-                collectionType: .cookbook,
+                collectionName: "Photo Imports",
+                collectionType: .photoImports,
                 context: modelContext
             )
 
