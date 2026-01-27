@@ -73,11 +73,15 @@ struct CollectionPickerView: View {
     // MARK: - Computed Properties
 
     private var systemCollections: [RecipeCollection] {
-        availableCollections.filter { $0.isSystemCollection && !$0.isHeritageCollection }
+        availableCollections.filter {
+            $0.isSystemCollection && !$0.isHeritageCollection && $0.type != .theme
+        }
     }
 
     private var userCollections: [RecipeCollection] {
-        availableCollections.filter { !$0.isSystemCollection && !$0.isHeritageCollection }
+        availableCollections.filter {
+            !$0.isSystemCollection && !$0.isHeritageCollection && $0.type != .theme
+        }
     }
 
     // MARK: - Actions

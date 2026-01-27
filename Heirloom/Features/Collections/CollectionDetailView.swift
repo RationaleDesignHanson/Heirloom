@@ -71,9 +71,11 @@ struct CollectionDetailView: View {
         return allRecipes.filter { selectedRecipeIDs.contains($0.id) }
     }
 
-    // Available collections for the picker (excludes "All Recipes" and heritage collections)
+    // Available collections for the picker (excludes "All Recipes", heritage, and theme collections)
     private var availableCollectionsForPicker: [RecipeCollection] {
-        return allCollections.filter { !$0.isAllRecipes && !$0.isHeritageCollection }
+        return allCollections.filter {
+            !$0.isAllRecipes && !$0.isHeritageCollection && $0.type != .theme
+        }
     }
 
     // Add selected recipes to a collection
