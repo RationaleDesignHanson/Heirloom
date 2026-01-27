@@ -92,8 +92,8 @@ struct TrialDebugView: View {
 
                     let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
                     toastManager.show(
-                        hadUnlocks ? "New recipes unlocked!" : "No new unlocks",
-                        type: hadUnlocks ? .success : .info
+                        type: hadUnlocks ? .success : .info,
+                        title: hadUnlocks ? "New recipes unlocked!" : "No new unlocks"
                     )
 
                     refreshTrigger.toggle()
@@ -248,7 +248,7 @@ struct TrialDebugView: View {
         print("✅ Days remaining should be: \(14 - currentDay)")
 
         // CRITICAL: Reset theme unlock tracking so today's unlock becomes available
-        if let tracker = themeUnlockTracker {
+        if themeUnlockTracker != nil {
             // Reset last unlock day to force new unlock check
             UserDefaults.standard.set(currentDay - 1, forKey: "last_unlock_day")
 
