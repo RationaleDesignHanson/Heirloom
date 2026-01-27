@@ -268,7 +268,8 @@ struct HeirloomApp: App {
                 print("✅ [INIT] FirebaseNotificationService resolved")
 
                 DeviceLogger.shared.log("🔧 [Heirloom] Resolving ThemeUnlockTracker...")
-                _themeUnlockTracker = State(wrappedValue: serviceContainer.resolve(ThemeUnlockTracker.self))
+                let tracker = serviceContainer.resolve(ThemeUnlockTracker.self)
+                _themeUnlockTracker = State(wrappedValue: tracker)
                 print("✅ [INIT] ThemeUnlockTracker resolved")
 
                 DeviceLogger.shared.log("✅ [Heirloom] All services resolved successfully")
@@ -1336,7 +1337,7 @@ struct ContentView: View {
     // MARK: - Daily Unlock Logic
 
     private func checkForDailyUnlock() {
-        guard let tracker = themeUnlockTracker, tracker.checkForNewUnlocks() else { return }
+        guard themeUnlockTracker.checkForNewUnlocks() else { return }
 
         Log.info("New theme recipes unlocked - showing celebration", category: .collections)
 
@@ -1357,27 +1358,25 @@ struct ContentView: View {
     }
 
     private func getThemesWithNewUnlocks() -> [RecipeTheme] {
-        guard let tracker = themeUnlockTracker else { return [] }
         let descriptor = FetchDescriptor<RecipeTheme>()
         guard let allThemes = try? modelContext.fetch(descriptor) else { return [] }
 
         return allThemes.filter { theme in
-            tracker.isThemeSelected(theme)
+            themeUnlockTracker.isThemeSelected(theme)
         }
     }
 
     private func countNewRecipes() -> Int {
-        guard let tracker = themeUnlockTracker else { return 0 }
         // Count newly unlocked recipes
         // This is a simplified implementation - in production you'd track which recipes are "new"
-        return tracker.unlockedRecipeIds.count
+        return themeUnlockTracker.unlockedRecipeIds.count
     }
 
     private func dismissCelebration() {
         withAnimation {
             showUnlockCelebration = false
         }
-        themeUnlockTracker?.markUnlocksAsSeen()
+        themeUnlockTracker.markUnlocksAsSeen()
     }
 
 
