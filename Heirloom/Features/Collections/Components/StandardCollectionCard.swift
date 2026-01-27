@@ -9,6 +9,13 @@ import SwiftUI
 
 struct StandardCollectionCard: View {
     let collection: RecipeCollection
+    /// Optional callback when + affordance is tapped
+    let onAddRecipeTap: (() -> Void)?
+
+    init(collection: RecipeCollection, onAddRecipeTap: (() -> Void)? = nil) {
+        self.collection = collection
+        self.onAddRecipeTap = onAddRecipeTap
+    }
 
     private var recipeCount: Int {
         collection.recipes?.count ?? 0
@@ -153,20 +160,44 @@ struct StandardCollectionCard: View {
 
     // MARK: - Subviews
 
+    @ViewBuilder
     private var addRecipeAffordance: some View {
-        Rectangle()
-            .fill(HeirloomColors.warmGray.opacity(0.1))
-            .overlay(
-                VStack(spacing: 4) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(HeirloomColors.tomato)
+        if let onAddRecipeTap = onAddRecipeTap {
+            // Interactive affordance (when tap handler provided)
+            Button {
+                onAddRecipeTap()
+            } label: {
+                Rectangle()
+                    .fill(HeirloomColors.warmGray.opacity(0.1))
+                    .overlay(
+                        VStack(spacing: 4) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(HeirloomColors.tomato)
 
-                    Text("Add")
-                        .font(HeirloomFonts.caption2)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                }
-            )
+                            Text("Add")
+                                .font(HeirloomFonts.caption2)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                        }
+                    )
+            }
+            .buttonStyle(.plain)
+        } else {
+            // Non-interactive affordance (for preview/non-interactive contexts)
+            Rectangle()
+                .fill(HeirloomColors.warmGray.opacity(0.1))
+                .overlay(
+                    VStack(spacing: 4) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(HeirloomColors.tomato)
+
+                        Text("Add")
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+                )
+        }
     }
 
     private var recipeCountBadge: some View {

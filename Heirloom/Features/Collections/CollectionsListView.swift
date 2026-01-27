@@ -503,23 +503,14 @@ struct CollectionsListView: View {
             // Collection cards
             ForEach(myCollections) { collection in
                 NavigationLink(value: collection) {
-                    StandardCollectionCard(collection: collection)
+                    StandardCollectionCard(
+                        collection: collection,
+                        onAddRecipeTap: (collection.recipes?.count ?? 0) == 1
+                            ? { handleAddRecipeToCollection(collection) }
+                            : nil
+                    )
                 }
                 .buttonStyle(.plain)
-                .overlay {
-                    // Invisible tap area for + affordance (when collection has exactly 1 recipe)
-                    if (collection.recipes?.count ?? 0) == 1 {
-                        GeometryReader { geo in
-                            // Position tap area over bottom-right quadrant (where + affordance is)
-                            Color.clear
-                                .frame(width: geo.size.width * 0.4 - 2, height: 90)
-                                .position(x: geo.size.width * 0.8, y: 135) // Bottom-right of image
-                                .onTapGesture {
-                                    handleAddRecipeToCollection(collection)
-                                }
-                        }
-                    }
-                }
                 .contextMenu {
                     Button {
                         Task {
