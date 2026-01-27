@@ -14,8 +14,7 @@ import FirebaseFirestore
 struct TrialDebugView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var subscriptionManager: SubscriptionManager?
-    // TODO: Re-enable for theme unlocking in Phase A3
-    // @State private var heritageUnlockTracker: ThemeUnlockTracker?
+    @State private var themeUnlockTracker: ThemeUnlockTracker?
     @State private var paywallManager: PaywallManager?
     @State private var refreshTrigger = false // Force view refresh
 
@@ -73,42 +72,66 @@ struct TrialDebugView: View {
         }
     }
 
-    // TODO: Re-implement for theme unlocking in Phase A3
     private var heritageUnlocksSection: some View {
-        Section("Theme Unlocks") {
-            Text("Theme unlock tracking will be available in Phase A3")
-                .foregroundStyle(.secondary)
-            // if let tracker = heritageUnlockTracker {
-            //     LabeledContent("Unlocked", value: "\(tracker.totalUnlockedCount) / 100")
-            //     LabeledContent("Daily Quota", value: "\(tracker.recipesToUnlockToday)")
-            //     LabeledContent("Has Today's Unlock", value: tracker.hasUnlocksAvailableToday ? "Yes" : "No")
-            //
-            //     Button("Trigger Daily Unlock") {
-            //         Task {
-            //             do {
-            //                 try await tracker.unlockDailyBatch(context: modelContext)
-            //                 Log.info("Manually triggered unlock", category: .general)
-            //
-            //                 // Force view refresh
-            //                 await MainActor.run {
-            //                     refreshTrigger.toggle()
-            //                 }
-            //             } catch {
-            //                 Log.error("Failed to unlock", category: .general, metadata: ["error": error.localizedDescription])
-            //             }
-            //         }
-            //     }
-            //     .foregroundStyle(.blue)
-            //
-            //     Button("Reset Unlock Tracking") {
-            //         tracker.resetTrialTracking()
-            //         refreshTrigger.toggle()
-            //     }
-            //     .foregroundStyle(.orange)
-            // } else {
-            //     Text("Loading...")
-            //         .foregroundStyle(.secondary)
-            // }
+        let trialStartDateText = (UserDefaults.standard.object(forKey: "theme_trial_start_date") as? Date)?.description ?? "Not set"
+        let selectedThemeIds = UserDefaults.standard.stringArray(forKey: "selected_theme_ids") ?? []
+
+        return Section("Theme Unlocks") {
+            if let tracker = themeUnlockTracker {
+                LabeledContent("Trial Start", value: trialStartDateText)
+                LabeledContent("Current Day", value: "\(tracker.currentTrialDay) / 14")
+                LabeledContent("Days Remaining", value: "\(tracker.daysRemaining)")
+                LabeledContent("Selected Themes", value: "\(selectedThemeIds.count)")
+                LabeledContent("Has New Unlocks", value: tracker.hasNewUnlocks ? "Yes" : "No")
+                LabeledContent("Is In Trial", value: tracker.isInTrialPeriod ? "Yes" : "No")
+                LabeledContent("Is Complete", value: tracker.isTrialComplete ? "Yes" : "No")
+
+                Button("Trigger Daily Unlock Check") {
+                    let hadUnlocks = tracker.checkForNewUnlocks()
+                    Log.info("Manual unlock check", category: .theme, metadata: ["hadUnlocks": hadUnlocks])
+
+                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                    toastManager.show(
+                        hadUnlocks ? "New recipes unlocked!" : "No new unlocks",
+                        type: hadUnlocks ? .success : .info
+                    )
+
+                    refreshTrigger.toggle()
+                }
+                .foregroundStyle(.blue)
+
+                Button("Reset Trial Tracking") {
+                    tracker.resetTrial()
+                    refreshTrigger.toggle()
+
+                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                    toastManager.show("Trial tracking reset - restart app", type: .success)
+                }
+                .foregroundStyle(.orange)
+
+                #if DEBUG
+                Button("Debug: Set Trial Day 2") {
+                    tracker.debugSetTrialDay(2)
+                    refreshTrigger.toggle()
+
+                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                    toastManager.show("Trial set to Day 2", type: .success)
+                }
+                .foregroundStyle(.purple)
+
+                Button("Debug: Set Trial Day 7") {
+                    tracker.debugSetTrialDay(7)
+                    refreshTrigger.toggle()
+
+                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                    toastManager.show("Trial set to Day 7", type: .success)
+                }
+                .foregroundStyle(.purple)
+                #endif
+            } else {
+                Text("Loading...")
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -139,8 +162,7 @@ struct TrialDebugView: View {
     private func setupServices() {
         // CRITICAL: Use singleton from ServiceContainer, not new instance
         subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
-        // TODO: Re-enable for theme unlocking in Phase A3
-        // heritageUnlockTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+        themeUnlockTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
         paywallManager = ServiceContainer.shared.resolve(PaywallManager.self)
     }
 
@@ -210,11 +232,11 @@ struct TrialDebugView: View {
         UserDefaults.standard.set(newStartDate, forKey: "first_launch_date")
         UserDefaults.standard.set(newStartDate.addingTimeInterval(14 * 24 * 60 * 60), forKey: "trial_expiry_date")
 
-        // CRITICAL: Also update heritage trial start date (stored separately)
-        if let heritageTrialStart = UserDefaults.standard.object(forKey: "heritageTrialStartDate") as? Date {
-            let newHeritageStart = heritageTrialStart.addingTimeInterval(-24 * 60 * 60)
-            UserDefaults.standard.set(newHeritageStart, forKey: "heritageTrialStartDate")
-            print("✅ Updated heritageTrialStartDate from \(heritageTrialStart) to \(newHeritageStart)")
+        // CRITICAL: Also update theme trial start date (stored separately)
+        if let themeTrialStart = UserDefaults.standard.object(forKey: "theme_trial_start_date") as? Date {
+            let newThemeStart = themeTrialStart.addingTimeInterval(-24 * 60 * 60)
+            UserDefaults.standard.set(newThemeStart, forKey: "theme_trial_start_date")
+            print("✅ Updated theme_trial_start_date from \(themeTrialStart) to \(newThemeStart)")
         }
 
         UserDefaults.standard.synchronize()
@@ -225,21 +247,14 @@ struct TrialDebugView: View {
         print("✅ Skipped ahead 1 day: now on Day \(currentDay)")
         print("✅ Days remaining should be: \(14 - currentDay)")
 
-        // TODO: Re-enable for theme unlocking in Phase A3
-        // CRITICAL: Reset lastUnlockDate to yesterday so today's unlock becomes available
-        // if let tracker = heritageUnlockTracker {
-        //     let yesterday = Date().addingTimeInterval(-24 * 60 * 60)
-        //     tracker.lastUnlockDate = yesterday
-        //
-        //     // Reload trialStartDate from UserDefaults after we updated it
-        //     tracker.trialStartDate = UserDefaults.standard.object(forKey: "themeTrialStartDate") as? Date
-        //
-        //     tracker.saveToStorage()
-        //
-        //     print("✅ Reset theme lastUnlockDate to yesterday")
-        //     print("✅ Theme tracker now shows \(tracker.recipesToUnlockToday) recipes available")
-        //     Log.info("Reset theme lastUnlockDate to yesterday", category: .general)
-        // }
+        // CRITICAL: Reset theme unlock tracking so today's unlock becomes available
+        if let tracker = themeUnlockTracker {
+            // Reset last unlock day to force new unlock check
+            UserDefaults.standard.set(currentDay - 1, forKey: "last_unlock_day")
+
+            print("✅ Reset theme last unlock day to \(currentDay - 1)")
+            Log.info("Reset theme unlock tracking for day skip", category: .theme)
+        }
 
         // CRITICAL: Reset Firebase lastDailyUnlock THEN refresh (must be sequential)
         Task {

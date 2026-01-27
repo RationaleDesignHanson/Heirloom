@@ -334,11 +334,10 @@ extension ServiceContainer {
             HeritageRecipeCleanupService()
         }
 
-        // TODO: Re-enable for theme unlocking in Phase A3
         // ThemeUnlockTracker - Manages progressive unlock of theme recipes during trial
-        // register(ThemeUnlockTracker.self, lifecycle: .singleton) { _ in
-        //     ThemeUnlockTracker()
-        // }
+        register(ThemeUnlockTracker.self, lifecycle: .singleton) { _ in
+            ThemeUnlockTracker()
+        }
 
         // ThemeRecipeCache - Durable cache for theme recipes (survives force-quit)
         // register(ThemeRecipeCache.self, lifecycle: .singleton) { _ in

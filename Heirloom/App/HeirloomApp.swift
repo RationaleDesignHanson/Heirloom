@@ -99,8 +99,8 @@ struct HeirloomApp: App {
     // Notification delegate for handling notification taps
     @StateObject private var notificationDelegate = NotificationDelegate()
 
-    // Theme unlock tracker for progressive theme recipe unlocking
-    @StateObject private var themeUnlockTracker = ThemeUnlockTracker()
+    // Theme unlock tracker for progressive theme recipe unlocking (resolved from DI)
+    @State private var themeUnlockTracker: ThemeUnlockTracker?
 
     // Test environment detection - computed once at initialization
     private let isRunningTests: Bool
@@ -267,6 +267,10 @@ struct HeirloomApp: App {
                 _notificationService = State(wrappedValue: serviceContainer.resolve(FirebaseNotificationService.self))
                 print("✅ [INIT] FirebaseNotificationService resolved")
 
+                DeviceLogger.shared.log("🔧 [Heirloom] Resolving ThemeUnlockTracker...")
+                _themeUnlockTracker = State(wrappedValue: serviceContainer.resolve(ThemeUnlockTracker.self))
+                print("✅ [INIT] ThemeUnlockTracker resolved")
+
                 DeviceLogger.shared.log("✅ [Heirloom] All services resolved successfully")
 
                 // Initialize services
@@ -290,7 +294,7 @@ struct HeirloomApp: App {
         WindowGroup {
             if let modelContainer {
                 // In test environment, skip RootView since it requires Firebase services
-                if !isRunningTests, let authService, let notificationService {
+                if !isRunningTests, let authService, let notificationService, let themeUnlockTracker {
                     RootView(
                         modelContainer: modelContainer,
                         authService: authService,
@@ -1332,7 +1336,7 @@ struct ContentView: View {
     // MARK: - Daily Unlock Logic
 
     private func checkForDailyUnlock() {
-        guard themeUnlockTracker.checkForNewUnlocks() else { return }
+        guard let tracker = themeUnlockTracker, tracker.checkForNewUnlocks() else { return }
 
         Log.info("New theme recipes unlocked - showing celebration", category: .collections)
 
@@ -1353,25 +1357,27 @@ struct ContentView: View {
     }
 
     private func getThemesWithNewUnlocks() -> [RecipeTheme] {
+        guard let tracker = themeUnlockTracker else { return [] }
         let descriptor = FetchDescriptor<RecipeTheme>()
         guard let allThemes = try? modelContext.fetch(descriptor) else { return [] }
 
         return allThemes.filter { theme in
-            themeUnlockTracker.isThemeSelected(theme)
+            tracker.isThemeSelected(theme)
         }
     }
 
     private func countNewRecipes() -> Int {
+        guard let tracker = themeUnlockTracker else { return 0 }
         // Count newly unlocked recipes
         // This is a simplified implementation - in production you'd track which recipes are "new"
-        return themeUnlockTracker.unlockedRecipeIds.count
+        return tracker.unlockedRecipeIds.count
     }
 
     private func dismissCelebration() {
         withAnimation {
             showUnlockCelebration = false
         }
-        themeUnlockTracker.markUnlocksAsSeen()
+        themeUnlockTracker?.markUnlocksAsSeen()
     }
 
 

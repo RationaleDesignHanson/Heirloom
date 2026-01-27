@@ -418,7 +418,7 @@ struct CollectionsListView: View {
     private var themeSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             // Trial progress banner
-            if !themeUnlockTracker.isTrialComplete {
+            if themeUnlockTracker.isInTrialPeriod {
                 TrialProgressBanner()
                     .padding(.bottom, HeirloomSpacing.sm)
             }

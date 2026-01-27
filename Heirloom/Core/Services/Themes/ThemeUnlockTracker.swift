@@ -87,6 +87,12 @@ class ThemeUnlockTracker: ObservableObject {
         currentTrialDay > 14
     }
 
+    /// Whether user is currently in trial period (days 1-14)
+    var isInTrialPeriod: Bool {
+        guard hasSelectedThemes else { return false }
+        return currentTrialDay >= 1 && currentTrialDay <= 14
+    }
+
     // MARK: - Initialization
 
     init() {
