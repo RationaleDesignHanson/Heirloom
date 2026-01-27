@@ -1085,12 +1085,6 @@ struct CollectionsListView: View {
         }
     }
 
-    private func handleAddHeritageSample() {
-        Task {
-            await createHeritageRecipe()
-        }
-    }
-
     private func createSampleRecipe(from sampleRecipe: SampleRecipeData) async {
         let sampleData = sampleRecipe.recipe
         let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
@@ -1173,113 +1167,6 @@ struct CollectionsListView: View {
                     }
                 } catch {
                     Log.error("Failed to parse ingredients for sample recipe", category: .general, metadata: ["error": error.localizedDescription])
-                }
-            }
-        }
-    }
-
-    // MARK: - Heritage Recipe Types
-
-    private struct HeritageRecipeJSON: Codable {
-        let id: String
-        let title: String
-        let sourceThemeId: String
-        let servings: String?
-        let prepTime: String?
-        let cookTime: String?
-        let ingredients: [HeritageIngredientJSON]
-        let instructions: [String]
-        let description: String?
-        let imageName: String?
-    }
-
-    private struct HeritageIngredientJSON: Codable {
-        let originalText: String
-        let name: String
-        let quantity: Double?
-        let unit: String?
-    }
-
-    private func createHeritageRecipe() async {
-        // Load heritage recipes from JSON
-        guard let url = Bundle.main.url(forResource: "heritage-recipes", withExtension: "json"),
-              let data = try? Data(contentsOf: url) else {
-            return
-        }
-
-        struct HeritageRecipeData: Codable {
-            let recipes: [HeritageRecipeJSON]
-        }
-
-        guard let heritageData = try? JSONDecoder().decode(HeritageRecipeData.self, from: data) else {
-            return
-        }
-
-        // Get existing recipe titles to avoid duplicates
-        let existingTitles = allRecipes.map { $0.title }
-
-        // Filter out recipes that already exist
-        let availableRecipes = heritageData.recipes.filter { !existingTitles.contains($0.title) }
-
-        // Pick a random recipe that doesn't already exist
-        guard let heritageRecipe = availableRecipes.randomElement() ?? heritageData.recipes.randomElement() else {
-            return
-        }
-
-        let titleExists = availableRecipes.isEmpty
-
-        await createHeritageRecipeFromJSON(heritageRecipe, titleExists: titleExists)
-    }
-
-    private func createHeritageRecipeFromJSON(_ json: HeritageRecipeJSON, titleExists: Bool) async {
-        let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
-
-        await MainActor.run {
-            let recipe = Recipe()
-            recipe.title = titleExists ? "\(json.title) (\(Int.random(in: 2...100)))" : json.title
-            recipe.servings = json.servings
-            recipe.prepTime = json.prepTime
-            recipe.cookTime = json.cookTime
-            recipe.notes = json.description
-            recipe.instructions = json.instructions
-            recipe.isThemeRecipe = true
-
-            modelContext.insert(recipe)
-
-            // Add ingredients
-            for (index, ing) in json.ingredients.enumerated() {
-                let category = GroceryCategory.categorize(ing.name)
-                let ingredient = Ingredient(
-                    originalText: ing.originalText,
-                    name: ing.name,
-                    quantity: ing.quantity,
-                    unit: ing.unit,
-                    category: category,
-                    orderIndex: index
-                )
-                ingredient.recipe = recipe
-                modelContext.insert(ingredient)
-            }
-
-            try? modelContext.save()
-
-            // Show collection picker immediately (don't wait for image)
-            generatedRecipe = recipe
-            showCollectionPicker = true
-
-            // Save heritage image in background if available
-            if let imageName = json.imageName,
-               let image = UIImage(named: imageName) {
-                Task {
-                    do {
-                        let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
-                        await MainActor.run {
-                            recipe.imageFileName = fileName
-                            try? modelContext.save()
-                        }
-                    } catch {
-                        Log.error("Failed to save heritage recipe image", category: .storage, metadata: ["error": error.localizedDescription])
-                    }
                 }
             }
         }
