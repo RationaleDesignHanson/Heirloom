@@ -159,6 +159,90 @@ struct CollectionDetailView: View {
         }
     }
 
+    // MARK: - View Helpers
+
+    @ViewBuilder
+    private var recipesGridOrEmpty: some View {
+        if recipes.isEmpty {
+            emptyStateView
+        } else {
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing),
+                GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
+            ], spacing: HeirloomSpacing.gridSpacing) {
+                ForEach(recipes, id: \.id) { recipe in
+                    recipeCard(for: recipe)
+                }
+            }
+            .padding(.horizontal, HeirloomSpacing.md)
+
+            // Add recipe nudge (only for theme collections with no user recipes)
+            if shouldShowAddNudge {
+                addRecipeNudge
+                    .padding(.top, HeirloomSpacing.lg)
+            }
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        // For "All Recipes": Show Select/Done button for batch operations
+        if collection.isAllRecipes {
+            ToolbarItem(placement: .primaryAction) {
+                Button(isSelectionMode ? "Done" : "Select") {
+                    isSelectionMode.toggle()
+                    if !isSelectionMode {
+                        selectedRecipeIDs.removeAll()
+                    }
+                }
+            }
+        } else {
+            // For other collections: Show add/import actions
+            ToolbarItem(placement: .primaryAction) {
+                RecipeListToolbarActions(
+                    isSelectionMode: false,
+                    selectedCount: 0,
+                    filteredCount: recipes.count,
+                    onSelectAllToggle: {},
+                    onAddRecipe: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showAddRecipe = true
+                    },
+                    onImportRecipe: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showImportRecipe = true
+                    },
+                    onBulkImport: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showBulkImport = true
+                    },
+                    onCookbookScanner: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showCookbookScanner = true
+                    },
+                    onVideoImport: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showVideoImport = true
+                    },
+                    onAddCollection: {}, // Not applicable within a collection detail view
+                    onAddNormalSample: addNormalSampleRecipe
+                )
+            }
+        }
+
+        // Delete button for non-system collections
+        if !collection.isSystemCollection {
+            ToolbarItem(placement: .secondaryAction) {
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .accessibilityLabel("Delete Collection")
+            }
+        }
+    }
+
     @ViewBuilder
     private func recipeContextMenu(for recipe: Recipe) -> some View {
         Button {
@@ -212,86 +296,14 @@ struct CollectionDetailView: View {
                 collectionHeader
 
                 // Recipes grid
-                if recipes.isEmpty {
-                    emptyStateView
-                } else {
-                    LazyVGrid(columns: [
-                        GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing),
-                        GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
-                    ], spacing: HeirloomSpacing.gridSpacing) {
-                        ForEach(recipes, id: \.id) { recipe in
-                            recipeCard(for: recipe)
-                        }
-                    }
-                    .padding(.horizontal, HeirloomSpacing.md)
-
-                    // Add recipe nudge (only for theme collections with no user recipes)
-                    if shouldShowAddNudge {
-                        addRecipeNudge
-                            .padding(.top, HeirloomSpacing.lg)
-                    }
-                }
+                recipesGridOrEmpty
             }
             .padding(.vertical, HeirloomSpacing.lg)
         }
         .navigationTitle(collection.name)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
-            // For "All Recipes": Show Select/Done button for batch operations
-            if collection.isAllRecipes {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(isSelectionMode ? "Done" : "Select") {
-                        isSelectionMode.toggle()
-                        if !isSelectionMode {
-                            selectedRecipeIDs.removeAll()
-                        }
-                    }
-                }
-            } else {
-                // For other collections: Show add/import actions
-                ToolbarItem(placement: .primaryAction) {
-                    RecipeListToolbarActions(
-                        isSelectionMode: false,
-                        selectedCount: 0,
-                        filteredCount: recipes.count,
-                        onSelectAllToggle: {},
-                        onAddRecipe: {
-                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                            showAddRecipe = true
-                        },
-                        onImportRecipe: {
-                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                            showImportRecipe = true
-                        },
-                        onBulkImport: {
-                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                            showBulkImport = true
-                        },
-                        onCookbookScanner: {
-                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                            showCookbookScanner = true
-                        },
-                        onVideoImport: {
-                            tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                            showVideoImport = true
-                        },
-                        onAddCollection: {}, // Not applicable within a collection detail view
-                        onAddNormalSample: addNormalSampleRecipe
-                    )
-                }
-            }
-
-            // Delete button for non-system collections
-            if !collection.isSystemCollection {
-                ToolbarItem(placement: .secondaryAction) {
-                    Button(role: .destructive) {
-                        showDeleteConfirmation = true
-                    } label: {
-                        Image(systemName: "trash")
-                    }
-                    .accessibilityLabel("Delete Collection")
-                }
-            }
+            toolbarContent
         }
         .sheet(isPresented: $showAddRecipe) {
             RecipeEditorView()
