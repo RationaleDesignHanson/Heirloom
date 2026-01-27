@@ -2,7 +2,7 @@
 //  StandardCollectionCard.swift
 //  Heirloom
 //
-//  Created by Claude Code on 2026-01-26.
+//  Refactored: 2026-01-27 - Unified vertical card layout
 //
 
 import SwiftUI
@@ -14,77 +14,145 @@ struct StandardCollectionCard: View {
         collection.recipes?.count ?? 0
     }
 
-    private var previewRecipe: Recipe? {
-        collection.recipes?.first
+    /// Get first 2 recipes for small thumbnail display
+    private var recipeImages: [Recipe] {
+        let recipes = collection.recipes ?? []
+        return Array(recipes.prefix(2))
     }
 
     var body: some View {
-        HStack(spacing: HeirloomSpacing.md) {
-            // Thumbnail
-            thumbnailView
-                .frame(width: 80, height: 80)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        VStack(spacing: 0) {
+            // Image collage (60/40 split)
+            GeometryReader { geo in
+                HStack(spacing: 2) {
+                    // Large image (60%) - Collection background or first recipe
+                    largeImageView
+                        .frame(width: geo.size.width * 0.6)
 
-            // Info
-            VStack(alignment: .leading, spacing: 4) {
-                // Collection type badge
-                HStack(spacing: 4) {
-                    Image(systemName: collection.type.defaultIconName)
-                        .font(.system(size: 10))
-                    Text(collection.type.displayName)
-                        .font(HeirloomFonts.caption2)
+                    // Stacked small images (40%) - Recipe images
+                    VStack(spacing: 2) {
+                        recipeImageView(for: recipeImages.first)
+                        recipeImageView(for: recipeImages.count > 1 ? recipeImages[1] : nil)
+                    }
+                    .frame(width: geo.size.width * 0.4 - 2)
                 }
-                .foregroundStyle(HeirloomColors.secondaryText)
-
-                // Name
-                Text(collection.name)
-                    .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(HeirloomColors.primaryText)
-                    .lineLimit(1)
-
-                // Subtitle
-                Text(collection.subtitleText)
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .lineLimit(1)
             }
+            .frame(height: 180)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-            Spacer()
+            // Info bar
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(collection.displayName)
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+                        .lineLimit(1)
 
-            // Chevron
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(HeirloomColors.warmGray)
+                    Text(collection.subtitleText)
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                // Recipe count badge
+                recipeCountBadge
+            }
+            .padding(.horizontal, HeirloomSpacing.md)
+            .padding(.vertical, HeirloomSpacing.sm)
         }
-        .padding(HeirloomSpacing.md)
         .background(HeirloomColors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
+    // MARK: - Large Image View
+
     @ViewBuilder
-    private var thumbnailView: some View {
-        // Priority 1: Collection's custom or generated background
-        if let bgPath = collection.customBackgroundImagePath ?? collection.generatedBackgroundImagePath {
+    private var largeImageView: some View {
+        // Priority 1: AI-generated background
+        if let generatedPath = collection.generatedBackgroundImagePath {
             AsyncRecipeImage(
-                imageFileName: bgPath,
+                imageFileName: generatedPath,
                 firebaseImageURL: nil,
                 placeholder: collection.iconName
             )
         }
-        // Priority 2: First recipe's image
-        else if let recipe = previewRecipe,
-                recipe.imageFileName != nil {
+        // Priority 2: Custom user-selected background
+        else if let customPath = collection.customBackgroundImagePath {
+            AsyncRecipeImage(
+                imageFileName: customPath,
+                firebaseImageURL: nil,
+                placeholder: collection.iconName
+            )
+        }
+        // Priority 3: First recipe's image (as fallback)
+        else if let firstRecipe = recipeImages.first,
+                firstRecipe.imageFileName != nil {
+            AsyncRecipeImage(
+                imageFileName: firstRecipe.imageFileName,
+                firebaseImageURL: firstRecipe.firebaseImageURL,
+                placeholder: collection.iconName
+            )
+        }
+        // Priority 4: Placeholder
+        else {
+            placeholderView
+        }
+    }
+
+    // MARK: - Recipe Image View (Small Thumbnails)
+
+    @ViewBuilder
+    private func recipeImageView(for recipe: Recipe?) -> some View {
+        if let recipe = recipe,
+           (recipe.imageFileName != nil || recipe.firebaseImageURL != nil) {
             AsyncRecipeImage(
                 imageFileName: recipe.imageFileName,
                 firebaseImageURL: recipe.firebaseImageURL,
                 placeholder: collection.iconName
             )
         }
-        // Priority 3: Placeholder
+        // If only 1 recipe, show + affordance in empty slot
+        else if recipeImages.count == 1 && recipe == nil {
+            addRecipeAffordance
+        }
         else {
             placeholderView
         }
+    }
+
+    // MARK: - Subviews
+
+    private var addRecipeAffordance: some View {
+        Rectangle()
+            .fill(HeirloomColors.warmGray.opacity(0.1))
+            .overlay(
+                VStack(spacing: 4) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(HeirloomColors.tomato)
+
+                    Text("Add")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            )
+    }
+
+    private var recipeCountBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "doc.text")
+                .font(.caption)
+            Text("\(recipeCount)")
+                .font(HeirloomFonts.caption1)
+        }
+        .foregroundStyle(HeirloomColors.secondaryText)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(HeirloomColors.warmGray.opacity(0.1))
+        .cornerRadius(8)
     }
 
     private var placeholderView: some View {

@@ -68,12 +68,25 @@ struct CollectionsListView: View {
     /// My Collections (shown BEFORE themes) - includes all import types and user-created
     private var myCollections: [RecipeCollection] {
         visibleCollections.filter { collection in
-            collection.type == .fromFriends ||
-            collection.type == .videoImports ||
-            collection.type == .webImports ||
-            collection.type == .photoImports ||
-            collection.type == .cookbook ||
-            collection.type == .userCreated
+            let isRelevantType = collection.type == .fromFriends ||
+                               collection.type == .videoImports ||
+                               collection.type == .webImports ||
+                               collection.type == .photoImports ||
+                               collection.type == .cookbook ||
+                               collection.type == .userCreated
+
+            // For auto-generated collections, only show if they have recipes
+            let shouldShow: Bool
+            switch collection.type {
+            case .webImports, .videoImports, .cookbook, .photoImports, .fromFriends:
+                shouldShow = (collection.recipes?.count ?? 0) > 0
+            case .userCreated, .theme:
+                shouldShow = true // Always show user-created and theme collections
+            default:
+                shouldShow = false
+            }
+
+            return isRelevantType && shouldShow
         }
     }
 
@@ -493,6 +506,20 @@ struct CollectionsListView: View {
                     StandardCollectionCard(collection: collection)
                 }
                 .buttonStyle(.plain)
+                .overlay {
+                    // Invisible tap area for + affordance (when collection has exactly 1 recipe)
+                    if (collection.recipes?.count ?? 0) == 1 {
+                        GeometryReader { geo in
+                            // Position tap area over bottom-right quadrant (where + affordance is)
+                            Color.clear
+                                .frame(width: geo.size.width * 0.4 - 2, height: 90)
+                                .position(x: geo.size.width * 0.8, y: 135) // Bottom-right of image
+                                .onTapGesture {
+                                    handleAddRecipeToCollection(collection)
+                                }
+                        }
+                    }
+                }
                 .contextMenu {
                     Button {
                         Task {
@@ -950,6 +977,60 @@ struct CollectionsListView: View {
     private func handleVideoImport() {
         tabCoordinator.willCreateRecipe(from: .collectionsTab)
         showVideoImport = true
+    }
+
+    /// Handle tap on + affordance in collection card - routes to appropriate ingress based on collection type
+    private func handleAddRecipeToCollection(_ collection: RecipeCollection) {
+        // Store selected collection for adding recipe
+        selectedCollection = collection
+
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+
+        // Route to appropriate ingress based on collection type
+        switch collection.type {
+        case .webImports:
+            handleImportRecipe() // Opens RecipeImportView
+            Log.info("Opening web import from + affordance", category: .collections)
+
+        case .videoImports:
+            handleVideoImport() // Opens UnifiedVideoImportView
+            Log.info("Opening video import from + affordance", category: .collections)
+
+        case .cookbook:
+            handleCookbookScanner() // Opens CookbookScannerView
+            Log.info("Opening cookbook scanner from + affordance", category: .collections)
+
+        case .photoImports:
+            handleBulkImport() // Opens BulkImportView
+            Log.info("Opening bulk import from + affordance", category: .collections)
+
+        case .userCreated:
+            // For user-created collections, show the standard add menu
+            handleAddRecipe()
+            Log.info("Opening add recipe menu from + affordance", category: .collections)
+
+        case .fromFriends:
+            // Shared collections shouldn't show + affordance
+            // But if somehow tapped, just navigate to collection
+            Log.warning("+ affordance tapped on fromFriends collection", category: .collections)
+
+        case .theme:
+            // Theme collections use different card, but handle gracefully
+            handleAddRecipe()
+            Log.info("Opening add recipe menu from theme collection", category: .collections)
+
+        default:
+            // Fallback to standard add menu
+            handleAddRecipe()
+            Log.info("Opening add recipe menu (default)", category: .collections)
+        }
+
+        Log.info("Add recipe tapped from collection card", category: .collections, metadata: [
+            "collectionId": collection.id.uuidString,
+            "collectionType": collection.type.rawValue
+        ])
     }
 
     private func generateBackgroundForCollection(_ collection: RecipeCollection) async {

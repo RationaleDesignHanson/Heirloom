@@ -20,6 +20,14 @@ struct CollectionSettingsView: View {
             Form {
                 Section("Collection Name") {
                     TextField("Name", text: $collection.name)
+                        .disabled(!collection.isNameEditable)
+                        .foregroundStyle(collection.isNameEditable ? .primary : .secondary)
+
+                    if !collection.isNameEditable {
+                        Text("System collection names cannot be changed")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
                 }
 
                 Section("Description") {

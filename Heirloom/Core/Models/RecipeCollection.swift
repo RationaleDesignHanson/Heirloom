@@ -131,6 +131,36 @@ final class RecipeCollection {
         }
     }
 
+    /// Display name for collection (uses type name for auto-generated collections)
+    var displayName: String {
+        // For auto-generated type-based collections, use the type display name
+        switch type {
+        case .webImports:
+            return "Web Imports"
+        case .videoImports:
+            return "Video Imports"
+        case .cookbook:
+            return "Cookbook Pages"
+        case .photoImports:
+            return "Photo Imports"
+        case .fromFriends:
+            return "From Friends"
+        case .userCreated, .theme, .allRecipes, .favorites, .quickMeals, .needsGroceries:
+            // User-created and special collections use their custom name
+            return name
+        }
+    }
+
+    /// Whether this collection's name can be edited by the user
+    var isNameEditable: Bool {
+        switch type {
+        case .userCreated, .theme:
+            return true
+        default:
+            return false // System and auto-generated collections can't be renamed
+        }
+    }
+
     // MARK: - Predefined Icons
 
     static let predefinedIcons = [
