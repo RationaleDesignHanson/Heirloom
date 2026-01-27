@@ -88,7 +88,7 @@ struct TrialDebugView: View {
 
                 Button("Trigger Daily Unlock Check") {
                     let hadUnlocks = tracker.checkForNewUnlocks()
-                    Log.info("Manual unlock check", category: .theme, metadata: ["hadUnlocks": hadUnlocks])
+                    Log.info("Manual unlock check", category: .trial, metadata: ["hadUnlocks": hadUnlocks])
 
                     let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
                     toastManager.show(
@@ -253,7 +253,7 @@ struct TrialDebugView: View {
             UserDefaults.standard.set(currentDay - 1, forKey: "last_unlock_day")
 
             print("✅ Reset theme last unlock day to \(currentDay - 1)")
-            Log.info("Reset theme unlock tracking for day skip", category: .theme)
+            Log.info("Reset theme unlock tracking for day skip", category: .trial)
         }
 
         // CRITICAL: Reset Firebase lastDailyUnlock THEN refresh (must be sequential)
