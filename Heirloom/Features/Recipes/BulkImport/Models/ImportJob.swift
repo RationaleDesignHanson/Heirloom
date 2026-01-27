@@ -34,6 +34,9 @@ final class ImportJob {
     /// Cookbook name for auto-categorization (optional)
     var cookbookName: String?
 
+    /// Collection type for auto-categorization (stored as raw value)
+    var collectionTypeRawValue: String?
+
     // MARK: - Relationships
     @Relationship(deleteRule: .cascade, inverse: \ImportItem.job)
     var items: [ImportItem]?
@@ -87,6 +90,17 @@ final class ImportJob {
 
     var canRetry: Bool {
         status == .failed || status == .paused
+    }
+
+    /// Computed property for collection type enum
+    var collectionType: CollectionType? {
+        get {
+            guard let rawValue = collectionTypeRawValue else { return nil }
+            return CollectionType(rawValue: rawValue)
+        }
+        set {
+            collectionTypeRawValue = newValue?.rawValue
+        }
     }
 
     /// Whether this job can be resumed from checkpoint

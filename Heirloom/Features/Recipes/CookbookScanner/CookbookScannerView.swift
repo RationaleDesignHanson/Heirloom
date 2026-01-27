@@ -402,9 +402,11 @@ struct CookbookScannerView: View {
 
         Task {
             do {
-                // Create import job with single image
+                // Create import job with single image for Cookbook Pages collection
                 let job = try await importManager.createCameraImportJob(
                     images: [image],
+                    collectionName: "Cookbook Pages",
+                    collectionType: .cookbook,
                     context: modelContext
                 )
 
@@ -587,9 +589,11 @@ struct CookbookScannerView: View {
         }
 
         do {
-            // Create photo library import job
+            // Create photo library import job for Cookbook Pages collection
             let job = try await importManager.createPhotoLibraryImportJob(
                 images: images,
+                collectionName: "Cookbook Pages",
+                collectionType: .cookbook,
                 context: modelContext
             )
 

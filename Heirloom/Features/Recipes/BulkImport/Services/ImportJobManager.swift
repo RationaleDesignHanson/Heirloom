@@ -368,6 +368,8 @@ final class ImportJobManager: ObservableObject {
     /// - Returns: The created ImportJob
     func createCameraImportJob(
         images: [UIImage],
+        collectionName: String? = nil,
+        collectionType: CollectionType? = nil,
         context: ModelContext
     ) async throws -> ImportJob {
         let job = ImportJob(
@@ -376,6 +378,8 @@ final class ImportJobManager: ObservableObject {
         )
         job.status = .processing  // Set to processing immediately so banner shows it
         job.totalItems = images.count
+        job.cookbookName = collectionName
+        job.collectionType = collectionType
         context.insert(job)
 
         for image in images {
@@ -402,6 +406,8 @@ final class ImportJobManager: ObservableObject {
     /// - Returns: The created ImportJob
     func createPhotoLibraryImportJob(
         images: [UIImage],
+        collectionName: String? = nil,
+        collectionType: CollectionType? = nil,
         context: ModelContext
     ) async throws -> ImportJob {
         let job = ImportJob(
@@ -410,6 +416,8 @@ final class ImportJobManager: ObservableObject {
         )
         job.status = .processing  // Set to processing immediately so banner shows it
         job.totalItems = images.count
+        job.cookbookName = collectionName
+        job.collectionType = collectionType
         context.insert(job)
 
         for image in images {
@@ -1141,16 +1149,21 @@ final class ImportJobManager: ObservableObject {
                 "recipe_count": recipes.count
             ])
         } else {
+            // Use collection type from job if specified, otherwise default to userCreated
+            let collectionType = job.collectionType ?? .userCreated
+
             collection = RecipeCollection(
                 name: cookbookName,
                 description: "Imported from \(cookbookName)",
                 iconName: "book.fill",
                 color: "#FF6B6B",
-                isSystemCollection: false
+                isSystemCollection: false,
+                collectionType: collectionType
             )
             context.insert(collection)
             Log.info("Created new collection for cookbook", category: .import, metadata: [
                 "collection": cookbookName,
+                "collectionType": collectionType.rawValue,
                 "recipe_count": recipes.count
             ])
         }
