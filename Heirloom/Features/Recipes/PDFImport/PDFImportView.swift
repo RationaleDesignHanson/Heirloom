@@ -568,11 +568,12 @@ struct PDFImportView: View {
             // Start analysis and extraction in background (happens after dismiss)
             Task {
                 do {
-                    // Create and analyze job
+                    // Create and analyze job with .cookbook collection type
                     let job = try await importManager.createAndAnalyzePDFJob(
                         pdfURLs: validPDFs,
                         jobName: jobName,
                         cookbookName: cookbookName,
+                        collectionType: .cookbook,
                         context: modelContext
                     )
 
@@ -620,11 +621,12 @@ struct PDFImportView: View {
             // Start analysis and extraction in background (happens after dismiss)
             Task {
                 do {
-                    // Create and analyze job with user-provided cookbook name
+                    // Create and analyze job with user-provided cookbook name and .cookbook type
                     let job = try await importManager.createAndAnalyzePDFJob(
                         pdfURLs: validPDFs,
                         jobName: jobName,
                         cookbookName: cookbookName.isEmpty ? nil : cookbookName,
+                        collectionType: .cookbook,
                         context: modelContext
                     )
 

@@ -190,6 +190,7 @@ final class ImportJobManager: ObservableObject {
         pdfURLs: [URL],
         jobName: String,
         cookbookName: String?,
+        collectionType: CollectionType? = nil,
         context: ModelContext
     ) async throws -> ImportJob {
         // STEP 1: Create job immediately (so banner appears)
@@ -199,6 +200,7 @@ final class ImportJobManager: ObservableObject {
         job.phaseProgress = 0.0
         job.totalItems = 0 // Will be updated as we discover recipes
         job.cookbookName = cookbookName
+        job.collectionType = collectionType
         job.pdfURL = pdfURLs.first?.absoluteString // Store for resume detection
         context.insert(job)
 
