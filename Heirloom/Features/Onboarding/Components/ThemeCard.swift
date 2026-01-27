@@ -19,12 +19,7 @@ struct ThemeCard: View {
     private let cardHeight: CGFloat = 240
 
     var body: some View {
-        Button(action: {
-            if !isDisabled {
-                onTap()
-            }
-        }) {
-            ZStack(alignment: .topTrailing) {
+        ZStack(alignment: .topTrailing) {
                 // Background image
                 themeImage
 
@@ -89,28 +84,32 @@ struct ThemeCard: View {
                         )
                         .padding(HeirloomSpacing.sm)
                 }
-            }
-            .frame(width: cardWidth, height: cardHeight)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(
-                        isSelected ? HeirloomColors.familyGreen : .clear,
-                        lineWidth: 3
-                    )
-            )
-            .shadow(
-                color: .black.opacity(isSelected ? 0.2 : 0.1),
-                radius: isSelected ? 12 : 8,
-                x: 0,
-                y: isSelected ? 6 : 4
-            )
-            .opacity(isDisabled && !isSelected ? 0.5 : 1.0)
-            .scaleEffect(isPressed ? 0.96 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: isPressed)
         }
-        .buttonStyle(.plain)
-        .onLongPressGesture(minimumDuration: 0, maximumDistance: 50) {
+        .frame(width: cardWidth, height: cardHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(
+                    isSelected ? HeirloomColors.familyGreen : .clear,
+                    lineWidth: 3
+                )
+        )
+        .shadow(
+            color: .black.opacity(isSelected ? 0.2 : 0.1),
+            radius: isSelected ? 12 : 8,
+            x: 0,
+            y: isSelected ? 6 : 4
+        )
+        .opacity(isDisabled && !isSelected ? 0.5 : 1.0)
+        .scaleEffect(isPressed ? 0.96 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: isPressed)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if !isDisabled {
+                onTap()
+            }
+        }
+        .onLongPressGesture(minimumDuration: 0.01, maximumDistance: .infinity) {
             // Tap completed
         } onPressingChanged: { pressing in
             isPressed = pressing
