@@ -127,6 +127,10 @@ actor ThemeRecipeService {
         recipe.themeRecipeId = document.documentID
         recipe.firebaseImageURL = data["imageURL"] as? String
 
+        // Historical content for card back
+        recipe.historicalText = data["story"] as? String
+        recipe.sourceStory = data["source"] as? String
+
         // Download ingredients
         let ingredientsSnapshot = try await document.reference
             .collection("ingredients")

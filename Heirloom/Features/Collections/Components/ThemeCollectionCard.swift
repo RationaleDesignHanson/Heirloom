@@ -25,7 +25,8 @@ struct ThemeCollectionCard: View {
     private var unlockProgress: (unlocked: Int, total: Int) {
         // Count unlocked recipes vs total recipes
         let unlocked = (collection.recipes ?? []).filter { unlockTracker.isUnlocked($0) }.count
-        let total = theme?.totalRecipes ?? (collection.recipes?.count ?? 0)
+        // Use actual recipe count, not theme.totalRecipes (which may be from JSON before all recipes uploaded)
+        let total = collection.recipes?.count ?? 0
         return (unlocked, total)
     }
 
@@ -98,7 +99,7 @@ struct ThemeCollectionCard: View {
     @ViewBuilder
     private func recipeImageView(for recipe: Recipe?) -> some View {
         if let recipe = recipe,
-           recipe.imageFileName != nil {
+           (recipe.imageFileName != nil || recipe.firebaseImageURL != nil) {
             AsyncRecipeImage(
                 imageFileName: recipe.imageFileName,
                 firebaseImageURL: recipe.firebaseImageURL,
