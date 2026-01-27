@@ -21,7 +21,6 @@ struct RecipeListToolbarActions: View {
     let onVideoImport: () -> Void
     let onAddCollection: () -> Void
     let onAddNormalSample: () -> Void
-    let onAddHeritageSample: () -> Void
 
     // Track menu presentation state for shimmer control
     @State private var isMenuPresented = false
@@ -122,14 +121,6 @@ struct RecipeListToolbarActions: View {
                     }
                     .accessibilityLabel("Normal Recipe")
                     .accessibilityHint("Add a normal sample recipe")
-
-                    Button {
-                        onAddHeritageSample()
-                    } label: {
-                        Label("Heritage Recipe", systemImage: "scroll.fill")
-                    }
-                    .accessibilityLabel("Heritage Recipe")
-                    .accessibilityHint("Add a heritage sample recipe")
                 } label: {
                     Label("Generate Sample Recipe", systemImage: "sparkles")
                 }

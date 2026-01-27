@@ -356,8 +356,7 @@ struct RecipeListView: View {
                     tabCoordinator.willCreateCollection(from: .collectionsTab)
                     showCreateCollection = true
                 },
-                onAddNormalSample: addSampleRecipe,
-                onAddHeritageSample: addSampleRecipe
+                onAddNormalSample: addSampleRecipe
             )
         }
     }
