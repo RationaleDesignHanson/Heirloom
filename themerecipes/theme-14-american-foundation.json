@@ -1,250 +1,1124 @@
 {
   "themeId": "american-foundation",
   "themeName": "American Foundation",
-  "category": "historical",
-  "description": "Colonial and early American recipes that shaped a nation's culinary identity",
-  "sortOrder": 14,
   "recipes": [
     {
       "id": "american-foundation-001",
       "title": "Colonial Brown Bread",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "One cup Indian meal, one cup rye meal, one cup graham flour, three-quarters cup molasses, two cups sour milk, two teaspoons salt, two teaspoons soda. Steam three hours.",
       "prepTime": "15 minutes",
       "cookTime": "3 hours (steaming)",
       "servings": "Makes 2 loaves",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
       "tags": [
         "bread",
         "colonial",
         "New England"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 1,
-      "sortOrder": 1
+      "source": "Colonial New England kitchens, Fannie Farmer's Boston Cooking-School Cook Book",
+      "story": "Boston Brown Bread was a staple of colonial New England, developed when wheat was scarce and settlers relied on native corn (maize) and imported rye. Traditionally steamed in special cylindrical molds on Saturday and served with baked beans for Sunday dinner (as cooking on the Sabbath was prohibited). The three types of flour represent the agricultural diversity of colonial America.",
+      "ingredients": [
+        {
+          "name": "1 cup rye meal"
+        },
+        {
+          "name": "1 cup Indian meal (cornmeal)"
+        },
+        {
+          "name": "1 cup graham flour"
+        },
+        {
+          "name": "3/4 cup molasses"
+        },
+        {
+          "name": "2 cups sour milk or buttermilk"
+        },
+        {
+          "name": "2 tsp salt"
+        },
+        {
+          "name": "2 tsp baking soda"
+        },
+        {
+          "name": "1 cup raisins (optional)"
+        }
+      ],
+      "instructions": [
+        "Mix all dry ingredients in a large bowl.",
+        "Stir in molasses and sour milk.",
+        "Add raisins if desired.",
+        "Pour into greased pudding molds or coffee cans, filling 2/3 full.",
+        "Cover tightly with lids or cloth.",
+        "Steam for 3 hours in a large pot with water halfway up the molds.",
+        "Cool slightly before unmolding.",
+        "Slice and serve warm with butter."
+      ]
     },
     {
       "id": "american-foundation-002",
       "title": "Shaker Lemon Pie",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Slice two lemons as thin as paper, rind and all. Place in a bowl with two cups sugar, mix well and let stand over night or for 24 hours. Then add four well beaten eggs. Pour into a crust-lined pie plate, arrange lemon slices evenly. Cover with top crust, cut several slits near center. Bake in hot oven 15 minutes, reduce heat and bake 30 minutes more or until silver knife inserted comes out clean.",
       "prepTime": "24 hours (for maceration)",
       "cookTime": "45 minutes",
       "servings": "Serves 8",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 2,
       "tags": [
         "dessert",
         "pie",
         "Shaker",
         "lemon"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 2,
-      "sortOrder": 2
+      "source": "Shaker community records, North Union Shaker Village",
+      "story": "This ingenious recipe from the Ohio Shaker community (circa 1800s) demonstrates the sect's commitment to simplicity and waste reduction—the entire lemon, rind and all, is used. The Shakers were known for their innovative agricultural and culinary practices. This pie became a symbol of American resourcefulness and Shaker perfectionism, where economy met elegance.",
+      "ingredients": [
+        {
+          "name": "2 whole lemons, washed"
+        },
+        {
+          "name": "2 cups sugar"
+        },
+        {
+          "name": "4 eggs, well beaten"
+        },
+        {
+          "name": "Pastry for 9-inch double crust pie"
+        },
+        {
+          "name": "1/4 tsp salt"
+        }
+      ],
+      "instructions": [
+        "Slice lemons paper-thin, removing seeds.",
+        "Combine lemon slices with sugar in a bowl.",
+        "Let stand 24 hours, stirring occasionally.",
+        "Add beaten eggs and salt to lemon mixture.",
+        "Line pie pan with bottom crust.",
+        "Pour filling into crust, spreading evenly.",
+        "Cover with top crust, seal edges, and cut vents.",
+        "Bake at 450°F for 15 minutes, then at 375°F for 30 minutes.",
+        "Cool completely before serving."
+      ]
     },
     {
       "id": "american-foundation-003",
       "title": "Johnnycakes",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Rhode Island cornmeal pancakes. Native American origin.",
       "prepTime": "10 min",
       "cookTime": "15 min",
       "servings": "Makes 12",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 3,
       "tags": [
         "breakfast",
         "cornmeal",
         "pancakes"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 3,
-      "sortOrder": 3
+      "source": "Colonial New England records",
+      "story": "Journey cakes became johnnycakes. Rhode Island colonists learned this from Narragansett people.",
+      "ingredients": [
+        {
+          "name": "2 cups cornmeal"
+        },
+        {
+          "name": "1 teaspoon salt"
+        },
+        {
+          "name": "2 tablespoons butter, melted"
+        },
+        {
+          "name": "1 1/2 cups boiling water"
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal and salt.",
+        "Add butter and boiling water.",
+        "Drop spoonfuls on hot griddle.",
+        "Cook until golden, flip once."
+      ]
     },
     {
       "id": "american-foundation-004",
       "title": "Succotash",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Native American dish of beans and corn. Msickquatash.",
       "prepTime": "15 min",
       "cookTime": "25 min",
       "servings": "Serves 6",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 4,
       "tags": [
         "side dish",
         "corn",
         "beans"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 4,
-      "sortOrder": 4
+      "source": "Native American foodways, Plymouth Colony",
+      "story": "From Narragansett word. Pilgrims learned this life-sustaining combination from indigenous peoples.",
+      "ingredients": [
+        {
+          "name": "2 cups lima beans"
+        },
+        {
+          "name": "2 cups corn kernels"
+        },
+        {
+          "name": "1/4 cup butter"
+        },
+        {
+          "name": "1/4 cup cream"
+        },
+        {
+          "name": "Salt and pepper"
+        }
+      ],
+      "instructions": [
+        "Cook beans until tender.",
+        "Add corn, cook 5 minutes.",
+        "Stir in butter and cream.",
+        "Season and serve."
+      ]
     },
     {
       "id": "american-foundation-005",
       "title": "Pumpkin Butter",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Spiced pumpkin spread for bread. Colonial preservation.",
       "prepTime": "30 min",
       "cookTime": "2 hrs",
       "servings": "Makes 4 pints",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 5,
       "tags": [
         "condiment",
         "pumpkin",
         "preserved"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 5,
-      "sortOrder": 5
+      "source": "Colonial preservation methods",
+      "story": "Early Americans preserved pumpkin for winter. This buttersread on johnny cakes or bread.",
+      "ingredients": [
+        {
+          "name": "6 cups pumpkin puree"
+        },
+        {
+          "name": "3 cups sugar"
+        },
+        {
+          "name": "1 cup apple cider"
+        },
+        {
+          "name": "2 teaspoons cinnamon"
+        },
+        {
+          "name": "1 teaspoon cloves"
+        },
+        {
+          "name": "1/2 teaspoon nutmeg"
+        }
+      ],
+      "instructions": [
+        "Combine all ingredients in pot.",
+        "Simmer 2 hours, stirring often.",
+        "When thick, pack into sterilized jars.",
+        "Seal and process."
+      ]
     },
     {
       "id": "american-foundation-006",
       "title": "Apple Pandowdy",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Dowdy crust pushed into fruit. New England apple dessert.",
       "prepTime": "30 min",
       "cookTime": "1 hr",
       "servings": "Serves 8",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 6,
       "tags": [
         "dessert",
         "apple",
         "colonial"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 6,
-      "sortOrder": 6
+      "source": "New England colonial kitchens",
+      "story": "The 'dowdy' crust is deliberately broken and pushed into the juices. Thrifty colonial baking.",
+      "ingredients": [
+        {
+          "name": "6 apples, sliced"
+        },
+        {
+          "name": "1 cup molasses"
+        },
+        {
+          "name": "1/2 cup sugar"
+        },
+        {
+          "name": "1 teaspoon cinnamon"
+        },
+        {
+          "name": "Pie crust"
+        },
+        {
+          "name": "1/4 cup butter"
+        }
+      ],
+      "instructions": [
+        "Layer apples in baking dish.",
+        "Pour molasses over, sprinkle with sugar and cinnamon.",
+        "Top with broken pieces of pie crust.",
+        "Dot with butter.",
+        "Bake 1 hour, breaking crust partway through."
+      ]
     },
     {
       "id": "american-foundation-007",
       "title": "Hasty Pudding",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Quick cornmeal porridge. Colonial comfort food.",
       "prepTime": "5 min",
       "cookTime": "20 min",
       "servings": "Serves 6",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 7,
       "tags": [
         "dessert",
         "cornmeal",
         "pudding"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 7,
-      "sortOrder": 7
+      "source": "Colonial American kitchens",
+      "story": "Made from cornmeal—cheap, fast, filling. Harvard's Hasty Pudding Club named for this dish.",
+      "ingredients": [
+        {
+          "name": "1 cup cornmeal"
+        },
+        {
+          "name": "4 cups milk"
+        },
+        {
+          "name": "1/4 cup molasses"
+        },
+        {
+          "name": "1/2 teaspoon salt"
+        },
+        {
+          "name": "Butter"
+        }
+      ],
+      "instructions": [
+        "Heat milk to boiling.",
+        "Whisk in cornmeal slowly.",
+        "Add molasses and salt.",
+        "Cook 15 minutes, stirring.",
+        "Serve hot with butter and cream."
+      ]
     },
     {
       "id": "american-foundation-008",
       "title": "Election Cake",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Rich fruit bread for election day celebrations.",
       "prepTime": "3 hrs",
       "cookTime": "45 min",
       "servings": "Makes 2 loaves",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 8,
       "tags": [
         "dessert",
         "cake",
         "fruit"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 8,
-      "sortOrder": 8
+      "source": "Connecticut colonial traditions",
+      "story": "Baked for Connecticut election days in 1700s. Women contributed these cakes to voting day festivities.",
+      "ingredients": [
+        {
+          "name": "1 cup butter"
+        },
+        {
+          "name": "2 cups sugar"
+        },
+        {
+          "name": "4 eggs"
+        },
+        {
+          "name": "1 cup milk"
+        },
+        {
+          "name": "5 cups flour"
+        },
+        {
+          "name": "2 teaspoons baking soda"
+        },
+        {
+          "name": "2 cups raisins"
+        },
+        {
+          "name": "1 cup currants"
+        },
+        {
+          "name": "Spices"
+        }
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add eggs, then dry and wet alternately.",
+        "Fold in fruit.",
+        "Let rise 1 hour.",
+        "Bake 45 minutes."
+      ]
     },
     {
       "id": "american-foundation-009",
       "title": "Switchel",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Haymaker's drink. Vinegar refresher for harvest.",
       "prepTime": "10 min",
       "cookTime": "0 min",
       "servings": "Serves 8",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 9,
       "tags": [
         "beverage",
         "vinegar",
         "ginger"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 9,
-      "sortOrder": 9
+      "source": "Colonial farm practices",
+      "story": "Colonial farmers drank this during hay harvest. The vinegar was refreshing and prevented dehydration.",
+      "ingredients": [
+        {
+          "name": "1 cup apple cider vinegar"
+        },
+        {
+          "name": "1/2 cup molasses"
+        },
+        {
+          "name": "1/4 cup honey"
+        },
+        {
+          "name": "1 tablespoon ginger"
+        },
+        {
+          "name": "8 cups cold water"
+        }
+      ],
+      "instructions": [
+        "Mix all ingredients until dissolved.",
+        "Chill thoroughly.",
+        "Serve over ice."
+      ]
     },
     {
       "id": "american-foundation-010",
       "title": "Syllabub",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Whipped cream and wine dessert. Colonial elegance.",
       "prepTime": "15 min",
       "cookTime": "2 hrs chill",
       "servings": "Serves 6",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 10,
       "tags": [
         "dessert",
         "wine",
         "cream"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 10,
-      "sortOrder": 10
+      "source": "Colonial entertaining customs",
+      "story": "Fashionable in colonial America, served at balls and parties. Light, alcoholic, sophisticated.",
+      "ingredients": [
+        {
+          "name": "2 cups heavy cream"
+        },
+        {
+          "name": "1/2 cup white wine"
+        },
+        {
+          "name": "1/4 cup sugar"
+        },
+        {
+          "name": "Lemon juice and zest"
+        },
+        {
+          "name": "Nutmeg"
+        }
+      ],
+      "instructions": [
+        "Whip cream with sugar until soft peaks.",
+        "Fold in wine and lemon.",
+        "Spoon into glasses.",
+        "Chill 2 hours.",
+        "Grate nutmeg on top."
+      ]
     },
     {
       "id": "american-foundation-011",
       "title": "Mincemeat",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Preserved meat and fruit mixture. Originally with venison.",
       "prepTime": "1 hr",
       "cookTime": "3 hrs",
       "servings": "Makes 8 pies",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 11,
       "tags": [
         "condiment",
         "preserved",
         "pie filling"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 11,
-      "sortOrder": 11
+      "source": "Colonial preservation techniques",
+      "story": "Colonial preservation method. The name 'mincemeat' comes from minced meat, now mostly fruit.",
+      "ingredients": [
+        {
+          "name": "2 lbs beef, cooked and chopped"
+        },
+        {
+          "name": "2 lbs apples"
+        },
+        {
+          "name": "2 cups raisins"
+        },
+        {
+          "name": "2 cups currants"
+        },
+        {
+          "name": "1 cup suet"
+        },
+        {
+          "name": "1 cup molasses"
+        },
+        {
+          "name": "Spices"
+        },
+        {
+          "name": "Brandy"
+        }
+      ],
+      "instructions": [
+        "Combine all ingredients except brandy.",
+        "Simmer 3 hours.",
+        "Add brandy, mix well.",
+        "Pack into jars.",
+        "Use for pie filling."
+      ]
     },
     {
       "id": "american-foundation-012",
       "title": "Corn Dodgers",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Hard corn cakes. Civil War soldier food.",
       "prepTime": "15 min",
       "cookTime": "20 min",
       "servings": "Makes 16",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 12,
       "tags": [
         "bread",
         "cornmeal",
         "military"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 12,
-      "sortOrder": 12
+      "source": "Civil War era food",
+      "story": "Confederate soldiers ate these—easily made over campfires. Dodge means to shape or form.",
+      "ingredients": [
+        {
+          "name": "2 cups cornmeal"
+        },
+        {
+          "name": "1 teaspoon salt"
+        },
+        {
+          "name": "2 tablespoons fat"
+        },
+        {
+          "name": "1 1/4 cups boiling water"
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal and salt.",
+        "Add fat and boiling water.",
+        "Shape into oval patties.",
+        "Bake on greased sheet at 400°F for 20 minutes."
+      ]
+    },
+    {
+      "id": "american-foundation-013",
+      "title": "Samp and Beans",
+      "description": "Native American hominy and bean stew.",
+      "prepTime": "overnight soak",
+      "cookTime": "3 hrs",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 13,
+      "tags": [
+        "main dish",
+        "hominy",
+        "beans"
+      ],
+      "source": "Native American and colonial foodways",
+      "story": "Algonquian dish adopted by colonists. Samp is hulled corn. Sustained early settlements.",
+      "ingredients": [
+        {
+          "name": "2 cups hominy (samp)"
+        },
+        {
+          "name": "1 cup dried beans"
+        },
+        {
+          "name": "1 onion"
+        },
+        {
+          "name": "Salt pork"
+        },
+        {
+          "name": "Salt and pepper"
+        }
+      ],
+      "instructions": [
+        "Soak samp and beans overnight.",
+        "Simmer with salt pork 3 hours until tender.",
+        "Add onion last hour.",
+        "Season and serve."
+      ]
+    },
+    {
+      "id": "american-foundation-014",
+      "title": "Rye and Injun Bread",
+      "description": "Mixed grain bread. New England staple when wheat was scarce.",
+      "prepTime": "2 hrs",
+      "cookTime": "45 min",
+      "servings": "Makes 2 loaves",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 14,
+      "tags": [
+        "bread",
+        "rye",
+        "cornmeal"
+      ],
+      "source": "Colonial New England baking",
+      "story": "'Injun' was colonial slang for Indian corn. This bread reflects grain scarcity and adaptation.",
+      "ingredients": [
+        {
+          "name": "2 cups rye flour"
+        },
+        {
+          "name": "2 cups cornmeal (Injun)"
+        },
+        {
+          "name": "1 tablespoon yeast"
+        },
+        {
+          "name": "2 cups warm water"
+        },
+        {
+          "name": "1/4 cup molasses"
+        },
+        {
+          "name": "1 teaspoon salt"
+        }
+      ],
+      "instructions": [
+        "Mix flours.",
+        "Dissolve yeast in water, add molasses.",
+        "Combine, knead.",
+        "Let rise 1 hour.",
+        "Shape, rise 30 min.",
+        "Bake 45 minutes."
+      ]
+    },
+    {
+      "id": "american-foundation-015",
+      "title": "Pone",
+      "description": "Cornmeal flatbread. Native American pone, Algonquian origin.",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 15,
+      "tags": [
+        "bread",
+        "cornmeal",
+        "Native American"
+      ],
+      "source": "Native American cooking methods",
+      "story": "From Algonquian 'apan' meaning baked. Simple cornbread baked or fried.",
+      "ingredients": [
+        {
+          "name": "3 cups cornmeal"
+        },
+        {
+          "name": "1 teaspoon salt"
+        },
+        {
+          "name": "2 tablespoons butter, melted"
+        },
+        {
+          "name": "2 cups boiling water"
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal and salt.",
+        "Add butter and water.",
+        "Press into greased baking dish.",
+        "Bake at 400°F for 30 minutes until crusty."
+      ]
+    },
+    {
+      "id": "american-foundation-016",
+      "title": "Flummery",
+      "description": "Molded milk pudding. Colonial dessert from England.",
+      "prepTime": "15 min",
+      "cookTime": "4 hrs chill",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 16,
+      "tags": [
+        "dessert",
+        "pudding",
+        "molded"
+      ],
+      "source": "Anglo-American traditions",
+      "story": "Welsh origin, became American with cornstarch. Elegant molded dessert for special occasions.",
+      "ingredients": [
+        {
+          "name": "4 cups milk"
+        },
+        {
+          "name": "1/4 cup cornstarch"
+        },
+        {
+          "name": "1/2 cup sugar"
+        },
+        {
+          "name": "1 teaspoon vanilla"
+        },
+        {
+          "name": "Nutmeg"
+        }
+      ],
+      "instructions": [
+        "Mix cornstarch with little cold milk.",
+        "Heat remaining milk with sugar.",
+        "Whisk in cornstarch mixture.",
+        "Cook until thick.",
+        "Pour into mold, chill.",
+        "Unmold and serve."
+      ]
+    },
+    {
+      "id": "american-foundation-017",
+      "title": "Persimmon Pudding",
+      "description": "Wild persimmon dessert. Native American fruit pudding.",
+      "prepTime": "30 min",
+      "cookTime": "1 hr",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 17,
+      "tags": [
+        "dessert",
+        "persimmon",
+        "Southern"
+      ],
+      "source": "Native American ingredients, Southern tradition",
+      "story": "Native Americans introduced colonists to persimmons. This pudding became a Southern tradition.",
+      "ingredients": [
+        {
+          "name": "2 cups persimmon pulp"
+        },
+        {
+          "name": "1 cup sugar"
+        },
+        {
+          "name": "2 eggs"
+        },
+        {
+          "name": "1 cup milk"
+        },
+        {
+          "name": "1 1/2 cups flour"
+        },
+        {
+          "name": "1 teaspoon baking soda"
+        },
+        {
+          "name": "1 teaspoon cinnamon"
+        }
+      ],
+      "instructions": [
+        "Mix persimmon with sugar and eggs.",
+        "Add milk.",
+        "Mix in dry ingredients.",
+        "Pour into greased pan.",
+        "Bake at 350°F for 1 hour.",
+        "Serve warm with cream."
+      ]
+    },
+    {
+      "id": "american-foundation-018",
+      "title": "Hominy Grits",
+      "description": "Stone-ground corn porridge. Southern breakfast staple.",
+      "prepTime": "5 min",
+      "cookTime": "25 min",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 18,
+      "tags": [
+        "breakfast",
+        "cornmeal",
+        "grits"
+      ],
+      "source": "Native American and colonial foodways",
+      "story": "From Algonquian 'rockahominy.' Nixtamalized corn ground coarse. Foundation of Southern cuisine.",
+      "ingredients": [
+        {
+          "name": "1 cup stone-ground grits"
+        },
+        {
+          "name": "4 cups water"
+        },
+        {
+          "name": "1 teaspoon salt"
+        },
+        {
+          "name": "2 tablespoons butter"
+        },
+        {
+          "name": "Salt and pepper to taste"
+        }
+      ],
+      "instructions": [
+        "Bring water and salt to boil.",
+        "Whisk in grits slowly.",
+        "Reduce heat, simmer 20-25 minutes, stirring often.",
+        "Stir in butter.",
+        "Season and serve."
+      ]
+    },
+    {
+      "id": "american-foundation-019",
+      "title": "Shrub",
+      "description": "Vinegar-preserved fruit syrup. Colonial refreshment.",
+      "prepTime": "20 min",
+      "cookTime": "1 week",
+      "servings": "Makes 2 quarts",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 19,
+      "tags": [
+        "beverage",
+        "vinegar",
+        "fruit"
+      ],
+      "source": "Colonial American preservation",
+      "story": "Pre-refrigeration preservation. The vinegar preserved fruit for mixing with water—colonial soda.",
+      "ingredients": [
+        {
+          "name": "4 cups berries"
+        },
+        {
+          "name": "2 cups vinegar"
+        },
+        {
+          "name": "2 cups sugar"
+        },
+        {
+          "name": "Sparkling water for serving"
+        }
+      ],
+      "instructions": [
+        "Macerate berries in vinegar 1 week.",
+        "Strain, add sugar, heat until dissolved.",
+        "Bottle.",
+        "Mix 1 part shrub to 3 parts sparkling water."
+      ]
+    },
+    {
+      "id": "american-foundation-020",
+      "title": "Indian Pudding (Baked)",
+      "description": "Slow-baked cornmeal pudding. New England classic.",
+      "prepTime": "20 min",
+      "cookTime": "3 hrs",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 20,
+      "tags": [
+        "dessert",
+        "cornmeal",
+        "baked"
+      ],
+      "source": "Colonial New England",
+      "story": "Different from Adams' stovetop version—this is baked long and slow. Colonial comfort dessert.",
+      "ingredients": [
+        {
+          "name": "5 cups milk"
+        },
+        {
+          "name": "1/2 cup cornmeal"
+        },
+        {
+          "name": "1/2 cup molasses"
+        },
+        {
+          "name": "1/4 cup sugar"
+        },
+        {
+          "name": "1 teaspoon cinnamon"
+        },
+        {
+          "name": "1/2 teaspoon ginger"
+        },
+        {
+          "name": "1/4 teaspoon salt"
+        },
+        {
+          "name": "2 eggs"
+        }
+      ],
+      "instructions": [
+        "Scald milk, stir in cornmeal.",
+        "Cook until thick.",
+        "Add molasses, sugar, spices.",
+        "Beat in eggs.",
+        "Pour into buttered dish.",
+        "Bake at 275°F for 3 hours.",
+        "Serve with ice cream."
+      ]
+    },
+    {
+      "id": "american-foundation-021",
+      "title": "Corn Oysters",
+      "description": "Fritters shaped like oysters. Mock oysters for inland tables.",
+      "prepTime": "20 min",
+      "cookTime": "15 min",
+      "servings": "Makes 20",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 21,
+      "tags": [
+        "appetizer",
+        "corn",
+        "fritters"
+      ],
+      "source": "Colonial American recipes",
+      "story": "When oysters were unavailable, corn fritters provided a similar shape. Clever colonial cooking.",
+      "ingredients": [
+        {
+          "name": "2 cups corn kernels"
+        },
+        {
+          "name": "2 eggs"
+        },
+        {
+          "name": "1/2 cup flour"
+        },
+        {
+          "name": "1 teaspoon baking powder"
+        },
+        {
+          "name": "Salt and pepper"
+        },
+        {
+          "name": "Oil for frying"
+        }
+      ],
+      "instructions": [
+        "Mix all ingredients to make thick batter.",
+        "Drop spoonfuls into hot oil.",
+        "Fry until golden on both sides.",
+        "Drain and serve hot."
+      ]
+    },
+    {
+      "id": "american-foundation-022",
+      "title": "Anadama Bread",
+      "description": "Anna, damn her! Legend says a fisherman cursed his wife's cornmeal mush.",
+      "prepTime": "2 hrs 30 min",
+      "cookTime": "40 min",
+      "servings": "Makes 2 loaves",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 22,
+      "tags": [
+        "bread",
+        "cornmeal",
+        "molasses"
+      ],
+      "source": "Massachusetts folklore",
+      "story": "Massachusetts legend: a fisherman tired of cornmeal mush added flour and yeast, cursing 'Anna, damn her!' Hence the name.",
+      "ingredients": [
+        {
+          "name": "1/2 cup cornmeal"
+        },
+        {
+          "name": "2 cups boiling water"
+        },
+        {
+          "name": "1/4 cup molasses"
+        },
+        {
+          "name": "2 tablespoons butter"
+        },
+        {
+          "name": "1 teaspoon salt"
+        },
+        {
+          "name": "1 tablespoon yeast"
+        },
+        {
+          "name": "5 cups flour"
+        }
+      ],
+      "instructions": [
+        "Stir cornmeal into boiling water, cook until thick.",
+        "Add molasses, butter, salt. Cool to lukewarm.",
+        "Dissolve yeast in warm water.",
+        "Add to cornmeal mixture with flour.",
+        "Knead, let rise 1 hour.",
+        "Shape, rise 30 minutes.",
+        "Bake at 375°F for 40 minutes."
+      ]
+    },
+    {
+      "id": "american-foundation-023",
+      "title": "Sally Lunn Bread",
+      "description": "Rich egg bread. English immigrant recipe.",
+      "prepTime": "2 hrs",
+      "cookTime": "30 min",
+      "servings": "Makes 1 loaf",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 23,
+      "tags": [
+        "bread",
+        "eggs",
+        "sweet"
+      ],
+      "source": "Anglo-American baking traditions",
+      "story": "Named for Sally Lunn who sold these in Bath, England. Became American colonial favorite—rich, cake-like bread.",
+      "ingredients": [
+        {
+          "name": "3 cups flour"
+        },
+        {
+          "name": "1/4 cup sugar"
+        },
+        {
+          "name": "1 teaspoon salt"
+        },
+        {
+          "name": "1 tablespoon yeast"
+        },
+        {
+          "name": "1 cup warm milk"
+        },
+        {
+          "name": "3 eggs"
+        },
+        {
+          "name": "1/2 cup butter, melted"
+        }
+      ],
+      "instructions": [
+        "Mix dry ingredients.",
+        "Combine milk, eggs, butter.",
+        "Add to dry, beat well.",
+        "Let rise 1 hour in greased bundt pan.",
+        "Bake at 350°F for 30 minutes.",
+        "Serve warm with butter."
+      ]
+    },
+    {
+      "id": "american-foundation-024",
+      "title": "Ash Cakes",
+      "description": "Cornbread baked in fireplace ashes. Frontier simplicity.",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Makes 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 24,
+      "tags": [
+        "bread",
+        "cornmeal",
+        "primitive"
+      ],
+      "source": "Frontier American cooking",
+      "story": "When settlers had no pots or ovens, they baked in ashes. Most basic bread possible.",
+      "ingredients": [
+        {
+          "name": "2 cups cornmeal"
+        },
+        {
+          "name": "1 teaspoon salt"
+        },
+        {
+          "name": "Water to make stiff dough"
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal, salt, and enough water to form stiff dough.",
+        "Shape into flat cakes.",
+        "Wrap in cabbage leaves or corn husks.",
+        "Bury in hot ashes.",
+        "Bake 30 minutes.",
+        "Brush off ash, eat hot."
+      ]
+    },
+    {
+      "id": "american-foundation-025",
+      "title": "Spider Corn Cake",
+      "description": "Cake baked in a 'spider'—cast iron pan with legs for hanging over coals.",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 25,
+      "tags": [
+        "bread",
+        "cornmeal",
+        "hearth"
+      ],
+      "source": "Colonial American hearth cooking",
+      "story": "The spider was a legged skillet used in hearth cooking. This creates a custard layer when milk is added on top.",
+      "ingredients": [
+        {
+          "name": "2 cups cornmeal"
+        },
+        {
+          "name": "1 teaspoon salt"
+        },
+        {
+          "name": "1 teaspoon baking soda"
+        },
+        {
+          "name": "2 cups sour milk"
+        },
+        {
+          "name": "2 eggs"
+        },
+        {
+          "name": "2 tablespoons molasses"
+        },
+        {
+          "name": "2 tablespoons butter"
+        },
+        {
+          "name": "1 cup sweet milk"
+        }
+      ],
+      "instructions": [
+        "Mix cornmeal, salt, soda.",
+        "Beat in sour milk, eggs, molasses.",
+        "Melt butter in cast iron spider (pan with legs).",
+        "Pour in batter.",
+        "Pour sweet milk over top (don't stir).",
+        "Bake at 425°F for 30 minutes until set."
+      ]
     }
   ]
 }

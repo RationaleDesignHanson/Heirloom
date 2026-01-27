@@ -1,288 +1,1055 @@
 {
   "themeId": "literary-kitchen",
   "themeName": "Literary Kitchen",
-  "category": "historical",
-  "description": "Dishes inspired by classic literature, from Moby-Dick to The Great Gatsby",
-  "sortOrder": 12,
   "recipes": [
     {
       "id": "literary-kitchen-001",
       "title": "Mrs. Beeton's Beefsteak and Kidney Pudding",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Cut the steak into convenient-sized pieces, removing all skin and bone; divide the kidney, and take away all the fat and sinew. Mix the flour with the salt and pepper, and dredge it over the meat and kidney. Butter a pudding-basin, line it with suet-paste, fill in the meat, pouring in sufficient water, or weak stock, to half fill the basin. Cover with crust, and pinch the edges well together. Tie the pudding in a cloth, plunge it into boiling water, and boil from 3½ to 4 hours.",
       "prepTime": "45 minutes",
       "cookTime": "4 hours",
       "servings": "Serves 6",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
       "tags": [
         "main dish",
         "British",
         "Victorian"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 1,
-      "sortOrder": 1
+      "source": "Mrs. Beeton's Book of Household Management",
+      "story": "From 'Mrs. Beeton's Book of Household Management' (1861), this Victorian classic represents the hearty fare of 19th-century British literature. Isabella Beeton's comprehensive cookbook was a bestseller and influenced generations of cooks. This pudding appears in works by Dickens and other Victorian authors as the epitome of English comfort food.",
+      "ingredients": [
+        {
+          "name": "1 1/2 lb beef steak"
+        },
+        {
+          "name": "6 oz beef kidney"
+        },
+        {
+          "name": "1/4 lb suet crust"
+        },
+        {
+          "name": "1 onion, finely chopped"
+        },
+        {
+          "name": "1 tablespoon flour"
+        },
+        {
+          "name": "Salt and pepper"
+        },
+        {
+          "name": "1/4 pint stock or water"
+        }
+      ],
+      "instructions": [
+        "Cut the steak and kidney into small pieces.",
+        "Roll in seasoned flour.",
+        "Line a pudding basin with two-thirds of the suet crust.",
+        "Fill with the meat mixture and onion.",
+        "Add stock or water.",
+        "Cover with remaining pastry.",
+        "Cover with cloth and steam for 4 hours."
+      ]
     },
     {
       "id": "literary-kitchen-002",
       "title": "Moby-Dick's Chowder",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "First take a cod of respectable size, second cut into slices one inch thick, third put them in a pot with layers of sliced raw potatoes, fourth scatter in salt pork cut in small slices, season with pepper, salt, and such spices as may suit the taste, cover with water and let simmer till the potatoes are done, sixth add crackers soaked in milk, seventh let it heat a little longer and the chowder is made.",
       "prepTime": "20 minutes",
       "cookTime": "40 minutes",
       "servings": "Serves 6-8",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 2,
       "tags": [
         "soup",
         "seafood",
         "New England"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 2,
-      "sortOrder": 2
+      "source": "Based on descriptions in Moby-Dick and 19th-century whaling ship records",
+      "story": "Herman Melville's 'Moby-Dick' (1851) features an entire chapter devoted to chowder, specifically the 'clam and cod chowder' served at the Try Pots inn in Nantucket. This New England fishing staple sustained whalers during long voyages and became synonymous with American maritime culture. Melville's description captures the democratic spirit of communal eating aboard whaling ships.",
+      "ingredients": [
+        {
+          "name": "2 lb cod or haddock"
+        },
+        {
+          "name": "6 strips salt pork, diced"
+        },
+        {
+          "name": "2 onions, sliced"
+        },
+        {
+          "name": "4 large potatoes, diced"
+        },
+        {
+          "name": "4 cups milk"
+        },
+        {
+          "name": "2 cups water"
+        },
+        {
+          "name": "Salt and pepper"
+        },
+        {
+          "name": "Ship's biscuit or common crackers"
+        }
+      ],
+      "instructions": [
+        "Fry the salt pork until crisp, remove and set aside.",
+        "Cook onions in the pork fat until soft.",
+        "Layer fish and potatoes in a large pot.",
+        "Add water and simmer until potatoes are tender.",
+        "Add milk and heat gently (do not boil).",
+        "Season with salt and pepper.",
+        "Serve with pork scraps and crackers."
+      ]
     },
     {
       "id": "literary-kitchen-003",
       "title": "Great Gatsby's Champagne Cocktails",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Sugar, bitters, cognac, champagne. The parties at Gatsby's featured rivers of these.",
       "prepTime": "5 minutes",
       "cookTime": "0 minutes",
       "servings": "Serves 6",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 3,
       "tags": [
         "beverage",
         "cocktail",
         "champagne",
         "Jazz Age"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 3,
-      "sortOrder": 3
+      "source": "Based on F. Scott Fitzgerald's descriptions, 1920s cocktail books",
+      "story": "Fitzgerald's 'The Great Gatsby' (1925) epitom ized Jazz Age excess. These cocktails flowed at Gatsby's legendary West Egg parties. The combination of cognac and champagne represented opulence and careless wealth in Prohibition America.",
+      "ingredients": [
+        {
+          "name": "6 sugar cubes"
+        },
+        {
+          "name": "Angostura bitters"
+        },
+        {
+          "name": "6 ounces cognac"
+        },
+        {
+          "name": "1 bottle champagne, chilled"
+        },
+        {
+          "name": "6 lemon twists"
+        }
+      ],
+      "instructions": [
+        "Place sugar cube in each champagne flute.",
+        "Add 2-3 dashes bitters to each cube.",
+        "Add 1 ounce cognac to each glass.",
+        "Top with champagne.",
+        "Garnish with lemon twist."
+      ]
     },
     {
       "id": "literary-kitchen-004",
       "title": "Alice's Tea Cakes",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Cream butter, sugar, eggs. Mix in flour, milk, vanilla. Bake in small tins. For the Mad Hatter's tea party.",
       "prepTime": "20 minutes",
       "cookTime": "15 minutes",
       "servings": "Makes 24 cakes",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 4,
       "tags": [
         "dessert",
         "tea cakes",
         "Victorian"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 4,
-      "sortOrder": 4
+      "source": "Victorian tea cake recipes, period cookbooks",
+      "story": "Lewis Carroll's 'Alice's Adventures in Wonderland' (1865) features the iconic Mad Tea Party. These simple Victorian tea cakes would have been served at proper English afternoon teas. The absurdity of the literary tea party contrasts with the real British tea ritual these cakes represent.",
+      "ingredients": [
+        {
+          "name": "1/2 cup butter, softened"
+        },
+        {
+          "name": "1 cup sugar"
+        },
+        {
+          "name": "2 eggs"
+        },
+        {
+          "name": "2 cups flour"
+        },
+        {
+          "name": "2 teaspoons baking powder"
+        },
+        {
+          "name": "1/2 cup milk"
+        },
+        {
+          "name": "1 teaspoon vanilla"
+        },
+        {
+          "name": "1/4 teaspoon salt"
+        }
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Beat in eggs.",
+        "Combine dry ingredients.",
+        "Add dry and milk alternately to butter mixture.",
+        "Stir in vanilla.",
+        "Fill greased muffin tins 2/3 full.",
+        "Bake at 350°F for 15 minutes.",
+        "Serve with jam and whipped cream."
+      ]
     },
     {
       "id": "literary-kitchen-005",
       "title": "Little Women's Apple Slump",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Stew apples with sugar. Drop dumplings on top. Cover and steam. Marmee taught the girls this recipe.",
       "prepTime": "20 minutes",
       "cookTime": "40 minutes",
       "servings": "Serves 6",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 5,
       "tags": [
         "dessert",
         "apple",
         "New England",
         "dumplings"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 5,
-      "sortOrder": 5
+      "source": "Based on New England recipes, 1860s period",
+      "story": "In Louisa May Alcott's 'Little Women' (1868), the March sisters learn domestic skills including cooking. This New England dessert represents the frugal, wholesome cooking of Civil War-era New England. 'Slump' refers to the dumplings 'slumping' into the fruit.",
+      "ingredients": [
+        {
+          "name": "6 apples, peeled and sliced"
+        },
+        {
+          "name": "1 cup sugar"
+        },
+        {
+          "name": "1 cup water"
+        },
+        {
+          "name": "1 cup flour"
+        },
+        {
+          "name": "2 teaspoons baking powder"
+        },
+        {
+          "name": "1/2 teaspoon salt"
+        },
+        {
+          "name": "1/2 cup milk"
+        },
+        {
+          "name": "2 tablespoons butter, melted"
+        }
+      ],
+      "instructions": [
+        "Combine apples, 3/4 cup sugar, water in pot.",
+        "Bring to simmer.",
+        "Mix flour, remaining sugar, baking powder, salt.",
+        "Stir in milk and melted butter to make batter.",
+        "Drop spoonfuls of batter onto simmering apples.",
+        "Cover tightly, simmer 25 minutes without lifting lid.",
+        "Serve warm with cream."
+      ]
     },
     {
       "id": "literary-kitchen-006",
       "title": "Pride & Prejudice White Soup",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Boil fowl and veal. Strain. Thicken with almonds and cream. Season delicately. Served at grand balls.",
       "prepTime": "30 minutes",
       "cookTime": "2 hours",
       "servings": "Serves 8",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 6,
       "tags": [
         "soup",
         "Regency",
         "formal"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 6,
-      "sortOrder": 6
+      "source": "Regency-era cookbooks, Hannah Glasse",
+      "story": "Jane Austen's 'Pride and Prejudice' (1813) mentions white soup as fashionable at balls. This luxurious soup, whitened with almonds and cream, was expensive—a marker of wealth. The Bennets' concern over serving it at Netherfield reveals class consciousness in Regency England.",
+      "ingredients": [
+        {
+          "name": "1 whole chicken"
+        },
+        {
+          "name": "2 pounds veal bones"
+        },
+        {
+          "name": "1 onion studded with cloves"
+        },
+        {
+          "name": "1 cup blanched almonds"
+        },
+        {
+          "name": "1 cup cream"
+        },
+        {
+          "name": "1/4 cup rice flour"
+        },
+        {
+          "name": "Mace and white pepper"
+        },
+        {
+          "name": "Salt"
+        }
+      ],
+      "instructions": [
+        "Simmer chicken and veal bones with onion 2 hours.",
+        "Strain broth, remove chicken meat.",
+        "Grind almonds to paste with some broth.",
+        "Mix rice flour with cream.",
+        "Return broth to heat, add almond paste.",
+        "Thicken with cream mixture.",
+        "Season with mace, pepper, salt.",
+        "Serve hot."
+      ]
     },
     {
       "id": "literary-kitchen-007",
       "title": "A Christmas Carol Roast Goose",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Season goose, stuff with apple and onion. Roast until golden, basting often. The Cratchit family's Christmas feast.",
       "prepTime": "30 minutes",
       "cookTime": "3 hours",
       "servings": "Serves 8",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 7,
       "tags": [
         "main dish",
         "poultry",
         "Christmas",
         "Victorian"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 7,
-      "sortOrder": 7
+      "source": "Charles Dickens' 'A Christmas Carol', Victorian cookbooks",
+      "story": "Dickens' 'A Christmas Carol' (1843) features the Cratchits' treasured goose. While the rich ate turkey, working-class families saved for a goose. Bob Cratchit's ability to provide this feast represents dignity despite poverty. The story helped popularize Christmas feasting traditions.",
+      "ingredients": [
+        {
+          "name": "1 goose (10-12 lbs)"
+        },
+        {
+          "name": "Salt and pepper"
+        },
+        {
+          "name": "1 onion, quartered"
+        },
+        {
+          "name": "1 apple, quartered"
+        },
+        {
+          "name": "Fresh sage and thyme"
+        },
+        {
+          "name": "2 cups goose stock"
+        }
+      ],
+      "instructions": [
+        "Remove giblets, pat goose dry.",
+        "Prick skin all over with fork.",
+        "Season inside and out with salt and pepper.",
+        "Stuff cavity with onion, apple, herbs.",
+        "Place on rack in roasting pan.",
+        "Roast at 425°F for 30 minutes.",
+        "Reduce to 350°F, roast 2.5 hours.",
+        "Baste every 30 minutes.",
+        "Rest 20 minutes before carving."
+      ]
     },
     {
       "id": "literary-kitchen-008",
       "title": "Hemingway's Death in the Afternoon",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Pour one jigger absinthe into a champagne glass. Add iced champagne until it attains the proper opalescent milkiness.",
       "prepTime": "2 minutes",
       "cookTime": "0 minutes",
       "servings": "Serves 1",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 8,
       "tags": [
         "beverage",
         "cocktail",
         "absinthe"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 8,
-      "sortOrder": 8
+      "source": "Ernest Hemingway, 1935 cocktail book",
+      "story": "Hemingway created this potent cocktail in the 1930s, naming it after his bullfighting book. Represents his ex-patriate Paris lifestyle.",
+      "ingredients": [
+        {
+          "name": "5 ounces champagne, chilled"
+        },
+        {
+          "name": "1 1/2 ounces absinthe"
+        }
+      ],
+      "instructions": [
+        "Pour absinthe into champagne flute.",
+        "Slowly top with champagne.",
+        "Drink 3-5 of these slowly."
+      ]
     },
     {
       "id": "literary-kitchen-009",
       "title": "To Kill a Mockingbird's Lane Cake",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "A white cake with whiskey filling. Miss Maudie's specialty.",
       "prepTime": "45 minutes",
       "cookTime": "25 minutes",
       "servings": "Serves 12",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 9,
       "tags": [
         "dessert",
         "cake",
         "Southern"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 9,
-      "sortOrder": 9
+      "source": "Alabama recipes, Harper Lee's novel",
+      "story": "Alabama specialty with bourbon, represents Southern hospitality in Harper Lee's novel.",
+      "ingredients": [
+        {
+          "name": "1 cup butter"
+        },
+        {
+          "name": "2 cups sugar"
+        },
+        {
+          "name": "3 1/4 cups flour"
+        },
+        {
+          "name": "8 egg whites"
+        },
+        {
+          "name": "8 egg yolks"
+        },
+        {
+          "name": "1 cup bourbon"
+        },
+        {
+          "name": "1 cup pecans"
+        }
+      ],
+      "instructions": [
+        "Make white cake layers.",
+        "Cook yolk filling with bourbon, nuts, raisins.",
+        "Layer and frost."
+      ]
     },
     {
       "id": "literary-kitchen-010",
       "title": "Laura Ingalls' Vanity Cakes",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Light tea cakes. Ma let Laura help make these.",
       "prepTime": "15 minutes",
       "cookTime": "12 minutes",
       "servings": "Makes 24",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 10,
       "tags": [
         "dessert",
         "cookies"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 10,
-      "sortOrder": 10
+      "source": "Laura Ingalls Wilder's books, 1880s",
+      "story": "Prairie special occasions, frontier homemaking pride.",
+      "ingredients": [
+        {
+          "name": "1 cup butter"
+        },
+        {
+          "name": "2 cups sugar"
+        },
+        {
+          "name": "4 eggs"
+        },
+        {
+          "name": "4 cups flour"
+        },
+        {
+          "name": "1 cup milk"
+        }
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add eggs, then dry and wet alternately.",
+        "Drop on baking sheet, bake 12 minutes."
+      ]
     },
     {
       "id": "literary-kitchen-011",
       "title": "Sherlock Holmes' Seed Cake",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Mrs. Hudson served this with tea at Baker Street.",
       "prepTime": "20 minutes",
       "cookTime": "1 hour",
       "servings": "Serves 10",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 11,
       "tags": [
         "dessert",
         "Victorian"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 11,
-      "sortOrder": 11
+      "source": "Victorian recipes, Holmes canon",
+      "story": "Victorian tea fare, domestic comfort amid investigations.",
+      "ingredients": [
+        {
+          "name": "3/4 cup butter"
+        },
+        {
+          "name": "1 cup sugar"
+        },
+        {
+          "name": "3 eggs"
+        },
+        {
+          "name": "2 cups flour"
+        },
+        {
+          "name": "3 tablespoons caraway seeds"
+        }
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add eggs, flour, caraway seeds.",
+        "Bake 1 hour."
+      ]
     },
     {
       "id": "literary-kitchen-012",
       "title": "Anne of Green Gables' Raspberry Cordial",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Anne mistakenly served Diana currant wine instead.",
       "prepTime": "15 minutes",
       "cookTime": "10 minutes",
       "servings": "Makes 1 quart",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 12,
       "tags": [
         "beverage",
         "raspberry"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 12,
-      "sortOrder": 12
+      "source": "L.M. Montgomery's novel, 1908",
+      "story": "Victorian temperance concerns, rural Canadian hospitality.",
+      "ingredients": [
+        {
+          "name": "4 cups raspberries"
+        },
+        {
+          "name": "2 cups sugar"
+        },
+        {
+          "name": "1 cup water"
+        },
+        {
+          "name": "Lemon juice"
+        }
+      ],
+      "instructions": [
+        "Simmer berries, strain, sweeten.",
+        "Mix with sparkling water to serve."
+      ]
     },
     {
       "id": "literary-kitchen-013",
       "title": "Wuthering Heights Oatcakes",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Yorkshire moor country bread.",
       "prepTime": "15 minutes",
       "cookTime": "25 minutes",
       "servings": "Makes 12",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 13,
       "tags": [
         "bread",
         "oat"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 13,
-      "sortOrder": 13
+      "source": "Yorkshire recipes, 1840s",
+      "story": "Working-class food of the Yorkshire moors.",
+      "ingredients": [
+        {
+          "name": "2 cups oatmeal"
+        },
+        {
+          "name": "1/2 teaspoon salt"
+        },
+        {
+          "name": "2 tablespoons fat"
+        },
+        {
+          "name": "1/2 cup hot water"
+        }
+      ],
+      "instructions": [
+        "Mix, roll thin, bake on griddle."
+      ]
     },
     {
       "id": "literary-kitchen-014",
       "title": "Winnie the Pooh's Honey Buns",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Sweet buns drizzled with honey. Pooh's favorite.",
       "prepTime": "2 hours",
       "cookTime": "15 minutes",
       "servings": "Makes 12",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 14,
       "tags": [
         "dessert",
         "honey",
         "buns"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 14,
-      "sortOrder": 14
+      "source": "A.A. Milne's books, 1920s",
+      "story": "A.A. Milne's Hundred Acre Wood comfort food.",
+      "ingredients": [
+        {
+          "name": "3 cups flour"
+        },
+        {
+          "name": "1/4 cup honey"
+        },
+        {
+          "name": "1 packet yeast"
+        },
+        {
+          "name": "3/4 cup milk"
+        },
+        {
+          "name": "1/4 cup butter"
+        }
+      ],
+      "instructions": [
+        "Make sweet yeast dough.",
+        "Fill with honey mixture.",
+        "Bake until golden."
+      ]
+    },
+    {
+      "id": "literary-kitchen-015",
+      "title": "Oliver Twist's Gruel",
+      "description": "Please sir, I want some more.",
+      "prepTime": "5 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 15,
+      "tags": [
+        "breakfast",
+        "gruel"
+      ],
+      "source": "Charles Dickens' Oliver Twist, 1838",
+      "story": "Workhouse fare in Dickens' novel, representing Victorian poverty.",
+      "ingredients": [
+        {
+          "name": "1 cup oatmeal"
+        },
+        {
+          "name": "6 cups water"
+        },
+        {
+          "name": "Pinch of salt"
+        }
+      ],
+      "instructions": [
+        "Boil water, add oatmeal slowly.",
+        "Simmer 20 minutes, stirring.",
+        "Add pinch of salt."
+      ]
+    },
+    {
+      "id": "literary-kitchen-016",
+      "title": "The Hobbit's Seed-cakes",
+      "description": "For unexpected parties at Bag End.",
+      "prepTime": "20 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Makes 20",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 16,
+      "tags": [
+        "dessert",
+        "cookies"
+      ],
+      "source": "Based on J.R.R. Tolkien's The Hobbit, 1937",
+      "story": "Tolkien's hobbit hospitality, English tea tradition.",
+      "ingredients": [
+        {
+          "name": "2 cups flour"
+        },
+        {
+          "name": "1/2 cup butter"
+        },
+        {
+          "name": "1/2 cup sugar"
+        },
+        {
+          "name": "1 egg"
+        },
+        {
+          "name": "2 tablespoons caraway seeds"
+        }
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add egg, flour, seeds.",
+        "Roll, cut, bake 15 minutes."
+      ]
+    },
+    {
+      "id": "literary-kitchen-017",
+      "title": "Proust's Madeleines",
+      "description": "The taste that brought back childhood memories.",
+      "prepTime": "15 minutes",
+      "cookTime": "10 minutes",
+      "servings": "Makes 24",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 17,
+      "tags": [
+        "dessert",
+        "French",
+        "cookies"
+      ],
+      "source": "French classic, Marcel Proust's novel",
+      "story": "Proust's 'In Search of Lost Time' - the madeleine triggers involuntary memory.",
+      "ingredients": [
+        {
+          "name": "3 eggs"
+        },
+        {
+          "name": "2/3 cup sugar"
+        },
+        {
+          "name": "1 cup flour"
+        },
+        {
+          "name": "1/2 cup melted butter"
+        },
+        {
+          "name": "1 teaspoon vanilla"
+        },
+        {
+          "name": "Zest of 1 lemon"
+        }
+      ],
+      "instructions": [
+        "Beat eggs and sugar until thick.",
+        "Fold in flour, butter, vanilla, zest.",
+        "Fill madeleine molds 3/4 full.",
+        "Bake at 375°F for 10 minutes."
+      ]
+    },
+    {
+      "id": "literary-kitchen-018",
+      "title": "James Bond's Vesper Martini",
+      "description": "Shaken, not stirred. Named after Vesper Lynd.",
+      "prepTime": "3 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 1",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 18,
+      "tags": [
+        "beverage",
+        "cocktail"
+      ],
+      "source": "Ian Fleming's James Bond novels",
+      "story": "Ian Fleming's Casino Royale, Bond's signature sophisticated drink.",
+      "ingredients": [
+        {
+          "name": "3 ounces gin"
+        },
+        {
+          "name": "1 ounce vodka"
+        },
+        {
+          "name": "1/2 ounce Lillet Blanc"
+        },
+        {
+          "name": "Lemon peel"
+        }
+      ],
+      "instructions": [
+        "Shake with ice until ice-cold.",
+        "Strain into chilled martini glass.",
+        "Garnish with lemon peel."
+      ]
+    },
+    {
+      "id": "literary-kitchen-019",
+      "title": "The Bell Jar's Avocado Pear",
+      "description": "Esther's first avocado in New York.",
+      "prepTime": "5 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Serves 2",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 19,
+      "tags": [
+        "salad",
+        "avocado"
+      ],
+      "source": "Sylvia Plath's The Bell Jar, 1963",
+      "story": "Sylvia Plath's novel, 1950s sophistication and discovery.",
+      "ingredients": [
+        {
+          "name": "1 large avocado"
+        },
+        {
+          "name": "Lemon juice"
+        },
+        {
+          "name": "Salt and pepper"
+        },
+        {
+          "name": "Vinaigrette dressing"
+        }
+      ],
+      "instructions": [
+        "Halve avocado, remove pit.",
+        "Drizzle with lemon juice.",
+        "Fill cavity with vinaigrette.",
+        "Season and serve."
+      ]
+    },
+    {
+      "id": "literary-kitchen-020",
+      "title": "Don Quixote's Olla Podrida",
+      "description": "The famous Spanish stew of many ingredients.",
+      "prepTime": "30 minutes",
+      "cookTime": "3 hours",
+      "servings": "Serves 10",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 20,
+      "tags": [
+        "stew",
+        "Spanish"
+      ],
+      "source": "Spanish traditional, Don Quixote references",
+      "story": "Cervantes' Don Quixote, Spanish peasant feast.",
+      "ingredients": [
+        {
+          "name": "2 pounds mixed meats (beef, pork, chicken)"
+        },
+        {
+          "name": "1 pound chickpeas, soaked"
+        },
+        {
+          "name": "1 ham hock"
+        },
+        {
+          "name": "Cabbage"
+        },
+        {
+          "name": "Sausages"
+        },
+        {
+          "name": "Vegetables"
+        }
+      ],
+      "instructions": [
+        "Simmer all meats with chickpeas 2 hours.",
+        "Add vegetables last hour.",
+        "Serve in large tureen."
+      ]
+    },
+    {
+      "id": "literary-kitchen-021",
+      "title": "The Old Man and the Sea's Fried Dolphinfish",
+      "description": "Santiago ate the raw fish. Fresh caught in Cuban waters.",
+      "prepTime": "10 minutes",
+      "cookTime": "8 minutes",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 21,
+      "tags": [
+        "seafood",
+        "Cuban"
+      ],
+      "source": "Ernest Hemingway's The Old Man and the Sea, 1952",
+      "story": "Hemingway's novella, Cuban fishing tradition.",
+      "ingredients": [
+        {
+          "name": "4 mahi-mahi fillets"
+        },
+        {
+          "name": "Flour for dredging"
+        },
+        {
+          "name": "Salt and pepper"
+        },
+        {
+          "name": "Olive oil"
+        },
+        {
+          "name": "Lemon wedges"
+        }
+      ],
+      "instructions": [
+        "Season fish, dredge in flour.",
+        "Fry in hot olive oil 4 minutes per side.",
+        "Serve with lemon."
+      ]
+    },
+    {
+      "id": "literary-kitchen-022",
+      "title": "Emma's Wedding Cake",
+      "description": "A rich fruit cake for Emma's wedding to Mr. Knightley.",
+      "prepTime": "1 hour",
+      "cookTime": "3 hours",
+      "servings": "Serves 20",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 22,
+      "tags": [
+        "dessert",
+        "wedding",
+        "fruit cake"
+      ],
+      "source": "Regency-era wedding cakes",
+      "story": "Jane Austen's Emma, Regency wedding tradition.",
+      "ingredients": [
+        {
+          "name": "2 pounds flour"
+        },
+        {
+          "name": "2 pounds sugar"
+        },
+        {
+          "name": "2 pounds butter"
+        },
+        {
+          "name": "18 eggs"
+        },
+        {
+          "name": "Dried fruits"
+        },
+        {
+          "name": "Spices"
+        },
+        {
+          "name": "Brandy"
+        }
+      ],
+      "instructions": [
+        "Cream butter and sugar.",
+        "Add eggs, flour, fruits, spices.",
+        "Bake slowly 3 hours.",
+        "Soak with brandy, ice with almond paste."
+      ]
+    },
+    {
+      "id": "literary-kitchen-023",
+      "title": "The Grapes of Wrath's Biscuits",
+      "description": "Ma Joad's biscuits for the migrant journey.",
+      "prepTime": "15 minutes",
+      "cookTime": "15 minutes",
+      "servings": "Makes 12",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 23,
+      "tags": [
+        "bread",
+        "biscuits"
+      ],
+      "source": "John Steinbeck's The Grapes of Wrath, 1939",
+      "story": "Steinbeck's Depression-era survival food.",
+      "ingredients": [
+        {
+          "name": "2 cups flour"
+        },
+        {
+          "name": "1 tablespoon baking powder"
+        },
+        {
+          "name": "1 teaspoon salt"
+        },
+        {
+          "name": "1/4 cup lard"
+        },
+        {
+          "name": "3/4 cup milk"
+        }
+      ],
+      "instructions": [
+        "Mix dry ingredients.",
+        "Cut in lard.",
+        "Add milk, mix lightly.",
+        "Pat out, cut, bake 15 minutes at 450°F."
+      ]
+    },
+    {
+      "id": "literary-kitchen-024",
+      "title": "Babette's Feast Blinis",
+      "description": "Russian delicacy from Babette's magnificent feast.",
+      "prepTime": "1 hour 30 minutes",
+      "cookTime": "20 minutes",
+      "servings": "Makes 20",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 24,
+      "tags": [
+        "appetizer",
+        "Russian",
+        "luxury"
+      ],
+      "source": "Based on Babette's Feast, 1958",
+      "story": "Isak Dinesen's story of culinary art and grace.",
+      "ingredients": [
+        {
+          "name": "1 cup buckwheat flour"
+        },
+        {
+          "name": "1 cup all-purpose flour"
+        },
+        {
+          "name": "1 packet yeast"
+        },
+        {
+          "name": "2 cups warm milk"
+        },
+        {
+          "name": "3 eggs"
+        },
+        {
+          "name": "Sour cream and caviar for serving"
+        }
+      ],
+      "instructions": [
+        "Mix flours with yeast and milk, let rise 1 hour.",
+        "Beat in eggs.",
+        "Fry small pancakes in butter.",
+        "Serve with sour cream and caviar."
+      ]
+    },
+    {
+      "id": "literary-kitchen-025",
+      "title": "Catch-22's Milo's Egyptian Cotton",
+      "description": "Milo Minderbinder covered chocolate with cotton.",
+      "prepTime": "0 minutes",
+      "cookTime": "0 minutes",
+      "servings": "Not edible",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 25,
+      "tags": [
+        "satire",
+        "absurdist"
+      ],
+      "source": "Joseph Heller's Catch-22, 1961",
+      "story": "Joseph Heller's absurdist wartime profiteering satire.",
+      "ingredients": [
+        {
+          "name": "Egyptian cotton"
+        }
+      ],
+      "instructions": [
+        "Attempt to sell as food.",
+        "Fail spectacularly."
+      ]
     }
   ]
 }

@@ -1,250 +1,1069 @@
 {
   "themeId": "ancient-table",
   "themeName": "Ancient Table",
-  "category": "historical",
-  "description": "Culinary treasures from Rome, Greece, Egypt, and ancient civilizations",
-  "sortOrder": 13,
   "recipes": [
     {
       "id": "ancient-table-001",
       "title": "Apicius' Conditum Paradoxum",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Melt honey in wine with pepper, bay leaves, saffron and dates. When warmed, pour into vessels for aging. The older it gets, the better it becomes.",
       "prepTime": "15 minutes",
       "cookTime": "10 minutes (plus aging)",
       "servings": "Makes 1 amphora (about 6 bottles)",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 1,
       "tags": [
         "beverage",
         "spiced wine",
         "Roman"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 1,
-      "sortOrder": 1
+      "source": "Apicius, De Re Coquinaria",
+      "story": "This spiced wine from Apicius' 'De Re Coquinaria' (circa 4th century CE) was served at Roman banquets. The recipe showcases the Roman love of complex flavors and expensive spices. 'Paradoxum' means 'special' or 'paradoxical,' likely referring to its unique combination of sweet honey, aromatic spices, and pungent pepper. It was considered both a digestive aid and a symbol of wealth.",
+      "ingredients": [
+        {
+          "name": "1 gallon honey wine"
+        },
+        {
+          "name": "15 g black pepper"
+        },
+        {
+          "name": "4 bay leaves"
+        },
+        {
+          "name": "2 g saffron"
+        },
+        {
+          "name": "5 dates, pitted"
+        },
+        {
+          "name": "Additional honey to taste"
+        }
+      ],
+      "instructions": [
+        "Combine honey wine with pepper, bay leaves, and saffron in a pot.",
+        "Heat gently, but do not boil.",
+        "Add pitted dates.",
+        "Strain through a cloth.",
+        "Store in sealed vessels.",
+        "Age for at least one month before serving."
+      ]
     },
     {
       "id": "ancient-table-002",
       "title": "Roman Patina de Piris",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Patina de piris: pira elixa et purgata e medio teres cum pipere, cumino, melle, passo, liquamine et oleo modico. Ovis missis, in cumana facies, piper supra aspargis et inferes.",
       "prepTime": "30 minutes",
       "cookTime": "45 minutes",
       "servings": "Serves 6",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 2,
       "tags": [
         "dessert",
         "fruit",
         "Roman",
         "custard"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 2,
-      "sortOrder": 2
+      "source": "Apicius, De Re Coquinaria, Book IV",
+      "story": "Patina (the origin of our word 'pan') was a Roman custard-style dish, both savory and sweet. This pear patina from Apicius demonstrates Roman sophistication in combining fruits, spices, and dairy. The use of passum (raisin wine) and exotic spices like cumin shows the extensive trade networks of the Roman Empire. It was likely served as part of the secunda mensa (second course) at elaborate dinners.",
+      "ingredients": [
+        {
+          "name": "6 pears, peeled and cored"
+        },
+        {
+          "name": "1/2 cup honey"
+        },
+        {
+          "name": "1/2 cup passum (or sweet wine)"
+        },
+        {
+          "name": "1 tsp cumin"
+        },
+        {
+          "name": "4 eggs"
+        },
+        {
+          "name": "2 cups milk"
+        },
+        {
+          "name": "Pepper and lovage to taste"
+        },
+        {
+          "name": "Olive oil for greasing"
+        }
+      ],
+      "instructions": [
+        "Poach the pears in honey and passum until tender.",
+        "Grind pepper, cumin, and lovage together.",
+        "Beat eggs with milk.",
+        "Add spices to egg mixture.",
+        "Arrange pears in an oiled dish.",
+        "Pour egg mixture over pears.",
+        "Bake in a moderate oven until set.",
+        "Serve warm with the poaching liquid drizzled over."
+      ]
     },
     {
       "id": "ancient-table-003",
       "title": "Greek Olive & Honey Cakes",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Mix flour, honey, oil, wine. Shape, bake. Ancient Greek dessert.",
       "prepTime": "30 min",
       "cookTime": "25 min",
       "servings": "Makes 20",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 3,
       "tags": [
         "dessert",
         "Greek",
         "honey"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 3,
-      "sortOrder": 3
+      "source": "Ancient Greek recipes, archaeological evidence",
+      "story": "Greek sacrificial cakes offered to gods, sweetened with honey—liquid gold of ancient world.",
+      "ingredients": [
+        {
+          "name": "2 cups flour"
+        },
+        {
+          "name": "1/2 cup honey"
+        },
+        {
+          "name": "1/2 cup olive oil"
+        },
+        {
+          "name": "1/4 cup wine"
+        },
+        {
+          "name": "Sesame seeds"
+        }
+      ],
+      "instructions": [
+        "Mix ingredients to form dough.",
+        "Shape into small cakes.",
+        "Top with sesame seeds.",
+        "Bake at 350°F for 25 minutes."
+      ]
     },
     {
       "id": "ancient-table-004",
       "title": "Roman Garum Sauce",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "The Roman ketchup. Mix fermented fish sauce with wine and honey.",
       "prepTime": "5 min",
       "cookTime": "0 min",
       "servings": "Makes 2 cups",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 4,
       "tags": [
         "condiment",
         "Roman",
         "fermented"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 4,
-      "sortOrder": 4
+      "source": "Apicius, Roman archaeological sites",
+      "story": "Garum was Rome's most important condiment, made from fermented fish. Every kitchen had it.",
+      "ingredients": [
+        {
+          "name": "1 cup fish sauce"
+        },
+        {
+          "name": "1/2 cup white wine"
+        },
+        {
+          "name": "2 tablespoons honey"
+        },
+        {
+          "name": "Fresh herbs"
+        }
+      ],
+      "instructions": [
+        "Mix all ingredients.",
+        "Let stand 1 hour before using.",
+        "Use as all-purpose seasoning."
+      ]
     },
     {
       "id": "ancient-table-005",
       "title": "Egyptian Flatbread",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "The bread of pharaohs. Simple flatbread cooked on hot stones.",
       "prepTime": "15 min",
       "cookTime": "10 min",
       "servings": "Makes 8",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 5,
       "tags": [
         "bread",
         "Egyptian",
         "flatbread"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 5,
-      "sortOrder": 5
+      "source": "Egyptian archaeology, hieroglyphic recipes",
+      "story": "Ancient Egypt's staple food, made from emmer wheat. Found in tombs as offerings.",
+      "ingredients": [
+        {
+          "name": "3 cups emmer flour (or whole wheat)"
+        },
+        {
+          "name": "1 teaspoon salt"
+        },
+        {
+          "name": "1 1/4 cups water"
+        }
+      ],
+      "instructions": [
+        "Mix flour, salt, water into dough.",
+        "Knead 5 minutes.",
+        "Divide into 8 balls.",
+        "Roll thin.",
+        "Cook on hot stone or griddle 2 minutes per side."
+      ]
     },
     {
       "id": "ancient-table-006",
       "title": "Mesopotamian Beer Bread",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Bread made with beer, the drink of gods. Sumerian staple.",
       "prepTime": "2 hrs",
       "cookTime": "45 min",
       "servings": "Makes 2 loaves",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 6,
       "tags": [
         "bread",
         "Mesopotamian",
         "beer"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 6,
-      "sortOrder": 6
+      "source": "Sumerian cuneiform tablets",
+      "story": "Mesopotamians invented beer and used it in baking. This bread sustained ancient civilizations.",
+      "ingredients": [
+        {
+          "name": "4 cups barley flour"
+        },
+        {
+          "name": "1 cup beer"
+        },
+        {
+          "name": "1 cup water"
+        },
+        {
+          "name": "2 tablespoons honey"
+        },
+        {
+          "name": "1 teaspoon salt"
+        }
+      ],
+      "instructions": [
+        "Mix flour with beer, water, honey, salt.",
+        "Let rise 1 hour.",
+        "Shape into rounds.",
+        "Bake at 350°F for 45 minutes."
+      ]
     },
     {
       "id": "ancient-table-007",
       "title": "Greek Lentil Soup",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Philosopher's soup. Lentils with vinegar, the food Herodotus praised.",
       "prepTime": "15 min",
       "cookTime": "40 min",
       "servings": "Serves 6",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 7,
       "tags": [
         "soup",
         "Greek",
         "lentils"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 7,
-      "sortOrder": 7
+      "source": "Herodotus' Histories, Greek dietary records",
+      "story": "Mentioned by Herodotus. Spartans and philosophers ate this simple, nourishing soup.",
+      "ingredients": [
+        {
+          "name": "2 cups lentils"
+        },
+        {
+          "name": "1 onion, chopped"
+        },
+        {
+          "name": "3 cloves garlic"
+        },
+        {
+          "name": "1/4 cup olive oil"
+        },
+        {
+          "name": "1/4 cup vinegar"
+        },
+        {
+          "name": "Bay leaves"
+        },
+        {
+          "name": "Salt"
+        }
+      ],
+      "instructions": [
+        "Sauté onion and garlic in oil.",
+        "Add lentils, water, bay leaves.",
+        "Simmer 40 minutes until soft.",
+        "Add vinegar, season with salt."
+      ]
     },
     {
       "id": "ancient-table-008",
       "title": "Roman Moretum",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Peasant cheese spread. Virgil wrote a poem about making this.",
       "prepTime": "15 min",
       "cookTime": "0 min",
       "servings": "Serves 4",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 8,
       "tags": [
         "appetizer",
         "Roman",
         "cheese"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 8,
-      "sortOrder": 8
+      "source": "Virgil's Moretum poem, Roman agriculture texts",
+      "story": "Roman farmers' breakfast, immortalized in Virgil's poem 'Moretum.' Garlic cheese spread.",
+      "ingredients": [
+        {
+          "name": "1 cup fresh cheese"
+        },
+        {
+          "name": "4 cloves garlic"
+        },
+        {
+          "name": "1/4 cup olive oil"
+        },
+        {
+          "name": "Fresh herbs (cilantro, celery leaf)"
+        },
+        {
+          "name": "Salt"
+        },
+        {
+          "name": "Vinegar"
+        }
+      ],
+      "instructions": [
+        "Crush garlic with salt.",
+        "Mix in cheese and herbs.",
+        "Add oil gradually while mixing.",
+        "Add vinegar to taste.",
+        "Serve with bread."
+      ]
     },
     {
       "id": "ancient-table-009",
       "title": "Persian Rice Pilaf",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "The royal rice. Saffron-scented pilaf with nuts and fruit.",
       "prepTime": "10 min",
       "cookTime": "35 min",
       "servings": "Serves 6",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 9,
       "tags": [
         "side dish",
         "Persian",
         "rice"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 9,
-      "sortOrder": 9
+      "source": "Persian culinary traditions, Silk Road records",
+      "story": "Ancient Persia perfected rice cooking. This pilaf graced royal tables of the Achaemenid Empire.",
+      "ingredients": [
+        {
+          "name": "2 cups basmati rice"
+        },
+        {
+          "name": "4 tablespoons butter"
+        },
+        {
+          "name": "1 onion, sliced"
+        },
+        {
+          "name": "1/4 cup almonds"
+        },
+        {
+          "name": "1/4 cup dried fruit"
+        },
+        {
+          "name": "Saffron"
+        },
+        {
+          "name": "Salt"
+        }
+      ],
+      "instructions": [
+        "Sauté onion in butter until golden.",
+        "Add rice, toast 2 minutes.",
+        "Add water, saffron, salt.",
+        "Simmer covered 20 minutes.",
+        "Top with almonds and fruit."
+      ]
     },
     {
       "id": "ancient-table-010",
       "title": "Byzantine Honey Fritters",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Sweet fritters soaked in honey. Constantinople street food.",
       "prepTime": "20 min",
       "cookTime": "15 min",
       "servings": "Makes 20",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 10,
       "tags": [
         "dessert",
         "Byzantine",
         "fried"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 10,
-      "sortOrder": 10
+      "source": "Byzantine culinary manuscripts",
+      "story": "Byzantine Empire's popular dessert, served at festivals and sold by street vendors.",
+      "ingredients": [
+        {
+          "name": "2 cups flour"
+        },
+        {
+          "name": "2 eggs"
+        },
+        {
+          "name": "1/2 cup milk"
+        },
+        {
+          "name": "Oil for frying"
+        },
+        {
+          "name": "1 cup honey"
+        },
+        {
+          "name": "Cinnamon"
+        }
+      ],
+      "instructions": [
+        "Make batter with flour, eggs, milk.",
+        "Drop spoonfuls into hot oil.",
+        "Fry until golden.",
+        "Drain, soak in warm honey.",
+        "Sprinkle with cinnamon."
+      ]
     },
     {
       "id": "ancient-table-011",
       "title": "Greek Barley Cakes",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "Barley cakes with cheese. Olympic athlete fuel.",
       "prepTime": "20 min",
       "cookTime": "30 min",
       "servings": "Makes 12",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 11,
       "tags": [
         "dessert",
         "Greek",
         "barley"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 11,
-      "sortOrder": 11
+      "source": "Ancient Greek athletics records",
+      "story": "Ancient Olympic athletes ate these for energy. Barley was Greece's primary grain.",
+      "ingredients": [
+        {
+          "name": "2 cups barley flour"
+        },
+        {
+          "name": "1/2 cup honey"
+        },
+        {
+          "name": "1/4 cup olive oil"
+        },
+        {
+          "name": "1/2 cup wine"
+        },
+        {
+          "name": "Cheese crumbles"
+        }
+      ],
+      "instructions": [
+        "Mix ingredients.",
+        "Form small cakes.",
+        "Bake 30 minutes."
+      ]
     },
     {
       "id": "ancient-table-012",
       "title": "Roman Stuffed Dormice",
-      "description": "",
-      "ingredients": [],
-      "instructions": [],
+      "description": "A delicacy for wealthy Romans. Dormice stuffed and roasted.",
       "prepTime": "45 min",
       "cookTime": "20 min",
       "servings": "Serves 4",
       "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 12,
       "tags": [
         "main dish",
         "Roman",
         "exotic"
       ],
-      "source": "",
-      "story": "",
-      "unlockDay": 12,
-      "sortOrder": 12
+      "source": "Apicius, De Re Coquinaria",
+      "story": "Apicius' most exotic recipe. Dormice were fattened in clay jars and served at banquets.",
+      "ingredients": [
+        {
+          "name": "4 dormice (or substitute game birds)"
+        },
+        {
+          "name": "Minced pork"
+        },
+        {
+          "name": "Pine nuts"
+        },
+        {
+          "name": "Pepper"
+        },
+        {
+          "name": "Garum"
+        }
+      ],
+      "instructions": [
+        "Stuff dormice with pork mixture.",
+        "Roast until golden.",
+        "Glaze with honey."
+      ]
+    },
+    {
+      "id": "ancient-table-013",
+      "title": "Phoenician Fish Stew",
+      "description": "Mediterranean fish stew. Phoenician sailors' food.",
+      "prepTime": "20 min",
+      "cookTime": "30 min",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 13,
+      "tags": [
+        "seafood",
+        "Phoenician",
+        "stew"
+      ],
+      "source": "Phoenician archaeological sites",
+      "story": "Phoenicia's maritime culture created this stew, spreading it across Mediterranean colonies.",
+      "ingredients": [
+        {
+          "name": "2 lbs white fish"
+        },
+        {
+          "name": "Onions"
+        },
+        {
+          "name": "Garlic"
+        },
+        {
+          "name": "Olive oil"
+        },
+        {
+          "name": "Vinegar"
+        },
+        {
+          "name": "Cumin"
+        },
+        {
+          "name": "Coriander"
+        }
+      ],
+      "instructions": [
+        "Sauté aromatics.",
+        "Add fish, spices.",
+        "Simmer with vinegar.",
+        "Serve with flatbread."
+      ]
+    },
+    {
+      "id": "ancient-table-014",
+      "title": "Carthaginian Couscous",
+      "description": "Ancient North African grain dish with meat and vegetables.",
+      "prepTime": "15 min",
+      "cookTime": "25 min",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 14,
+      "tags": [
+        "main dish",
+        "Carthaginian",
+        "couscous"
+      ],
+      "source": "Carthaginian culinary history",
+      "story": "Carthage perfected couscous preparation. This dish predates Roman conquest of North Africa.",
+      "ingredients": [
+        {
+          "name": "2 cups couscous"
+        },
+        {
+          "name": "Lamb or chicken"
+        },
+        {
+          "name": "Vegetables"
+        },
+        {
+          "name": "Olive oil"
+        },
+        {
+          "name": "Harissa spices"
+        }
+      ],
+      "instructions": [
+        "Steam couscous.",
+        "Cook meat and vegetables separately.",
+        "Serve couscous topped with stew."
+      ]
+    },
+    {
+      "id": "ancient-table-015",
+      "title": "Etruscan Polenta",
+      "description": "Porridge of the Etruscans. Predecessor to modern polenta.",
+      "prepTime": "10 min",
+      "cookTime": "40 min",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 15,
+      "tags": [
+        "side dish",
+        "Etruscan",
+        "grain"
+      ],
+      "source": "Etruscan archaeological evidence",
+      "story": "Etruscans ate grain porridge (puls) before Rome adopted it. Foundation of Italian cuisine.",
+      "ingredients": [
+        {
+          "name": "2 cups cornmeal (or spelt meal)"
+        },
+        {
+          "name": "6 cups water"
+        },
+        {
+          "name": "Salt"
+        },
+        {
+          "name": "Olive oil"
+        },
+        {
+          "name": "Cheese"
+        }
+      ],
+      "instructions": [
+        "Boil water with salt.",
+        "Whisk in meal slowly.",
+        "Stir constantly 40 minutes.",
+        "Top with oil and cheese."
+      ]
+    },
+    {
+      "id": "ancient-table-016",
+      "title": "Sumerian Date Cake",
+      "description": "Sweet cake studded with dates. Mesopotamian celebration food.",
+      "prepTime": "30 min",
+      "cookTime": "45 min",
+      "servings": "Makes 1 cake",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 16,
+      "tags": [
+        "dessert",
+        "Sumerian",
+        "dates"
+      ],
+      "source": "Sumerian cuneiform tablets",
+      "story": "Dates were Mesopotamia's primary sweetener. This cake appeared at religious festivals.",
+      "ingredients": [
+        {
+          "name": "3 cups flour"
+        },
+        {
+          "name": "1 cup dates, chopped"
+        },
+        {
+          "name": "1/2 cup butter"
+        },
+        {
+          "name": "1/2 cup honey"
+        },
+        {
+          "name": "1 cup milk"
+        },
+        {
+          "name": "Spices"
+        }
+      ],
+      "instructions": [
+        "Cream butter and honey.",
+        "Mix in flour, milk.",
+        "Fold in dates.",
+        "Bake 45 minutes."
+      ]
+    },
+    {
+      "id": "ancient-table-017",
+      "title": "Chinese Jiaozi Dumplings",
+      "description": "Ancient Chinese dumplings. Medicinal food turned celebration dish.",
+      "prepTime": "1 hr",
+      "cookTime": "15 min",
+      "servings": "Makes 30",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 17,
+      "tags": [
+        "main dish",
+        "Chinese",
+        "dumplings"
+      ],
+      "source": "Han Dynasty records",
+      "story": "Legend says they were invented by physician Zhang Zhongjing in Han Dynasty to prevent frostbite.",
+      "ingredients": [
+        {
+          "name": "Dumpling wrappers"
+        },
+        {
+          "name": "1 lb ground pork"
+        },
+        {
+          "name": "Cabbage"
+        },
+        {
+          "name": "Ginger"
+        },
+        {
+          "name": "Soy sauce"
+        },
+        {
+          "name": "Sesame oil"
+        }
+      ],
+      "instructions": [
+        "Mix filling ingredients.",
+        "Fill wrappers, seal edges.",
+        "Boil or steam 8 minutes.",
+        "Serve with dipping sauce."
+      ]
+    },
+    {
+      "id": "ancient-table-018",
+      "title": "Viking Smoked Fish",
+      "description": "Preserved fish, Norse survival food.",
+      "prepTime": "5 min",
+      "cookTime": "2 hrs",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 18,
+      "tags": [
+        "seafood",
+        "Viking",
+        "smoked"
+      ],
+      "source": "Viking Age archaeological sites",
+      "story": "Vikings smoked fish for long voyages. This preservation method sustained Norse expansion.",
+      "ingredients": [
+        {
+          "name": "4 whole fish (herring or mackerel)"
+        },
+        {
+          "name": "Salt"
+        },
+        {
+          "name": "Juniper berries"
+        },
+        {
+          "name": "Wood for smoking"
+        }
+      ],
+      "instructions": [
+        "Gut and clean fish.",
+        "Salt generously.",
+        "Smoke over juniper wood 2 hours.",
+        "Serve with flatbread."
+      ]
+    },
+    {
+      "id": "ancient-table-019",
+      "title": "Celtic Oat Porridge",
+      "description": "Ancient Celtic breakfast. Oats cooked in water or milk.",
+      "prepTime": "5 min",
+      "cookTime": "20 min",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 19,
+      "tags": [
+        "breakfast",
+        "Celtic",
+        "oats"
+      ],
+      "source": "Celtic archaeological evidence",
+      "story": "Celts cultivated oats in Iron Age Britain. This porridge sustained warriors and farmers.",
+      "ingredients": [
+        {
+          "name": "2 cups steel-cut oats"
+        },
+        {
+          "name": "6 cups water"
+        },
+        {
+          "name": "Honey"
+        },
+        {
+          "name": "Berries"
+        },
+        {
+          "name": "Salt"
+        }
+      ],
+      "instructions": [
+        "Boil water, add oats and salt.",
+        "Simmer 20 minutes, stirring.",
+        "Serve with honey and berries."
+      ]
+    },
+    {
+      "id": "ancient-table-020",
+      "title": "Aztec Chocolate Drink",
+      "description": "Bitter chocolate drink of emperors. Xocolātl.",
+      "prepTime": "10 min",
+      "cookTime": "15 min",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 20,
+      "tags": [
+        "beverage",
+        "Aztec",
+        "chocolate"
+      ],
+      "source": "Aztec codices, Mesoamerican evidence",
+      "story": "Aztecs considered chocolate the food of gods. Drunk at ceremonies, served cold and bitter with chili.",
+      "ingredients": [
+        {
+          "name": "4 tablespoons cacao powder"
+        },
+        {
+          "name": "3 cups water"
+        },
+        {
+          "name": "2 tablespoons honey"
+        },
+        {
+          "name": "Chili powder"
+        },
+        {
+          "name": "Vanilla"
+        }
+      ],
+      "instructions": [
+        "Heat water, whisk in cacao.",
+        "Add honey and spices.",
+        "Froth by pouring between containers.",
+        "Serve warm."
+      ]
+    },
+    {
+      "id": "ancient-table-021",
+      "title": "Inca Quinoa Soup",
+      "description": "Andean superfood soup. The mother grain.",
+      "prepTime": "15 min",
+      "cookTime": "30 min",
+      "servings": "Serves 6",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 21,
+      "tags": [
+        "soup",
+        "Inca",
+        "quinoa"
+      ],
+      "source": "Inca agricultural records",
+      "story": "Incas called quinoa 'the mother of all grains.' This soup sustained high-altitude civilizations.",
+      "ingredients": [
+        {
+          "name": "1 cup quinoa"
+        },
+        {
+          "name": "Potato"
+        },
+        {
+          "name": "Corn"
+        },
+        {
+          "name": "Beans"
+        },
+        {
+          "name": "Peppers"
+        },
+        {
+          "name": "Herbs"
+        }
+      ],
+      "instructions": [
+        "Rinse quinoa.",
+        "Combine all ingredients in pot.",
+        "Simmer 30 minutes.",
+        "Serve hot."
+      ]
+    },
+    {
+      "id": "ancient-table-022",
+      "title": "Medieval Pottage",
+      "description": "Peasant stew of grains and vegetables. Medieval Europe's daily food.",
+      "prepTime": "20 min",
+      "cookTime": "2 hrs",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 22,
+      "tags": [
+        "soup",
+        "Medieval",
+        "stew"
+      ],
+      "source": "Medieval household records",
+      "story": "Pottage fed medieval Europe. A one-pot meal simmered all day, eaten with bread.",
+      "ingredients": [
+        {
+          "name": "Dried peas or beans"
+        },
+        {
+          "name": "Barley"
+        },
+        {
+          "name": "Onions"
+        },
+        {
+          "name": "Leeks"
+        },
+        {
+          "name": "Herbs"
+        },
+        {
+          "name": "Salt"
+        },
+        {
+          "name": "Optional: bacon"
+        }
+      ],
+      "instructions": [
+        "Soak beans overnight.",
+        "Simmer all ingredients 2 hours.",
+        "Add herbs last 15 minutes."
+      ]
+    },
+    {
+      "id": "ancient-table-023",
+      "title": "Roman Puls",
+      "description": "Rome's original daily bread. Porridge before bread dominated.",
+      "prepTime": "5 min",
+      "cookTime": "30 min",
+      "servings": "Serves 4",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 23,
+      "tags": [
+        "side dish",
+        "Roman",
+        "porridge"
+      ],
+      "source": "Roman Republic records",
+      "story": "Before Romans perfected bread, they ate puls—a grain porridge. Foundation of Roman diet.",
+      "ingredients": [
+        {
+          "name": "2 cups emmer wheat (or spelt)"
+        },
+        {
+          "name": "4 cups water"
+        },
+        {
+          "name": "2 tablespoons olive oil"
+        },
+        {
+          "name": "Salt"
+        },
+        {
+          "name": "Cheese"
+        }
+      ],
+      "instructions": [
+        "Boil wheat in salted water.",
+        "Cook until porridge consistency.",
+        "Stir in oil.",
+        "Top with cheese."
+      ]
+    },
+    {
+      "id": "ancient-table-024",
+      "title": "Greek Symposium Wine",
+      "description": "Diluted, sweetened wine for philosophical discussions.",
+      "prepTime": "10 min",
+      "cookTime": "0 min",
+      "servings": "Serves 10",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 24,
+      "tags": [
+        "beverage",
+        "Greek",
+        "wine"
+      ],
+      "source": "Ancient Greek symposium practices",
+      "story": "Greeks never drank wine undiluted—considered barbaric. Symposiums featured this spiced, watered wine.",
+      "ingredients": [
+        {
+          "name": "1 gallon wine"
+        },
+        {
+          "name": "Honey"
+        },
+        {
+          "name": "Water"
+        },
+        {
+          "name": "Spices (cinnamon, anise)"
+        }
+      ],
+      "instructions": [
+        "Mix wine with equal parts water.",
+        "Add honey to taste.",
+        "Infuse with spices.",
+        "Serve in kylix cups."
+      ]
+    },
+    {
+      "id": "ancient-table-025",
+      "title": "Babylonian Beer",
+      "description": "The world's oldest recorded recipe. Hymn to Ninkasi, beer goddess.",
+      "prepTime": "1 week",
+      "cookTime": "2 hrs",
+      "servings": "Serves 8",
+      "difficulty": "medium",
+      "unlockDay": 1,
+      "sortOrder": 25,
+      "tags": [
+        "beverage",
+        "Babylonian",
+        "beer"
+      ],
+      "source": "Sumerian cuneiform, Ninkasi hymn",
+      "story": "Babylonians brewed beer 4000 years ago. The Hymn to Ninkasi is humanity's oldest recipe, a beer-making song.",
+      "ingredients": [
+        {
+          "name": "Barley"
+        },
+        {
+          "name": "Dates"
+        },
+        {
+          "name": "Water"
+        },
+        {
+          "name": "Wild yeast"
+        }
+      ],
+      "instructions": [
+        "Bake barley bread.",
+        "Crumble into water with dates.",
+        "Let ferment 1 week.",
+        "Strain and serve."
+      ]
     }
   ]
 }
