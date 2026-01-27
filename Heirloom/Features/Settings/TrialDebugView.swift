@@ -105,7 +105,7 @@ struct TrialDebugView: View {
                     refreshTrigger.toggle()
 
                     let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-                    toastManager.show("Trial tracking reset - restart app", type: .success)
+                    toastManager.show(type: .success, title: "Trial tracking reset - restart app")
                 }
                 .foregroundStyle(.orange)
 
@@ -115,7 +115,7 @@ struct TrialDebugView: View {
                     refreshTrigger.toggle()
 
                     let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-                    toastManager.show("Trial set to Day 2", type: .success)
+                    toastManager.show(type: .success, title: "Trial set to Day 2")
                 }
                 .foregroundStyle(.purple)
 
@@ -124,7 +124,7 @@ struct TrialDebugView: View {
                     refreshTrigger.toggle()
 
                     let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-                    toastManager.show("Trial set to Day 7", type: .success)
+                    toastManager.show(type: .success, title: "Trial set to Day 7")
                 }
                 .foregroundStyle(.purple)
                 #endif
