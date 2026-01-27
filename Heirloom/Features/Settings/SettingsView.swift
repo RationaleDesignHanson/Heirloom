@@ -22,6 +22,9 @@ struct SettingsView: View {
     @State private var storeManager = ServiceContainer.shared.resolve(StoreManager.self)
     @State private var recipeExporter = ServiceContainer.shared.resolve(RecipeExporter.self)
 
+    // Units configuration for measurement system
+    @ObservedObject private var unitsConfig: UnitsConfiguration = ServiceContainer.shared.resolve(UnitsConfiguration.self)
+
     @State private var showClearDataConfirmation = false
     @State private var showSignOutConfirmation = false
     @State private var showSignIn = false
@@ -602,24 +605,16 @@ struct SettingsView: View {
 
     private var userExperienceSection: some View {
         Section {
-            Picker(selection: Binding(
-                get: { UserDefaults.standard.string(forKey: "units_preferred_system") ?? "Metric" },
-                set: { UserDefaults.standard.set($0, forKey: "units_preferred_system") }
-            )) {
-                Text("Imperial (US)").tag("Imperial")
-                Text("Metric").tag("Metric")
-            } label: {
-                HStack {
-                    Image(systemName: "ruler")
-                        .foregroundStyle(HeirloomColors.tomato)
-                    Text("Measurement System")
+            Picker("Measurement System", selection: $unitsConfig.preferredSystem) {
+                ForEach(UnitSystem.allCases) { system in
+                    Text(system.displayName).tag(system)
                 }
             }
             .pickerStyle(.menu)
         } header: {
             Text("User Experience")
         } footer: {
-            Text("Choose your preferred measurement system for recipes. This preference will be used for future recipe imports and conversions.")
+            Text("Choose your preferred measurement system. This affects how ingredients are displayed throughout the app.")
         }
     }
 

@@ -367,6 +367,17 @@ extension ServiceContainer {
             UnitsConfiguration()
         }
 
+        // MeasurementConversionService - stateless singleton
+        register(MeasurementConversionService.self, lifecycle: .singleton) { _ in
+            MeasurementConversionService()
+        }
+
+        // IngredientFormatter - depends on UnitsConfiguration
+        register(IngredientFormatter.self, lifecycle: .singleton) { container in
+            let unitsConfig = container.resolve(UnitsConfiguration.self)
+            return IngredientFormatter(unitsConfig: unitsConfig)
+        }
+
         // AIUsageTracker
         register(AIUsageTracker.self, lifecycle: .singleton) { container in
             let analytics = container.resolve(AnalyticsService.self)

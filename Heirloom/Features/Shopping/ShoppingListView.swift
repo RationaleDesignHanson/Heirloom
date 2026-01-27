@@ -19,6 +19,14 @@ struct ShoppingListView: View {
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
     private var remindersService: RemindersService { ServiceContainer.shared.resolve(RemindersService.self) }
 
+    // Dependency injection for formatter (future use for unit conversion)
+    private var formatter: IngredientFormatter {
+        ServiceContainer.shared.resolve(IngredientFormatter.self)
+    }
+
+    // Observe UnitsConfiguration for reactive updates
+    @ObservedObject private var unitsConfig: UnitsConfiguration = ServiceContainer.shared.resolve(UnitsConfiguration.self)
+
     @State private var selectedRecipeIds: Set<UUID> = []
     @State private var selectedIngredientData: IngredientRecipeData?
 

@@ -14,6 +14,14 @@ struct CookingModeView: View {
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
+    // Dependency injection for formatter
+    private var formatter: IngredientFormatter {
+        ServiceContainer.shared.resolve(IngredientFormatter.self)
+    }
+
+    // Observe UnitsConfiguration for reactive updates
+    @ObservedObject private var unitsConfig: UnitsConfiguration = ServiceContainer.shared.resolve(UnitsConfiguration.self)
+
     @State private var currentStep = 0
     @State private var completedSteps: Set<Int> = []
     @State private var showFinishConfirmation = false
@@ -545,85 +553,8 @@ struct CookingModeView: View {
         let originalServings = recipe.parsedServingCount
         let scaleFactor = Double(targetServings) / Double(originalServings)
 
-        // If scaling is 1.0, just show original text
-        guard scaleFactor != 1.0 else {
-            return ingredient.displayText
-        }
-
-        // If ingredient has no quantity, can't scale it
-        guard let quantity = ingredient.quantity else {
-            return ingredient.displayText
-        }
-
-        // Scale the quantity
-        let scaledQty = quantity * scaleFactor
-        let scaledQtyMax = ingredient.quantityMax.map { $0 * scaleFactor }
-
-        // Build scaled display text
-        var parts: [String] = []
-
-        // Format quantity with fractions
-        parts.append(formatQuantity(scaledQty))
-
-        if let max = scaledQtyMax {
-            parts.append("-\(formatQuantity(max))")
-        }
-
-        if let unit = ingredient.unit {
-            parts.append(unit)
-        }
-
-        parts.append(ingredient.name)
-
-        if let prep = ingredient.preparation {
-            parts.append("(\(prep))")
-        }
-
-        return parts.joined(separator: " ")
-    }
-
-    private func formatQuantity(_ value: Double) -> String {
-        let fractions: [(Double, String)] = [
-            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
-            (0.375, "⅜"), (0.5, "½"), (0.625, "⅝"),
-            (0.666, "⅔"), (0.75, "¾"), (0.875, "⅞")
-        ]
-
-        let wholePart = Int(value)
-        let fractionalPart = value - Double(wholePart)
-
-        // First pass: exact matches (within 0.01)
-        for (decimalValue, fractionSymbol) in fractions {
-            if abs(fractionalPart - decimalValue) < 0.01 {
-                if wholePart > 0 {
-                    return "\(wholePart) \(fractionSymbol)"
-                } else {
-                    return fractionSymbol
-                }
-            }
-        }
-
-        // Second pass: snap to nearest common fraction (within 0.12)
-        let commonFractions: [(Double, String)] = [
-            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
-            (0.5, "½"), (0.666, "⅔"), (0.75, "¾")
-        ]
-
-        for (decimalValue, fractionSymbol) in commonFractions {
-            if abs(fractionalPart - decimalValue) < 0.12 {
-                if wholePart > 0 {
-                    return "\(wholePart) \(fractionSymbol)"
-                } else {
-                    return fractionSymbol
-                }
-            }
-        }
-
-        if fractionalPart < 0.01 {
-            return "\(wholePart)"
-        }
-
-        return String(format: "%.1f", value)
+        // Use IngredientFormatter to format with scaling and unit conversion
+        return formatter.format(ingredient, scaleFactor: scaleFactor, convertUnits: true)
     }
 
     // MARK: - Actions

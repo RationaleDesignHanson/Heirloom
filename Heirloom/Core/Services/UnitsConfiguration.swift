@@ -12,16 +12,14 @@ class UnitsConfiguration: ObservableObject {
     }
 
     init() {
-        // Default to user's locale
+        // Load saved preference or default to imperial
         let savedValue = UserDefaults.standard.string(forKey: Keys.preferredSystem)
 
         if let saved = savedValue, let system = UnitSystem(rawValue: saved) {
             self.preferredSystem = system
         } else {
-            // Auto-detect based on locale
-            let locale = Locale.current
-            let usesMetric = locale.measurementSystem == .metric
-            self.preferredSystem = usesMetric ? .metric : .imperial
+            // Default to imperial for all users
+            self.preferredSystem = .imperial
         }
     }
 
@@ -40,8 +38,8 @@ enum UnitSystem: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .imperial: return "Imperial (US)"
-        case .metric: return "Metric"
+        case .imperial: return "Imperial (cups, oz)"
+        case .metric: return "Metric (ml, g)"
         }
     }
 

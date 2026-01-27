@@ -136,6 +136,8 @@
 		C5364FE92F27F083003D342E /* UnlockCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364FE72F27F083003D342E /* UnlockCelebrationView.swift */; };
 		C5364FEA2F27F083003D342E /* TrialProgressBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364FE62F27F083003D342E /* TrialProgressBanner.swift */; };
 		C5364FEC2F2836D8003D342E /* ThemeRecipeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364FEB2F2836D8003D342E /* ThemeRecipeService.swift */; };
+		C5364FEF2F2876C5003D342E /* MeasurementConversionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364FEE2F2876C5003D342E /* MeasurementConversionService.swift */; };
+		C5364FF02F2876C5003D342E /* IngredientFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364FED2F2876C5003D342E /* IngredientFormatter.swift */; };
 		C568873C2F057B02006EA0B1 /* HeirloomShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */; };
 		C568877B2F06B4AE006EA0B1 /* CRDTMergeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */; };
@@ -496,6 +498,8 @@
 		C5364FE62F27F083003D342E /* TrialProgressBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialProgressBanner.swift; sourceTree = "<group>"; };
 		C5364FE72F27F083003D342E /* UnlockCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlockCelebrationView.swift; sourceTree = "<group>"; };
 		C5364FEB2F2836D8003D342E /* ThemeRecipeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeRecipeService.swift; sourceTree = "<group>"; };
+		C5364FED2F2876C5003D342E /* IngredientFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientFormatter.swift; sourceTree = "<group>"; };
+		C5364FEE2F2876C5003D342E /* MeasurementConversionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementConversionService.swift; sourceTree = "<group>"; };
 		C56887322F057B02006EA0B1 /* HeirloomShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HeirloomShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C56887772F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FirebaseSyncService+CRDT.swift"; sourceTree = "<group>"; };
 		C56887792F06B4AE006EA0B1 /* CRDTMergeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRDTMergeEngine.swift; sourceTree = "<group>"; };
@@ -917,6 +921,8 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5364FED2F2876C5003D342E /* IngredientFormatter.swift */,
+				C5364FEE2F2876C5003D342E /* MeasurementConversionService.swift */,
 				C5364FDC2F27D762003D342E /* Collections */,
 				C5364FCD2F27C7C2003D342E /* Themes */,
 				C5364BCF2F26F0C4003D342E /* UniversalURLResolver.swift */,
@@ -2418,6 +2424,8 @@
 				C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */,
 				C583197F2F123D280096478E /* ASMRPassProgressCard.swift in Sources */,
 				C58319802F123D280096478E /* ASMRUsageBadge.swift in Sources */,
+				C5364FEF2F2876C5003D342E /* MeasurementConversionService.swift in Sources */,
+				C5364FF02F2876C5003D342E /* IngredientFormatter.swift in Sources */,
 				C58319812F123D280096478E /* ASMRProcessingView.swift in Sources */,
 				C5364FD72F27CA35003D342E /* ThemeSelectionScreen.swift in Sources */,
 				C58319822F123D280096478E /* ASMRVideoImportView.swift in Sources */,

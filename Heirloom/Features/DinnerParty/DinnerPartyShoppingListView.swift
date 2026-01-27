@@ -8,6 +8,14 @@ struct DinnerPartyShoppingListView: View {
 
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
+    // Dependency injection for formatter
+    private var formatter: IngredientFormatter {
+        ServiceContainer.shared.resolve(IngredientFormatter.self)
+    }
+
+    // Observe UnitsConfiguration for reactive updates
+    @ObservedObject private var unitsConfig: UnitsConfiguration = ServiceContainer.shared.resolve(UnitsConfiguration.self)
+
     struct ScaledIngredient: Identifiable {
         let id = UUID()
         let text: String
@@ -132,9 +140,12 @@ struct DinnerPartyShoppingListView: View {
 
             for ingredient in recipeIngredients {
                 let category = ingredient.category?.rawValue ?? "Other"
-                let scaledText = scaleIngredientText(
-                    ingredient.originalText,
-                    factor: partyRecipe.scalingFactor
+
+                // Use IngredientFormatter for proper scaling and unit conversion
+                let scaledText = formatter.format(
+                    ingredient,
+                    scaleFactor: partyRecipe.scalingFactor,
+                    convertUnits: true
                 )
 
                 let scaledIngredient = ScaledIngredient(
@@ -233,7 +244,7 @@ struct DinnerPartyShoppingListView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: DinnerParty.self, configurations: config)
 
-    let party = DinnerParty(name: "Dinner Party", guestCount: 8, mealTime: Date())
+    let party = DinnerParty(name: "Holiday Meal", guestCount: 8, mealTime: Date())
     container.mainContext.insert(party)
 
     return NavigationStack {
