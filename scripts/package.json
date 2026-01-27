@@ -1,0 +1,13 @@
+{
+  "name": "heirloom-scripts",
+  "version": "1.0.0",
+  "description": "Firebase admin scripts for Heirloom",
+  "private": true,
+  "scripts": {
+    "cleanup": "node cleanup-and-reseed-recipes.js",
+    "upload-images": "node upload-images-to-storage.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}
