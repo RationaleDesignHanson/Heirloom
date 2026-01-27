@@ -35,7 +35,7 @@ const THEME_ID_MAP = {
   'theme-02-railroad-dining-cover.webp': 'railroad-dining',
   'theme-03-victory-kitchen-cover.webp': 'victory-kitchen',
   'theme-04-navy-mess-cover.webp': 'navy-mess',
-  'theme-05-boston-cooking-cover.webp': 'boston-cooking',
+  'theme-05-boston-cooking-cover.webp': 'boston-cooking-school',
   'theme-06-southern-roots-cover.webp': 'southern-roots',
   'theme-07-scandinavian-cover.webp': 'scandinavian-heritage',
   'theme-08-german-american-cover.webp': 'german-american',

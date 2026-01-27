@@ -21,7 +21,7 @@ const THEME_COVER_URLS = {
   'railroad-dining': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/railroad-dining.webp',
   'victory-kitchen': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/victory-kitchen.webp',
   'navy-mess': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/navy-mess.webp',
-  'boston-cooking': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/boston-cooking.webp',
+  'boston-cooking-school': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/boston-cooking.webp',
   'southern-roots': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/southern-roots.webp',
   'scandinavian-heritage': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/scandinavian-heritage.webp',
   'german-american': 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/german-american.webp',
