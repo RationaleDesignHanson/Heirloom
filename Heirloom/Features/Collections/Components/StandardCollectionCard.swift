@@ -29,8 +29,9 @@ struct StandardCollectionCard: View {
 
     /// Check if large slot is using a recipe image (not AI/custom background)
     private var isLargeSlotUsingRecipeImage: Bool {
-        // If we have AI or custom background, large slot uses that, not recipe
-        if collection.generatedBackgroundImagePath != nil || collection.customBackgroundImagePath != nil {
+        // If custom background is enabled AND we have a background image, large slot uses that, not recipe
+        if collection.useCustomBackground &&
+           (collection.generatedBackgroundImagePath != nil || collection.customBackgroundImagePath != nil) {
             return false
         }
         // Otherwise, if we have a recipe with image, large slot uses it
@@ -106,16 +107,18 @@ struct StandardCollectionCard: View {
 
     @ViewBuilder
     private var largeImageView: some View {
-        // Priority 1: AI-generated background
-        if let generatedPath = collection.generatedBackgroundImagePath {
+        // Priority 1: AI-generated background (if enabled)
+        if collection.useCustomBackground,
+           let generatedPath = collection.generatedBackgroundImagePath {
             AsyncRecipeImage(
                 imageFileName: generatedPath,
                 firebaseImageURL: nil,
                 placeholder: collection.iconName
             )
         }
-        // Priority 2: Custom user-selected background
-        else if let customPath = collection.customBackgroundImagePath {
+        // Priority 2: Custom user-selected background (if enabled)
+        else if collection.useCustomBackground,
+                let customPath = collection.customBackgroundImagePath {
             AsyncRecipeImage(
                 imageFileName: customPath,
                 firebaseImageURL: nil,
