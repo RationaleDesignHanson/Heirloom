@@ -75,8 +75,13 @@ struct TagCollectionPickerView: View {
                     }
                     .buttonStyle(.plain)
 
-                    if !allCollections.isEmpty {
-                        ForEach(allCollections, id: \.id) { collection in
+                    // Filter out system collections that shouldn't be selectable
+                    let selectableCollections = allCollections.filter { collection in
+                        !collection.isAllRecipes && !collection.isSystemCollection
+                    }
+
+                    if !selectableCollections.isEmpty {
+                        ForEach(selectableCollections, id: \.id) { collection in
                             collectionRow(collection)
                         }
                     }
