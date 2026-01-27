@@ -236,12 +236,17 @@ struct OnboardingContainerView: View {
                     continue
                 }
 
-                // Add recipes to collection
+                // Add recipes to collection via inverse relationship (avoids SwiftData duplicate registration)
                 for recipe in recipesForTheme {
-                    if collection.recipes == nil {
-                        collection.recipes = [recipe]
-                    } else if !(collection.recipes?.contains(where: { $0.id == recipe.id }) ?? false) {
-                        collection.recipes?.append(recipe)
+                    // Check if recipe already in this collection
+                    let alreadyInCollection = recipe.collections?.contains(where: { $0.id == collection.id }) ?? false
+
+                    if !alreadyInCollection {
+                        if recipe.collections == nil {
+                            recipe.collections = [collection]
+                        } else {
+                            recipe.collections?.append(collection)
+                        }
                     }
                 }
             }
