@@ -121,6 +121,90 @@ struct CollectionDetailView: View {
         existingCollectionIDs.removeAll()
     }
 
+    // MARK: - Recipe Card Helper
+
+    @ViewBuilder
+    private func recipeCard(for recipe: Recipe) -> some View {
+        if isSelectionMode && collection.isAllRecipes {
+            // Selection mode: tap to select/deselect
+            RecipeCardView(recipe: recipe)
+                .overlay(alignment: .topTrailing) {
+                    if selectedRecipeIDs.contains(recipe.id) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.blue)
+                            .background(HeirloomColors.cardBackground)
+                            .clipShape(Circle())
+                            .padding(HeirloomSpacing.sm)
+                    }
+                }
+                .onTapGesture {
+                    if selectedRecipeIDs.contains(recipe.id) {
+                        selectedRecipeIDs.remove(recipe.id)
+                    } else {
+                        selectedRecipeIDs.insert(recipe.id)
+                    }
+                }
+        } else {
+            // Normal mode: tap to navigate
+            NavigationLink {
+                RecipeDetailView(recipe: recipe)
+                    .environmentObject(notificationService)
+            } label: {
+                RecipeCardView(recipe: recipe)
+            }
+            .buttonStyle(.plain)
+            .contextMenu {
+                recipeContextMenu(for: recipe)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func recipeContextMenu(for recipe: Recipe) -> some View {
+        Button {
+            toggleFavorite(recipe)
+        } label: {
+            Label(
+                recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
+            )
+        }
+
+        Button {
+            toggleShoppingList(recipe)
+        } label: {
+            Label(
+                recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List",
+                systemImage: recipe.isInShoppingList ? "cart.badge.minus" : "cart.badge.plus"
+            )
+        }
+
+        Button {
+            recipeForCollectionPicker = recipe
+        } label: {
+            Label("Add to Collection", systemImage: "folder.badge.plus")
+        }
+
+        // Only show "Remove from Collection" for non-system collections
+        if !collection.isSystemCollection {
+            Divider()
+
+            Button {
+                removeRecipeFromCollection(recipe)
+            } label: {
+                Label("Remove from Collection", systemImage: "minus.circle")
+            }
+        }
+
+        Divider()
+
+        Button(role: .destructive) {
+            recipeToDelete = recipe
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: HeirloomSpacing.lg) {
@@ -136,79 +220,7 @@ struct CollectionDetailView: View {
                         GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
                     ], spacing: HeirloomSpacing.gridSpacing) {
                         ForEach(recipes, id: \.id) { recipe in
-                            if isSelectionMode && collection.isAllRecipes {
-                                // Selection mode: tap to select/deselect
-                                RecipeCardView(recipe: recipe)
-                                    .overlay(alignment: .topTrailing) {
-                                        if selectedRecipeIDs.contains(recipe.id) {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundColor(.blue)
-                                                .background(HeirloomColors.cardBackground)
-                                                .clipShape(Circle())
-                                                .padding(HeirloomSpacing.sm)
-                                        }
-                                    }
-                                    .onTapGesture {
-                                        if selectedRecipeIDs.contains(recipe.id) {
-                                            selectedRecipeIDs.remove(recipe.id)
-                                        } else {
-                                            selectedRecipeIDs.insert(recipe.id)
-                                        }
-                                    }
-                            } else {
-                                // Normal mode: tap to navigate
-                                NavigationLink {
-                                    RecipeDetailView(recipe: recipe)
-                                        .environmentObject(notificationService)
-                                } label: {
-                                    RecipeCardView(recipe: recipe)
-                                }
-                                .buttonStyle(.plain)
-                                .contextMenu {
-                                    Button {
-                                        toggleFavorite(recipe)
-                                    } label: {
-                                        Label(
-                                            recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-                                            systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
-                                        )
-                                    }
-
-                                    Button {
-                                        toggleShoppingList(recipe)
-                                    } label: {
-                                        Label(
-                                            recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List",
-                                            systemImage: recipe.isInShoppingList ? "cart.badge.minus" : "cart.badge.plus"
-                                        )
-                                    }
-
-                                    Button {
-                                        recipeForCollectionPicker = recipe
-                                    } label: {
-                                        Label("Add to Collection", systemImage: "folder.badge.plus")
-                                    }
-
-                                    // Only show "Remove from Collection" for non-system collections
-                                    if !collection.isSystemCollection {
-                                        Divider()
-
-                                        Button {
-                                            removeRecipeFromCollection(recipe)
-                                        } label: {
-                                            Label("Remove from Collection", systemImage: "minus.circle")
-                                        }
-                                    }
-
-                                    Divider()
-
-                                    Button(role: .destructive) {
-                                        recipeToDelete = recipe
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                }
-                            }
+                            recipeCard(for: recipe)
                         }
                     }
                     .padding(.horizontal, HeirloomSpacing.md)
