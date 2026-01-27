@@ -83,3 +83,4 @@ backend/yarn-error.log*
 *.xcresult
 test-results/
 TestResults/
+scripts/node_modules/
