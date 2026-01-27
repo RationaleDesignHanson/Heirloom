@@ -16,6 +16,7 @@ struct CollectionDetailView: View {
     @State private var showVideoImport = false
     @State private var showDeleteConfirmation = false
     @State private var showAddRecipeMenu = false
+    @State private var showCollectionSettings = false
     @EnvironmentObject private var unlockTracker: ThemeUnlockTracker
 
     // Context menu state
@@ -230,6 +231,16 @@ struct CollectionDetailView: View {
             }
         }
 
+        // Settings button (for all collections)
+        ToolbarItem(placement: .secondaryAction) {
+            Button {
+                showCollectionSettings = true
+            } label: {
+                Image(systemName: "gear")
+            }
+            .accessibilityLabel("Collection Settings")
+        }
+
         // Delete button for non-system collections
         if !collection.isSystemCollection {
             ToolbarItem(placement: .secondaryAction) {
@@ -324,6 +335,12 @@ struct CollectionDetailView: View {
         .sheet(isPresented: $showVideoImport) {
             UnifiedVideoImportView()
                 .environmentObject(tabCoordinator)
+        }
+        .sheet(isPresented: $showCollectionSettings) {
+            NavigationStack {
+                CollectionSettingsView(collection: collection)
+                    .environmentObject(tabCoordinator)
+            }
         }
         .confirmationDialog(
             "Add Recipe",
