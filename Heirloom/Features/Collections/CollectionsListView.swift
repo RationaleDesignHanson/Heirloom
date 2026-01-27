@@ -635,8 +635,7 @@ struct CollectionsListView: View {
                 onCookbookScanner: handleCookbookScanner,
                 onVideoImport: handleVideoImport,
                 onAddCollection: handleAddCollection,
-                onAddNormalSample: handleAddNormalSample,
-                onAddHeritageSample: handleAddHeritageSample
+                onAddNormalSample: handleAddNormalSample
             )
         }
     }
