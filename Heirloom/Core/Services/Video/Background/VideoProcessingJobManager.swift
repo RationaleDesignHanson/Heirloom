@@ -940,6 +940,10 @@ final class VideoProcessingJobManager: ObservableObject {
             "recipeTitle": recipe.title
         ])
 
+        // STEP 6.5: Route to "From Videos" collection
+        let router = CollectionRouter(modelContext: context)
+        router.routeVideoImport(recipe)
+
         // STEP 7: Update job status
         job.status = .saved
         job.recipeID = recipe.id

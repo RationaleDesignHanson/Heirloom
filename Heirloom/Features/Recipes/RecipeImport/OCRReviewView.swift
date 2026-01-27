@@ -377,6 +377,10 @@ struct OCRReviewView: View {
         do {
             try modelContext.save()
 
+            // Route to "From Photos" collection
+            let router = CollectionRouter(modelContext: modelContext)
+            router.routePhotoImport(recipe)
+
             // Sync to Firebase if active
             if backendConfig.isFirebaseActive {
                 do {

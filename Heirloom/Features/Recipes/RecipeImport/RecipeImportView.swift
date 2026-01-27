@@ -445,6 +445,12 @@ struct RecipeImportView: View {
         do {
             try modelContext.save()
 
+            // Route to "From Web" collection
+            if let sourceURLString = recipe.sourceURL, let sourceURL = URL(string: sourceURLString) {
+                let router = CollectionRouter(modelContext: modelContext)
+                router.routeURLImport(recipe, sourceURL: sourceURL)
+            }
+
             // Sync to Firebase if active
             if backendConfig.isFirebaseActive {
                 do {
