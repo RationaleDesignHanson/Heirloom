@@ -6,7 +6,7 @@
   "sortOrder": 11,
   "recipes": [
     {
-      "id": "presidential-001",
+      "id": "presidential-pantry-001",
       "title": "Martha Washington's Great Cake",
       "description": "",
       "ingredients": [],
@@ -26,7 +26,7 @@
       "sortOrder": 1
     },
     {
-      "id": "presidential-002",
+      "id": "presidential-pantry-002",
       "title": "Thomas Jefferson's Ice Cream",
       "description": "",
       "ingredients": [],
@@ -45,7 +45,7 @@
       "sortOrder": 2
     },
     {
-      "id": "presidential-003",
+      "id": "presidential-pantry-003",
       "title": "Abraham Lincoln's Gingerbread",
       "description": "",
       "ingredients": [],
@@ -65,7 +65,7 @@
       "sortOrder": 3
     },
     {
-      "id": "presidential-004",
+      "id": "presidential-pantry-004",
       "title": "Eleanor Roosevelt's Scrambled Eggs",
       "description": "",
       "ingredients": [],
@@ -85,7 +85,7 @@
       "sortOrder": 4
     },
     {
-      "id": "presidential-005",
+      "id": "presidential-pantry-005",
       "title": "Dolley Madison's Oyster Soup",
       "description": "",
       "ingredients": [],
@@ -105,7 +105,7 @@
       "sortOrder": 5
     },
     {
-      "id": "presidential-006",
+      "id": "presidential-pantry-006",
       "title": "Jacqueline Kennedy's Chicken Casserole",
       "description": "",
       "ingredients": [],
@@ -125,7 +125,7 @@
       "sortOrder": 6
     },
     {
-      "id": "presidential-007",
+      "id": "presidential-pantry-007",
       "title": "FDR's Favorite Grilled Cheese",
       "description": "",
       "ingredients": [],
@@ -145,7 +145,7 @@
       "sortOrder": 7
     },
     {
-      "id": "presidential-008",
+      "id": "presidential-pantry-008",
       "title": "Harry Truman's Ozark Pudding",
       "description": "",
       "ingredients": [],
@@ -165,7 +165,7 @@
       "sortOrder": 8
     },
     {
-      "id": "presidential-009",
+      "id": "presidential-pantry-009",
       "title": "LBJ's Pedernales River Chili",
       "description": "",
       "ingredients": [],
@@ -186,7 +186,7 @@
       "sortOrder": 9
     },
     {
-      "id": "presidential-010",
+      "id": "presidential-pantry-010",
       "title": "George Washington's Hoecakes",
       "description": "",
       "ingredients": [],
@@ -206,7 +206,7 @@
       "sortOrder": 10
     },
     {
-      "id": "presidential-011",
+      "id": "presidential-pantry-011",
       "title": "John Adams' Indian Pudding",
       "description": "",
       "ingredients": [],
@@ -226,7 +226,7 @@
       "sortOrder": 11
     },
     {
-      "id": "presidential-012",
+      "id": "presidential-pantry-012",
       "title": "Reagan's California Cobb Salad",
       "description": "",
       "ingredients": [],
@@ -246,7 +246,7 @@
       "sortOrder": 12
     },
     {
-      "id": "presidential-013",
+      "id": "presidential-pantry-013",
       "title": "Calvin Coolidge's Chicken Pie",
       "description": "",
       "ingredients": [],
@@ -266,7 +266,7 @@
       "sortOrder": 13
     },
     {
-      "id": "presidential-014",
+      "id": "presidential-pantry-014",
       "title": "James Monroe's Spoon Bread",
       "description": "",
       "ingredients": [],

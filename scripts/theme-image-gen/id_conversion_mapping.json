@@ -1,5 +1,5 @@
 {
-  "conversion_date": "2026-01-26T16:50:47.937011",
+  "conversion_date": "2026-01-27T01:01:02.874Z",
   "total_themes": 14,
   "total_recipes": 186,
   "dry_run": false,
@@ -169,7 +169,7 @@
       "theme_name": "Golden Age of Rail",
       "old_id": "pullman-chicken-ala-king",
       "new_id": "railroad-dining-007",
-      "title": "Pullman Car Chicken \u00e0 la King",
+      "title": "Pullman Car Chicken à la King",
       "sort_order": 2
     },
     {
@@ -665,7 +665,7 @@
       "theme_name": "Scandinavian Heritage",
       "old_id": "swedish-meatballs",
       "new_id": "scandinavian-heritage-001",
-      "title": "Swedish Meatballs (K\u00f6ttbullar)",
+      "title": "Swedish Meatballs (Köttbullar)",
       "sort_order": 1
     },
     {
@@ -689,7 +689,7 @@
       "theme_name": "Scandinavian Heritage",
       "old_id": "danish-roast-pork",
       "new_id": "scandinavian-heritage-004",
-      "title": "Danish Roast Pork with Crackling (Fl\u00e6skesteg)",
+      "title": "Danish Roast Pork with Crackling (Flæskesteg)",
       "sort_order": 1
     },
     {
@@ -777,7 +777,7 @@
       "theme_name": "German-American Kitchen",
       "old_id": "spaetzle",
       "new_id": "german-american-003",
-      "title": "Sp\u00e4tzle (German Egg Noodles)",
+      "title": "Spätzle (German Egg Noodles)",
       "sort_order": 1
     },
     {
@@ -857,7 +857,7 @@
       "theme_name": "German-American Kitchen",
       "old_id": "german-pork-schnitzel",
       "new_id": "german-american-013",
-      "title": "J\u00e4gerschnitzel (Hunter's Schnitzel)",
+      "title": "Jägerschnitzel (Hunter's Schnitzel)",
       "sort_order": 2
     },
     {

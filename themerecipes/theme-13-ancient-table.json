@@ -6,7 +6,7 @@
   "sortOrder": 13,
   "recipes": [
     {
-      "id": "ancient-001",
+      "id": "ancient-table-001",
       "title": "Apicius' Conditum Paradoxum",
       "description": "",
       "ingredients": [],
@@ -26,7 +26,7 @@
       "sortOrder": 1
     },
     {
-      "id": "ancient-002",
+      "id": "ancient-table-002",
       "title": "Roman Patina de Piris",
       "description": "",
       "ingredients": [],
@@ -47,7 +47,7 @@
       "sortOrder": 2
     },
     {
-      "id": "ancient-003",
+      "id": "ancient-table-003",
       "title": "Greek Olive & Honey Cakes",
       "description": "",
       "ingredients": [],
@@ -67,7 +67,7 @@
       "sortOrder": 3
     },
     {
-      "id": "ancient-004",
+      "id": "ancient-table-004",
       "title": "Roman Garum Sauce",
       "description": "",
       "ingredients": [],
@@ -87,7 +87,7 @@
       "sortOrder": 4
     },
     {
-      "id": "ancient-005",
+      "id": "ancient-table-005",
       "title": "Egyptian Flatbread",
       "description": "",
       "ingredients": [],
@@ -107,7 +107,7 @@
       "sortOrder": 5
     },
     {
-      "id": "ancient-006",
+      "id": "ancient-table-006",
       "title": "Mesopotamian Beer Bread",
       "description": "",
       "ingredients": [],
@@ -127,7 +127,7 @@
       "sortOrder": 6
     },
     {
-      "id": "ancient-007",
+      "id": "ancient-table-007",
       "title": "Greek Lentil Soup",
       "description": "",
       "ingredients": [],
@@ -147,7 +147,7 @@
       "sortOrder": 7
     },
     {
-      "id": "ancient-008",
+      "id": "ancient-table-008",
       "title": "Roman Moretum",
       "description": "",
       "ingredients": [],
@@ -167,7 +167,7 @@
       "sortOrder": 8
     },
     {
-      "id": "ancient-009",
+      "id": "ancient-table-009",
       "title": "Persian Rice Pilaf",
       "description": "",
       "ingredients": [],
@@ -187,7 +187,7 @@
       "sortOrder": 9
     },
     {
-      "id": "ancient-010",
+      "id": "ancient-table-010",
       "title": "Byzantine Honey Fritters",
       "description": "",
       "ingredients": [],
@@ -207,7 +207,7 @@
       "sortOrder": 10
     },
     {
-      "id": "ancient-011",
+      "id": "ancient-table-011",
       "title": "Greek Barley Cakes",
       "description": "",
       "ingredients": [],
@@ -227,7 +227,7 @@
       "sortOrder": 11
     },
     {
-      "id": "ancient-012",
+      "id": "ancient-table-012",
       "title": "Roman Stuffed Dormice",
       "description": "",
       "ingredients": [],

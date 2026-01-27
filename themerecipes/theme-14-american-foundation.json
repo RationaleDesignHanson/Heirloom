@@ -6,7 +6,7 @@
   "sortOrder": 14,
   "recipes": [
     {
-      "id": "american-001",
+      "id": "american-foundation-001",
       "title": "Colonial Brown Bread",
       "description": "",
       "ingredients": [],
@@ -26,7 +26,7 @@
       "sortOrder": 1
     },
     {
-      "id": "american-002",
+      "id": "american-foundation-002",
       "title": "Shaker Lemon Pie",
       "description": "",
       "ingredients": [],
@@ -47,7 +47,7 @@
       "sortOrder": 2
     },
     {
-      "id": "american-003",
+      "id": "american-foundation-003",
       "title": "Johnnycakes",
       "description": "",
       "ingredients": [],
@@ -67,7 +67,7 @@
       "sortOrder": 3
     },
     {
-      "id": "american-004",
+      "id": "american-foundation-004",
       "title": "Succotash",
       "description": "",
       "ingredients": [],
@@ -87,7 +87,7 @@
       "sortOrder": 4
     },
     {
-      "id": "american-005",
+      "id": "american-foundation-005",
       "title": "Pumpkin Butter",
       "description": "",
       "ingredients": [],
@@ -107,7 +107,7 @@
       "sortOrder": 5
     },
     {
-      "id": "american-006",
+      "id": "american-foundation-006",
       "title": "Apple Pandowdy",
       "description": "",
       "ingredients": [],
@@ -127,7 +127,7 @@
       "sortOrder": 6
     },
     {
-      "id": "american-007",
+      "id": "american-foundation-007",
       "title": "Hasty Pudding",
       "description": "",
       "ingredients": [],
@@ -147,7 +147,7 @@
       "sortOrder": 7
     },
     {
-      "id": "american-008",
+      "id": "american-foundation-008",
       "title": "Election Cake",
       "description": "",
       "ingredients": [],
@@ -167,7 +167,7 @@
       "sortOrder": 8
     },
     {
-      "id": "american-009",
+      "id": "american-foundation-009",
       "title": "Switchel",
       "description": "",
       "ingredients": [],
@@ -187,7 +187,7 @@
       "sortOrder": 9
     },
     {
-      "id": "american-010",
+      "id": "american-foundation-010",
       "title": "Syllabub",
       "description": "",
       "ingredients": [],
@@ -207,7 +207,7 @@
       "sortOrder": 10
     },
     {
-      "id": "american-011",
+      "id": "american-foundation-011",
       "title": "Mincemeat",
       "description": "",
       "ingredients": [],
@@ -227,7 +227,7 @@
       "sortOrder": 11
     },
     {
-      "id": "american-012",
+      "id": "american-foundation-012",
       "title": "Corn Dodgers",
       "description": "",
       "ingredients": [],

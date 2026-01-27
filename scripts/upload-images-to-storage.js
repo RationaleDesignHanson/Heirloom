@@ -63,8 +63,8 @@ async function uploadFile(localPath, storagePath, contentType = 'image/webp') {
       },
     });
 
-    // Make publicly accessible
-    await file.makePublic();
+    // Note: With uniform bucket-level access, files are already public via bucket rules
+    // No need to call makePublic() on individual files
 
     console.log(`✓ Uploaded: ${storagePath}`);
     return true;
@@ -176,6 +176,7 @@ async function uploadRecipeImages() {
 async function main() {
   console.log('🚀 Starting Firebase Storage upload...\n');
   console.log(`Storage bucket: ${bucket.name}`);
+  console.log('Note: Bucket uses uniform bucket-level access (files are public via bucket rules)\n');
 
   try {
     await uploadThemeCovers();
@@ -185,6 +186,7 @@ async function main() {
     console.log('\n💡 Images are now publicly accessible at:');
     console.log('   Theme covers: https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/themes/{theme-id}.webp');
     console.log('   Recipe images: https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/recipes/{theme-id}/{recipe-file}.webp');
+    console.log('\n📝 Next step: Delete app and reinstall to test with fresh data');
 
     process.exit(0);
   } catch (error) {

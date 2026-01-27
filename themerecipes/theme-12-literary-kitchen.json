@@ -6,7 +6,7 @@
   "sortOrder": 12,
   "recipes": [
     {
-      "id": "literary-001",
+      "id": "literary-kitchen-001",
       "title": "Mrs. Beeton's Beefsteak and Kidney Pudding",
       "description": "",
       "ingredients": [],
@@ -26,7 +26,7 @@
       "sortOrder": 1
     },
     {
-      "id": "literary-002",
+      "id": "literary-kitchen-002",
       "title": "Moby-Dick's Chowder",
       "description": "",
       "ingredients": [],
@@ -46,7 +46,7 @@
       "sortOrder": 2
     },
     {
-      "id": "literary-003",
+      "id": "literary-kitchen-003",
       "title": "Great Gatsby's Champagne Cocktails",
       "description": "",
       "ingredients": [],
@@ -67,7 +67,7 @@
       "sortOrder": 3
     },
     {
-      "id": "literary-004",
+      "id": "literary-kitchen-004",
       "title": "Alice's Tea Cakes",
       "description": "",
       "ingredients": [],
@@ -87,7 +87,7 @@
       "sortOrder": 4
     },
     {
-      "id": "literary-005",
+      "id": "literary-kitchen-005",
       "title": "Little Women's Apple Slump",
       "description": "",
       "ingredients": [],
@@ -108,7 +108,7 @@
       "sortOrder": 5
     },
     {
-      "id": "literary-006",
+      "id": "literary-kitchen-006",
       "title": "Pride & Prejudice White Soup",
       "description": "",
       "ingredients": [],
@@ -128,7 +128,7 @@
       "sortOrder": 6
     },
     {
-      "id": "literary-007",
+      "id": "literary-kitchen-007",
       "title": "A Christmas Carol Roast Goose",
       "description": "",
       "ingredients": [],
@@ -149,7 +149,7 @@
       "sortOrder": 7
     },
     {
-      "id": "literary-008",
+      "id": "literary-kitchen-008",
       "title": "Hemingway's Death in the Afternoon",
       "description": "",
       "ingredients": [],
@@ -169,7 +169,7 @@
       "sortOrder": 8
     },
     {
-      "id": "literary-009",
+      "id": "literary-kitchen-009",
       "title": "To Kill a Mockingbird's Lane Cake",
       "description": "",
       "ingredients": [],
@@ -189,7 +189,7 @@
       "sortOrder": 9
     },
     {
-      "id": "literary-010",
+      "id": "literary-kitchen-010",
       "title": "Laura Ingalls' Vanity Cakes",
       "description": "",
       "ingredients": [],
@@ -208,7 +208,7 @@
       "sortOrder": 10
     },
     {
-      "id": "literary-011",
+      "id": "literary-kitchen-011",
       "title": "Sherlock Holmes' Seed Cake",
       "description": "",
       "ingredients": [],
@@ -227,7 +227,7 @@
       "sortOrder": 11
     },
     {
-      "id": "literary-012",
+      "id": "literary-kitchen-012",
       "title": "Anne of Green Gables' Raspberry Cordial",
       "description": "",
       "ingredients": [],
@@ -246,7 +246,7 @@
       "sortOrder": 12
     },
     {
-      "id": "literary-013",
+      "id": "literary-kitchen-013",
       "title": "Wuthering Heights Oatcakes",
       "description": "",
       "ingredients": [],
@@ -265,7 +265,7 @@
       "sortOrder": 13
     },
     {
-      "id": "literary-014",
+      "id": "literary-kitchen-014",
       "title": "Winnie the Pooh's Honey Buns",
       "description": "",
       "ingredients": [],
