@@ -29,6 +29,7 @@ struct CookbookScannerView: View {
     @State private var errorMessage: String?
     @State private var imageSource: ImageSource = .camera
     @State private var showSoftWall = false
+    @State private var cookbookName: String = "" // Custom cookbook name
 
     // Progress tracking
     @State private var processingStep: ProcessingStep = .preparing
@@ -236,6 +237,18 @@ struct CookbookScannerView: View {
                 .padding(.horizontal, HeirloomSpacing.xl)
             }
 
+            // Cookbook Name Field
+            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                Text("Cookbook Name (Optional)")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+
+                TextField("e.g., Joy of Cooking", text: $cookbookName)
+                    .textFieldStyle(.roundedBorder)
+                    .autocorrectionDisabled()
+            }
+            .padding(.horizontal, HeirloomSpacing.lg)
+
             Spacer()
 
             // Action Buttons
@@ -402,10 +415,11 @@ struct CookbookScannerView: View {
 
         Task {
             do {
-                // Create import job with single image for Cookbook Pages collection
+                // Create import job with cookbook-specific or default collection name
+                let collectionName = cookbookName.isEmpty ? "Cookbook Pages" : cookbookName
                 let job = try await importManager.createCameraImportJob(
                     images: [image],
-                    collectionName: "Cookbook Pages",
+                    collectionName: collectionName,
                     collectionType: .cookbook,
                     context: modelContext
                 )
