@@ -20,6 +20,34 @@ struct StandardCollectionCard: View {
         return Array(recipes.prefix(2))
     }
 
+    /// Check if large slot is using a recipe image (not AI/custom background)
+    private var isLargeSlotUsingRecipeImage: Bool {
+        // If we have AI or custom background, large slot uses that, not recipe
+        if collection.generatedBackgroundImagePath != nil || collection.customBackgroundImagePath != nil {
+            return false
+        }
+        // Otherwise, if we have a recipe with image, large slot uses it
+        return recipeImages.first?.imageFileName != nil || recipeImages.first?.firebaseImageURL != nil
+    }
+
+    /// Get recipes for small slots (excluding the one used in large slot if applicable)
+    private var recipesForSmallSlots: [Recipe?] {
+        if isLargeSlotUsingRecipeImage {
+            // Large slot is using first recipe, so small slots get recipe 2 and 3 (or nil)
+            let remainingRecipes = Array((collection.recipes ?? []).dropFirst())
+            return [
+                remainingRecipes.first,
+                remainingRecipes.count > 1 ? remainingRecipes[1] : nil
+            ]
+        } else {
+            // Large slot is using AI/custom/placeholder, so small slots get recipe 1 and 2
+            return [
+                recipeImages.first,
+                recipeImages.count > 1 ? recipeImages[1] : nil
+            ]
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Image collage (60/40 split)
@@ -31,8 +59,8 @@ struct StandardCollectionCard: View {
 
                     // Stacked small images (40%) - Recipe images
                     VStack(spacing: 2) {
-                        recipeImageView(for: recipeImages.first)
-                        recipeImageView(for: recipeImages.count > 1 ? recipeImages[1] : nil)
+                        recipeImageView(for: recipesForSmallSlots[0], isFirstSlot: true)
+                        recipeImageView(for: recipesForSmallSlots[1], isFirstSlot: false)
                     }
                     .frame(width: geo.size.width * 0.4 - 2)
                 }
@@ -105,7 +133,7 @@ struct StandardCollectionCard: View {
     // MARK: - Recipe Image View (Small Thumbnails)
 
     @ViewBuilder
-    private func recipeImageView(for recipe: Recipe?) -> some View {
+    private func recipeImageView(for recipe: Recipe?, isFirstSlot: Bool) -> some View {
         if let recipe = recipe,
            (recipe.imageFileName != nil || recipe.firebaseImageURL != nil) {
             AsyncRecipeImage(
@@ -114,8 +142,8 @@ struct StandardCollectionCard: View {
                 placeholder: collection.iconName
             )
         }
-        // If only 1 recipe, show + affordance in empty slot
-        else if recipeImages.count == 1 && recipe == nil {
+        // Show + affordance in first empty slot when collection has exactly 1 recipe
+        else if recipeCount == 1 && recipe == nil && isFirstSlot {
             addRecipeAffordance
         }
         else {
