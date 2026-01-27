@@ -276,8 +276,7 @@ struct CollectionDetailView: View {
                             showVideoImport = true
                         },
                         onAddCollection: {}, // Not applicable within a collection detail view
-                        onAddNormalSample: addNormalSampleRecipe,
-                        onAddHeritageSample: addHeritageSampleRecipe
+                        onAddNormalSample: addNormalSampleRecipe
                     )
                 }
             }
@@ -518,26 +517,6 @@ struct CollectionDetailView: View {
         .padding(.horizontal, HeirloomSpacing.md)
     }
 
-    // MARK: - Heritage Recipe JSON Model
-
-    private struct HeritageRecipeJSON: Codable {
-        let id: String
-        let title: String
-        let sourceThemeId: String
-        let servings: String?
-        let prepTime: String?
-        let cookTime: String?
-        let ingredients: [String]
-        let instructions: [String]
-        let historicalText: String?
-        let historicalContext: String?
-        let sourceAttribution: String?
-        let sourceDate: String?
-        let sourceURL: String?
-        let imageURL: String?
-        let tags: [String]?
-    }
-
     // MARK: - Actions
 
     private func addNormalSampleRecipe() {
@@ -549,122 +528,7 @@ struct CollectionDetailView: View {
         }
     }
 
-    private func addHeritageSampleRecipe() {
-        Task {
-            await createHeritageRecipe(addToCollection: collection)
-        }
-    }
-
-    private func createHeritageRecipe(addToCollection: RecipeCollection) async {
-        // Load heritage recipes from JSON
-        guard let url = Bundle.main.url(forResource: "heritage-recipes", withExtension: "json"),
-              let data = try? Data(contentsOf: url) else {
-            return
-        }
-
-        struct HeritageRecipeData: Codable {
-            let recipes: [HeritageRecipeJSON]
-        }
-
-        guard let heritageData = try? JSONDecoder().decode(HeritageRecipeData.self, from: data) else {
-            return
-        }
-
-        // Get existing recipe titles to avoid duplicates
-        let existingTitles = recipes.map { $0.title }
-
-        // Filter out recipes that already exist
-        let availableRecipes = heritageData.recipes.filter { !existingTitles.contains($0.title) }
-
-        // Pick a random recipe that doesn't already exist
-        guard let heritageRecipe = availableRecipes.randomElement() else {
-            // If all recipes exist, pick any and add a number
-            guard let heritageRecipe = heritageData.recipes.randomElement() else { return }
-            await createHeritageRecipeFromJSON(heritageRecipe, addToCollection: addToCollection, titleExists: true)
-            return
-        }
-
-        await createHeritageRecipeFromJSON(heritageRecipe, addToCollection: addToCollection, titleExists: false)
-    }
-
-    private func createHeritageRecipeFromJSON(_ json: HeritageRecipeJSON, addToCollection: RecipeCollection, titleExists: Bool) async {
-        let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
-
-        // Create unique title if needed
-        var finalTitle = json.title
-        if titleExists {
-            let existingTitles = recipes.map { $0.title }
-            var counter = 2
-            while existingTitles.contains("\(json.title) (\(counter))") {
-                counter += 1
-            }
-            finalTitle = "\(json.title) (\(counter))"
-        }
-
-        // Create recipe
-        let recipe = Recipe(
-            title: finalTitle,
-            sourceType: .heritage,
-            sourceURL: json.sourceURL,
-            instructions: json.instructions,
-            servings: json.servings,
-            prepTime: json.prepTime,
-            cookTime: json.cookTime
-        )
-
-        recipe.sourceDate = json.sourceDate
-        recipe.historicalContext = json.historicalContext
-        recipe.notes = json.historicalText
-
-        // Download and save image if available
-        if let imageURLString = json.imageURL, let imageURL = URL(string: imageURLString) {
-            do {
-                let (data, _) = try await URLSession.shared.data(from: imageURL)
-                if let image = UIImage(data: data) {
-                    let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
-                    recipe.imageFileName = fileName
-                }
-            } catch {
-                // Continue without image
-            }
-        }
-
-        // Insert recipe
-        await MainActor.run {
-            modelContext.insert(recipe)
-        }
-
-        // Create and insert ingredients
-        var ingredients: [Ingredient] = []
-        for (index, text) in json.ingredients.enumerated() {
-            let parsed = IngredientParser.parse(text)
-
-            let ingredient = Ingredient(
-                originalText: text,
-                name: parsed.name,
-                quantity: parsed.quantity,
-                unit: parsed.unit,
-                category: GroceryCategory.categorize(parsed.name),
-                orderIndex: index
-            )
-            ingredient.quantityMax = parsed.quantityMax
-            ingredient.recipe = recipe
-            await MainActor.run {
-                modelContext.insert(ingredient)
-            }
-            ingredients.append(ingredient)
-        }
-
-        recipe.ingredients = ingredients
-
-        // Add to collection
-        await MainActor.run {
-            recipe.collections = [addToCollection]
-            try? modelContext.save()
-        }
-    }
-
-    private func createSampleRecipe(from sampleRecipe: SampleRecipeData, addToCollection: RecipeCollection, isHeritage: Bool = false) async {
+    private func createSampleRecipe(from sampleRecipe: SampleRecipeData, addToCollection: RecipeCollection) async {
         let sampleData = sampleRecipe.recipe
         let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
 
@@ -683,7 +547,7 @@ struct CollectionDetailView: View {
         // Create a NEW Recipe object (don't reuse the sample)
         let recipe = Recipe(
             title: finalTitle,
-            sourceType: isHeritage ? .heritage : (sampleData.sourceType ?? .manual),
+            sourceType: sampleData.sourceType ?? .manual,
             sourceURL: sampleData.sourceURL,
             instructions: sampleData.instructions,
             servings: sampleData.servings,
