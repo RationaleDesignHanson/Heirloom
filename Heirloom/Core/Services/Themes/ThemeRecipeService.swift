@@ -75,7 +75,7 @@ actor ThemeRecipeService {
 
                 recipes.append(recipe)
             } catch {
-                Log.error("Failed to parse recipe", category: .theme, metadata: [
+                Log.error("Failed to parse recipe", category: .onboarding, metadata: [
                     "themeId": themeId,
                     "recipeId": document.documentID,
                     "error": error.localizedDescription
@@ -85,7 +85,7 @@ actor ThemeRecipeService {
 
         try context.save()
 
-        Log.info("Downloaded \(recipes.count) recipes for theme", category: .theme, metadata: [
+        Log.info("Downloaded \(recipes.count) recipes for theme", category: .onboarding, metadata: [
             "themeId": themeId,
             "recipeCount": recipes.count
         ])
@@ -121,7 +121,7 @@ actor ThemeRecipeService {
         recipe.prepTime = formatTime(data["prepTime"])
         recipe.cookTime = formatTime(data["cookTime"])
         recipe.servings = formatServings(data["servings"])
-        recipe.sourceType = .theme
+        recipe.sourceType = .heritage
         recipe.isThemeRecipe = true
         recipe.sourceThemeId = themeId
         recipe.themeRecipeId = document.documentID
@@ -166,6 +166,11 @@ actor ThemeRecipeService {
         }
 
         recipe.instructions = instructions
+
+        // Create and configure card back for theme recipes
+        let cardBack = RecipeCardBack(recipe: recipe)
+        cardBack.configureForHeritageRecipe()
+        recipe.cardBack = cardBack
 
         return recipe
     }

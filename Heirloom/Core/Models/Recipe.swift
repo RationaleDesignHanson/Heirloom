@@ -386,6 +386,14 @@ extension Recipe {
         }
     }
 
+    /// Name of the heritage/theme collection this recipe belongs to (for card back display)
+    var heritageCollection: String? {
+        guard isThemeRecipe, let themeId = sourceThemeId else { return nil }
+
+        // Find the theme collection this recipe belongs to
+        return collections?.first(where: { $0.sourceTheme?.firebaseId == themeId })?.name
+    }
+
     var shouldShowLoveMarks: Bool {
         timesCooked >= 5
     }
