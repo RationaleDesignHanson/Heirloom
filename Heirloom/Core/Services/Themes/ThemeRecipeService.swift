@@ -28,14 +28,6 @@ actor ThemeRecipeService {
 
     /// Download all recipes for a specific theme
     func downloadRecipesForTheme(themeId: String, into context: ModelContext) async throws -> [Recipe] {
-        // Get the theme to access unlock schedule
-        let themeDescriptor = FetchDescriptor<RecipeTheme>(
-            predicate: #Predicate { $0.firebaseId == themeId }
-        )
-        guard let theme = try? context.fetch(themeDescriptor).first else {
-            throw ThemeRecipeError.invalidData("Theme not found: \(themeId)")
-        }
-
         // Fetch recipes from Firebase
         let recipesSnapshot = try await firestore
             .collection("themes")
@@ -46,7 +38,7 @@ actor ThemeRecipeService {
 
         var recipes: [Recipe] = []
 
-        for (index, document) in recipesSnapshot.documents.enumerated() {
+        for document in recipesSnapshot.documents {
             do {
                 // Check if recipe already exists locally by Firebase document ID
                 let firebaseDocId = document.documentID
@@ -58,20 +50,36 @@ actor ThemeRecipeService {
 
                 let recipe: Recipe
                 if let existing = try? context.fetch(existingDescriptor).first {
-                    // Recipe already exists - skip to avoid duplicates
+                    // Recipe already exists - update it instead of skipping
                     recipe = existing
+
+                    // Delete existing ingredients by accessing relationship directly
+                    // (can't use predicates with optional relationships)
+                    if let existingIngredients = existing.ingredients {
+                        for ingredient in existingIngredients {
+                            context.delete(ingredient)
+                        }
+                    }
+
+                    // Clear the relationship
+                    existing.ingredients = nil
+
+                    // Force save to commit deletions before adding new data
+                    try context.save()
+
+                    // Update recipe data
+                    try await updateRecipe(existing, from: document, themeId: themeId, context: context)
                 } else {
                     // Parse and insert new recipe
                     recipe = try await parseRecipe(from: document, themeId: themeId)
                     context.insert(recipe)
                 }
 
-                // Assign unlock day based on position and theme schedule
-                recipe.unlockDay = assignUnlockDay(
-                    recipeIndex: index,
-                    totalRecipes: recipesSnapshot.documents.count,
-                    unlockSchedule: theme.unlockSchedule
-                )
+                // Get unlock day from Firebase document (already set during seeding)
+                let unlockDay = document.data()["unlockDay"] as? Int ?? 1
+                recipe.unlockDay = unlockDay
+
+                Log.debug("Recipe '\(recipe.title)' has unlockDay: \(unlockDay)", category: .onboarding)
 
                 recipes.append(recipe)
             } catch {
@@ -93,17 +101,45 @@ actor ThemeRecipeService {
         return recipes
     }
 
-    /// Assign unlock day to a recipe based on its position and theme schedule
-    /// Distributes recipes evenly across unlock days
-    private func assignUnlockDay(recipeIndex: Int, totalRecipes: Int, unlockSchedule: [Int]) -> Int {
-        guard !unlockSchedule.isEmpty else { return 1 }
+    /// Update existing recipe with fresh data from Firestore
+    private func updateRecipe(_ recipe: Recipe, from document: QueryDocumentSnapshot, themeId: String, context: ModelContext) async throws {
+        let data = document.data()
 
-        // Distribute recipes evenly across unlock days
-        let recipesPerDay = Double(totalRecipes) / Double(unlockSchedule.count)
-        let dayIndex = Int(Double(recipeIndex) / recipesPerDay)
-        let clampedIndex = min(dayIndex, unlockSchedule.count - 1)
+        // Update basic fields
+        recipe.title = data["title"] as? String ?? recipe.title
+        recipe.notes = data["description"] as? String
+        recipe.prepTime = formatTime(data["prepTime"])
+        recipe.cookTime = formatTime(data["cookTime"])
+        recipe.servings = formatServings(data["servings"])
+        recipe.firebaseImageURL = data["imageURL"] as? String
+        recipe.historicalText = data["story"] as? String
+        recipe.sourceStory = data["source"] as? String
+        recipe.unlockDay = data["unlockDay"] as? Int ?? recipe.unlockDay ?? 1
 
-        return unlockSchedule[clampedIndex]
+        // Get ingredients from document array
+        if let ingredientsArray = data["ingredients"] as? [[String: Any]] {
+            for (index, ingData) in ingredientsArray.enumerated() {
+                // Format ingredient into readable text (like "1 pound elbow macaroni")
+                let originalText = formatIngredientText(ingData)
+
+                let ingredient = Ingredient(
+                    originalText: originalText,
+                    name: ingData["name"] as? String ?? "",
+                    quantity: ingData["amount"] as? Double,
+                    unit: ingData["unit"] as? String,
+                    category: .other,
+                    orderIndex: index
+                )
+
+                ingredient.recipe = recipe
+                context.insert(ingredient)
+            }
+        }
+
+        // Get instructions from document array
+        if let instructionsArray = data["instructions"] as? [String] {
+            recipe.instructions = instructionsArray
+        }
     }
 
     private func parseRecipe(from document: QueryDocumentSnapshot, themeId: String) async throws -> Recipe {
@@ -126,50 +162,39 @@ actor ThemeRecipeService {
         recipe.sourceThemeId = themeId
         recipe.themeRecipeId = document.documentID
         recipe.firebaseImageURL = data["imageURL"] as? String
+        recipe.unlockDay = data["unlockDay"] as? Int ?? 1
 
         // Historical content for card back
         recipe.historicalText = data["story"] as? String
         recipe.sourceStory = data["source"] as? String
 
-        // Download ingredients
-        let ingredientsSnapshot = try await document.reference
-            .collection("ingredients")
-            .order(by: "order")
-            .getDocuments()
-
+        // Get ingredients from document array
         var ingredients: [Ingredient] = []
-        for (index, ingDoc) in ingredientsSnapshot.documents.enumerated() {
-            let ingData = ingDoc.data()
+        if let ingredientsArray = data["ingredients"] as? [[String: Any]] {
+            for (index, ingData) in ingredientsArray.enumerated() {
+                // Format ingredient into readable text (like "1 pound elbow macaroni")
+                let originalText = formatIngredientText(ingData)
 
-            let ingredient = Ingredient(
-                originalText: ingData["text"] as? String ?? "",
-                name: ingData["name"] as? String ?? "",
-                quantity: ingData["amount"] as? Double,
-                unit: ingData["unit"] as? String,
-                category: .other,
-                orderIndex: index
-            )
+                let ingredient = Ingredient(
+                    originalText: originalText,
+                    name: ingData["name"] as? String ?? "",
+                    quantity: ingData["amount"] as? Double,
+                    unit: ingData["unit"] as? String,
+                    category: .other,
+                    orderIndex: index
+                )
 
-            ingredient.recipe = recipe
-            ingredients.append(ingredient)
+                ingredient.recipe = recipe
+                ingredients.append(ingredient)
+            }
         }
 
         recipe.ingredients = ingredients
 
-        // Download instructions
-        let instructionsSnapshot = try await document.reference
-            .collection("instructions")
-            .order(by: "order")
-            .getDocuments()
-
-        var instructions: [String] = []
-        for instDoc in instructionsSnapshot.documents {
-            if let text = instDoc.data()["text"] as? String {
-                instructions.append(text)
-            }
+        // Get instructions from document array
+        if let instructionsArray = data["instructions"] as? [String] {
+            recipe.instructions = instructionsArray
         }
-
-        recipe.instructions = instructions
 
         // Create and configure card back for theme recipes
         let cardBack = RecipeCardBack(recipe: recipe)
@@ -197,6 +222,33 @@ actor ThemeRecipeService {
             return str
         }
         return nil
+    }
+
+    /// Format ingredient data into readable text like "1 pound elbow macaroni"
+    private func formatIngredientText(_ ingData: [String: Any]) -> String {
+        var parts: [String] = []
+
+        // Add amount
+        if let amount = ingData["amount"] as? Double {
+            // Format nicely (no unnecessary decimals)
+            if amount.truncatingRemainder(dividingBy: 1) == 0 {
+                parts.append(String(format: "%.0f", amount))
+            } else {
+                parts.append(String(format: "%.2f", amount).replacingOccurrences(of: ".00", with: ""))
+            }
+        }
+
+        // Add unit
+        if let unit = ingData["unit"] as? String, !unit.isEmpty {
+            parts.append(unit)
+        }
+
+        // Add name
+        if let name = ingData["name"] as? String, !name.isEmpty {
+            parts.append(name)
+        }
+
+        return parts.joined(separator: " ")
     }
 }
 

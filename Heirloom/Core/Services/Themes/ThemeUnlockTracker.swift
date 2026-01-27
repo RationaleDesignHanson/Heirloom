@@ -205,6 +205,8 @@ class ThemeUnlockTracker: ObservableObject {
         let calendar = Calendar.current
         let days = calendar.dateComponents([.day], from: trialStartDate, to: Date()).day ?? 0
         currentTrialDay = min(max(days + 1, 1), 15) // Day 1-14, or 15 if complete
+
+        Log.debug("Trial day updated: trialStartDate=\(trialStartDate), daysElapsed=\(days), currentTrialDay=\(currentTrialDay)", category: .trial)
     }
 
     private func loadPersistedState() {

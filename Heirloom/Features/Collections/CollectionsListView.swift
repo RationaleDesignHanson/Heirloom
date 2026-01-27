@@ -10,6 +10,7 @@ struct CollectionsListView: View {
     @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
     @Query(sort: \RecipeCollection.createdDate) private var allCollections: [RecipeCollection]
     @Query(sort: \Recipe.dateAdded, order: .reverse) private var allRecipes: [Recipe]
+    @Query(sort: \RecipeTheme.sortOrder) private var allThemes: [RecipeTheme]
 
     // Global recipe search state
     @State private var searchText = ""
@@ -451,7 +452,9 @@ struct CollectionsListView: View {
                     ThemeCollectionCard(
                         collection: collection,
                         currentDay: themeUnlockTracker.currentTrialDay,
-                        unlockTracker: themeUnlockTracker
+                        unlockTracker: themeUnlockTracker,
+                        allRecipes: allRecipes,
+                        allThemes: allThemes
                     )
                 }
                 .buttonStyle(.plain)

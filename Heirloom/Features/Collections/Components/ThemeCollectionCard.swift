@@ -6,27 +6,36 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ThemeCollectionCard: View {
     let collection: RecipeCollection
     let currentDay: Int
     let unlockTracker: ThemeUnlockTracker
+    let allRecipes: [Recipe]
+    let allThemes: [RecipeTheme]
 
     private var theme: RecipeTheme? {
-        collection.sourceTheme
+        guard let themeId = collection.sourceThemeId else { return nil }
+        return allThemes.first { $0.firebaseId == themeId }
+    }
+
+    private var themeRecipes: [Recipe] {
+        // Get recipes for this theme by sourceThemeId (avoid accessing collection.recipes relationship)
+        guard let themeId = collection.sourceThemeId else { return [] }
+        return allRecipes.filter { $0.sourceThemeId == themeId }
     }
 
     private var recipeImages: [Recipe] {
-        // Get first 3 unlocked recipes for display
-        let unlockedRecipes = (collection.recipes ?? []).filter { unlockTracker.isUnlocked($0) }
-        return Array(unlockedRecipes.prefix(3))
+        // Get first 2 unlocked recipes for display (we only show 2 small images now)
+        let unlockedRecipes = themeRecipes.filter { unlockTracker.isUnlocked($0) }
+        return Array(unlockedRecipes.prefix(2))
     }
 
     private var unlockProgress: (unlocked: Int, total: Int) {
         // Count unlocked recipes vs total recipes
-        let unlocked = (collection.recipes ?? []).filter { unlockTracker.isUnlocked($0) }.count
-        // Use actual recipe count, not theme.totalRecipes (which may be from JSON before all recipes uploaded)
-        let total = collection.recipes?.count ?? 0
+        let unlocked = themeRecipes.filter { unlockTracker.isUnlocked($0) }.count
+        let total = themeRecipes.count
         return (unlocked, total)
     }
 
@@ -34,19 +43,28 @@ struct ThemeCollectionCard: View {
         unlockProgress.unlocked >= unlockProgress.total
     }
 
+    private var subtitleText: String {
+        let progress = unlockProgress
+        if progress.unlocked < progress.total {
+            return "\(progress.unlocked) of \(progress.total) recipes unlocked"
+        } else {
+            return "All \(progress.total) recipes unlocked"
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Image collage (60/40 split)
             GeometryReader { geo in
                 HStack(spacing: 2) {
-                    // Large image (60%)
-                    recipeImageView(for: recipeImages.first)
+                    // Large image (60%) - Theme cover image
+                    themeImageView
                         .frame(width: geo.size.width * 0.6)
 
-                    // Stacked small images (40%)
+                    // Stacked small images (40%) - Recipe images
                     VStack(spacing: 2) {
+                        recipeImageView(for: recipeImages.first)
                         recipeImageView(for: recipeImages.count > 1 ? recipeImages[1] : nil)
-                        recipeImageView(for: recipeImages.count > 2 ? recipeImages[2] : nil)
                     }
                     .frame(width: geo.size.width * 0.4 - 2)
                 }
@@ -66,7 +84,7 @@ struct ThemeCollectionCard: View {
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
 
-                    Text(collection.subtitleText)
+                    Text(subtitleText)
                         .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
@@ -95,6 +113,28 @@ struct ThemeCollectionCard: View {
     }
 
     // MARK: - Subviews
+
+    @ViewBuilder
+    private var themeImageView: some View {
+        if let theme = theme,
+           let coverImageURL = theme.coverImageURL,
+           let url = URL(string: coverImageURL) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                case .failure, .empty:
+                    placeholderView
+                @unknown default:
+                    placeholderView
+                }
+            }
+        } else {
+            placeholderView
+        }
+    }
 
     @ViewBuilder
     private func recipeImageView(for recipe: Recipe?) -> some View {

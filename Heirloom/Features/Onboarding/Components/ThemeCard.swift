@@ -28,9 +28,9 @@ struct ThemeCard: View {
                 // Background image
                 themeImage
 
-                // Gradient overlay
+                // Gradient overlay - stronger and starts earlier for better text legibility
                 LinearGradient(
-                    colors: [.clear, .clear, .black.opacity(0.8)],
+                    colors: [.clear, .black.opacity(0.3), .black.opacity(0.9)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -43,8 +43,9 @@ struct ThemeCard: View {
                     Text(theme.category.displayName.uppercased())
                         .font(.system(size: 10, weight: .semibold))
                         .tracking(0.5)
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(.white.opacity(0.9))
                         .padding(.bottom, 4)
+                        .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
 
                     // Theme name
                     Text(theme.name)
@@ -52,13 +53,15 @@ struct ThemeCard: View {
                         .foregroundStyle(.white)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
+                        .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
 
                     // Tagline
                     Text(theme.tagline)
                         .font(HeirloomFonts.caption1)
-                        .foregroundStyle(.white.opacity(0.8))
+                        .foregroundStyle(.white.opacity(0.95))
                         .lineLimit(2)
                         .padding(.top, 4)
+                        .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
 
                     // Recipe count
                     HStack(spacing: 4) {
@@ -67,8 +70,9 @@ struct ThemeCard: View {
                         Text("\(theme.totalRecipes) recipes")
                             .font(HeirloomFonts.caption2)
                     }
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(.white.opacity(0.85))
                     .padding(.top, 8)
+                    .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
                 }
                 .padding(HeirloomSpacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -122,7 +126,9 @@ struct ThemeCard: View {
                 case .success(let image):
                     image
                         .resizable()
-                        .scaledToFill()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: cardWidth, height: cardHeight)
+                        .clipped()
                 case .failure:
                     placeholderImage
                 case .empty:

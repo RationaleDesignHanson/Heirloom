@@ -3,20 +3,29 @@ service firebase.storage {
   match /b/{bucket}/o {
 
     // ========================================
-    // THEME COVER IMAGES (Read-Only)
+    // THEME COVER IMAGES (Public Read)
     // Cover images for theme collections
     // ========================================
     match /themes/{imageFile} {
-      allow read: if request.auth != null; // Authenticated users only
+      allow read: if true; // PUBLIC: Theme covers are public assets
       allow write: if false; // Admin only via console
     }
 
     // ========================================
-    // THEME RECIPE IMAGES (Read-Only)
+    // HERITAGE RECIPE IMAGES (Public Read)
+    // Original heritage collection images
+    // ========================================
+    match /heritage-recipes/{imageFile} {
+      allow read: if true; // PUBLIC: Heritage images are public assets
+      allow write: if false; // Admin only via console
+    }
+
+    // ========================================
+    // THEME RECIPE IMAGES (Public Read)
     // Recipe images organized by theme
     // ========================================
     match /recipes/{themeId}/{imageFile} {
-      allow read: if request.auth != null; // Authenticated users only
+      allow read: if true; // PUBLIC: Recipe images are public assets
       allow write: if false; // Admin only via console
     }
 

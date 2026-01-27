@@ -19,6 +19,8 @@ final class RecipeCollection {
     @Relationship(deleteRule: .nullify)
     var sourceTheme: RecipeTheme?
 
+    var sourceThemeId: String? // Firebase ID of the theme (avoids accessing relationship)
+
     var sourceCookbook: String?
     var sourceURL: String?
 

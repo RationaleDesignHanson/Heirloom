@@ -138,7 +138,7 @@ async function seedRecipes(targetThemeId = null) {
         const batch = db.batch();
         const recipeRef = db.collection('themes').doc(themeId).collection('recipes').doc(recipe.id);
 
-        // Build recipe document
+        // Build recipe document with ingredients and instructions as arrays
         const recipeDoc = {
           title: recipe.title,
           description: recipe.description || '',
@@ -151,39 +151,16 @@ async function seedRecipes(targetThemeId = null) {
           tags: recipe.tags || [],
           source: recipe.source || '',
           story: recipe.story || '',
+          // Use Firebase Storage API format (like heritage recipes)
+          imageURL: `https://firebasestorage.googleapis.com/v0/b/heirloom-ios-prod.firebasestorage.app/o/recipes%2F${themeId}%2F${recipe.id}.webp?alt=media`,
+          // Store ingredients and instructions as arrays in the document
+          ingredients: recipe.ingredients || [],
+          instructions: recipe.instructions || [],
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
         batch.set(recipeRef, recipeDoc);
-
-        // Add ingredients as subcollection
-        if (recipe.ingredients) {
-          for (let i = 0; i < recipe.ingredients.length; i++) {
-            const ing = recipe.ingredients[i];
-            const ingredientRef = recipeRef.collection('ingredients').doc();
-            batch.set(ingredientRef, {
-              text: formatIngredient(ing),
-              name: ing.name,
-              amount: ing.amount || null,
-              unit: ing.unit || null,
-              group: ing.group || null,
-              isOptional: ing.isOptional || false,
-              order: i + 1
-            });
-          }
-        }
-
-        // Add instructions as subcollection
-        if (recipe.instructions) {
-          for (let i = 0; i < recipe.instructions.length; i++) {
-            const instructionRef = recipeRef.collection('instructions').doc();
-            batch.set(instructionRef, {
-              text: recipe.instructions[i],
-              order: i + 1
-            });
-          }
-        }
 
         await batch.commit();
 

@@ -15,6 +15,7 @@ struct CollectionDetailView: View {
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
     @State private var showDeleteConfirmation = false
+    @State private var showAddRecipeMenu = false
     @EnvironmentObject private var unlockTracker: ThemeUnlockTracker
 
     // Context menu state
@@ -54,13 +55,16 @@ struct CollectionDetailView: View {
             return allRecipes
         }
 
-        let collectionRecipes = allRecipes.filter { recipe in
-            recipe.collections?.contains(where: { $0.id == collection.id }) ?? false
+        // For theme collections, query by sourceThemeId to avoid accessing collections relationship
+        if collection.type == .theme {
+            guard let themeId = collection.sourceThemeId else { return [] }
+            let themeRecipes = allRecipes.filter { $0.sourceThemeId == themeId }
+            return themeRecipes.filter { unlockTracker.isUnlocked($0) }
         }
 
-        // Filter out locked theme recipes
-        if collection.type == .theme {
-            return collectionRecipes.filter { unlockTracker.isUnlocked($0) }
+        // For other collections, use the relationship
+        let collectionRecipes = allRecipes.filter { recipe in
+            recipe.collections?.contains(where: { $0.id == collection.id }) ?? false
         }
 
         return collectionRecipes
@@ -297,6 +301,40 @@ struct CollectionDetailView: View {
         .sheet(isPresented: $showVideoImport) {
             UnifiedVideoImportView()
                 .environmentObject(tabCoordinator)
+        }
+        .confirmationDialog(
+            "Add Recipe",
+            isPresented: $showAddRecipeMenu,
+            titleVisibility: .visible
+        ) {
+            Button("New Recipe") {
+                tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                showAddRecipe = true
+            }
+
+            Button("Recipe Website Link") {
+                tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                showImportRecipe = true
+            }
+
+            Button("Bulk Import") {
+                tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                showBulkImport = true
+            }
+
+            Button("Scan Cookbook Page") {
+                tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                showCookbookScanner = true
+            }
+
+            Button("Video Import") {
+                tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                showVideoImport = true
+            }
+
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Choose how you'd like to add recipes to \(collection.name)")
         }
         .confirmationDialog(
             "Delete Recipe?",
@@ -1078,8 +1116,7 @@ struct CollectionDetailView: View {
 
             // Nudge card
             Button {
-                tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                showAddRecipe = true
+                showAddRecipeMenu = true
             } label: {
                 HStack(spacing: HeirloomSpacing.md) {
                     // Icon

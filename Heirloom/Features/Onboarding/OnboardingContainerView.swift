@@ -189,6 +189,7 @@ struct OnboardingContainerView: View {
             if let existing = try? modelContext.fetch(collectionDescriptor).first {
                 // Link existing collection to theme
                 existing.sourceTheme = theme
+                existing.sourceThemeId = theme.firebaseId
                 theme.collection = existing
             } else {
                 // Create new collection
@@ -198,6 +199,7 @@ struct OnboardingContainerView: View {
                     collectionType: .theme
                 )
                 collection.sourceTheme = theme
+                collection.sourceThemeId = theme.firebaseId
                 theme.collection = collection
                 modelContext.insert(collection)
             }
@@ -218,42 +220,12 @@ struct OnboardingContainerView: View {
             let recipeService = ThemeRecipeService()
             let recipes = try await recipeService.downloadRecipes(for: themeIds, into: modelContext)
 
-            // Link recipes to their collections by fetching collections directly
-            // (avoids SwiftData duplicate registration error from theme.collection relationship)
-            for themeId in themeIds {
-                let recipesForTheme = recipes.filter { $0.sourceThemeId == themeId }
-
-                // Fetch collection directly by theme name and type
-                let collectionDescriptor = FetchDescriptor<RecipeCollection>(
-                    predicate: #Predicate<RecipeCollection> { collection in
-                        collection.collectionType == "theme" &&
-                        collection.sourceTheme?.firebaseId == themeId
-                    }
-                )
-
-                guard let collection = try? modelContext.fetch(collectionDescriptor).first else {
-                    Log.warning("Collection not found for theme", category: .onboarding, metadata: ["themeId": themeId])
-                    continue
-                }
-
-                // Add recipes to collection via inverse relationship (avoids SwiftData duplicate registration)
-                for recipe in recipesForTheme {
-                    // Check if recipe already in this collection
-                    let alreadyInCollection = recipe.collections?.contains(where: { $0.id == collection.id }) ?? false
-
-                    if !alreadyInCollection {
-                        if recipe.collections == nil {
-                            recipe.collections = [collection]
-                        } else {
-                            recipe.collections?.append(collection)
-                        }
-                    }
-                }
-            }
+            // Recipes are downloaded with sourceThemeId - collections will find them via queries
+            // No need to set the many-to-many relationship explicitly - SwiftData manages it
 
             try modelContext.save()
 
-            Log.info("Downloaded and linked \(recipes.count) recipes to collections", category: .onboarding)
+            Log.info("Downloaded \(recipes.count) recipes", category: .onboarding)
         } catch {
             Log.error("Failed to download initial recipes", category: .onboarding, error: error)
         }
