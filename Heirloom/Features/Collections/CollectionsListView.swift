@@ -462,12 +462,14 @@ struct CollectionsListView: View {
             // Theme collection cards (full width)
             ForEach(themeCollections) { collection in
                 NavigationLink(value: collection) {
-                    ThemeCollectionCard(
+                    UnifiedCollectionCard(
                         collection: collection,
-                        currentDay: themeUnlockTracker.currentTrialDay,
-                        unlockTracker: themeUnlockTracker,
-                        allRecipes: allRecipes,
-                        allThemes: allThemes
+                        variant: .themed(
+                            currentDay: themeUnlockTracker.currentTrialDay,
+                            unlockTracker: themeUnlockTracker,
+                            allRecipes: allRecipes,
+                            allThemes: allThemes
+                        )
                     )
                 }
                 .buttonStyle(.plain)
@@ -503,11 +505,13 @@ struct CollectionsListView: View {
             // Collection cards
             ForEach(myCollections) { collection in
                 NavigationLink(value: collection) {
-                    StandardCollectionCard(
+                    UnifiedCollectionCard(
                         collection: collection,
-                        onAddRecipeTap: (collection.recipes?.count ?? 0) == 1
-                            ? { handleAddRecipeToCollection(collection) }
-                            : nil
+                        variant: .standard(
+                            onAddRecipeTap: (collection.recipes?.count ?? 0) == 1
+                                ? { handleAddRecipeToCollection(collection) }
+                                : nil
+                        )
                     )
                 }
                 .buttonStyle(.plain)
