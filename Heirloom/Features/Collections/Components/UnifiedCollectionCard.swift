@@ -339,26 +339,26 @@ struct UnifiedCollectionCard: View {
 
     @ViewBuilder
     private var statusBadge: some View {
-        guard case .themed(let currentDay, _, _, _) = variant else { return }
-
-        if isComplete {
-            Text("Complete")
-                .font(HeirloomFonts.caption2)
-                .fontWeight(.semibold)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(HeirloomColors.familyGreen)
-                .foregroundStyle(.white)
-                .cornerRadius(6)
-        } else {
-            Text("Day \(currentDay)")
-                .font(HeirloomFonts.caption2)
-                .fontWeight(.semibold)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(HeirloomColors.amber)
-                .foregroundStyle(.white)
-                .cornerRadius(6)
+        if case .themed(let currentDay, _, _, _) = variant {
+            if isComplete {
+                Text("Complete")
+                    .font(HeirloomFonts.caption2)
+                    .fontWeight(.semibold)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(HeirloomColors.familyGreen)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            } else {
+                Text("Day \(currentDay)")
+                    .font(HeirloomFonts.caption2)
+                    .fontWeight(.semibold)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(HeirloomColors.amber)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
         }
     }
 
@@ -379,28 +379,5 @@ struct UnifiedCollectionCard: View {
                     .font(.title2)
                     .foregroundStyle(HeirloomColors.warmGray.opacity(0.5))
             )
-    }
-}
-
-// MARK: - Circular Progress View
-
-struct CircularProgressView: View {
-    let progress: Double
-    let lineWidth: CGFloat
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(HeirloomColors.warmGray.opacity(0.2), lineWidth: lineWidth)
-
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(HeirloomColors.tomato, style: StrokeStyle(
-                    lineWidth: lineWidth,
-                    lineCap: .round
-                ))
-                .rotationEffect(.degrees(-90))
-                .animation(.easeInOut(duration: 0.3), value: progress)
-        }
     }
 }

@@ -290,6 +290,7 @@
 		C5B317872F00D8330087CF6D /* RecipeVersionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317862F00D8330087CF6D /* RecipeVersionService.swift */; };
 		C5B317892F00D89A0087CF6D /* RecipeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317882F00D89A0087CF6D /* RecipeSelectionView.swift */; };
 		C5B317BD2F00DC010087CF6D /* RecipeMigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317BC2F00DC010087CF6D /* RecipeMigrationService.swift */; };
+		C5CE3E302F2A92CA00A2E62F /* UnifiedCollectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3E2F2F2A92CA00A2E62F /* UnifiedCollectionCard.swift */; };
 		C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */; };
 		C5DBE4AD2F1A7EEE00C1B6BA /* PDFImageExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */; };
 		C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */; };
@@ -648,6 +649,7 @@
 		C5B317862F00D8330087CF6D /* RecipeVersionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeVersionService.swift; sourceTree = "<group>"; };
 		C5B317882F00D89A0087CF6D /* RecipeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeSelectionView.swift; sourceTree = "<group>"; };
 		C5B317BC2F00DC010087CF6D /* RecipeMigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeMigrationService.swift; sourceTree = "<group>"; };
+		C5CE3E2F2F2A92CA00A2E62F /* UnifiedCollectionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedCollectionCard.swift; sourceTree = "<group>"; };
 		C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProgressBottomBanner.swift; sourceTree = "<group>"; };
 		C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImageExtractor.swift; sourceTree = "<group>"; };
 		C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFMetadataExtractor.swift; sourceTree = "<group>"; };
@@ -1212,6 +1214,7 @@
 		C5364BCD2F26F038003D342E /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				C5CE3E2F2F2A92CA00A2E62F /* UnifiedCollectionCard.swift */,
 				C5364FDF2F27ECBA003D342E /* StandardCollectionCard.swift */,
 				C5364FE02F27ECBA003D342E /* ThemeCollectionCard.swift */,
 				C5364BCC2F26F038003D342E /* CollectionCardView.swift */,
@@ -2389,6 +2392,7 @@
 				C58302542F0CDC140096478E /* SchemaV2.swift in Sources */,
 				C583FFB22F0CAB830096478E /* Customization.swift in Sources */,
 				C583FF9F2F0CA51D0096478E /* UndoService.swift in Sources */,
+				C5CE3E302F2A92CA00A2E62F /* UnifiedCollectionCard.swift in Sources */,
 				C513D4342F15F10700BFCF7D /* SignInPromptSheet.swift in Sources */,
 				C5B317742F00C8500087CF6D /* GestureGuide.swift in Sources */,
 				C583FFE52F0CC00B0096478E /* RecipeSheetModifiers.swift in Sources */,
