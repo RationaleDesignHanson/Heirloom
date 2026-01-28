@@ -151,9 +151,15 @@ struct UnifiedCollectionCard: View {
 
     @ViewBuilder
     private var standardLargeImageView: some View {
+        // Priority 0: Empty collection affordance (if collection is empty and interactive)
+        if recipeImages.isEmpty,
+           case .standard(let onAddRecipeTap) = variant,
+           onAddRecipeTap != nil {
+            emptyCollectionAffordance
+        }
         // Priority 1: AI-generated background (if enabled)
-        if collection.useCustomBackground,
-           let generatedPath = collection.generatedBackgroundImagePath {
+        else if collection.useCustomBackground,
+                let generatedPath = collection.generatedBackgroundImagePath {
             AsyncRecipeImage(
                 imageFileName: generatedPath,
                 firebaseImageURL: nil,
@@ -334,6 +340,57 @@ struct UnifiedCollectionCard: View {
             .buttonStyle(.plain)
         } else {
             affordanceContent
+        }
+    }
+
+    @ViewBuilder
+    private var emptyCollectionAffordance: some View {
+        if case .standard(let onAddRecipeTap) = variant {
+            let affordanceContent = Rectangle()
+                .fill(HeirloomColors.warmGray.opacity(0.05))
+                .overlay(
+                    VStack(spacing: HeirloomSpacing.md) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 48))
+                            .foregroundStyle(HeirloomColors.tomato)
+
+                        VStack(spacing: 4) {
+                            Text("Add Your First Recipe")
+                                .font(HeirloomFonts.bodyBold)
+                                .foregroundStyle(HeirloomColors.primaryText)
+
+                            Text(emptyAffordanceSubtitle)
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+                    .padding(HeirloomSpacing.lg)
+                )
+
+            if let onTap = onAddRecipeTap {
+                Button(action: onTap) {
+                    affordanceContent
+                }
+                .buttonStyle(.plain)
+            } else {
+                affordanceContent
+            }
+        }
+    }
+
+    private var emptyAffordanceSubtitle: String {
+        switch collection.type {
+        case .webImports:
+            return "Tap to import from a website"
+        case .videoImports:
+            return "Tap to import from a video"
+        case .cookbook:
+            return "Tap to scan a cookbook page"
+        case .photoImports:
+            return "Tap to import from photos"
+        default:
+            return "Tap to add a recipe"
         }
     }
 
