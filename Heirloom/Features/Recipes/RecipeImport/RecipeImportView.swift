@@ -375,7 +375,6 @@ struct RecipeImportView: View {
 
         // Set saving state
         isSaving = true
-        defer { isSaving = false }
 
         // Create Recipe object
         let recipe = Recipe(
@@ -392,133 +391,254 @@ struct RecipeImportView: View {
         // Insert recipe first
         modelContext.insert(recipe)
 
-        // Parse ingredients with AI (async batch parsing for efficiency)
-        await parseAndSaveIngredients(recipe: recipe, ingredientTexts: imported.ingredients)
+        // Create placeholder ingredients from raw text (fast - no AI)
+        let ingredients: [Ingredient] = imported.ingredients.enumerated().map { (index, text) in
+            let ingredient = Ingredient(
+                originalText: text,
+                name: text, // Will be parsed in background
+                quantity: nil,
+                unit: nil,
+                category: .other,
+                orderIndex: index
+            )
+            ingredient.recipe = recipe
+            return ingredient
+        }
+
+        // Insert placeholder ingredients
+        for ingredient in ingredients {
+            modelContext.insert(ingredient)
+        }
+        recipe.ingredients = ingredients
+
+        // Auto-detect recipe category
+        recipe.detectAndApplyCategory()
+
+        // Route to "From Web" collection
+        if let sourceURLString = recipe.sourceURL, let sourceURL = URL(string: sourceURLString) {
+            let router = CollectionRouter(modelContext: modelContext)
+            router.routeURLImport(recipe, sourceURL: sourceURL)
+        }
+
+        // Save to database immediately
+        do {
+            try modelContext.save()
+        } catch {
+            await MainActor.run {
+                isSaving = false
+            }
+            toastManager.error(
+                title: "Failed to save recipe",
+                message: error.localizedDescription
+            )
+            return
+        }
+
+        // Show success and dismiss immediately
+        toastManager.success(
+            title: "Recipe imported!",
+            message: "Added '\(recipe.title)' to your collection"
+        )
+
+        await MainActor.run {
+            isSaving = false
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+
+            // Notify coordinator of recipe creation for cross-tab navigation
+            tabCoordinator.didCreateRecipe()
+
+            // Dismiss immediately
+            dismiss()
+        }
+
+        // Continue heavy operations in background (non-blocking)
+        let recipeId = recipe.id
+        let ingredientTexts = imported.ingredients
+        let imageURLString = imported.imageURL
+        let container = modelContext.container
+
+        Task.detached {
+            // Create background context
+            let backgroundContext = ModelContext(container)
+
+            // Fetch recipe in background context
+            let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == recipeId })
+            guard let backgroundRecipe = try? backgroundContext.fetch(descriptor).first else {
+                Log.error("Failed to fetch recipe in background", category: .database)
+                return
+            }
+
+            // Parse ingredients with AI in background
+            await RecipeImportView.parseIngredientsInBackground(
+                recipe: backgroundRecipe,
+                ingredientTexts: ingredientTexts,
+                context: backgroundContext
+            )
+
+            // Download image in background
+            if let imageURLString = imageURLString,
+               let url = URL(string: imageURLString) {
+                await RecipeImportView.downloadAndSaveImageInBackground(
+                    from: url,
+                    recipeId: recipeId,
+                    context: backgroundContext
+                )
+            }
+
+            // Sync to Firebase in background
+            await RecipeImportView.syncToFirebaseInBackground(
+                recipe: backgroundRecipe,
+                context: backgroundContext
+            )
+        }
     }
 
-    private func parseAndSaveIngredients(recipe: Recipe, ingredientTexts: [String]) async {
+    // MARK: - Background Processing
+
+    /// Parse ingredients with AI in background after recipe is saved
+    private static func parseIngredientsInBackground(
+        recipe: Recipe,
+        ingredientTexts: [String],
+        context: ModelContext
+    ) async {
+        Log.info("Starting background ingredient parsing", category: .general, metadata: ["count": ingredientTexts.count])
+
+        // Get services from container
+        let aiIngredientParser: AIIngredientParser = ServiceContainer.shared.resolve(AIIngredientParser.self)
+        let analytics: AnalyticsService = ServiceContainer.shared.resolve(AnalyticsService.self)
+        let aiConfig: AIConfiguration = ServiceContainer.shared.resolve(AIConfiguration.self)
+
         // Use AI batch parsing for better efficiency
         let parsedIngredients: [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)]
 
         do {
             parsedIngredients = try await aiIngredientParser.parseBatchToTuple(ingredientTexts)
+            Log.info("AI parsing successful", category: .general)
         } catch {
-            // Fallback to regex parsing on error (already handled in AIIngredientParser)
-            Log.warning("Batch parsing encountered an error", category: .general, metadata: ["error": error.localizedDescription])
+            Log.warning("Batch parsing encountered an error, using fallback", category: .general, metadata: ["error": error.localizedDescription])
             parsedIngredients = ingredientTexts.map { IngredientParser.parse($0) }
         }
 
-        // Create Ingredient objects
-        var ingredients: [Ingredient] = []
-        for (index, text) in ingredientTexts.enumerated() {
-            let parsed = parsedIngredients[index]
+        // Update existing ingredients with parsed data
+        await MainActor.run {
+            guard let ingredients = recipe.ingredients else { return }
 
-            let ingredient = Ingredient(
-                originalText: text,
-                name: parsed.name,
-                quantity: parsed.quantity,
-                unit: parsed.unit,
-                orderIndex: index
-            )
-            ingredient.quantityMax = parsed.quantityMax
-            ingredient.recipe = recipe
-            modelContext.insert(ingredient)
-            ingredients.append(ingredient)
-        }
+            for (index, ingredient) in ingredients.enumerated() {
+                guard index < parsedIngredients.count else { break }
+                let parsed = parsedIngredients[index]
 
-        recipe.ingredients = ingredients
-
-        // Auto-detect recipe category for smart serving presets
-        recipe.detectAndApplyCategory()
-
-        // Download and save image if available
-        if let imageURLString = importedRecipe?.imageURL,
-           let imageURL = URL(string: imageURLString) {
-            await downloadAndSaveImage(from: imageURL, for: recipe)
-        }
-
-        // Save to database
-        do {
-            try modelContext.save()
-
-            // Route to "From Web" collection
-            if let sourceURLString = recipe.sourceURL, let sourceURL = URL(string: sourceURLString) {
-                let router = CollectionRouter(modelContext: modelContext)
-                router.routeURLImport(recipe, sourceURL: sourceURL)
+                ingredient.name = parsed.name
+                ingredient.quantity = parsed.quantity
+                ingredient.quantityMax = parsed.quantityMax
+                ingredient.unit = parsed.unit
             }
 
-            // Sync to Firebase if active
-            if backendConfig.isFirebaseActive {
-                do {
-                    try await firebaseSync.uploadRecipe(recipe)
-
-                    // Upload image if it was downloaded
-                    if recipe.imageFileName != nil {
-                        if let imageURL = try await firebaseSync.uploadImage(for: recipe) {
-                            recipe.firebaseImageURL = imageURL
-                            try? modelContext.save()
-                        }
-                    }
-
-                    Log.info("Imported recipe synced to Firebase", category: .firebase)
-                } catch {
-                    Log.warning("Failed to sync imported recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
-                    // Don't fail - local save succeeded
-                }
+            // Save updated ingredients
+            do {
+                try context.save()
+                Log.info("Background ingredient parsing complete", category: .general)
+            } catch {
+                Log.error("Failed to save parsed ingredients", category: .database, metadata: ["error": error.localizedDescription])
             }
-
-            toastManager.success(
-                title: "Recipe imported!",
-                message: "Added '\(recipe.title)' to your collection"
-            )
-
-            analytics.track(event: .recipeImported, properties: [
-                "source": "url",
-                "ingredient_count": ingredients.count,
-                "has_image": importedRecipe?.imageURL != nil,
-                "used_ai_parsing": aiConfig.enableAIParsing
-            ])
-
-            // Success feedback
-            await MainActor.run {
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.success)
-
-                // Notify coordinator of recipe creation for cross-tab navigation
-                tabCoordinator.didCreateRecipe()
-
-                // Dismiss after coordinator is notified
-                dismiss()
-            }
-        } catch {
-            toastManager.error(
-                title: "Failed to save recipe",
-                message: error.localizedDescription
-            )
         }
+
+        // Track analytics
+        analytics.track(event: .recipeImported, properties: [
+            "source": "url",
+            "ingredient_count": ingredientTexts.count,
+            "used_ai_parsing": aiConfig.enableAIParsing
+        ])
     }
 
-    private func downloadAndSaveImage(from url: URL, for recipe: Recipe) async {
-        Log.info("Downloading recipe image", category: .network, metadata: ["url": url.absoluteString])
+    /// Download recipe image in background after recipe is saved
+    private static func downloadAndSaveImageInBackground(
+        from url: URL,
+        recipeId: UUID,
+        context: ModelContext
+    ) async {
+        Log.info("Starting background image download", category: .network, metadata: ["url": url.absoluteString])
+
+        // Get service from container
+        let imageStorageService: ImageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             Log.debug("Downloaded image data", category: .network, metadata: ["bytes": data.count])
 
-            if let image = UIImage(data: data) {
-                Log.debug("Created UIImage from data", category: .storage)
-                let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
-                Log.info("Saved image", category: .storage, metadata: ["fileName": fileName])
-                await MainActor.run {
-                    recipe.imageFileName = fileName
-                    Log.debug("Set recipe image filename", category: .database, metadata: ["fileName": fileName])
-                    try? modelContext.save()
-                    Log.debug("Saved model context", category: .database)
-                }
-            } else {
+            guard let image = UIImage(data: data) else {
                 Log.warning("Failed to create UIImage from downloaded data", category: .storage)
+                return
+            }
+
+            Log.debug("Created UIImage from data", category: .storage)
+            let fileName = try await imageStorageService.saveImage(image, recipeId: recipeId)
+            Log.info("Saved image", category: .storage, metadata: ["fileName": fileName])
+
+            // Update recipe with image filename
+            await MainActor.run {
+                // Fetch recipe in this context
+                let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == recipeId })
+                guard let recipe = try? context.fetch(descriptor).first else {
+                    Log.error("Failed to fetch recipe for image update", category: .database)
+                    return
+                }
+
+                recipe.imageFileName = fileName
+                Log.debug("Set recipe image filename", category: .database, metadata: ["fileName": fileName])
+
+                do {
+                    try context.save()
+                    Log.info("Background image download complete", category: .storage)
+                } catch {
+                    Log.error("Failed to save image filename", category: .database, metadata: ["error": error.localizedDescription])
+                }
             }
         } catch {
             Log.warning("Failed to download recipe image", category: .network, metadata: ["error": error.localizedDescription])
+        }
+    }
+
+    /// Sync recipe to Firebase in background after recipe is saved
+    private static func syncToFirebaseInBackground(
+        recipe: Recipe,
+        context: ModelContext
+    ) async {
+        // Get services from container
+        let backendConfig: BackendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
+        let firebaseSync: any FirebaseSyncServiceProtocol = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
+
+        guard backendConfig.isFirebaseActive else {
+            Log.debug("Firebase sync skipped (not active)", category: .firebase)
+            return
+        }
+
+        Log.info("Starting background Firebase sync", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
+
+        do {
+            // Upload recipe
+            try await firebaseSync.uploadRecipe(recipe)
+            Log.info("Recipe uploaded to Firebase", category: .firebase)
+
+            // Upload image if available
+            if recipe.imageFileName != nil {
+                do {
+                    if let imageURL = try await firebaseSync.uploadImage(for: recipe) {
+                        await MainActor.run {
+                            recipe.firebaseImageURL = imageURL
+                            try? context.save()
+                        }
+                        Log.info("Image uploaded to Firebase", category: .firebase, metadata: ["url": imageURL])
+                    }
+                } catch {
+                    Log.warning("Failed to upload image to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
+                }
+            }
+
+            Log.info("Background Firebase sync complete", category: .firebase)
+        } catch {
+            Log.warning("Failed to sync recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
+            // Don't fail - local save succeeded
         }
     }
 }
