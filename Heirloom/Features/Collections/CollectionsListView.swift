@@ -1423,19 +1423,23 @@ struct CollectionsListView: View {
             else if let legacyExport = try? decoder.decode(LegacyRecipeExport.self, from: data) {
                 Log.info("Decoded RecipeExporter format", category: .collections, metadata: ["recipeCount": legacyExport.recipes.count])
                 let isoFormatter = ISO8601DateFormatter()
-                recipesToImport = legacyExport.recipes.compactMap { recipe in
+
+                // Filter and convert recipes
+                var convertedRecipes: [(title: String, ingredients: [String], instructions: [String], servings: String?, prepTime: String?, cookTime: String?, notes: String?, dateAdded: Date, timesCooked: Int, isFavorite: Bool, sourceType: String?, sourceURL: String?, collectionName: String?, imageFileName: String?)] = []
+
+                for recipe in legacyExport.recipes {
                     // Skip theme recipes from legacy exports
                     guard !recipe.isHeritage else {
                         Log.debug("Skipping theme recipe from legacy export", category: .collections, metadata: ["title": recipe.title])
-                        return nil
+                        continue
                     }
 
                     guard let dateAdded = isoFormatter.date(from: recipe.createdDate) else {
                         Log.warning("Failed to parse date for recipe", category: .collections, metadata: ["title": recipe.title])
-                        return nil
+                        continue
                     }
 
-                    return (
+                    convertedRecipes.append((
                         title: recipe.title,
                         ingredients: recipe.ingredients,
                         instructions: recipe.instructions,
@@ -1450,8 +1454,10 @@ struct CollectionsListView: View {
                         sourceURL: recipe.source,
                         collectionName: recipe.collectionName, // IMPORTANT: Preserve original collection
                         imageFileName: recipe.imageFileName // NEW: For sidecar image restoration
-                    )
+                    ))
                 }
+
+                recipesToImport = convertedRecipes
             }
             // Neither format worked
             else {
