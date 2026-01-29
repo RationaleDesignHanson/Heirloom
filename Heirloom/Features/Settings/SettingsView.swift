@@ -819,17 +819,13 @@ struct SettingsView: View {
                     "filtered": recipes.count - userRecipes.count
                 ])
 
-                let jsonData = try recipeExporter.exportToJSON(recipes: userRecipes)
-                let filename = recipeExporter.generateFilename()
+                // Create backup directory with JSON + images
+                let backupURL = try await createBackupWithImages(recipes: userRecipes)
 
                 await MainActor.run {
-                    // Create temporary file
-                    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-                    try? jsonData.write(to: tempURL)
-
                     // Show share sheet
                     let activityVC = UIActivityViewController(
-                        activityItems: [tempURL],
+                        activityItems: [backupURL],
                         applicationActivities: nil
                     )
 
@@ -837,14 +833,20 @@ struct SettingsView: View {
                        let window = windowScene.windows.first,
                        let rootVC = window.rootViewController {
                         activityVC.completionWithItemsHandler = { _, _, _, _ in
-                            // Clean up temp file
-                            try? FileManager.default.removeItem(at: tempURL)
+                            // Clean up temp directory
+                            try? FileManager.default.removeItem(at: backupURL)
                         }
                         rootVC.present(activityVC, animated: true)
                     }
 
                     isExporting = false
-                    toastManager.success(title: "Recipes exported", message: "Saved \(userRecipes.count) recipes to JSON")
+
+                    // Count recipes with images
+                    let recipesWithImages = userRecipes.filter { $0.imageFileName != nil }.count
+                    toastManager.success(
+                        title: "Recipes exported",
+                        message: "Saved \(userRecipes.count) recipes (\(recipesWithImages) with images)"
+                    )
                 }
 
                 analytics.track(event: .recipesExported, properties: ["count": userRecipes.count])
@@ -856,6 +858,61 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    /// Creates a backup directory containing recipes.json and an images/ folder
+    private func createBackupWithImages(recipes: [Recipe]) async throws -> URL {
+        let fileManager = FileManager.default
+        let timestamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
+        let backupDirName = "RecipeBackup_\(timestamp)"
+        let backupURL = fileManager.temporaryDirectory.appendingPathComponent(backupDirName)
+
+        // Create backup directory structure
+        try fileManager.createDirectory(at: backupURL, withIntermediateDirectories: true)
+
+        // 1. Export recipes to JSON
+        let jsonData = try recipeExporter.exportToJSON(recipes: recipes)
+        let jsonURL = backupURL.appendingPathComponent("recipes.json")
+        try jsonData.write(to: jsonURL)
+
+        Log.info("Created recipes.json", category: .storage, metadata: [
+            "recipeCount": recipes.count,
+            "path": jsonURL.path
+        ])
+
+        // 2. Copy recipe images to images/ folder
+        let recipesWithImages = recipes.filter { $0.imageFileName != nil }
+
+        if !recipesWithImages.isEmpty {
+            let imagesURL = backupURL.appendingPathComponent("images")
+            try fileManager.createDirectory(at: imagesURL, withIntermediateDirectories: true)
+
+            // Get images directory from ImageStorageService
+            let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let sourceImagesDir = documentsPath.appendingPathComponent("RecipeImages", isDirectory: true)
+
+            var copiedCount = 0
+            for recipe in recipesWithImages {
+                guard let imageFileName = recipe.imageFileName else { continue }
+
+                let sourceURL = sourceImagesDir.appendingPathComponent(imageFileName)
+                let destURL = imagesURL.appendingPathComponent(imageFileName)
+
+                // Copy image if it exists
+                if fileManager.fileExists(atPath: sourceURL.path) {
+                    try? fileManager.copyItem(at: sourceURL, to: destURL)
+                    copiedCount += 1
+                }
+            }
+
+            Log.info("Copied recipe images to backup", category: .storage, metadata: [
+                "totalRecipes": recipes.count,
+                "recipesWithImages": recipesWithImages.count,
+                "imagesCopied": copiedCount
+            ])
+        }
+
+        return backupURL
     }
 
     private func restorePurchases() {

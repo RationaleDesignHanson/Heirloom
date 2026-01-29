@@ -1335,17 +1335,19 @@ struct CollectionsListView: View {
                 throw error
             }
 
-            // Check if file exists (important for temp files that might be cleaned up)
-            let fileExists = FileManager.default.fileExists(atPath: fileURL.path)
+            // Check if file/directory exists
+            var isDirectory: ObjCBool = false
+            let fileExists = FileManager.default.fileExists(atPath: fileURL.path, isDirectory: &isDirectory)
             Log.info("Checking file existence", category: .collections, metadata: [
                 "url": fileURL.absoluteString,
                 "path": fileURL.path,
                 "exists": fileExists,
+                "isDirectory": isDirectory.boolValue,
                 "isFileURL": fileURL.isFileURL
             ])
 
             if !fileExists {
-                Log.error("File does not exist at path", category: .collections, metadata: ["path": fileURL.path])
+                Log.error("File/directory does not exist at path", category: .collections, metadata: ["path": fileURL.path])
                 throw ImportError.fileNotFound
             }
 
@@ -1363,16 +1365,37 @@ struct CollectionsListView: View {
                 fileURL.stopAccessingSecurityScopedResource()
             }
 
-            // Read file data
-            Log.info("Reading file data", category: .collections)
-            let data = try Data(contentsOf: fileURL)
-            Log.info("File data read successfully", category: .collections, metadata: ["bytes": data.count])
+            // Determine JSON file path (either direct file or recipes.json in directory)
+            let jsonURL: URL
+            let imagesURL: URL?
+
+            if isDirectory.boolValue {
+                // Backup directory format: RecipeBackup_XXX/recipes.json + images/
+                jsonURL = fileURL.appendingPathComponent("recipes.json")
+                let potentialImagesURL = fileURL.appendingPathComponent("images")
+                imagesURL = FileManager.default.fileExists(atPath: potentialImagesURL.path) ? potentialImagesURL : nil
+
+                Log.info("Importing from backup directory", category: .collections, metadata: [
+                    "jsonPath": jsonURL.path,
+                    "hasImages": imagesURL != nil
+                ])
+            } else {
+                // Legacy single JSON file format
+                jsonURL = fileURL
+                imagesURL = nil
+                Log.info("Importing from JSON file", category: .collections)
+            }
+
+            // Read JSON data
+            Log.info("Reading JSON data", category: .collections)
+            let data = try Data(contentsOf: jsonURL)
+            Log.info("JSON data read successfully", category: .collections, metadata: ["bytes": data.count])
 
             // Decode JSON - Try both export formats
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
 
-            let recipesToImport: [(title: String, ingredients: [String], instructions: [String], servings: String?, prepTime: String?, cookTime: String?, notes: String?, dateAdded: Date, timesCooked: Int, isFavorite: Bool, sourceType: String?, sourceURL: String?, collectionName: String?)]
+            let recipesToImport: [(title: String, ingredients: [String], instructions: [String], servings: String?, prepTime: String?, cookTime: String?, notes: String?, dateAdded: Date, timesCooked: Int, isFavorite: Bool, sourceType: String?, sourceURL: String?, collectionName: String?, imageFileName: String?)]
 
             // Try new DataExportView format first
             if let exportData = try? decoder.decode(ExportData.self, from: data) {
@@ -1391,7 +1414,8 @@ struct CollectionsListView: View {
                         isFavorite: recipe.isFavorite,
                         sourceType: recipe.sourceType,
                         sourceURL: recipe.sourceURL,
-                        collectionName: nil // DataExportView format doesn't include collection name
+                        collectionName: nil, // DataExportView format doesn't include collection name
+                        imageFileName: nil // DataExportView format doesn't include image filenames
                     )
                 }
             }
@@ -1424,7 +1448,8 @@ struct CollectionsListView: View {
                         isFavorite: false, // Legacy format doesn't have this
                         sourceType: nil, // Legacy uses simple source string
                         sourceURL: recipe.source,
-                        collectionName: recipe.collectionName // IMPORTANT: Preserve original collection
+                        collectionName: recipe.collectionName, // IMPORTANT: Preserve original collection
+                        imageFileName: recipe.imageFileName // NEW: For sidecar image restoration
                     )
                 }
             }
@@ -1436,6 +1461,26 @@ struct CollectionsListView: View {
 
             // Import recipes
             var importedCount = 0
+            var imagesRestoredCount = 0
+
+            // Prepare image restoration if backup has images/ folder
+            let shouldRestoreImages = imagesURL != nil
+            let destinationImagesDir: URL? = {
+                guard shouldRestoreImages else { return nil }
+                let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                return documentsPath.appendingPathComponent("RecipeImages", isDirectory: true)
+            }()
+
+            if shouldRestoreImages, let destDir = destinationImagesDir {
+                // Ensure RecipeImages directory exists
+                if !FileManager.default.fileExists(atPath: destDir.path) {
+                    try? FileManager.default.createDirectory(at: destDir, withIntermediateDirectories: true)
+                }
+                Log.info("Ready to restore images from backup", category: .collections, metadata: [
+                    "imagesURL": imagesURL?.path ?? "none",
+                    "destinationDir": destDir.path
+                ])
+            }
 
             for recipeData in recipesToImport {
                 // Extract title for predicate (predicates can't capture tuple members)
@@ -1516,9 +1561,40 @@ struct CollectionsListView: View {
                     }
                 }
 
-                // NOTE: Recipe images are NOT restored from backup
-                // JSON backups only contain metadata, not binary image data
-                // Images would need to be re-imported from the original source URL
+                // Restore recipe image from backup if available
+                if shouldRestoreImages,
+                   let sourceImagesURL = imagesURL,
+                   let destImagesDir = destinationImagesDir,
+                   let originalImageFileName = recipeData.imageFileName {
+
+                    let sourceImageURL = sourceImagesURL.appendingPathComponent(originalImageFileName)
+
+                    // Check if image exists in backup
+                    if FileManager.default.fileExists(atPath: sourceImageURL.path) {
+                        // Generate new filename for this recipe instance
+                        let timestamp = Int(Date().timeIntervalSince1970)
+                        let newImageFileName = "recipe-\(recipe.id.uuidString)-\(timestamp).jpg"
+                        let destImageURL = destImagesDir.appendingPathComponent(newImageFileName)
+
+                        // Copy image from backup to app's RecipeImages directory
+                        do {
+                            try FileManager.default.copyItem(at: sourceImageURL, to: destImageURL)
+                            recipe.imageFileName = newImageFileName
+                            imagesRestoredCount += 1
+
+                            Log.info("Restored recipe image from backup", category: .collections, metadata: [
+                                "recipe": recipeData.title,
+                                "originalFileName": originalImageFileName,
+                                "newFileName": newImageFileName
+                            ])
+                        } catch {
+                            Log.warning("Failed to copy image from backup", category: .collections, metadata: [
+                                "recipe": recipeData.title,
+                                "error": error.localizedDescription
+                            ])
+                        }
+                    }
+                }
 
                 importedCount += 1
             }
@@ -1529,10 +1605,19 @@ struct CollectionsListView: View {
                     try modelContext.save()
                     isRestoringFromFile = false
 
-                    let message = "Imported \(importedCount) recipe\(importedCount == 1 ? "" : "s") from backup. Note: Images are not included in JSON backups."
+                    // Build success message
+                    var message = "Imported \(importedCount) recipe\(importedCount == 1 ? "" : "s")"
+                    if shouldRestoreImages {
+                        message += " and \(imagesRestoredCount) image\(imagesRestoredCount == 1 ? "" : "s")"
+                    } else {
+                        message += ". Note: Images not included in JSON-only backups."
+                    }
 
                     toastManager.success(title: "Backup Restored", message: message)
-                    Log.info("Restored \(importedCount) recipes from backup", category: .collections)
+                    Log.info("Restored \(importedCount) recipes from backup", category: .collections, metadata: [
+                        "imagesRestored": imagesRestoredCount,
+                        "hadImages": shouldRestoreImages
+                    ])
                 } catch {
                     isRestoringFromFile = false
                     toastManager.error(title: "Save Failed", message: error.localizedDescription)

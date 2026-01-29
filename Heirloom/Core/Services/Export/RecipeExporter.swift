@@ -310,6 +310,7 @@ final class RecipeExporter {
         let cookTime: String?
         let servings: String?
         let notes: String?
+        let imageFileName: String? // NEW: Image filename for sidecar restoration
     }
 
     /// Export format
@@ -366,7 +367,8 @@ final class RecipeExporter {
             prepTime: recipe.prepTime,
             cookTime: recipe.cookTime,
             servings: recipe.servings,
-            notes: recipe.notes
+            notes: recipe.notes,
+            imageFileName: recipe.imageFileName // NEW: Include for sidecar restoration
         )
     }
 }
