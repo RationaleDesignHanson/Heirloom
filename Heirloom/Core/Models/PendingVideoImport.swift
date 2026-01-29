@@ -25,12 +25,14 @@ struct PendingVideoImport: Codable, Identifiable {
     let createdAt: Date
     var errorMessage: String?
     var bulkContent: BulkImportContent?  // For Notes with URLs + text
+    var imageURLs: [URL]?  // For multiple images from Share Extension
 
     enum SourceType: String, Codable {
         case shareExtensionVideo
         case shareExtensionURL
         case shareExtensionPDF
         case shareExtensionImage
+        case shareExtensionImageBatch  // Multiple images from Photos share
         case shareExtensionBulk  // Multiple URLs + optional text
         case photoLibrary
         case cameraCapture

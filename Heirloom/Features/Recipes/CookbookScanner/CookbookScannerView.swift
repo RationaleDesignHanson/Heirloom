@@ -417,6 +417,11 @@ struct CookbookScannerView: View {
             do {
                 // Create import job with cookbook-specific or default collection name
                 let collectionName = cookbookName.isEmpty ? "Cookbook Pages" : cookbookName
+                Log.info("Creating cookbook import job", category: .import, metadata: [
+                    "collectionName": collectionName,
+                    "userEnteredName": cookbookName,
+                    "isEmpty": cookbookName.isEmpty
+                ])
                 let job = try await importManager.createCameraImportJob(
                     images: [image],
                     collectionName: collectionName,
@@ -621,7 +626,9 @@ struct CookbookScannerView: View {
 
             await MainActor.run {
                 selectedPhotoItems = []
-                showProgressView = true
+
+                // Dismiss the scanner view after starting batch import
+                dismiss()
 
                 // Track analytics
                 analytics.track(event: .recipeImported, properties: [

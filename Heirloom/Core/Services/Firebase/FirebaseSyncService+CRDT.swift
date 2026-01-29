@@ -199,6 +199,9 @@ extension FirebaseSyncService {
                         Log.warning("Failed to download image", category: .storage, metadata: ["title": remoteRecipe.title, "error": error.localizedDescription])
                     }
                 }
+
+                // Update collection loading progress
+                await updateCollectionLoadingProgress(for: remoteRecipe.id, context: context)
             }
 
             return .alreadyInSync
@@ -418,7 +421,25 @@ extension FirebaseSyncService {
 
         Log.info("Starting CRDT-aware sync", category: .crdt)
 
-        // Step 1: Upload local changes
+        // Step 1: Sync collections FIRST (fast - just metadata, shows UI immediately)
+        // Upload local collections
+        let localCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
+        let userCreatedCollections = localCollections.filter { !$0.isSystemCollection && !$0.isAllRecipes }
+
+        if !userCreatedCollections.isEmpty {
+            Log.info("Uploading collections", category: .sync, metadata: ["count": userCreatedCollections.count])
+            for collection in userCreatedCollections {
+                try await uploadCollection(collection)
+            }
+            Log.info("Collections uploaded", category: .sync)
+        }
+
+        // Download remote collections (FAST - shows collections in UI immediately)
+        Log.info("Downloading collections", category: .sync)
+        let remoteCollections = try await downloadAllCollections(context: context)
+        Log.info("Downloaded collections", category: .sync, metadata: ["count": remoteCollections.count])
+
+        // Step 2: Upload local recipe changes
         let unsyncedRecipes = try fetchUnsyncedRecipes(context: context)
         Log.info("Uploading local changes", category: .crdt, metadata: ["count": unsyncedRecipes.count])
 
@@ -426,7 +447,7 @@ extension FirebaseSyncService {
             try await uploadRecipeTransactional(recipe)
         }
 
-        // Step 2: Download and merge remote changes
+        // Step 3: Download and merge remote recipes (SLOW - but UI already visible)
         let remoteChanges = try await fetchRemoteChanges(since: lastSyncDate)
         Log.info("Processing remote changes", category: .crdt, metadata: ["count": remoteChanges.count])
 
@@ -451,25 +472,10 @@ extension FirebaseSyncService {
             }
         }
 
-        // Step 3: Sync collections
-        // Upload local collections
-        let localCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
-        let userCreatedCollections = localCollections.filter { !$0.isSystemCollection && !$0.isAllRecipes }
+        // Step 4: Conflict resolution
+        // (Collections already synced in Step 1)
 
-        if !userCreatedCollections.isEmpty {
-            Log.info("Uploading collections", category: .sync, metadata: ["count": userCreatedCollections.count])
-            for collection in userCreatedCollections {
-                try await uploadCollection(collection)
-            }
-            Log.info("Collections uploaded", category: .sync)
-        }
-
-        // Download remote collections
-        Log.info("Downloading collections", category: .sync)
-        let remoteCollections = try await downloadAllCollections(context: context)
-        Log.info("Downloaded collections", category: .sync, metadata: ["count": remoteCollections.count])
-
-        // Step 4: If conflicts detected, user needs to resolve them
+        // If conflicts detected, user needs to resolve them
         if !conflictsDetected.isEmpty {
             Log.warning("Recipes have conflicts requiring resolution", category: .crdt, metadata: ["count": conflictsDetected.count])
 
@@ -482,6 +488,9 @@ extension FirebaseSyncService {
 
         lastSyncDate = Date()
         Log.info("CRDT sync complete", category: .crdt)
+
+        // Clean up old tombstones after successful sync
+        cleanupOldTombstones(context: context)
     }
 }
 

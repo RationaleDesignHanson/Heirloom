@@ -223,7 +223,10 @@ struct DataExportView: View {
     private func gatherExportData() async throws -> ExportData {
         // Fetch all recipes
         let descriptor = FetchDescriptor<Recipe>(sortBy: [SortDescriptor(\.dateAdded, order: .reverse)])
-        let recipes = try modelContext.fetch(descriptor)
+        let allRecipes = try modelContext.fetch(descriptor)
+
+        // Filter out theme/discovery recipes - only export user-created recipes
+        let recipes = allRecipes.filter { !$0.isThemeRecipe }
 
         // Convert to exportable format
         let exportRecipes = recipes.map { recipe in

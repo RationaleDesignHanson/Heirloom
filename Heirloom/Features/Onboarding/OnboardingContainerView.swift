@@ -235,16 +235,6 @@ struct OnboardingContainerView: View {
         // Mark onboarding as complete
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
 
-        // Seed onboarding recipe
-        let seeder = OnboardingRecipeSeeder(modelContext: modelContext)
-        Task {
-            do {
-                try await seeder.seedOnboardingRecipe()
-            } catch {
-                Log.error("Failed to seed onboarding recipe", category: .storage, metadata: ["error": error.localizedDescription])
-            }
-        }
-
         // Navigate to Collections tab (now index 0 after removing Recipes tab)
         selectedTab = 0
 

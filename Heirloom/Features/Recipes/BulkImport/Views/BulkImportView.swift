@@ -212,6 +212,8 @@ struct BulkImportView: View {
             let job = try manager.createJob(
                 urls: urls,
                 jobName: "Bulk Import \(Date().formatted(date: .abbreviated, time: .shortened))",
+                collectionName: "Photo Imports",
+                collectionType: .photoImports,
                 context: modelContext
             )
 

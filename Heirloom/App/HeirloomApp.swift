@@ -108,6 +108,7 @@ struct HeirloomApp: App {
     // Pre-resolved services (only available in production, nil in test environment)
     @State private var authService: FirebaseAuthService?
     @State private var notificationService: FirebaseNotificationService?
+    @State private var syncService: FirebaseSyncService?
 
     init() {
         print("🚀 [INIT] HeirloomApp.init() START")
@@ -267,6 +268,10 @@ struct HeirloomApp: App {
                 _notificationService = State(wrappedValue: serviceContainer.resolve(FirebaseNotificationService.self))
                 print("✅ [INIT] FirebaseNotificationService resolved")
 
+                DeviceLogger.shared.log("🔧 [Heirloom] Resolving FirebaseSyncService...")
+                _syncService = State(wrappedValue: serviceContainer.resolve(FirebaseSyncService.self))
+                print("✅ [INIT] FirebaseSyncService resolved")
+
                 DeviceLogger.shared.log("🔧 [Heirloom] Resolving ThemeUnlockTracker...")
                 let tracker = serviceContainer.resolve(ThemeUnlockTracker.self)
                 _themeUnlockTracker = State(wrappedValue: tracker)
@@ -295,7 +300,7 @@ struct HeirloomApp: App {
         WindowGroup {
             if let modelContainer {
                 // In test environment, skip RootView since it requires Firebase services
-                if !isRunningTests, let authService, let notificationService, let themeUnlockTracker {
+                if !isRunningTests, let authService, let notificationService, let syncService, let themeUnlockTracker {
                     RootView(
                         modelContainer: modelContainer,
                         authService: authService,
@@ -303,6 +308,7 @@ struct HeirloomApp: App {
                     )
                         .environmentObject(deepLinkCoordinator!)
                         .environmentObject(themeUnlockTracker)
+                        .environmentObject(syncService)
                     .onOpenURL { url in
                         Log.info("WindowGroup received URL", category: .general, metadata: ["url": url.absoluteString])
                         logger.info("📱 WindowGroup received URL: \(url.absoluteString)")

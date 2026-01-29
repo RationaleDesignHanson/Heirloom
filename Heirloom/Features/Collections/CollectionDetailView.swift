@@ -7,6 +7,7 @@ struct CollectionDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var notificationService: FirebaseNotificationService
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
+    @EnvironmentObject private var syncService: FirebaseSyncService
     let collection: RecipeCollection
 
     @State private var showAddRecipe = false
@@ -18,6 +19,11 @@ struct CollectionDetailView: View {
     @State private var showAddRecipeMenu = false
     @State private var showCollectionSettings = false
     @EnvironmentObject private var unlockTracker: ThemeUnlockTracker
+    @State private var isGeneratingBackground = false
+
+    // Services
+    private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
     // Context menu state
     @State private var recipeToDelete: Recipe?
@@ -160,6 +166,42 @@ struct CollectionDetailView: View {
         }
     }
 
+    // MARK: - Loading State
+
+    private var isLoadingRecipes: Bool {
+        syncService.loadingCollectionIds.contains(collection.id)
+    }
+
+    private var loadingProgress: FirebaseSyncService.SyncProgress? {
+        syncService.syncProgress[collection.id]
+    }
+
+    @ViewBuilder
+    private var loadingBanner: some View {
+        if isLoadingRecipes, let progress = loadingProgress {
+            HStack(spacing: HeirloomSpacing.sm) {
+                ProgressView()
+                    .scaleEffect(0.8)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Loading Recipes...")
+                        .font(HeirloomFonts.caption1Bold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("\(progress.loadedRecipes) of \(progress.totalRecipes) recipes loaded")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+
+                Spacer()
+            }
+            .padding(HeirloomSpacing.md)
+            .background(HeirloomColors.amber.opacity(0.1))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .padding(.horizontal, HeirloomSpacing.md)
+        }
+    }
+
     // MARK: - View Helpers
 
     @ViewBuilder
@@ -234,26 +276,36 @@ struct CollectionDetailView: View {
             }
         }
 
-        // Settings button (for all collections)
-        ToolbarItem(placement: .secondaryAction) {
-            Button {
-                showCollectionSettings = true
-            } label: {
-                Image(systemName: "gear")
-            }
-            .accessibilityLabel("Collection Settings")
-        }
-
-        // Delete button for non-system collections
-        if !collection.isSystemCollection {
-            ToolbarItem(placement: .secondaryAction) {
-                Button(role: .destructive) {
-                    showDeleteConfirmation = true
+        // Collection menu (settings, AI generation, delete)
+        ToolbarItem(placement: .topBarTrailing) {
+            Menu {
+                Button {
+                    showCollectionSettings = true
                 } label: {
-                    Image(systemName: "trash")
+                    Label("Collection Settings", systemImage: "gear")
                 }
-                .accessibilityLabel("Delete Collection")
+
+                Button {
+                    Task {
+                        await generateBackgroundForCollection()
+                    }
+                } label: {
+                    Label("Generate with AI", systemImage: "sparkles")
+                }
+                .disabled(isGeneratingBackground)
+
+                if !collection.isSystemCollection {
+                    Divider()
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Delete Collection", systemImage: "trash")
+                    }
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
             }
+            .accessibilityLabel("Collection Menu")
         }
     }
 
@@ -306,6 +358,9 @@ struct CollectionDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: HeirloomSpacing.lg) {
+                // Loading banner (when syncing recipes)
+                loadingBanner
+
                 // Collection header
                 collectionHeader
 
@@ -560,6 +615,42 @@ struct CollectionDetailView: View {
         }
     }
 
+    private func generateBackgroundForCollection() async {
+        guard !isGeneratingBackground else {
+            toastManager.info(title: "Generation in Progress", message: "Please wait for the current generation to finish")
+            return
+        }
+
+        isGeneratingBackground = true
+
+        // Show toast that generation started
+        await MainActor.run {
+            toastManager.info(title: "Generating Background", message: "Creating AI image for \(collection.name)...")
+        }
+
+        do {
+            // Generate AI image
+            let imagePath = try await collectionImageGenerator.generateBackground(for: collection)
+
+            await MainActor.run {
+                // Update collection with generated image
+                collection.generatedBackgroundImagePath = imagePath
+                collection.lastImageGenerationDate = Date()
+                collection.lastRecipeCountAtGeneration = collection.recipes?.count ?? 0
+                collection.useCustomBackground = true
+                try? modelContext.save()
+
+                isGeneratingBackground = false
+                toastManager.success(title: "Background Generated", message: "AI created a custom image for \(collection.name)")
+            }
+        } catch {
+            await MainActor.run {
+                isGeneratingBackground = false
+                toastManager.error(title: "Generation Failed", message: error.localizedDescription)
+            }
+        }
+    }
+
     private func createSampleRecipe(from sampleRecipe: SampleRecipeData, addToCollection: RecipeCollection) async {
         let sampleData = sampleRecipe.recipe
         let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
@@ -659,40 +750,64 @@ struct CollectionDetailView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.warning)
 
-        do {
-            // Remove collection-recipe relationships
-            if let recipes = collection.recipes {
-                for recipe in recipes {
-                    recipe.collections?.removeAll { $0.id == collection.id }
+        // Remove collection-recipe relationships
+        if let recipes = collection.recipes {
+            for recipe in recipes {
+                recipe.collections?.removeAll { $0.id == collection.id }
+            }
+        }
+
+        // Create tombstone BEFORE deleting (so we remember this was deleted)
+        let collectionId = collection.id
+        await MainActor.run {
+            let tombstone = DeletedCollectionRecord(collectionId: collectionId)
+            modelContext.insert(tombstone)
+            Log.info("Created deletion tombstone", category: .collections, metadata: [
+                "collectionId": collectionId.uuidString
+            ])
+        }
+
+        // Delete collection
+        await MainActor.run {
+            modelContext.delete(collection)
+            try? modelContext.save()
+        }
+
+        // Firebase sync
+        let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
+        if backendConfig.isFirebaseActive {
+            let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
+            do {
+                try await firebaseSync.deleteCollection(collectionId)
+
+                // Mark tombstone as synced to Firebase
+                await MainActor.run {
+                    let descriptor = FetchDescriptor<DeletedCollectionRecord>(
+                        predicate: #Predicate { record in
+                            record.collectionId == collectionId
+                        }
+                    )
+                    if let tombstone = try? modelContext.fetch(descriptor).first {
+                        tombstone.syncedToFirebase = true
+                        try? modelContext.save()
+                        Log.info("Marked tombstone as synced to Firebase", category: .collections, metadata: [
+                            "collectionId": collectionId.uuidString
+                        ])
+                    }
                 }
+            } catch {
+                Log.error("Failed to delete collection from Firebase", category: .firebase, error: error, metadata: [
+                    "collectionId": collectionId.uuidString
+                ])
+                // Don't throw - tombstone still prevents recreation
             }
+        }
 
-            // Delete collection
-            await MainActor.run {
-                modelContext.delete(collection)
-                try? modelContext.save()
-            }
-
-            // Firebase sync
-            let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
-            if backendConfig.isFirebaseActive {
-                let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
-                try await firebaseSync.deleteCollection(collection.id)
-            }
-
-            // Success feedback
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-            await MainActor.run {
-                toastManager.success(title: "Collection deleted", message: "Recipes remain in your library")
-                generator.notificationOccurred(.success)
-            }
-
-        } catch {
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-            await MainActor.run {
-                toastManager.error(title: "Failed to delete collection", message: error.localizedDescription)
-                generator.notificationOccurred(.error)
-            }
+        // Success feedback
+        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+        await MainActor.run {
+            toastManager.success(title: "Collection deleted", message: "Recipes remain in your library")
+            generator.notificationOccurred(.success)
         }
     }
 
@@ -721,6 +836,16 @@ struct CollectionDetailView: View {
                 }
             }
 
+            // Create tombstone BEFORE deleting (so we remember this was deleted)
+            let collectionId = collection.id
+            await MainActor.run {
+                let tombstone = DeletedCollectionRecord(collectionId: collectionId)
+                modelContext.insert(tombstone)
+                Log.info("Created deletion tombstone", category: .collections, metadata: [
+                    "collectionId": collectionId.uuidString
+                ])
+            }
+
             // Delete collection
             await MainActor.run {
                 modelContext.delete(collection)
@@ -738,7 +863,30 @@ struct CollectionDetailView: View {
                 }
 
                 // Delete collection from Firebase
-                try await firebaseSync.deleteCollection(collection.id)
+                do {
+                    try await firebaseSync.deleteCollection(collectionId)
+
+                    // Mark tombstone as synced to Firebase
+                    await MainActor.run {
+                        let descriptor = FetchDescriptor<DeletedCollectionRecord>(
+                            predicate: #Predicate { record in
+                                record.collectionId == collectionId
+                            }
+                        )
+                        if let tombstone = try? modelContext.fetch(descriptor).first {
+                            tombstone.syncedToFirebase = true
+                            try? modelContext.save()
+                            Log.info("Marked tombstone as synced to Firebase", category: .collections, metadata: [
+                                "collectionId": collectionId.uuidString
+                            ])
+                        }
+                    }
+                } catch {
+                    Log.error("Failed to delete collection from Firebase", category: .firebase, error: error, metadata: [
+                        "collectionId": collectionId.uuidString
+                    ])
+                    // Don't throw - tombstone still prevents recreation
+                }
             }
 
             // Success feedback

@@ -48,8 +48,8 @@ struct CollectionSettingsView: View {
                     // TODO: Add icon picker in future
                 }
 
-                Section("Background") {
-                    Toggle("Use Custom Background", isOn: $collection.useCustomBackground)
+                Section("Collection Card Image") {
+                    Toggle("Use Custom Image", isOn: $collection.useCustomBackground)
                         .onChange(of: collection.useCustomBackground) { _, newValue in
                             if !newValue {
                                 // Clear custom backgrounds when toggled off
@@ -92,12 +92,12 @@ struct CollectionSettingsView: View {
                         .disabled(isGeneratingImage)
 
                         if isGeneratingImage {
-                            Text("Generating themed background...")
+                            Text("Generating themed image...")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.secondaryText)
                         }
 
-                        // Preview current background
+                        // Preview current image
                         if let bgPath = collection.customBackgroundImagePath ?? collection.generatedBackgroundImagePath {
                             AsyncRecipeImage(
                                 imageFileName: bgPath,
@@ -107,7 +107,7 @@ struct CollectionSettingsView: View {
                             .frame(height: 150)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                            Button("Remove Background", role: .destructive) {
+                            Button("Remove Custom Image", role: .destructive) {
                                 collection.customBackgroundImagePath = nil
                                 collection.useCustomBackground = false
                                 try? modelContext.save()
@@ -148,8 +148,9 @@ struct CollectionSettingsView: View {
 
             await MainActor.run {
                 collection.customBackgroundImagePath = savedPath
+                collection.useCustomBackground = true
                 try? modelContext.save()
-                toastManager.success(title: "Background Updated")
+                toastManager.success(title: "Collection Image Updated")
             }
         } catch {
             await MainActor.run {
@@ -173,7 +174,7 @@ struct CollectionSettingsView: View {
                 collection.lastRecipeCountAtGeneration = collection.recipes?.count ?? 0
                 collection.useCustomBackground = true
                 try? modelContext.save()
-                toastManager.success(title: "Background Generated", message: "AI created a custom image for your collection")
+                toastManager.success(title: "Image Generated", message: "AI created a custom image for your collection card")
             }
         } catch {
             await MainActor.run {

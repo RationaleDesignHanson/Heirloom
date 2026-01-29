@@ -11,6 +11,11 @@ struct SettingsView: View {
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @Query private var recipes: [Recipe]
 
+    // User-created recipes only (excludes theme/discovery recipes)
+    private var userRecipes: [Recipe] {
+        recipes.filter { !$0.isThemeRecipe }
+    }
+
     // Services resolved at view initialization - prevents lazy evaluation crashes
     @State private var imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
     @State private var toastManager = ServiceContainer.shared.resolve(ToastManager.self)
@@ -34,6 +39,7 @@ struct SettingsView: View {
     @State private var isExporting = false
     @State private var isRestoringPurchases = false
     @State private var showDowngradeAlert = false
+    @State private var showClearCollectionsConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -77,7 +83,7 @@ struct SettingsView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This will permanently delete all \(recipes.count) recipes. This cannot be undone.")
+                Text("This will permanently delete all \(userRecipes.count) user recipes and \(recipes.count - userRecipes.count) discovery recipes. This cannot be undone.")
             }
             .confirmationDialog(
                 "Sign Out",
@@ -90,6 +96,18 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("You'll need to sign in again to access your recipes.")
+            }
+            .confirmationDialog(
+                "Clear All Collections",
+                isPresented: $showClearCollectionsConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Clear Collections", role: .destructive) {
+                    clearAllCollections()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will delete all collections but keep your recipes. Use this for clean testing. This cannot be undone.")
             }
             .alert(
                 "Switch to Monthly Plan",
@@ -291,7 +309,7 @@ struct SettingsView: View {
 
     private var dataManagementSection: some View {
         Section {
-            LabeledContent("Recipes", value: "\(recipes.count)")
+            LabeledContent("Recipes", value: "\(userRecipes.count)")
             LabeledContent("Storage Used", value: storageSize)
 
             Button {
@@ -307,7 +325,7 @@ struct SettingsView: View {
                     Label("Export All Recipes", systemImage: "square.and.arrow.up")
                 }
             }
-            .disabled(isExporting || recipes.isEmpty)
+            .disabled(isExporting || userRecipes.isEmpty)
 
             Button(role: .destructive) {
                 showClearDataConfirmation = true
@@ -594,6 +612,24 @@ struct SettingsView: View {
                         .font(HeirloomFonts.caption1)
                 }
             }
+
+            Divider()
+
+            // Clear Collections - FOR CLEAN TESTING
+            Button(role: .destructive) {
+                showClearCollectionsConfirmation = true
+            } label: {
+                HStack {
+                    Image(systemName: "folder.fill.badge.minus")
+                        .foregroundStyle(.red)
+                    VStack(alignment: .leading) {
+                        Text("Clear All Collections")
+                        Text("Removes all collections (keeps recipes)")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
         } header: {
             Text("Developer Testing")
         } footer: {
@@ -775,7 +811,15 @@ struct SettingsView: View {
 
         Task {
             do {
-                let jsonData = try recipeExporter.exportToJSON(recipes: recipes)
+                // Filter out theme recipes - only export user-created recipes
+                let userRecipes = recipes.filter { !$0.isThemeRecipe }
+                Log.info("Exporting user recipes", category: .storage, metadata: [
+                    "total": recipes.count,
+                    "userOnly": userRecipes.count,
+                    "filtered": recipes.count - userRecipes.count
+                ])
+
+                let jsonData = try recipeExporter.exportToJSON(recipes: userRecipes)
                 let filename = recipeExporter.generateFilename()
 
                 await MainActor.run {
@@ -800,10 +844,10 @@ struct SettingsView: View {
                     }
 
                     isExporting = false
-                    toastManager.success(title: "Recipes exported", message: "Saved \(recipes.count) recipes to JSON")
+                    toastManager.success(title: "Recipes exported", message: "Saved \(userRecipes.count) recipes to JSON")
                 }
 
-                analytics.track(event: .recipesExported, properties: ["count": recipes.count])
+                analytics.track(event: .recipesExported, properties: ["count": userRecipes.count])
 
             } catch {
                 await MainActor.run {
@@ -936,6 +980,12 @@ struct SettingsView: View {
         // CRITICAL: Wait for any ongoing Firebase sync to complete
         // This prevents crashes where sync tries to access deleted recipes
         Task {
+            // CRITICAL: Give any ongoing recipe imports time to complete or cancel
+            // This prevents crashes where imports try to access deleted ingredients
+            // during recipe save operations (web import, video import, etc.)
+            Log.info("Waiting for ongoing operations before clearing data", category: .storage)
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+
             // Wait for sync to finish (with timeout of 10 seconds)
             var waitTime = 0
             while firebaseSyncService.isSyncing && waitTime < 10 {
@@ -963,8 +1013,31 @@ struct SettingsView: View {
 
             // Delete all recipes from local database
             await MainActor.run {
+                // Delete all recipes
                 for recipe in recipes {
                     modelContext.delete(recipe)
+                }
+
+                // Delete all collections (with tombstones)
+                do {
+                    let collectionDescriptor = FetchDescriptor<RecipeCollection>()
+                    let collections = try modelContext.fetch(collectionDescriptor)
+
+                    // Create tombstones BEFORE deleting
+                    for collection in collections {
+                        let tombstone = DeletedCollectionRecord(collectionId: collection.id)
+                        modelContext.insert(tombstone)
+                        Log.info("Created deletion tombstone for clear all data", category: .collections, metadata: [
+                            "collectionId": collection.id.uuidString
+                        ])
+                    }
+
+                    // Now delete the collections
+                    for collection in collections {
+                        modelContext.delete(collection)
+                    }
+                } catch {
+                    Log.error("Failed to fetch collections for deletion", category: .general, metadata: ["error": error.localizedDescription])
                 }
 
                 do {
@@ -985,15 +1058,18 @@ struct SettingsView: View {
             await imageStorageService.performCleanup()
 
             // CRITICAL: Wait for Firebase deletion to complete BEFORE showing success
-            // This prevents recipes from coming back if user closes app too quickly
+            // This prevents recipes and collections from coming back if user closes app too quickly
             if backendConfig.isFirebaseActive {
                 await clearFirebaseData(recipeIds: recipeIds)
+                await clearFirebaseCollections()
             }
 
             // CRITICAL: Clear sync timestamp at the VERY END, after all Firebase operations
             // This ensures that any internal Firebase writes during cleanup don't restore the timestamp
             await MainActor.run {
                 UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
+                UserDefaults.standard.removeObject(forKey: "OnboardingRecipeSeeded")
+                Log.info("Cleared onboarding flag", category: .storage)
             }
 
             // Show success only after ALL cleanup completes (including Firebase)
@@ -1048,6 +1124,29 @@ struct SettingsView: View {
         }
     }
 
+    private func clearFirebaseCollections() async {
+        guard let userId = firebaseAuth.currentUser?.uid else { return }
+
+        do {
+            let db = Firestore.firestore()
+            let collectionsRef = db.collection("users/\(userId)/collections")
+
+            Log.info("Clearing collections from Firebase", category: .firebase, metadata: ["userId": userId])
+
+            // Fetch all collections
+            let collectionsSnapshot = try await collectionsRef.getDocuments()
+
+            // Delete each collection document
+            for collectionDoc in collectionsSnapshot.documents {
+                try await collectionDoc.reference.delete()
+            }
+
+            Log.info("Firebase collections cleared successfully", category: .firebase, metadata: ["count": collectionsSnapshot.documents.count, "userId": userId])
+        } catch {
+            Log.error("Failed to clear Firebase collections", category: .firebase, metadata: ["error": error.localizedDescription, "userId": userId])
+        }
+    }
+
     private func signOut() {
         do {
             // Sign out from Firebase
@@ -1063,6 +1162,40 @@ struct SettingsView: View {
                 title: "Sign out failed",
                 message: error.localizedDescription
             )
+        }
+    }
+
+    private func clearAllCollections() {
+        Task {
+            await MainActor.run {
+                do {
+                    // Fetch all collections
+                    let descriptor = FetchDescriptor<RecipeCollection>()
+                    let collections = try modelContext.fetch(descriptor)
+
+                    Log.info("Clearing all collections", category: .general, metadata: ["count": collections.count])
+
+                    // Delete each collection
+                    for collection in collections {
+                        modelContext.delete(collection)
+                    }
+
+                    // Save changes
+                    try modelContext.save()
+
+                    Log.info("All collections cleared successfully", category: .general)
+                    toastManager.success(
+                        title: "Collections Cleared",
+                        message: "All \(collections.count) collections removed. Recipes are safe."
+                    )
+                } catch {
+                    Log.error("Failed to clear collections", category: .general, metadata: ["error": error.localizedDescription])
+                    toastManager.error(
+                        title: "Clear Failed",
+                        message: error.localizedDescription
+                    )
+                }
+            }
         }
     }
 

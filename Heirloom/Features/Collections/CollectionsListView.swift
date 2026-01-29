@@ -8,6 +8,7 @@ struct CollectionsListView: View {
     @EnvironmentObject private var notificationService: FirebaseNotificationService
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
+    @EnvironmentObject private var syncService: FirebaseSyncService
     @Query(sort: \RecipeCollection.createdDate) private var allCollections: [RecipeCollection]
     @Query(sort: \Recipe.dateAdded, order: .reverse) private var allRecipes: [Recipe]
     @Query(sort: \RecipeTheme.sortOrder) private var allThemes: [RecipeTheme]
@@ -35,6 +36,10 @@ struct CollectionsListView: View {
     @State private var selectedCollectionForSettings: RecipeCollection?
     @State private var isGeneratingBackground = false
     @State private var generatingCollectionId: UUID?
+    @State private var showAddRecipeMenu = false
+    @State private var isRefreshingRecipes = false
+    @State private var showRestoreFromFile = false
+    @State private var isRestoringFromFile = false
 
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
     private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
@@ -66,27 +71,15 @@ struct CollectionsListView: View {
     }
 
     /// My Collections (shown BEFORE themes) - includes all import types and user-created
+    /// Note: Empty collections are already filtered by isVisibleInMainList, no need to check recipe count here
     private var myCollections: [RecipeCollection] {
         visibleCollections.filter { collection in
-            let isRelevantType = collection.type == .fromFriends ||
-                               collection.type == .videoImports ||
-                               collection.type == .webImports ||
-                               collection.type == .photoImports ||
-                               collection.type == .cookbook ||
-                               collection.type == .userCreated
-
-            // For auto-generated collections, only show if they have recipes
-            let shouldShow: Bool
-            switch collection.type {
-            case .webImports, .videoImports, .cookbook, .photoImports, .fromFriends:
-                shouldShow = (collection.recipes?.count ?? 0) > 0
-            case .userCreated, .theme:
-                shouldShow = true // Always show user-created and theme collections
-            default:
-                shouldShow = false
-            }
-
-            return isRelevantType && shouldShow
+            collection.type == .fromFriends ||
+            collection.type == .videoImports ||
+            collection.type == .webImports ||
+            collection.type == .photoImports ||
+            collection.type == .cookbook ||
+            collection.type == .userCreated
         }
     }
 
@@ -223,6 +216,46 @@ struct CollectionsListView: View {
                 actions: deleteConfirmationActions,
                 message: deleteConfirmationMessage
             )
+            .confirmationDialog(
+                "Add Recipe",
+                isPresented: $showAddRecipeMenu,
+                titleVisibility: .visible
+            ) {
+                Button("New Recipe") {
+                    handleAddRecipe()
+                }
+
+                Button("Recipe Website Link") {
+                    handleImportRecipe()
+                }
+
+                Button("Bulk Import") {
+                    handleBulkImport()
+                }
+
+                Button("Scan Cookbook Page") {
+                    handleCookbookScanner()
+                }
+
+                Button("Video Import") {
+                    handleVideoImport()
+                }
+
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                if let collection = selectedCollection {
+                    Text("Choose how you'd like to add recipes to \(collection.name)")
+                }
+            }
+            .fileImporter(
+                isPresented: $showRestoreFromFile,
+                allowedContentTypes: [.json],
+                allowsMultipleSelection: false
+            ) { result in
+                Task {
+                    await handleFileImport(result)
+                }
+            }
             .onAppear(perform: handleOnAppear)
         }
     }
@@ -416,6 +449,9 @@ struct CollectionsListView: View {
             // Theme collections section (SECOND - appears below My Collections)
             if !themeCollections.isEmpty {
                 themeSection
+            } else if !myCollections.isEmpty {
+                // Show empty theme section with restore button when user has other collections
+                emptyThemeSection
             }
 
             // Empty state (only if NO collections at all)
@@ -430,12 +466,6 @@ struct CollectionsListView: View {
 
     private var themeSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            // Trial progress banner
-            if themeUnlockTracker.isInTrialPeriod {
-                TrialProgressBanner()
-                    .padding(.bottom, HeirloomSpacing.sm)
-            }
-
             // Section header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -508,7 +538,7 @@ struct CollectionsListView: View {
                     UnifiedCollectionCard(
                         collection: collection,
                         variant: .standard(
-                            onAddRecipeTap: (collection.recipes?.count ?? 0) == 1
+                            onAddRecipeTap: (collection.recipes?.count ?? 0) <= 1
                                 ? { handleAddRecipeToCollection(collection) }
                                 : nil
                         )
@@ -580,6 +610,56 @@ struct CollectionsListView: View {
                 .foregroundStyle(.white)
                 .cornerRadius(HeirloomSpacing.cardCornerRadius)
             }
+
+            Button {
+                Task {
+                    await refreshRecipesFromFirebase()
+                }
+            } label: {
+                HStack {
+                    if isRefreshingRecipes {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    Text(isRefreshingRecipes ? "Replacing..." : "Replace Discovery Collections")
+                }
+                .font(HeirloomFonts.body)
+                .padding(.horizontal, HeirloomSpacing.lg)
+                .padding(.vertical, HeirloomSpacing.md)
+                .background(Color.clear)
+                .foregroundStyle(HeirloomColors.tomato)
+                .overlay(
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                        .stroke(HeirloomColors.tomato, lineWidth: 2)
+                )
+            }
+            .disabled(isRefreshingRecipes)
+
+            Button {
+                showRestoreFromFile = true
+            } label: {
+                HStack {
+                    if isRestoringFromFile {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        Image(systemName: "doc.badge.arrow.up")
+                    }
+                    Text(isRestoringFromFile ? "Restoring..." : "Restore from File")
+                }
+                .font(HeirloomFonts.body)
+                .padding(.horizontal, HeirloomSpacing.lg)
+                .padding(.vertical, HeirloomSpacing.md)
+                .background(Color.clear)
+                .foregroundStyle(HeirloomColors.tomato)
+                .overlay(
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                        .stroke(HeirloomColors.tomato, lineWidth: 2)
+                )
+            }
+            .disabled(isRestoringFromFile)
 
             Spacer()
         }
@@ -821,6 +901,60 @@ struct CollectionsListView: View {
         .frame(maxWidth: .infinity)
     }
 
+    private var emptyThemeSection: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            // Section header
+            Text("Your Discoveries")
+                .font(HeirloomFonts.title3)
+                .foregroundStyle(HeirloomColors.primaryText)
+
+            // Empty state card
+            VStack(spacing: HeirloomSpacing.md) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 40))
+                    .foregroundStyle(HeirloomColors.tomato.opacity(0.6))
+
+                VStack(spacing: HeirloomSpacing.xs) {
+                    Text("No Discovery Collections")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("Restore your themed collections from onboarding")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.center)
+                }
+
+                Button {
+                    Task {
+                        await refreshRecipesFromFirebase()
+                    }
+                } label: {
+                    HStack {
+                        if isRefreshingRecipes {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        Text(isRefreshingRecipes ? "Restoring..." : "Restore Discovery Collections")
+                    }
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.buttonTextLight)
+                    .padding(.horizontal, HeirloomSpacing.lg)
+                    .padding(.vertical, HeirloomSpacing.sm)
+                    .background(HeirloomColors.tomato)
+                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                }
+                .disabled(isRefreshingRecipes)
+            }
+            .padding(HeirloomSpacing.xl)
+            .frame(maxWidth: .infinity)
+            .background(HeirloomColors.cream)
+            .cornerRadius(HeirloomSpacing.cardCornerRadius)
+        }
+    }
+
     // MARK: - Delete Actions
 
     private func deleteCollectionKeepingRecipes(_ collection: RecipeCollection) async {
@@ -837,45 +971,69 @@ struct CollectionsListView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.warning)
 
-        do {
-            // Remove collection-recipe relationships
-            if let recipes = collection.recipes {
-                for recipe in recipes {
-                    recipe.collections?.removeAll { $0.id == collection.id }
+        // Remove collection-recipe relationships
+        if let recipes = collection.recipes {
+            for recipe in recipes {
+                recipe.collections?.removeAll { $0.id == collection.id }
+            }
+        }
+
+        // Create tombstone BEFORE deleting (so we remember this was deleted)
+        let collectionId = collection.id
+        await MainActor.run {
+            let tombstone = DeletedCollectionRecord(collectionId: collectionId)
+            modelContext.insert(tombstone)
+            Log.info("Created deletion tombstone", category: .collections, metadata: [
+                "collectionId": collectionId.uuidString
+            ])
+        }
+
+        // Delete collection
+        await MainActor.run {
+            modelContext.delete(collection)
+            try? modelContext.save()
+        }
+
+        // Firebase sync
+        let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
+        if backendConfig.isFirebaseActive {
+            let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
+            do {
+                try await firebaseSync.deleteCollection(collectionId)
+
+                // Mark tombstone as synced to Firebase
+                await MainActor.run {
+                    let descriptor = FetchDescriptor<DeletedCollectionRecord>(
+                        predicate: #Predicate { record in
+                            record.collectionId == collectionId
+                        }
+                    )
+                    if let tombstone = try? modelContext.fetch(descriptor).first {
+                        tombstone.syncedToFirebase = true
+                        try? modelContext.save()
+                        Log.info("Marked tombstone as synced to Firebase", category: .collections, metadata: [
+                            "collectionId": collectionId.uuidString
+                        ])
+                    }
                 }
+            } catch {
+                Log.error("Failed to delete collection from Firebase", category: .firebase, error: error, metadata: [
+                    "collectionId": collectionId.uuidString
+                ])
+                // Don't throw - tombstone still prevents recreation
             }
+        }
 
-            // Delete collection
-            await MainActor.run {
-                modelContext.delete(collection)
-                try? modelContext.save()
-            }
+        // Success feedback
+        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+        await MainActor.run {
+            toastManager.success(title: "Collection deleted", message: "Recipes remain in your library")
+            generator.notificationOccurred(.success)
+        }
 
-            // Firebase sync
-            let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
-            if backendConfig.isFirebaseActive {
-                let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
-                try await firebaseSync.deleteCollection(collection.id)
-            }
-
-            // Success feedback
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-            await MainActor.run {
-                toastManager.success(title: "Collection deleted", message: "Recipes remain in your library")
-                generator.notificationOccurred(.success)
-            }
-
-            // Clear the deleted collection reference
-            await MainActor.run {
-                collectionToDelete = nil
-            }
-
-        } catch {
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-            await MainActor.run {
-                toastManager.error(title: "Failed to delete collection", message: error.localizedDescription)
-                generator.notificationOccurred(.error)
-            }
+        // Clear the deleted collection reference
+        await MainActor.run {
+            collectionToDelete = nil
         }
     }
 
@@ -983,46 +1141,10 @@ struct CollectionsListView: View {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
 
-        // Route to appropriate ingress based on collection type
-        switch collection.type {
-        case .webImports:
-            handleImportRecipe() // Opens RecipeImportView
-            Log.info("Opening web import from + affordance", category: .collections)
+        // Show multi-option add recipe menu
+        showAddRecipeMenu = true
 
-        case .videoImports:
-            handleVideoImport() // Opens UnifiedVideoImportView
-            Log.info("Opening video import from + affordance", category: .collections)
-
-        case .cookbook:
-            handleCookbookScanner() // Opens CookbookScannerView
-            Log.info("Opening cookbook scanner from + affordance", category: .collections)
-
-        case .photoImports:
-            handleBulkImport() // Opens BulkImportView
-            Log.info("Opening bulk import from + affordance", category: .collections)
-
-        case .userCreated:
-            // For user-created collections, show the standard add menu
-            handleAddRecipe()
-            Log.info("Opening add recipe menu from + affordance", category: .collections)
-
-        case .fromFriends:
-            // Shared collections shouldn't show + affordance
-            // But if somehow tapped, just navigate to collection
-            Log.warning("+ affordance tapped on fromFriends collection", category: .collections)
-
-        case .theme:
-            // Theme collections use different card, but handle gracefully
-            handleAddRecipe()
-            Log.info("Opening add recipe menu from theme collection", category: .collections)
-
-        default:
-            // Fallback to standard add menu
-            handleAddRecipe()
-            Log.info("Opening add recipe menu (default)", category: .collections)
-        }
-
-        Log.info("Add recipe tapped from collection card", category: .collections, metadata: [
+        Log.info("Add recipe menu opened from collection card", category: .collections, metadata: [
             "collectionId": collection.id.uuidString,
             "collectionType": collection.type.rawValue
         ])
@@ -1070,6 +1192,547 @@ struct CollectionsListView: View {
     private func handleAddCollection() {
         tabCoordinator.willCreateCollection(from: .collectionsTab)
         showCreateCollection = true
+    }
+
+    private func refreshRecipesFromFirebase() async {
+        guard !isRefreshingRecipes else { return }
+
+        await MainActor.run {
+            isRefreshingRecipes = true
+            toastManager.info(title: "Replacing Collections", message: "Re-downloading your discovery collections...")
+        }
+
+        do {
+            // 1. Trigger Firebase sync to download user recipes and collections
+            try await syncService.syncChangesWithCRDT()
+
+            // 2. Recreate theme collections based on user's selected themes
+            await MainActor.run {
+                recreateThemeCollections()
+            }
+
+            // 3. Re-download theme recipes from central database
+            let selectedThemeIds = await MainActor.run {
+                Array(themeUnlockTracker.selectedThemeIds)
+            }
+
+            if !selectedThemeIds.isEmpty {
+                // CRITICAL: ThemeRecipeService is @MainActor and uses modelContext
+                // We must await the download to ensure it completes before showing success
+                let recipeService = await MainActor.run { ThemeRecipeService() }
+                let recipes = try await recipeService.downloadRecipes(for: selectedThemeIds, into: modelContext)
+
+                await MainActor.run {
+                    try? modelContext.save()
+                    Log.info("Re-downloaded \(recipes.count) theme recipes", category: .collections)
+                }
+            }
+
+            await MainActor.run {
+                isRefreshingRecipes = false
+                toastManager.success(title: "Collections Replaced", message: "Your discovery collections have been restored")
+            }
+
+            Log.info("Recipes refreshed from Firebase", category: .collections)
+        } catch {
+            await MainActor.run {
+                isRefreshingRecipes = false
+                toastManager.error(title: "Replace Failed", message: error.localizedDescription)
+            }
+
+            Log.error("Failed to refresh recipes from Firebase", category: .collections, error: error)
+        }
+    }
+
+    private func recreateThemeCollections() {
+        // Get user's selected themes from ThemeUnlockTracker
+        let selectedThemeIds = themeUnlockTracker.selectedThemeIds
+
+        guard !selectedThemeIds.isEmpty else {
+            Log.info("No selected themes to recreate collections for", category: .collections)
+            return
+        }
+
+        // Filter to themes user has selected
+        let selectedThemes = allThemes.filter { selectedThemeIds.contains($0.firebaseId) }
+
+        for theme in selectedThemes {
+            // Check if collection already exists
+            let themeName = theme.name
+            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate<RecipeCollection> { collection in
+                    collection.name == themeName && collection.collectionType == "theme"
+                }
+            )
+
+            if let existing = try? modelContext.fetch(collectionDescriptor).first {
+                // Link existing collection to theme
+                existing.sourceTheme = theme
+                existing.sourceThemeId = theme.firebaseId
+                theme.collection = existing
+                Log.info("Linked existing theme collection", category: .collections, metadata: ["theme": themeName])
+            } else {
+                // Create new collection
+                let collection = RecipeCollection(
+                    name: theme.name,
+                    iconName: theme.iconName,
+                    collectionType: .theme
+                )
+                collection.sourceTheme = theme
+                collection.sourceThemeId = theme.firebaseId
+                theme.collection = collection
+                modelContext.insert(collection)
+                Log.info("Created theme collection", category: .collections, metadata: ["theme": themeName])
+            }
+        }
+
+        do {
+            try modelContext.save()
+            Log.info("Recreated \(selectedThemes.count) theme collections", category: .collections)
+        } catch {
+            Log.error("Failed to recreate theme collections", category: .collections, error: error)
+        }
+    }
+
+    // MARK: - Restore from File
+
+    private func handleFileImport(_ result: Result<[URL], Error>) async {
+        await MainActor.run {
+            isRestoringFromFile = true
+            toastManager.info(title: "Restoring Backup", message: "Importing recipes from file...")
+        }
+
+        // CRITICAL: Wait for any ongoing Firebase sync to complete
+        // This prevents recipes from being re-synced from Firebase during the restore
+        // which would cause false duplicate detections
+        Log.info("Waiting for Firebase sync to complete before restore", category: .collections)
+        var waitTime = 0
+        while syncService.isSyncing && waitTime < 20 {
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            waitTime += 1
+        }
+        Log.info("Firebase sync check complete", category: .collections, metadata: ["waited": Double(waitTime) * 0.5])
+
+        // CRITICAL: Ensure SwiftData context is saved before restore
+        // This prevents stale deleted objects from being detected as duplicates
+        await MainActor.run {
+            try? modelContext.save()
+            Log.info("Saved SwiftData context before restore", category: .collections)
+        }
+
+        do {
+            // Handle file picker result
+            let fileURL: URL
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else {
+                    throw ImportError.noFileSelected
+                }
+                fileURL = url
+                Log.info("File selected for import", category: .collections, metadata: ["path": url.lastPathComponent])
+            case .failure(let error):
+                Log.error("File picker failed", category: .collections, metadata: ["error": error.localizedDescription])
+                throw error
+            }
+
+            // Check if file exists (important for temp files that might be cleaned up)
+            let fileExists = FileManager.default.fileExists(atPath: fileURL.path)
+            Log.info("Checking file existence", category: .collections, metadata: [
+                "url": fileURL.absoluteString,
+                "path": fileURL.path,
+                "exists": fileExists,
+                "isFileURL": fileURL.isFileURL
+            ])
+
+            if !fileExists {
+                Log.error("File does not exist at path", category: .collections, metadata: ["path": fileURL.path])
+                throw ImportError.fileNotFound
+            }
+
+            // Request access to security-scoped resource
+            Log.info("Requesting security-scoped access", category: .collections)
+            let hasAccess = fileURL.startAccessingSecurityScopedResource()
+            Log.info("Security-scoped access result", category: .collections, metadata: ["hasAccess": hasAccess])
+
+            if !hasAccess {
+                Log.error("Failed to access security-scoped resource", category: .collections)
+                throw ImportError.fileAccessDenied
+            }
+            defer {
+                Log.debug("Stopping security-scoped access", category: .collections)
+                fileURL.stopAccessingSecurityScopedResource()
+            }
+
+            // Read file data
+            Log.info("Reading file data", category: .collections)
+            let data = try Data(contentsOf: fileURL)
+            Log.info("File data read successfully", category: .collections, metadata: ["bytes": data.count])
+
+            // Decode JSON - Try both export formats
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+
+            let recipesToImport: [(title: String, ingredients: [String], instructions: [String], servings: String?, prepTime: String?, cookTime: String?, notes: String?, dateAdded: Date, timesCooked: Int, isFavorite: Bool, sourceType: String?, sourceURL: String?, collectionName: String?)]
+
+            // Try new DataExportView format first
+            if let exportData = try? decoder.decode(ExportData.self, from: data) {
+                Log.info("Decoded DataExportView format", category: .collections, metadata: ["recipeCount": exportData.recipes.count])
+                recipesToImport = exportData.recipes.map { recipe in
+                    (
+                        title: recipe.title,
+                        ingredients: recipe.ingredients,
+                        instructions: recipe.instructions,
+                        servings: recipe.servings,
+                        prepTime: recipe.prepTime,
+                        cookTime: recipe.cookTime,
+                        notes: recipe.notes,
+                        dateAdded: recipe.dateAdded,
+                        timesCooked: recipe.timesCooked,
+                        isFavorite: recipe.isFavorite,
+                        sourceType: recipe.sourceType,
+                        sourceURL: recipe.sourceURL,
+                        collectionName: nil // DataExportView format doesn't include collection name
+                    )
+                }
+            }
+            // Try legacy RecipeExporter format
+            else if let legacyExport = try? decoder.decode(LegacyRecipeExport.self, from: data) {
+                Log.info("Decoded RecipeExporter format", category: .collections, metadata: ["recipeCount": legacyExport.recipes.count])
+                let isoFormatter = ISO8601DateFormatter()
+                recipesToImport = legacyExport.recipes.compactMap { recipe in
+                    // Skip theme recipes from legacy exports
+                    guard !recipe.isHeritage else {
+                        Log.debug("Skipping theme recipe from legacy export", category: .collections, metadata: ["title": recipe.title])
+                        return nil
+                    }
+
+                    guard let dateAdded = isoFormatter.date(from: recipe.createdDate) else {
+                        Log.warning("Failed to parse date for recipe", category: .collections, metadata: ["title": recipe.title])
+                        return nil
+                    }
+
+                    return (
+                        title: recipe.title,
+                        ingredients: recipe.ingredients,
+                        instructions: recipe.instructions,
+                        servings: recipe.servings,
+                        prepTime: recipe.prepTime,
+                        cookTime: recipe.cookTime,
+                        notes: recipe.notes,
+                        dateAdded: dateAdded,
+                        timesCooked: 0, // Legacy format doesn't have this
+                        isFavorite: false, // Legacy format doesn't have this
+                        sourceType: nil, // Legacy uses simple source string
+                        sourceURL: recipe.source,
+                        collectionName: recipe.collectionName // IMPORTANT: Preserve original collection
+                    )
+                }
+            }
+            // Neither format worked
+            else {
+                Log.error("Failed to decode backup file with any known format", category: .collections)
+                throw ImportError.invalidFileFormat
+            }
+
+            // Import recipes
+            var importedCount = 0
+
+            for recipeData in recipesToImport {
+                // Extract title for predicate (predicates can't capture tuple members)
+                let recipeTitle = recipeData.title
+
+                // CRITICAL: For backup restores, we SKIP duplicate detection entirely
+                // Reason: After "Clear All Data", Firebase may sync recipes back before restore completes
+                // The user explicitly wants to restore their backup - we should honor that intent
+                // If they restore the same file twice, that's their choice
+                Log.info("Importing recipe from backup", category: .collections, metadata: [
+                    "title": recipeTitle
+                ])
+
+                // Create new recipe
+                let recipe = Recipe()
+                recipe.title = recipeData.title
+                recipe.servings = recipeData.servings
+                recipe.prepTime = recipeData.prepTime
+                recipe.cookTime = recipeData.cookTime
+                recipe.notes = recipeData.notes
+                recipe.dateAdded = recipeData.dateAdded
+                recipe.timesCooked = recipeData.timesCooked
+                recipe.isFavorite = recipeData.isFavorite
+                recipe.sourceURL = recipeData.sourceURL
+
+                // Set source type
+                if let sourceTypeStr = recipeData.sourceType,
+                   let sourceType = RecipeSourceType(rawValue: sourceTypeStr) {
+                    recipe.sourceType = sourceType
+                }
+
+                // Create ingredients
+                var ingredients: [Ingredient] = []
+                for (index, ingredientText) in recipeData.ingredients.enumerated() {
+                    let ingredient = Ingredient(
+                        originalText: ingredientText,
+                        name: ingredientText,
+                        quantity: nil,
+                        unit: nil,
+                        category: .other,
+                        orderIndex: index
+                    )
+                    ingredient.recipe = recipe
+                    ingredients.append(ingredient)
+                }
+                recipe.ingredients = ingredients
+
+                // Set instructions
+                recipe.instructions = recipeData.instructions
+
+                // Insert into context and add to appropriate collection
+                await MainActor.run {
+                    modelContext.insert(recipe)
+
+                    // CRITICAL: Restore recipe to its original collection based on backup data
+                    // This ensures collections appear after restore matching the user's original setup
+                    let collectionToUse: RecipeCollection? = {
+                        // Priority 1: Use collectionName from backup (legacy format)
+                        if let collectionName = recipeData.collectionName {
+                            return findOrCreateCollection(named: collectionName, for: recipe)
+                        }
+                        // Priority 2: Infer from sourceURL (for DataExportView format)
+                        else if let sourceURL = recipe.sourceURL, !sourceURL.isEmpty {
+                            return findOrCreateCollection(named: "Web Imports", for: recipe)
+                        }
+                        // Priority 3: No collection (orphaned recipe)
+                        else {
+                            return nil
+                        }
+                    }()
+
+                    if let collection = collectionToUse {
+                        recipe.collections = [collection]
+                        Log.info("Added recipe to collection during restore", category: .collections, metadata: [
+                            "recipe": recipeData.title,
+                            "collection": collection.name
+                        ])
+                    }
+                }
+
+                // NOTE: Recipe images are NOT restored from backup
+                // JSON backups only contain metadata, not binary image data
+                // Images would need to be re-imported from the original source URL
+
+                importedCount += 1
+            }
+
+            // Save context
+            await MainActor.run {
+                do {
+                    try modelContext.save()
+                    isRestoringFromFile = false
+
+                    let message = "Imported \(importedCount) recipe\(importedCount == 1 ? "" : "s") from backup. Note: Images are not included in JSON backups."
+
+                    toastManager.success(title: "Backup Restored", message: message)
+                    Log.info("Restored \(importedCount) recipes from backup", category: .collections)
+                } catch {
+                    isRestoringFromFile = false
+                    toastManager.error(title: "Save Failed", message: error.localizedDescription)
+                    Log.error("Failed to save restored recipes", category: .collections, error: error)
+                }
+            }
+
+        } catch {
+            await MainActor.run {
+                isRestoringFromFile = false
+
+                // Check for user cancellation
+                if let urlError = error as? URLError, urlError.code == .cancelled {
+                    // User cancelled - don't show error
+                    Log.info("User cancelled file selection", category: .collections)
+                    return
+                }
+
+                // Check for CocoaError (file access issues)
+                if let cocoaError = error as? CocoaError {
+                    Log.error("CocoaError during restore", category: .collections, metadata: [
+                        "code": "\(cocoaError.code.rawValue)",
+                        "description": cocoaError.localizedDescription
+                    ])
+                }
+
+                let errorMessage: String
+                if let importError = error as? ImportError {
+                    errorMessage = importError.errorDescription ?? "Unknown error"
+                } else {
+                    // Provide user-friendly message for system errors
+                    errorMessage = "Unable to read the file. Please make sure it's a valid Heirloom export file and try again."
+                    Log.error("System error during restore", category: .collections, metadata: [
+                        "error": error.localizedDescription,
+                        "type": "\(type(of: error))"
+                    ])
+                }
+
+                toastManager.error(title: "Restore Failed", message: errorMessage)
+            }
+        }
+    }
+
+    // MARK: - Collection Restoration Helper
+
+    /// Find or create a collection based on the name from backup
+    /// Maps collection names to appropriate collection types
+    @MainActor
+    private func findOrCreateCollection(named collectionName: String, for recipe: Recipe) -> RecipeCollection? {
+        // Map collection names to collection types
+        let collectionType: CollectionType = {
+            switch collectionName {
+            case "Web Imports", "From Web":
+                return .webImports
+            case "Video Imports", "From Videos":
+                return .videoImports
+            case "Cookbook Pages", "Cookbooks":
+                return .cookbook
+            case "Photo Imports", "From Photos":
+                return .photoImports
+            case "From Friends", "Shared Recipes":
+                return .fromFriends
+            default:
+                // User-created custom collection
+                return .userCreated
+            }
+        }()
+
+        // Normalize collection name for system collections
+        let normalizedName: String = {
+            switch collectionType {
+            case .webImports: return "Web Imports"
+            case .videoImports: return "Video Imports"
+            case .cookbook: return "Cookbook Pages"
+            case .photoImports: return "Photo Imports"
+            case .fromFriends: return "From Friends"
+            case .userCreated: return collectionName // Keep original name
+            default: return collectionName
+            }
+        }()
+
+        // Look for existing collection with this type
+        let collectionTypeStr = collectionType.rawValue
+        let descriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate<RecipeCollection> { collection in
+                collection.collectionType == collectionTypeStr
+            }
+        )
+
+        if let existing = (try? modelContext.fetch(descriptor))?.first {
+            return existing
+        }
+
+        // Create new collection
+        let iconName: String = {
+            switch collectionType {
+            case .webImports: return "globe"
+            case .videoImports: return "video"
+            case .cookbook: return "book"
+            case .photoImports: return "photo"
+            case .fromFriends: return "person.2"
+            case .userCreated: return "folder"
+            default: return "folder"
+            }
+        }()
+
+        let newCollection = RecipeCollection(
+            name: normalizedName,
+            iconName: iconName,
+            collectionType: collectionType
+        )
+        modelContext.insert(newCollection)
+
+        Log.info("Created collection during restore", category: .collections, metadata: [
+            "name": normalizedName,
+            "type": collectionType.rawValue
+        ])
+
+        return newCollection
+    }
+
+    enum ImportError: LocalizedError {
+        case noFileSelected
+        case invalidFileFormat
+        case fileAccessDenied
+        case fileNotFound
+
+        var errorDescription: String? {
+            switch self {
+            case .noFileSelected:
+                return "No file was selected"
+            case .invalidFileFormat:
+                return "Invalid backup file format. Please select a valid Heirloom export file."
+            case .fileAccessDenied:
+                return "Unable to access the file. Please try selecting it again."
+            case .fileNotFound:
+                return "The selected file no longer exists. If you exported to a temporary location, please save the export to Files app and try again."
+            }
+        }
+    }
+
+    // MARK: - Import Data Structures (matching export formats)
+
+    // New DataExportView format
+    private struct ExportData: Codable {
+        let exportDate: Date
+        let appVersion: String
+        let recipes: [ExportRecipe]
+        let privacyConsent: ExportPrivacyConsent
+    }
+
+    private struct ExportRecipe: Codable {
+        let id: String
+        let title: String
+        let ingredients: [String]
+        let instructions: [String]
+        let servings: String?
+        let prepTime: String?
+        let cookTime: String?
+        let notes: String?
+        let dateAdded: Date
+        let timesCooked: Int
+        let isFavorite: Bool
+        let sourceType: String?
+        let sourceURL: String?
+    }
+
+    private struct ExportPrivacyConsent: Codable {
+        let hasSharingConsent: Bool
+        let hasAnalyticsConsent: Bool
+        let consentDate: Date?
+        let policyVersion: String
+    }
+
+    // Legacy RecipeExporter format (from Settings export)
+    private struct LegacyRecipeExport: Codable {
+        let metadata: LegacyExportMetadata
+        let recipes: [LegacyExportableRecipe]
+    }
+
+    private struct LegacyExportMetadata: Codable {
+        let exportDate: String
+        let appVersion: String
+        let recipeCount: Int
+    }
+
+    private struct LegacyExportableRecipe: Codable {
+        let id: String
+        let title: String
+        let ingredients: [String]
+        let instructions: [String]
+        let collectionName: String?
+        let isHeritage: Bool
+        let createdDate: String
+        let modifiedDate: String
+        let source: String?
+        let prepTime: String?
+        let cookTime: String?
+        let servings: String?
+        let notes: String?
     }
 
     private func handleAddNormalSample() {

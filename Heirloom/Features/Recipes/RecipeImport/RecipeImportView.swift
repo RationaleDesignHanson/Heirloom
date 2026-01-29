@@ -420,7 +420,27 @@ struct RecipeImportView: View {
             router.routeURLImport(recipe, sourceURL: sourceURL)
         }
 
-        // Save to database immediately
+        // Download image BEFORE saving (so recipe has image immediately)
+        if let imageURLString = imported.imageURL,
+           let imageURL = URL(string: imageURLString) {
+            do {
+                Log.info("Downloading recipe image before save", category: .network, metadata: ["url": imageURLString])
+                let (data, _) = try await URLSession.shared.data(from: imageURL)
+
+                if let image = UIImage(data: data) {
+                    let fileName = try await imageStorageService.saveImage(image, recipeId: recipe.id)
+                    recipe.imageFileName = fileName
+                    Log.info("Recipe image downloaded and saved", category: .storage, metadata: ["fileName": fileName])
+                } else {
+                    Log.warning("Failed to create UIImage from downloaded data", category: .storage)
+                }
+            } catch {
+                Log.error("Failed to download recipe image", category: .network, metadata: ["error": error.localizedDescription])
+                // Continue without image - don't fail the import
+            }
+        }
+
+        // Save to database immediately (now with image if available)
         do {
             try modelContext.save()
         } catch {
@@ -455,7 +475,6 @@ struct RecipeImportView: View {
         // Continue heavy operations in background (non-blocking)
         let recipeId = recipe.id
         let ingredientTexts = imported.ingredients
-        let imageURLString = imported.imageURL
         let container = modelContext.container
 
         Task.detached {
@@ -476,15 +495,7 @@ struct RecipeImportView: View {
                 context: backgroundContext
             )
 
-            // Download image in background
-            if let imageURLString = imageURLString,
-               let url = URL(string: imageURLString) {
-                await RecipeImportView.downloadAndSaveImageInBackground(
-                    from: url,
-                    recipeId: recipeId,
-                    context: backgroundContext
-                )
-            }
+            // Image already downloaded before save - skip background download
 
             // Sync to Firebase in background
             await RecipeImportView.syncToFirebaseInBackground(

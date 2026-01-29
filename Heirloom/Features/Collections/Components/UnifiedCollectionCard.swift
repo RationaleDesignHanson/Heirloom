@@ -13,6 +13,8 @@ struct UnifiedCollectionCard: View {
     let collection: RecipeCollection
     let variant: CardVariant
 
+    @EnvironmentObject private var syncService: FirebaseSyncService
+
     enum CardVariant {
         case standard(onAddRecipeTap: (() -> Void)?)
         case themed(currentDay: Int, unlockTracker: ThemeUnlockTracker, allRecipes: [Recipe], allThemes: [RecipeTheme])
@@ -192,9 +194,28 @@ struct UnifiedCollectionCard: View {
 
     @ViewBuilder
     private var themedLargeImageView: some View {
-        if let theme = theme,
-           let coverImageURL = theme.coverImageURL,
-           let url = URL(string: coverImageURL) {
+        // Priority 1: AI-generated background (if enabled)
+        if collection.useCustomBackground,
+           let generatedPath = collection.generatedBackgroundImagePath {
+            AsyncRecipeImage(
+                imageFileName: generatedPath,
+                firebaseImageURL: nil,
+                placeholder: collection.iconName
+            )
+        }
+        // Priority 2: Custom user-selected background (if enabled)
+        else if collection.useCustomBackground,
+                let customPath = collection.customBackgroundImagePath {
+            AsyncRecipeImage(
+                imageFileName: customPath,
+                firebaseImageURL: nil,
+                placeholder: collection.iconName
+            )
+        }
+        // Priority 3: Theme cover image (fallback)
+        else if let theme = theme,
+                let coverImageURL = theme.coverImageURL,
+                let url = URL(string: coverImageURL) {
             AsyncImage(url: url) { phase in
                 switch phase {
                 case .success(let image):
@@ -207,7 +228,9 @@ struct UnifiedCollectionCard: View {
                     placeholderView
                 }
             }
-        } else {
+        }
+        // Priority 4: Placeholder
+        else {
             placeholderView
         }
     }
@@ -286,12 +309,26 @@ struct UnifiedCollectionCard: View {
     private var infoBadge: some View {
         switch variant {
         case .standard:
-            // Recipe count badge
+            // Recipe count badge with loading indicator
             HStack(spacing: 4) {
-                Image(systemName: "doc.text")
-                    .font(.caption)
+                // Show loading spinner if collection is syncing
+                if syncService.loadingCollectionIds.contains(collection.id) {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                } else {
+                    Image(systemName: "doc.text")
+                        .font(.caption)
+                }
+
                 Text("\(recipeCount)")
                     .font(HeirloomFonts.caption1)
+
+                // Show progress fraction if loading
+                if let progress = syncService.syncProgress[collection.id] {
+                    Text("/\(progress.totalRecipes)")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.secondaryText.opacity(0.7))
+                }
             }
             .foregroundStyle(HeirloomColors.secondaryText)
             .padding(.horizontal, 8)
@@ -317,6 +354,21 @@ struct UnifiedCollectionCard: View {
 
     // MARK: - Subviews
 
+    private var smallAffordanceText: String {
+        switch collection.type {
+        case .webImports:
+            return "Import"
+        case .videoImports:
+            return "Video"
+        case .cookbook:
+            return "Scan"
+        case .photoImports:
+            return "Photos"
+        default:
+            return "Add"
+        }
+    }
+
     @ViewBuilder
     private func addRecipeAffordance(onTap: (() -> Void)?) -> some View {
         let affordanceContent = Rectangle()
@@ -327,7 +379,7 @@ struct UnifiedCollectionCard: View {
                         .font(.title3)
                         .foregroundStyle(HeirloomColors.tomato)
 
-                    Text("Add")
+                    Text(smallAffordanceText)
                         .font(HeirloomFonts.caption2)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }

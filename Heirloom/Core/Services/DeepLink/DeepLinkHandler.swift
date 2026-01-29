@@ -76,7 +76,7 @@ class DeepLinkHandler: ObservableObject {
 
     private var lastProcessedURL: URL?
     private var lastProcessedTime: Date?
-    private let duplicateWindowSeconds: TimeInterval = 2.0
+    private let duplicateWindowSeconds: TimeInterval = 5.0  // Increased from 2.0 to handle rapid app launches
 
     // MARK: - Initialization
 
@@ -624,6 +624,69 @@ class DeepLinkHandler: ObservableObject {
                             isExtractingImageRecipes = false
                             imageExtractionProgress = ""
                         }
+                    }
+
+                case .shareExtensionImageBatch:
+                    // Multiple images from Photos share - process as batch
+                    guard let imageURLs = importData.imageURLs, !imageURLs.isEmpty else {
+                        Log.error("Image batch has no URLs", category: .general)
+                        DeviceLogger.shared.log("❌ [DeepLink] Image batch has no URLs")
+                        await PendingImportManager.shared.delete(id: importID)
+                        return
+                    }
+
+                    Log.info("Image batch import detected", category: .general, metadata: ["count": imageURLs.count])
+                    DeviceLogger.shared.log("📸 [DeepLink] Image batch import detected - \(imageURLs.count) images")
+
+                    guard let context = modelContext else {
+                        Log.error("ModelContext not available", category: .general)
+                        DeviceLogger.shared.log("❌ [DeepLink] ModelContext not available - cannot process images")
+                        return
+                    }
+
+                    do {
+                        // Load all images
+                        var images: [UIImage] = []
+                        for imageURL in imageURLs {
+                            if let image = UIImage(contentsOfFile: imageURL.path) {
+                                images.append(image)
+                            }
+                        }
+
+                        guard !images.isEmpty else {
+                            throw NSError(domain: "DeepLinkHandler", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load any images"])
+                        }
+
+                        Log.info("Loaded images from batch", category: .general, metadata: ["count": images.count])
+                        DeviceLogger.shared.log("✅ [DeepLink] Loaded \(images.count) images")
+
+                        // Create photo library import job for Photo Imports collection
+                        let importManager = ServiceContainer.shared.resolve(ImportJobManager.self)
+                        let job = try await importManager.createPhotoLibraryImportJob(
+                            images: images,
+                            collectionName: "Photo Imports",
+                            collectionType: .photoImports,
+                            context: context
+                        )
+
+                        Log.info("Starting image batch import job", category: .general, metadata: [
+                            "jobId": job.id.uuidString,
+                            "imageCount": images.count
+                        ])
+                        DeviceLogger.shared.log("🚀 [DeepLink] Starting image batch job: \(job.id.uuidString)")
+
+                        // Start processing
+                        try await importManager.startJob(job, context: context)
+
+                        // Clean up the pending import
+                        await PendingImportManager.shared.delete(id: importID)
+
+                        Log.info("Image batch import job started successfully", category: .general)
+                        DeviceLogger.shared.log("✅ [DeepLink] Image batch import started successfully")
+
+                    } catch {
+                        Log.error("Failed to create image batch import job", category: .general, metadata: ["error": error.localizedDescription])
+                        DeviceLogger.shared.log("❌ [DeepLink] Failed to create image batch job: \(error.localizedDescription)")
                     }
 
                 default:

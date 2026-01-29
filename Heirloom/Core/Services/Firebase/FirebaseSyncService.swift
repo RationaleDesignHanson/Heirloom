@@ -36,6 +36,20 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
     @Published var lastSyncDate: Date?
     @Published private(set) var syncError: Error?
 
+    // Loading state for collections (tracks which collections are loading recipes)
+    @Published var loadingCollectionIds: Set<UUID> = []
+    @Published var syncProgress: [UUID: SyncProgress] = [:] // Collection ID -> progress
+
+    struct SyncProgress {
+        var loadedRecipes: Int
+        var totalRecipes: Int
+
+        var percentComplete: Double {
+            guard totalRecipes > 0 else { return 0 }
+            return Double(loadedRecipes) / Double(totalRecipes)
+        }
+    }
+
     // MARK: - Sync State
 
     internal var modelContext: ModelContext?
@@ -615,7 +629,25 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         Log.info("Starting full sync", category: .sync)
 
         do {
-            // 1. Upload local changes
+            // 1. Sync collections FIRST (fast - shows UI immediately)
+            // Upload local collections
+            let localCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
+            let userCreatedCollections = localCollections.filter { !$0.isSystemCollection && !$0.isAllRecipes }
+
+            if !userCreatedCollections.isEmpty {
+                logger.log("📤 [Firebase] Uploading \(userCreatedCollections.count) collections", category: .sync, level: .info, metadata: nil)
+                for collection in userCreatedCollections {
+                    try await uploadCollection(collection)
+                }
+                logger.log("✅ [Firebase] Collections uploaded", category: .sync, level: .info, metadata: nil)
+            }
+
+            // Download remote collections (FAST - UI shows immediately)
+            logger.log("📥 [Firebase] Downloading collections", category: .sync, level: .info, metadata: nil)
+            let remoteCollections = try await downloadAllCollections(context: context)
+            logger.log("✅ [Firebase] Downloaded \(remoteCollections.count) collections", category: .sync, level: .info, metadata: nil)
+
+            // 2. Upload local recipe changes
             let unsyncedRecipes = try fetchUnsyncedRecipes(context: context)
             if !unsyncedRecipes.isEmpty {
                 logger.log("📤 [Firebase] Uploading \(unsyncedRecipes.count) local changes", category: .sync, level: .info, metadata: nil)
@@ -625,7 +657,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 logger.log("ℹ️ [Firebase] No local changes to upload", category: .sync, level: .info, metadata: nil)
             }
 
-            // 2. Download remote changes
+            // 3. Download remote recipe changes (SLOW - but UI already visible)
             let lastSync = UserDefaults.standard.object(forKey: "firebase_lastSyncDate") as? Date
             DeviceLogger.shared.log("📥 [Firebase] Fetching remote changes since: \(lastSync?.description ?? "beginning of time")")
             let remoteDocuments = try await fetchRemoteChanges(since: lastSync)
@@ -640,25 +672,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 logger.log("ℹ️ [Firebase] No remote changes to download", category: .sync, level: .info, metadata: nil)
             }
 
-            // 3. Sync collections
-            // Upload local collections
-            let localCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
-            let userCreatedCollections = localCollections.filter { !$0.isSystemCollection && !$0.isAllRecipes }
-
-            if !userCreatedCollections.isEmpty {
-                logger.log("📤 [Firebase] Uploading \(userCreatedCollections.count) collections", category: .sync, level: .info, metadata: nil)
-                for collection in userCreatedCollections {
-                    try await uploadCollection(collection)
-                }
-                logger.log("✅ [Firebase] Collections uploaded", category: .sync, level: .info, metadata: nil)
-            }
-
-            // Download remote collections
-            logger.log("📥 [Firebase] Downloading collections", category: .sync, level: .info, metadata: nil)
-            let remoteCollections = try await downloadAllCollections(context: context)
-            logger.log("✅ [Firebase] Downloaded \(remoteCollections.count) collections", category: .sync, level: .info, metadata: nil)
-
-            // 4. Update sync timestamp
+            // 4. Update sync timestamp (collections already synced in Step 1)
             let now = Date()
             UserDefaults.standard.set(now, forKey: "firebase_lastSyncDate")
             lastSyncDate = now
@@ -667,6 +681,9 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             logger.log("✅ [Firebase] Sync complete", category: .sync, level: .info, metadata: nil)
             logger.log("✅ [Firebase] Sync complete", category: .sync, level: .info, metadata: nil)
             Log.info("Sync complete", category: .sync)
+
+            // Clean up old tombstones after successful sync
+            cleanupOldTombstones(context: context)
 
         } catch {
             DeviceLogger.shared.log("❌ [Firebase] Sync failed: \(error.localizedDescription)", level: .error)
@@ -718,6 +735,9 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         try await fetchAndRestoreCardBack(for: targetRecipe, recipeId: documentId, context: context)
 
         try context.save()
+
+        // Update collection loading progress
+        await updateCollectionLoadingProgress(for: targetRecipe.id, context: context)
     }
 
     /// Fetch ingredients from Firestore and restore them to the recipe
@@ -890,11 +910,14 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         logger.log("🔄 [Firebase] Starting automatic sync...", category: .sync, level: .info, metadata: nil)
         Log.info("Starting automatic sync", category: .sync)
 
-        // Initial sync on start
-        Task {
+        // Initial sync on start - use background priority to not block UI
+        Task.detached(priority: .utility) {
+            // Small delay to let UI render first
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
             do {
-                logger.log("🔄 [Firebase] Performing initial sync on startup...", category: .sync, level: .info, metadata: nil)
-                try await syncChangesWithCRDT()
+                await self.logger.log("🔄 [Firebase] Performing initial sync on startup...", category: .sync, level: .info, metadata: nil)
+                try await self.syncChangesWithCRDT()
             } catch {
                 DeviceLogger.shared.log("❌ [Firebase] Initial sync failed: \(error.localizedDescription)", level: .error)
             }
@@ -1217,6 +1240,20 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             let data = doc.data()
             let collectionId = UUID(uuidString: doc.documentID) ?? UUID()
 
+            // Check if this collection was deleted locally (tombstone check)
+            let tombstoneDescriptor = FetchDescriptor<DeletedCollectionRecord>(
+                predicate: #Predicate { record in
+                    record.collectionId == collectionId
+                }
+            )
+            if let tombstone = try? context.fetch(tombstoneDescriptor).first {
+                Log.info("Skipping collection download - locally deleted (tombstone found)", category: .sync, metadata: [
+                    "collectionId": collectionId.uuidString,
+                    "syncedToFirebase": tombstone.syncedToFirebase
+                ])
+                continue // Skip this collection, it was deleted locally
+            }
+
             // Check if collection already exists locally
             let descriptor = FetchDescriptor<RecipeCollection>(
                 predicate: #Predicate { collection in
@@ -1267,9 +1304,11 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 context.insert(collection)
             }
 
-            // Restore recipe relationships
+            // Restore recipe relationships and track loading state
             if let recipeIds = data["recipeIds"] as? [String] {
+                let expectedRecipeCount = recipeIds.count
                 var linkedRecipes: [Recipe] = []
+
                 for recipeIdString in recipeIds {
                     if let recipeId = UUID(uuidString: recipeIdString) {
                         let recipeDescriptor = FetchDescriptor<Recipe>(
@@ -1282,7 +1321,26 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                         }
                     }
                 }
+
                 collection.recipes = linkedRecipes
+
+                // Track loading state for collections with missing recipes (10+ threshold)
+                let missingRecipeCount = expectedRecipeCount - linkedRecipes.count
+                if missingRecipeCount > 0 && expectedRecipeCount >= 10 {
+                    // Mark collection as loading
+                    await MainActor.run {
+                        loadingCollectionIds.insert(collectionId)
+                        syncProgress[collectionId] = SyncProgress(
+                            loadedRecipes: linkedRecipes.count,
+                            totalRecipes: expectedRecipeCount
+                        )
+                    }
+                    Log.info("Collection has missing recipes, tracking load progress", category: .sync, metadata: [
+                        "collectionId": collectionId.uuidString,
+                        "loaded": linkedRecipes.count,
+                        "total": expectedRecipeCount
+                    ])
+                }
             }
 
             collections.append(collection)
@@ -1304,6 +1362,79 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         try await collectionRef.delete()
 
         logger.log("Collection deleted", category: .sync, level: .info, metadata: nil)
+    }
+
+    /// Clean up old tombstones that have been synced to Firebase
+    /// Should be called periodically (e.g., after successful sync)
+    func cleanupOldTombstones(context: ModelContext) {
+        // Delete tombstones that are:
+        // 1. Successfully synced to Firebase (syncedToFirebase = true)
+        // 2. Older than 30 days (safety buffer for multi-device sync)
+        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+
+        let descriptor = FetchDescriptor<DeletedCollectionRecord>(
+            predicate: #Predicate { record in
+                record.syncedToFirebase == true && record.deletedAt < thirtyDaysAgo
+            }
+        )
+
+        do {
+            let oldTombstones = try context.fetch(descriptor)
+            for tombstone in oldTombstones {
+                context.delete(tombstone)
+                Log.debug("Cleaned up old tombstone", category: .sync, metadata: [
+                    "collectionId": tombstone.collectionId.uuidString,
+                    "deletedAt": tombstone.deletedAt.ISO8601Format()
+                ])
+            }
+
+            if !oldTombstones.isEmpty {
+                try context.save()
+                Log.info("Cleaned up old tombstones", category: .sync, metadata: ["count": oldTombstones.count])
+            }
+        } catch {
+            Log.error("Failed to clean up old tombstones", category: .sync, error: error)
+        }
+    }
+
+    /// Update loading progress for collections after a recipe is synced
+    func updateCollectionLoadingProgress(for recipeId: UUID, context: ModelContext) async {
+        // Find which collections contain this recipe
+        let recipeDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { recipe in
+                recipe.id == recipeId
+            }
+        )
+
+        guard let recipe = try? context.fetch(recipeDescriptor).first,
+              let collections = recipe.collections else {
+            return
+        }
+
+        for collection in collections {
+            // Only track collections that are marked as loading
+            guard loadingCollectionIds.contains(collection.id) else { continue }
+
+            // Update progress
+            let currentRecipeCount = collection.recipes?.count ?? 0
+            if var progress = syncProgress[collection.id] {
+                progress.loadedRecipes = currentRecipeCount
+
+                await MainActor.run {
+                    syncProgress[collection.id] = progress
+
+                    // Remove from loading if complete
+                    if currentRecipeCount >= progress.totalRecipes {
+                        loadingCollectionIds.remove(collection.id)
+                        syncProgress.removeValue(forKey: collection.id)
+                        Log.info("Collection finished loading", category: .sync, metadata: [
+                            "collectionId": collection.id.uuidString,
+                            "recipeCount": currentRecipeCount
+                        ])
+                    }
+                }
+            }
+        }
     }
 
     /// Upload tag to Firebase

@@ -138,11 +138,15 @@ final class ImportJobManager: ObservableObject {
     func createJob(
         urls: [String],
         jobName: String? = nil,
+        collectionName: String? = nil,
+        collectionType: CollectionType? = nil,
         context: ModelContext
     ) throws -> ImportJob {
         // Create job
         let job = ImportJob(jobName: jobName)
         job.status = .processing  // Set to processing immediately so banner shows it
+        job.cookbookName = collectionName
+        job.collectionType = collectionType
         context.insert(job)
 
         // Create items with duplicate detection
@@ -382,6 +386,11 @@ final class ImportJobManager: ObservableObject {
         job.totalItems = images.count
         job.cookbookName = collectionName
         job.collectionType = collectionType
+        Log.info("Created camera import job", category: .import, metadata: [
+            "jobId": job.id.uuidString,
+            "cookbookName": collectionName ?? "nil",
+            "collectionType": collectionType?.rawValue ?? "nil"
+        ])
         context.insert(job)
 
         for image in images {
@@ -1094,11 +1103,23 @@ final class ImportJobManager: ObservableObject {
 
         // Auto-create collection and add successful recipes if cookbook name exists
         if let cookbookName = job.cookbookName, !cookbookName.isEmpty {
+            Log.info("Auto-creating collection for completed job", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "cookbookName": cookbookName,
+                "collectionType": job.collectionType?.rawValue ?? "nil",
+                "successfulRecipes": job.successfulItems
+            ])
             await createOrAddToCollection(
                 cookbookName: cookbookName,
                 job: job,
                 context: context
             )
+        } else {
+            Log.warning("Skipping collection creation - cookbook name is empty or nil", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "cookbookName": job.cookbookName ?? "nil",
+                "isEmpty": job.cookbookName?.isEmpty ?? true
+            ])
         }
 
         try? context.save()
@@ -1135,25 +1156,49 @@ final class ImportJobManager: ObservableObject {
         }
 
         // Find or create collection
-        let collectionDescriptor = FetchDescriptor<RecipeCollection>(
-            predicate: #Predicate<RecipeCollection> { collection in
-                collection.name == cookbookName
-            }
-        )
+        // Use collection type from job if specified, otherwise default to userCreated
+        let collectionType = job.collectionType ?? .userCreated
 
-        let existingCollection = try? context.fetch(collectionDescriptor).first
+        // For cookbook collections, we need special handling:
+        // - Custom names (non-default) should match by name AND type to allow grouping pages
+        // - Default "Cookbook Pages" name should NEVER consolidate (always create separate collections)
+        // - For other types (web, photo, video), consolidate into single collection by type
+        let existingCollection: RecipeCollection?
+
+        if collectionType == .cookbook && cookbookName == "Cookbook Pages" {
+            // Never reuse default-named cookbook collections - always create new
+            existingCollection = nil
+            Log.info("Creating separate collection for default cookbook name", category: .import, metadata: [
+                "cookbookName": cookbookName
+            ])
+        } else if collectionType == .cookbook {
+            // For custom-named cookbooks, find by exact name AND type
+            let typeRawValue = collectionType.rawValue
+            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate<RecipeCollection> { collection in
+                    collection.name == cookbookName && collection.collectionType == typeRawValue
+                }
+            )
+            existingCollection = try? context.fetch(collectionDescriptor).first
+        } else {
+            // For other types, find by name (existing behavior)
+            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate<RecipeCollection> { collection in
+                    collection.name == cookbookName
+                }
+            )
+            existingCollection = try? context.fetch(collectionDescriptor).first
+        }
 
         let collection: RecipeCollection
         if let existing = existingCollection {
             collection = existing
             Log.info("Adding recipes to existing collection", category: .import, metadata: [
                 "collection": cookbookName,
+                "collectionType": collectionType.rawValue,
                 "recipe_count": recipes.count
             ])
         } else {
-            // Use collection type from job if specified, otherwise default to userCreated
-            let collectionType = job.collectionType ?? .userCreated
-
             collection = RecipeCollection(
                 name: cookbookName,
                 description: "Imported from \(cookbookName)",

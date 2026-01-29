@@ -133,6 +133,15 @@ struct CollectionManagementView: View {
         // Capture collection IDs before deleting
         let collectionIdsToDelete = offsets.map { userCollections[$0].id }
 
+        // Create tombstones BEFORE deleting (so we remember these were deleted)
+        for collectionId in collectionIdsToDelete {
+            let tombstone = DeletedCollectionRecord(collectionId: collectionId)
+            modelContext.insert(tombstone)
+            Log.info("Created deletion tombstone", category: .collections, metadata: [
+                "collectionId": collectionId.uuidString
+            ])
+        }
+
         for index in offsets {
             let collection = userCollections[index]
             modelContext.delete(collection)
@@ -147,6 +156,20 @@ struct CollectionManagementView: View {
                     for collectionId in collectionIdsToDelete {
                         do {
                             try await firebaseSync.deleteCollection(collectionId)
+
+                            // Mark tombstone as synced to Firebase
+                            let descriptor = FetchDescriptor<DeletedCollectionRecord>(
+                                predicate: #Predicate { record in
+                                    record.collectionId == collectionId
+                                }
+                            )
+                            if let tombstone = try? modelContext.fetch(descriptor).first {
+                                tombstone.syncedToFirebase = true
+                                try? modelContext.save()
+                                Log.info("Marked tombstone as synced to Firebase", category: .collections, metadata: [
+                                    "collectionId": collectionId.uuidString
+                                ])
+                            }
                         } catch {
                             Log.warning("Failed to delete collection from Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "collectionId": collectionId])
                         }

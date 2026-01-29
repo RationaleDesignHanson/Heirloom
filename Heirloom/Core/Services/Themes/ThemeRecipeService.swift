@@ -10,7 +10,9 @@ import SwiftData
 import FirebaseFirestore
 
 /// Service for downloading theme recipes from Firebase
-actor ThemeRecipeService {
+/// CRITICAL: Uses ModelContext which requires MainActor
+@MainActor
+class ThemeRecipeService {
 
     private let firestore = Firestore.firestore()
 

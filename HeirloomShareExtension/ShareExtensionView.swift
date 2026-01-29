@@ -17,11 +17,13 @@ struct ShareExtensionView: View {
         case processingURL
         case processingPDF
         case processingImage
+        case processingImageBatch(Int)  // Processing N images from Photos
         case processingBulk(Int)  // Processing N items from Notes
         case successVideo
         case successURL
         case successPDF
         case successImage
+        case successImageBatch(Int)  // Successfully saved N images
         case successBulk(itemCount: Int)
         case error(String)
         case socialMediaInstructions(String)  // Show instructions for TikTok/IG
@@ -89,12 +91,17 @@ struct ShareExtensionView: View {
                 .font(.system(size: 64))
                 .foregroundStyle(.blue)
 
+        case .processingImageBatch:
+            Image(systemName: "photo.on.rectangle.angled")
+                .font(.system(size: 64))
+                .foregroundStyle(.blue)
+
         case .processingBulk:
             Image(systemName: "doc.on.doc.circle.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(.blue)
 
-        case .successVideo, .successURL, .successPDF, .successImage, .successBulk:
+        case .successVideo, .successURL, .successPDF, .successImage, .successImageBatch, .successBulk:
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(.green)
@@ -146,6 +153,13 @@ struct ShareExtensionView: View {
                 ProgressView()
             }
 
+        case .processingImageBatch(let count):
+            VStack(spacing: 8) {
+                Text("Saving \(count) image\(count == 1 ? "" : "s")...")
+                    .font(.headline)
+                ProgressView()
+            }
+
         case .processingBulk(let count):
             VStack(spacing: 8) {
                 Text("Processing \(count) item\(count == 1 ? "" : "s")...")
@@ -183,6 +197,15 @@ struct ShareExtensionView: View {
         case .successImage:
             VStack(spacing: 8) {
                 Text("Image Saved!")
+                    .font(.headline)
+                Text("Open Heirloom to import")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+        case .successImageBatch(let count):
+            VStack(spacing: 8) {
+                Text("Saved \(count) Image\(count == 1 ? "" : "s")!")
                     .font(.headline)
                 Text("Open Heirloom to import")
                     .font(.subheadline)
@@ -264,6 +287,10 @@ struct ShareExtensionView: View {
                 state = .processingImage
                 try await handleImage(imageURL)
 
+            case .imageBatch(let imageURLs):
+                state = .processingImageBatch(imageURLs.count)
+                try await handleImageBatch(imageURLs)
+
             case .bulkContent(let urls, let text, let hasRecipe):
                 state = .processingBulk(urls.count + (hasRecipe ? 1 : 0))
                 try await handleBulkContent(urls: urls, text: text, hasRecipe: hasRecipe)
@@ -277,29 +304,53 @@ struct ShareExtensionView: View {
     }
 
     private func loadSharedContent() async throws -> SharedContent {
-        guard let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem,
-              let itemProvider = extensionItem.attachments?.first else {
+        guard let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem else {
+            throw ShareError.noContent
+        }
+
+        // Check if we have multiple attachments (batch import)
+        guard let attachments = extensionItem.attachments, !attachments.isEmpty else {
             throw ShareError.noContent
         }
 
         // PRIORITY 1: Check for actual video files (from Photos/Camera Roll)
         // This must come first to avoid treating video file:// URLs as web URLs
-        if itemProvider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
-            let videoURL = try await loadVideo(from: itemProvider)
+        if attachments[0].hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
+            let videoURL = try await loadVideo(from: attachments[0])
             return .video(videoURL)
         }
 
         // PRIORITY 2: Check for PDF files (from Files app, email, etc.)
-        if itemProvider.hasItemConformingToTypeIdentifier(UTType.pdf.identifier) {
-            let pdfURL = try await loadPDF(from: itemProvider)
+        if attachments[0].hasItemConformingToTypeIdentifier(UTType.pdf.identifier) {
+            let pdfURL = try await loadPDF(from: attachments[0])
             return .pdf(pdfURL)
         }
 
         // PRIORITY 3: Check for images (from Photos, screenshots, etc.)
-        if itemProvider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-            let imageURL = try await loadImage(from: itemProvider)
-            return .image(imageURL)
+        // Handle both single and multiple images
+        let imageAttachments = attachments.filter { $0.hasItemConformingToTypeIdentifier(UTType.image.identifier) }
+
+        if !imageAttachments.isEmpty {
+            if imageAttachments.count == 1 {
+                // Single image - use existing flow
+                let imageURL = try await loadImage(from: imageAttachments[0])
+                return .image(imageURL)
+            } else {
+                // Multiple images - use batch flow
+                var imageURLs: [URL] = []
+                for attachment in imageAttachments {
+                    if let url = try? await loadImage(from: attachment) {
+                        imageURLs.append(url)
+                    }
+                }
+                if !imageURLs.isEmpty {
+                    return .imageBatch(imageURLs)
+                }
+            }
         }
+
+        // Fall back to first attachment for other types
+        let itemProvider = attachments[0]
 
         // PRIORITY 4: Check for web URLs (http/https)
         if itemProvider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
@@ -546,6 +597,43 @@ struct ShareExtensionView: View {
         try await openMainApp(withImportID: pendingImportID, successState: .successImage)
     }
 
+    private func handleImageBatch(_ imageURLs: [URL]) async throws {
+        // 1. Ensure shared container exists
+        guard let sharedVideosURL = SharedConstants.sharedVideosURL else {
+            throw ShareError.containerUnavailable
+        }
+
+        try FileManager.default.createDirectory(at: sharedVideosURL, withIntermediateDirectories: true)
+
+        // 2. Copy all images to shared container
+        let pendingImportID = UUID()
+        var destinationURLs: [URL] = []
+
+        for (index, imageURL) in imageURLs.enumerated() {
+            let imageExtension = imageURL.pathExtension
+            let destinationURL = sharedVideosURL.appendingPathComponent("\(pendingImportID.uuidString)_\(index).\(imageExtension)")
+
+            try FileManager.default.copyItem(at: imageURL, to: destinationURL)
+            destinationURLs.append(destinationURL)
+        }
+
+        // 3. Create pending import record with all image URLs
+        var pendingImport = PendingVideoImport(
+            id: pendingImportID,
+            sourceType: .shareExtensionImageBatch,
+            localVideoURL: nil,
+            originalURL: nil,
+            detectedPlatform: .unknown
+        )
+        pendingImport.imageURLs = destinationURLs
+
+        // 4. Save to pending imports directory
+        try savePendingImport(pendingImport)
+
+        // 5. Open main app
+        try await openMainApp(withImportID: pendingImportID, successState: .successImageBatch(imageURLs.count))
+    }
+
     // MARK: - Bulk Content Handling
 
     private func handleBulkContent(urls: [String], text: String?, hasRecipe: Bool) async throws {
@@ -746,6 +834,7 @@ enum SharedContent {
     case url(URL)
     case pdf(URL)
     case image(URL)
+    case imageBatch([URL])  // Multiple images from Photos
     case bulkContent(urls: [String], text: String?, hasRecipe: Bool)
     case unsupported
 }

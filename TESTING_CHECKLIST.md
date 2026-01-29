@@ -8,9 +8,9 @@
 
 ## Pre-Test Setup
 
-- [ ] Build succeeded
-- [ ] App launches without crashes
-- [ ] Navigate to Collections tab
+- [+] Build succeeded
+- [+] App launches without crashes
+- [+] Navigate to Collections tab
 
 ---
 
@@ -18,21 +18,24 @@
 
 **Goal:** Verify all collection cards use unified vertical layout
 
+We are missing a recipe for homemade beef stroganoff skillet. Please analyze the recipe and give me a prompt to generate the missing image with the right filename
+
 ### Test Steps:
 1. Navigate to Collections tab
 2. Observe "Your Discoveries" section (themed collections)
 3. Observe "My Collections" section (standard collections)
 
 ### Expected Results:
-- [ ] All cards have same vertical layout (60/40 image split)
-- [ ] All cards have same height (~220pt including info bar)
-- [ ] All cards have same rounded corners (16pt image, 20pt card)
-- [ ] All cards have same shadow style
-- [ ] Theme collections show "Day X" or "Complete" badge in top-right
-- [ ] Standard collections show recipe count badge in bottom-right
+- [+] All cards have same vertical layout (60/40 image split)
+- [+] All cards have same height (~220pt including info bar)
+- [+] All cards have same rounded corners (16pt image, 20pt card)
+- [+] All cards have same shadow style
+- [+] Theme collections show "Day X" or "Complete" badge in top-right
+- [+] Standard collections show recipe count badge in bottom-right
 
 ### Pass Criteria:
 Visual parity between themed and standard collections ✓
+
 
 ---
 
@@ -48,12 +51,14 @@ Visual parity between themed and standard collections ✓
 2. Observe the collection card in "My Collections"
 3. Tap the large + affordance
 
+Added empty collection but it did not appear in my collections
+
 ### Expected Results:
-- [ ] Large + icon (48pt) appears in hero image slot (60%)
-- [ ] Text reads "Add Your First Recipe"
-- [ ] Subtitle says "Tap to add a recipe"
-- [ ] Tapping opens add recipe menu
-- [ ] Small slots (40%) show placeholders
+- [-] Large + icon (48pt) appears in hero image slot (60%)
+- [-] Text reads "Add Your First Recipe"
+- [-] Subtitle says "Tap to add a recipe"
+- [-] Tapping opens add recipe menu
+- [-] Small slots (40%) show placeholders
 
 ### Pass Criteria:
 Empty collections are immediately actionable ✓
@@ -70,11 +75,11 @@ Empty collections are immediately actionable ✓
 3. Observe the collection card
 
 ### Expected Results:
-- [ ] Recipe image appears in large slot (60%) OR AI background if generated
-- [ ] First small slot shows recipe thumbnail
-- [ ] Second small slot shows + affordance with "Add" text
-- [ ] Tapping + affordance opens add recipe menu
-- [ ] After adding 2nd recipe, + affordance disappears
+- [n/a] Recipe image appears in large slot (60%) OR AI background if generated
+- [n/a] First small slot shows recipe thumbnail
+- [n/a] Second small slot shows + affordance with "Add" text
+- [n/a] Tapping + affordance opens add recipe menu
+- [n/a] After adding 2nd recipe, + affordance disappears
 
 ### Pass Criteria:
 + affordance appears and functions correctly ✓
@@ -92,34 +97,40 @@ Empty collections are immediately actionable ✓
 2. Observe + affordance subtitle
 3. Tap + affordance
 
+Web import took a while to load the imagery in my collections.
+
+
 **Expected:**
-- [ ] Subtitle: "Tap to import from a website"
-- [ ] Opens RecipeImportView (web link import)
+- [+] Subtitle: "Tap to import from a website" (works but text says 'add')
+- [+] Opens RecipeImportView (web link import)
 
 #### 4b. Video Imports Collection
-1. Create empty video import collection
-2. Tap + affordance
+1. Create empty video import collection (I can not do this because the section is auto added when I import a video)
+2. Tap + affordance (works, I imported a video it created a video imports section, and then the add button room me to the right place)
 
 **Expected:**
-- [ ] Subtitle: "Tap to import from a video"
-- [ ] Opens UnifiedVideoImportView
+- [+] Subtitle: "Tap to import from a video"
+- [+] Opens UnifiedVideoImportView
 
 #### 4c. Cookbook Pages Collection
 1. Create empty cookbook collection
 2. Tap + affordance
+Fails - still puts cookbook in 'shared recipes' collection instead of collection named after cookbook. We built a feature for this a while ago which scans the cookbook for its name and uses it to create a collection but for some reason this issue has persisted.
 
 **Expected:**
-- [ ] Subtitle: "Tap to scan a cookbook page"
-- [ ] Opens CookbookScannerView
+- [x] Subtitle: "Tap to scan a cookbook page"
+- [x] Opens CookbookScannerView
 
 #### 4d. Photo Imports Collection
 1. Create empty photo imports collection
 2. Tap + affordance
 
+Does not work. Recipe gets processed but collection is not created. Do we have a my collections limit or something?
+
 **Expected:**
 - [ ] Subtitle: "Tap to import from photos"
 - [ ] Opens BulkImportView (photo import)
-
+Sending multiple images from camera roll to heirloom does not process all images. Using this method still doesnt create an images collection
 ### Pass Criteria:
 Each collection type routes to its specific import flow ✓
 
@@ -167,24 +178,28 @@ AI backgrounds display correctly with type-specific styling ✓
 2. Tap gear icon (top-right) OR ellipses menu → "Collection Settings"
 3. Observe "Background" section
 
+Created ai image, but did not replace for your discoveries collections. Worked for 'my collections'/
+
 ### Test 6a: Toggle Custom Background
-- [ ] Toggle "Use Custom Background" ON
-- [ ] Photo picker and AI generation options appear
-- [ ] Toggle OFF
-- [ ] Custom background is cleared
-- [ ] Card reverts to recipe collage
+- [+] Toggle "Use Custom Background" ON
+- [+] Photo picker and AI generation options appear
+- [+] Toggle OFF
+- [n/a] Custom background is cleared
+- [n/a] Card reverts to recipe collage
+
+Was able to see this option, but choosing image did not work. When in collections, the eclipses menu did not do anything when clicked
 
 ### Test 6b: Choose Photo
 1. Toggle "Use Custom Background" ON
 2. Tap "Choose Photo"
 3. Select a photo from library
-4. Observe result
+4. Observe result (result not visible)
 
 **Expected:**
-- [ ] Photo picker opens
-- [ ] Selected photo appears as preview
-- [ ] Collection card shows custom photo in large slot
-- [ ] "Remove Background" button appears
+- [+] Photo picker opens
+- [+] Selected photo appears as preview
+- [+] Collection card shows custom photo in large slot
+- [+] "Remove Background" button appears
 
 ### Test 6c: Generate with AI
 1. Toggle "Use Custom Background" ON
@@ -192,19 +207,21 @@ AI backgrounds display correctly with type-specific styling ✓
 3. Wait for generation
 
 **Expected:**
-- [ ] Loading indicator appears
-- [ ] Toast notification on completion
-- [ ] Generated image appears as preview
-- [ ] Collection card shows AI image in large slot
+- [+] Loading indicator appears
+- [+] Toast notification on completion
+- [+] Generated image appears as preview
+- [+] Collection card shows AI image in large slot (does not work with theme collections) 
 
 ### Test 6d: Remove Background
 1. With custom or AI background active
 2. Tap "Remove Background"
 
+Long pressing collection card does not give example to remove ai image)
+
 **Expected:**
-- [ ] Background is removed
-- [ ] Toggle switches OFF
-- [ ] Card reverts to recipe collage
+- [n/a] Background is removed
+- [n/a] Toggle switches OFF
+- [n/a] Card reverts to recipe collage
 
 ### Pass Criteria:
 All background customization options work correctly ✓
@@ -222,17 +239,17 @@ All background customization options work correctly ✓
 ### Expected Results:
 
 **System Collections (read-only):**
-- [ ] "Web Imports" - Name field disabled, displays as "Web Imports"
-- [ ] "Video Imports" - Name field disabled, displays as "Video Imports"
-- [ ] "Cookbook Pages" - Name field disabled, displays as "Cookbook Pages"
-- [ ] "Photo Imports" - Name field disabled, displays as "Photo Imports"
-- [ ] "From Friends" - Name field disabled, displays as "From Friends"
-- [ ] Warning text: "System collection names cannot be changed"
+- [+] "Web Imports" - Name field disabled, displays as "Web Imports"
+- [+] "Video Imports" - Name field disabled, displays as "Video Imports"
+- [na] "Cookbook Pages" - Name field disabled, displays as "Cookbook Pages"
+- [na] "Photo Imports" - Name field disabled, displays as "Photo Imports"
+- [na] "From Friends" - Name field disabled, displays as "From Friends"
+- [+] Warning text: "System collection names cannot be changed"
 
 **User Collections (editable):**
-- [ ] User-created collections - Name field enabled
-- [ ] Theme collections - Name field enabled
-- [ ] No warning text
+- [+] User-created collections - Name field enabled
+- [+] Theme collections - Name field enabled
+- [+] No warning text
 
 ### Pass Criteria:
 System collections show correct displayName and prevent editing ✓
@@ -250,15 +267,15 @@ System collections show correct displayName and prevent editing ✓
 
 ### Expected Results:
 **Hidden (if empty):**
-- [ ] Web Imports (if no web recipes imported)
-- [ ] Video Imports (if no video recipes imported)
-- [ ] Cookbook Pages (if no cookbook pages scanned)
-- [ ] Photo Imports (if no photos imported)
-- [ ] From Friends (if no shared recipes received)
+- [+] Web Imports (if no web recipes imported)
+- [+] Video Imports (if no video recipes imported)
+- [+] Cookbook Pages (if no cookbook pages scanned)
+- [+] Photo Imports (if no photos imported)
+- [+] From Friends (if no shared recipes received)
 
 **Always Visible (even if empty):**
-- [ ] User-created collections
-- [ ] Theme collections
+- [n/a] User-created collections (not appearing)
+- [+] Theme collections
 
 ### Pass Criteria:
 Empty auto-generated collections are automatically hidden ✓
@@ -278,16 +295,16 @@ Empty auto-generated collections are automatically hidden ✓
 6. Observe timing
 
 ### Expected Results:
-- [ ] "Recipe imported!" toast appears immediately (<1s)
-- [ ] Sheet dismisses immediately (<1s)
-- [ ] Recipe appears in list with placeholder ingredients
-- [ ] Recipe image loads progressively in background
-- [ ] Parsed ingredients appear progressively in background
-- [ ] No blocking spinner states
+- [+] "Recipe imported!" toast appears immediately (<1s)
+- [+] Sheet dismisses immediately (<1s)
+- [+] Recipe appears in list with placeholder ingredients
+- [+] Recipe image loads progressively in background
+- [+] Parsed ingredients appear progressively in background
+- [+] No blocking spinner states
 
 ### Pass Criteria:
 Sheet dismisses in <1 second, background processing completes without blocking UI ✓
-
+Works but the image takes more time to load than the recipe card resulting in a placeholder image for a few seconds.
 ---
 
 ## Test 10: Context Menu Integration
@@ -300,10 +317,10 @@ Sheet dismisses in <1 second, background processing completes without blocking U
 
 ### Expected Results:
 Both card types show:
-- [ ] "Generate with AI" option
-- [ ] "Collection Settings" option
-- [ ] Options are functional
-- [ ] Loading states appear during AI generation
+- [+] "Generate with AI" option
+- [+] "Collection Settings" option
+- [+] Options are functional
+- [+] Loading states appear during AI generation
 
 ### Pass Criteria:
 Context menus work identically on both card types ✓
@@ -316,12 +333,12 @@ Context menus work identically on both card types ✓
 
 ### Test Steps:
 1. Navigate into any collection
-2. Tap gear icon (toolbar, top-right)
+2. Tap gear icon (toolbar, top-right) no gear icon, only ellipses, and when pressed nothing happens but the button ui responds to press
 
 ### Expected Results:
-- [ ] CollectionSettingsView opens
-- [ ] All settings sections visible
-- [ ] Changes save correctly
+- [-] CollectionSettingsView opens
+- [-] All settings sections visible
+- [-] Changes save correctly
 
 ### Pass Criteria:
 Settings accessible from collection detail view ✓
@@ -336,37 +353,41 @@ Settings accessible from collection detail view ✓
 1. Create collection with recipes that have no images
 2. Observe card
 
+Not showing up
+
 **Expected:**
-- [ ] Large slot shows placeholder with collection icon
-- [ ] Small slots show placeholders
-- [ ] No crashes
+- [-] Large slot shows placeholder with collection icon
+- [-] Small slots show placeholders
+- [-] No crashes
 
 ### Test 12b: AI Generation Failure
 1. Attempt AI generation with no network
 2. Observe error handling
 
 **Expected:**
-- [ ] Error toast appears
-- [ ] Card doesn't break
-- [ ] Can retry
+- [havent encountered] Error toast appears
+- [havent encountered] Card doesn't break
+- [havent encountered] Can retry
 
 ### Test 12c: Very Long Collection Names
 1. Create collection with 50+ character name
 2. Observe card
 
 **Expected:**
-- [ ] Name truncates with ellipsis
-- [ ] Card layout doesn't break
-- [ ] No text overflow
+- [+] Name truncates with ellipsis
+- [+] Card layout doesn't break
+- [+] No text overflow
 
 ### Test 12d: Rapid Collection Creation
 1. Create 5 collections quickly
 2. Observe list
 
+Cant create collections and have them appear yet
+
 **Expected:**
-- [ ] All collections appear
-- [ ] No duplicates
-- [ ] No crashes
+- [n/a] All collections appear
+- [n/a] No duplicates
+- [n/a] No crashes
 
 ### Pass Criteria:
 App handles edge cases gracefully ✓
@@ -383,15 +404,17 @@ App handles edge cases gracefully ✓
 3. Tap into a themed collection
 
 ### Expected Results:
-- [ ] Theme cover image in large slot (60%)
-- [ ] Recipe thumbnails in small slots (40%)
-- [ ] "Day X" badge visible in top-right
-- [ ] Progress indicator in info bar
-- [ ] Unlock mechanics work as before
-- [ ] No visual regressions
+- [+] Theme cover image in large slot (60%)
+- [+] Recipe thumbnails in small slots (40%)
+- [+] "Day X" badge visible in top-right
+- [+] Progress indicator in info bar (it looks like there is a tappable > affordance but there is no ux here, we should get rid of the > or have it go somewhere useful)
+- [+] Unlock mechanics work as before
+- [+] No visual regressions
 
 ### Pass Criteria:
 Theme collections function identically to before refactor ✓
+
+Cant tell if daily unlocks work, we will have to use the terminal to change the simulator date and check 
 
 ---
 
@@ -406,10 +429,10 @@ Theme collections function identically to before refactor ✓
 4. Monitor performance
 
 ### Expected Results:
-- [ ] Smooth scrolling (60fps)
-- [ ] No stuttering when loading images
-- [ ] No memory warnings
-- [ ] AI generation completes in reasonable time (~10-15s)
+- [+] Smooth scrolling (60fps)
+- [+] No stuttering when loading images
+- [+] No memory warnings
+- [+] AI generation completes in reasonable time (~10-15s)
 
 ### Pass Criteria:
 No performance regressions ✓

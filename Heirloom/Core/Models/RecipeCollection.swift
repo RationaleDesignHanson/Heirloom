@@ -92,8 +92,8 @@ final class RecipeCollection {
             return false
         }
 
-        // Empty non-theme collections are hidden
-        if type != .theme && recipeCount == 0 {
+        // Empty auto-generated collections are hidden, but user-created and theme collections should show
+        if type != .theme && type != CollectionType.userCreated && recipeCount == 0 {
             return false
         }
 
@@ -133,14 +133,16 @@ final class RecipeCollection {
 
     /// Display name for collection (uses type name for auto-generated collections)
     var displayName: String {
-        // For auto-generated type-based collections, use the type display name
+        // For auto-generated type-based collections WITHOUT custom names, use the type display name
+        // But cookbook collections with custom names should use the custom name
         switch type {
         case .webImports:
             return "Web Imports"
         case .videoImports:
             return "Video Imports"
         case .cookbook:
-            return "Cookbook Pages"
+            // Cookbook collections always use their custom name
+            return name
         case .photoImports:
             return "Photo Imports"
         case .fromFriends:
@@ -238,4 +240,21 @@ final class RecipeCollection {
         }
     }
 
+}
+
+// MARK: - Deletion Tombstone
+
+/// Tombstone record for tracking deleted collections
+/// Prevents Firebase sync from recreating locally-deleted collections
+@Model
+final class DeletedCollectionRecord {
+    var collectionId: UUID
+    var deletedAt: Date
+    var syncedToFirebase: Bool
+
+    init(collectionId: UUID) {
+        self.collectionId = collectionId
+        self.deletedAt = Date()
+        self.syncedToFirebase = false
+    }
 }
