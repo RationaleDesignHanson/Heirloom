@@ -1824,6 +1824,7 @@ struct CollectionsListView: View {
         let cookTime: String?
         let servings: String?
         let notes: String?
+        let imageFileName: String? // NEW: For sidecar image restoration
     }
 
     private func handleAddNormalSample() {
