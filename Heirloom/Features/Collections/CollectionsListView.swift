@@ -1141,10 +1141,47 @@ struct CollectionsListView: View {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
 
-        // Show multi-option add recipe menu
-        showAddRecipeMenu = true
+        // Smart routing: Open the appropriate import flow based on collection type
+        switch collection.type {
+        case .webImports:
+            showImportRecipe = true
+            Log.info("Opening web import from + affordance", category: .collections)
 
-        Log.info("Add recipe menu opened from collection card", category: .collections, metadata: [
+        case .videoImports:
+            showVideoImport = true
+            Log.info("Opening video import from + affordance", category: .collections)
+
+        case .cookbook, .photoImports:
+            // Both cookbook and photo imports use CookbookScannerView
+            // (which has both camera and photo library picker)
+            showCookbookScanner = true
+            Log.info("Opening cookbook/photo scanner from + affordance", category: .collections, metadata: [
+                "collectionType": collection.type.rawValue
+            ])
+
+        case .fromFriends:
+            // Shared collections shouldn't show + affordance
+            // But if somehow tapped, show generic menu
+            showAddRecipeMenu = true
+            Log.warning("+ affordance tapped on fromFriends collection", category: .collections)
+
+        case .theme:
+            // Theme collections use different card, but handle gracefully
+            showAddRecipeMenu = true
+            Log.info("Opening add recipe menu from theme collection", category: .collections)
+
+        case .userCreated:
+            // User-created collections show the full add menu with all options
+            showAddRecipeMenu = true
+            Log.info("Opening add recipe menu from user collection", category: .collections)
+
+        default:
+            // Fallback to standard add menu
+            showAddRecipeMenu = true
+            Log.info("Opening add recipe menu (default)", category: .collections)
+        }
+
+        Log.info("Add recipe triggered from collection card", category: .collections, metadata: [
             "collectionId": collection.id.uuidString,
             "collectionType": collection.type.rawValue
         ])
