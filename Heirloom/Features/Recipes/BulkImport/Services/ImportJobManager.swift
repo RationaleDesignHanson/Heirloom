@@ -20,6 +20,7 @@ final class ImportJobManager: ObservableObject {
     private var currentTasks: [UUID: Task<Void, Never>] = [:]
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
     private var shouldPauseForBackground = false
+    private var activeContext: ModelContext? // Store context for background saves
 
     // MARK: - Dependencies
     private let importService: RecipeImportService
@@ -64,7 +65,7 @@ final class ImportJobManager: ObservableObject {
     }
 
     @objc private func appWillEnterBackground() {
-        guard isProcessing, let job = activeJob else { return }
+        guard isProcessing, let job = activeJob, let context = activeContext else { return }
 
         Log.info("App backgrounding - starting background task", category: .import, metadata: [
             "job_id": job.id.uuidString,
@@ -76,8 +77,7 @@ final class ImportJobManager: ObservableObject {
         job.interruptedAt = Date()
         job.checkpoint?.markInterrupted(phase: job.phase)
 
-        // Save immediately
-        let context = ServiceContainer.shared.resolve(ModelContext.self)
+        // Save immediately using stored context
         try? context.save()
 
         // Request background execution time
@@ -460,6 +460,7 @@ final class ImportJobManager: ObservableObject {
         }
 
         activeJob = job
+        activeContext = context // Store context for background saves
         isProcessing = true
         job.status = .processing
 
@@ -538,6 +539,7 @@ final class ImportJobManager: ObservableObject {
         job.status = .paused
         isProcessing = false
         activeJob = nil
+        activeContext = nil // Clear stored context
 
         // Cancel active tasks
         currentTasks.values.forEach { $0.cancel() }
@@ -896,6 +898,7 @@ final class ImportJobManager: ObservableObject {
                 job.status = .failed
                 isProcessing = false
                 activeJob = nil
+                activeContext = nil // Clear stored context
             }
         }
     }
@@ -1090,6 +1093,7 @@ final class ImportJobManager: ObservableObject {
         job.phaseProgress = 1.0
         job.completedAt = Date()
         isProcessing = false
+        activeContext = nil // Clear stored context
 
         // End background task if active
         if backgroundTask != .invalid {
