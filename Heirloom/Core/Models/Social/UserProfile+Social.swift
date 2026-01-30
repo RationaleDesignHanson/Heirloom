@@ -183,6 +183,12 @@ enum VerificationType: String, Codable {
 // MARK: - Helper Extensions
 
 extension UserProfile {
+    /// Create a default profile for a new user
+    static func defaultProfile(userId: String, displayName: String? = nil) -> UserProfile {
+        let name = displayName ?? "User"
+        return UserProfile(userId: userId, displayName: name)
+    }
+
     /// Full @mention format for display
     var mentionHandle: String? {
         guard let handle = handle else { return nil }

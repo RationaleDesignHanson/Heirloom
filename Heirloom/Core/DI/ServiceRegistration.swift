@@ -184,6 +184,26 @@ extension ServiceContainer {
             FirebaseUserProfileService()
         }
 
+        // MARK: - Social Services (Phase 3)
+
+        // ProfileService (concrete type)
+        register(FirebaseProfileService.self, lifecycle: .singleton) { _ in
+            FirebaseProfileService()
+        }
+
+        register((any ProfileServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseProfileService.self) as any ProfileServiceProtocol
+        }
+
+        // ConnectionService (concrete type)
+        register(FirebaseConnectionService.self, lifecycle: .singleton) { _ in
+            FirebaseConnectionService()
+        }
+
+        register((any ConnectionServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseConnectionService.self) as any ConnectionServiceProtocol
+        }
+
         // FirebaseLineageService
         register(FirebaseLineageService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
@@ -282,6 +302,18 @@ extension ServiceContainer {
 
         register(RecipeExporter.self, lifecycle: .singleton) { _ in
             RecipeExporter()
+        }
+
+        // HeirloomDataExporter (Phase 3 - v2 export with social data)
+        register(HeirloomDataExporter.self, lifecycle: .singleton) { container in
+            let profileService = container.resolve((any ProfileServiceProtocol).self)
+            let connectionService = container.resolve((any ConnectionServiceProtocol).self)
+            let recipeExporter = container.resolve(RecipeExporter.self)
+            return HeirloomDataExporter(
+                profileService: profileService,
+                connectionService: connectionService,
+                recipeExporter: recipeExporter
+            )
         }
 
         register(RecipeMigrationService.self, lifecycle: .singleton) { _ in
