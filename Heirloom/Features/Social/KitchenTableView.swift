@@ -33,11 +33,11 @@ struct KitchenTableView: View {
 
                 // Feature list
                 VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                    FeatureRow(icon: "person.2.fill", text: "See your connections")
-                    FeatureRow(icon: "person.badge.plus", text: "Send connection requests")
-                    FeatureRow(icon: "arrow.triangle.2.circlepath", text: "Share recipes")
-                    FeatureRow(icon: "heart.fill", text: "Favorite connections")
-                    FeatureRow(icon: "bell.badge.fill", text: "Connection notifications")
+                    KitchenTableFeatureRow(icon: "person.2.fill", text: "See your connections")
+                    KitchenTableFeatureRow(icon: "person.badge.plus", text: "Send connection requests")
+                    KitchenTableFeatureRow(icon: "arrow.triangle.2.circlepath", text: "Share recipes")
+                    KitchenTableFeatureRow(icon: "heart.fill", text: "Favorite connections")
+                    KitchenTableFeatureRow(icon: "bell.badge.fill", text: "Connection notifications")
                 }
                 .padding(.horizontal, HeirloomSpacing.xxl)
 
@@ -56,7 +56,7 @@ struct KitchenTableView: View {
     }
 }
 
-private struct FeatureRow: View {
+private struct KitchenTableFeatureRow: View {
     let icon: String
     let text: String
 
