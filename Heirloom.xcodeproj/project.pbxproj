@@ -291,6 +291,12 @@
 		C5B317892F00D89A0087CF6D /* RecipeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317882F00D89A0087CF6D /* RecipeSelectionView.swift */; };
 		C5B317BD2F00DC010087CF6D /* RecipeMigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317BC2F00DC010087CF6D /* RecipeMigrationService.swift */; };
 		C5CE3E302F2A92CA00A2E62F /* UnifiedCollectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3E2F2F2A92CA00A2E62F /* UnifiedCollectionCard.swift */; };
+		C5CE3EF92F2CCE8700A2E62F /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EF32F2CCE8700A2E62F /* Connection.swift */; };
+		C5CE3EFA2F2CCE8700A2E62F /* PublicProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EF62F2CCE8700A2E62F /* PublicProfile.swift */; };
+		C5CE3EFB2F2CCE8700A2E62F /* UserProfile+Social.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EF72F2CCE8700A2E62F /* UserProfile+Social.swift */; };
+		C5CE3EFC2F2CCE8700A2E62F /* ConnectionNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EF42F2CCE8700A2E62F /* ConnectionNotification.swift */; };
+		C5CE3EFD2F2CCE8700A2E62F /* PrivacySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EF52F2CCE8700A2E62F /* PrivacySettings.swift */; };
+		C5CE3F002F2CCE9000A2E62F /* HeirloomExportModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EFE2F2CCE9000A2E62F /* HeirloomExportModels.swift */; };
 		C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */; };
 		C5DBE4AD2F1A7EEE00C1B6BA /* PDFImageExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */; };
 		C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */; };
@@ -650,6 +656,12 @@
 		C5B317882F00D89A0087CF6D /* RecipeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeSelectionView.swift; sourceTree = "<group>"; };
 		C5B317BC2F00DC010087CF6D /* RecipeMigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeMigrationService.swift; sourceTree = "<group>"; };
 		C5CE3E2F2F2A92CA00A2E62F /* UnifiedCollectionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedCollectionCard.swift; sourceTree = "<group>"; };
+		C5CE3EF32F2CCE8700A2E62F /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
+		C5CE3EF42F2CCE8700A2E62F /* ConnectionNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionNotification.swift; sourceTree = "<group>"; };
+		C5CE3EF52F2CCE8700A2E62F /* PrivacySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySettings.swift; sourceTree = "<group>"; };
+		C5CE3EF62F2CCE8700A2E62F /* PublicProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicProfile.swift; sourceTree = "<group>"; };
+		C5CE3EF72F2CCE8700A2E62F /* UserProfile+Social.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserProfile+Social.swift"; sourceTree = "<group>"; };
+		C5CE3EFE2F2CCE9000A2E62F /* HeirloomExportModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeirloomExportModels.swift; sourceTree = "<group>"; };
 		C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProgressBottomBanner.swift; sourceTree = "<group>"; };
 		C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImageExtractor.swift; sourceTree = "<group>"; };
 		C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFMetadataExtractor.swift; sourceTree = "<group>"; };
@@ -1081,6 +1093,8 @@
 		99534F5D5C4435D669F1B56B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C5CE3EFF2F2CCE9000A2E62F /* Export */,
+				C5CE3EF82F2CCE8700A2E62F /* Social */,
 				C5364FC82F27AE05003D342E /* CollectionType.swift */,
 				C5364FC92F27AE05003D342E /* RecipeTheme.swift */,
 				C5DBEC622F200E6600C1B6BA /* AudioAnalysisResult.swift */,
@@ -1796,6 +1810,26 @@
 			path = Utilities;
 			sourceTree = "<group>";
 		};
+		C5CE3EF82F2CCE8700A2E62F /* Social */ = {
+			isa = PBXGroup;
+			children = (
+				C5CE3EF32F2CCE8700A2E62F /* Connection.swift */,
+				C5CE3EF42F2CCE8700A2E62F /* ConnectionNotification.swift */,
+				C5CE3EF52F2CCE8700A2E62F /* PrivacySettings.swift */,
+				C5CE3EF62F2CCE8700A2E62F /* PublicProfile.swift */,
+				C5CE3EF72F2CCE8700A2E62F /* UserProfile+Social.swift */,
+			);
+			path = Social;
+			sourceTree = "<group>";
+		};
+		C5CE3EFF2F2CCE9000A2E62F /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				C5CE3EFE2F2CCE9000A2E62F /* HeirloomExportModels.swift */,
+			);
+			path = Export;
+			sourceTree = "<group>";
+		};
 		C5DBE8832F1EE59C00C1B6BA /* Migration */ = {
 			isa = PBXGroup;
 			children = (
@@ -2356,6 +2390,11 @@
 				C502EB7C2F2341FD00BF1696 /* ThreeTierExtractionView.swift in Sources */,
 				C5A7BDAF2F1713FA00D99B07 /* PDFProcessor.swift in Sources */,
 				C5A7BDB02F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift in Sources */,
+				C5CE3EF92F2CCE8700A2E62F /* Connection.swift in Sources */,
+				C5CE3EFA2F2CCE8700A2E62F /* PublicProfile.swift in Sources */,
+				C5CE3EFB2F2CCE8700A2E62F /* UserProfile+Social.swift in Sources */,
+				C5CE3EFC2F2CCE8700A2E62F /* ConnectionNotification.swift in Sources */,
+				C5CE3EFD2F2CCE8700A2E62F /* PrivacySettings.swift in Sources */,
 				C58316302F119A030096478E /* AugmentedIngredientEditRow.swift in Sources */,
 				C58316312F119A030096478E /* VideoImportView.swift in Sources */,
 				C5831EBB2F135F060096478E /* TabNavigationCoordinator.swift in Sources */,
@@ -2461,6 +2500,7 @@
 				A5C0B1D1426453DB4D89A6DC /* ShoppingCartRecipe.swift in Sources */,
 				0690F2354B4F741C1D039D4E /* ShoppingListView.swift in Sources */,
 				7A04C130200034BA8D0F19C5 /* Sticker.swift in Sources */,
+				C5CE3F002F2CCE9000A2E62F /* HeirloomExportModels.swift in Sources */,
 				227DA999DB569E3826BDF9B1 /* StickerPickerView.swift in Sources */,
 				C5B317662F00C8230087CF6D /* AboutView.swift in Sources */,
 				C58324E92F147C640096478E /* VideoProcessingJob.swift in Sources */,
