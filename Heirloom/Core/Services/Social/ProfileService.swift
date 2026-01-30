@@ -139,29 +139,8 @@ class FirebaseProfileService: ProfileServiceProtocol {
             )
         }
 
-        // Validate handle if present
-        if let handle = profile.handle {
-            guard handle.count >= 3 && handle.count <= 30 else {
-                throw NSError(
-                    domain: "ProfileService",
-                    code: 400,
-                    userInfo: [NSLocalizedDescriptionKey: "Handle must be 3-30 characters"]
-                )
-            }
-
-            // Check handle availability (skip check if it's unchanged)
-            let currentProfile = profileCache[userId]
-            if currentProfile?.handle != handle {
-                let available = try await isHandleAvailable(handle)
-                if !available {
-                    throw NSError(
-                        domain: "ProfileService",
-                        code: 409,
-                        userInfo: [NSLocalizedDescriptionKey: "Handle already taken"]
-                    )
-                }
-            }
-        }
+        // HANDLE VALIDATION REMOVED - Phase 5 uses display names only
+        // Handle functionality will be re-enabled in Phase 6 once Firebase rules are fixed
 
         // Update timestamp
         var updatedProfile = profile
@@ -180,10 +159,11 @@ class FirebaseProfileService: ProfileServiceProtocol {
             "displayName": updatedProfile.displayName
         ])
 
-        // Sync public profile if enabled
-        if updatedProfile.hasPublicProfile {
-            try await syncPublicProfile(from: updatedProfile)
-        }
+        // PUBLIC PROFILE SYNC DISABLED - Phase 5 focuses on basic profiles only
+        // Will re-enable in Phase 6
+        // if updatedProfile.hasPublicProfile {
+        //     try await syncPublicProfile(from: updatedProfile)
+        // }
     }
 
     /// Upload avatar image and update profile

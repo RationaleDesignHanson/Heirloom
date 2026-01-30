@@ -16,13 +16,19 @@ import FirebaseAuth
 @MainActor
 protocol ConnectionServiceProtocol {
     /// Fetch all connections for current user
-    func fetchConnections(status: ConnectionStatus?) async throws -> [Connection]
+    func fetchConnections(status: ConnectionStatus?, forceRefresh: Bool) async throws -> [Connection]
 
     /// Send a connection request to another user
     func sendConnectionRequest(
         to userId: String,
         displayName: String,
         sourceKitchenTableId: String?
+    ) async throws -> Connection
+
+    /// Accept a connection invite from a shared link (creates connected status immediately)
+    func acceptConnectionInvite(
+        from inviterUserId: String,
+        inviterDisplayName: String
     ) async throws -> Connection
 
     /// Accept a connection request
@@ -91,8 +97,8 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
     // MARK: - Fetch Connections
 
     /// Fetch all connections for current user
-    func fetchConnections(status: ConnectionStatus? = nil) async throws -> [Connection] {
-        guard let userId = auth.currentUser?.uid else {
+    func fetchConnections(status: ConnectionStatus? = nil, forceRefresh: Bool = false) async throws -> [Connection] {
+         guard let userId = auth.currentUser?.uid else {
             throw NSError(
                 domain: "ConnectionService",
                 code: 401,
@@ -103,8 +109,8 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
         // Clear cache if expired
         clearCacheIfExpired()
 
-        // Check cache first (only if no status filter)
-        if status == nil, let cached = connectionsCache[userId] {
+        // Check cache first (only if no status filter and not forcing refresh)
+        if !forceRefresh, status == nil, let cached = connectionsCache[userId] {
             Log.debug("Connections cache hit", category: .social, metadata: ["userId": userId])
             return cached
         }
@@ -268,6 +274,180 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
         ])
 
         return outgoingConnection
+    }
+
+    // MARK: - Accept Invite
+
+    /// Accept a connection invite from a shared link
+    /// Creates connection in .connected status immediately (no pending request)
+    func acceptConnectionInvite(
+        from inviterUserId: String,
+        inviterDisplayName: String
+    ) async throws -> Connection {
+        guard let userId = auth.currentUser?.uid else {
+            throw NSError(
+                domain: "ConnectionService",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "Not authenticated"]
+            )
+        }
+
+        guard userId != inviterUserId else {
+            throw NSError(
+                domain: "ConnectionService",
+                code: 400,
+                userInfo: [NSLocalizedDescriptionKey: "Cannot connect to yourself"]
+            )
+        }
+
+        // Check if connection already exists in current user's collection
+        // (We can only read our own connections)
+        let existingConnections = try await fetchConnections(status: nil)
+        if existingConnections.contains(where: { $0.connectedUserId == inviterUserId }) {
+            throw NSError(
+                domain: "ConnectionService",
+                code: 409,
+                userInfo: [NSLocalizedDescriptionKey: "Connection already exists"]
+            )
+        }
+
+        // Fetch inviter's display name from Firebase Auth
+        let actualInviterDisplayName: String
+        let inviterPhotoURL: String?
+
+        do {
+            // Query Firestore for inviter's public profile data
+            let profileDoc = try await db.collection("users")
+                .document(inviterUserId)
+                .collection("profile")
+                .document("data")
+                .getDocument()
+
+            if let data = profileDoc.data() {
+                actualInviterDisplayName = data["displayName"] as? String ?? inviterDisplayName
+                inviterPhotoURL = data["photoURL"] as? String
+            } else {
+                // Fallback to provided displayName
+                actualInviterDisplayName = inviterDisplayName
+                inviterPhotoURL = nil
+            }
+        } catch {
+            // If profile fetch fails, use fallback
+            actualInviterDisplayName = inviterDisplayName
+            inviterPhotoURL = nil
+            Log.warning("Failed to fetch inviter profile, using fallback", category: .social, metadata: [
+                "inviterUserId": inviterUserId,
+                "error": error.localizedDescription
+            ])
+        }
+
+        // Fetch current user's profile to get accurate display name and photo
+        let currentUserProfile: (displayName: String, photoURL: String?)?
+        do {
+            let profileDoc = try await db.collection("users")
+                .document(userId)
+                .collection("profile")
+                .document("data")
+                .getDocument()
+
+            if let data = profileDoc.data() {
+                let displayName = data["displayName"] as? String ?? auth.currentUser?.displayName ?? "User"
+                let photoURL = data["photoURL"] as? String
+                currentUserProfile = (displayName, photoURL)
+            } else {
+                // Fallback to Firebase Auth
+                currentUserProfile = (auth.currentUser?.displayName ?? "User", auth.currentUser?.photoURL?.absoluteString)
+            }
+        } catch {
+            // If profile fetch fails, use Firebase Auth as fallback
+            currentUserProfile = (auth.currentUser?.displayName ?? "User", auth.currentUser?.photoURL?.absoluteString)
+            Log.warning("Failed to fetch current user profile, using fallback", category: .social, metadata: [
+                "userId": userId,
+                "error": error.localizedDescription
+            ])
+        }
+
+        let connectionId = UUID().uuidString
+        let now = Date()
+
+        // Create connection for inviter (who shared the link)
+        let inviterConnection = Connection(
+            id: connectionId,
+            userId: inviterUserId,
+            connectedUserId: userId,
+            connectedUserDisplayName: currentUserProfile?.displayName ?? "User",
+            connectedUserPhotoURL: currentUserProfile?.photoURL,
+            status: .connected, // Immediately connected
+            initiatedBy: inviterUserId,
+            requestedAt: now,
+            acceptedAt: now, // Accepted immediately
+            sourceKitchenTableId: nil,
+            recipesSharedCount: 0,
+            recipesReceivedCount: 0,
+            isFavorite: false,
+            privateNote: nil,
+            createdAt: now,
+            updatedAt: now
+        )
+
+        // Create connection for accepter (current user)
+        let accepterConnection = Connection(
+            id: connectionId,
+            userId: userId,
+            connectedUserId: inviterUserId,
+            connectedUserDisplayName: actualInviterDisplayName,
+            connectedUserPhotoURL: inviterPhotoURL,
+            status: .connected, // Immediately connected
+            initiatedBy: inviterUserId,
+            requestedAt: now,
+            acceptedAt: now, // Accepted immediately
+            sourceKitchenTableId: nil,
+            recipesSharedCount: 0,
+            recipesReceivedCount: 0,
+            isFavorite: false,
+            privateNote: nil,
+            createdAt: now,
+            updatedAt: now
+        )
+
+        // Write both connections in a batch
+        let batch = db.batch()
+
+        let inviterData = try Firestore.Encoder().encode(inviterConnection)
+        let inviterRef = db.collection("users")
+            .document(inviterUserId)
+            .collection("connections")
+            .document(connectionId)
+        batch.setData(inviterData, forDocument: inviterRef)
+
+        let accepterData = try Firestore.Encoder().encode(accepterConnection)
+        let accepterRef = db.collection("users")
+            .document(userId)
+            .collection("connections")
+            .document(connectionId)
+        batch.setData(accepterData, forDocument: accepterRef)
+
+        try await batch.commit()
+
+        // Clear cache
+        connectionsCache.removeValue(forKey: userId)
+
+        // Create notification for inviter (they get notified someone accepted)
+        try await createConnectionNotification(
+            for: inviterUserId,
+            type: .connectionRequestAccepted,
+            actorUserId: userId,
+            actorDisplayName: currentUserProfile?.displayName ?? "User",
+            connectionId: connectionId
+        )
+
+        Log.info("Accepted connection invite from link", category: .social, metadata: [
+            "accepter": userId,
+            "inviter": inviterUserId,
+            "connectionId": connectionId
+        ])
+
+        return accepterConnection
     }
 
     // MARK: - Accept Request

@@ -12,6 +12,12 @@ import FirebaseAuth
 struct SettingsProfileRow: View {
     @Environment(\.firebaseAuth) private var firebaseAuth
 
+    private var profileService: ProfileServiceProtocol {
+        ServiceContainer.shared.resolve(ProfileServiceProtocol.self)
+    }
+
+    @State private var userProfile: UserProfile?
+
     var body: some View {
         HStack(spacing: HeirloomSpacing.md) {
             // Avatar preview
@@ -25,12 +31,14 @@ struct SettingsProfileRow: View {
 
             // User info
             VStack(alignment: .leading, spacing: 2) {
-                Text(displayName)
+                Text(authDisplayName)
                     .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.primaryText)
 
-                if let email = firebaseAuth.currentUser?.email {
-                    Text(email)
+                // Show profile display name if different from auth name
+                if let profileName = userProfile?.displayName,
+                   profileName != authDisplayName {
+                    Text(profileName)
                         .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
@@ -44,14 +52,41 @@ struct SettingsProfileRow: View {
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
         .padding(.vertical, HeirloomSpacing.xs)
+        .task {
+            await loadProfile()
+        }
     }
 
     // MARK: - Avatar View
 
     @ViewBuilder
     private var avatarView: some View {
+        // Priority 1: Profile photo from UserProfile (uploaded by user)
+        if let profilePhotoURL = userProfile?.photoURL,
+           let url = URL(string: profilePhotoURL) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                case .failure:
+                    authAvatarOrPlaceholder
+                case .empty:
+                    ProgressView()
+                @unknown default:
+                    authAvatarOrPlaceholder
+                }
+            }
+        } else {
+            authAvatarOrPlaceholder
+        }
+    }
+
+    // Fallback to Firebase Auth photo or placeholder
+    @ViewBuilder
+    private var authAvatarOrPlaceholder: some View {
         if let photoURL = firebaseAuth.currentUser?.photoURL {
-            // User has profile photo
             AsyncImage(url: photoURL) { phase in
                 switch phase {
                 case .success(let image):
@@ -92,12 +127,13 @@ struct SettingsProfileRow: View {
 
     // MARK: - Computed Properties
 
-    private var displayName: String {
+    private var authDisplayName: String {
         firebaseAuth.currentUser?.displayName ?? "User"
     }
 
     private var initials: String {
-        let name = displayName
+        // Use profile display name if available, otherwise auth name
+        let name = userProfile?.displayName ?? authDisplayName
         let components = name.components(separatedBy: " ")
         if components.count >= 2 {
             // First and last initial
@@ -107,6 +143,20 @@ struct SettingsProfileRow: View {
         } else {
             // Just first initial
             return String(name.prefix(1)).uppercased()
+        }
+    }
+
+    // MARK: - Actions
+
+    private func loadProfile() async {
+        do {
+            let profile = try await profileService.fetchCurrentUserProfile()
+            await MainActor.run {
+                self.userProfile = profile
+            }
+        } catch {
+            // Silently fail - just show auth info if profile can't be loaded
+            Log.debug("Could not load profile for settings row", category: .social)
         }
     }
 }

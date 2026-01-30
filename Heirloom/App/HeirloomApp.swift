@@ -1292,6 +1292,15 @@ struct ContentView: View {
                 }
             }
         }
+        .sheet(isPresented: $deepLinkCoordinator.showConnectionInviteSheet) {
+            if let userId = deepLinkCoordinator.pendingConnectionUserId {
+                ConnectionInviteAcceptanceView(userId: userId)
+                    .onDisappear {
+                        deepLinkCoordinator.pendingConnectionUserId = nil
+                        deepLinkCoordinator.showConnectionInviteSheet = false
+                    }
+            }
+        }
         // TODO: Re-enable for theme unlocking in Phase A3
         // .sheet(isPresented: $showDailyUnlock) {
         //     DailyUnlockView(

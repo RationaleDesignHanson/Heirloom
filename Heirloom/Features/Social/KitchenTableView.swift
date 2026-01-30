@@ -2,8 +2,8 @@
 //  KitchenTableView.swift
 //  Heirloom
 //
-//  Social Layer Phase 4: Kitchen Table View (Placeholder)
-//  Full implementation in Phase 6
+//  Social Layer Phase 6: Kitchen Table view for managing connections
+//  Shows connections list with filtering, search, and request management
 //
 
 import SwiftUI
@@ -11,68 +11,409 @@ import SwiftUI
 struct KitchenTableView: View {
     @Environment(\.dismiss) private var dismiss
 
+    private var connectionService: ConnectionServiceProtocol {
+        ServiceContainer.shared.resolve(ConnectionServiceProtocol.self)
+    }
+
+    private var toastManager: ToastManager {
+        ServiceContainer.shared.resolve(ToastManager.self)
+    }
+
+    // MARK: - State
+
+    @State private var connections: [Connection] = []
+    @State private var pendingRequests: [Connection] = []
+    @State private var isLoading = true
+    @State private var isRefreshing = false
+    @State private var errorMessage: String?
+    @State private var searchText = ""
+    @State private var selectedFilter: ConnectionFilter = .all
+
+    // Navigation
+    @State private var showConnectionRequests = false
+    @State private var showInviteView = false
+    @State private var selectedConnection: Connection?
+    @State private var showContributorProfile = false
+
+    // MARK: - Body
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: HeirloomSpacing.xl) {
-                Spacer()
-
-                // Icon
-                Image(systemName: "figure.2.and.child.holdinghands")
-                    .font(.system(size: 80))
-                    .foregroundStyle(HeirloomColors.tomato)
-
-                // Title
-                Text("Kitchen Table")
-                    .font(HeirloomFonts.title1)
-                    .foregroundStyle(HeirloomColors.primaryText)
-
-                // Description
-                Text("Coming in Phase 6")
-                    .font(HeirloomFonts.body)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-
-                // Feature list
-                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                    KitchenTableFeatureRow(icon: "person.2.fill", text: "See your connections")
-                    KitchenTableFeatureRow(icon: "person.badge.plus", text: "Send connection requests")
-                    KitchenTableFeatureRow(icon: "arrow.triangle.2.circlepath", text: "Share recipes")
-                    KitchenTableFeatureRow(icon: "heart.fill", text: "Favorite connections")
-                    KitchenTableFeatureRow(icon: "bell.badge.fill", text: "Connection notifications")
+            Group {
+                if isLoading {
+                    loadingView
+                } else if let error = errorMessage {
+                    errorView(error)
+                } else {
+                    contentView
                 }
-                .padding(.horizontal, HeirloomSpacing.xxl)
-
-                Spacer()
             }
             .navigationTitle("Kitchen Table")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
-                        dismiss()
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        Task {
+                            isRefreshing = true
+                            await loadConnections(forceRefresh: true)
+                            isRefreshing = false
+                        }
+                    } label: {
+                        if isRefreshing {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
                     }
+                    .disabled(isRefreshing)
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showInviteView = true
+                    } label: {
+                        Image(systemName: "person.badge.plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $showConnectionRequests) {
+                ConnectionRequestsView()
+            }
+            .sheet(isPresented: $showInviteView) {
+                InviteConnectionView()
+            }
+            .sheet(isPresented: $showContributorProfile) {
+                if let connection = selectedConnection {
+                    ContributorProfileSheet(connection: connection)
+                }
+            }
+            .task {
+                await loadConnections()
+            }
+            .refreshable {
+                await loadConnections(forceRefresh: true)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                // Refresh when app returns to foreground (e.g., after notification)
+                Task {
+                    await loadConnections(forceRefresh: true)
                 }
             }
         }
     }
-}
 
-private struct KitchenTableFeatureRow: View {
-    let icon: String
-    let text: String
+    // MARK: - Content View
 
-    var body: some View {
-        HStack(spacing: HeirloomSpacing.sm) {
-            Image(systemName: icon)
-                .font(.caption)
+    private var contentView: some View {
+        VStack(spacing: 0) {
+            // Pending requests banner
+            if !pendingRequests.isEmpty {
+                pendingRequestsBanner
+            }
+
+            // Search bar
+            searchBar
+
+            // Filter tabs
+            filterTabs
+
+            // Connections list
+            if filteredConnections.isEmpty {
+                emptyStateView
+            } else {
+                connectionsList
+            }
+        }
+    }
+
+    // MARK: - Pending Requests Banner
+
+    private var pendingRequestsBanner: some View {
+        Button {
+            showConnectionRequests = true
+        } label: {
+            HStack(spacing: HeirloomSpacing.sm) {
+                Image(systemName: "person.2.badge.gearshape")
+                    .font(.title3)
+                    .foregroundStyle(.white)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Connection Requests")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(.white)
+
+                    Text("\(pendingRequests.count) pending")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.6))
+            }
+            .padding(HeirloomSpacing.md)
+            .background(HeirloomColors.tomato)
+            .cornerRadius(12)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, HeirloomSpacing.md)
+        .padding(.top, HeirloomSpacing.sm)
+    }
+
+    // MARK: - Search Bar
+
+    private var searchBar: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
                 .foregroundStyle(HeirloomColors.secondaryText)
-                .frame(width: 20)
 
-            Text(text)
+            TextField("Search connections", text: $searchText)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+        }
+        .padding(HeirloomSpacing.sm)
+        .background(HeirloomColors.warmGray.opacity(0.1))
+        .cornerRadius(10)
+        .padding(.horizontal, HeirloomSpacing.md)
+        .padding(.vertical, HeirloomSpacing.sm)
+    }
+
+    // MARK: - Filter Tabs
+
+    private var filterTabs: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: HeirloomSpacing.sm) {
+                ForEach(ConnectionFilter.allCases, id: \.self) { filter in
+                    filterTab(filter)
+                }
+            }
+            .padding(.horizontal, HeirloomSpacing.md)
+        }
+        .padding(.bottom, HeirloomSpacing.sm)
+    }
+
+    private func filterTab(_ filter: ConnectionFilter) -> some View {
+        Button {
+            selectedFilter = filter
+        } label: {
+            Text(filter.displayName)
                 .font(HeirloomFonts.caption1)
-                .foregroundStyle(HeirloomColors.secondaryText)
+                .foregroundStyle(selectedFilter == filter ? .white : HeirloomColors.primaryText)
+                .padding(.horizontal, HeirloomSpacing.md)
+                .padding(.vertical, HeirloomSpacing.xs)
+                .background(selectedFilter == filter ? HeirloomColors.tomato : HeirloomColors.warmGray.opacity(0.1))
+                .cornerRadius(16)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Connections List
+
+    private var connectionsList: some View {
+        ScrollView {
+            LazyVStack(spacing: HeirloomSpacing.sm) {
+                ForEach(groupedConnections.keys.sorted(), id: \.self) { letter in
+                    if let letterConnections = groupedConnections[letter], !letterConnections.isEmpty {
+                        Section {
+                            ForEach(letterConnections) { connection in
+                                ConnectionRow(connection: connection)
+                                    .onTapGesture {
+                                        selectedConnection = connection
+                                        showContributorProfile = true
+                                    }
+                            }
+                        } header: {
+                            HStack {
+                                Text(letter)
+                                    .font(HeirloomFonts.caption1Bold)
+                                    .foregroundStyle(HeirloomColors.secondaryText)
+                                    .textCase(.uppercase)
+
+                                Spacer()
+
+                                Text("\(letterConnections.count)")
+                                    .font(HeirloomFonts.caption2)
+                                    .foregroundStyle(HeirloomColors.secondaryText)
+                            }
+                            .padding(.horizontal, HeirloomSpacing.md)
+                            .padding(.top, HeirloomSpacing.md)
+                            .padding(.bottom, HeirloomSpacing.xs)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, HeirloomSpacing.md)
+            .padding(.bottom, HeirloomSpacing.xl)
+        }
+    }
+
+    // MARK: - Empty State
+
+    private var emptyStateView: some View {
+        VStack(spacing: HeirloomSpacing.lg) {
+            Spacer()
+
+            Image(systemName: "person.2")
+                .font(.system(size: 60))
+                .foregroundStyle(HeirloomColors.warmGray.opacity(0.3))
+
+            VStack(spacing: HeirloomSpacing.xs) {
+                Text("No Connections Yet")
+                    .font(HeirloomFonts.title3)
+                    .foregroundStyle(HeirloomColors.primaryText)
+
+                Text("Start building your cooking network by inviting friends and family")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, HeirloomSpacing.xl)
+            }
+
+            Button {
+                showInviteView = true
+            } label: {
+                HStack {
+                    Image(systemName: "person.badge.plus")
+                    Text("Invite Someone")
+                }
+                .font(HeirloomFonts.bodyBold)
+                .foregroundStyle(.white)
+                .padding(.horizontal, HeirloomSpacing.lg)
+                .padding(.vertical, HeirloomSpacing.md)
+                .background(HeirloomColors.tomato)
+                .cornerRadius(12)
+            }
 
             Spacer()
         }
+    }
+
+    // MARK: - Loading & Error Views
+
+    private var loadingView: some View {
+        VStack(spacing: HeirloomSpacing.md) {
+            ProgressView()
+            Text("Loading connections...")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
+        }
+    }
+
+    private func errorView(_ message: String) -> some View {
+        VStack(spacing: HeirloomSpacing.md) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 48))
+                .foregroundStyle(HeirloomColors.warmGray)
+
+            Text("Error Loading Connections")
+                .font(HeirloomFonts.title3)
+                .foregroundStyle(HeirloomColors.primaryText)
+
+            Text(message)
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, HeirloomSpacing.xl)
+
+            Button("Try Again") {
+                Task {
+                    await loadConnections()
+                }
+            }
+            .font(HeirloomFonts.bodyBold)
+            .foregroundStyle(HeirloomColors.tomato)
+        }
+    }
+
+    // MARK: - Data Loading
+
+    private func loadConnections(forceRefresh: Bool = false) async {
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            // Load all connections (bypass cache if force refresh)
+            let allConnections = try await connectionService.fetchConnections(status: nil, forceRefresh: forceRefresh)
+
+            // Filter connected vs pending
+            let (connected, pending) = allConnections.partition { $0.status == .connected }
+
+            await MainActor.run {
+                self.connections = connected
+                self.pendingRequests = pending
+                self.isLoading = false
+            }
+
+            Log.info("Loaded \(connected.count) connections and \(pending.count) pending requests", category: .social)
+        } catch {
+            await MainActor.run {
+                self.errorMessage = error.localizedDescription
+                self.isLoading = false
+            }
+            Log.error("Failed to load connections", category: .social, error: error)
+        }
+    }
+
+    // MARK: - Computed Properties
+
+    private var filteredConnections: [Connection] {
+        var filtered = connections.filter { $0.status == .connected }
+
+        // Apply search filter
+        if !searchText.isEmpty {
+            filtered = filtered.filter { connection in
+                connection.connectedUserDisplayName.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+
+        // Apply favorite filter if selected
+        if selectedFilter == .favorites {
+            filtered = filtered.filter { $0.isFavorite }
+        }
+
+        return filtered
+    }
+
+    private var groupedConnections: [String: [Connection]] {
+        // Group by first letter of name
+        Dictionary(grouping: filteredConnections) { connection in
+            String(connection.connectedUserDisplayName.prefix(1)).uppercased()
+        }
+    }
+}
+
+// MARK: - Connection Filter
+
+enum ConnectionFilter: String, CaseIterable {
+    case all
+    case favorites
+
+    var displayName: String {
+        switch self {
+        case .all: return "All"
+        case .favorites: return "Favorites"
+        }
+    }
+}
+
+// MARK: - Array Extension
+
+extension Array {
+    func partition(where predicate: (Element) -> Bool) -> ([Element], [Element]) {
+        var matching: [Element] = []
+        var nonMatching: [Element] = []
+
+        for element in self {
+            if predicate(element) {
+                matching.append(element)
+            } else {
+                nonMatching.append(element)
+            }
+        }
+
+        return (matching, nonMatching)
     }
 }
 

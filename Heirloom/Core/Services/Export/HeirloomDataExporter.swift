@@ -118,7 +118,7 @@ final class HeirloomDataExporter {
         // Fetch connections (if enabled)
         var connectionsData: [ConnectionExportData]?
         if options.includeConnections {
-            if let connections = try? await connectionService.fetchConnections(status: .connected) {
+            if let connections = try? await connectionService.fetchConnections(status: .connected, forceRefresh: false) {
                 connectionsData = connections.map { convertToConnectionExportData($0) }
             }
         }

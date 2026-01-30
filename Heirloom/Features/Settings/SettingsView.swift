@@ -45,6 +45,7 @@ struct SettingsView: View {
     @State private var showProfile = false
     @State private var showKitchenTable = false
     @State private var pendingRequestCount: Int = 0 // TODO: Phase 6 - Connect to ConnectionService
+    @State private var profileRefreshTrigger = UUID() // Force profile row refresh after edits
 
     var body: some View {
         NavigationStack {
@@ -75,9 +76,6 @@ struct SettingsView: View {
 
                 // Developer Section (moved DOWN - debug tools isolated)
                 developerSection
-
-                // Sign Out Section (at bottom)
-                signOutSection
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
@@ -139,6 +137,12 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showKitchenTable) {
                 KitchenTableView()
+            }
+            .onChange(of: showProfile) { _, isShowing in
+                // Refresh profile row when returning from profile edit
+                if !isShowing {
+                    profileRefreshTrigger = UUID()
+                }
             }
             .onChange(of: firebaseAuth.isAuthenticated) { _, _ in
                 // Toggle state to force view refresh when auth state changes
@@ -212,6 +216,7 @@ struct SettingsView: View {
                     showProfile = true
                 } label: {
                     SettingsProfileRow()
+                        .id(profileRefreshTrigger) // Force refresh after profile edits
                 }
                 .buttonStyle(.plain)
 
@@ -334,8 +339,6 @@ struct SettingsView: View {
                             .foregroundStyle(HeirloomColors.primaryText)
                     }
                 }
-
-                Divider()
 
                 // Manage Subscription button (cancel, etc.)
                 // ⭐ MODIFIED: Disable when fake payments active (no real subscription to manage)
@@ -470,6 +473,14 @@ struct SettingsView: View {
                 let userDisplay = user.displayName ?? user.email ?? "Signed in with \(providerName)"
                 LabeledContent("Signed in as", value: userDisplay)
                     .font(HeirloomFonts.caption1)
+
+                // Sign Out button
+                Button(role: .destructive) {
+                    showSignOutConfirmation = true
+                } label: {
+                    Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        .foregroundStyle(.red)
+                }
             }
         } header: {
             Text("Account")
@@ -478,21 +489,6 @@ struct SettingsView: View {
                 Text("Your recipes are safely stored in Firebase and will sync across all your devices.")
             } else {
                 Text("Your recipes are stored locally. Sign in to enable cloud sync and sharing.")
-            }
-        }
-    }
-
-    // MARK: - Sign Out Section
-
-    private var signOutSection: some View {
-        Section {
-            if firebaseAuth.currentUser != nil {
-                Button(role: .destructive) {
-                    showSignOutConfirmation = true
-                } label: {
-                    Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                        .foregroundStyle(.red)
-                }
             }
         }
     }

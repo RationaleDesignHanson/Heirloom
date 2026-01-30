@@ -116,12 +116,13 @@ struct ProfileView: View {
                         .font(HeirloomFonts.title1)
                         .foregroundStyle(HeirloomColors.primaryText)
 
-                    // Handle
-                    if let handle = profile.handle {
-                        Text("@\(handle)")
-                            .font(HeirloomFonts.body)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
+                    // HANDLE DISPLAY REMOVED - Phase 5 uses display names only
+                    // Will re-enable in Phase 6
+                    // if let handle = profile.handle {
+                    //     Text("@\(handle)")
+                    //         .font(HeirloomFonts.body)
+                    //         .foregroundStyle(HeirloomColors.secondaryText)
+                    // }
 
                     // Location
                     if let location = profile.location {

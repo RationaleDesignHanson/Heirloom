@@ -283,17 +283,20 @@ service cloud.firestore {
       // Users can read their own connections
       allow read: if isOwner(userId);
 
-      // Any authenticated user can create connections to another user
-      // (for sending connection requests - creates docs in both users' collections)
+      // Any authenticated user can create connections in ANY user's collection
+      // IF the connection is between the authenticated user and that collection owner
+      // This allows User A to create connection docs in both:
+      // - users/A/connections/{id} (where connectedUserId = B)
+      // - users/B/connections/{id} (where connectedUserId = A)
       allow create: if isAuthenticated() &&
                        (request.auth.uid == userId ||
-                        request.resource.data.connectedUserId == request.auth.uid);
+                        request.auth.uid == request.resource.data.connectedUserId);
 
       // Users can update their own connections or connections where they are the connected user
       // (for accepting requests, updating status, adding notes)
       allow update: if isAuthenticated() &&
                        (request.auth.uid == userId ||
-                        resource.data.connectedUserId == request.auth.uid);
+                        request.auth.uid == resource.data.connectedUserId);
 
       // Users can delete their own connections (disconnect/unfriend)
       allow delete: if isOwner(userId);

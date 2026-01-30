@@ -66,6 +66,10 @@ class DeepLinkHandler: ObservableObject {
         case viewError = "view-error"
     }
 
+    // Connection invite state (for social connections)
+    @Published var pendingConnectionUserId: String?
+    @Published var showConnectionInviteSheet = false
+
     // MARK: - Private State (for robust handling)
 
     private var isAppReady = false
@@ -278,6 +282,22 @@ class DeepLinkHandler: ObservableObject {
             DeviceLogger.shared.log("✅ [DeepLink] Video job: \(jobID.uuidString) - \(action.rawValue)")
 
             handleVideoJob(jobID: jobID, action: action)
+
+        } else if components.host == "connect" {
+            // Handle connection invite
+            // Format: heirloom://connect/{userId}
+            let userId = components.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+
+            guard !userId.isEmpty else {
+                Log.error("Empty user ID in heirloom://connect URL", category: .social)
+                DeviceLogger.shared.log("❌ [DeepLink] Empty user ID in connect URL")
+                return
+            }
+
+            Log.info("Extracted connection invite from deep link", category: .social, metadata: ["userId": userId])
+            DeviceLogger.shared.log("✅ [DeepLink] Connection invite for user: \(userId)")
+
+            handleConnectionInvite(userId: userId)
 
         } else {
             Log.error("Invalid heirloom:// host", category: .general, metadata: ["host": components.host ?? "nil"])
@@ -759,6 +779,18 @@ class DeepLinkHandler: ObservableObject {
 
         Log.info("Video job sheet triggered", category: .video)
         DeviceLogger.shared.log("✅ [DeepLink] Video job sheet triggered")
+    }
+
+    private func handleConnectionInvite(userId: String) {
+        Log.info("Handling connection invite", category: .social, metadata: ["userId": userId])
+        DeviceLogger.shared.log("👥 [DeepLink] Handling connection invite for user: \(userId)")
+
+        // Store user ID for connection flow
+        pendingConnectionUserId = userId
+        showConnectionInviteSheet = true
+
+        Log.info("Connection invite sheet triggered", category: .social)
+        DeviceLogger.shared.log("✅ [DeepLink] Connection invite sheet triggered")
     }
 
     // MARK: - Universal Links (heirloom.app)

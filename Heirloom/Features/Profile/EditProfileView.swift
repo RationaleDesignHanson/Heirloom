@@ -25,12 +25,9 @@ struct EditProfileView: View {
     @State private var location: String
     @State private var selectedCuisines: [String]
     @State private var websiteURL: String
-    @State private var handle: String
 
     @State private var isSaving = false
     @State private var isUploadingAvatar = false
-    @State private var showHandleError = false
-    @State private var handleErrorMessage = ""
 
     private let bioCharacterLimit = 160
 
@@ -41,7 +38,6 @@ struct EditProfileView: View {
         _location = State(initialValue: profile.wrappedValue.location ?? "")
         _selectedCuisines = State(initialValue: profile.wrappedValue.specialties ?? [])
         _websiteURL = State(initialValue: profile.wrappedValue.websiteURL ?? "")
-        _handle = State(initialValue: profile.wrappedValue.handle ?? "")
     }
 
     var body: some View {
@@ -73,30 +69,15 @@ struct EditProfileView: View {
                 }
 
                 // Basic Info
-                Section {
+                Section("Basic Info") {
                     TextField("Display Name", text: $displayName)
                         .autocorrectionDisabled()
 
-                    TextField("@handle (optional)", text: $handle)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                        .onChange(of: handle) { _, newValue in
-                            // Clean handle input (alphanumeric + underscore only)
-                            let filtered = newValue.filter { $0.isLetter || $0.isNumber || $0 == "_" }
-                            if filtered != newValue {
-                                handle = filtered
-                            }
-                        }
-
-                    if showHandleError {
-                        Text(handleErrorMessage)
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.red)
-                    }
-                } header: {
-                    Text("Basic Info")
-                } footer: {
-                    Text("Your handle is used for @mentions and public profile URLs")
+                    // HANDLE FIELD TEMPORARILY REMOVED - Firebase rules issue
+                    // Will re-enable once collectionGroup query permissions are fixed
+                    // TextField("@handle (optional)", text: $handle)
+                    //     .autocorrectionDisabled()
+                    //     .textInputAutocapitalization(.never)
                 }
 
                 // Bio Section
@@ -213,30 +194,8 @@ struct EditProfileView: View {
             return
         }
 
-        // Validate handle if provided
-        if !handle.isEmpty {
-            guard handle.count >= 3 && handle.count <= 30 else {
-                showHandleError = true
-                handleErrorMessage = "Handle must be 3-30 characters"
-                return
-            }
-
-            // Check if handle is available (if changed)
-            if handle != profile.handle {
-                do {
-                    let isAvailable = try await profileService.isHandleAvailable(handle)
-                    if !isAvailable {
-                        showHandleError = true
-                        handleErrorMessage = "This handle is already taken"
-                        return
-                    }
-                } catch {
-                    Log.error("Failed to check handle availability", category: .social, error: error)
-                }
-            }
-        }
-
-        showHandleError = false
+        // HANDLE VALIDATION TEMPORARILY REMOVED - Firebase rules issue
+        // Will re-enable once collectionGroup query permissions are fixed
         isSaving = true
         defer { isSaving = false }
 
@@ -247,7 +206,7 @@ struct EditProfileView: View {
             profile.location = location.isEmpty ? nil : location.trimmingCharacters(in: .whitespacesAndNewlines)
             profile.specialties = selectedCuisines.isEmpty ? nil : selectedCuisines
             profile.websiteURL = websiteURL.isEmpty ? nil : websiteURL.trimmingCharacters(in: .whitespacesAndNewlines)
-            profile.handle = handle.isEmpty ? nil : handle.lowercased()
+            // Handle removed - display names only for Phase 5
             profile.updatedAt = Date()
         }
 
