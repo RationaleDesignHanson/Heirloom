@@ -99,7 +99,26 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                 rootRecipeId: lineage.rootRecipeId,
                 currentRecipeId: recipe.id
             )
-            allVersions.append(contentsOf: otherVersions)
+
+            // 3.5. Deduplicate - filter out versions that match current recipe
+            // This prevents showing duplicate "Original" entries when the current recipe
+            // is Gen 0 and also exists in the Firebase lineage records
+            // Compare by generation + modifiedBy (owner ID) since that combo is unique
+            let filteredOtherVersions = otherVersions.filter { version in
+                !(version.modifiedBy == currentVersion.modifiedBy &&
+                  version.generation == currentVersion.generation)
+            }
+
+            let removedCount = otherVersions.count - filteredOtherVersions.count
+            if removedCount > 0 {
+                Log.debug("Deduplicated versions matching current recipe", category: .firebase, metadata: [
+                    "removedCount": removedCount,
+                    "currentGeneration": currentVersion.generation,
+                    "currentOwnerId": currentVersion.modifiedBy ?? "nil"
+                ])
+            }
+
+            allVersions.append(contentsOf: filteredOtherVersions)
 
             // 4. Sort by generation (root first, then descendants)
             allVersions.sort { $0.generation < $1.generation }
@@ -270,19 +289,10 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             let ownerId = data["ownerId"] as? String ?? ""
             let generation = data["generation"] as? Int ?? 0
 
-            // FIXED: Use ownerId filtering instead of recipeId to handle immutable IDs
-            // When immutable IDs are used, multiple devices can have recipes with the same ID
-            // but different owners. We want to include all other owners' versions.
+            // FIXED: Show all generations regardless of ownership
+            // Multi-generation chains can circle back to the same user (Gen 0 → Gen 1 → Gen 2 back to Gen 0's owner)
+            // We want to show ALL generations in the version dropdown
             guard let recipeId = UUID(uuidString: recipeIdString) else { continue }
-
-            // Skip our own lineage (but include all other owners, even with same recipe ID)
-            guard ownerId != userId else {
-                Log.debug("Skipping own lineage", category: .firebase, metadata: [
-                    "ownerId": ownerId,
-                    "generation": generation
-                ])
-                continue
-            }
 
             // Create unique key to prevent duplicates (ownerId + recipeId + generation)
             let versionKey = "\(ownerId)_\(recipeId.uuidString)_\(generation)"
@@ -361,17 +371,8 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                 let ownerId = data["ownerId"] as? String ?? ""
                 let generation = data["generation"] as? Int ?? 0
 
-                // FIXED: Use ownerId filtering to handle immutable IDs
+                // FIXED: Show all generations regardless of ownership
                 guard let recipeId = UUID(uuidString: recipeIdString) else { continue }
-
-                // Skip if this is our own lineage (shouldn't happen here since we're querying root owner)
-                guard ownerId != userId else {
-                    Log.debug("Skipping own lineage in root owner query", category: .firebase, metadata: [
-                        "ownerId": ownerId,
-                        "generation": generation
-                    ])
-                    continue
-                }
 
                 // Only include if this is the root recipe (generation 0)
                 guard recipeId == rootRecipeId else {

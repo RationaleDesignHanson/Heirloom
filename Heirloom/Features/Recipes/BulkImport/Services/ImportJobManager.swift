@@ -254,6 +254,36 @@ final class ImportJobManager: ObservableObject {
                 ])
             }
 
+            // Extract first page as cookbook cover image
+            if job.cookbookCoverImagePath == nil, // Only extract once for first PDF
+               let pdfDocument = PDFDocument(url: pdfURL),
+               let firstPage = pdfDocument.page(at: 0) {
+
+                // Render first page to image
+                let pageBounds = firstPage.bounds(for: .mediaBox)
+                let renderer = UIGraphicsImageRenderer(size: pageBounds.size)
+                let coverImage = renderer.image { ctx in
+                    UIColor.white.setFill()
+                    ctx.fill(CGRect(origin: .zero, size: pageBounds.size))
+                    ctx.cgContext.translateBy(x: 0, y: pageBounds.height)
+                    ctx.cgContext.scaleBy(x: 1, y: -1)
+                    firstPage.draw(with: .mediaBox, to: ctx.cgContext)
+                }
+
+                // Save cover image to disk
+                let imageStorage = ServiceContainer.shared.resolve(ImageStorageService.self)
+                let coverFileName = "cookbook-cover-\(UUID().uuidString)"
+                if let coverPath = try? await imageStorage.saveImage(coverImage, fileName: coverFileName) {
+                    job.cookbookCoverImagePath = coverPath
+                    try? context.save()
+
+                    Log.info("Saved cookbook cover image", category: .import, metadata: [
+                        "file": pdfURL.lastPathComponent,
+                        "coverPath": coverPath
+                    ])
+                }
+            }
+
             // Render PDF pages in batches and analyze incrementally
             Log.info("Starting batched PDF processing", category: .import, metadata: [
                 "file": pdfURL.lastPathComponent
@@ -457,6 +487,17 @@ final class ImportJobManager: ObservableObject {
     func startJob(_ job: ImportJob, context: ModelContext) async throws {
         guard !isProcessing else {
             throw ImportJobError.alreadyProcessing
+        }
+
+        // Clear any stale completed job before starting new one
+        // This prevents UI from briefly showing old completion screen
+        if let oldJob = activeJob, oldJob.isComplete {
+            Log.info("Clearing completed job before starting new one", category: .import, metadata: [
+                "old_job_id": oldJob.id.uuidString,
+                "new_job_id": job.id.uuidString
+            ])
+            activeJob = nil
+            activeContext = nil
         }
 
         activeJob = job
@@ -790,83 +831,111 @@ final class ImportJobManager: ObservableObject {
         try? context.save()
 
         do {
-            let recipe: Recipe
+            // Process based on source type - note that camera/photoLibrary may return multiple recipes
+            var recipes: [Recipe] = []
 
-            // Process based on source type
             switch item.source {
             case .url:
-                recipe = try await processURLImport(item)
+                let recipe = try await processURLImport(item)
+                recipes = [recipe]
 
             case .pdf:
-                recipe = try await processPDFPage(item)
+                // PDF pages can contain multiple recipes
+                recipes = try await processPDFPage(item)
 
             case .camera, .photoLibrary:
-                recipe = try await processImageImport(item)
+                // Camera/photo imports can return multiple recipes from one image
+                recipes = try await processImageImport(item)
             }
 
-            // Apply cookbook metadata if available (from PDF front matter)
-            if let cookbookTitle = item.cookbookTitle {
-                recipe.sourceBookTitle = cookbookTitle
-            }
-            if let cookbookAuthor = item.cookbookAuthor {
-                recipe.sourceBookAuthor = cookbookAuthor
+            // Apply cookbook metadata to all recipes if available (from PDF front matter)
+            for recipe in recipes {
+                if let cookbookTitle = item.cookbookTitle {
+                    recipe.sourceBookTitle = cookbookTitle
+                }
+                if let cookbookAuthor = item.cookbookAuthor {
+                    recipe.sourceBookAuthor = cookbookAuthor
+                }
+
+                // Insert recipe into context
+                context.insert(recipe)
             }
 
-            // Save recipe
-            context.insert(recipe)
+            // Use first recipe as the "primary" recipe for item tracking
+            guard let primaryRecipe = recipes.first else {
+                throw ImportJobError.noRecipeFound
+            }
 
-            // Save source image if available
+            // Save source image for all recipes if available
             if let imageData = item.imageData,
                let sourceImage = UIImage(data: imageData) {
-                do {
-                    let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
-                    let fileName = try await imageStorageService.saveImage(
-                        sourceImage,
-                        recipeId: recipe.id
-                    )
-                    await MainActor.run {
-                        recipe.imageFileName = fileName
-                        Log.info("Saved recipe image from bulk import", category: .import, metadata: [
+                let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+
+                for recipe in recipes {
+                    do {
+                        let fileName = try await imageStorageService.saveImage(
+                            sourceImage,
+                            recipeId: recipe.id
+                        )
+                        await MainActor.run {
+                            recipe.imageFileName = fileName
+                            Log.info("Saved recipe image from bulk import", category: .import, metadata: [
+                                "recipeId": recipe.id.uuidString,
+                                "fileName": fileName,
+                                "source": item.source.rawValue
+                            ])
+                        }
+                    } catch {
+                        Log.warning("Failed to save image for bulk import recipe", category: .import, metadata: [
                             "recipeId": recipe.id.uuidString,
-                            "fileName": fileName,
-                            "source": item.source.rawValue
+                            "error": error.localizedDescription
                         ])
                     }
-                } catch {
-                    Log.warning("Failed to save image for bulk import recipe", category: .import, metadata: [
-                        "recipeId": recipe.id.uuidString,
-                        "error": error.localizedDescription
-                    ])
                 }
             }
 
             try context.save()
 
-            // Sync to Firebase if active
+            // Sync all recipes to Firebase if active
             if backendConfig.isFirebaseActive {
-                do {
-                    try await firebaseSync.uploadRecipe(recipe)
-                    Log.info("Bulk import recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title, "source": item.source.rawValue])
-                } catch {
-                    Log.warning("Failed to sync bulk import recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "title": recipe.title])
-                    // Continue with next recipe
+                for recipe in recipes {
+                    do {
+                        try await firebaseSync.uploadRecipe(recipe)
+                        Log.info("Bulk import recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title, "source": item.source.rawValue])
+                    } catch {
+                        Log.warning("Failed to sync bulk import recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "title": recipe.title])
+                        // Continue with next recipe
+                    }
                 }
             }
 
-            // Mark item as successful
-            item.markSuccess(recipeID: recipe.id)
-            item.wasCheckpointed = true
+            // Mark item as successful with primary recipe ID
+            item.markSuccess(recipeID: primaryRecipe.id)
+
+            // Update job progress - count all recipes as successful
+            // Note: We only increment by 1 even if multiple recipes were extracted, since we're tracking items, not recipes
             job.updateProgress(success: true)
 
-            // Update checkpoint with recipe index
+            // Log if multiple recipes were extracted from single item
+            if recipes.count > 1 {
+                Log.info("✨ Multiple recipes extracted from single import item", category: .import, metadata: [
+                    "item_id": item.id.uuidString,
+                    "recipe_count": recipes.count,
+                    "titles": recipes.map { $0.title }.joined(separator: " | ")
+                ])
+            }
+            item.wasCheckpointed = true
+
+            // Update checkpoint with recipe index (using primary recipe)
             if let items = job.items,
                let itemIndex = items.firstIndex(where: { $0.id == item.id }) {
                 job.checkpoint?.updateExtractionProgress(itemIndex: itemIndex)
 
-                Log.info("Checkpointed recipe", category: .import, metadata: [
+                Log.info("Checkpointed recipe(s)", category: .import, metadata: [
                     "recipe_index": itemIndex,
                     "total_completed": job.successfulItems,
-                    "recipe_id": recipe.id.uuidString
+                    "recipe_count": recipes.count,
+                    "primary_recipe_id": primaryRecipe.id.uuidString
                 ])
             }
 
@@ -964,7 +1033,8 @@ final class ImportJobManager: ObservableObject {
     }
 
     /// Process PDF page import
-    private func processPDFPage(_ item: ImportItem) async throws -> Recipe {
+    /// - Returns: Array of recipes extracted from the PDF page (may be multiple if page contains multiple recipes)
+    private func processPDFPage(_ item: ImportItem) async throws -> [Recipe] {
         guard let imageData = item.imageData else {
             throw ImportJobError.missingImageData
         }
@@ -982,22 +1052,36 @@ final class ImportJobManager: ObservableObject {
             detectedRecipes: detected
         )
 
-        // Get first recipe (multi-page analysis should have grouped properly)
-        guard let extractedRecipe = result.recipes.first else {
+        // Ensure we found at least one recipe
+        guard !result.recipes.isEmpty else {
             throw ImportJobError.noRecipeFound
         }
 
-        // Convert to Recipe model
-        let recipe = createRecipe(from: extractedRecipe, sourceImage: image, sourceType: .scan)
+        // Convert ALL detected recipes to Recipe models
+        let recipes = result.recipes.map { extractedRecipe in
+            createRecipe(from: extractedRecipe, sourceImage: image, sourceType: .scan)
+        }
 
-        // Extract food image from PDF page (if present)
-        await extractFoodImage(from: image, for: recipe)
+        // Extract food images from PDF page for all recipes (if present)
+        for recipe in recipes {
+            await extractFoodImage(from: image, for: recipe)
+        }
 
-        return recipe
+        // Log if multiple recipes were detected on PDF page
+        if recipes.count > 1 {
+            Log.info("Multiple recipes detected on PDF page", category: .import, metadata: [
+                "count": recipes.count,
+                "page": item.pageNumber ?? -1,
+                "titles": recipes.map { $0.title }.joined(separator: ", ")
+            ])
+        }
+
+        return recipes
     }
 
     /// Process camera/photo library import
-    private func processImageImport(_ item: ImportItem) async throws -> Recipe {
+    /// - Returns: Array of recipes extracted from the image (may be multiple if image contains multiple recipes)
+    private func processImageImport(_ item: ImportItem) async throws -> [Recipe] {
         guard let imageData = item.imageData else {
             throw ImportJobError.missingImageData
         }
@@ -1015,16 +1099,26 @@ final class ImportJobManager: ObservableObject {
             detectedRecipes: detected
         )
 
-        // Get first recipe
-        guard let extractedRecipe = result.recipes.first else {
+        // Ensure we found at least one recipe
+        guard !result.recipes.isEmpty else {
             throw ImportJobError.noRecipeFound
         }
 
-        // Convert to Recipe model
+        // Convert ALL detected recipes to Recipe models
         let sourceType: RecipeSourceType = item.source == .camera ? .scan : .scan
-        let recipe = createRecipe(from: extractedRecipe, sourceImage: image, sourceType: sourceType)
+        let recipes = result.recipes.map { extractedRecipe in
+            createRecipe(from: extractedRecipe, sourceImage: image, sourceType: sourceType)
+        }
 
-        return recipe
+        // Log if multiple recipes were detected
+        if recipes.count > 1 {
+            Log.info("Multiple recipes detected in single image", category: .import, metadata: [
+                "count": recipes.count,
+                "titles": recipes.map { $0.title }.joined(separator: ", ")
+            ])
+        }
+
+        return recipes
     }
 
     /// Convert ExtractedRecipe to Recipe model
@@ -1211,6 +1305,15 @@ final class ImportJobManager: ObservableObject {
                 isSystemCollection: false,
                 collectionType: collectionType
             )
+
+            // Set cookbook cover image if available from job
+            if let coverPath = job.cookbookCoverImagePath {
+                collection.cookbookCoverImagePath = coverPath
+                Log.info("Applied cookbook cover to collection", category: .import, metadata: [
+                    "coverPath": coverPath
+                ])
+            }
+
             context.insert(collection)
             Log.info("Created new collection for cookbook", category: .import, metadata: [
                 "collection": cookbookName,

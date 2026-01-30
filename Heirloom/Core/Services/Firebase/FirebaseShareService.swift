@@ -501,6 +501,10 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
 
         logger.log("Firebase share accepted successfully", category: .firebase, level: .info, metadata: nil)
 
+        // 14.5. Route to "From Friends" collection
+        let collectionRouter = CollectionRouter(modelContext: context)
+        collectionRouter.routeSharedRecipe(sharedRecipe, from: ownerName)
+
         // 15. Track analytics
         analytics.track(event: .recipeImported, properties: [
             "source": "firebase_share",

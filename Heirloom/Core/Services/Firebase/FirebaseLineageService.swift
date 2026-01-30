@@ -316,57 +316,78 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
         return "Someone"
     }
 
-    /// Notify ancestors when a descendant makes modifications
+    /// Notify all users in the heritage network when anyone makes modifications
+    /// This implements the full network model where everyone sees everyone's changes
     private func notifyAncestors(
         lineage: RecipeLineage,
         modification: ModificationRecord
     ) async throws {
-        // Only notify if this is a descendant (not root)
-        guard lineage.generation > 0 else { return }
+        Log.info("Notifying heritage network of lineage modification", category: .firebase)
 
-        Log.info("Notifying ancestors of lineage modification", category: .firebase)
-
-        // Query for all ancestors (lineage records with same root but lower generation)
+        // Query for ALL lineage records with same root (entire network)
+        // Removed generation filter - notify everyone, not just ancestors
         let snapshot = try await db.collection("lineages")
             .whereField("rootRecipeId", isEqualTo: lineage.rootRecipeId.uuidString)
-            .whereField("generation", isLessThan: lineage.generation)
             .getDocuments()
+
+        Log.debug("Found network members to notify", category: .firebase, metadata: [
+            "networkSize": snapshot.documents.count,
+            "modifierGeneration": lineage.generation
+        ])
 
         // Fetch current user's display name ONCE for all notifications
         let modifierDisplayName = await fetchModifierDisplayName(for: lineage.ownerId)
 
-        for doc in snapshot.documents {
-            let ancestorData = doc.data()
-            guard let ancestorOwnerId = ancestorData["ownerId"] as? String else { continue }
-            let ancestorGeneration = ancestorData["generation"] as? Int ?? 0
+        var notificationCount = 0
 
-            // Create notification data with CORRECT fields
+        for doc in snapshot.documents {
+            let networkMemberData = doc.data()
+            guard let memberOwnerId = networkMemberData["ownerId"] as? String else { continue }
+            let memberGeneration = networkMemberData["generation"] as? Int ?? 0
+
+            // Skip notification to self
+            if memberOwnerId == lineage.ownerId {
+                Log.debug("Skipping notification to self", category: .firebase, metadata: [
+                    "ownerId": memberOwnerId
+                ])
+                continue
+            }
+
+            // Create notification data
             let notificationData: [String: Any] = [
                 "type": "lineage_modification",
                 "recipeId": lineage.currentRecipeId.uuidString,
                 "rootRecipeId": lineage.rootRecipeId.uuidString,
-                "generation": ancestorGeneration,  // FIX: Use ancestor's gen, not modifier's
-                "modifierGeneration": lineage.generation,  // NEW: Track who made the change
+                "generation": memberGeneration,  // Recipient's generation
+                "modifierGeneration": lineage.generation,  // Who made the change
                 "modifiedBy": lineage.ownerId,
-                "modifiedByName": modifierDisplayName,  // FIX: Fetched display name, never nil
-                "ownerId": ancestorOwnerId,  // NEW: Track notification recipient
+                "modifiedByName": modifierDisplayName,
+                "ownerId": memberOwnerId,  // Notification recipient
                 "changeType": modification.changeType.rawValue,
                 "changeDescription": modification.changeDescription,
                 "timestamp": Timestamp(date: modification.timestamp),
                 "read": false
             ]
 
-            // Store notification in ancestor's collection
-            try await db.collection("users/\(ancestorOwnerId)/notifications")
+            // Store notification in network member's collection
+            try await db.collection("users/\(memberOwnerId)/notifications")
                 .addDocument(data: notificationData)
 
-            Log.info("Created lineage modification notification", category: .firebase, metadata: [
-                "ancestorOwnerId": ancestorOwnerId,
-                "ancestorGeneration": ancestorGeneration,
+            notificationCount += 1
+
+            Log.debug("Created lineage modification notification", category: .firebase, metadata: [
+                "recipientOwnerId": memberOwnerId,
+                "recipientGeneration": memberGeneration,
                 "modifierGeneration": lineage.generation,
                 "modifiedBy": lineage.ownerId
             ])
         }
+
+        Log.info("Heritage network notified", category: .firebase, metadata: [
+            "notificationsSent": notificationCount,
+            "networkSize": snapshot.documents.count,
+            "modifierGeneration": lineage.generation
+        ])
     }
 
     // MARK: - Helper Methods

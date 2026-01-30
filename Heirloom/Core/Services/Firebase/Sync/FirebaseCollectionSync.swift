@@ -324,7 +324,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         data["createdDate"] = Timestamp(date: party.createdDate)
 
         try await partyRef.setData(data)
-        logger.log("Dinner party uploaded successfully", category: .sync, level: .info, metadata: nil)
+        logger.log("Meal plan uploaded successfully", category: .sync, level: .info, metadata: nil)
     }
 
     /// Delete dinner party from Firebase
@@ -338,6 +338,6 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         let partyRef = try configuration.dinnerPartiesCollection().document(partyId.uuidString)
         try await partyRef.delete()
 
-        logger.log("Dinner party deleted successfully", category: .sync, level: .info, metadata: nil)
+        logger.log("Meal plan deleted successfully", category: .sync, level: .info, metadata: nil)
     }
 }

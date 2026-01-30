@@ -51,6 +51,15 @@ struct RecipeEditorView: View {
     // Focus management for auto-focusing new ingredient fields
     @FocusState private var focusedIngredientIndex: Int?
 
+    // Focus management for number pad fields (servings, times)
+    @FocusState private var focusedField: Field?
+
+    enum Field {
+        case servings
+        case prepTime
+        case cookTime
+    }
+
     // Spell checking
     @State private var spellCheckResults: [Int: AIIngredientSpellChecker.SpellingResult] = [:]
     @State private var spellCheckTask: Task<Void, Never>?
@@ -254,6 +263,14 @@ struct RecipeEditorView: View {
                     }
                     .disabled(title.isEmpty || isSaving)
                 }
+
+                // Keyboard toolbar for number pad fields (servings, times)
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        focusedField = nil
+                    }
+                }
             }
             .onAppear {
                 // Validate edit permissions on appear
@@ -371,6 +388,7 @@ struct RecipeEditorView: View {
                     .font(HeirloomFonts.body)
                     .multilineTextAlignment(.trailing)
                     .keyboardType(.numberPad)
+                    .focused($focusedField, equals: .servings)
                     .frame(width: 100)
             }
 
@@ -381,6 +399,7 @@ struct RecipeEditorView: View {
                 TextField("15 min", text: $prepTime)
                     .font(HeirloomFonts.body)
                     .multilineTextAlignment(.trailing)
+                    .focused($focusedField, equals: .prepTime)
                     .frame(width: 100)
             }
 
@@ -391,6 +410,7 @@ struct RecipeEditorView: View {
                 TextField("30 min", text: $cookTime)
                     .font(HeirloomFonts.body)
                     .multilineTextAlignment(.trailing)
+                    .focused($focusedField, equals: .cookTime)
                     .frame(width: 100)
             }
         }
@@ -771,6 +791,16 @@ struct RecipeEditorView: View {
                 recipe.servings = servings.isEmpty ? nil : servings
                 recipe.prepTime = prepTime.isEmpty ? nil : prepTime
                 recipe.cookTime = cookTime.isEmpty ? nil : cookTime
+
+                // Log servings change for debugging Task #36
+                if originalServings != recipe.servings {
+                    Log.info("Servings modified", category: .database, metadata: [
+                        "recipeId": recipe.id.uuidString,
+                        "oldServings": originalServings ?? "nil",
+                        "newServings": recipe.servings ?? "nil",
+                        "rawInput": servings
+                    ])
+                }
                 recipe.setNotes(notes.isEmpty ? nil : notes)
                 recipe.instructions = instructions.filter { !$0.isEmpty }
                 recipe.lastModified = Date()

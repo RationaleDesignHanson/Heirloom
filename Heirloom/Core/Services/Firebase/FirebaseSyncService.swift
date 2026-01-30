@@ -1519,7 +1519,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         data["createdDate"] = Timestamp(date: party.createdDate)
 
         try await partyRef.setData(data)
-        logger.log("Dinner party uploaded", category: .sync, level: .info, metadata: nil)
+        logger.log("Meal plan uploaded", category: .sync, level: .info, metadata: nil)
     }
 
     /// Delete dinner party
@@ -1531,7 +1531,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         let partyRef = db.collection("users/\(userId)/dinnerParties").document(partyId.uuidString)
         try await partyRef.delete()
 
-        logger.log("Dinner party deleted", category: .sync, level: .info, metadata: nil)
+        logger.log("Meal plan deleted", category: .sync, level: .info, metadata: nil)
     }
 }
 

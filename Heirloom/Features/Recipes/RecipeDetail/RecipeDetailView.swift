@@ -326,10 +326,23 @@ struct RecipeDetailView: View {
         }
 
         // Compare ingredients
+        Log.debug("Comparing ingredients", category: .ui, metadata: [
+            "currentCount": currentTexts.count,
+            "originalCount": originalTexts.count,
+            "current": currentTexts.joined(separator: " | "),
+            "original": originalTexts.joined(separator: " | ")
+        ])
+
         if !currentTexts.isEmpty || !originalTexts.isEmpty {
             let addedCount = currentTexts.filter { !originalTexts.contains($0) }.count
             let removedCount = originalTexts.filter { !currentTexts.contains($0) }.count
             let modifiedCount = addedCount + removedCount
+
+            Log.debug("Ingredient diff counts", category: .ui, metadata: [
+                "addedCount": addedCount,
+                "removedCount": removedCount,
+                "modifiedCount": modifiedCount
+            ])
 
             if modifiedCount > 0 {
                 changes.append("\(modifiedCount) ingredient\(modifiedCount == 1 ? "" : "s") modified")
@@ -373,6 +386,54 @@ struct RecipeDetailView: View {
             if modifiedCount > 0 {
                 changes.append("\(modifiedCount) instruction\(modifiedCount == 1 ? "" : "s") modified")
             }
+        }
+
+        // Check servings
+        let currentServings = selected.recipe?.servings ?? selected.recipeData?["servings"] as? String
+        let originalServings = original.recipe?.servings ?? original.recipeData?["servings"] as? String
+        Log.debug("Comparing servings", category: .ui, metadata: [
+            "current": currentServings ?? "nil",
+            "original": originalServings ?? "nil",
+            "changed": (currentServings != originalServings)
+        ])
+        if currentServings != originalServings, currentServings != nil || originalServings != nil {
+            changes.append("Servings changed")
+        }
+
+        // Check prep time
+        let currentPrepTime = selected.recipe?.prepTime ?? selected.recipeData?["prepTime"] as? String
+        let originalPrepTime = original.recipe?.prepTime ?? original.recipeData?["prepTime"] as? String
+        Log.debug("Comparing prep time", category: .ui, metadata: [
+            "current": currentPrepTime ?? "nil",
+            "original": originalPrepTime ?? "nil",
+            "changed": (currentPrepTime != originalPrepTime)
+        ])
+        if currentPrepTime != originalPrepTime, currentPrepTime != nil || originalPrepTime != nil {
+            changes.append("Prep time changed")
+        }
+
+        // Check cook time
+        let currentCookTime = selected.recipe?.cookTime ?? selected.recipeData?["cookTime"] as? String
+        let originalCookTime = original.recipe?.cookTime ?? original.recipeData?["cookTime"] as? String
+        Log.debug("Comparing cook time", category: .ui, metadata: [
+            "current": currentCookTime ?? "nil",
+            "original": originalCookTime ?? "nil",
+            "changed": (currentCookTime != originalCookTime)
+        ])
+        if currentCookTime != originalCookTime, currentCookTime != nil || originalCookTime != nil {
+            changes.append("Cook time changed")
+        }
+
+        // Check notes
+        let currentNotes = selected.recipe?.notes ?? selected.recipeData?["notes"] as? String
+        let originalNotes = original.recipe?.notes ?? original.recipeData?["notes"] as? String
+        Log.debug("Comparing notes", category: .ui, metadata: [
+            "current": currentNotes ?? "nil",
+            "original": originalNotes ?? "nil",
+            "changed": (currentNotes != originalNotes)
+        ])
+        if currentNotes != originalNotes, currentNotes != nil || originalNotes != nil {
+            changes.append("Notes changed")
         }
 
         return changes.isEmpty ? nil : changes.joined(separator: ", ")

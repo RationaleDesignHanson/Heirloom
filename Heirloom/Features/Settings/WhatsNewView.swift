@@ -53,8 +53,8 @@ struct WhatsNewView: View {
                 ),
                 WhatsNewEntry.Feature(
                     icon: "fork.knife",
-                    title: "Dinner Party Planning",
-                    description: "Plan dinner parties with guest counts, serving calculations, and shopping list integration.",
+                    title: "Meal Planning",
+                    description: "Plan meals with guest counts, serving calculations, and shopping list integration.",
                     type: .new
                 ),
                 WhatsNewEntry.Feature(

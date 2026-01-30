@@ -27,6 +27,7 @@ final class RecipeCollection {
     // Custom Backgrounds
     var customBackgroundImagePath: String? // User-selected background image filename (local storage)
     var generatedBackgroundImagePath: String? // AI-generated background image filename
+    var cookbookCoverImagePath: String? // Cookbook cover image (from PDF first page)
     var useCustomBackground: Bool = false // Whether to show custom/generated background instead of recipe collage
     var lastImageGenerationDate: Date? // Date when background was last generated
     var lastRecipeCountAtGeneration: Int = 0 // Recipe count at time of last generation (for staleness detection)

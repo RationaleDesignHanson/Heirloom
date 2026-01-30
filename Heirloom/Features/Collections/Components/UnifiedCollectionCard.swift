@@ -159,7 +159,15 @@ struct UnifiedCollectionCard: View {
            onAddRecipeTap != nil {
             emptyCollectionAffordance
         }
-        // Priority 1: AI-generated background (if enabled)
+        // Priority 1: Cookbook cover image (for cookbook collections)
+        else if let coverPath = collection.cookbookCoverImagePath {
+            AsyncRecipeImage(
+                imageFileName: coverPath,
+                firebaseImageURL: nil,
+                placeholder: collection.iconName
+            )
+        }
+        // Priority 2: AI-generated background (if enabled)
         else if collection.useCustomBackground,
                 let generatedPath = collection.generatedBackgroundImagePath {
             AsyncRecipeImage(
@@ -168,7 +176,7 @@ struct UnifiedCollectionCard: View {
                 placeholder: collection.iconName
             )
         }
-        // Priority 2: Custom user-selected background (if enabled)
+        // Priority 3: Custom user-selected background (if enabled)
         else if collection.useCustomBackground,
                 let customPath = collection.customBackgroundImagePath {
             AsyncRecipeImage(
@@ -177,7 +185,7 @@ struct UnifiedCollectionCard: View {
                 placeholder: collection.iconName
             )
         }
-        // Priority 3: First recipe's image (as fallback)
+        // Priority 4: First recipe's image (as fallback)
         else if let firstRecipe = recipeImages.first,
                 firstRecipe.imageFileName != nil {
             AsyncRecipeImage(
@@ -186,7 +194,7 @@ struct UnifiedCollectionCard: View {
                 placeholder: collection.iconName
             )
         }
-        // Priority 4: Placeholder
+        // Priority 5: Placeholder
         else {
             placeholderView
         }

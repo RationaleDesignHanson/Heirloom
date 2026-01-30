@@ -15,11 +15,20 @@ struct RecipeDiffView: View {
                         titleDiff
                     }
 
+                    // Servings diff
+                    servingsDiff
+
+                    // Timing diffs
+                    timingDiffs
+
                     // Ingredients diff
                     ingredientsDiff
 
                     // Instructions diff
                     instructionsDiff
+
+                    // Notes diff
+                    notesDiff
                 }
             }
         }
@@ -50,14 +59,24 @@ struct RecipeDiffView: View {
     }
 
     private var ingredientsDiff: some View {
-        Group {
-            if let currentRecipe = currentVersion.recipe,
-               let currentIngredients = currentRecipe.ingredients,
-               let comparedVersion = comparedVersion,
+        // Get current ingredients (from recipe OR recipeData)
+        let currentIngredientTexts: [String]
+        if let currentRecipe = currentVersion.recipe,
+           let currentIngredients = currentRecipe.ingredients {
+            currentIngredientTexts = currentIngredients.map { $0.originalText }
+        } else if let data = currentVersion.recipeData,
+                  let ingredientsData = data["ingredients"] as? [[String: Any]] {
+            currentIngredientTexts = ingredientsData.compactMap { $0["originalText"] as? String }
+        } else {
+            currentIngredientTexts = []
+        }
+
+        return Group {
+            if let comparedVersion = comparedVersion,
                currentVersion.id != comparedVersion.id {
 
-                let diffs = calculateIngredientDiffs(
-                    current: currentIngredients,
+                let diffs = calculateIngredientDiffsFromTexts(
+                    currentTexts: currentIngredientTexts,
                     compared: comparedVersion
                 )
 
@@ -100,12 +119,22 @@ struct RecipeDiffView: View {
     }
 
     private var instructionsDiff: some View {
-        Group {
-            if let currentRecipe = currentVersion.recipe,
-               let comparedVersion = comparedVersion {
+        // Get current instructions (from recipe OR recipeData)
+        let currentInstructions: [String]
+        if let currentRecipe = currentVersion.recipe {
+            currentInstructions = currentRecipe.instructions
+        } else if let data = currentVersion.recipeData,
+                  let instructions = data["instructions"] as? [String] {
+            currentInstructions = instructions
+        } else {
+            currentInstructions = []
+        }
+
+        return Group {
+            if let comparedVersion = comparedVersion {
 
                 let diffs = calculateInstructionDiffs(
-                    current: currentRecipe.instructions,
+                    current: currentInstructions,
                     compared: comparedVersion
                 )
 
@@ -153,8 +182,58 @@ struct RecipeDiffView: View {
 
     // MARK: - Diff Calculation
 
-    private func calculateIngredientDiffs(
-        current: [Ingredient],
+    /// Normalizes ingredient text for comparison by converting fractions to decimals
+    /// This prevents false positives like "1/2 cup" vs "0.5 cup"
+    private func normalizeIngredient(_ text: String) -> String {
+        var normalized = text.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Common fraction mappings
+        let fractionMappings: [(String, String)] = [
+            ("1/2", "0.5"),
+            ("1/3", "0.33"),
+            ("2/3", "0.67"),
+            ("1/4", "0.25"),
+            ("3/4", "0.75"),
+            ("1/8", "0.13"),
+            ("3/8", "0.38"),
+            ("5/8", "0.63"),
+            ("7/8", "0.88"),
+            ("1/6", "0.17"),
+            ("5/6", "0.83"),
+            ("2/5", "0.4"),
+            ("3/5", "0.6"),
+            ("4/5", "0.8")
+        ]
+
+        // Replace fractions with decimals
+        for (fraction, decimal) in fractionMappings {
+            normalized = normalized.replacingOccurrences(of: fraction, with: decimal)
+        }
+
+        // Normalize decimal representations (0.50 → 0.5)
+        let decimalPattern = "\\b0\\.(\\d*?)0+\\b"
+        if let regex = try? NSRegularExpression(pattern: decimalPattern) {
+            let range = NSRange(normalized.startIndex..., in: normalized)
+            normalized = regex.stringByReplacingMatches(
+                in: normalized,
+                range: range,
+                withTemplate: "0.$1"
+            )
+        }
+
+        // Remove extra whitespace
+        normalized = normalized.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+
+        return normalized
+    }
+
+    /// Checks if two ingredients are equivalent after normalization
+    private func ingredientsMatch(_ ingredient1: String, _ ingredient2: String) -> Bool {
+        return normalizeIngredient(ingredient1) == normalizeIngredient(ingredient2)
+    }
+
+    private func calculateIngredientDiffsFromTexts(
+        currentTexts: [String],
         compared: RecipeLineageVersion
     ) -> [(String, ChangeType)] {
         var diffs: [(String, ChangeType)] = []
@@ -183,7 +262,6 @@ struct RecipeDiffView: View {
             Log.warning("No ingredient data found in compared version, showing all as added", category: .ui, metadata: ["generation": compared.generation])
         }
 
-        let currentTexts = current.map { $0.originalText }
         Log.debug("Comparing recipe ingredients", category: .ui, metadata: [
             "currentCount": currentTexts.count,
             "comparedCount": comparedIngredients.count,
@@ -191,14 +269,20 @@ struct RecipeDiffView: View {
             "comparedIngredients": comparedIngredients.joined(separator: " | ")
         ])
 
-        // Find added ingredients
-        for text in currentTexts where !comparedIngredients.contains(text) {
-            diffs.append((text, .added))
+        // Find added ingredients (using normalized comparison)
+        for text in currentTexts {
+            let isInCompared = comparedIngredients.contains { ingredientsMatch(text, $0) }
+            if !isInCompared {
+                diffs.append((text, .added))
+            }
         }
 
-        // Find removed ingredients
-        for text in comparedIngredients where !currentTexts.contains(text) {
-            diffs.append((text, .removed))
+        // Find removed ingredients (using normalized comparison)
+        for text in comparedIngredients {
+            let isInCurrent = currentTexts.contains { ingredientsMatch(text, $0) }
+            if !isInCurrent {
+                diffs.append((text, .removed))
+            }
         }
 
         return diffs
@@ -238,6 +322,185 @@ struct RecipeDiffView: View {
         }
 
         return diffs
+    }
+
+    // MARK: - Additional Field Diffs
+
+    private var servingsDiff: some View {
+        Group {
+            if let comparedVersion = comparedVersion,
+               let currentServings = currentVersion.recipe?.servings ?? currentVersion.recipeData?["servings"] as? String,
+               let originalServings = comparedVersion.recipe?.servings ?? comparedVersion.recipeData?["servings"] as? String,
+               currentServings != originalServings {
+
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                    HStack {
+                        Image(systemName: "person.2.fill")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.success)
+                        Text("Servings Changed")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(HeirloomColors.success)
+                    }
+
+                    HStack(spacing: HeirloomSpacing.sm) {
+                        Text(originalServings)
+                            .font(HeirloomFonts.body)
+                            .foregroundStyle(.gray)
+                            .strikethrough()
+
+                        Image(systemName: "arrow.right")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.success)
+
+                        Text(currentServings)
+                            .font(HeirloomFonts.body)
+                            .foregroundStyle(.primary)
+                    }
+                    .padding(HeirloomSpacing.sm)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(HeirloomColors.success.opacity(0.1))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .strokeBorder(HeirloomColors.success.opacity(0.3), lineWidth: 1)
+                    )
+                }
+            }
+        }
+    }
+
+    private var timingDiffs: some View {
+        Group {
+            if let comparedVersion = comparedVersion {
+                let currentPrepTime = currentVersion.recipe?.prepTime ?? currentVersion.recipeData?["prepTime"] as? String
+                let originalPrepTime = comparedVersion.recipe?.prepTime ?? comparedVersion.recipeData?["prepTime"] as? String
+                let currentCookTime = currentVersion.recipe?.cookTime ?? currentVersion.recipeData?["cookTime"] as? String
+                let originalCookTime = comparedVersion.recipe?.cookTime ?? comparedVersion.recipeData?["cookTime"] as? String
+
+                let hasPrepChange = currentPrepTime != originalPrepTime
+                let hasCookChange = currentCookTime != originalCookTime
+
+                if hasPrepChange || hasCookChange {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                        HStack {
+                            Image(systemName: "clock.fill")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.success)
+                            Text("Timing Changed")
+                                .font(HeirloomFonts.caption1Bold)
+                                .foregroundStyle(HeirloomColors.success)
+                        }
+
+                        if hasPrepChange, let current = currentPrepTime, let original = originalPrepTime {
+                            HStack(spacing: HeirloomSpacing.xs) {
+                                Text("Prep:")
+                                    .font(HeirloomFonts.caption1Bold)
+                                    .foregroundStyle(.secondary)
+
+                                Text(original)
+                                    .font(HeirloomFonts.body)
+                                    .foregroundStyle(.gray)
+                                    .strikethrough()
+
+                                Image(systemName: "arrow.right")
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(HeirloomColors.success)
+
+                                Text(current)
+                                    .font(HeirloomFonts.body)
+                                    .foregroundStyle(.primary)
+                            }
+                            .padding(HeirloomSpacing.sm)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(HeirloomColors.success.opacity(0.1))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(HeirloomColors.success.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+
+                        if hasCookChange, let current = currentCookTime, let original = originalCookTime {
+                            HStack(spacing: HeirloomSpacing.xs) {
+                                Text("Cook:")
+                                    .font(HeirloomFonts.caption1Bold)
+                                    .foregroundStyle(.secondary)
+
+                                Text(original)
+                                    .font(HeirloomFonts.body)
+                                    .foregroundStyle(.gray)
+                                    .strikethrough()
+
+                                Image(systemName: "arrow.right")
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(HeirloomColors.success)
+
+                                Text(current)
+                                    .font(HeirloomFonts.body)
+                                    .foregroundStyle(.primary)
+                            }
+                            .padding(HeirloomSpacing.sm)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(HeirloomColors.success.opacity(0.1))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(HeirloomColors.success.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var notesDiff: some View {
+        Group {
+            if let comparedVersion = comparedVersion,
+               let currentNotes = currentVersion.recipe?.notes ?? currentVersion.recipeData?["notes"] as? String,
+               let originalNotes = comparedVersion.recipe?.notes ?? comparedVersion.recipeData?["notes"] as? String,
+               currentNotes != originalNotes {
+
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                    HStack {
+                        Image(systemName: "note.text")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.success)
+                        Text("Notes Changed")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(HeirloomColors.success)
+                    }
+
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                        if !originalNotes.isEmpty {
+                            Text(originalNotes)
+                                .font(HeirloomFonts.body)
+                                .foregroundStyle(.gray)
+                                .strikethrough()
+                                .padding(HeirloomSpacing.sm)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(8)
+                        }
+
+                        if !currentNotes.isEmpty {
+                            Text(currentNotes)
+                                .font(HeirloomFonts.body)
+                                .foregroundStyle(.primary)
+                                .padding(HeirloomSpacing.sm)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(HeirloomColors.success.opacity(0.1))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .strokeBorder(HeirloomColors.success.opacity(0.3), lineWidth: 1)
+                                )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

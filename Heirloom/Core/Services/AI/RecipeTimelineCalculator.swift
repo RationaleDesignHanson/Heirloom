@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-/// AI-powered recipe timeline calculator for dinner party coordination
+/// AI-powered recipe timeline calculator for meal plan coordination
 /// Calculates optimal start times and identifies timing conflicts
 @MainActor
 class RecipeTimelineCalculator: RecipeTimelineCalculatorProtocol {
@@ -51,7 +51,7 @@ class RecipeTimelineCalculator: RecipeTimelineCalculatorProtocol {
 
     // MARK: - Public API
 
-    /// Calculate optimal timeline for dinner party recipes using AI
+    /// Calculate optimal timeline for meal plan recipes using AI
     nonisolated func calculateTimeline(for recipes: [Recipe], servingTime: Date) async throws -> Any {
         return try await calculateRecipeTimeline(recipes: recipes, servingTime: servingTime)
     }
@@ -69,7 +69,7 @@ class RecipeTimelineCalculator: RecipeTimelineCalculatorProtocol {
         let context = buildRecipesContext(recipes)
 
         let prompt = """
-        Analyze these recipes and calculate optimal start times for a coordinated dinner party.
+        Analyze these recipes and calculate optimal start times for a coordinated meal.
 
         Recipes:
         \(context)
@@ -127,7 +127,7 @@ class RecipeTimelineCalculator: RecipeTimelineCalculatorProtocol {
                 model: model,
                 temperature: 0.4, // More deterministic for timeline calculations
                 maxTokens: 2000,
-                systemMessage: "You are an expert chef specializing in dinner party coordination and timing."
+                systemMessage: "You are an expert chef specializing in meal planning coordination and timing."
             )
         )
 

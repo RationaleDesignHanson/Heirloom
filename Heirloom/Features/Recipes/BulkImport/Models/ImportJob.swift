@@ -34,6 +34,9 @@ final class ImportJob {
     /// Cookbook name for auto-categorization (optional)
     var cookbookName: String?
 
+    /// Cookbook cover image path (from first PDF page)
+    var cookbookCoverImagePath: String?
+
     /// Collection type for auto-categorization (stored as raw value)
     var collectionTypeRawValue: String?
 

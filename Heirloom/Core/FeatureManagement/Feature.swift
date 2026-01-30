@@ -131,7 +131,7 @@ extension Feature {
         case .dailyHeritageDrop: return "Unlock 7 heritage recipes daily during trial"
         case .heritageProvenance: return "Track recipe lineage and sources"
         case .discovery: return "Discover and explore recommended recipes"
-        case .dinnerParty: return "Plan multi-course dinner parties"
+        case .dinnerParty: return "Plan multi-course meals"
         case .shoppingLists: return "Generate shopping lists from recipes"
         case .stats: return "View recipe statistics and insights"
         case .onboarding: return "First-time user onboarding flow"

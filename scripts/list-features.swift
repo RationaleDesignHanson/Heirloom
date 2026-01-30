@@ -62,7 +62,7 @@ let features: [Feature] = [
     // Social
     Feature(name: "recipeSharing", displayName: "Recipe Sharing", category: .social, state: .released, testCoverage: 0.80, requiresPremium: true),
     Feature(name: "discovery", displayName: "Recipe Discovery", category: .social, state: .alpha, testCoverage: 0.30, requiresPremium: false),
-    Feature(name: "dinnerParty", displayName: "Dinner Party", category: .social, state: .development, testCoverage: 0.0, requiresPremium: false),
+    Feature(name: "dinnerParty", displayName: "Meal Planning", category: .social, state: .development, testCoverage: 0.0, requiresPremium: false),
 
     // Utility
     Feature(name: "shoppingLists", displayName: "Shopping Lists", category: .utility, state: .beta, testCoverage: 0.55, requiresPremium: false),

@@ -7,7 +7,7 @@ struct LineageTimelineView: View {
 
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
-    @State private var sortOrder: TimelineSortOrder = .chronological
+    @State private var sortOrder: TimelineSortOrder = .generation
     @State private var selectedNodeID: UUID?
 
     private var sortedNodes: [LineageNode] {
@@ -280,7 +280,6 @@ struct LineageContainerView: View {
 
     @Environment(\.modelContext) private var modelContext
     @State private var tree: LineageTree?
-    @State private var viewMode: LineageViewMode = .graph
     @State private var isLoading = true
     @State private var errorMessage: String?
 
@@ -295,21 +294,8 @@ struct LineageContainerView: View {
             } else if let error = errorMessage {
                 errorView(error)
             } else if let tree = tree {
-                ZStack(alignment: .topTrailing) {
-                    // Content view
-                    Group {
-                        switch viewMode {
-                        case .graph:
-                            LineageGraphView(tree: tree, onTapNode: onTapRecipe)
-                        case .timeline:
-                            LineageTimelineView(tree: tree, onTapRecipe: onTapRecipe)
-                        }
-                    }
-
-                    // View mode toggle
-                    viewModeToggle
-                        .padding(HeirloomSpacing.md)
-                }
+                // Always show timeline view
+                LineageTimelineView(tree: tree, onTapRecipe: onTapRecipe)
             }
         }
         .navigationTitle("Recipe Lineage")
@@ -317,19 +303,6 @@ struct LineageContainerView: View {
         .task {
             await loadLineageTree()
         }
-    }
-
-    // MARK: - View Mode Toggle
-
-    private var viewModeToggle: some View {
-        Picker("View Mode", selection: $viewMode) {
-            ForEach(LineageViewMode.allCases, id: \.self) { mode in
-                Label(mode.displayName, systemImage: mode.icon)
-                    .tag(mode)
-            }
-        }
-        .pickerStyle(.segmented)
-        .frame(width: 200)
     }
 
     // MARK: - Error View

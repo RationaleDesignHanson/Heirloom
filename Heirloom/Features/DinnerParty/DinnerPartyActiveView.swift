@@ -243,7 +243,7 @@ struct RecipeCookingSheetView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: DinnerParty.self, configurations: config)
 
-    let party = DinnerParty(name: "Dinner Party", guestCount: 8, mealTime: Date().addingTimeInterval(3600))
+    let party = DinnerParty(name: "Meal Plan", guestCount: 8, mealTime: Date().addingTimeInterval(3600))
     container.mainContext.insert(party)
 
     return DinnerPartyActiveView(party: party)

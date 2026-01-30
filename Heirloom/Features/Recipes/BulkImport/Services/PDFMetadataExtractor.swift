@@ -143,6 +143,9 @@ class PDFMetadataExtractor {
         // Pattern 4: If no "by" pattern, check for large text blocks that might be title
         if title == nil {
             // Look for lines that are likely titles (all caps, or substantial length)
+            // Score each candidate and pick the best one
+            var bestCandidate: (line: String, score: Int)?
+
             for line in lines.prefix(20) { // Check first 20 lines
                 if line.count > 10 && line.count < 100 {
                     // Skip copyright lines, ISBNs, publisher info
@@ -150,14 +153,64 @@ class PDFMetadataExtractor {
                     if lowercased.contains("copyright") ||
                        lowercased.contains("isbn") ||
                        lowercased.contains("published") ||
-                       lowercased.contains("all rights reserved") {
+                       lowercased.contains("all rights reserved") ||
+                       lowercased.contains("edition") ||
+                       lowercased.contains("printing") {
                         continue
                     }
 
-                    // Likely a title
-                    title = line
-                    break
+                    // Skip obvious taglines (repetitive patterns like "Cook Together Eat Together")
+                    let words = line.split(separator: " ")
+                    let uniqueWords = Set(words.map { $0.lowercased() })
+                    let repetitionRatio = Double(words.count) / Double(uniqueWords.count)
+                    if repetitionRatio > 1.5 { // High repetition suggests tagline
+                        Log.debug("Skipping potential tagline (repetitive)", category: .import, metadata: ["line": line])
+                        continue
+                    }
+
+                    // Score this candidate
+                    var score = 0
+
+                    // Prefer shorter text (titles are usually concise)
+                    if line.count < 40 { score += 3 }
+                    else if line.count < 60 { score += 2 }
+                    else { score += 1 }
+
+                    // Prefer title case formatting
+                    let titleCaseWords = words.filter { word in
+                        guard let first = word.first else { return false }
+                        return first.isUppercase && word.count > 2
+                    }
+                    if Double(titleCaseWords.count) / Double(words.count) > 0.5 {
+                        score += 2 // More than half the words are title-cased
+                    }
+
+                    // Prefer text without too many common words
+                    let commonWords = Set(["the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for"])
+                    let commonWordCount = words.filter { commonWords.contains($0.lowercased()) }.count
+                    if Double(commonWordCount) / Double(words.count) < 0.3 {
+                        score += 2 // Low common word ratio suggests title-like text
+                    }
+
+                    // Prefer all-caps (common for titles)
+                    if line.uppercased() == line && line.lowercased() != line {
+                        score += 3
+                    }
+
+                    // Update best candidate if this scores higher
+                    if bestCandidate == nil || score > bestCandidate!.score {
+                        bestCandidate = (line, score)
+                    }
                 }
+            }
+
+            // Use the best candidate if we found one
+            if let best = bestCandidate {
+                title = best.line
+                Log.debug("Selected title candidate", category: .import, metadata: [
+                    "title": best.line,
+                    "score": best.score
+                ])
             }
         }
 

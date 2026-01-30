@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-/// AI-powered dinner party summary and planning service
+/// AI-powered meal plan summary and planning service
 /// Generates intelligent summaries, timeline recommendations, and coordination tips
 @MainActor
 class DinnerPartySummaryService: DinnerPartySummaryServiceProtocol {
@@ -48,7 +48,7 @@ class DinnerPartySummaryService: DinnerPartySummaryServiceProtocol {
 
     // MARK: - Public API
 
-    /// Generate comprehensive AI summary for a dinner party
+    /// Generate comprehensive AI summary for a meal plan
     nonisolated func generateSummary(for party: DinnerParty, recipes: [Recipe]) async throws -> Any {
         return try await generateDinnerPartySummary(for: party, recipes: recipes)
     }
@@ -60,13 +60,13 @@ class DinnerPartySummaryService: DinnerPartySummaryServiceProtocol {
             return generateBasicSummary(for: dinnerParty)
         }
 
-        // Build context about the dinner party
+        // Build context about the meal plan
         let context = buildDinnerPartyContext(dinnerParty)
 
         let prompt = """
-        Analyze this dinner party and provide a comprehensive planning summary.
+        Analyze this meal plan and provide a comprehensive planning summary.
 
-        Dinner Party Details:
+        Meal Plan Details:
         \(context)
 
         Generate a JSON summary with:
@@ -183,7 +183,7 @@ class DinnerPartySummaryService: DinnerPartySummaryServiceProtocol {
         let recipeCount = dinnerParty.recipeCount
         let guestCount = dinnerParty.guestCount
 
-        let overview = "A dinner party for \(guestCount) guests featuring \(recipeCount) dish\(recipeCount == 1 ? "" : "es")."
+        let overview = "A meal for \(guestCount) guests featuring \(recipeCount) dish\(recipeCount == 1 ? "" : "es")."
 
         let totalTime = dinnerParty.totalPrepTime + dinnerParty.totalCookTime
         let startTime = totalTime > 0 ? "Start cooking \(totalTime) minutes before serving" : "Start cooking 1 hour before serving"

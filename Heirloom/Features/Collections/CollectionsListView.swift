@@ -545,6 +545,10 @@ struct CollectionsListView: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .task {
+                    // Auto-generate AI thumbnail for single-recipe collections (Task #2)
+                    await autoGenerateBackgroundIfNeeded(for: collection)
+                }
                 .contextMenu {
                     Button {
                         Task {
@@ -1187,18 +1191,27 @@ struct CollectionsListView: View {
         ])
     }
 
-    private func generateBackgroundForCollection(_ collection: RecipeCollection) async {
+    private func generateBackgroundForCollection(_ collection: RecipeCollection, silent: Bool = false) async {
         guard !isGeneratingBackground else {
-            toastManager.info(title: "Generation in Progress", message: "Please wait for the current generation to finish")
+            if !silent {
+                toastManager.info(title: "Generation in Progress", message: "Please wait for the current generation to finish")
+            }
             return
         }
 
         isGeneratingBackground = true
         generatingCollectionId = collection.id
 
-        // Show toast that generation started
-        await MainActor.run {
-            toastManager.info(title: "Generating Background", message: "Creating AI image for \(collection.name)...")
+        // Show toast that generation started (unless silent)
+        if !silent {
+            await MainActor.run {
+                toastManager.info(title: "Generating Background", message: "Creating AI image for \(collection.name)...")
+            }
+        } else {
+            Log.info("Auto-generating background for collection", category: .collections, metadata: [
+                "collectionId": collection.id.uuidString,
+                "collectionName": collection.name
+            ])
         }
 
         do {
@@ -1215,15 +1228,77 @@ struct CollectionsListView: View {
 
                 isGeneratingBackground = false
                 generatingCollectionId = nil
-                toastManager.success(title: "Background Generated", message: "AI created a custom image for \(collection.name)")
+
+                if !silent {
+                    toastManager.success(title: "Background Generated", message: "AI created a custom image for \(collection.name)")
+                } else {
+                    Log.info("Auto-generation completed", category: .collections, metadata: [
+                        "collectionId": collection.id.uuidString,
+                        "imagePath": imagePath
+                    ])
+                }
             }
         } catch {
             await MainActor.run {
                 isGeneratingBackground = false
                 generatingCollectionId = nil
-                toastManager.error(title: "Generation Failed", message: error.localizedDescription)
+
+                if !silent {
+                    toastManager.error(title: "Generation Failed", message: error.localizedDescription)
+                } else {
+                    Log.warning("Auto-generation failed", category: .collections, metadata: [
+                        "collectionId": collection.id.uuidString,
+                        "error": error.localizedDescription
+                    ])
+                }
             }
         }
+    }
+
+    /// Check if collection should have AI background auto-generated (Task #2)
+    private func shouldAutoGenerateBackground(for collection: RecipeCollection) -> Bool {
+        let recipeCount = collection.recipes?.count ?? 0
+
+        // Must have exactly 1 recipe
+        guard recipeCount == 1 else {
+            return false
+        }
+
+        // Must not already have a background
+        guard collection.generatedBackgroundImagePath == nil,
+              collection.customBackgroundImagePath == nil else {
+            return false
+        }
+
+        // If never attempted, should generate
+        guard let lastGenDate = collection.lastImageGenerationDate else {
+            return true
+        }
+
+        // If last generation was for different recipe count, content is stale
+        if collection.lastRecipeCountAtGeneration != recipeCount {
+            return true
+        }
+
+        // If last attempt was recent (within 5 minutes), don't retry
+        // This prevents repeated failed attempts
+        let fiveMinutesAgo = Date().addingTimeInterval(-5 * 60)
+        if lastGenDate > fiveMinutesAgo {
+            return false
+        }
+
+        // Otherwise allow retry (maybe it failed before, user added content, etc.)
+        return true
+    }
+
+    /// Auto-generate AI background for qualifying collections (Task #2)
+    private func autoGenerateBackgroundIfNeeded(for collection: RecipeCollection) async {
+        guard shouldAutoGenerateBackground(for: collection) else {
+            return
+        }
+
+        // Generate silently (no toasts, just logging)
+        await generateBackgroundForCollection(collection, silent: true)
     }
 
     private func handleAddCollection() {

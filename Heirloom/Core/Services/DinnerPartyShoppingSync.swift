@@ -20,11 +20,11 @@ final class DinnerPartyShoppingSync {
     ///   - context: SwiftData ModelContext for database operations
     func syncRecipesToShoppingCart(_ dinnerParty: DinnerParty, context: ModelContext) {
         guard let partyRecipes = dinnerParty.recipes, !partyRecipes.isEmpty else {
-            print("⚠️ No recipes in dinner party to sync")
+            print("⚠️ No recipes in meal plan to sync")
             return
         }
 
-        print("🔄 Syncing \(partyRecipes.count) recipes from dinner party '\(dinnerParty.name)' to shopping cart")
+        print("🔄 Syncing \(partyRecipes.count) recipes from meal plan '\(dinnerParty.name)' to shopping cart")
 
         for partyRecipe in partyRecipes {
             guard let recipe = partyRecipe.recipe else {

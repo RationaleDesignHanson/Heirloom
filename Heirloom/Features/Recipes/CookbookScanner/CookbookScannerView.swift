@@ -139,10 +139,13 @@ struct CookbookScannerView: View {
                     })
                 }
                 .sheet(isPresented: $showProgressView) {
-                    if let job = importManager.activeJob {
-                        NavigationStack {
+                    // Don't capture job as constant - move check inside NavigationStack
+                    // This prevents showing stale completion screen when starting new import
+                    NavigationStack {
+                        if let job = importManager.activeJob {
                             ImportProgressView(manager: importManager, job: job)
                                 .navigationBarTitleDisplayMode(.inline)
+                                .id(job.id) // Force view recreation when job ID changes
                         }
                     }
                 }

@@ -205,9 +205,9 @@ struct DinnerPartyEditorView: View {
                 Task {
                     do {
                         try await firebaseSync.uploadDinnerParty(partyToSync)
-                        Log.info("Dinner party synced to Firebase", category: .firebase, metadata: ["partyId": partyToSync.id])
+                        Log.info("Meal plan synced to Firebase", category: .firebase, metadata: ["partyId": partyToSync.id])
                     } catch {
-                        Log.warning("Failed to sync dinner party to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "partyId": partyToSync.id])
+                        Log.warning("Failed to sync meal plan to Firebase", category: .firebase, metadata: ["error": error.localizedDescription, "partyId": partyToSync.id])
                     }
                 }
             }

@@ -1,0 +1,22 @@
+{
+    "applinks": {
+        "details": [
+            {
+                "appIDs": [
+                    "Q2HHH2GDN8.com.matthanson.heirloom"
+                ],
+                "components": [
+                    {
+                        "/": "/share/*",
+                        "comment": "Matches any recipe share link"
+                    }
+                ]
+            }
+        ]
+    },
+    "webcredentials": {
+        "apps": [
+            "Q2HHH2GDN8.com.matthanson.heirloom"
+        ]
+    }
+}
