@@ -347,17 +347,15 @@ final class HeirloomDataExporter {
         let currentProfile = try await profileService.fetchCurrentUserProfile()
 
         var updatedProfile = currentProfile
-        updatedProfile.privacySettings = PrivacySettings(
-            profileVisibility: ProfileVisibility(rawValue: data.profileVisibility) ?? .connections,
-            recipeVisibility: RecipeVisibility(rawValue: data.recipeVisibility) ?? .connections,
-            kitchenTableVisibility: KitchenTableVisibility(rawValue: data.kitchenTableVisibility) ?? .private,
-            whoCanConnect: WhoCanConnect(rawValue: data.whoCanConnect) ?? .everyone,
-            allowRecipeResharing: data.allowRecipeResharing,
-            allowMentions: data.allowMentions,
-            notifyConnectionRequests: true,
-            notifyRecipeShares: true,
-            allowSearchIndexing: data.hasPublicProfile
-        )
+
+        // Update individual privacy settings from export data
+        updatedProfile.privacySettings.profileVisibility = ProfileVisibility(rawValue: data.profileVisibility) ?? .connections
+        updatedProfile.privacySettings.recipeVisibility = RecipeVisibility(rawValue: data.recipeVisibility) ?? .connections
+        updatedProfile.privacySettings.kitchenTableVisibility = KitchenTableVisibility(rawValue: data.kitchenTableVisibility) ?? .private
+        updatedProfile.privacySettings.whoCanConnect = WhoCanConnect(rawValue: data.whoCanConnect) ?? .everyone
+        updatedProfile.privacySettings.allowRecipeResharing = data.allowRecipeResharing
+        updatedProfile.privacySettings.allowMentions = data.allowMentions
+        updatedProfile.privacySettings.allowSearchIndexing = data.hasPublicProfile
 
         try await profileService.updateProfile(updatedProfile)
     }
