@@ -52,8 +52,8 @@ struct ProfileView: View {
                 await loadProfile()
             }
             .sheet(isPresented: $showEditProfile) {
-                if let profile = profile {
-                    EditProfileView(profile: $profile)
+                if let unwrappedProfile = Binding($profile) {
+                    EditProfileView(profile: unwrappedProfile)
                         .onDisappear {
                             Task {
                                 await loadProfile()
@@ -62,9 +62,12 @@ struct ProfileView: View {
                 }
             }
             .sheet(isPresented: $showPrivacySettings) {
-                if let profile = profile {
+                if let unwrappedProfile = Binding($profile) {
                     PrivacySettingsView(
-                        privacySettings: $profile.privacySettings,
+                        privacySettings: Binding(
+                            get: { unwrappedProfile.wrappedValue.privacySettings },
+                            set: { unwrappedProfile.wrappedValue.privacySettings = $0 }
+                        ),
                         onSave: {
                             Task {
                                 await savePrivacySettings()

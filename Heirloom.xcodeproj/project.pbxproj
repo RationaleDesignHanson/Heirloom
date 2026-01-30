@@ -303,6 +303,11 @@
 		C5CE3F0A2F2CD84D00A2E62F /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F082F2CD84D00A2E62F /* ProfileView.swift */; };
 		C5CE3F0D2F2CD85D00A2E62F /* KitchenTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F0B2F2CD85D00A2E62F /* KitchenTableView.swift */; };
 		C5CE3F102F2CD87200A2E62F /* SettingsProfileRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F0E2F2CD87200A2E62F /* SettingsProfileRow.swift */; };
+		C5CE3F152F2CDEF000A2E62F /* CuisineInterestPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F122F2CDEF000A2E62F /* CuisineInterestPicker.swift */; };
+		C5CE3F162F2CDEF000A2E62F /* ProfileStatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F132F2CDEF000A2E62F /* ProfileStatCard.swift */; };
+		C5CE3F172F2CDEF000A2E62F /* AvatarPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F112F2CDEF000A2E62F /* AvatarPickerView.swift */; };
+		C5CE3F192F2CDF1900A2E62F /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F182F2CDF1900A2E62F /* EditProfileView.swift */; };
+		C5CE3F1B2F2CDF2A00A2E62F /* PrivacySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F1A2F2CDF2A00A2E62F /* PrivacySettingsView.swift */; };
 		C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */; };
 		C5DBE4AD2F1A7EEE00C1B6BA /* PDFImageExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */; };
 		C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */; };
@@ -674,6 +679,11 @@
 		C5CE3F082F2CD84D00A2E62F /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		C5CE3F0B2F2CD85D00A2E62F /* KitchenTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KitchenTableView.swift; sourceTree = "<group>"; };
 		C5CE3F0E2F2CD87200A2E62F /* SettingsProfileRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsProfileRow.swift; sourceTree = "<group>"; };
+		C5CE3F112F2CDEF000A2E62F /* AvatarPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarPickerView.swift; sourceTree = "<group>"; };
+		C5CE3F122F2CDEF000A2E62F /* CuisineInterestPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuisineInterestPicker.swift; sourceTree = "<group>"; };
+		C5CE3F132F2CDEF000A2E62F /* ProfileStatCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStatCard.swift; sourceTree = "<group>"; };
+		C5CE3F182F2CDF1900A2E62F /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
+		C5CE3F1A2F2CDF2A00A2E62F /* PrivacySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySettingsView.swift; sourceTree = "<group>"; };
 		C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProgressBottomBanner.swift; sourceTree = "<group>"; };
 		C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImageExtractor.swift; sourceTree = "<group>"; };
 		C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFMetadataExtractor.swift; sourceTree = "<group>"; };
@@ -1857,6 +1867,9 @@
 		C5CE3F092F2CD84D00A2E62F /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				C5CE3F1A2F2CDF2A00A2E62F /* PrivacySettingsView.swift */,
+				C5CE3F182F2CDF1900A2E62F /* EditProfileView.swift */,
+				C5CE3F142F2CDEF000A2E62F /* Components */,
 				C5CE3F082F2CD84D00A2E62F /* ProfileView.swift */,
 			);
 			path = Profile;
@@ -1874,6 +1887,16 @@
 			isa = PBXGroup;
 			children = (
 				C5CE3F0E2F2CD87200A2E62F /* SettingsProfileRow.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		C5CE3F142F2CDEF000A2E62F /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				C5CE3F112F2CDEF000A2E62F /* AvatarPickerView.swift */,
+				C5CE3F122F2CDEF000A2E62F /* CuisineInterestPicker.swift */,
+				C5CE3F132F2CDEF000A2E62F /* ProfileStatCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -2311,6 +2334,7 @@
 				C5A7BDB52F1714B100D99B07 /* PDFImportView.swift in Sources */,
 				38CA24AAE112792C5AEBCF83 /* CardBackEditorView.swift in Sources */,
 				B909B5726C4D6D07CA115B68 /* CardPersonalizationView.swift in Sources */,
+				C5CE3F192F2CDF1900A2E62F /* EditProfileView.swift in Sources */,
 				C583FFE02F0CBE500096478E /* SelectionActionBar.swift in Sources */,
 				C583FFE12F0CBE500096478E /* RecipeListToolbarActions.swift in Sources */,
 				C583FFE22F0CBE500096478E /* RecipeListToolbarLeading.swift in Sources */,
@@ -2359,6 +2383,9 @@
 				C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */,
 				C5364BD02F26F0C4003D342E /* UniversalURLResolver.swift in Sources */,
 				C5B3177C2F00D6570087CF6D /* ShortURLService.swift in Sources */,
+				C5CE3F152F2CDEF000A2E62F /* CuisineInterestPicker.swift in Sources */,
+				C5CE3F162F2CDEF000A2E62F /* ProfileStatCard.swift in Sources */,
+				C5CE3F172F2CDEF000A2E62F /* AvatarPickerView.swift in Sources */,
 				8ADFA5839933EC3D8374AFB5 /* EnhancedOCRService.swift in Sources */,
 				C58309142F0FD6510096478E /* DinnerPartyShoppingSync.swift in Sources */,
 				C5B317832F00D71E0087CF6D /* ConfettiView.swift in Sources */,
@@ -2595,6 +2622,7 @@
 				D0F80C3F0014086C6080ABEE /* URLNormalizer.swift in Sources */,
 				C5DBE8842F1EE59C00C1B6BA /* CollectionsFirstMigration.swift in Sources */,
 				C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */,
+				C5CE3F1B2F2CDF2A00A2E62F /* PrivacySettingsView.swift in Sources */,
 				A892587ADBCD4FCA80189C9E /* UIKitAppearance.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
