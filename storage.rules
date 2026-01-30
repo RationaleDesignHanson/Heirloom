@@ -1,0 +1,102 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ========================================
+    // THEME COVER IMAGES (Public Read)
+    // Cover images for theme collections
+    // ========================================
+    match /themes/{imageFile} {
+      allow read: if true; // PUBLIC: Theme covers are public assets
+      allow write: if false; // Admin only via console
+    }
+
+    // ========================================
+    // HERITAGE RECIPE IMAGES (Public Read)
+    // Original heritage collection images
+    // ========================================
+    match /heritage-recipes/{imageFile} {
+      allow read: if true; // PUBLIC: Heritage images are public assets
+      allow write: if false; // Admin only via console
+    }
+
+    // ========================================
+    // THEME RECIPE IMAGES (Public Read)
+    // Recipe images organized by theme
+    // ========================================
+    match /recipes/{themeId}/{imageFile} {
+      allow read: if true; // PUBLIC: Recipe images are public assets
+      allow write: if false; // Admin only via console
+    }
+
+    // ========================================
+    // RECIPE IMAGES (Public CDN)
+    // Public recipe images for CDN caching
+    // ========================================
+    match /recipe-images/{recipeId}/{imageFile} {
+      allow read: if true; // Public read (CDN-cached)
+      allow write: if false; // Server only
+    }
+
+    // ========================================
+    // USER RECIPE IMAGES (User-Scoped)
+    // User-owned recipe images for Firebase sync
+    // ========================================
+    match /users/{userId}/recipes/{recipeId}/{imageFile} {
+      // Public read for sharing (recipe URLs contain unguessable UUIDs)
+      // This allows share recipients to see recipe images in preview before accepting
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ========================================
+    // USER AVATARS (Social Layer)
+    // Profile avatars for social features
+    // Stored as: users/{userId}/profile/avatar.jpg
+    // ========================================
+    match /users/{userId}/profile/{fileName} {
+      // Public read - avatars are shown to connections and in lineage views
+      allow read: if true;
+      // Only owner can upload/update their avatar
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ========================================
+    // OG PROFILE IMAGES (Social Layer)
+    // Generated profile cards for link previews
+    // Stored as: og-images/profiles/{userId}/{filename}
+    // ========================================
+    match /og-images/profiles/{userId}/{fileName} {
+      // Public read - these are used for social media previews
+      allow read: if true;
+      // Server only (Cloud Function generates these)
+      allow write: if false;
+    }
+
+    // ========================================
+    // IMPORT CACHE (Server Only)
+    // Temporary cache for URL imports
+    // ========================================
+    match /import-cache/{urlHash}/{file} {
+      allow read, write: if false; // Server only
+    }
+
+    // ========================================
+    // TEMPORARY UPLOADS (User-Scoped)
+    // Temporary storage for user uploads
+    // ========================================
+    match /temp-uploads/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ========================================
+    // FALLBACK: Deny all other access
+    // ========================================
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

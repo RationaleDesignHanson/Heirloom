@@ -68,9 +68,10 @@ service cloud.firestore {
     // SHARES (Top-Level)
     // ========================================
     match /shares/{shareId} {
-      // Anyone with link can read (for accepting shares)
-      // Share links are meant to be shareable, so authenticated users can read
-      allow read: if isAuthenticated();
+      // Anyone with link can read (no authentication required)
+      // This allows share recipients to view share metadata before accepting
+      // Share IDs are UUIDs and not guessable, so this is secure
+      allow read: if true;
 
       // Only owner can create shares, with proper validation
       allow create: if isAuthenticated() &&
@@ -136,14 +137,17 @@ service cloud.firestore {
     }
 
     // ========================================
-    // USER NOTIFICATIONS
+    // USER NOTIFICATIONS (Extended for Social)
     // ========================================
     match /users/{userId}/notifications/{notificationId} {
       // Users can only read their own notifications
       allow read: if isOwner(userId);
 
-      // Any authenticated user can create notifications (for lineage tracking)
-      // This allows descendants to notify ancestors of modifications
+      // Any authenticated user can create notifications
+      // This allows:
+      // - Lineage tracking (descendants notify ancestors of modifications)
+      // - Connection requests (user A sends request to user B)
+      // - Kitchen Table invites
       allow create: if isAuthenticated();
 
       // Users can update their own (mark as read)
@@ -154,7 +158,8 @@ service cloud.firestore {
     }
 
     // ========================================
-    // USER PROFILES (Top-Level)
+    // USER PROFILES (Top-Level - Legacy)
+    // For display names in version history
     // ========================================
     match /userProfiles/{userId} {
       // Any authenticated user can read profiles (for display names in version history)
@@ -181,7 +186,60 @@ service cloud.firestore {
     }
 
     // ========================================
+    // THEME STATE (User-Scoped)
+    // Tracks user theme selection and unlock progress
+    // ========================================
+    match /users/{userId}/themeState/{document=**} {
+      // Users can read their own theme state
+      allow read: if isOwner(userId);
+
+      // Users can write their own theme state
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
+    // THEMES (Top-Level - Read-Only)
+    // Curated recipe themes for discovery
+    // ========================================
+    match /themes/{themeId} {
+      // Any authenticated user can read themes
+      allow read: if isAuthenticated();
+
+      // Only admins can write (via Firebase console/functions)
+      allow write: if false;
+
+      // Theme recipes (subcollection)
+      match /recipes/{recipeId} {
+        // Any authenticated user can read theme recipes
+        allow read: if isAuthenticated();
+
+        // Only admins can write
+        allow write: if false;
+
+        // Ingredients subcollection
+        match /ingredients/{ingredientId} {
+          allow read: if isAuthenticated();
+          allow write: if false;
+        }
+
+        // Instructions subcollection
+        match /instructions/{instructionId} {
+          allow read: if isAuthenticated();
+          allow write: if false;
+        }
+      }
+    }
+
+    // ========================================
+    // ========================================
+    // SOCIAL LAYER COLLECTIONS (Phase 3-6)
+    // ========================================
+    // ========================================
+
+    // ========================================
     // USER PROFILES (Social Layer - User-Scoped)
+    // **CRITICAL PATH** for ProfileService
+    // Stored at: users/{userId}/profile/data
     // ========================================
     match /users/{userId}/profile/{document=**} {
       // Users can read their own profile
@@ -193,9 +251,12 @@ service cloud.firestore {
 
     // ========================================
     // PUBLIC PROFILES (Social Layer - Top-Level)
+    // For shareable profile URLs
+    // Stored at: publicProfiles/{slug}
     // ========================================
     match /publicProfiles/{slug} {
-      // Any authenticated user can read public profiles
+      // Anyone authenticated can read public profiles
+      // (used for profile link previews and discovery)
       allow read: if isAuthenticated();
 
       // Only the profile owner can create/update their public profile
@@ -213,29 +274,33 @@ service cloud.firestore {
 
     // ========================================
     // USER CONNECTIONS (Social Layer - User-Scoped)
+    // For bidirectional connections
+    // Stored at: users/{userId}/connections/{connectionId}
     // ========================================
     match /users/{userId}/connections/{connectionId} {
       // Users can read their own connections
       allow read: if isOwner(userId);
 
       // Any authenticated user can create connections to another user
-      // (for sending connection requests)
+      // (for sending connection requests - creates docs in both users' collections)
       allow create: if isAuthenticated() &&
                        (request.auth.uid == userId ||
                         request.resource.data.connectedUserId == request.auth.uid);
 
       // Users can update their own connections or connections where they are the connected user
-      // (for accepting requests, updating metadata)
+      // (for accepting requests, updating status, adding notes)
       allow update: if isAuthenticated() &&
                        (request.auth.uid == userId ||
                         resource.data.connectedUserId == request.auth.uid);
 
-      // Users can delete their own connections
+      // Users can delete their own connections (disconnect/unfriend)
       allow delete: if isOwner(userId);
     }
 
     // ========================================
     // KITCHEN TABLES (Social Layer - Top-Level)
+    // For cooking groups/circles
+    // Stored at: kitchenTables/{tableId}
     // ========================================
     match /kitchenTables/{tableId} {
       // Any authenticated user can read kitchen tables they're a member of
@@ -257,36 +322,15 @@ service cloud.firestore {
     }
 
     // ========================================
-    // HERITAGE STATE (User-Scoped)
+    // USER SETTINGS (Privacy & Preferences)
+    // Stored at: users/{userId}/settings/{document}
     // ========================================
-    match /users/{userId}/heritageState/{document=**} {
-      // Users can read their own heritage state
+    match /users/{userId}/settings/{document} {
+      // Users can only read their own settings
       allow read: if isOwner(userId);
 
-      // Users can write their own heritage state
+      // Users can only write their own settings
       allow write: if isOwner(userId);
-    }
-
-    // ========================================
-    // HERITAGE SCHEDULES (Top-Level - Read-Only)
-    // ========================================
-    match /heritage_schedules/{scheduleId} {
-      // Any authenticated user can read schedules (for daily unlocks)
-      allow read: if isAuthenticated();
-
-      // Only admins can write (via Firebase console/functions)
-      allow write: if false;
-    }
-
-    // ========================================
-    // HERITAGE RECIPES (Top-Level - Read-Only)
-    // ========================================
-    match /heritage_recipes/{recipeId} {
-      // Any authenticated user can read recipes (for downloads)
-      allow read: if isAuthenticated();
-
-      // Only admins can write
-      allow write: if false;
     }
 
     // ========================================
