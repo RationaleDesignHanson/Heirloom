@@ -116,6 +116,7 @@ struct Connection: Codable, Identifiable {
 
     // MARK: - Initialization
 
+    /// Simple initializer for creating new connections
     init(
         id: String,
         userId: String,
@@ -145,6 +146,48 @@ struct Connection: Codable, Identifiable {
         self.privateNote = nil
         self.createdAt = Date()
         self.updatedAt = Date()
+    }
+
+    /// Full initializer for all fields (used by services)
+    init(
+        id: String,
+        userId: String,
+        connectedUserId: String,
+        connectedUserDisplayName: String,
+        connectedUserPhotoURL: String?,
+        status: ConnectionStatus,
+        initiatedBy: String,
+        requestedAt: Date,
+        acceptedAt: Date?,
+        sourceKitchenTableId: String?,
+        recipesSharedCount: Int,
+        recipesReceivedCount: Int,
+        isFavorite: Bool,
+        privateNote: String?,
+        createdAt: Date,
+        updatedAt: Date
+    ) {
+        self.id = id
+        self.userId = userId
+        self.connectedUserId = connectedUserId
+        self.connectedUserDisplayName = connectedUserDisplayName
+        self.connectedUserPhotoURL = connectedUserPhotoURL
+        self.connectedUserHandle = nil
+        self.status = status
+        self.initiatedBy = initiatedBy
+        self.requestedAt = requestedAt
+        self.acceptedAt = acceptedAt
+        self.rejectedAt = nil
+        self.sourceKitchenTableId = sourceKitchenTableId
+        self.isKitchenTableConnection = sourceKitchenTableId != nil
+        self.recipesSharedCount = recipesSharedCount
+        self.recipesReceivedCount = recipesReceivedCount
+        self.lastRecipeSharedAt = nil
+        self.lastInteractionAt = nil
+        self.isFavorite = isFavorite
+        self.privateNote = privateNote
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
 }
 

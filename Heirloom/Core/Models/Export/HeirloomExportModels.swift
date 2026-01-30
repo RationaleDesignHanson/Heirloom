@@ -239,7 +239,7 @@ struct HeirloomImportResult {
 }
 
 /// Import error tracking (v2)
-struct HeirloomImportError: Codable {
+struct HeirloomImportError: Codable, Error {
     let type: HeirloomImportErrorType
     let itemId: String?
     let message: String

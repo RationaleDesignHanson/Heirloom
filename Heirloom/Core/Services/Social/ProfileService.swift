@@ -336,9 +336,6 @@ class FirebaseProfileService: ProfileServiceProtocol {
             featuredRecipeIds: nil, // User can set this separately
             featuredKitchenTableIds: nil,
             isSearchIndexed: profile.privacySettings.allowSearchIndexing,
-            searchRelevance: 0.5, // Default relevance
-            viewCount: 0,
-            lastViewedAt: nil,
             createdAt: Date(),
             updatedAt: Date()
         )

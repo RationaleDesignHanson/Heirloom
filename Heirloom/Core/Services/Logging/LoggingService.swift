@@ -65,6 +65,7 @@ enum LogCategory: String, CustomStringConvertible {
     case collections = "Collections"
     case migration = "Migration"
     case `import` = "Import"
+    case social = "Social"
     case general = "General"
 
     var description: String { rawValue }
@@ -89,6 +90,7 @@ enum LogCategory: String, CustomStringConvertible {
         case .onboarding: return "👋"
         case .collections: return "📚"
         case .migration: return "🚀"
+        case .social: return "👥"
         case .general: return "ℹ️"
         }
     }

@@ -130,6 +130,7 @@ struct PublicProfile: Codable, Identifiable {
 
     // MARK: - Initialization
 
+    /// Simple initializer for new profiles
     init(
         slug: String,
         userId: String,
@@ -158,6 +159,53 @@ struct PublicProfile: Codable, Identifiable {
         self.isSearchIndexed = false
         self.createdAt = Date()
         self.updatedAt = Date()
+        self.viewCount = 0
+        self.lastViewedAt = nil
+    }
+
+    /// Full initializer for all fields (used by services)
+    init(
+        id: String,
+        userId: String,
+        displayName: String,
+        photoURL: String?,
+        bio: String?,
+        location: String?,
+        specialties: [String]?,
+        websiteURL: String?,
+        publicRecipeCount: Int?,
+        heritageGenerationCount: Int?,
+        joinedAt: Date,
+        isVerified: Bool,
+        verificationType: VerificationType?,
+        featuredRecipeIds: [String]?,
+        featuredKitchenTableIds: [String]?,
+        isSearchIndexed: Bool,
+        createdAt: Date,
+        updatedAt: Date
+    ) {
+        self.id = id
+        self.userId = userId
+        self.displayName = displayName
+        self.photoURL = photoURL
+        self.handle = nil
+        self.bio = bio
+        self.location = location
+        self.specialties = specialties
+        self.websiteURL = websiteURL
+        self.publicRecipeCount = publicRecipeCount
+        self.heritageGenerationCount = heritageGenerationCount
+        self.recipeAcceptanceCount = nil
+        self.connectionCount = nil
+        self.joinedAt = joinedAt
+        self.isVerified = isVerified
+        self.verificationType = verificationType
+        self.featuredRecipeIds = featuredRecipeIds
+        self.featuredKitchenTableIds = featuredKitchenTableIds
+        self.searchKeywords = nil
+        self.isSearchIndexed = isSearchIndexed
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
         self.viewCount = 0
         self.lastViewedAt = nil
     }

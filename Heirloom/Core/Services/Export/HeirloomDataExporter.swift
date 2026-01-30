@@ -132,7 +132,7 @@ final class HeirloomDataExporter {
 
         // Privacy settings (if enabled)
         var privacySettingsData: PrivacySettingsExportData?
-        if options.includePrivacySettings, let profile = userProfileData {
+        if options.includePrivacySettings, userProfileData != nil {
             privacySettingsData = convertToPrivacySettingsExportData(
                 try await profileService.fetchCurrentUserProfile()
             )
@@ -219,7 +219,7 @@ final class HeirloomDataExporter {
         var errors: [HeirloomImportError] = []
         var recipesImported = 0
         var connectionsImported = 0
-        var kitchenTablesImported = 0
+        let kitchenTablesImported = 0 // TODO: Implement Kitchen Table import in Phase 4
 
         // Import recipes
         for recipeData in exportWrapper.recipes {
@@ -312,16 +312,15 @@ final class HeirloomDataExporter {
         // Create new recipe from export data
         let recipe = Recipe(
             title: data.title,
-            ingredientsText: data.ingredients.joined(separator: "\n"),
+            sourceType: data.sourceType != nil ? RecipeSourceType(rawValue: data.sourceType!) ?? .manual : .manual,
+            sourceURL: data.sourceURL,
             instructions: data.instructions,
-            sourceType: data.sourceType != nil ? SourceType(rawValue: data.sourceType!) : nil
+            servings: data.servings,
+            prepTime: data.prepTime,
+            cookTime: data.cookTime
         )
 
-        recipe.servings = data.servings
-        recipe.prepTime = data.prepTime
-        recipe.cookTime = data.cookTime
         recipe.notes = data.notes
-        recipe.sourceURL = data.sourceURL
         recipe.sourcePerson = data.sourcePerson
         recipe.sourceBookTitle = data.sourceBookTitle
         recipe.sourceDate = data.sourceDate
@@ -332,10 +331,14 @@ final class HeirloomDataExporter {
         recipe.historicalText = data.historicalText
         recipe.historicalContext = data.historicalContext
 
-        // V2 social fields
-        recipe.sharedBy = data.sharedBy
-        recipe.generation = data.generation ?? 0
-        recipe.rootRecipeId = data.rootRecipeId
+        // V2 social fields (TODO: Add these fields to Recipe model in future phase)
+        // recipe.sharedBy = data.sharedBy
+        // recipe.generation = data.generation ?? 0
+        // recipe.rootRecipeId = data.rootRecipeId
+        // recipe.cardBackText = data.cardBackText
+
+        // TODO: Parse ingredients from joined string when Recipe model supports it
+        // For now, ingredients will need to be re-parsed
 
         context.insert(recipe)
     }
@@ -347,8 +350,8 @@ final class HeirloomDataExporter {
         updatedProfile.privacySettings = PrivacySettings(
             profileVisibility: ProfileVisibility(rawValue: data.profileVisibility) ?? .connections,
             recipeVisibility: RecipeVisibility(rawValue: data.recipeVisibility) ?? .connections,
-            kitchenTableVisibility: KitchenTableVisibility(rawValue: data.kitchenTableVisibility) ?? .members,
-            whoCanConnect: WhoCanConnect(rawValue: data.whoCanConnect) ?? .anyone,
+            kitchenTableVisibility: KitchenTableVisibility(rawValue: data.kitchenTableVisibility) ?? .private,
+            whoCanConnect: WhoCanConnect(rawValue: data.whoCanConnect) ?? .everyone,
             allowRecipeResharing: data.allowRecipeResharing,
             allowMentions: data.allowMentions,
             notifyConnectionRequests: true,
@@ -480,15 +483,15 @@ final class HeirloomDataExporter {
             sourceThemeId: recipe.sourceThemeId,
             historicalText: recipe.historicalText,
             historicalContext: recipe.historicalContext,
-            // V2 additions
-            sharedBy: recipe.sharedBy,
-            sharedDate: recipe.sharedDate?.iso8601,
-            generation: recipe.generation > 0 ? recipe.generation : nil,
-            rootRecipeId: recipe.rootRecipeId,
+            // V2 additions (TODO: Add these fields to Recipe model in future phase)
+            sharedBy: nil, // recipe.sharedBy,
+            sharedDate: nil, // recipe.sharedDate?.iso8601,
+            generation: nil, // recipe.generation > 0 ? recipe.generation : nil,
+            rootRecipeId: nil, // recipe.rootRecipeId,
             heritageChain: nil, // Not yet tracked
             tags: nil, // Not yet implemented
             collections: recipe.collections?.map { $0.name },
-            cardBackText: recipe.cardBackText,
+            cardBackText: nil, // recipe.cardBackText,
             comments: nil, // Not yet implemented
             annotations: nil // Not yet implemented
         )

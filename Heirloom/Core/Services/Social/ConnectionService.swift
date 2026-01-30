@@ -715,7 +715,8 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
     ) async throws {
         let notificationData = ConnectionNotificationData.connectionRequest(
             from: actorUserId,
-            displayName: actorDisplayName,
+            actorDisplayName: actorDisplayName,
+            actorPhotoURL: nil,
             connectionId: connectionId
         )
 
