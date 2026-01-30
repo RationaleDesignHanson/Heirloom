@@ -41,9 +41,17 @@ struct SettingsView: View {
     @State private var showDowngradeAlert = false
     @State private var showClearCollectionsConfirmation = false
 
+    // Social Layer Phase 4
+    @State private var showProfile = false
+    @State private var showKitchenTable = false
+    @State private var pendingRequestCount: Int = 0 // TODO: Phase 6 - Connect to ConnectionService
+
     var body: some View {
         NavigationStack {
             List {
+                // Social Section (Phase 4)
+                socialSection
+
                 // Subscription Section
                 subscriptionSection
 
@@ -67,6 +75,9 @@ struct SettingsView: View {
 
                 // Developer Section (moved DOWN - debug tools isolated)
                 developerSection
+
+                // Sign Out Section (at bottom)
+                signOutSection
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
@@ -122,6 +133,12 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
+            }
+            .sheet(isPresented: $showProfile) {
+                ProfileView()
+            }
+            .sheet(isPresented: $showKitchenTable) {
+                KitchenTableView()
             }
             .onChange(of: firebaseAuth.isAuthenticated) { _, _ in
                 // Toggle state to force view refresh when auth state changes
@@ -179,6 +196,97 @@ struct SettingsView: View {
             Text("Intelligence")
         } footer: {
             Text("Configure AI-powered features like smart ingredient parsing and recipe enhancement.")
+        }
+    }
+
+    // MARK: - Social Section
+
+    private var socialSection: some View {
+        Section {
+            // Force view dependency on authStateChanged to trigger re-renders
+            let _ = authStateChanged
+
+            if firebaseAuth.isAuthenticated {
+                // My Profile Row
+                Button {
+                    showProfile = true
+                } label: {
+                    SettingsProfileRow()
+                }
+                .buttonStyle(.plain)
+
+                // Kitchen Table Row
+                Button {
+                    showKitchenTable = true
+                } label: {
+                    HStack(spacing: HeirloomSpacing.md) {
+                        // Icon
+                        ZStack {
+                            Circle()
+                                .fill(HeirloomColors.warmGray.opacity(0.1))
+                                .frame(width: 44, height: 44)
+
+                            Image(systemName: "figure.2.and.child.holdinghands")
+                                .font(.title3)
+                                .foregroundStyle(HeirloomColors.tomato)
+                        }
+
+                        // Label
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Kitchen Table")
+                                .font(HeirloomFonts.bodyBold)
+                                .foregroundStyle(HeirloomColors.primaryText)
+
+                            Text("Connections & sharing")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                        }
+
+                        Spacer()
+
+                        // Badge (if pending requests)
+                        if pendingRequestCount > 0 {
+                            Text("\(pendingRequestCount)")
+                                .font(HeirloomFonts.caption2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(HeirloomColors.tomato)
+                                .clipShape(Capsule())
+                        }
+
+                        // Chevron
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+                    .padding(.vertical, HeirloomSpacing.xs)
+                }
+                .buttonStyle(.plain)
+            } else {
+                // Not signed in - show sign in prompt
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                    Text("Sign in to connect with other cooks and share recipes")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Button {
+                        showSignIn = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "person.circle.fill")
+                            Text("Sign In")
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundStyle(HeirloomColors.tomato)
+                    }
+                }
+                .padding(.vertical, HeirloomSpacing.xs)
+            }
+        } header: {
+            Text("Social")
         }
     }
 
@@ -362,39 +470,29 @@ struct SettingsView: View {
                 let userDisplay = user.displayName ?? user.email ?? "Signed in with \(providerName)"
                 LabeledContent("Signed in as", value: userDisplay)
                     .font(HeirloomFonts.caption1)
+            }
+        } header: {
+            Text("Account")
+        } footer: {
+            if firebaseAuth.currentUser != nil {
+                Text("Your recipes are safely stored in Firebase and will sync across all your devices.")
+            } else {
+                Text("Your recipes are stored locally. Sign in to enable cloud sync and sharing.")
+            }
+        }
+    }
 
+    // MARK: - Sign Out Section
+
+    private var signOutSection: some View {
+        Section {
+            if firebaseAuth.currentUser != nil {
                 Button(role: .destructive) {
                     showSignOutConfirmation = true
                 } label: {
                     Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                         .foregroundStyle(.red)
                 }
-            } else {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Sign in to sync your recipes across devices and share with friends")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Button {
-                        showSignIn = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "person.circle.fill")
-                            Text("Sign In")
-                                .fontWeight(.semibold)
-                        }
-                        .foregroundStyle(HeirloomColors.tomato)
-                    }
-                }
-            }
-        } header: {
-            Text("Account")
-        } footer: {
-            if firebaseAuth.currentUser != nil {
-                Text("Signing out will clear local data. Your recipes are safely stored in Firebase and will sync when you sign back in.")
-            } else {
-                Text("Your recipes are stored locally. Sign in to enable cloud sync and sharing.")
             }
         }
     }
