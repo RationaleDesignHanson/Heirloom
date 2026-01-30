@@ -297,6 +297,9 @@
 		C5CE3EFC2F2CCE8700A2E62F /* ConnectionNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EF42F2CCE8700A2E62F /* ConnectionNotification.swift */; };
 		C5CE3EFD2F2CCE8700A2E62F /* PrivacySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EF52F2CCE8700A2E62F /* PrivacySettings.swift */; };
 		C5CE3F002F2CCE9000A2E62F /* HeirloomExportModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EFE2F2CCE9000A2E62F /* HeirloomExportModels.swift */; };
+		C5CE3F042F2CD2DA00A2E62F /* ConnectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F012F2CD2DA00A2E62F /* ConnectionService.swift */; };
+		C5CE3F052F2CD2DA00A2E62F /* ProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F022F2CD2DA00A2E62F /* ProfileService.swift */; };
+		C5CE3F072F2CD2E300A2E62F /* HeirloomDataExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3F062F2CD2E300A2E62F /* HeirloomDataExporter.swift */; };
 		C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */; };
 		C5DBE4AD2F1A7EEE00C1B6BA /* PDFImageExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */; };
 		C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */; };
@@ -662,6 +665,9 @@
 		C5CE3EF62F2CCE8700A2E62F /* PublicProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicProfile.swift; sourceTree = "<group>"; };
 		C5CE3EF72F2CCE8700A2E62F /* UserProfile+Social.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserProfile+Social.swift"; sourceTree = "<group>"; };
 		C5CE3EFE2F2CCE9000A2E62F /* HeirloomExportModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeirloomExportModels.swift; sourceTree = "<group>"; };
+		C5CE3F012F2CD2DA00A2E62F /* ConnectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionService.swift; sourceTree = "<group>"; };
+		C5CE3F022F2CD2DA00A2E62F /* ProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileService.swift; sourceTree = "<group>"; };
+		C5CE3F062F2CD2E300A2E62F /* HeirloomDataExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeirloomDataExporter.swift; sourceTree = "<group>"; };
 		C5DBE4AA2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProgressBottomBanner.swift; sourceTree = "<group>"; };
 		C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImageExtractor.swift; sourceTree = "<group>"; };
 		C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFMetadataExtractor.swift; sourceTree = "<group>"; };
@@ -935,6 +941,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5CE3F032F2CD2DA00A2E62F /* Social */,
 				C5364FED2F2876C5003D342E /* IngredientFormatter.swift */,
 				C5364FEE2F2876C5003D342E /* MeasurementConversionService.swift */,
 				C5364FDC2F27D762003D342E /* Collections */,
@@ -1391,6 +1398,7 @@
 		C5830E222F103E9C0096478E /* Export */ = {
 			isa = PBXGroup;
 			children = (
+				C5CE3F062F2CD2E300A2E62F /* HeirloomDataExporter.swift */,
 				C5830E212F103E9C0096478E /* RecipeExporter.swift */,
 			);
 			path = Export;
@@ -1828,6 +1836,15 @@
 				C5CE3EFE2F2CCE9000A2E62F /* HeirloomExportModels.swift */,
 			);
 			path = Export;
+			sourceTree = "<group>";
+		};
+		C5CE3F032F2CD2DA00A2E62F /* Social */ = {
+			isa = PBXGroup;
+			children = (
+				C5CE3F012F2CD2DA00A2E62F /* ConnectionService.swift */,
+				C5CE3F022F2CD2DA00A2E62F /* ProfileService.swift */,
+			);
+			path = Social;
 			sourceTree = "<group>";
 		};
 		C5DBE8832F1EE59C00C1B6BA /* Migration */ = {
@@ -2422,9 +2439,12 @@
 				C583F5A82F09A6B80096478E /* HeirloomLogger.swift in Sources */,
 				C583F5A92F09A6B80096478E /* LoggingService.swift in Sources */,
 				C583F5AA2F09A6B80096478E /* LogRedactor.swift in Sources */,
+				C5CE3F072F2CD2E300A2E62F /* HeirloomDataExporter.swift in Sources */,
 				C5B317732F00C8500087CF6D /* HelpView.swift in Sources */,
 				C56887812F06B4C8006EA0B1 /* VectorClock.swift in Sources */,
 				C502FA492F24111D00BF1696 /* FeatureFlagsDebugView.swift in Sources */,
+				C5CE3F042F2CD2DA00A2E62F /* ConnectionService.swift in Sources */,
+				C5CE3F052F2CD2DA00A2E62F /* ProfileService.swift in Sources */,
 				C56887822F06B4C8006EA0B1 /* RecipeCRDT.swift in Sources */,
 				C56887832F06B4C8006EA0B1 /* OperationLog.swift in Sources */,
 				C56887842F06B4C8006EA0B1 /* RecipeOperation.swift in Sources */,

@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftData
+import FirebaseFirestore
 
 // MARK: - Export Options
 
@@ -70,7 +71,7 @@ final class HeirloomDataExporter {
     init(
         profileService: ProfileServiceProtocol,
         connectionService: ConnectionServiceProtocol,
-        recipeExporter: RecipeExporter = RecipeExporter()
+        recipeExporter: RecipeExporter
     ) {
         self.profileService = profileService
         self.connectionService = connectionService
