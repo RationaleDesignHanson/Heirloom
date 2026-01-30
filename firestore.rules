@@ -242,8 +242,10 @@ service cloud.firestore {
     // Stored at: users/{userId}/profile/data
     // ========================================
     match /users/{userId}/profile/{document=**} {
-      // Users can read their own profile
-      allow read: if isOwner(userId);
+      // Any authenticated user can read profiles (for handle availability checks)
+      // Handle checking uses collectionGroup queries that span all users
+      // Profile data is not sensitive - it's designed to be shared with connections
+      allow read: if isAuthenticated();
 
       // Users can create/update their own profile
       allow write: if isOwner(userId);

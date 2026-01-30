@@ -54,33 +54,34 @@ struct CuisineInterestPicker: View {
         let isSelected = selectedCuisines.contains(cuisine)
         let isDisabled = !isSelected && selectedCuisines.count >= maxSelections
 
-        Button {
-            toggleCuisine(cuisine)
-        } label: {
-            Text(cuisine)
-                .font(HeirloomFonts.caption1)
-                .foregroundStyle(
-                    isSelected ? .white :
-                    isDisabled ? HeirloomColors.secondaryText.opacity(0.5) :
-                    HeirloomColors.primaryText
-                )
-                .padding(.horizontal, HeirloomSpacing.sm)
-                .padding(.vertical, HeirloomSpacing.xs)
-                .background(
-                    isSelected ? HeirloomColors.tomato :
-                    HeirloomColors.warmGray.opacity(0.1)
-                )
-                .cornerRadius(16)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(
-                            isSelected ? HeirloomColors.tomato :
-                            HeirloomColors.warmGray.opacity(0.3),
-                            lineWidth: 1
-                        )
-                )
-        }
-        .disabled(isDisabled)
+        Text(cuisine)
+            .font(HeirloomFonts.caption1)
+            .foregroundStyle(
+                isSelected ? .white :
+                isDisabled ? HeirloomColors.secondaryText.opacity(0.5) :
+                HeirloomColors.primaryText
+            )
+            .padding(.horizontal, HeirloomSpacing.sm)
+            .padding(.vertical, HeirloomSpacing.xs)
+            .background(
+                isSelected ? HeirloomColors.tomato :
+                HeirloomColors.warmGray.opacity(0.1)
+            )
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        isSelected ? HeirloomColors.tomato :
+                        HeirloomColors.warmGray.opacity(0.3),
+                        lineWidth: 1
+                    )
+            )
+            .opacity(isDisabled ? 0.5 : 1.0)
+            .onTapGesture {
+                if !isDisabled {
+                    toggleCuisine(cuisine)
+                }
+            }
     }
 
     // MARK: - Actions
