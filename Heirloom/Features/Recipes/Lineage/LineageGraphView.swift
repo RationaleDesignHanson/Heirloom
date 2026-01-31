@@ -253,30 +253,10 @@ struct LineageGraphView: View {
 // MARK: - Preview
 
 #Preview {
-    // Create sample tree
     let rootRecipe = Recipe(title: "Original Chocolate Chip Cookies", sourceType: .manual)
-    rootRecipe.provenance = ProvenanceMetadata(
-        sourceType: .userCreated,
-        generation: 0
-    )
-
     let child1 = Recipe(title: "Mom's Variation", sourceType: .family)
-    child1.provenance = ProvenanceMetadata(
-        sourceType: .shared,
-        generation: 1
-    )
-
     let child2 = Recipe(title: "Gluten-Free Version", sourceType: .family)
-    child2.provenance = ProvenanceMetadata(
-        sourceType: .shared,
-        generation: 1
-    )
-
     let grandchild = Recipe(title: "Vegan Adaptation", sourceType: .family)
-    grandchild.provenance = ProvenanceMetadata(
-        sourceType: .shared,
-        generation: 2
-    )
 
     let nodes = [
         LineageNode(
@@ -284,28 +264,32 @@ struct LineageGraphView: View {
             generation: 0,
             position: .zero,
             stats: NodeStats(cookCount: 42, shareCount: 15, viewCount: 250, rating: 4.8),
-            isCurrentUser: false
+            isCurrentUser: false,
+            contributor: nil
         ),
         LineageNode(
             recipe: child1,
             generation: 1,
             position: .zero,
             stats: NodeStats(cookCount: 23, shareCount: 8, viewCount: 120, rating: 4.5),
-            isCurrentUser: true
+            isCurrentUser: true,
+            contributor: nil
         ),
         LineageNode(
             recipe: child2,
             generation: 1,
             position: .zero,
             stats: NodeStats(cookCount: 15, shareCount: 5, viewCount: 89, rating: 4.3),
-            isCurrentUser: false
+            isCurrentUser: false,
+            contributor: nil
         ),
         LineageNode(
             recipe: grandchild,
             generation: 2,
             position: .zero,
             stats: NodeStats(cookCount: 8, shareCount: 2, viewCount: 45, rating: 4.0),
-            isCurrentUser: false
+            isCurrentUser: false,
+            contributor: nil
         )
     ]
 
@@ -317,7 +301,7 @@ struct LineageGraphView: View {
 
     let tree = LineageTree(root: rootRecipe, nodes: nodes, edges: edges)
 
-    return NavigationStack {
+    NavigationStack {
         LineageGraphView(tree: tree) { recipe in
             Log.debug("Preview: Lineage graph recipe tapped", category: .ui, metadata: ["title": recipe.title])
         }

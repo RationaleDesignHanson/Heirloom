@@ -4,6 +4,7 @@ import SwiftUI
 struct LineageTimelineView: View {
     let tree: LineageTree
     let onTapRecipe: (Recipe) -> Void
+    var onTapContributor: ((ContributorInfo) -> Void)? = nil // Phase 8
 
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
 
@@ -40,7 +41,8 @@ struct LineageTimelineView: View {
                             isFirst: index == 0,
                             isLast: index == sortedNodes.count - 1,
                             parentNode: tree.parent(of: node.recipe.id),
-                            isSelected: selectedNodeID == node.recipe.id
+                            isSelected: selectedNodeID == node.recipe.id,
+                            onTapContributor: onTapContributor
                         )
                         .onTapGesture {
                             withAnimation(.spring(response: 0.3)) {
@@ -104,6 +106,7 @@ private struct TimelineItemView: View {
     let isLast: Bool
     let parentNode: LineageNode?
     let isSelected: Bool
+    var onTapContributor: ((ContributorInfo) -> Void)? = nil // Phase 8
 
     var body: some View {
         HStack(alignment: .top, spacing: HeirloomSpacing.md) {
@@ -167,6 +170,11 @@ private struct TimelineItemView: View {
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
                         .lineLimit(2)
+
+                    // Phase 8: Contributor row
+                    if let contributor = node.contributor {
+                        contributorRow(contributor)
+                    }
 
                     Text(node.generationBadge)
                         .font(HeirloomFonts.caption2)
@@ -245,6 +253,65 @@ private struct TimelineItemView: View {
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
     }
+
+    // MARK: - Phase 8: Contributor Row
+
+    @ViewBuilder
+    private func contributorRow(_ contributor: ContributorInfo) -> some View {
+        Button {
+            if contributor.hasAccount {
+                onTapContributor?(contributor)
+            }
+        } label: {
+            HStack(spacing: HeirloomSpacing.xs) {
+                // Avatar
+                if let avatarURL = contributor.avatarURL, let url = URL(string: avatarURL) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        case .failure, .empty:
+                            contributorInitials(contributor.initials)
+                        @unknown default:
+                            contributorInitials(contributor.initials)
+                        }
+                    }
+                    .frame(width: 20, height: 20)
+                    .clipShape(Circle())
+                } else {
+                    contributorInitials(contributor.initials)
+                }
+
+                // Name
+                Text(contributor.displayName)
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(contributor.hasAccount ? HeirloomColors.tomato : HeirloomColors.secondaryText)
+
+                // Connection indicator
+                if contributor.isConnected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(HeirloomColors.familyGreen)
+                }
+            }
+        }
+        .disabled(!contributor.hasAccount)
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func contributorInitials(_ initials: String) -> some View {
+        Circle()
+            .fill(HeirloomColors.warmGray.opacity(0.3))
+            .frame(width: 20, height: 20)
+            .overlay(
+                Text(initials)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(HeirloomColors.warmGray)
+            )
+    }
 }
 
 // MARK: - Sort Order
@@ -282,6 +349,8 @@ struct LineageContainerView: View {
     @State private var tree: LineageTree?
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var selectedContributor: ContributorInfo? // Phase 8
+    @State private var showContributorProfile = false // Phase 8
 
     private var lineageService: RecipeLineageService { ServiceContainer.shared.resolve(RecipeLineageService.self) }
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
@@ -295,11 +364,23 @@ struct LineageContainerView: View {
                 errorView(error)
             } else if let tree = tree {
                 // Always show timeline view
-                LineageTimelineView(tree: tree, onTapRecipe: onTapRecipe)
+                LineageTimelineView(
+                    tree: tree,
+                    onTapRecipe: onTapRecipe,
+                    onTapContributor: { contributor in
+                        selectedContributor = contributor
+                        showContributorProfile = true
+                    }
+                )
             }
         }
         .navigationTitle("Recipe Lineage")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showContributorProfile) {
+            if let contributor = selectedContributor {
+                LineageContributorSheet(contributor: contributor)
+            }
+        }
         .task {
             await loadLineageTree()
         }
@@ -401,28 +482,9 @@ enum LineageViewMode: String, CaseIterable {
 
 #Preview {
     let rootRecipe = Recipe(title: "Original Chocolate Chip Cookies", sourceType: .manual)
-    rootRecipe.provenance = ProvenanceMetadata(
-        sourceType: .userCreated,
-        generation: 0
-    )
-
     let child1 = Recipe(title: "Mom's Variation", sourceType: .family)
-    child1.provenance = ProvenanceMetadata(
-        sourceType: .shared,
-        generation: 1
-    )
-
     let child2 = Recipe(title: "Gluten-Free Version", sourceType: .family)
-    child2.provenance = ProvenanceMetadata(
-        sourceType: .shared,
-        generation: 1
-    )
-
     let grandchild = Recipe(title: "Vegan Adaptation", sourceType: .family)
-    grandchild.provenance = ProvenanceMetadata(
-        sourceType: .shared,
-        generation: 2
-    )
 
     let nodes = [
         LineageNode(
@@ -430,28 +492,32 @@ enum LineageViewMode: String, CaseIterable {
             generation: 0,
             position: .zero,
             stats: NodeStats(cookCount: 42, shareCount: 15, viewCount: 250, rating: 4.8),
-            isCurrentUser: false
+            isCurrentUser: false,
+            contributor: nil
         ),
         LineageNode(
             recipe: child1,
             generation: 1,
             position: .zero,
             stats: NodeStats(cookCount: 23, shareCount: 8, viewCount: 120, rating: 4.5),
-            isCurrentUser: true
+            isCurrentUser: true,
+            contributor: nil
         ),
         LineageNode(
             recipe: child2,
             generation: 1,
             position: .zero,
             stats: NodeStats(cookCount: 15, shareCount: 5, viewCount: 89, rating: 4.3),
-            isCurrentUser: false
+            isCurrentUser: false,
+            contributor: nil
         ),
         LineageNode(
             recipe: grandchild,
             generation: 2,
             position: .zero,
             stats: NodeStats(cookCount: 8, shareCount: 2, viewCount: 45, rating: 4.0),
-            isCurrentUser: false
+            isCurrentUser: false,
+            contributor: nil
         )
     ]
 
@@ -463,7 +529,7 @@ enum LineageViewMode: String, CaseIterable {
 
     let tree = LineageTree(root: rootRecipe, nodes: nodes, edges: edges)
 
-    return NavigationStack {
+    NavigationStack {
         LineageTimelineView(tree: tree) { recipe in
             Log.debug("Preview: Lineage recipe tapped", category: .ui, metadata: ["title": recipe.title])
         }

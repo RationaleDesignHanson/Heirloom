@@ -56,10 +56,21 @@ struct LineageNode: Identifiable {
     var position: CGPoint // For graph layout
     let stats: NodeStats
     let isCurrentUser: Bool // Whether this is the user's version
+    let contributor: ContributorInfo? // Phase 8: Who shared/created this version
 
     /// Display label for the node
     var displayLabel: String {
         recipe.title
+    }
+
+    /// Has contributor information available
+    var hasContributor: Bool {
+        contributor != nil
+    }
+
+    /// Is contributor a connected user
+    var isContributorConnected: Bool {
+        contributor?.isConnected ?? false
     }
 
     /// Generation badge text
@@ -179,6 +190,45 @@ enum LineageLayoutAlgorithm {
         case .hierarchical: return "chart.tree"
         case .timeline: return "calendar"
         case .force: return "circle.hexagongrid"
+        }
+    }
+}
+
+/// Contributor information for lineage nodes (Phase 8)
+struct ContributorInfo {
+    let userId: String
+    let displayName: String
+    let avatarURL: String?
+    let isConnected: Bool
+    let hasAccount: Bool // False if only name available (legacy data)
+
+    /// Initialize from user profile
+    init(userId: String, displayName: String, avatarURL: String?, isConnected: Bool) {
+        self.userId = userId
+        self.displayName = displayName
+        self.avatarURL = avatarURL
+        self.isConnected = isConnected
+        self.hasAccount = true
+    }
+
+    /// Initialize legacy contributor (name only, no account)
+    init(displayName: String) {
+        self.userId = ""
+        self.displayName = displayName
+        self.avatarURL = nil
+        self.isConnected = false
+        self.hasAccount = false
+    }
+
+    /// User initials for avatar fallback
+    var initials: String {
+        let components = displayName.components(separatedBy: " ")
+        if components.count >= 2 {
+            let first = components[0].prefix(1)
+            let last = components[components.count - 1].prefix(1)
+            return "\(first)\(last)".uppercased()
+        } else {
+            return String(displayName.prefix(1)).uppercased()
         }
     }
 }

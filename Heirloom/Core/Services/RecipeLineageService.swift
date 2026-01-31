@@ -11,9 +11,14 @@ final class RecipeLineageService {
     // MARK: - Dependencies
 
     private let userProfileService: FirebaseUserProfileService
+    private let connectionService: ConnectionServiceProtocol
 
-    init(userProfileService: FirebaseUserProfileService? = nil) {
+    init(
+        userProfileService: FirebaseUserProfileService? = nil,
+        connectionService: ConnectionServiceProtocol? = nil
+    ) {
         self.userProfileService = userProfileService ?? ServiceContainer.shared.resolve(FirebaseUserProfileService.self)
+        self.connectionService = connectionService ?? ServiceContainer.shared.resolve(ConnectionServiceProtocol.self)
     }
 
     private lazy var db: Firestore = {
@@ -45,6 +50,14 @@ final class RecipeLineageService {
         guard let lineage = localLineage else {
             // No lineage - this is a standalone recipe
             Log.debug("No lineage found for recipe", category: .general)
+
+            // Fetch contributor if recipe has sharedBy
+            var contributorInfo: ContributorInfo?
+            if let sharedBy = recipe.sharedBy, !sharedBy.isEmpty {
+                // Legacy: sharedBy is just a name, not a userId
+                contributorInfo = ContributorInfo(displayName: sharedBy)
+            }
+
             let node = LineageNode(
                 recipe: recipe,
                 generation: 0,
@@ -55,7 +68,8 @@ final class RecipeLineageService {
                     viewCount: 0,
                     rating: nil
                 ),
-                isCurrentUser: true
+                isCurrentUser: true,
+                contributor: contributorInfo
             )
             return LineageTree(root: recipe, nodes: [node], edges: [])
         }
@@ -104,12 +118,19 @@ final class RecipeLineageService {
             // Get display name for owner
             let ownerDisplayName = try? await userProfileService.fetchDisplayName(for: ownerId)
 
+            // Fetch contributor info (Phase 8)
+            Log.debug("Fetching contributor info for lineage node", category: .social, metadata: [
+                "ownerId": ownerId,
+                "generation": generation
+            ])
+            let contributorInfo = await fetchContributorInfo(userId: ownerId)
+
             // Create version
             let version = RecipeLineageVersion(
                 recipeData: recipeData,
                 generation: generation,
                 modifiedBy: ownerId,
-                modifiedByName: ownerDisplayName ?? "Someone",
+                modifiedByName: ownerDisplayName ?? contributorInfo?.displayName ?? "Someone",
                 modifiedAt: (data["lastModified"] as? Timestamp)?.dateValue() ?? Date(),
                 isCurrent: recipeIdUUID == recipeId
             )
@@ -132,7 +153,8 @@ final class RecipeLineageService {
                     viewCount: 0,
                     rating: nil
                 ),
-                isCurrentUser: isCurrentUser
+                isCurrentUser: isCurrentUser,
+                contributor: contributorInfo
             )
             nodes.append(node)
 
@@ -220,6 +242,55 @@ final class RecipeLineageService {
             averagePopularity: avgPopularity,
             mostPopularFork: mostPopular?.recipe
         )
+    }
+
+    // MARK: - Contributor Info (Phase 8)
+
+    /// Fetch contributor information including profile and connection status
+    private func fetchContributorInfo(userId: String) async -> ContributorInfo? {
+        guard !userId.isEmpty else { return nil }
+
+        do {
+            // Fetch display name from user profile service
+            guard let displayName = try await userProfileService.fetchDisplayName(for: userId) else {
+                Log.warning("No display name found for user", category: .firebase, metadata: ["userId": userId])
+                return nil
+            }
+
+            // Check if user is connected by fetching all connections
+            // This is not ideal performance-wise but works with current APIs
+            var isConnected = false
+            if Auth.auth().currentUser?.uid != nil {
+                do {
+                    let connections = try await connectionService.fetchConnections(status: .connected, forceRefresh: false)
+                    isConnected = connections.contains { $0.connectedUserId == userId }
+                } catch {
+                    Log.debug("Could not check connection status", category: .firebase, metadata: ["error": error.localizedDescription])
+                    // Continue with isConnected = false
+                }
+            }
+
+            let contributorInfo = ContributorInfo(
+                userId: userId,
+                displayName: displayName,
+                avatarURL: nil, // Not available from FirebaseUserProfileService
+                isConnected: isConnected
+            )
+
+            Log.info("✅ Phase 8: Contributor loaded", category: .social, metadata: [
+                "userId": userId,
+                "displayName": displayName,
+                "isConnected": isConnected
+            ])
+
+            return contributorInfo
+        } catch {
+            Log.warning("Failed to fetch contributor info", category: .firebase, metadata: [
+                "userId": userId,
+                "error": error.localizedDescription
+            ])
+            return nil
+        }
     }
 }
 
