@@ -231,7 +231,7 @@ final class VideoProcessingJobManager: ObservableObject {
     // MARK: - Background Task Scheduling
 
     private func scheduleBackgroundProcessingTask() {
-        let request = BGProcessingTaskRequest(identifier: "com.matthanson.heirloom.video-processing")
+        let request = BGProcessingTaskRequest(identifier: "com.rationaledesign.heirloom.video-processing")
         request.requiresNetworkConnectivity = false
         request.requiresExternalPower = false // Allow on battery
         request.earliestBeginDate = Date(timeIntervalSinceNow: 30) // Try in 30 seconds

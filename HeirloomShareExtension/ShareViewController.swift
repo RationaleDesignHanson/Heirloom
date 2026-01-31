@@ -45,7 +45,7 @@ class ShareViewController: UIViewController {
             extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
         } else {
             let error = NSError(
-                domain: "com.matthanson.heirloom.shareextension",
+                domain: "com.rationaledesign.heirloom.shareextension",
                 code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "User cancelled or error occurred"]
             )

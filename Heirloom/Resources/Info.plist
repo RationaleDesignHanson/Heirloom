@@ -4,8 +4,8 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.matthanson.heirloom.video-processing</string>
-		<string>com.matthanson.heirloom.collection-image-refresh</string>
+		<string>com.rationaledesign.heirloom.video-processing</string>
+		<string>com.rationaledesign.heirloom.collection-image-refresh</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
@@ -29,7 +29,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.matthanson.heirloom</string>
+			<string>com.rationaledesign.heirloom</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>heirloom</string>

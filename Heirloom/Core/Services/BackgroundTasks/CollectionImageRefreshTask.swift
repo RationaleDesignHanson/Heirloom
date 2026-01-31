@@ -5,7 +5,7 @@ import Foundation
 /// Background task for overnight collection image regeneration
 @MainActor
 class CollectionImageRefreshTask {
-    static let taskIdentifier = "com.matthanson.heirloom.collection-image-refresh"
+    static let taskIdentifier = "com.rationaledesign.heirloom.collection-image-refresh"
 
     private let generator: CollectionImageGenerator
     private let modelContainer: ModelContainer

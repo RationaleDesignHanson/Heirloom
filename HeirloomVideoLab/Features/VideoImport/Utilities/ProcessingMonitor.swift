@@ -19,9 +19,9 @@ class ProcessingMonitor {
     static let shared = ProcessingMonitor()
 
     // Loggers
-    private let performanceLogger = Logger(subsystem: "com.matthanson.heirloom.videolab", category: "performance")
-    private let costLogger = Logger(subsystem: "com.matthanson.heirloom.videolab", category: "cost")
-    private let errorLogger = Logger(subsystem: "com.matthanson.heirloom.videolab", category: "error")
+    private let performanceLogger = Logger(subsystem: "com.rationaledesign.heirloom.videolab", category: "performance")
+    private let costLogger = Logger(subsystem: "com.rationaledesign.heirloom.videolab", category: "cost")
+    private let errorLogger = Logger(subsystem: "com.rationaledesign.heirloom.videolab", category: "error")
 
     // Session tracking
     private var currentSession: ProcessingSession?

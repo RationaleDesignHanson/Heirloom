@@ -8,7 +8,7 @@ import FirebaseFirestore
 import FirebaseCrashlytics
 
 // Device-visible logging
-private let logger = Logger(subsystem: "com.matthanson.heirloom", category: "App")
+private let logger = Logger(subsystem: "com.rationaledesign.heirloom", category: "App")
 
 // MARK: - Notification Delegate
 
@@ -541,7 +541,7 @@ struct HeirloomApp: App {
 
     private func checkSharedContainerForPendingImport() {
         // Check if share extension left a pending URL import
-        guard let groupDefaults = UserDefaults(suiteName: "group.com.matthanson.heirloom.shared") else {
+        guard let groupDefaults = UserDefaults(suiteName: SharedConstants.appGroupIdentifier) else {
             Log.warning("Cannot access shared container for pending import", category: .general)
             return
         }
@@ -686,7 +686,7 @@ struct HeirloomApp: App {
     private func registerBackgroundTasks() {
         // Register video processing background task
         BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: "com.matthanson.heirloom.video-processing",
+            forTaskWithIdentifier: "com.rationaledesign.heirloom.video-processing",
             using: nil
         ) { task in
             self.handleVideoProcessingBackgroundTask(task: task as! BGProcessingTask)
@@ -745,7 +745,7 @@ struct HeirloomApp: App {
     // }
 
     private func scheduleNextBackgroundTask() {
-        let request = BGProcessingTaskRequest(identifier: "com.matthanson.heirloom.video-processing")
+        let request = BGProcessingTaskRequest(identifier: "com.rationaledesign.heirloom.video-processing")
         request.requiresNetworkConnectivity = false
         request.requiresExternalPower = false // Allow on battery
         request.earliestBeginDate = Date(timeIntervalSinceNow: 60) // Try again in 1 minute

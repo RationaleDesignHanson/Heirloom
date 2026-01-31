@@ -2,7 +2,7 @@ import Foundation
 
 enum SharedConstants {
     // IMPORTANT: Verify this matches existing App Group in entitlements
-    static let appGroupIdentifier = "group.com.matthanson.heirloom.shared"
+    static let appGroupIdentifier = "group.com.rationaledesign.heirloom"
 
     static var sharedContainerURL: URL? {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)

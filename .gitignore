@@ -85,3 +85,4 @@ test-results/
 TestResults/
 scripts/node_modules/
 firebase/serviceAccountKey.json
+service-account-key.json
