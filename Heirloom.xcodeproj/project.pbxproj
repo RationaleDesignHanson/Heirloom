@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		95FF0ACF26B64113BF9B71BC /* PublicProfileSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 982C37E77EA24B61837CC171 /* PublicProfileSheet.swift */; };
-		E4BA127CABB3405087668043 /* BadgeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC973BCBBA541F58E61499C /* BadgeService.swift */; };
 		0087BC50A4075B1B3625FCBE /* DinnerPartyActiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E8FADFE90A53162B78F4CEE /* DinnerPartyActiveView.swift */; };
 		0690F2354B4F741C1D039D4E /* ShoppingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCA2B0618CD85D21DECBD6D /* ShoppingListView.swift */; };
 		08DCE55BE7C9B5B087D88C4D /* ImportProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82D0F4952274AFF2BFBDEABB /* ImportProgressView.swift */; };
@@ -71,6 +69,7 @@
 		83FCC330472FB4732B7A7021 /* ScaledRecipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B7935EFA2271F1A5930EF9 /* ScaledRecipe.swift */; };
 		85E6393EB70C40ABB95B05A7 /* TaskTimeout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D9F9336F8C4D64AB4A135C /* TaskTimeout.swift */; };
 		8ADFA5839933EC3D8374AFB5 /* EnhancedOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50360B5F681D1995C9C96C34 /* EnhancedOCRService.swift */; };
+		95FF0ACF26B64113BF9B71BC /* PublicProfileSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 982C37E77EA24B61837CC171 /* PublicProfileSheet.swift */; };
 		965A8945B59A7B82DD91939D /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB806BBCED7E823626456DC /* ButtonStyles.swift */; };
 		9D119E45E5ACF7422DDF9294 /* AISettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17BE23577236AF623637028 /* AISettingsView.swift */; };
 		A41FEDF5357B4C3BBA121A88 /* MigrationTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182934D4923A42E08BBA870E /* MigrationTestView.swift */; };
@@ -385,6 +384,7 @@
 		DBEAA5BD5109F183D58A0BDE /* Annotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A98236C78D294E1B425001F /* Annotation.swift */; };
 		DDAF9A9C8E26B1C62A7A5BD6 /* RecipeCommentListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B84058AC32E3C2873B60C1F /* RecipeCommentListView.swift */; };
 		E22C72C65B878B0F11D713E1 /* TrialDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 345816CF408101DA320AD0E7 /* TrialDebugView.swift */; };
+		E4BA127CABB3405087668043 /* BadgeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC973BCBBA541F58E61499C /* BadgeService.swift */; };
 		E65CA0A636B690DCB9F89D0C /* ImportPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB41B3CAD1F6A114B845E5B7 /* ImportPreviewView.swift */; };
 		ED52F1487AEF53834790D891 /* BulkImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD892928C21467099E4A3651 /* BulkImportView.swift */; };
 		F22F7A301F871867FF273924 /* ImportJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAEABCF9DA22680C71BA2A9B /* ImportJob.swift */; };
@@ -425,9 +425,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		982C37E77EA24B61837CC171 /* PublicProfileSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicProfileSheet.swift; sourceTree = "<group>"; };
-		0AC973BCBBA541F58E61499C /* BadgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeService.swift; sourceTree = "<group>"; };
 		06A88F362B662FC094784D23 /* ServingSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServingSelector.swift; sourceTree = "<group>"; };
+		0AC973BCBBA541F58E61499C /* BadgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeService.swift; sourceTree = "<group>"; };
 		0B84058AC32E3C2873B60C1F /* RecipeCommentListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCommentListView.swift; sourceTree = "<group>"; };
 		110406EBC0532AEDF98EE650 /* ShareOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareOptions.swift; sourceTree = "<group>"; };
 		12CDE14CE26C4D94C2138898 /* AttributionBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributionBadge.swift; sourceTree = "<group>"; };
@@ -484,6 +483,7 @@
 		95B1795DB5F1B37A1F96C636 /* Recipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recipe.swift; sourceTree = "<group>"; };
 		96E7C5CD12705EBAF5390533 /* AIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIError.swift; sourceTree = "<group>"; };
 		97A0166F098761A3FDB4C374 /* RecipeShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeShareSheet.swift; sourceTree = "<group>"; };
+		982C37E77EA24B61837CC171 /* PublicProfileSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicProfileSheet.swift; sourceTree = "<group>"; };
 		98F8A863E836E5BD73C045E8 /* CardPersonalizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardPersonalizationView.swift; sourceTree = "<group>"; };
 		990B16DFB844E7175CB85CF3 /* MixpanelService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixpanelService.swift; sourceTree = "<group>"; };
 		99A9B3D94D12C38881E14669 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
@@ -2327,9 +2327,6 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
-					8C89A26D541EF27F051E6DC1 = {
-						DevelopmentTeam = Q2HHH2GDN8;
-					};
 					C56887312F057B02006EA0B1 = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -2965,7 +2962,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEAD_CODE_STRIPPING = YES;
 				DEFAULT_OPENAI_KEY = "$(DEFAULT_OPENAI_KEY)";
-				DEVELOPMENT_TEAM = Q2HHH2GDN8;
+				DEVELOPMENT_TEAM = SF39D6367Y;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				INFOPLIST_FILE = Heirloom/Resources/Info.plist;
@@ -2974,7 +2971,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rationaledesign.heirloom;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.9;
@@ -2991,7 +2988,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 27;
-				DEVELOPMENT_TEAM = Q2HHH2GDN8;
+				DEVELOPMENT_TEAM = SF39D6367Y;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -3009,7 +3006,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 2.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom.HeirloomShareExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rationaledesign.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -3032,7 +3029,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 27;
-				DEVELOPMENT_TEAM = Q2HHH2GDN8;
+				DEVELOPMENT_TEAM = SF39D6367Y;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HeirloomShareExtension/Info.plist;
@@ -3046,7 +3043,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 2.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom.HeirloomShareExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rationaledesign.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -3068,7 +3065,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 27;
-				DEVELOPMENT_TEAM = Q2HHH2GDN8;
+				DEVELOPMENT_TEAM = SF39D6367Y;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -3099,7 +3096,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 27;
-				DEVELOPMENT_TEAM = Q2HHH2GDN8;
+				DEVELOPMENT_TEAM = SF39D6367Y;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -3127,7 +3124,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEAD_CODE_STRIPPING = YES;
 				DEFAULT_OPENAI_KEY = "$(DEFAULT_OPENAI_KEY)";
-				DEVELOPMENT_TEAM = Q2HHH2GDN8;
+				DEVELOPMENT_TEAM = SF39D6367Y;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				INFOPLIST_FILE = Heirloom/Resources/Info.plist;
@@ -3136,7 +3133,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.matthanson.heirloom;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rationaledesign.heirloom;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.9;
