@@ -163,10 +163,10 @@ class FirebaseProfileService: ProfileServiceProtocol {
         ])
 
         // PUBLIC PROFILE SYNC DISABLED - Phase 5 focuses on basic profiles only
-        // Will re-enable in Phase 6
-        // if updatedProfile.hasPublicProfile {
-        //     try await syncPublicProfile(from: updatedProfile)
-        // }
+        // Phase 10: Sync public profile when profile visibility is "open"
+        if updatedProfile.hasPublicProfile {
+            try await syncPublicProfile(from: updatedProfile)
+        }
     }
 
     /// Upload avatar image and update profile

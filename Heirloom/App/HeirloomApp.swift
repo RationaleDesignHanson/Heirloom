@@ -1331,6 +1331,15 @@ struct ContentView: View {
                     }
             }
         }
+        // Phase 10: Profile deep link sheet
+        .sheet(isPresented: $deepLinkCoordinator.showProfileSheet) {
+            if let userId = deepLinkCoordinator.pendingProfileUserId {
+                PublicProfileSheet(userId: userId)
+                    .onDisappear {
+                        deepLinkCoordinator.clearPendingProfile()
+                    }
+            }
+        }
         // TODO: Re-enable for theme unlocking in Phase A3
         // .sheet(isPresented: $showDailyUnlock) {
         //     DailyUnlockView(

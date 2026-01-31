@@ -70,6 +70,10 @@ class DeepLinkHandler: ObservableObject {
     @Published var pendingConnectionUserId: String?
     @Published var showConnectionInviteSheet = false
 
+    // Profile view state (Phase 10: Public Profile URLs)
+    @Published var pendingProfileUserId: String?
+    @Published var showProfileSheet = false
+
     // MARK: - Private State (for robust handling)
 
     private var isAppReady = false
@@ -298,6 +302,22 @@ class DeepLinkHandler: ObservableObject {
             DeviceLogger.shared.log("✅ [DeepLink] Connection invite for user: \(userId)")
 
             handleConnectionInvite(userId: userId)
+
+        } else if components.host == "profile" {
+            // Handle public profile view (Phase 10)
+            // Format: heirloom://profile/{userId}
+            let userId = components.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+
+            guard !userId.isEmpty else {
+                Log.error("Empty user ID in heirloom://profile URL", category: .social)
+                DeviceLogger.shared.log("❌ [DeepLink] Empty user ID in profile URL")
+                return
+            }
+
+            Log.info("Extracted profile view from deep link", category: .social, metadata: ["userId": userId])
+            DeviceLogger.shared.log("✅ [DeepLink] Profile view for user: \(userId)")
+
+            handleProfileView(userId: userId)
 
         } else {
             Log.error("Invalid heirloom:// host", category: .general, metadata: ["host": components.host ?? "nil"])
@@ -793,12 +813,33 @@ class DeepLinkHandler: ObservableObject {
         DeviceLogger.shared.log("✅ [DeepLink] Connection invite sheet triggered")
     }
 
+    private func handleProfileView(userId: String) {
+        Log.info("Handling profile view", category: .social, metadata: ["userId": userId])
+        DeviceLogger.shared.log("👤 [DeepLink] Handling profile view for user: \(userId)")
+
+        // Store user ID for profile viewing
+        pendingProfileUserId = userId
+        showProfileSheet = true
+
+        Log.info("Profile sheet triggered", category: .social)
+        DeviceLogger.shared.log("✅ [DeepLink] Profile sheet triggered")
+    }
+
     // MARK: - Universal Links (heirloom.app)
 
     private func handleUniversalLink(_ url: URL) {
         Log.info("Handling universal link", category: .general, metadata: ["url": url.absoluteString])
 
         let pathComponents = url.pathComponents
+
+        // Parse: https://heirloom-ios-prod.web.app/u/{userId} (Phase 10: Public Profile URLs)
+        if pathComponents.count >= 3 && pathComponents[1] == "u" {
+            let userId = pathComponents[2]
+            Log.info("Extracted user ID from universal link", category: .social, metadata: ["userId": userId])
+            DeviceLogger.shared.log("✅ [DeepLink] Extracted user ID from universal link: \(userId)")
+            handleProfileView(userId: userId)
+            return
+        }
 
         // Parse: https://heirloom.app/share/{shareID}
         if pathComponents.count >= 3 && pathComponents[1] == "share" {
@@ -904,6 +945,14 @@ class DeepLinkHandler: ObservableObject {
         pendingVideoJobID = nil
         pendingVideoJobAction = nil
         showVideoJobSheet = false
+    }
+
+    /// Clear pending profile view (Phase 10)
+    func clearPendingProfile() {
+        Log.debug("Clearing pending profile view", category: .social)
+        DeviceLogger.shared.log("🧹 [DeepLink] Clearing pending profile view")
+        pendingProfileUserId = nil
+        showProfileSheet = false
     }
 
     /// Check if there's a pending share to accept

@@ -24,6 +24,8 @@ struct ProfileView: View {
     @State private var isLoading = true
     @State private var showEditProfile = false
     @State private var showPrivacySettings = false
+    @State private var showShareSheet = false
+    @State private var profileURL: URL?
     @State private var errorMessage: String?
 
     var body: some View {
@@ -74,6 +76,11 @@ struct ProfileView: View {
                             }
                         }
                     )
+                }
+            }
+            .sheet(isPresented: $showShareSheet) {
+                if let url = profileURL {
+                    ActivityViewController(activityItems: [url])
                 }
             }
         }
@@ -229,6 +236,27 @@ struct ProfileView: View {
                         .background(HeirloomColors.tomato)
                         .cornerRadius(12)
                     }
+
+                    // Phase 10: Share Profile button
+                    Button {
+                        shareProfile(profile)
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Share Profile")
+                        }
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(profile.hasPublicProfile ? HeirloomColors.primaryText : HeirloomColors.secondaryText)
+                        .frame(maxWidth: .infinity)
+                        .padding(HeirloomSpacing.md)
+                        .background(HeirloomColors.warmGray.opacity(0.1))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(HeirloomColors.warmGray.opacity(0.3), lineWidth: 1)
+                        )
+                    }
+                    .disabled(!profile.hasPublicProfile)
 
                     Button {
                         showPrivacySettings = true
@@ -392,6 +420,46 @@ struct ProfileView: View {
             }
         }
     }
+
+    // Phase 10: Share Profile
+    private func shareProfile(_ profile: UserProfile) {
+        guard profile.hasPublicProfile else {
+            toastManager.warning(
+                title: "Profile Not Public",
+                message: "Change your profile visibility to 'Open' in Privacy Settings to share your profile"
+            )
+            return
+        }
+
+        // Generate profile URL
+        let userId = profile.userId
+        let urlString = "https://heirloom-ios-prod.web.app/u/\(userId)"
+
+        guard let url = URL(string: urlString) else {
+            toastManager.error(title: "Failed to generate profile link")
+            return
+        }
+
+        profileURL = url
+        showShareSheet = true
+
+        Log.info("Sharing profile", category: .social, metadata: ["userId": userId])
+    }
+}
+
+// Phase 10: UIActivityViewController wrapper for sharing
+struct ActivityViewController: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    let applicationActivities: [UIActivity]? = nil
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: applicationActivities
+        )
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // MARK: - Flow Layout (Re-used from CuisineInterestPicker)

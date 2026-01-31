@@ -9,6 +9,10 @@
                     {
                         "/": "/share/*",
                         "comment": "Matches any recipe share link"
+                    },
+                    {
+                        "/": "/u/*",
+                        "comment": "Matches any public profile link (Phase 10)"
                     }
                 ]
             }
