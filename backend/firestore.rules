@@ -203,6 +203,50 @@ service cloud.firestore {
     }
 
     // ========================================
+    // PUBLIC RECIPES (Phase 11: Public Discovery)
+    // ========================================
+    match /publicRecipes/{recipeId} {
+      // Anyone can read public recipes (discovery feed)
+      allow read: if true;
+
+      // Only authenticated users can create public recipes
+      // Creator must be the one creating the document
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == request.resource.data.ownerId;
+
+      // Only recipe owner can update
+      allow update: if isAuthenticated() &&
+                       request.auth.uid == resource.data.ownerId;
+
+      // Only recipe owner can delete (unpublish)
+      allow delete: if isAuthenticated() &&
+                       request.auth.uid == resource.data.ownerId;
+    }
+
+    // ========================================
+    // PUBLIC RECIPE REPORTS (Phase 9: Moderation)
+    // ========================================
+    match /publicRecipeReports/{reportId} {
+      // Users can read their own reports (to check if already reported)
+      allow read: if isAuthenticated() &&
+                     (request.auth.uid == resource.data.reporterId ||
+                      request.auth.uid == resource.data.reviewedBy);
+
+      // Any authenticated user can create reports
+      // Reporter ID must match auth user
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == request.resource.data.reporterId &&
+                       request.resource.data.status == 'pending';
+
+      // Only admins can update reports (for review workflow)
+      // Client apps cannot update - only Cloud Functions
+      allow update: if false;
+
+      // Reports cannot be deleted (preserve audit trail)
+      allow delete: if false;
+    }
+
+    // ========================================
     // FALLBACK: Deny all other access
     // ========================================
     match /{document=**} {

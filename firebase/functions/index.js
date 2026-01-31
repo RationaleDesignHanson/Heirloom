@@ -488,3 +488,75 @@ exports.calculateTrendingScores = onSchedule('0 2 * * *', async (event) => {
     throw error;
   }
 });
+
+/**
+ * Monitor new reports and handle auto-moderation
+ * Phase 9: Moderation System
+ *
+ * Triggered when a new report is created in publicRecipeReports/{reportId}
+ * - Logs report for admin review
+ * - Auto-hides recipe if report count exceeds threshold (10 reports)
+ * - Could send notifications to admins (future enhancement)
+ */
+exports.monitorPublicRecipeReports = onDocumentWritten('publicRecipeReports/{reportId}', async (event) => {
+  try {
+    const reportId = event.params.reportId;
+    const change = event.data;
+
+    // Only process new reports (not updates or deletes)
+    if (!change.after.exists || change.before.exists) {
+      return null;
+    }
+
+    const reportData = change.after.data();
+    const publicRecipeId = reportData.publicRecipeId;
+    const reporterId = reportData.reporterId;
+    const reason = reportData.reason;
+
+    console.log(`New report received: ${reportId}`);
+    console.log(`  Recipe: ${publicRecipeId}`);
+    console.log(`  Reporter: ${reporterId}`);
+    console.log(`  Reason: ${reason}`);
+
+    // Fetch the public recipe to check report count
+    const recipeRef = db.collection('publicRecipes').doc(publicRecipeId);
+    const recipeDoc = await recipeRef.get();
+
+    if (!recipeDoc.exists) {
+      console.warn(`Public recipe not found: ${publicRecipeId}`);
+      return null;
+    }
+
+    const recipeData = recipeDoc.data();
+    const reportCount = recipeData.reportCount || 0;
+
+    console.log(`  Current report count: ${reportCount}`);
+
+    // Auto-moderation threshold: 10 reports
+    const AUTO_HIDE_THRESHOLD = 10;
+
+    if (reportCount >= AUTO_HIDE_THRESHOLD) {
+      console.log(`⚠️ Auto-moderation triggered for recipe: ${publicRecipeId} (${reportCount} reports)`);
+
+      // Mark recipe as hidden (soft delete - preserves data for admin review)
+      await recipeRef.update({
+        isHidden: true,
+        hiddenReason: 'auto_moderation',
+        hiddenAt: Timestamp.now(),
+        hiddenByReportCount: reportCount
+      });
+
+      console.log(`✅ Recipe ${publicRecipeId} auto-hidden due to ${reportCount} reports`);
+
+      // TODO: Send notification to admins (via Firestore trigger to admin dashboard)
+      // For now, rely on admin dashboard to show hidden recipes
+    }
+
+    return null;
+
+  } catch (error) {
+    console.error('Error processing recipe report:', error);
+    // Don't throw - let the report be saved even if monitoring fails
+    return null;
+  }
+});

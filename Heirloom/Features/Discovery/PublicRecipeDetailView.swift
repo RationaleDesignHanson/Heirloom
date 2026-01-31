@@ -9,6 +9,7 @@ struct PublicRecipeDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var viewModel: PublicRecipeDetailViewModel
+    @State private var showReportSheet = false
 
     init(publicRecipeId: String) {
         self.publicRecipeId = publicRecipeId
@@ -26,8 +27,30 @@ struct PublicRecipeDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button(role: .destructive) {
+                        showReportSheet = true
+                    } label: {
+                        Label("Report Recipe", systemImage: "exclamationmark.triangle")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(HeirloomColors.primaryText)
+                }
+            }
+        }
         .task {
             await viewModel.loadRecipe()
+        }
+        .sheet(isPresented: $showReportSheet) {
+            if let recipe = viewModel.recipe {
+                ReportConfirmationSheet(
+                    publicRecipeId: publicRecipeId,
+                    recipeTitle: recipe.title
+                )
+            }
         }
         .alert("Recipe Saved!", isPresented: $viewModel.showSaveSuccess) {
             Button("View Recipe") {
