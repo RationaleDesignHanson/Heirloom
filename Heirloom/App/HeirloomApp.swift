@@ -326,6 +326,15 @@ struct HeirloomApp: App {
                         Log.info("App entering foreground - checking for pending imports", category: .general)
                         DeviceLogger.shared.log("✅ [App] App entering foreground - checking for pending imports")
                         checkSharedContainerForPendingImport()
+
+                        // Phase 9: Refresh badge count when returning to foreground
+                        if authService.isAuthenticated {
+                            Task {
+                                let badgeService = ServiceContainer.shared.resolve(BadgeService.self)
+                                await badgeService.refreshCount()
+                                Log.debug("Badge count refreshed on foreground", category: .social)
+                            }
+                        }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
                         // TODO: Schedule collection image refresh when implemented for theme collections
@@ -862,6 +871,11 @@ struct RootView: View {
                     notificationService.startListening()
                     Log.info("Started notification listener on authenticated app launch", category: .firebase)
 
+                    // Phase 9: Start badge listener for connection requests
+                    let badgeService = ServiceContainer.shared.resolve(BadgeService.self)
+                    badgeService.startListening()
+                    Log.info("Started badge listener on authenticated app launch", category: .social)
+
                     // Cloud sync is now available to all users
                     // Resolve sync service now (after Firebase is initialized)
                     let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
@@ -881,6 +895,11 @@ struct RootView: View {
                     notificationService.startListening()
                     Log.info("Started notification listener after user sign-in", category: .firebase)
 
+                    // Phase 9: Start badge listener for connection requests
+                    let badgeService = ServiceContainer.shared.resolve(BadgeService.self)
+                    badgeService.startListening()
+                    Log.info("Started badge listener after user sign-in", category: .social)
+
                     // Cloud sync is now available to all users
                     // Resolve sync service now (after Firebase is initialized)
                     let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
@@ -888,6 +907,17 @@ struct RootView: View {
 
                     // Heritage sync moved to AFTER recipe seeding (in ContentView and OnboardingContainerView)
                     // This ensures recipes are seeded before creating the unlock schedule
+                }
+
+                // When user signs out, stop listeners and clear badges
+                if oldValue && !newValue {
+                    Log.info("User signed out - stopping listeners", category: .auth)
+                    DeviceLogger.shared.log("✅ [Auth] User signed out - stopping listeners")
+
+                    // Phase 9: Stop badge listener and clear badge
+                    let badgeService = ServiceContainer.shared.resolve(BadgeService.self)
+                    badgeService.clearBadge()
+                    Log.info("Cleared badge and stopped listener on sign out", category: .social)
                 }
             }
     }

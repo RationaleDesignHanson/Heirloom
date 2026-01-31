@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct KitchenTableView: View {
     @Environment(\.dismiss) private var dismiss
@@ -28,12 +29,19 @@ struct KitchenTableView: View {
     @State private var errorMessage: String?
     @State private var searchText = ""
     @State private var selectedFilter: ConnectionFilter = .all
+    @ObservedObject private var badgeService = ServiceContainer.shared.resolve(BadgeService.self)
 
     // Navigation
     @State private var showConnectionRequests = false
     @State private var showInviteView = false
+    @State private var showUserSearch = false
     @State private var selectedConnection: Connection?
     @State private var showContributorProfile = false
+
+    // Phase 1: Inter-Heirloom Sharing
+    @State private var pendingSharesCount: Int = 0
+    @State private var showSharedWithMe = false
+    @State private var showShareAnalytics = false
 
     // MARK: - Body
 
@@ -70,9 +78,25 @@ struct KitchenTableView: View {
 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        showUserSearch = true
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
                         showInviteView = true
                     } label: {
                         Image(systemName: "person.badge.plus")
+                    }
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showShareAnalytics = true
+                    } label: {
+                        Image(systemName: "chart.bar")
                     }
                 }
             }
@@ -82,13 +106,29 @@ struct KitchenTableView: View {
             .sheet(isPresented: $showInviteView) {
                 InviteConnectionView()
             }
+            .sheet(isPresented: $showUserSearch) {
+                UserSearchView()
+            }
             .sheet(isPresented: $showContributorProfile) {
                 if let connection = selectedConnection {
                     ContributorProfileSheet(connection: connection)
                 }
             }
+            .sheet(isPresented: $showSharedWithMe) {
+                SharedWithMeView()
+                    .onDisappear {
+                        // Refresh pending shares count after closing
+                        Task {
+                            await loadPendingSharesCount()
+                        }
+                    }
+            }
+            .sheet(isPresented: $showShareAnalytics) {
+                ShareAnalyticsDashboard()
+            }
             .task {
                 await loadConnections()
+                await loadPendingSharesCount()
             }
             .refreshable {
                 await loadConnections(forceRefresh: true)
@@ -106,8 +146,13 @@ struct KitchenTableView: View {
 
     private var contentView: some View {
         VStack(spacing: 0) {
-            // Pending requests banner
-            if !pendingRequests.isEmpty {
+            // Pending shares banner (Phase 1: Inter-Heirloom Sharing)
+            if pendingSharesCount > 0 {
+                pendingSharesBanner
+            }
+
+            // Pending requests banner (Phase 9: Badge System)
+            if badgeService.pendingRequestCount > 0 {
                 pendingRequestsBanner
             }
 
@@ -126,6 +171,47 @@ struct KitchenTableView: View {
         }
     }
 
+    // MARK: - Pending Shares Banner (Phase 1: Inter-Heirloom Sharing)
+
+    private var pendingSharesBanner: some View {
+        Button {
+            showSharedWithMe = true
+        } label: {
+            HStack(spacing: HeirloomSpacing.sm) {
+                Image(systemName: "tray.full")
+                    .font(.title3)
+                    .foregroundStyle(.white)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Recipes Shared With You")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(.white)
+
+                    Text("\(pendingSharesCount) pending")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(.white.opacity(0.9))
+                }
+
+                Spacer()
+
+                // Badge
+                Text("\(pendingSharesCount)")
+                    .font(HeirloomFonts.caption1Bold)
+                    .foregroundStyle(HeirloomColors.familyGreen)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.white)
+                    .cornerRadius(12)
+            }
+            .padding(HeirloomSpacing.md)
+            .background(HeirloomColors.familyGreen)
+            .cornerRadius(12)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, HeirloomSpacing.md)
+        .padding(.top, HeirloomSpacing.sm)
+    }
+
     // MARK: - Pending Requests Banner
 
     private var pendingRequestsBanner: some View {
@@ -142,16 +228,21 @@ struct KitchenTableView: View {
                         .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(.white)
 
-                    Text("\(pendingRequests.count) pending")
+                    Text("\(badgeService.pendingRequestCount) pending")
                         .font(HeirloomFonts.caption1)
-                        .foregroundStyle(.white.opacity(0.8))
+                        .foregroundStyle(.white.opacity(0.9))
                 }
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.6))
+                // Badge
+                Text("\(badgeService.pendingRequestCount)")
+                    .font(HeirloomFonts.caption1Bold)
+                    .foregroundStyle(HeirloomColors.tomato)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.white)
+                    .cornerRadius(12)
             }
             .padding(HeirloomSpacing.md)
             .background(HeirloomColors.tomato)
@@ -353,6 +444,27 @@ struct KitchenTableView: View {
                 self.isLoading = false
             }
             Log.error("Failed to load connections", category: .social, error: error)
+        }
+    }
+
+    /// Load count of pending direct shares (Phase 1: Inter-Heirloom Sharing)
+    private func loadPendingSharesCount() async {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            return
+        }
+
+        do {
+            let firebaseShare = ServiceContainer.shared.resolve(FirebaseShareService.self)
+            let shares = try await firebaseShare.fetchDirectSharesForUser(userId: userId)
+
+            await MainActor.run {
+                self.pendingSharesCount = shares.count
+            }
+
+            Log.info("Loaded pending shares count", category: .social, metadata: ["count": shares.count])
+        } catch {
+            Log.error("Failed to load pending shares count", category: .social, error: error)
+            // Don't show error to user - just log it
         }
     }
 

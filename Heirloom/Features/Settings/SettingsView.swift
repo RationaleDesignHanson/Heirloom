@@ -44,7 +44,7 @@ struct SettingsView: View {
     // Social Layer Phase 4
     @State private var showProfile = false
     @State private var showKitchenTable = false
-    @State private var pendingRequestCount: Int = 0 // TODO: Phase 6 - Connect to ConnectionService
+    @ObservedObject private var badgeService = ServiceContainer.shared.resolve(BadgeService.self)
     @State private var profileRefreshTrigger = UUID() // Force profile row refresh after edits
 
     var body: some View {
@@ -250,8 +250,8 @@ struct SettingsView: View {
                         Spacer()
 
                         // Badge (if pending requests)
-                        if pendingRequestCount > 0 {
-                            Text("\(pendingRequestCount)")
+                        if badgeService.pendingRequestCount > 0 {
+                            Text("\(badgeService.pendingRequestCount)")
                                 .font(HeirloomFonts.caption2)
                                 .fontWeight(.bold)
                                 .foregroundStyle(.white)

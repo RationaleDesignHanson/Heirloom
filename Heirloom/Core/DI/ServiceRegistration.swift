@@ -204,6 +204,21 @@ extension ServiceContainer {
             container.resolve(FirebaseConnectionService.self) as any ConnectionServiceProtocol
         }
 
+        // BadgeService (Phase 9)
+        register(BadgeService.self, lifecycle: .singleton) { container in
+            let connectionService = container.resolve((any ConnectionServiceProtocol).self)
+            return BadgeService(connectionService: connectionService)
+        }
+
+        // SearchService (Algolia)
+        register(AlgoliaSearchService.self, lifecycle: .singleton) { _ in
+            AlgoliaSearchService()
+        }
+
+        register((any SearchServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(AlgoliaSearchService.self) as any SearchServiceProtocol
+        }
+
         // FirebaseLineageService
         register(FirebaseLineageService.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
@@ -231,6 +246,11 @@ extension ServiceContainer {
 
         register((any AnalyticsServiceProtocol).self, lifecycle: .singleton) { container in
             container.resolve(AnalyticsService.self) as any AnalyticsServiceProtocol
+        }
+
+        // ShareAnalyticsService (Phase 1: Inter-Heirloom Sharing Analytics)
+        register(ShareAnalyticsService.self, lifecycle: .singleton) { _ in
+            ShareAnalyticsService()
         }
 
         // MARK: - Subscription Services
