@@ -1467,8 +1467,14 @@ struct RecipeCardView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 }
 
-                // Language badge (bottom right overlay) - show for non-English recipes
-                if let language = recipe.sourceLanguage, language != "en" {
+                // Public recipe badge (bottom right overlay) - Phase 11
+                if recipe.isPublic {
+                    PublicRecipeBadge(viewCount: recipe.publicViewCount)
+                        .padding(HeirloomSpacing.sm)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                        .accessibilityLabel("Publicly shared with \(recipe.publicViewCount) views")
+                } else if let language = recipe.sourceLanguage, language != "en" {
+                    // Language badge (bottom right overlay) - show for non-English recipes
                     Text(languageFlag(for: language))
                         .font(HeirloomFonts.title2)
                         .padding(6)

@@ -45,6 +45,10 @@ struct RecipeDetailView: View {
     // Coach mark for first-time recipe view
     @State private var showRecipeCoachMark = false
 
+    // Public discovery (Phase 11)
+    @State private var showPublishSheet = false
+    @State private var showUnpublishConfirmation = false
+
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     @State private var isDiffExpanded = false
 
@@ -627,6 +631,24 @@ private struct RecipeDetailModifiers: ViewModifier {
             }
             .disabled(recipe.isSampleRecipe || recipe.isThemeRecipe)
 
+            // Public discovery sharing (Phase 11)
+            if recipe.isPublic {
+                Button {
+                    showUnpublishConfirmation = true
+                } label: {
+                    Label("Unpublish", systemImage: "globe.badge.chevron.backward")
+                }
+            } else {
+                Button {
+                    showPublishSheet = true
+                } label: {
+                    Label("Share Publicly", systemImage: "globe")
+                }
+                .disabled(recipe.isSampleRecipe || recipe.isThemeRecipe)
+            }
+
+            Divider()
+
             Button {
                 handleEditTapped()
             } label: {
@@ -766,6 +788,13 @@ private struct RecipeDetailModifiers: ViewModifier {
                 // Refresh UI after attribution is saved
                 // The computed property needsAttribution will automatically update
             }
+        }
+        .sheet(isPresented: $showPublishSheet) {
+            PublishRecipeSheet(recipe: recipe)
+        }
+        .sheet(isPresented: $showUnpublishConfirmation) {
+            UnpublishConfirmationSheet(recipe: recipe)
+                .presentationDetents([.medium])
         }
         .sheet(isPresented: $showHeirloomExplanation) {
             HeirloomShareExplanationView()
