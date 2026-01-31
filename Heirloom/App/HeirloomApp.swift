@@ -1340,6 +1340,15 @@ struct ContentView: View {
                     }
             }
         }
+        // Phase 11: Public recipe detail deep link sheet
+        .sheet(isPresented: $deepLinkCoordinator.showPublicRecipeDetail) {
+            if let recipeId = deepLinkCoordinator.pendingPublicRecipeId {
+                PublicRecipeDetailView(publicRecipeId: recipeId)
+                    .onDisappear {
+                        deepLinkCoordinator.clearPendingPublicRecipe()
+                    }
+            }
+        }
         // TODO: Re-enable for theme unlocking in Phase A3
         // .sheet(isPresented: $showDailyUnlock) {
         //     DailyUnlockView(

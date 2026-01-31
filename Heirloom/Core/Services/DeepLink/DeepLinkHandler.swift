@@ -74,6 +74,10 @@ class DeepLinkHandler: ObservableObject {
     @Published var pendingProfileUserId: String?
     @Published var showProfileSheet = false
 
+    // Public recipe detail state (Phase 11: Public Discovery)
+    @Published var pendingPublicRecipeId: String?
+    @Published var showPublicRecipeDetail = false
+
     // MARK: - Private State (for robust handling)
 
     private var isAppReady = false
@@ -318,6 +322,22 @@ class DeepLinkHandler: ObservableObject {
             DeviceLogger.shared.log("✅ [DeepLink] Profile view for user: \(userId)")
 
             handleProfileView(userId: userId)
+
+        } else if components.host == "recipe" {
+            // Handle public recipe view (Phase 11: Public Discovery)
+            // Format: heirloom://recipe/{publicRecipeId}
+            let recipeId = components.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+
+            guard !recipeId.isEmpty else {
+                Log.error("Empty recipe ID in heirloom://recipe URL", category: .social)
+                DeviceLogger.shared.log("❌ [DeepLink] Empty recipe ID in recipe URL")
+                return
+            }
+
+            Log.info("Extracted public recipe from deep link", category: .social, metadata: ["recipeId": recipeId])
+            DeviceLogger.shared.log("✅ [DeepLink] Public recipe view for recipe: \(recipeId)")
+
+            handlePublicRecipeView(recipeId: recipeId)
 
         } else {
             Log.error("Invalid heirloom:// host", category: .general, metadata: ["host": components.host ?? "nil"])
@@ -825,6 +845,18 @@ class DeepLinkHandler: ObservableObject {
         DeviceLogger.shared.log("✅ [DeepLink] Profile sheet triggered")
     }
 
+    private func handlePublicRecipeView(recipeId: String) {
+        Log.info("Handling public recipe view", category: .social, metadata: ["recipeId": recipeId])
+        DeviceLogger.shared.log("🍳 [DeepLink] Handling public recipe view for recipe: \(recipeId)")
+
+        // Store recipe ID for public recipe viewing
+        pendingPublicRecipeId = recipeId
+        showPublicRecipeDetail = true
+
+        Log.info("Public recipe detail sheet triggered", category: .social)
+        DeviceLogger.shared.log("✅ [DeepLink] Public recipe detail sheet triggered")
+    }
+
     // MARK: - Universal Links (heirloom.app)
 
     private func handleUniversalLink(_ url: URL) {
@@ -846,6 +878,15 @@ class DeepLinkHandler: ObservableObject {
             let shareID = pathComponents[2]
             Log.info("Extracted share ID from universal link", category: .general, metadata: ["shareId": shareID])
             handleFirebaseShare(shareID: shareID, originalURL: url)
+            return
+        }
+
+        // Parse: https://heirloom.app/recipe/{publicRecipeId} (Phase 11: Public Discovery)
+        if pathComponents.count >= 3 && pathComponents[1] == "recipe" {
+            let recipeId = pathComponents[2]
+            Log.info("Extracted public recipe ID from universal link", category: .social, metadata: ["recipeId": recipeId])
+            DeviceLogger.shared.log("✅ [DeepLink] Extracted public recipe ID from universal link: \(recipeId)")
+            handlePublicRecipeView(recipeId: recipeId)
             return
         }
 
@@ -953,6 +994,14 @@ class DeepLinkHandler: ObservableObject {
         DeviceLogger.shared.log("🧹 [DeepLink] Clearing pending profile view")
         pendingProfileUserId = nil
         showProfileSheet = false
+    }
+
+    /// Clear pending public recipe view (Phase 11: Public Discovery)
+    func clearPendingPublicRecipe() {
+        Log.debug("Clearing pending public recipe", category: .social)
+        DeviceLogger.shared.log("🧹 [DeepLink] Clearing pending public recipe")
+        pendingPublicRecipeId = nil
+        showPublicRecipeDetail = false
     }
 
     /// Check if there's a pending share to accept
