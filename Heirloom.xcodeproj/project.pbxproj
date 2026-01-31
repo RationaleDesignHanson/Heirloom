@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3EA4C6FB48B94BA4B327F648 /* ScalingDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA5F8A9639984D54A46B8FD6 /* ScalingDiagnostics.swift */; };
+		EA6C2A46029E4AB0BB4FE495 /* ServingsParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A376A47372046358783FE73 /* ServingsParser.swift */; };
+		EE2DD79EBE6A4B5089C64DD6 /* ScalingRepairSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61520D4C5803495BAF15D15C /* ScalingRepairSheet.swift */; };
+		5BEF238DA89249AA838F6272 /* ScalingWarningBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6DCC0C21D884197B1F0F9AA /* ScalingWarningBanner.swift */; };
 		0087BC50A4075B1B3625FCBE /* DinnerPartyActiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E8FADFE90A53162B78F4CEE /* DinnerPartyActiveView.swift */; };
 		0690F2354B4F741C1D039D4E /* ShoppingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCA2B0618CD85D21DECBD6D /* ShoppingListView.swift */; };
 		08DCE55BE7C9B5B087D88C4D /* ImportProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82D0F4952274AFF2BFBDEABB /* ImportProgressView.swift */; };
@@ -425,6 +429,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA5F8A9639984D54A46B8FD6 /* ScalingDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingDiagnostics.swift; sourceTree = "<group>"; };
+		5A376A47372046358783FE73 /* ServingsParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServingsParser.swift; sourceTree = "<group>"; };
+		61520D4C5803495BAF15D15C /* ScalingRepairSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingRepairSheet.swift; sourceTree = "<group>"; };
+		C6DCC0C21D884197B1F0F9AA /* ScalingWarningBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingWarningBanner.swift; sourceTree = "<group>"; };
 		06A88F362B662FC094784D23 /* ServingSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServingSelector.swift; sourceTree = "<group>"; };
 		0AC973BCBBA541F58E61499C /* BadgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeService.swift; sourceTree = "<group>"; };
 		0B84058AC32E3C2873B60C1F /* RecipeCommentListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCommentListView.swift; sourceTree = "<group>"; };
@@ -1013,6 +1021,8 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C75F52ACB0394FFEBF87F1D1 /* Diagnostics */,
+				0F2AE8C03A8E4C9BA3173F5C /* Parsing */,
 				C5CE3F352F2D368200A2E62F /* Search */,
 				C5CE3F032F2CD2DA00A2E62F /* Social */,
 				C5364FED2F2876C5003D342E /* IngredientFormatter.swift */,
@@ -2233,8 +2243,26 @@
 			isa = PBXGroup;
 			children = (
 				06A88F362B662FC094784D23 /* ServingSelector.swift */,
+				61520D4C5803495BAF15D15C /* ScalingRepairSheet.swift */,
+				C6DCC0C21D884197B1F0F9AA /* ScalingWarningBanner.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		C75F52ACB0394FFEBF87F1D1 /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				AA5F8A9639984D54A46B8FD6 /* ScalingDiagnostics.swift */,
+			);
+			path = Diagnostics;
+			sourceTree = "<group>";
+		};
+		0F2AE8C03A8E4C9BA3173F5C /* Parsing */ = {
+			isa = PBXGroup;
+			children = (
+				5A376A47372046358783FE73 /* ServingsParser.swift */,
+			);
+			path = Parsing;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -2420,6 +2448,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3EA4C6FB48B94BA4B327F648 /* ScalingDiagnostics.swift in Sources */,
+				EA6C2A46029E4AB0BB4FE495 /* ServingsParser.swift in Sources */,
+				EE2DD79EBE6A4B5089C64DD6 /* ScalingRepairSheet.swift in Sources */,
+				5BEF238DA89249AA838F6272 /* ScalingWarningBanner.swift in Sources */,
 				C5CE3F362F2D368200A2E62F /* AlgoliaSearchService.swift in Sources */,
 				85E6393EB70C40ABB95B05A7 /* TaskTimeout.swift in Sources */,
 				B99A84751B29D8825814A8E8 /* AIAPITest.swift in Sources */,

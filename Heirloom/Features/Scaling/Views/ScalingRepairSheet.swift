@@ -20,6 +20,8 @@ struct ScalingRepairSheet: View {
     @State private var isRepairing = false
     @State private var repairResult: RepairResult?
 
+    private var aiIngredientParser: AIIngredientParser { ServiceContainer.shared.resolve(AIIngredientParser.self) }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
@@ -131,10 +133,12 @@ struct ScalingRepairSheet: View {
             if !unparsed.isEmpty {
                 do {
                     let texts = unparsed.map { $0.originalText }
-                    let parsed = try await AIIngredientParser.shared.parseBatch(texts, context: recipe.modelContext!)
+                    let parsed = try await aiIngredientParser.parseBatch(texts)
 
                     for (index, ingredient) in unparsed.enumerated() {
-                        if let parsedData = parsed[safe: index], parsedData.quantity != nil {
+                        guard index < parsed.count else { continue }
+                        let parsedData = parsed[index]
+                        if parsedData.quantity != nil {
                             ingredient.quantity = parsedData.quantity
                             ingredient.quantityMax = parsedData.quantityMax
                             ingredient.unit = parsedData.unit

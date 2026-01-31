@@ -415,21 +415,18 @@ struct RecipeImportView: View {
         // This prevents the bug where changing servings doesn't update volumes
         do {
             Log.info("Parsing ingredients immediately for accurate scaling", category: .network)
-            let parsed = try await AIIngredientParser.shared.parseBatch(
-                imported.ingredients,
-                context: modelContext
-            )
+            let parsed = try await aiIngredientParser.parseBatch(imported.ingredients)
 
             // Update ingredients with parsed data
             for (index, ingredient) in ingredients.enumerated() {
-                if let parsedData = parsed[safe: index] {
-                    ingredient.quantity = parsedData.quantity
-                    ingredient.quantityMax = parsedData.quantityMax
-                    ingredient.unit = parsedData.unit
-                    ingredient.normalizedUnit = parsedData.normalizedUnit
-                    ingredient.name = parsedData.name
-                    ingredient.category = parsedData.category
-                }
+                guard index < parsed.count else { continue }
+                let parsedData = parsed[index]
+                ingredient.quantity = parsedData.quantity
+                ingredient.quantityMax = parsedData.quantityMax
+                ingredient.unit = parsedData.unit
+                ingredient.normalizedUnit = parsedData.normalizedUnit
+                ingredient.name = parsedData.name
+                ingredient.category = parsedData.category
             }
 
             Log.info("Ingredients parsed successfully", category: .network, metadata: [
