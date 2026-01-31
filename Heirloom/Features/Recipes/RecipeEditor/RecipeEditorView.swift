@@ -60,6 +60,9 @@ struct RecipeEditorView: View {
         case cookTime
     }
 
+    // Edit mode for ingredient/instruction deletion
+    @State private var isEditingList = false
+
     // Spell checking
     @State private var spellCheckResults: [Int: AIIngredientSpellChecker.SpellingResult] = [:]
     @State private var spellCheckTask: Task<Void, Never>?
@@ -481,20 +484,24 @@ struct RecipeEditorView: View {
                                 // Debounced spell check
                                 checkSpelling(for: index, text: newValue)
                             }
+                            .disabled(isEditingList)
 
-                        if ingredientInputs.count > 1 {
+                        if ingredientInputs.count > 1 && isEditingList {
                             Button {
-                                ingredientInputs.remove(at: index)
-                                spellCheckResults.removeValue(forKey: index)
+                                withAnimation {
+                                    ingredientInputs.remove(at: index)
+                                    spellCheckResults.removeValue(forKey: index)
+                                }
                             } label: {
                                 Image(systemName: "minus.circle.fill")
                                     .foregroundStyle(.red)
+                                    .imageScale(.large)
                             }
                         }
                     }
 
                     // Show spell check suggestions if any
-                    if let result = spellCheckResults[index], result.hasIssues {
+                    if let result = spellCheckResults[index], result.hasIssues, !isEditingList {
                         ForEach(result.suggestions) { suggestion in
                             suggestionChip(for: suggestion, index: index)
                         }
@@ -502,14 +509,30 @@ struct RecipeEditorView: View {
                 }
             }
 
-            Button {
-                ingredientInputs.append("")
-            } label: {
-                Label("Add Ingredient", systemImage: "plus.circle.fill")
-                    .font(HeirloomFonts.body)
+            if !isEditingList {
+                Button {
+                    ingredientInputs.append("")
+                } label: {
+                    Label("Add Ingredient", systemImage: "plus.circle.fill")
+                        .font(HeirloomFonts.body)
+                }
             }
         } header: {
-            Text("Ingredients")
+            HStack {
+                Text("Ingredients")
+                Spacer()
+                if ingredientInputs.count > 1 {
+                    Button {
+                        withAnimation {
+                            isEditingList.toggle()
+                        }
+                    } label: {
+                        Text(isEditingList ? "Done" : "Edit")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.tomato)
+                    }
+                }
+            }
         }
     }
 
@@ -525,13 +548,18 @@ struct RecipeEditorView: View {
                     TextField("Step description", text: $instructions[index], axis: .vertical)
                         .font(HeirloomFonts.body)
                         .lineLimit(3...10)
+                        .disabled(isEditingList)
 
-                    if instructions.count > 1 {
+                    if instructions.count > 1 && isEditingList {
                         Button {
-                            instructions.remove(at: index)
+                            let indexToRemove = index
+                            _ = withAnimation {
+                                instructions.remove(at: indexToRemove)
+                            }
                         } label: {
                             Image(systemName: "minus.circle.fill")
                                 .foregroundStyle(.red)
+                                .imageScale(.large)
                         }
                     }
                 }
@@ -540,20 +568,46 @@ struct RecipeEditorView: View {
                 instructions.move(fromOffsets: from, toOffset: to)
             }
 
-            Button {
-                instructions.append("")
-            } label: {
-                Label("Add Step", systemImage: "plus.circle.fill")
-                    .font(HeirloomFonts.body)
+            if !isEditingList {
+                Button {
+                    instructions.append("")
+                } label: {
+                    Label("Add Step", systemImage: "plus.circle.fill")
+                        .font(HeirloomFonts.body)
+                }
             }
         } header: {
             HStack {
                 Text("Instructions")
                 Spacer()
                 if instructions.count > 1 {
-                    Text("Drag to reorder")
-                        .font(HeirloomFonts.caption2)
-                        .foregroundStyle(HeirloomColors.secondaryText)
+                    if isEditingList {
+                        Button {
+                            withAnimation {
+                                isEditingList = false
+                            }
+                        } label: {
+                            Text("Done")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.tomato)
+                        }
+                    } else {
+                        HStack(spacing: HeirloomSpacing.sm) {
+                            Text("Drag to reorder")
+                                .font(HeirloomFonts.caption2)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+
+                            Button {
+                                withAnimation {
+                                    isEditingList = true
+                                }
+                            } label: {
+                                Text("Edit")
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(HeirloomColors.tomato)
+                            }
+                        }
+                    }
                 }
             }
         }
