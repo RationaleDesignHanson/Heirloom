@@ -456,6 +456,7 @@ struct RecipeDetailView: View {
                 showCardPersonalization: $showCardPersonalization,
                 showCloudKitShare: $showCloudKitShare,
                 showComments: $showComments,
+                showScalingRepair: $showScalingRepair,
                 isCardFlipped: $isCardFlipped,
                 showCardBackEditor: $showCardBackEditor,
                 cardBackRefreshTrigger: $cardBackRefreshTrigger,
@@ -594,6 +595,7 @@ private struct RecipeDetailModifiers: ViewModifier {
     @Binding var showCardPersonalization: Bool
     @Binding var showCloudKitShare: Bool
     @Binding var showComments: Bool
+    @Binding var showScalingRepair: Bool
     @Binding var isCardFlipped: Bool
     @Binding var showCardBackEditor: Bool
     @Binding var cardBackRefreshTrigger: UUID
