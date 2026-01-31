@@ -275,9 +275,10 @@ exports.ogProfile = onRequest(async (req, res) => {
  *
  * Callable function that atomically increments the view count for a public recipe.
  * Called when a user views a public recipe detail page.
+ * Includes rate limiting: 1 view per user per recipe per 24 hours.
  *
  * @param {Object} data - { recipeId: string }
- * @returns {Object} { success: boolean, viewCount: number }
+ * @returns {Object} { success: boolean, viewCount: number, rateLimited: boolean }
  */
 exports.incrementPublicRecipeView = onCall(async (request) => {
   try {
@@ -297,6 +298,34 @@ exports.incrementPublicRecipeView = onCall(async (request) => {
       throw new Error('Public recipe not found');
     }
 
+    // Rate limiting: Check if user (if authenticated) has viewed recently
+    if (request.auth) {
+      const userId = request.auth.uid;
+      const rateLimitRef = recipeRef.collection('viewRateLimits').doc(userId);
+      const rateLimitDoc = await rateLimitRef.get();
+
+      if (rateLimitDoc.exists) {
+        const lastView = rateLimitDoc.data().lastView.toMillis();
+        const now = Date.now();
+        const hoursSinceLastView = (now - lastView) / (1000 * 60 * 60);
+
+        // If viewed within last 24 hours, don't count again
+        if (hoursSinceLastView < 24) {
+          console.log(`Rate limited: User ${userId} already viewed recipe ${recipeId} ${hoursSinceLastView.toFixed(1)} hours ago`);
+          return {
+            success: true,
+            viewCount: recipeDoc.data().viewCount,
+            rateLimited: true
+          };
+        }
+      }
+
+      // Update rate limit timestamp
+      await rateLimitRef.set({
+        lastView: Timestamp.now()
+      }, { merge: true });
+    }
+
     // Atomically increment view count
     await recipeRef.update({
       viewCount: FieldValue.increment(1),
@@ -311,7 +340,8 @@ exports.incrementPublicRecipeView = onCall(async (request) => {
 
     return {
       success: true,
-      viewCount: newViewCount
+      viewCount: newViewCount,
+      rateLimited: false
     };
 
   } catch (error) {
@@ -424,8 +454,9 @@ exports.calculateTrendingScores = onSchedule('0 2 * * *', async (event) => {
       // Calculate trending score
       const viewCount = data.viewCount || 0;
       const saveCount = data.saveCount || 0;
+      const cookCount = data.cookCount || 0;  // NEW: Cook count (noisy but useful signal)
       const trendingScore = Math.min(
-        (viewCount * 0.3) + (saveCount * 5.0) + recencyBoost,
+        (viewCount * 0.3) + (saveCount * 5.0) + (cookCount * 2.0) + recencyBoost,
         100.0
       );
 

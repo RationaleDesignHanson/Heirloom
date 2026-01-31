@@ -127,6 +127,11 @@ final class Recipe {
     /// Number of times saved from public discovery (tracked in Firestore)
     var publicSaveCount: Int = 0
 
+    // MARK: - Camera Origin Detection (Phase 11 - Path A+)
+    /// Confidence level that this recipe's photo came from device camera
+    /// Used to enforce camera-only public sharing policy
+    var cameraOriginConfidence: CameraOriginConfidence = .likelyCamera
+
     // MARK: - Public Discovery Attribution (for saved copies)
     /// Link to original public recipe (if saved from discovery)
     var sourcePublicRecipeId: String?
@@ -891,6 +896,47 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .video: return "Video Import"
         }
     }
+
+    /// User-facing explanation for why this source type cannot be shared publicly
+    var publicSharingBlockedReason: String? {
+        switch self {
+        case .scan:
+            return nil  // Camera sources eligible (check confidence separately)
+        case .url:
+            return "Recipes imported from websites can only be shared privately. Public sharing is reserved for your own family recipes captured with your camera."
+        case .video:
+            return "Recipes converted from videos can only be shared privately. Public sharing is reserved for your own family recipes captured with your camera."
+        case .manual:
+            return "Manually entered recipes can only be shared privately. To share publicly, photograph the recipe from a printed or handwritten copy."
+        case .cookbook:
+            return "Cookbook recipes can only be shared privately to respect copyright. Photograph your own family recipe cards or handwritten copies to share publicly."
+        case .family, .heritage:
+            return "Recipes you've received from others can only be shared privately."
+        }
+    }
+}
+
+/// Confidence level that a recipe's photo originated from device camera
+/// Used to enforce camera-only public sharing policy (screenshots and downloads blocked)
+enum CameraOriginConfidence: String, Codable {
+    /// Definite camera photo (Live Photo, HDR, Portrait mode)
+    case definitelyCamera
+
+    /// Likely camera photo (regular photo from camera roll, no disqualifying signals)
+    case likelyCamera
+
+    /// Definitely not camera (screenshot, cloud shared, iTunes synced, downloaded)
+    case definitelyNotCamera
+
+    /// User-facing explanation for why photo failed camera detection
+    var publicSharingBlockedReason: String? {
+        switch self {
+        case .definitelyCamera, .likelyCamera:
+            return nil
+        case .definitelyNotCamera:
+            return "This photo appears to be a screenshot or downloaded image. Public sharing requires photos taken with your device camera."
+        }
+    }
 }
 
 // MARK: - Lightweight DTO
@@ -1266,10 +1312,55 @@ extension Recipe {
     }
 
     /// Whether this recipe can be made public (for publishing)
-    /// Reuses sharing validation logic
+    /// Enforces camera-only policy: only recipes from camera with verified confidence
     var canMakePublic: Bool {
+        // First check basic sharing validation
         let (canShare, _) = canShare()
-        return canShare && !isThemeRecipe && !isSampleRecipe
+        guard canShare && !isThemeRecipe && !isSampleRecipe else {
+            return false
+        }
+
+        // Check source type - only camera/scan sources are eligible
+        guard let sourceType = sourceType, sourceType == .scan else {
+            return false
+        }
+
+        // Check camera origin confidence - must not be screenshot/download
+        guard cameraOriginConfidence != .definitelyNotCamera else {
+            return false
+        }
+
+        return true
+    }
+
+    /// Get user-facing reason why this recipe cannot be made public
+    /// Returns nil if recipe can be made public
+    func publicSharingBlockedReason() -> String? {
+        // Check basic sharing first
+        let (canShare, reason) = canShare()
+        if !canShare {
+            return reason
+        }
+
+        if isThemeRecipe {
+            return "Theme recipes can't be shared - all users receive these automatically through the theme system."
+        }
+
+        if isSampleRecipe {
+            return "Sample recipes can't be shared - everyone already has this recipe."
+        }
+
+        // Check source type
+        if let sourceType = sourceType, sourceType != .scan {
+            return sourceType.publicSharingBlockedReason
+        }
+
+        // Check camera origin confidence
+        if cameraOriginConfidence == .definitelyNotCamera {
+            return cameraOriginConfidence.publicSharingBlockedReason
+        }
+
+        return nil
     }
 
     /// Determine if this recipe can be shared and provide reason if not
