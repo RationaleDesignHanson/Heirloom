@@ -351,6 +351,29 @@ service cloud.firestore {
     }
 
     // ========================================
+    // PUBLIC RECIPES (Phase 11 - Public Discovery)
+    // For community recipe discovery
+    // Stored at: publicRecipes/{publicRecipeId}
+    // ========================================
+    match /publicRecipes/{recipeId} {
+      // Anyone can read public recipes (no authentication required for discovery)
+      allow read: if true;
+
+      // Only authenticated users can publish recipes
+      // Must set ownerId to match their auth.uid (prevents impersonation)
+      allow create: if isAuthenticated() &&
+                       request.resource.data.ownerId == request.auth.uid;
+
+      // Only the recipe owner can update their public recipe
+      allow update: if isAuthenticated() &&
+                       resource.data.ownerId == request.auth.uid;
+
+      // Only the recipe owner can delete (unpublish) their public recipe
+      allow delete: if isAuthenticated() &&
+                       resource.data.ownerId == request.auth.uid;
+    }
+
+    // ========================================
     // FALLBACK: Deny all other access
     // ========================================
     match /{document=**} {

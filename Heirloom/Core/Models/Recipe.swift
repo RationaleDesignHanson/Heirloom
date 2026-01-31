@@ -111,6 +111,38 @@ final class Recipe {
     var passedDownMessage: String?
     var generationCount: Int = 1
 
+    // MARK: - Public Discovery (Phase 11)
+    /// Whether this recipe is published to public discovery feed
+    var isPublic: Bool = false
+
+    /// Firestore document ID in publicRecipes collection (when published)
+    var publicRecipeId: String?
+
+    /// When this recipe was first published publicly
+    var publicPublishedAt: Date?
+
+    /// Public view count (tracked in Firestore)
+    var publicViewCount: Int = 0
+
+    /// Number of times saved from public discovery (tracked in Firestore)
+    var publicSaveCount: Int = 0
+
+    // MARK: - Public Discovery Attribution (for saved copies)
+    /// Link to original public recipe (if saved from discovery)
+    var sourcePublicRecipeId: String?
+
+    /// Original creator's Firebase user ID
+    var sourcePublicRecipeCreatorId: String?
+
+    /// Original creator's display name (cached)
+    var sourcePublicRecipeCreatorName: String?
+
+    /// When we last synced/checked the original
+    var sourcePublicRecipeLastSynced: Date?
+
+    /// Whether original recipe still exists (cached check)
+    var sourcePublicRecipeStillAvailable: Bool = true
+
     // MARK: - Provenance Tracking (Phase 2A)
     /// Comprehensive provenance and lineage tracking
     /// Replaces legacy fields above (maintained for backward compatibility)
@@ -1224,6 +1256,20 @@ extension Recipe {
 
         // Require at least 2 modifications beyond just having content
         return modifications >= 2
+    }
+
+    // MARK: - Public Discovery Computed Properties
+
+    /// Whether this recipe was saved from public discovery and has upstream link
+    var hasPublicUpstream: Bool {
+        sourcePublicRecipeId != nil
+    }
+
+    /// Whether this recipe can be made public (for publishing)
+    /// Reuses sharing validation logic
+    var canMakePublic: Bool {
+        let (canShare, _) = canShare()
+        return canShare && !isThemeRecipe && !isSampleRecipe
     }
 
     /// Determine if this recipe can be shared and provide reason if not
