@@ -22,6 +22,7 @@ protocol ConnectionServiceProtocol {
     func sendConnectionRequest(
         to userId: String,
         displayName: String,
+        photoURL: String?,
         sourceKitchenTableId: String?
     ) async throws -> Connection
 
@@ -152,6 +153,7 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
     func sendConnectionRequest(
         to targetUserId: String,
         displayName: String,
+        photoURL: String? = nil,
         sourceKitchenTableId: String? = nil
     ) async throws -> Connection {
         guard let userId = auth.currentUser?.uid else {
@@ -193,13 +195,23 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
         let connectionId = UUID().uuidString
         let now = Date()
 
+        // Fetch current user's profile to get display name and photo
+        let currentUserProfileDoc = try await db.collection("users")
+            .document(userId)
+            .collection("profile")
+            .document("data")
+            .getDocument()
+
+        let currentUserDisplayName = currentUserProfileDoc.data()?["displayName"] as? String ?? auth.currentUser?.displayName ?? "User"
+        let currentUserPhotoURL = currentUserProfileDoc.data()?["photoURL"] as? String
+
         // Create outgoing connection (for sender)
         let outgoingConnection = Connection(
             id: connectionId,
             userId: userId,
             connectedUserId: targetUserId,
             connectedUserDisplayName: displayName,
-            connectedUserPhotoURL: nil,
+            connectedUserPhotoURL: photoURL,
             status: .pending,
             initiatedBy: userId,
             requestedAt: now,
@@ -213,16 +225,13 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             updatedAt: now
         )
 
-        // Get current user's display name for incoming connection
-        let currentUserDisplayName = auth.currentUser?.displayName ?? "User"
-
         // Create incoming connection (for recipient)
         let incomingConnection = Connection(
             id: connectionId,
             userId: targetUserId,
             connectedUserId: userId,
             connectedUserDisplayName: currentUserDisplayName,
-            connectedUserPhotoURL: auth.currentUser?.photoURL?.absoluteString,
+            connectedUserPhotoURL: currentUserPhotoURL,
             status: .pending,
             initiatedBy: userId,
             requestedAt: now,
@@ -483,6 +492,24 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
 
         let now = Date()
 
+        // Fetch sender's profile to get their photoURL
+        let senderProfileDoc = try await db.collection("users")
+            .document(connection.connectedUserId)
+            .collection("profile")
+            .document("data")
+            .getDocument()
+
+        let senderPhotoURL = senderProfileDoc.data()?["photoURL"] as? String
+
+        // Fetch current user's profile to get their photoURL
+        let currentUserProfileDoc = try await db.collection("users")
+            .document(userId)
+            .collection("profile")
+            .document("data")
+            .getDocument()
+
+        let currentUserPhotoURL = currentUserProfileDoc.data()?["photoURL"] as? String
+
         // Update both connections to connected status
         let batch = db.batch()
 
@@ -494,7 +521,8 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
         batch.updateData([
             "status": ConnectionStatus.connected.rawValue,
             "acceptedAt": Timestamp(date: now),
-            "updatedAt": Timestamp(date: now)
+            "updatedAt": Timestamp(date: now),
+            "connectedUserPhotoURL": senderPhotoURL as Any
         ], forDocument: userRef)
 
         let connectedUserRef = db.collection("users")
@@ -505,7 +533,8 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
         batch.updateData([
             "status": ConnectionStatus.connected.rawValue,
             "acceptedAt": Timestamp(date: now),
-            "updatedAt": Timestamp(date: now)
+            "updatedAt": Timestamp(date: now),
+            "connectedUserPhotoURL": currentUserPhotoURL as Any
         ], forDocument: connectedUserRef)
 
         try await batch.commit()

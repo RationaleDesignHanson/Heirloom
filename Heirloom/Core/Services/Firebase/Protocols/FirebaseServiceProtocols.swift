@@ -328,8 +328,20 @@ protocol FirebaseShareServiceProtocol {
     func createShare(
         for recipe: Recipe,
         options: ShareOptions,
+        recipientUserIds: [String]?,
         context: ModelContext
     ) async throws -> (shareId: String, shareURL: URL)
+
+    /// Create a direct share to specific connections
+    func createDirectShare(
+        for recipe: Recipe,
+        options: ShareOptions,
+        recipientUserIds: [String],
+        context: ModelContext
+    ) async throws -> (shareId: String, shareURL: URL)
+
+    /// Fetch direct shares sent to a user
+    func fetchDirectSharesForUser(userId: String) async throws -> [[String: Any]]
 
     /// Accept a shared recipe
     func acceptShare(

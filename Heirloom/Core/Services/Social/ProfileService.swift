@@ -38,6 +38,9 @@ protocol ProfileServiceProtocol {
     /// Check if public profile slug is available
     func isSlugAvailable(_ slug: String) async throws -> Bool
 
+    /// Search users by display name
+    func searchUsers(query: String, limit: Int) async throws -> [UserSearchResult]
+
     /// Clear cache (useful for logout or testing)
     func clearCache()
 }
@@ -372,6 +375,57 @@ class FirebaseProfileService: ProfileServiceProtocol {
         ])
 
         return isAvailable
+    }
+
+    // MARK: - User Search
+
+    /// Search users by display name (no handles, display name only)
+    func searchUsers(query: String, limit: Int = 20) async throws -> [UserSearchResult] {
+        guard let currentUserId = auth.currentUser?.uid else {
+            throw NSError(
+                domain: "ProfileService",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "Not authenticated"]
+            )
+        }
+
+        guard query.count >= 2 else {
+            return [] // Minimum 2 characters
+        }
+
+        // Query all user profiles via collectionGroup
+        let snapshot = try await db.collectionGroup("profile")
+            .whereField("displayName", isGreaterThanOrEqualTo: query)
+            .whereField("displayName", isLessThan: query + "z")
+            .limit(to: limit)
+            .getDocuments()
+
+        var results: [UserSearchResult] = []
+
+        for doc in snapshot.documents {
+            let data = doc.data()
+
+            // Extract userId from document path: users/{userId}/profile/data
+            let userId = doc.reference.parent.parent?.documentID ?? ""
+
+            // Skip current user
+            if userId == currentUserId { continue }
+
+            let result = UserSearchResult(
+                id: userId,
+                displayName: data["displayName"] as? String ?? "Unknown",
+                photoURL: data["photoURL"] as? String,
+                bio: data["bio"] as? String
+            )
+            results.append(result)
+        }
+
+        Log.info("User search completed", category: .social, metadata: [
+            "query": query,
+            "resultCount": results.count
+        ])
+
+        return results
     }
 
     // MARK: - Cache Management

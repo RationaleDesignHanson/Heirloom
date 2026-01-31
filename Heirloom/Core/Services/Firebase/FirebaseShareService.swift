@@ -51,11 +51,13 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
     /// - Parameters:
     ///   - recipe: The recipe to share
     ///   - options: Configuration for what to include
+    ///   - recipientUserIds: Optional array of user IDs to share directly with (nil = public link)
     ///   - context: ModelContext for SwiftData operations
     /// - Returns: Share ID and shareable URL
     func createShare(
         for recipe: Recipe,
         options: ShareOptions,
+        recipientUserIds: [String]? = nil,
         context: ModelContext
     ) async throws -> (shareId: String, shareURL: URL) {
         guard let userId = auth.currentUser?.uid else {
@@ -163,7 +165,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
 
         // 2. Create share document
         let shareId = UUID().uuidString
-        let shareData: [String: Any] = [
+        var shareData: [String: Any] = [
             "shareId": shareId,
             "recipeId": recipeToShare.id.uuidString,
             "ownerId": userId,
@@ -205,6 +207,25 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             "viewCount": 0
         ]
 
+        // NEW: Direct sharing fields (Phase 1: Inter-Heirloom Sharing)
+        if let recipientUserIds = recipientUserIds, !recipientUserIds.isEmpty {
+            shareData["recipientUserIds"] = recipientUserIds
+            shareData["isDirectShare"] = true
+            shareData["sharedWithCount"] = recipientUserIds.count
+
+            // Fetch recipient display names for UI
+            var recipientDisplayNames: [String: String] = [:]
+            for recipientId in recipientUserIds {
+                if let userDoc = try? await db.collection("users").document(recipientId).getDocument(),
+                   let displayName = userDoc.data()?["displayName"] as? String {
+                    recipientDisplayNames[recipientId] = displayName
+                }
+            }
+            shareData["recipientDisplayNames"] = recipientDisplayNames
+        } else {
+            shareData["isDirectShare"] = false
+        }
+
         // 3. Save to Firestore shares collection (top-level, not user-scoped)
         try await db.collection("shares").document(shareId).setData(shareData)
 
@@ -226,6 +247,141 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         ])
 
         return (shareId, shareURL)
+    }
+
+    // MARK: - Direct Sharing (Phase 1: Inter-Heirloom Sharing)
+
+    /// Create a direct share to specific connections
+    /// - Parameters:
+    ///   - recipe: The recipe to share
+    ///   - options: Configuration for what to include
+    ///   - recipientUserIds: Array of user IDs to share with
+    ///   - context: ModelContext for SwiftData operations
+    /// - Returns: Share ID and shareable URL
+    func createDirectShare(
+        for recipe: Recipe,
+        options: ShareOptions,
+        recipientUserIds: [String],
+        context: ModelContext
+    ) async throws -> (shareId: String, shareURL: URL) {
+        guard !recipientUserIds.isEmpty else {
+            throw ShareError.noRecipients
+        }
+
+        guard let currentUserId = auth.currentUser?.uid else {
+            throw ShareError.notAuthenticated
+        }
+
+        logger.log("Creating direct share to \(recipientUserIds.count) recipients", category: .firebase, level: .info, metadata: nil)
+
+        // 1. Create share using extended createShare() method
+        let (shareId, shareURL) = try await createShare(
+            for: recipe,
+            options: options,
+            recipientUserIds: recipientUserIds,
+            context: context
+        )
+
+        // 2. Send notification to each recipient
+        for recipientId in recipientUserIds {
+            do {
+                // Create notification document
+                let notificationData: [String: Any] = [
+                    "type": "connectionSharedRecipe",
+                    "shareId": shareId,
+                    "recipeId": recipe.id.uuidString,
+                    "recipeTitle": recipe.title,
+                    "recipeImageURL": recipe.firebaseImageURL as Any,
+                    "actorUserId": currentUserId,
+                    "actorDisplayName": options.sharerName ?? "Someone",
+                    "actorPhotoURL": auth.currentUser?.photoURL?.absoluteString as Any,
+                    "timestamp": Timestamp(date: Date()),
+                    "read": false,
+                    "deepLinkURL": "heirloom://share/\(shareId)"
+                ]
+
+                try await db.collection("users/\(recipientId)/notifications")
+                    .document(UUID().uuidString)
+                    .setData(notificationData)
+
+                logger.log("Notification sent to recipient", category: .firebase, level: .info, metadata: ["recipientId": recipientId])
+            } catch {
+                logger.log("Failed to send notification to recipient", category: .firebase, level: .error, metadata: ["recipientId": recipientId, "error": error.localizedDescription])
+                // Continue sending to other recipients even if one fails
+            }
+        }
+
+        // 3. Update connection recipesSharedCount for each connection
+        // Get connection service
+        let connectionService = ServiceContainer.shared.resolve(ConnectionServiceProtocol.self) as? FirebaseConnectionService
+
+        for recipientId in recipientUserIds {
+            do {
+                // Find connection ID for this recipient
+                let connectionsQuery = db.collection("users/\(currentUserId)/connections")
+                    .whereField("connectedUserId", isEqualTo: recipientId)
+                    .whereField("status", isEqualTo: ConnectionStatus.connected.rawValue)
+
+                let snapshot = try await connectionsQuery.getDocuments()
+
+                if let connectionDoc = snapshot.documents.first {
+                    try await connectionService?.recordRecipeShare(connectionId: connectionDoc.documentID)
+                    logger.log("Updated recipe share count for connection", category: .firebase, level: .info, metadata: ["connectionId": connectionDoc.documentID])
+                }
+            } catch {
+                logger.log("Failed to update connection share count", category: .firebase, level: .error, metadata: ["recipientId": recipientId, "error": error.localizedDescription])
+                // Continue with other recipients
+            }
+        }
+
+        // 4. Track analytics
+        analytics.track(event: .recipeShared, properties: [
+            "method": "direct",
+            "recipient_count": recipientUserIds.count,
+            "share_type": options.shareType.rawValue
+        ])
+
+        logger.log("Direct share created successfully", category: .firebase, level: .info, metadata: ["shareId": shareId, "recipientCount": recipientUserIds.count])
+
+        return (shareId, shareURL)
+    }
+
+    /// Fetch direct shares sent to the current user
+    /// - Parameter userId: User ID to fetch shares for
+    /// - Returns: Array of share documents
+    func fetchDirectSharesForUser(userId: String) async throws -> [[String: Any]] {
+        logger.log("Fetching direct shares for user", category: .firebase, level: .info, metadata: ["userId": userId])
+
+        // Query shares where recipientUserIds contains this user
+        let snapshot = try await db.collection("shares")
+            .whereField("recipientUserIds", arrayContains: userId)
+            .whereField("isDirectShare", isEqualTo: true)
+            .order(by: "createdAt", descending: true)
+            .getDocuments()
+
+        let shares = snapshot.documents.map { $0.data() }
+
+        // Filter out expired shares and already accepted shares (client-side)
+        let now = Date()
+        let filteredShares = shares.filter { share in
+            // Check expiration
+            if let expiresAt = (share["expiresAt"] as? Timestamp)?.dateValue(),
+               expiresAt < now {
+                return false // Expired
+            }
+
+            // Check if already accepted by this user
+            let acceptedBy = share["acceptedBy"] as? [String] ?? []
+            if acceptedBy.contains(userId) {
+                return false // Already accepted
+            }
+
+            return true // Include this share
+        }
+
+        logger.log("Fetched direct shares", category: .firebase, level: .info, metadata: ["count": filteredShares.count])
+
+        return filteredShares
     }
 
     /// Generate a shareable URL from a share ID
@@ -595,6 +751,7 @@ extension FirebaseShareService {
         case recipeNotFound
         case invalidShareData
         case cannotAcceptOwnShare
+        case noRecipients
 
         var errorDescription: String? {
             switch self {
@@ -612,6 +769,8 @@ extension FirebaseShareService {
                 return "The share data is invalid or corrupted"
             case .cannotAcceptOwnShare:
                 return "You cannot accept your own share"
+            case .noRecipients:
+                return "You must select at least one person to share with"
             }
         }
     }

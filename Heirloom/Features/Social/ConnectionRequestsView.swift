@@ -147,12 +147,15 @@ struct ConnectionRequestsView: View {
             // Fetch only pending connections
             let pending = try await connectionService.fetchConnections(status: .pending, forceRefresh: false)
 
+            // Filter to only INCOMING requests (where we are the recipient, not the sender)
+            let incomingRequests = pending.filter { $0.isIncomingRequest }
+
             await MainActor.run {
-                self.pendingRequests = pending
+                self.pendingRequests = incomingRequests
                 self.isLoading = false
             }
 
-            Log.info("Loaded \(pending.count) pending requests", category: .social)
+            Log.info("Loaded \(incomingRequests.count) incoming requests (filtered from \(pending.count) total pending)", category: .social)
         } catch {
             await MainActor.run {
                 self.errorMessage = error.localizedDescription

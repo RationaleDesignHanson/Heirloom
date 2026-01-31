@@ -20,6 +20,16 @@ struct RecipeShareSheet: View {
     @State private var showAdvancedSettings = false
     @State private var versionCount: Int = 1 // Number of versions available (1 = original only)
 
+    // Direct sharing state (Phase 1: Inter-Heirloom Sharing)
+    @State private var shareMethod: ShareMethod = .link
+    @State private var selectedConnectionIds: Set<String> = []
+
+    /// Share method selection
+    enum ShareMethod {
+        case link        // Creates generic public link
+        case connections // Creates direct share to selected users
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -27,6 +37,14 @@ struct RecipeShareSheet: View {
                     VStack(spacing: HeirloomSpacing.lg) {
                         // Share type selector (PROMINENT)
                         shareTypeSelector
+
+                        // NEW: Share method selector (Phase 1: Inter-Heirloom Sharing)
+                        shareMethodSelector
+
+                        // NEW: Connection picker (if sharing to connections)
+                        if shareMethod == .connections {
+                            connectionPickerSection
+                        }
 
                         // Preview card
                         SharePreviewCard(recipe: recipe, options: options)
@@ -57,8 +75,10 @@ struct RecipeShareSheet: View {
                 }
             }
             .fullScreenCover(isPresented: $showSuccessMessage) {
-                if let url = shareURL {
-                    shareSuccessView(url: url)
+                if shareMethod == .connections {
+                    directShareSuccessView
+                } else if let url = shareURL {
+                    linkShareSuccessView(url: url)
                 }
             }
             .alert("Error", isPresented: .constant(errorMessage != nil)) {
@@ -98,6 +118,41 @@ struct RecipeShareSheet: View {
         }
     }
 
+    // MARK: - Share Method Selector (Phase 1: Inter-Heirloom Sharing)
+
+    private var shareMethodSelector: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Share Via")
+                .font(HeirloomFonts.bodyBold)
+                .foregroundStyle(HeirloomColors.primaryText)
+                .padding(.horizontal)
+
+            Picker("Share Method", selection: $shareMethod) {
+                Text("Link").tag(ShareMethod.link)
+                Text("To Connections").tag(ShareMethod.connections)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .frame(height: 44) // Explicit minimum tap target height
+        }
+        .background(Color.clear) // Ensure no overlay blocking
+    }
+
+    // MARK: - Connection Picker Section (Phase 1: Inter-Heirloom Sharing)
+
+    private var connectionPickerSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Select Recipients")
+                .font(HeirloomFonts.bodyBold)
+                .foregroundStyle(HeirloomColors.primaryText)
+                .padding(.horizontal)
+
+            ConnectionPickerView(selectedConnectionIds: $selectedConnectionIds)
+                .frame(height: 300)
+                .padding(.horizontal)
+        }
+    }
+
     // MARK: - Primary Share Button
 
     private var primaryShareButton: some View {
@@ -109,27 +164,69 @@ struct RecipeShareSheet: View {
                             .progressViewStyle(.circular)
                             .tint(HeirloomColors.buttonTextLight)
                     } else {
-                        Image(systemName: options.shareType == .heirloom ? "arrow.triangle.branch" : "square.and.arrow.up.fill")
+                        Image(systemName: shareMethod == .link ? "link" : "person.2.fill")
                             .font(.system(size: 18, weight: .semibold))
-                        Text("Create \(options.shareType.displayName) Share")
+                        Text(shareButtonText)
                             .font(HeirloomFonts.bodyBold)
                     }
                 }
                 .foregroundStyle(HeirloomColors.buttonTextLight)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
-                .background(options.shareType == .heirloom ? HeirloomColors.tomato : HeirloomColors.familyGreen)
+                .background(isShareButtonEnabled ? HeirloomColors.tomato : HeirloomColors.warmGray)
                 .cornerRadius(12)
             }
+            .disabled(!isShareButtonEnabled)
 
-            // Share type description
-            Text(options.shareType.description)
+            // Share method description
+            Text(shareButtonDescription)
                 .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal)
+    }
+
+    /// Dynamic button text based on share method and selection
+    private var shareButtonText: String {
+        switch shareMethod {
+        case .link:
+            return "Create Heirloom Share"
+        case .connections:
+            let count = selectedConnectionIds.count
+            if count == 0 {
+                return "Select Connections"
+            } else if count == 1 {
+                return "Share with 1 Friend"
+            } else {
+                return "Share with \(count) Friends"
+            }
+        }
+    }
+
+    /// Button description based on share method
+    private var shareButtonDescription: String {
+        switch shareMethod {
+        case .link:
+            return "Recipients can edit and build on this recipe"
+        case .connections:
+            if selectedConnectionIds.isEmpty {
+                return "Select at least one connection to share with"
+            } else {
+                return "Direct notification sent to selected friends"
+            }
+        }
+    }
+
+    /// Whether share button should be enabled
+    private var isShareButtonEnabled: Bool {
+        switch shareMethod {
+        case .link:
+            return true
+        case .connections:
+            return !selectedConnectionIds.isEmpty
+        }
     }
 
     // MARK: - Advanced Settings (Collapsed)
@@ -383,27 +480,49 @@ struct RecipeShareSheet: View {
             errorMessage = nil
 
             do {
-                let (shareId, url) = try await firebaseShare.createShare(
-                    for: recipe,
-                    options: options,
-                    context: modelContext
-                )
+                let (shareId, url): (String, URL)
+
+                // Choose share path based on selected method
+                switch shareMethod {
+                case .link:
+                    // EXISTING PATH: Generic link share
+                    (shareId, url) = try await firebaseShare.createShare(
+                        for: recipe,
+                        options: options,
+                        recipientUserIds: nil,
+                        context: modelContext
+                    )
+
+                case .connections:
+                    // NEW PATH: Direct share to selected connections
+                    guard !selectedConnectionIds.isEmpty else {
+                        throw NSError(
+                            domain: "RecipeShareSheet",
+                            code: 1,
+                            userInfo: [NSLocalizedDescriptionKey: "Please select at least one connection"]
+                        )
+                    }
+
+                    (shareId, url) = try await firebaseShare.createDirectShare(
+                        for: recipe,
+                        options: options,
+                        recipientUserIds: Array(selectedConnectionIds),
+                        context: modelContext
+                    )
+                }
 
                 await MainActor.run {
                     shareURL = url
                     showSuccessMessage = true
                     isSharing = false
 
-                    Log.info("✅ Setting showSuccessMessage = true", category: .firebase, metadata: [
-                        "shareURL": url.absoluteString,
-                        "showSuccessMessage": showSuccessMessage
+                    Log.info("✅ Share created successfully", category: .firebase, metadata: [
+                        "shareId": shareId,
+                        "shareMethod": shareMethod == .link ? "link" : "direct",
+                        "recipientCount": selectedConnectionIds.count,
+                        "shareURL": url.absoluteString
                     ])
                 }
-
-                Log.info("Share created successfully", category: .firebase, metadata: [
-                    "shareId": shareId,
-                    "shareType": options.shareType.rawValue
-                ])
 
             } catch {
                 await MainActor.run {
@@ -412,6 +531,7 @@ struct RecipeShareSheet: View {
                 }
 
                 Log.error("Failed to create share", category: .firebase, metadata: [
+                    "shareMethod": shareMethod == .link ? "link" : "direct",
                     "error": error.localizedDescription
                 ])
             }
@@ -421,7 +541,70 @@ struct RecipeShareSheet: View {
     // MARK: - Share Success View
 
     @ViewBuilder
-    private func shareSuccessView(url: URL) -> some View {
+    // MARK: - Direct Share Success View
+
+    private var directShareSuccessView: some View {
+        NavigationStack {
+            VStack(spacing: HeirloomSpacing.xl) {
+                Spacer()
+
+                // Success icon
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 80))
+                    .foregroundStyle(HeirloomColors.success)
+
+                // Success message
+                VStack(spacing: HeirloomSpacing.sm) {
+                    Text("Recipe Shared!")
+                        .font(HeirloomFonts.title1)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text(recipe.title)
+                        .font(HeirloomFonts.title3)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+
+                // Recipient info
+                VStack(spacing: HeirloomSpacing.xs) {
+                    Text("Shared with \(selectedConnectionIds.count) friend\(selectedConnectionIds.count == 1 ? "" : "s")")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("They'll receive a notification and can accept the recipe")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, HeirloomSpacing.xl)
+                }
+
+                Spacer()
+
+                // Done button
+                Button {
+                    showSuccessMessage = false
+                    dismiss()
+                } label: {
+                    Text("Done")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(HeirloomColors.tomato)
+                        .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                .padding(.bottom, HeirloomSpacing.xl)
+            }
+            .navigationTitle("Success")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    // MARK: - Link Share Success View
+
+    private func linkShareSuccessView(url: URL) -> some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: HeirloomSpacing.xl) {
