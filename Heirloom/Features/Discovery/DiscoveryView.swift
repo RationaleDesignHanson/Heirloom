@@ -1,27 +1,54 @@
 import SwiftUI
 import SwiftData
+import FirebaseFirestore
 
-/// Discovery feed showing trending, new, and popular recipes
+/// Discovery feed showing trending, new, and popular public recipes
 struct DiscoveryView: View {
     @Environment(\.modelContext) private var modelContext
 
-    private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
+    private var discoveryService: DiscoveryServiceProtocol {
+        ServiceContainer.shared.resolve((any DiscoveryServiceProtocol).self)
+    }
+
+    private var analytics: AnalyticsService {
+        ServiceContainer.shared.resolve(AnalyticsService.self)
+    }
 
     @State private var selectedTab: DiscoveryTab = .trending
-    @State private var trendingRecipes: [TrendingRecipe] = []
-    @State private var newRecipes: [Recipe] = []
-    @State private var popularRecipes: [TrendingRecipe] = []
+    @State private var trendingRecipes: [PublicRecipe] = []
+    @State private var newRecipes: [PublicRecipe] = []
+    @State private var popularRecipes: [PublicRecipe] = []
+
+    @State private var searchQuery: String = ""
+    @State private var searchResults: [PublicRecipe] = []
+    @State private var isSearching: Bool = false
 
     @State private var isLoading = false
     @State private var errorMessage: String?
 
+    // Pagination support
+    @State private var trendingLastDoc: DocumentSnapshot?
+    @State private var newLastDoc: DocumentSnapshot?
+    @State private var popularLastDoc: DocumentSnapshot?
+    @State private var searchLastDoc: DocumentSnapshot?
+    @State private var isLoadingMore = false
+    @State private var hasMoreResults = true
+
+    // Navigation
+    @State private var selectedPublicRecipeId: String?
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Tab selector
-                tabSelector
+                // Search bar
+                searchBar
 
-                // Content based on selected tab
+                // Tab selector (only show when not searching)
+                if !isSearching {
+                    tabSelector
+                }
+
+                // Content
                 if isLoading && currentContent.isEmpty {
                     loadingView
                 } else if let error = errorMessage {
@@ -32,8 +59,12 @@ struct DiscoveryView: View {
                     feedContent
                 }
             }
-            .navigationTitle("Discover")
+            .navigationTitle(isSearching ? "Search Results" : "Discover")
             .navigationBarTitleDisplayMode(.large)
+            .navigationDestination(for: String.self) { publicRecipeId in
+                // Navigate to PublicRecipeDetailView
+                PublicRecipeDetailView(publicRecipeId: publicRecipeId)
+            }
             .task {
                 await loadContent()
             }
@@ -41,6 +72,41 @@ struct DiscoveryView: View {
                 await refreshContent()
             }
         }
+    }
+
+    // MARK: - Search Bar
+
+    private var searchBar: some View {
+        HStack {
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(HeirloomColors.secondaryText)
+
+                TextField("Search recipes...", text: $searchQuery)
+                    .textFieldStyle(.plain)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .onChange(of: searchQuery) { _, newValue in
+                        handleSearchChange(newValue)
+                    }
+
+                if !searchQuery.isEmpty {
+                    Button {
+                        searchQuery = ""
+                        isSearching = false
+                        searchResults = []
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(HeirloomColors.warmGray)
+                    }
+                }
+            }
+            .padding(HeirloomSpacing.sm)
+            .background(HeirloomColors.cream)
+            .cornerRadius(10)
+        }
+        .padding(.horizontal, HeirloomSpacing.md)
+        .padding(.vertical, HeirloomSpacing.sm)
     }
 
     // MARK: - Tab Selector
@@ -67,29 +133,40 @@ struct DiscoveryView: View {
     private var feedContent: some View {
         ScrollView {
             LazyVStack(spacing: HeirloomSpacing.md) {
-                switch selectedTab {
-                case .trending:
-                    ForEach(trendingRecipes) { trending in
-                        TrendingRecipeCard(
-                            trending: trending,
-                            onTap: { navigateToRecipe(trending.recipe) }
-                        )
-                    }
+                ForEach(currentContent, id: \.id) { recipe in
+                    Button {
+                        selectedPublicRecipeId = recipe.id
 
-                case .new:
-                    ForEach(newRecipes, id: \.id) { recipe in
-                        NewRecipeCard(
-                            recipe: recipe,
-                            onTap: { navigateToRecipe(recipe) }
-                        )
+                        // Track analytics
+                        analytics.track(event: .trendingRecipeViewed, properties: [
+                            "recipe_id": recipe.id,
+                            "recipe_title": recipe.title,
+                            "discovery_tab": isSearching ? "search" : selectedTab.rawValue
+                        ])
+                    } label: {
+                        PublicRecipeCard(recipe: recipe, tab: selectedTab)
                     }
+                    .buttonStyle(.plain)
+                }
 
-                case .popular:
-                    ForEach(popularRecipes) { trending in
-                        PopularRecipeCard(
-                            trending: trending,
-                            onTap: { navigateToRecipe(trending.recipe) }
-                        )
+                // Load more button
+                if hasMoreResults && !isLoadingMore && !currentContent.isEmpty {
+                    Button {
+                        Task {
+                            await loadMore()
+                        }
+                    } label: {
+                        HStack {
+                            Text("Load More")
+                                .font(HeirloomFonts.bodyBold)
+
+                            if isLoadingMore {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                        }
+                        .foregroundStyle(HeirloomColors.tomato)
+                        .padding()
                     }
                 }
             }
@@ -105,7 +182,7 @@ struct DiscoveryView: View {
             ProgressView()
                 .scaleEffect(1.5)
 
-            Text("Loading \(selectedTab.displayName.lowercased()) recipes...")
+            Text(isSearching ? "Searching..." : "Loading \(selectedTab.displayName.lowercased()) recipes...")
                 .font(HeirloomFonts.body)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
@@ -152,15 +229,17 @@ struct DiscoveryView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: HeirloomSpacing.md) {
-            Image(systemName: selectedTab.emptyIcon)
+            Image(systemName: isSearching ? "magnifyingglass" : selectedTab.emptyIcon)
                 .font(.system(size: 64))
                 .foregroundStyle(HeirloomColors.warmGray)
 
-            Text(selectedTab.emptyTitle)
+            Text(isSearching ? "No Results Found" : selectedTab.emptyTitle)
                 .font(HeirloomFonts.title3)
                 .foregroundStyle(HeirloomColors.primaryText)
 
-            Text(selectedTab.emptyMessage)
+            Text(isSearching
+                ? "Try different keywords or check your spelling."
+                : selectedTab.emptyMessage)
                 .font(HeirloomFonts.body)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .multilineTextAlignment(.center)
@@ -172,7 +251,11 @@ struct DiscoveryView: View {
 
     // MARK: - Computed Properties
 
-    private var currentContent: [Any] {
+    private var currentContent: [PublicRecipe] {
+        if isSearching {
+            return searchResults
+        }
+
         switch selectedTab {
         case .trending:
             return trendingRecipes
@@ -183,10 +266,86 @@ struct DiscoveryView: View {
         }
     }
 
+    // MARK: - Search Handling
+
+    private var searchTask: Task<Void, Never>?
+
+    private func handleSearchChange(_ query: String) {
+        // Cancel previous search task
+        searchTask?.cancel()
+
+        // Clear results immediately if query is empty
+        if query.isEmpty {
+            isSearching = false
+            searchResults = []
+            return
+        }
+
+        // Debounce search (300ms)
+        searchTask = Task {
+            try? await Task.sleep(for: .milliseconds(300))
+
+            guard !Task.isCancelled else { return }
+
+            await performSearch(query: query)
+        }
+    }
+
+    private func performSearch(query: String) async {
+        guard !query.isEmpty, query.count >= 3 else {
+            await MainActor.run {
+                isSearching = false
+                searchResults = []
+            }
+            return
+        }
+
+        await MainActor.run {
+            isSearching = true
+            isLoading = true
+            errorMessage = nil
+        }
+
+        do {
+            let (recipes, lastDoc) = try await discoveryService.search(
+                query: query,
+                limit: 20,
+                lastDocument: nil
+            )
+
+            await MainActor.run {
+                searchResults = recipes
+                searchLastDoc = lastDoc
+                hasMoreResults = lastDoc != nil
+                isLoading = false
+            }
+
+            // Track analytics
+            analytics.track(event: .discoverySearchPerformed, properties: [
+                "query": query,
+                "results_count": recipes.count
+            ])
+
+        } catch {
+            await MainActor.run {
+                errorMessage = error.localizedDescription
+                isLoading = false
+            }
+
+            Log.error("Search failed", category: .social, metadata: [
+                "query": query,
+                "error": error.localizedDescription
+            ])
+        }
+    }
+
     // MARK: - Data Loading
 
     private func loadContent() async {
         guard !isLoading else { return }
+
+        // Don't reload if searching
+        if isSearching { return }
 
         isLoading = true
         errorMessage = nil
@@ -194,29 +353,32 @@ struct DiscoveryView: View {
         do {
             switch selectedTab {
             case .trending:
-                let trending = try await TrendingService.shared.fetchTrendingRecipes(
+                let (recipes, lastDoc) = try await discoveryService.fetchTrending(
                     limit: 20,
-                    context: modelContext
+                    lastDocument: nil
                 )
 
                 await MainActor.run {
-                    trendingRecipes = trending
+                    trendingRecipes = recipes
+                    trendingLastDoc = lastDoc
+                    hasMoreResults = lastDoc != nil
                 }
 
-                // Track analytics
                 analytics.track(event: .discoveryFeedViewed, properties: [
                     "tab": "trending",
-                    "count": trending.count
+                    "count": recipes.count
                 ])
 
             case .new:
-                let recipes = try await TrendingService.shared.fetchRecentRecipes(
+                let (recipes, lastDoc) = try await discoveryService.fetchNew(
                     limit: 20,
-                    context: modelContext
+                    lastDocument: nil
                 )
 
                 await MainActor.run {
                     newRecipes = recipes
+                    newLastDoc = lastDoc
+                    hasMoreResults = lastDoc != nil
                 }
 
                 analytics.track(event: .discoveryFeedViewed, properties: [
@@ -225,18 +387,20 @@ struct DiscoveryView: View {
                 ])
 
             case .popular:
-                let popular = try await TrendingService.shared.fetchPopularRecipes(
+                let (recipes, lastDoc) = try await discoveryService.fetchPopular(
                     limit: 20,
-                    context: modelContext
+                    lastDocument: nil
                 )
 
                 await MainActor.run {
-                    popularRecipes = popular
+                    popularRecipes = recipes
+                    popularLastDoc = lastDoc
+                    hasMoreResults = lastDoc != nil
                 }
 
                 analytics.track(event: .discoveryFeedViewed, properties: [
                     "tab": "popular",
-                    "count": popular.count
+                    "count": recipes.count
                 ])
             }
 
@@ -250,26 +414,107 @@ struct DiscoveryView: View {
                 isLoading = false
             }
 
-            Log.error("Failed to load discovery recipes", category: .general, metadata: ["tab": selectedTab.rawValue, "error": error.localizedDescription])
+            Log.error("Failed to load discovery recipes", category: .social, metadata: [
+                "tab": selectedTab.rawValue,
+                "error": error.localizedDescription
+            ])
+        }
+    }
+
+    private func loadMore() async {
+        guard !isLoadingMore, hasMoreResults else { return }
+
+        isLoadingMore = true
+
+        do {
+            if isSearching {
+                let (recipes, lastDoc) = try await discoveryService.search(
+                    query: searchQuery,
+                    limit: 20,
+                    lastDocument: searchLastDoc
+                )
+
+                await MainActor.run {
+                    searchResults.append(contentsOf: recipes)
+                    searchLastDoc = lastDoc
+                    hasMoreResults = lastDoc != nil
+                }
+
+            } else {
+                switch selectedTab {
+                case .trending:
+                    let (recipes, lastDoc) = try await discoveryService.fetchTrending(
+                        limit: 20,
+                        lastDocument: trendingLastDoc
+                    )
+
+                    await MainActor.run {
+                        trendingRecipes.append(contentsOf: recipes)
+                        trendingLastDoc = lastDoc
+                        hasMoreResults = lastDoc != nil
+                    }
+
+                case .new:
+                    let (recipes, lastDoc) = try await discoveryService.fetchNew(
+                        limit: 20,
+                        lastDocument: newLastDoc
+                    )
+
+                    await MainActor.run {
+                        newRecipes.append(contentsOf: recipes)
+                        newLastDoc = lastDoc
+                        hasMoreResults = lastDoc != nil
+                    }
+
+                case .popular:
+                    let (recipes, lastDoc) = try await discoveryService.fetchPopular(
+                        limit: 20,
+                        lastDocument: popularLastDoc
+                    )
+
+                    await MainActor.run {
+                        popularRecipes.append(contentsOf: recipes)
+                        popularLastDoc = lastDoc
+                        hasMoreResults = lastDoc != nil
+                    }
+                }
+            }
+
+            await MainActor.run {
+                isLoadingMore = false
+            }
+
+        } catch {
+            await MainActor.run {
+                isLoadingMore = false
+            }
+
+            Log.error("Failed to load more recipes", category: .social, metadata: [
+                "tab": isSearching ? "search" : selectedTab.rawValue,
+                "error": error.localizedDescription
+            ])
         }
     }
 
     private func refreshContent() async {
-        // Clear cache and reload
-        TrendingService.shared.clearCache()
-        await loadContent()
-    }
+        // Clear cache
+        discoveryService.clearCache()
 
-    private func navigateToRecipe(_ recipe: Recipe) {
-        // TODO: Implement navigation to recipe detail
-        Log.debug("Navigate to recipe requested", category: .ui, metadata: ["title": recipe.title, "recipeId": recipe.id.uuidString])
+        // Reset pagination
+        await MainActor.run {
+            trendingLastDoc = nil
+            newLastDoc = nil
+            popularLastDoc = nil
+            searchLastDoc = nil
+            hasMoreResults = true
+        }
 
-        // Track analytics
-        analytics.track(event: .trendingRecipeViewed, properties: [
-            "recipe_id": recipe.id.uuidString,
-            "recipe_title": recipe.title,
-            "discovery_tab": selectedTab.rawValue
-        ])
+        // Reload
+        if isSearching {
+            await performSearch(query: searchQuery)
+        } else {
+            await loadContent()
+        }
     }
 }
 
@@ -316,102 +561,108 @@ enum DiscoveryTab: String, CaseIterable {
     }
 }
 
-// MARK: - Trending Recipe Card
+// MARK: - Public Recipe Card
 
-private struct TrendingRecipeCard: View {
-    let trending: TrendingRecipe
-    let onTap: () -> Void
+private struct PublicRecipeCard: View {
+    let recipe: PublicRecipe
+    let tab: DiscoveryTab
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: HeirloomSpacing.md) {
-                // Recipe image
-                if let imageData = trending.recipe.images.first?.data,
-                   let uiImage = UIImage(data: imageData) {
-                    Image(uiImage: uiImage)
+        HStack(spacing: HeirloomSpacing.md) {
+            // Recipe image (async load from URL)
+            AsyncImage(url: URL(string: recipe.imageURL ?? "")) { phase in
+                switch phase {
+                case .empty:
+                    ProgressView()
+                        .frame(width: 80, height: 80)
+                case .success(let image):
+                    image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 80, height: 80)
                         .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
-                } else {
+                case .failure:
                     Image(systemName: "fork.knife")
                         .font(.system(size: 32))
                         .foregroundStyle(HeirloomColors.warmGray)
                         .frame(width: 80, height: 80)
                         .background(HeirloomColors.cream)
                         .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
+                @unknown default:
+                    EmptyView()
+                }
+            }
+
+            // Recipe details
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                // Title with tab badge
+                HStack {
+                    Text(recipe.title)
+                        .font(HeirloomFonts.headline)
+                        .foregroundStyle(HeirloomColors.primaryText)
+                        .lineLimit(2)
+
+                    Spacer()
+
+                    // Tab-specific badge
+                    if tab == .trending {
+                        Text("🔥")
+                            .font(.system(size: 16))
+                    } else if tab == .new {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 12))
+                            .foregroundStyle(HeirloomColors.amber)
+                    } else if tab == .popular {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(HeirloomColors.familyGreen)
+                    }
                 }
 
-                // Recipe details
-                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                    // Title with trending badge
-                    HStack {
-                        Text(trending.recipe.title)
-                            .font(HeirloomFonts.headline)
-                            .foregroundStyle(HeirloomColors.primaryText)
-                            .lineLimit(2)
+                // Creator attribution
+                if let creatorName = recipe.creatorName {
+                    Text("by \(creatorName)")
+                        .font(HeirloomFonts.caption)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
 
-                        Spacer()
+                // Engagement stats
+                HStack(spacing: HeirloomSpacing.sm) {
+                    statLabel(icon: "eye.fill", value: recipe.viewCount)
+                    statLabel(icon: "heart.fill", value: recipe.saveCount)
 
-                        if !trending.displayBadge.isEmpty {
-                            Text(trending.displayBadge)
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(HeirloomColors.buttonTextLight)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 3)
-                                .background(HeirloomColors.tomato)
-                                .cornerRadius(4)
+                    if let servings = recipe.servings {
+                        HStack(spacing: 2) {
+                            Image(systemName: "person.2.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(HeirloomColors.secondaryText)
+
+                            Text("\(servings)")
+                                .font(HeirloomFonts.caption2)
+                                .foregroundStyle(HeirloomColors.secondaryText)
                         }
                     }
+                }
 
-                    // Engagement stats
-                    HStack(spacing: HeirloomSpacing.sm) {
-                        statLabel(icon: "eye.fill", value: trending.recentViews)
-                        statLabel(icon: "flame.fill", value: trending.recentCooks)
-                        statLabel(icon: "square.and.arrow.up", value: trending.recentShares)
-                    }
-
-                    // Trending score bar
+                // Time metadata
+                if let prepTime = recipe.prepTime, let cookTime = recipe.cookTime {
                     HStack(spacing: HeirloomSpacing.xs) {
-                        Text("Score:")
+                        Text("⏱️ \(prepTime + cookTime)m")
                             .font(HeirloomFonts.caption2)
                             .foregroundStyle(HeirloomColors.secondaryText)
-
-                        GeometryReader { geometry in
-                            ZStack(alignment: .leading) {
-                                // Background
-                                Capsule()
-                                    .fill(HeirloomColors.cream)
-                                    .frame(height: 4)
-
-                                // Fill
-                                Capsule()
-                                    .fill(HeirloomColors.tomato)
-                                    .frame(
-                                        width: geometry.size.width * (trending.trendingScore / 100),
-                                        height: 4
-                                    )
-                            }
-                        }
-                        .frame(height: 4)
-
-                        Text("\(Int(trending.trendingScore))")
-                            .font(HeirloomFonts.caption2Bold)
-                            .foregroundStyle(HeirloomColors.tomato)
                     }
                 }
             }
-            .padding(HeirloomSpacing.md)
-            .background(HeirloomColors.cardBackground)
-            .cornerRadius(12)
-            .shadow(
-                color: HeirloomShadows.card.color,
-                radius: HeirloomShadows.card.radius,
-                x: HeirloomShadows.card.x,
-                y: HeirloomShadows.card.y
-            )
         }
-        .buttonStyle(.plain)
+        .padding(HeirloomSpacing.md)
+        .background(HeirloomColors.cardBackground)
+        .cornerRadius(12)
+        .shadow(
+            color: HeirloomShadows.card.color,
+            radius: HeirloomShadows.card.radius,
+            x: HeirloomShadows.card.x,
+            y: HeirloomShadows.card.y
+        )
     }
 
     @ViewBuilder
@@ -425,128 +676,6 @@ private struct TrendingRecipeCard: View {
                 .font(HeirloomFonts.caption2)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
-    }
-}
-
-// MARK: - New Recipe Card
-
-private struct NewRecipeCard: View {
-    let recipe: Recipe
-    let onTap: () -> Void
-
-    var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                // Recipe image
-                if let imageData = recipe.images.first?.data,
-                   let uiImage = UIImage(data: imageData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(height: 180)
-                        .clipped()
-                } else {
-                    Image(systemName: "fork.knife")
-                        .font(.system(size: 48))
-                        .foregroundStyle(HeirloomColors.warmGray)
-                        .frame(height: 180)
-                        .frame(maxWidth: .infinity)
-                        .background(HeirloomColors.cream)
-                }
-
-                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                    HStack {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 12))
-                            .foregroundStyle(HeirloomColors.amber)
-
-                        Text("NEW")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(HeirloomColors.amber)
-
-                        Spacer()
-
-                        Text(recipe.dateAdded.formatted(.relative(presentation: .named)))
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-
-                    Text(recipe.title)
-                        .font(HeirloomFonts.headline)
-                        .foregroundStyle(HeirloomColors.primaryText)
-                        .lineLimit(2)
-                }
-                .padding(.horizontal, HeirloomSpacing.sm)
-                .padding(.bottom, HeirloomSpacing.sm)
-            }
-            .background(HeirloomColors.cardBackground)
-            .cornerRadius(12)
-            .shadow(
-                color: HeirloomShadows.card.color,
-                radius: HeirloomShadows.card.radius,
-                x: HeirloomShadows.card.x,
-                y: HeirloomShadows.card.y
-            )
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Popular Recipe Card
-
-private struct PopularRecipeCard: View {
-    let trending: TrendingRecipe
-    let onTap: () -> Void
-
-    var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: HeirloomSpacing.md) {
-                // Rank badge
-                ZStack {
-                    Circle()
-                        .fill(HeirloomColors.familyGreen)
-                        .frame(width: 48, height: 48)
-
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(HeirloomColors.buttonTextLight)
-                }
-
-                // Recipe details
-                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                    Text(trending.recipe.title)
-                        .font(HeirloomFonts.headline)
-                        .foregroundStyle(HeirloomColors.primaryText)
-                        .lineLimit(2)
-
-                    HStack(spacing: HeirloomSpacing.sm) {
-                        Label("\(trending.recentViews)", systemImage: "eye.fill")
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-
-                        Label("\(trending.recentCooks)", systemImage: "flame.fill")
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-                }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14))
-                    .foregroundStyle(HeirloomColors.warmGray)
-            }
-            .padding(HeirloomSpacing.md)
-            .background(HeirloomColors.cardBackground)
-            .cornerRadius(12)
-            .shadow(
-                color: HeirloomShadows.card.color,
-                radius: HeirloomShadows.card.radius,
-                x: HeirloomShadows.card.x,
-                y: HeirloomShadows.card.y
-            )
-        }
-        .buttonStyle(.plain)
     }
 }
 

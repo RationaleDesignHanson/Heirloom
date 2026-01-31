@@ -365,6 +365,32 @@ extension ServiceContainer {
             TrendingService()
         }
 
+        // MARK: - Public Recipe Discovery Services (Phase 11)
+
+        // PublicRecipeService - Manages publishing recipes to public discovery
+        register(FirebasePublicRecipeService.self, lifecycle: .singleton) { container in
+            // Resolve ProfileService - need to check if we have ProfileServiceProtocol or FirebaseUserProfileService
+            let imageService = container.resolve(FirebaseImageService.self)
+            // TODO: Verify ProfileService protocol name and resolve properly
+            return FirebasePublicRecipeService(
+                profileService: container.resolve(FirebaseUserProfileService.self),
+                imageService: imageService
+            )
+        }
+
+        register((any PublicRecipeServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebasePublicRecipeService.self) as any PublicRecipeServiceProtocol
+        }
+
+        // DiscoveryService - Manages fetching and searching public recipes
+        register(FirebaseDiscoveryService.self, lifecycle: .singleton) { _ in
+            FirebaseDiscoveryService()
+        }
+
+        register((any DiscoveryServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseDiscoveryService.self) as any DiscoveryServiceProtocol
+        }
+
         register(DinnerPartyShoppingSync.self, lifecycle: .singleton) { _ in
             DinnerPartyShoppingSync()
         }
