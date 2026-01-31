@@ -252,6 +252,15 @@ service cloud.firestore {
     }
 
     // ========================================
+    // PROFILE COLLECTION GROUP (for search queries)
+    // Explicit rule for collectionGroup("profile") queries
+    // ========================================
+    match /{path=**}/profile/{document} {
+      // Any authenticated user can read profile documents via collection group queries
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
     // PUBLIC PROFILES (Social Layer - Top-Level)
     // For shareable profile URLs
     // Stored at: publicProfiles/{slug}
@@ -280,8 +289,11 @@ service cloud.firestore {
     // Stored at: users/{userId}/connections/{connectionId}
     // ========================================
     match /users/{userId}/connections/{connectionId} {
-      // Users can read their own connections
-      allow read: if isOwner(userId);
+      // Users can read their own connections OR connections where they are the connectedUserId
+      // This allows User A to query User B's connections to check for existing connections
+      allow read: if isAuthenticated() &&
+                     (request.auth.uid == userId ||
+                      request.auth.uid == resource.data.connectedUserId);
 
       // Any authenticated user can create connections in ANY user's collection
       // IF the connection is between the authenticated user and that collection owner

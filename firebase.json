@@ -5,6 +5,9 @@
   "storage": {
     "rules": "storage.rules"
   },
+  "functions": {
+    "source": "firebase/functions"
+  },
   "hosting": {
     "public": "public",
     "ignore": [
