@@ -26,6 +26,7 @@ struct RecipeDetailView: View {
     @State private var servingMultiplier: Double = 1.0
     @State private var targetServings: Int = 0
     @State private var showScalingExplanation = false
+    @State private var showScalingRepair = false
     @State private var showComments = false
     @State private var isCardFlipped = false
     @State private var showCardBackEditor = false
@@ -534,6 +535,15 @@ struct RecipeDetailView: View {
                         startCookingButton
                     }
 
+                    // Scaling Warning Banner
+                    if let ingredients = displayIngredients, !ingredients.isEmpty {
+                        ScalingWarningBanner(
+                            validation: recipe.scalingValidation,
+                            showRepairSheet: $showScalingRepair
+                        )
+                        .padding(.horizontal)
+                    }
+
                     // Ingredients Section
                     if let ingredients = displayIngredients, !ingredients.isEmpty {
                         RecipeIngredientsSection(
@@ -739,6 +749,9 @@ private struct RecipeDetailModifiers: ViewModifier {
             NavigationStack {
                 RecipeCommentListView(recipe: recipe)
             }
+        }
+        .sheet(isPresented: $showScalingRepair) {
+            ScalingRepairSheet(recipe: recipe)
         }
         .sheet(isPresented: $showCardBackEditor, onDismiss: {
             // Force card back preview to refresh with updated data

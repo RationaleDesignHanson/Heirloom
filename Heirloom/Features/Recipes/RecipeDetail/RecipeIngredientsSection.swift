@@ -98,12 +98,29 @@ struct RecipeIngredientsSection: View {
     // MARK: - Scaling Logic
 
     private func scaledIngredientText(_ ingredient: Ingredient) -> String {
+        // Check if quantity exists
+        guard ingredient.quantity != nil else {
+            // Show original text with warning icon when quantity missing
+            return "\(ingredient.originalText) ⚠️"
+        }
+
         // Calculate scale factor from target servings
         let originalServings = recipe.parsedServingCount
         let scaleFactor = Double(targetServings) / Double(originalServings)
 
         // Use IngredientFormatter to format with scaling and unit conversion
-        return formatter.format(ingredient, scaleFactor: scaleFactor, convertUnits: true)
+        let scaled = formatter.format(ingredient, scaleFactor: scaleFactor, convertUnits: true)
+
+        // Log successful scaling attempt
+        if targetServings != originalServings {
+            ScalingDiagnostics.shared.logScalingAttempt(
+                recipe: recipe,
+                targetServings: targetServings,
+                success: true
+            )
+        }
+
+        return scaled
     }
 }
 

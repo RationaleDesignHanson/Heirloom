@@ -411,6 +411,38 @@ struct RecipeImportView: View {
         }
         recipe.ingredients = ingredients
 
+        // CRITICAL: Parse ingredients immediately to ensure quantities are available for scaling
+        // This prevents the bug where changing servings doesn't update volumes
+        do {
+            Log.info("Parsing ingredients immediately for accurate scaling", category: .network)
+            let parsed = try await AIIngredientParser.shared.parseBatch(
+                imported.ingredients,
+                context: modelContext
+            )
+
+            // Update ingredients with parsed data
+            for (index, ingredient) in ingredients.enumerated() {
+                if let parsedData = parsed[safe: index] {
+                    ingredient.quantity = parsedData.quantity
+                    ingredient.quantityMax = parsedData.quantityMax
+                    ingredient.unit = parsedData.unit
+                    ingredient.normalizedUnit = parsedData.normalizedUnit
+                    ingredient.name = parsedData.name
+                    ingredient.category = parsedData.category
+                }
+            }
+
+            Log.info("Ingredients parsed successfully", category: .network, metadata: [
+                "count": ingredients.count,
+                "withQuantities": ingredients.filter { $0.quantity != nil }.count
+            ])
+        } catch {
+            Log.error("Failed to parse ingredients immediately", category: .network, metadata: [
+                "error": error.localizedDescription
+            ])
+            // Continue with placeholder ingredients - background parsing will retry
+        }
+
         // Auto-detect recipe category
         recipe.detectAndApplyCategory()
 
@@ -513,6 +545,18 @@ struct RecipeImportView: View {
         ingredientTexts: [String],
         context: ModelContext
     ) async {
+        // Skip if ingredients are already parsed (immediate parsing completed)
+        if let ingredients = recipe.ingredients {
+            let parsedCount = ingredients.filter { $0.quantity != nil }.count
+            if parsedCount > 0 {
+                Log.info("Skipping background parsing - ingredients already parsed", category: .general, metadata: [
+                    "parsedCount": parsedCount,
+                    "totalCount": ingredients.count
+                ])
+                return
+            }
+        }
+
         Log.info("Starting background ingredient parsing", category: .general, metadata: ["count": ingredientTexts.count])
 
         // Get services from container

@@ -549,14 +549,43 @@ extension Recipe {
     /// Parse servings string to extract base serving count
     /// Examples: "6 servings" → 6, "Makes 12 cookies" → 12, "4-6 servings" → 4
     var parsedServingCount: Int {
-        guard let servings = servings else { return 4 } // Default assumption
+        if let parsed = ServingsParser.parse(servings) {
+            return parsed
+        } else {
+            ScalingDiagnostics.shared.logServingsParsingFailure(recipe: self, rawServings: servings)
+            return 4
+        }
+    }
 
-        // Try to extract first number from servings string
-        let numbers = servings.components(separatedBy: CharacterSet.decimalDigits.inverted)
-            .compactMap { Int($0) }
-            .filter { $0 > 0 } // Filter out zeros
+    /// Validates recipe scaling capability and identifies issues
+    var scalingValidation: ScalingValidation {
+        var issues: [ScalingIssue] = []
 
-        return numbers.first ?? 4
+        // Check servings
+        if servings == nil || parsedServingCount == 4 {
+            issues.append(.servingsUnparseable(raw: servings))
+        }
+
+        // Check ingredient quantities
+        let ingredients = self.ingredients ?? []
+        let missingQuantities = ingredients.filter { $0.quantity == nil }
+        if !missingQuantities.isEmpty {
+            issues.append(.missingQuantities(
+                count: missingQuantities.count,
+                total: ingredients.count
+            ))
+
+            ScalingDiagnostics.shared.logMissingQuantities(
+                recipe: self,
+                missingCount: missingQuantities.count,
+                totalCount: ingredients.count
+            )
+        }
+
+        return ScalingValidation(
+            isFullyScalable: issues.isEmpty,
+            issues: issues
+        )
     }
 
     /// Display string for locked recipes
@@ -1212,5 +1241,31 @@ extension Recipe {
 
         // 3. Recipe can be shared
         return (true, nil)
+    }
+}
+
+// MARK: - Scaling Validation
+
+extension Recipe {
+    /// Result of scaling validation check
+    struct ScalingValidation {
+        let isFullyScalable: Bool
+        let issues: [ScalingIssue]
+    }
+
+    /// Issues that prevent full scaling capability
+    enum ScalingIssue {
+        case servingsUnparseable(raw: String?)
+        case missingQuantities(count: Int, total: Int)
+
+        /// User-friendly message describing the issue
+        var userMessage: String {
+            switch self {
+            case .servingsUnparseable(let raw):
+                return "Could not determine serving count from '\(raw ?? "none")'"
+            case .missingQuantities(let count, let total):
+                return "\(count) of \(total) ingredients missing quantities"
+            }
+        }
     }
 }
