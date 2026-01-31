@@ -1,14 +1,14 @@
 //
-//  PrivacySettingsView.swift
+//  ProfilePrivacyView.swift
 //  Heirloom
 //
-//  Social Layer Phase 5: Privacy Settings View
+//  Social Layer Phase 5: Social Privacy Settings View
 //  Granular privacy controls for social features
 //
 
 import SwiftUI
 
-struct PrivacySettingsView: View {
+struct ProfilePrivacyView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var privacySettings: PrivacySettings
     let onSave: () -> Void
@@ -156,6 +156,30 @@ struct PrivacySettingsView: View {
                     Text("Help us improve Heirloom and connect you with others")
                 }
 
+                // Search Privacy
+                Section {
+                    Toggle("Hide from Search", isOn: $privacySettings.hideFromSearch)
+                        .onChange(of: privacySettings.hideFromSearch) { _, _ in
+                            autoSave()
+                        }
+
+                    Toggle("Show Location in Search", isOn: $privacySettings.showLocationInSearch)
+                        .disabled(privacySettings.hideFromSearch)
+                        .onChange(of: privacySettings.showLocationInSearch) { _, _ in
+                            autoSave()
+                        }
+
+                    Toggle("Show Specialties in Search", isOn: $privacySettings.showSpecialtiesInSearch)
+                        .disabled(privacySettings.hideFromSearch)
+                        .onChange(of: privacySettings.showSpecialtiesInSearch) { _, _ in
+                            autoSave()
+                        }
+                } header: {
+                    Text("Search Visibility")
+                } footer: {
+                    Text(searchVisibilityDescription)
+                }
+
                 // Presets
                 Section {
                     Button {
@@ -219,6 +243,14 @@ struct PrivacySettingsView: View {
         }
     }
 
+    private var searchVisibilityDescription: String {
+        if privacySettings.hideFromSearch {
+            return "When enabled, other users won't be able to find you in search. You can still send connection requests."
+        } else {
+            return "Control what information appears when others search for you"
+        }
+    }
+
     // MARK: - Actions
 
     private func autoSave() {
@@ -235,7 +267,7 @@ struct PrivacySettingsView: View {
 #Preview {
     @Previewable @State var settings = PrivacySettings()
 
-    PrivacySettingsView(
+    ProfilePrivacyView(
         privacySettings: $settings,
         onSave: {
             print("Settings saved")

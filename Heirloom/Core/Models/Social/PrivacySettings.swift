@@ -81,6 +81,17 @@ struct PrivacySettings: Codable {
     /// Whether to appear in "Suggested Connections" for others
     var allowConnectionSuggestions: Bool
 
+    // MARK: - Search Privacy
+
+    /// Whether to hide from user search results
+    var hideFromSearch: Bool
+
+    /// Whether to show location in search results
+    var showLocationInSearch: Bool
+
+    /// Whether to show specialties in search results
+    var showSpecialtiesInSearch: Bool
+
     // MARK: - Initialization
 
     init() {
@@ -104,6 +115,9 @@ struct PrivacySettings: Codable {
         self.showHeritageStats = true
         self.allowAnalytics = true
         self.allowConnectionSuggestions = true
+        self.hideFromSearch = false
+        self.showLocationInSearch = true
+        self.showSpecialtiesInSearch = true
     }
 }
 
@@ -183,6 +197,9 @@ extension PrivacySettings {
         settings.allowSearchIndexing = false
         settings.showHeritageStats = false
         settings.allowConnectionSuggestions = false
+        settings.hideFromSearch = true
+        settings.showLocationInSearch = false
+        settings.showSpecialtiesInSearch = false
         return settings
     }
 
@@ -201,6 +218,9 @@ extension PrivacySettings {
         settings.allowSearchIndexing = true
         settings.showHeritageStats = true
         settings.allowConnectionSuggestions = true
+        settings.hideFromSearch = false
+        settings.showLocationInSearch = true
+        settings.showSpecialtiesInSearch = true
         return settings
     }
 }

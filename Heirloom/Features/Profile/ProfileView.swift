@@ -63,7 +63,7 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showPrivacySettings) {
                 if let unwrappedProfile = Binding($profile) {
-                    PrivacySettingsView(
+                    ProfilePrivacyView(
                         privacySettings: Binding(
                             get: { unwrappedProfile.wrappedValue.privacySettings },
                             set: { unwrappedProfile.wrappedValue.privacySettings = $0 }

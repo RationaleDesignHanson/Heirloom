@@ -66,7 +66,7 @@ struct ConsentDialogView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Privacy & Consent")
-                        .font(HeirloomFonts.headline)
+                        .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
                 }
 

@@ -57,7 +57,7 @@ struct PrivacySettingsView: View {
                         .font(.system(size: 24))
 
                     Text("Privacy Status")
-                        .font(HeirloomFonts.headline)
+                        .font(HeirloomFonts.bodyBold)
                         .foregroundStyle(HeirloomColors.primaryText)
                 }
 
