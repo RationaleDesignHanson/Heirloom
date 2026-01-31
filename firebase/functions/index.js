@@ -2,12 +2,14 @@
  * Cloud Functions for Heirloom
  * Phase 7 Enhanced: Algolia user sync
  * Phase 10: Public Profile URLs
+ * Phase 11: Public Recipe Discovery
  */
 
 const { onDocumentWritten } = require('firebase-functions/v2/firestore');
-const { onRequest } = require('firebase-functions/v2/https');
+const { onRequest, onCall } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { initializeApp } = require('firebase-admin/app');
-const { getFirestore, Timestamp } = require('firebase-admin/firestore');
+const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
 const algoliasearch = require('algoliasearch');
 
 initializeApp();
@@ -264,5 +266,194 @@ exports.ogProfile = onRequest(async (req, res) => {
   } catch (error) {
     console.error('Error generating OG profile:', error);
     res.status(500).send('Internal server error');
+  }
+});
+
+/**
+ * Increment public recipe view count
+ * Phase 11: Public Recipe Discovery
+ *
+ * Callable function that atomically increments the view count for a public recipe.
+ * Called when a user views a public recipe detail page.
+ *
+ * @param {Object} data - { recipeId: string }
+ * @returns {Object} { success: boolean, viewCount: number }
+ */
+exports.incrementPublicRecipeView = onCall(async (request) => {
+  try {
+    const { recipeId } = request.data;
+
+    // Validate input
+    if (!recipeId || typeof recipeId !== 'string') {
+      throw new Error('Invalid recipeId parameter');
+    }
+
+    // Get reference to public recipe document
+    const recipeRef = db.collection('publicRecipes').doc(recipeId);
+
+    // Check if recipe exists
+    const recipeDoc = await recipeRef.get();
+    if (!recipeDoc.exists) {
+      throw new Error('Public recipe not found');
+    }
+
+    // Atomically increment view count
+    await recipeRef.update({
+      viewCount: FieldValue.increment(1),
+      updatedAt: Timestamp.now()
+    });
+
+    // Fetch updated view count
+    const updatedDoc = await recipeRef.get();
+    const newViewCount = updatedDoc.data().viewCount;
+
+    console.log(`Incremented view count for recipe ${recipeId} to ${newViewCount}`);
+
+    return {
+      success: true,
+      viewCount: newViewCount
+    };
+
+  } catch (error) {
+    console.error('Error incrementing view count:', error);
+    throw error;
+  }
+});
+
+/**
+ * Increment public recipe save count
+ * Phase 11: Public Recipe Discovery
+ *
+ * Callable function that atomically increments the save count for a public recipe.
+ * Called when a user saves a public recipe to their collection.
+ *
+ * @param {Object} data - { recipeId: string }
+ * @returns {Object} { success: boolean, saveCount: number }
+ */
+exports.incrementPublicRecipeSave = onCall(async (request) => {
+  try {
+    const { recipeId } = request.data;
+
+    // Validate input
+    if (!recipeId || typeof recipeId !== 'string') {
+      throw new Error('Invalid recipeId parameter');
+    }
+
+    // Require authentication for saves (prevent spam)
+    if (!request.auth) {
+      throw new Error('Authentication required to save recipes');
+    }
+
+    // Get reference to public recipe document
+    const recipeRef = db.collection('publicRecipes').doc(recipeId);
+
+    // Check if recipe exists
+    const recipeDoc = await recipeRef.get();
+    if (!recipeDoc.exists) {
+      throw new Error('Public recipe not found');
+    }
+
+    // Atomically increment save count
+    await recipeRef.update({
+      saveCount: FieldValue.increment(1),
+      updatedAt: Timestamp.now()
+    });
+
+    // Fetch updated save count
+    const updatedDoc = await recipeRef.get();
+    const newSaveCount = updatedDoc.data().saveCount;
+
+    console.log(`Incremented save count for recipe ${recipeId} to ${newSaveCount} by user ${request.auth.uid}`);
+
+    return {
+      success: true,
+      saveCount: newSaveCount
+    };
+
+  } catch (error) {
+    console.error('Error incrementing save count:', error);
+    throw error;
+  }
+});
+
+/**
+ * Calculate trending scores for public recipes
+ * Phase 11: Public Recipe Discovery
+ *
+ * Scheduled function that runs daily to recalculate trending scores based on:
+ * - View count (weight: 0.3)
+ * - Save count (weight: 5.0)
+ * - Recency boost (exponential decay over 30 days)
+ *
+ * Runs every day at 2:00 AM UTC
+ */
+exports.calculateTrendingScores = onSchedule('0 2 * * *', async (event) => {
+  try {
+    console.log('Starting trending score calculation...');
+
+    // Fetch all public recipes
+    const recipesSnapshot = await db.collection('publicRecipes').get();
+
+    if (recipesSnapshot.empty) {
+      console.log('No public recipes found');
+      return null;
+    }
+
+    const batch = db.batch();
+    let updateCount = 0;
+    const now = new Date();
+
+    for (const doc of recipesSnapshot.docs) {
+      const data = doc.data();
+      const publishedAt = data.publishedAt ? data.publishedAt.toDate() : now;
+
+      // Calculate recency boost (exponential decay)
+      const daysSincePublish = (now - publishedAt) / (1000 * 60 * 60 * 24);
+      let recencyBoost = 0;
+
+      if (daysSincePublish <= 2) {
+        recencyBoost = 20.0;
+      } else if (daysSincePublish <= 7) {
+        recencyBoost = 20.0 * Math.exp(-daysSincePublish / 7.0);
+      } else if (daysSincePublish <= 30) {
+        recencyBoost = 20.0 * Math.exp(-daysSincePublish / 15.0);
+      } else {
+        recencyBoost = 0.0;
+      }
+
+      // Calculate trending score
+      const viewCount = data.viewCount || 0;
+      const saveCount = data.saveCount || 0;
+      const trendingScore = Math.min(
+        (viewCount * 0.3) + (saveCount * 5.0) + recencyBoost,
+        100.0
+      );
+
+      // Update recipe with new trending score
+      batch.update(doc.ref, {
+        trendingScore: trendingScore,
+        lastTrendingCalculation: Timestamp.now()
+      });
+
+      updateCount++;
+
+      // Commit batch every 500 operations (Firestore limit)
+      if (updateCount % 500 === 0) {
+        await batch.commit();
+        console.log(`Committed batch of 500 updates (total: ${updateCount})`);
+      }
+    }
+
+    // Commit remaining updates
+    if (updateCount % 500 !== 0) {
+      await batch.commit();
+    }
+
+    console.log(`Trending score calculation complete. Updated ${updateCount} recipes.`);
+    return null;
+
+  } catch (error) {
+    console.error('Error calculating trending scores:', error);
+    throw error;
   }
 });
