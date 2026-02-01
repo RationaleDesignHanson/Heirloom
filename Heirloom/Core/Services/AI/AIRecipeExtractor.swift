@@ -358,11 +358,31 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             throw AIError.notConfigured(provider: "Anthropic")
         }
 
-        let prompt = buildVisionExtractionPrompt(boundingBox: boundingBox)
+        // Crop image to bounding box if provided
+        let imageToProcess: UIImage
+        if let bbox = boundingBox, !bbox.isFullImage {
+            Log.info("✂️ Cropping image to bounding box", category: .import, metadata: [
+                "bbox_x": bbox.x,
+                "bbox_y": bbox.y,
+                "bbox_width": bbox.width,
+                "bbox_height": bbox.height,
+                "original_width": image.size.width,
+                "original_height": image.size.height
+            ])
+            imageToProcess = cropImage(image, to: bbox)
+            Log.info("✅ Image cropped successfully", category: .import, metadata: [
+                "cropped_width": imageToProcess.size.width,
+                "cropped_height": imageToProcess.size.height
+            ])
+        } else {
+            imageToProcess = image
+        }
+
+        let prompt = buildVisionExtractionPrompt(boundingBox: nil) // No need to mention bbox in prompt anymore
         let model = configuration.model(for: .pdfVision)
 
         let recipe = try await aiService.completeWithVisionStructured(
-            image: image,
+            image: imageToProcess,
             prompt: prompt,
             schema: ExtractedRecipe.self,
             options: AICompletionOptions(
@@ -487,6 +507,29 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         """
 
         return prompt
+    }
+
+    /// Crop UIImage to bounding box coordinates (percentages)
+    private func cropImage(_ image: UIImage, to boundingBox: BoundingBox) -> UIImage {
+        let imageWidth = image.size.width
+        let imageHeight = image.size.height
+        let scale = image.scale
+
+        // Convert percentage coordinates to pixel coordinates
+        let x = (boundingBox.x / 100.0) * imageWidth
+        let y = (boundingBox.y / 100.0) * imageHeight
+        let width = (boundingBox.width / 100.0) * imageWidth
+        let height = (boundingBox.height / 100.0) * imageHeight
+
+        let cropRect = CGRect(x: x * scale, y: y * scale, width: width * scale, height: height * scale)
+
+        guard let cgImage = image.cgImage,
+              let croppedCGImage = cgImage.cropping(to: cropRect) else {
+            Log.warning("Failed to crop image, returning original", category: .import)
+            return image
+        }
+
+        return UIImage(cgImage: croppedCGImage, scale: scale, orientation: image.imageOrientation)
     }
 
     // MARK: - AI Extraction (Text-Based - Legacy)
