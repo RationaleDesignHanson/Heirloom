@@ -565,7 +565,12 @@ Collection and all recipes persisted perfectly after force quit and relaunch, va
 **Tests Completed:** Test Suite 1 + Test Suite 2 + Test Suite 3 + Test Suite 4 (9/9 tests) ✅ ALL PASS
 **Tests Passed:** 9 (Test 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2)
 **Tests Failed:** 0
-**Issues Found:** 4 (2 low severity UX polish + 1 OCR enhancement deferred + 1 web import gap FIXED)
+**Issues Found:** 5 total (ALL RESOLVED)
+- ✅ Issue #1: Camera roll sheet not auto-dismissing - **FIXED (Task #19)**
+- ✅ Issue #2: "NEW" badge missing on collection cards - **FIXED (Task #20)**
+- ✅ Issue #3: Inline instruction parsing - **FIXED (Task #21)**
+- 📋 Issue #4: OCR handwriting limitations - **Deferred to Phase 3**
+- ✅ Issue #5: Web/Video import duplicate gap - **FIXED (Task #25)**
 
 **Collection Consolidation Validation:**
 - ✅ Multiple imports route to single collection
