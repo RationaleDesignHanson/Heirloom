@@ -14,6 +14,9 @@ class CollectionRouter {
 
     private let modelContext: ModelContext
 
+    /// Track created collection per job to prevent duplicates within same import session
+    private var jobCollectionCache: [UUID: UUID] = [:]  // jobID -> collectionID
+
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
@@ -43,65 +46,95 @@ class CollectionRouter {
 
     /// Route a recipe imported from a URL
     func routeURLImport(_ recipe: Recipe, sourceURL: URL) {
-        let collection = findOrCreateCollection(
+        routeURLImport([recipe], sourceURL: sourceURL)
+    }
+
+    /// Route multiple recipes imported from a URL
+    func routeURLImport(_ recipes: [Recipe], sourceURL: URL, jobID: UUID? = nil) {
+        let collection = findOrCreateCollectionWithJobTracking(
             name: "From Web",
             type: .webImports,
-            iconName: "link"
+            iconName: "link",
+            jobID: jobID
         )
 
-        // Set source metadata
-        recipe.sourceURL = sourceURL.absoluteString
+        for recipe in recipes {
+            // Set source metadata
+            recipe.sourceURL = sourceURL.absoluteString
+            // Add to collection
+            addRecipeToCollection(recipe, collection: collection)
+        }
 
-        // Add to collection
-        addRecipeToCollection(recipe, collection: collection)
-
-        Log.info("Routed URL import to From Web", category: .collections, metadata: [
-            "recipe": recipe.title,
+        Log.info("Routed URL import(s) to From Web", category: .collections, metadata: [
+            "recipe_count": recipes.count,
             "source": sourceURL.host ?? "unknown"
         ])
     }
 
     /// Route a recipe imported from video transcription
     func routeVideoImport(_ recipe: Recipe) {
-        let collection = findOrCreateCollection(
+        routeVideoImport([recipe])
+    }
+
+    /// Route multiple recipes imported from video transcription
+    func routeVideoImport(_ recipes: [Recipe], jobID: UUID? = nil) {
+        let collection = findOrCreateCollectionWithJobTracking(
             name: "From Videos",
             type: .videoImports,
-            iconName: "video.fill"
+            iconName: "video.fill",
+            jobID: jobID
         )
 
-        // Add to collection
-        addRecipeToCollection(recipe, collection: collection)
+        for recipe in recipes {
+            addRecipeToCollection(recipe, collection: collection)
+        }
 
-        Log.info("Routed video import to From Videos", category: .collections, metadata: [
-            "recipe": recipe.title
+        Log.info("Routed video import(s) to From Videos", category: .collections, metadata: [
+            "recipe_count": recipes.count
         ])
     }
 
     /// Route a recipe imported from photo OCR (single image: recipe cards, screenshots, handwritten recipes)
     func routePhotoImport(_ recipe: Recipe) {
-        let collection = findOrCreateCollection(
+        routePhotoImport([recipe])
+    }
+
+    /// Route multiple recipes imported from photo OCR
+    func routePhotoImport(_ recipes: [Recipe], jobID: UUID? = nil) {
+        let collection = findOrCreateCollectionWithJobTracking(
             name: "From Photos",
             type: .photoImports,
-            iconName: "photo.fill"
+            iconName: "photo.fill",
+            jobID: jobID
         )
 
-        // Add to collection
-        addRecipeToCollection(recipe, collection: collection)
+        for recipe in recipes {
+            addRecipeToCollection(recipe, collection: collection)
+        }
 
-        Log.info("Routed photo import to From Photos", category: .collections, metadata: [
-            "recipe": recipe.title
+        Log.info("Routed photo import(s) to From Photos", category: .collections, metadata: [
+            "recipe_count": recipes.count
         ])
     }
 
-    /// Route recipes imported from a cookbook
-    func routeCookbookImport(_ recipes: [Recipe], cookbookName: String) {
+    /// Route recipes imported from a cookbook with enhanced consolidation logic
+    func routeCookbookImport(
+        _ recipes: [Recipe],
+        cookbookName: String,
+        jobID: UUID? = nil,
+        coverImagePath: String? = nil
+    ) {
         // Clean up cookbook name
         let cleanName = cleanCookbookName(cookbookName)
 
-        let collection = findOrCreateCollection(
+        // Enhanced collection finding:
+        // 1. For "Cookbook Pages", consolidate ALL imports into ONE collection globally
+        // 2. For custom-named cookbooks, find by exact name + type
+        // 3. Use job tracking to prevent duplicate collections within same import session
+        let collection = findOrCreateCookbookCollection(
             name: cleanName,
-            type: .cookbook,
-            iconName: "book.closed.fill"
+            jobID: jobID,
+            coverImagePath: coverImagePath
         )
 
         collection.sourceCookbook = cookbookName
@@ -113,7 +146,8 @@ class CollectionRouter {
 
         Log.info("Routed \(recipes.count) recipes to cookbook collection", category: .collections, metadata: [
             "cookbook": cleanName,
-            "count": String(recipes.count)
+            "count": String(recipes.count),
+            "collection_id": collection.id.uuidString
         ])
     }
 
@@ -123,6 +157,17 @@ class CollectionRouter {
             Log.warning("Theme has no collection, creating one", category: .collections)
             let newCollection = RecipeCollection(name: theme.name, iconName: theme.iconName, collectionType: .theme)
             newCollection.sourceTheme = theme
+
+            // Set theme cover image as collection background
+            if let coverImageURL = theme.coverImageURL {
+                newCollection.generatedBackgroundImagePath = coverImageURL
+                newCollection.useCustomBackground = true
+                Log.info("Set theme cover image for collection", category: .collections, metadata: [
+                    "themeName": theme.name,
+                    "imageURL": coverImageURL
+                ])
+            }
+
             theme.collection = newCollection
             modelContext.insert(newCollection)
 
@@ -161,6 +206,136 @@ class CollectionRouter {
             "name": name,
             "type": type.rawValue
         ])
+
+        return collection
+    }
+
+    /// Find or create collection with job-level tracking to prevent duplicates within same import session
+    private func findOrCreateCollectionWithJobTracking(
+        name: String,
+        type: CollectionType,
+        iconName: String,
+        jobID: UUID?
+    ) -> RecipeCollection {
+        // Check if this job already created a collection
+        if let jobID = jobID, let cachedCollectionID = jobCollectionCache[jobID] {
+            let descriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate { collection in
+                    collection.id == cachedCollectionID
+                }
+            )
+            if let cached = try? modelContext.fetch(descriptor).first {
+                Log.info("Reusing collection from job cache", category: .collections, metadata: [
+                    "job_id": jobID.uuidString,
+                    "collection_id": cachedCollectionID.uuidString
+                ])
+                return cached
+            }
+        }
+
+        // Find or create collection
+        let collection = findOrCreateCollection(name: name, type: type, iconName: iconName)
+
+        // Cache for this job
+        if let jobID = jobID {
+            jobCollectionCache[jobID] = collection.id
+        }
+
+        return collection
+    }
+
+    /// Find or create cookbook collection with sophisticated consolidation logic
+    private func findOrCreateCookbookCollection(
+        name: String,
+        jobID: UUID?,
+        coverImagePath: String?
+    ) -> RecipeCollection {
+        // Strategy:
+        // 1. Check job cache first
+        // 2. For "Cookbook Pages", consolidate globally (all imports use same collection)
+        // 3. For custom-named cookbooks, find by name + type
+
+        // Check job cache
+        if let jobID = jobID, let cachedCollectionID = jobCollectionCache[jobID] {
+            let descriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate { collection in
+                    collection.id == cachedCollectionID
+                }
+            )
+            if let cached = try? modelContext.fetch(descriptor).first {
+                Log.info("Reusing cookbook collection from job cache", category: .collections, metadata: [
+                    "job_id": jobID.uuidString,
+                    "collection_id": cachedCollectionID.uuidString,
+                    "name": name
+                ])
+                return cached
+            }
+        }
+
+        // For "Cookbook Pages", consolidate globally
+        let existingCollection: RecipeCollection?
+        if name == "Cookbook Pages" {
+            let descriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate { collection in
+                    collection.name == name && collection.collectionType == "cookbook"
+                }
+            )
+            existingCollection = try? modelContext.fetch(descriptor).first
+
+            if existingCollection != nil {
+                Log.info("Reusing existing 'Cookbook Pages' collection from previous import", category: .collections, metadata: [
+                    "name": name
+                ])
+            } else {
+                Log.info("Creating first 'Cookbook Pages' collection", category: .collections, metadata: [
+                    "name": name
+                ])
+            }
+        } else {
+            // For custom-named cookbooks, find by name + type
+            let descriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate { collection in
+                    collection.name == name && collection.collectionType == "cookbook"
+                }
+            )
+            existingCollection = try? modelContext.fetch(descriptor).first
+        }
+
+        let collection: RecipeCollection
+        if let existing = existingCollection {
+            collection = existing
+        } else {
+            // Create new collection
+            collection = RecipeCollection(
+                name: name,
+                description: "Imported from \(name)",
+                iconName: "book.fill",
+                color: "#FF6B6B",
+                isSystemCollection: false,
+                collectionType: .cookbook
+            )
+
+            // Set cookbook cover image if available
+            if let coverPath = coverImagePath {
+                collection.cookbookCoverImagePath = coverPath
+                Log.info("Applied cookbook cover to collection", category: .collections, metadata: [
+                    "coverPath": coverPath
+                ])
+            }
+
+            collection.createdDate = Date()
+            modelContext.insert(collection)
+
+            Log.info("Created new cookbook collection", category: .collections, metadata: [
+                "name": name,
+                "collection_id": collection.id.uuidString
+            ])
+        }
+
+        // Cache for this job
+        if let jobID = jobID {
+            jobCollectionCache[jobID] = collection.id
+        }
 
         return collection
     }

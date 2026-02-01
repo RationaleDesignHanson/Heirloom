@@ -1418,21 +1418,37 @@ struct RecipeCardView: View {
                 .cornerRadius(HeirloomSpacing.cardCornerRadius)
                 .accessibilityHidden(true) // Hide image from VoiceOver, recipe title is more important
 
-                // Favorite heart badge (top left overlay)
-                if recipe.isFavorite {
-                    Image(systemName: "heart.fill")
-                        .foregroundStyle(HeirloomColors.buttonTextLight)
-                        .font(HeirloomFonts.title2)
-                        .padding(HeirloomSpacing.sm)
-                        .background(
-                            Circle()
-                                .fill(HeirloomColors.familyGreen)
-                                .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
-                        )
-                        .padding(HeirloomSpacing.sm)
-                        .accessibilityLabel("Favorite")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                // Top left badges (favorite and/or new)
+                VStack(spacing: 4) {
+                    // Favorite heart badge
+                    if recipe.isFavorite {
+                        Image(systemName: "heart.fill")
+                            .foregroundStyle(HeirloomColors.buttonTextLight)
+                            .font(HeirloomFonts.title2)
+                            .padding(HeirloomSpacing.sm)
+                            .background(
+                                Circle()
+                                    .fill(HeirloomColors.familyGreen)
+                                    .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                            )
+                            .accessibilityLabel("Favorite")
+                    }
+
+                    // "New" badge for recipes added within last 24 hours
+                    if recipe.dateAdded.timeIntervalSinceNow > -86400 {
+                        Text("NEW")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(HeirloomColors.tomato)
+                            .cornerRadius(6)
+                            .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                            .accessibilityLabel("Recently added")
+                    }
                 }
+                .padding(HeirloomSpacing.sm)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
                 // Notification badge (top right overlay)
                 if unreadCount > 0 {

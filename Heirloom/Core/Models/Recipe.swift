@@ -21,6 +21,13 @@ final class Recipe {
     var sourceStory: String?
     var sourceCookbook: String? // Name of cookbook for PDF imports
 
+    // MARK: - Multi-Recipe Source Tracking
+    /// Parent import item ID (for recipes extracted from multi-recipe sources)
+    var sourceImportItemID: UUID?
+
+    /// Position in multi-recipe source (1st, 2nd, 3rd recipe from same image/page)
+    var sourceRecipeIndex: Int?
+
     // MARK: - Content
     /// Image stored in file system, not database (per Systems Architect recommendation)
     /// Path relative to ImageStorageService.imagesDirectory
@@ -78,6 +85,11 @@ final class Recipe {
 
     @Relationship(deleteRule: .cascade, inverse: \RecipeAnnotation.recipe)
     var annotations: [RecipeAnnotation]?
+
+    // MARK: - Duplicate Detection
+    /// SHA256 hash of normalized title + ingredients for duplicate detection
+    /// Format: SHA256(lowercase(title) + sorted(lowercase(ingredients)))
+    var contentHash: String?
 
     // MARK: - Metadata
     var timesCooked: Int = 0

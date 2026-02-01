@@ -521,13 +521,13 @@ struct RecipeSelectionCard: View {
                 servings: "30 straws",
                 prepTime: nil,
                 cookTime: "10 minutes",
-                ingredients: [
+                ingredientStructure: .flat([
                     "1 cup grated American cheese",
                     "1 cup flour",
                     "1 teaspoon Royal Baking Powder",
                     "1/4 teaspoon salt",
                     "1/8 teaspoon cayenne pepper"
-                ],
+                ]),
                 instructions: [
                     "Mix together cheese, flour, baking powder, salt, cayenne pepper and paprika",
                     "Add beaten egg; mix well",
@@ -541,13 +541,13 @@ struct RecipeSelectionCard: View {
                 servings: "1 large loaf",
                 prepTime: nil,
                 cookTime: "1 hour",
-                ingredients: [
+                ingredientStructure: .flat([
                     "2 cups flour",
                     "4 teaspoons Royal Baking Powder",
                     "1 teaspoon salt",
                     "1/2 cup sugar",
                     "1/3 cup peanut butter"
-                ],
+                ]),
                 instructions: [
                     "Sift flour, Royal Baking Powder, salt and sugar together",
                     "Add peanut butter and mix",
@@ -561,11 +561,11 @@ struct RecipeSelectionCard: View {
                 servings: nil,
                 prepTime: nil,
                 cookTime: nil,
-                ingredients: [
+                ingredientStructure: .flat([
                     "3 oranges",
                     "1 cup batter",
                     "Powdered sugar"
-                ],
+                ]),
                 instructions: [
                     "Peel three oranges and separate into sections",
                     "Dip each section into the batter",

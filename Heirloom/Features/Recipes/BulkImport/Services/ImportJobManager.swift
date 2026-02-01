@@ -872,8 +872,13 @@ final class ImportJobManager: ObservableObject {
                 "recipe_count": recipes.count
             ])
 
-            // Apply cookbook metadata to all recipes if available (from PDF front matter)
-            for recipe in recipes {
+            // Apply cookbook metadata and source tracking to all recipes
+            let duplicateDetectionService = ServiceContainer.shared.resolve(DuplicateDetectionService.self)
+            var recipesToInsert: [Recipe] = []
+            var skippedDuplicates: [(Recipe, [DuplicateDetectionService.DuplicateMatch])] = []
+
+            for (index, recipe) in recipes.enumerated() {
+                // Cookbook metadata
                 if let cookbookTitle = item.cookbookTitle {
                     recipe.sourceBookTitle = cookbookTitle
                 }
@@ -881,12 +886,72 @@ final class ImportJobManager: ObservableObject {
                     recipe.sourceBookAuthor = cookbookAuthor
                 }
 
-                // Insert recipe into context
-                context.insert(recipe)
+                // Multi-recipe source tracking
+                recipe.sourceImportItemID = item.id
+                recipe.sourceRecipeIndex = index
+
+                // Check for duplicates before inserting
+                do {
+                    let duplicates = try duplicateDetectionService.findDuplicates(
+                        for: recipe,
+                        in: context,
+                        threshold: 0.85 // High threshold to avoid false positives
+                    )
+
+                    if !duplicates.isEmpty {
+                        // Found potential duplicate(s)
+                        let exactMatches = duplicates.filter { $0.matchType == .exactHash }
+
+                        if !exactMatches.isEmpty {
+                            // Exact duplicate - skip insertion
+                            Log.warning("⚠️ Skipping exact duplicate recipe", category: .import, metadata: [
+                                "title": recipe.title,
+                                "content_hash": recipe.contentHash ?? "none",
+                                "duplicate_id": exactMatches[0].recipe.id.uuidString,
+                                "duplicate_title": exactMatches[0].recipe.title
+                            ])
+                            skippedDuplicates.append((recipe, duplicates))
+                            continue
+                        } else {
+                            // Similar but not exact - insert with warning
+                            Log.info("ℹ️ Recipe similar to existing recipe (inserting anyway)", category: .import, metadata: [
+                                "title": recipe.title,
+                                "similarity_score": duplicates[0].similarityScore,
+                                "match_type": "\(duplicates[0].matchType)",
+                                "similar_to": duplicates[0].recipe.title
+                            ])
+                        }
+                    }
+
+                    // No exact duplicates - proceed with insertion
+                    recipesToInsert.append(recipe)
+                    context.insert(recipe)
+                } catch {
+                    // Duplicate detection failed - insert anyway (don't block import)
+                    Log.warning("⚠️ Duplicate detection failed, inserting recipe anyway", category: .import, metadata: [
+                        "title": recipe.title,
+                        "error": error.localizedDescription
+                    ])
+                    recipesToInsert.append(recipe)
+                    context.insert(recipe)
+                }
             }
 
-            // Use first recipe as the "primary" recipe for item tracking
-            guard let primaryRecipe = recipes.first else {
+            // Update recipes list to only include inserted recipes
+            recipes = recipesToInsert
+
+            // Log if duplicates were skipped
+            if !skippedDuplicates.isEmpty {
+                Log.info("📋 Skipped duplicate recipes", category: .import, metadata: [
+                    "count": skippedDuplicates.count,
+                    "skipped_titles": skippedDuplicates.map { $0.0.title }.joined(separator: " | "),
+                    "original_count": recipes.count + skippedDuplicates.count,
+                    "inserted_count": recipes.count
+                ])
+            }
+
+            // Ensure we have at least one recipe
+            guard !recipes.isEmpty else {
                 throw ImportJobError.noRecipeFound
             }
 
@@ -933,21 +998,43 @@ final class ImportJobManager: ObservableObject {
                 }
             }
 
-            // Mark item as successful with primary recipe ID
-            item.markSuccess(recipeID: primaryRecipe.id)
+            // Collect all recipe IDs
+            let recipeIDs = recipes.map { $0.id }
 
-            // Update job progress - count all recipes as successful
-            // Note: We only increment by 1 even if multiple recipes were extracted, since we're tracking items, not recipes
-            job.updateProgress(success: true)
-
-            // Log if multiple recipes were extracted from single item
-            if recipes.count > 1 {
-                Log.info("✨ Multiple recipes extracted from single import item", category: .import, metadata: [
-                    "item_id": item.id.uuidString,
-                    "recipe_count": recipes.count,
-                    "titles": recipes.map { $0.title }.joined(separator: " | ")
-                ])
+            // Update extraction results with actual recipe IDs
+            for (index, recipeID) in recipeIDs.enumerated() {
+                if index < item.extractionResults.count {
+                    item.extractionResults[index].recipeID = recipeID
+                }
             }
+
+            // Mark item based on extraction success rate
+            if let detectedCount = item.detectedRecipeCount, detectedCount > recipeIDs.count {
+                // Partial success (some recipes failed)
+                item.markPartialSuccess(recipeIDs: recipeIDs)
+
+                Log.warning("⚠️ Partial import success", category: .import, metadata: [
+                    "item_id": item.id.uuidString,
+                    "successful": recipeIDs.count,
+                    "failed": detectedCount - recipeIDs.count,
+                    "successful_titles": recipes.map { $0.title }.joined(separator: " | ")
+                ])
+            } else {
+                // Full success (all detected recipes extracted)
+                item.markSuccess(recipeIDs: recipeIDs)
+
+                if recipes.count > 1 {
+                    Log.info("✨ Multiple recipes extracted from single import item", category: .import, metadata: [
+                        "item_id": item.id.uuidString,
+                        "recipe_count": recipes.count,
+                        "titles": recipes.map { $0.title }.joined(separator: " | ")
+                    ])
+                }
+            }
+
+            // Update job progress
+            // Note: We increment by 1 per item, even if multiple recipes extracted
+            job.updateProgress(success: true)
             item.wasCheckpointed = true
 
             // Update checkpoint with recipe index (using primary recipe)
@@ -959,7 +1046,7 @@ final class ImportJobManager: ObservableObject {
                     "recipe_index": itemIndex,
                     "total_completed": job.successfulItems,
                     "recipe_count": recipes.count,
-                    "primary_recipe_id": primaryRecipe.id.uuidString
+                    "recipe_ids": recipeIDs.map { $0.uuidString }.joined(separator: ", ")
                 ])
             }
 
@@ -1172,12 +1259,28 @@ final class ImportJobManager: ObservableObject {
             detectedRecipes: detected
         )
 
+        // Store detection and extraction metadata on item
+        item.detectedRecipeCount = detected.count
+        item.extractionResults = result.extractionResults
+
+        Log.info("📝 Extraction completed", category: .import, metadata: [
+            "item_id": item.id.uuidString,
+            "detected": detected.count,
+            "extracted": result.recipes.count,
+            "failed": result.failedCount
+        ])
+
         // Ensure we found at least one recipe
         guard !result.recipes.isEmpty else {
+            Log.error("❌ All recipe extractions failed", category: .import, metadata: [
+                "item_id": item.id.uuidString,
+                "attempted": detected.count,
+                "failures": result.extractionResults.map { "\($0.detectedTitle): \($0.errorMessage ?? "unknown")" }.joined(separator: "; ")
+            ])
             throw ImportJobError.noRecipeFound
         }
 
-        // Convert ALL detected recipes to Recipe models
+        // Convert ALL successfully extracted recipes to Recipe models
         let sourceType: RecipeSourceType = item.source == .camera ? .scan : .scan
         let recipes = result.recipes.map { extractedRecipe in
             createRecipe(from: extractedRecipe, sourceImage: image, sourceType: sourceType)
@@ -1185,9 +1288,19 @@ final class ImportJobManager: ObservableObject {
 
         // Log if multiple recipes were detected
         if recipes.count > 1 {
-            Log.info("Multiple recipes detected in single image", category: .import, metadata: [
+            Log.info("✨ Multiple recipes extracted from single image", category: .import, metadata: [
                 "count": recipes.count,
-                "titles": recipes.map { $0.title }.joined(separator: ", ")
+                "titles": recipes.map { $0.title }.joined(separator: " | "),
+                "partial_success": recipes.count < detected.count
+            ])
+        }
+
+        // Warn if partial failure
+        if result.failedCount > 0 {
+            Log.warning("⚠️ Partial extraction failure", category: .import, metadata: [
+                "successful": recipes.count,
+                "failed": result.failedCount,
+                "failed_titles": result.extractionResults.filter { !$0.success }.map { $0.detectedTitle }.joined(separator: ", ")
             ])
         }
 
@@ -1227,6 +1340,9 @@ final class ImportJobManager: ObservableObject {
             recipe.setNotes(notes)
         }
 
+        // Generate content hash for duplicate detection
+        DuplicateDetectionService.updateContentHash(for: recipe)
+
         return recipe
     }
 
@@ -1255,6 +1371,9 @@ final class ImportJobManager: ObservableObject {
     // MARK: - Job Completion
 
     private func completeJob(_ job: ImportJob, context: ModelContext) async {
+        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+        let collectionName = job.cookbookName ?? "your library"
+
         // Set status based on success/failure outcomes
         if job.successfulItems == 0 && job.totalItems > 0 {
             // All items failed - mark as failed
@@ -1264,6 +1383,14 @@ final class ImportJobManager: ObservableObject {
                 "totalItems": job.totalItems,
                 "failedItems": job.failedItems
             ])
+
+            // Show error toast
+            await MainActor.run {
+                toastManager.error(
+                    title: "Import Failed",
+                    message: "All \(job.totalItems) recipe\(job.totalItems == 1 ? "" : "s") failed to import"
+                )
+            }
         } else if job.successfulItems > 0 && job.failedItems > 0 {
             // Partial success - mark as completed but log warning
             job.status = .completed
@@ -1272,6 +1399,14 @@ final class ImportJobManager: ObservableObject {
                 "successfulItems": job.successfulItems,
                 "failedItems": job.failedItems
             ])
+
+            // Show partial success toast
+            await MainActor.run {
+                toastManager.warning(
+                    title: "\(job.successfulItems) Recipe\(job.successfulItems == 1 ? "" : "s") Imported",
+                    message: "\(job.failedItems) failed • Saved to \(collectionName)"
+                )
+            }
         } else {
             // All items succeeded
             job.status = .completed
@@ -1279,6 +1414,15 @@ final class ImportJobManager: ObservableObject {
                 "jobId": job.id.uuidString,
                 "successfulItems": job.successfulItems
             ])
+
+            // Show success toast with collection name
+            await MainActor.run {
+                let recipeWord = job.successfulItems == 1 ? "recipe" : "recipes"
+                toastManager.success(
+                    title: "\(job.successfulItems) \(recipeWord.capitalized) Imported",
+                    message: "Saved to \(collectionName)"
+                )
+            }
         }
 
         job.phase = .completed
@@ -1321,7 +1465,7 @@ final class ImportJobManager: ObservableObject {
         try? context.save()
     }
 
-    /// Create or find collection and add successful recipes
+    /// Create or find collection and add successful recipes using CollectionRouter
     private func createOrAddToCollection(
         cookbookName: String,
         job: ImportJob,
@@ -1330,14 +1474,24 @@ final class ImportJobManager: ObservableObject {
         // Get all successful recipe IDs from job items
         guard let items = job.items else { return }
 
+        // Use flatMap to get ALL recipe IDs from each item (supports multi-recipe)
         let successfulRecipeIDs = items
-            .filter { $0.status == .success && $0.recipeID != nil }
-            .compactMap { $0.recipeID }
+            .filter { $0.status == .success }
+            .flatMap { $0.recipeIDs }
 
         guard !successfulRecipeIDs.isEmpty else {
             Log.info("No successful recipes to add to collection", category: .import)
             return
         }
+
+        // Log multi-recipe stats
+        let totalItems = items.filter { $0.status == .success }.count
+        let avgRecipesPerItem = Double(successfulRecipeIDs.count) / Double(max(totalItems, 1))
+        Log.info("Adding recipes to collection via CollectionRouter", category: .import, metadata: [
+            "items_processed": totalItems,
+            "recipes_extracted": successfulRecipeIDs.count,
+            "avg_recipes_per_item": String(format: "%.1f", avgRecipesPerItem)
+        ])
 
         // Fetch recipes
         let recipeDescriptor = FetchDescriptor<Recipe>(
@@ -1351,108 +1505,40 @@ final class ImportJobManager: ObservableObject {
             return
         }
 
-        // Find or create collection
-        // Use collection type from job if specified, otherwise default to userCreated
-        let collectionType = job.collectionType ?? .userCreated
-
-        // For cookbook collections, we need special handling:
-        // - Custom names (non-default) should match by name AND type to allow grouping pages
-        // - Default "Cookbook Pages" name should NEVER consolidate (always create separate collections)
-        // - For other types (web, photo, video), consolidate into single collection by type
-        let existingCollection: RecipeCollection?
-
-        if collectionType == .cookbook && cookbookName == "Cookbook Pages" {
-            // Never reuse default-named cookbook collections - always create new
-            existingCollection = nil
-            Log.info("Creating separate collection for default cookbook name", category: .import, metadata: [
-                "cookbookName": cookbookName
-            ])
-        } else if collectionType == .cookbook {
-            // For custom-named cookbooks, find by exact name AND type
-            let typeRawValue = collectionType.rawValue
-            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
-                predicate: #Predicate<RecipeCollection> { collection in
-                    collection.name == cookbookName && collection.collectionType == typeRawValue
-                }
-            )
-            existingCollection = try? context.fetch(collectionDescriptor).first
-        } else {
-            // For other types, find by name (existing behavior)
-            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
-                predicate: #Predicate<RecipeCollection> { collection in
-                    collection.name == cookbookName
-                }
-            )
-            existingCollection = try? context.fetch(collectionDescriptor).first
-        }
-
-        let collection: RecipeCollection
-        if let existing = existingCollection {
-            collection = existing
-            Log.info("Adding recipes to existing collection", category: .import, metadata: [
-                "collection": cookbookName,
-                "collectionType": collectionType.rawValue,
-                "recipe_count": recipes.count
-            ])
-        } else {
-            collection = RecipeCollection(
-                name: cookbookName,
-                description: "Imported from \(cookbookName)",
-                iconName: "book.fill",
-                color: "#FF6B6B",
-                isSystemCollection: false,
-                collectionType: collectionType
-            )
-
-            // Set cookbook cover image if available from job
-            if let coverPath = job.cookbookCoverImagePath {
-                collection.cookbookCoverImagePath = coverPath
-                Log.info("Applied cookbook cover to collection", category: .import, metadata: [
-                    "coverPath": coverPath
-                ])
-            }
-
-            context.insert(collection)
-            Log.info("Created new collection for cookbook", category: .import, metadata: [
-                "collection": cookbookName,
-                "collectionType": collectionType.rawValue,
-                "recipe_count": recipes.count
-            ])
-        }
-
-        // Add collection to recipes
-        for recipe in recipes {
-            if recipe.collections == nil {
-                recipe.collections = [collection]
-            } else if let collections = recipe.collections,
-                      !collections.contains(where: { $0.id == collection.id }) {
-                recipe.collections?.append(collection)
-            }
-        }
-
-        try? context.save()
+        // Use CollectionRouter for unified routing logic
+        let router = CollectionRouter(modelContext: context)
+        router.routeCookbookImport(
+            recipes,
+            cookbookName: cookbookName,
+            jobID: job.id,
+            coverImagePath: job.cookbookCoverImagePath
+        )
 
         // Upload collection to Firebase if backend is active
+        // Note: CollectionRouter has already saved the collection
         if backendConfig.isFirebaseActive {
-            Task {
-                do {
-                    try await firebaseSync.uploadCollection(collection)
-                    Log.info("Collection synced to Firebase", category: .firebase, metadata: [
-                        "collectionId": collection.id.uuidString,
-                        "name": cookbookName,
-                        "recipeCount": recipes.count
-                    ])
-                } catch {
-                    Log.error("Failed to sync collection to Firebase", category: .firebase, error: error, metadata: [
-                        "collectionId": collection.id.uuidString,
-                        "name": cookbookName
-                    ])
+            // Fetch the collection that was just created/updated by checking recipes' collections
+            if let collection = recipes.first?.collections?.first {
+                Task {
+                    do {
+                        try await firebaseSync.uploadCollection(collection)
+                        Log.info("Collection synced to Firebase via CollectionRouter", category: .firebase, metadata: [
+                            "collectionId": collection.id.uuidString,
+                            "name": cookbookName,
+                            "recipeCount": recipes.count
+                        ])
+                    } catch {
+                        Log.error("Failed to sync collection to Firebase", category: .firebase, error: error, metadata: [
+                            "collectionId": collection.id.uuidString,
+                            "name": cookbookName
+                        ])
+                    }
                 }
             }
         }
 
-        Log.info("Successfully added recipes to collection", category: .import, metadata: [
-            "collection": cookbookName,
+        Log.info("Successfully routed recipes to collection via CollectionRouter", category: .import, metadata: [
+            "cookbook": cookbookName,
             "successful_recipes": recipes.count,
             "failed_recipes": job.failedItems
         ])

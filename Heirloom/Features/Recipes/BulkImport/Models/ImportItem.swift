@@ -9,6 +9,38 @@ enum ImportSource: String, Codable {
     case photoLibrary  // Photo library import
 }
 
+/// Tracks individual recipe extraction attempt within multi-recipe item
+struct ExtractionResult: Codable, Hashable {
+    /// Title detected during detection phase
+    let detectedTitle: String
+
+    /// Whether extraction succeeded
+    let success: Bool
+
+    /// Created recipe ID (if success)
+    var recipeID: UUID?
+
+    /// Error category (if failed)
+    let errorType: String?
+
+    /// Detailed error message (if failed)
+    let errorMessage: String?
+
+    /// Location in source image
+    let boundingBox: BoundingBox?
+
+    /// Extraction duration
+    let extractionDuration: TimeInterval
+
+    /// Bounding box structure
+    struct BoundingBox: Codable, Hashable {
+        let x: Double
+        let y: Double
+        let width: Double
+        let height: Double
+    }
+}
+
 /// Phases of the import process for unified progress tracking
 enum ImportPhase: String, Codable, CaseIterable {
     case validation   // Validating PDF files
@@ -92,8 +124,22 @@ final class ImportItem {
     // MARK: - Relationships
     var job: ImportJob?
 
-    /// Reference to created recipe (if successful)
-    var recipeID: UUID?
+    // MARK: - Multi-Recipe Support
+
+    /// All recipe IDs extracted from this source
+    var recipeIDs: [UUID] = []
+
+    /// Detailed extraction results per recipe attempt
+    var extractionResults: [ExtractionResult] = []
+
+    /// Total recipes detected in this source
+    var detectedRecipeCount: Int?
+
+    /// Legacy single recipe ID (for backward compatibility)
+    /// Returns first recipe ID if available
+    var recipeID: UUID? {
+        recipeIDs.first
+    }
 
     // MARK: - AI Suggestions (Phase 3)
     /// AI-suggested collections for this recipe
@@ -150,11 +196,31 @@ extension ImportItem {
         status = .processing
     }
 
-    /// Mark item as successfully completed
+    /// Mark item as successfully completed (single recipe - legacy)
     func markSuccess(recipeID: UUID) {
         status = .success
-        self.recipeID = recipeID
+        self.recipeIDs = [recipeID]
         processedAt = Date()
+    }
+
+    /// Mark item as successfully completed (multiple recipes)
+    func markSuccess(recipeIDs: [UUID]) {
+        status = .success
+        self.recipeIDs = recipeIDs
+        processedAt = Date()
+    }
+
+    /// Mark item as partially successful (some recipes extracted, some failed)
+    func markPartialSuccess(recipeIDs: [UUID]) {
+        status = .success  // Still considered success overall
+        self.recipeIDs = recipeIDs
+        processedAt = Date()
+
+        // Include partial failure details in error message
+        let failed = (detectedRecipeCount ?? 0) - recipeIDs.count
+        if failed > 0 {
+            errorMessage = "\(recipeIDs.count)/\(detectedRecipeCount ?? 0) recipes extracted (\(failed) failed)"
+        }
     }
 
     /// Mark item as failed with error message
@@ -190,6 +256,31 @@ extension ImportItem {
         case .pending, .processing:
             return false
         }
+    }
+
+    // MARK: - Multi-Recipe Progress Tracking
+
+    /// Successfully extracted recipe count
+    var successfulRecipeCount: Int {
+        recipeIDs.count
+    }
+
+    /// Failed extraction count
+    var failedRecipeCount: Int {
+        extractionResults.filter { !$0.success }.count
+    }
+
+    /// Whether all detected recipes were extracted successfully
+    var isFullSuccess: Bool {
+        guard let detected = detectedRecipeCount, detected > 0 else {
+            return recipeIDs.count > 0
+        }
+        return successfulRecipeCount == detected && failedRecipeCount == 0
+    }
+
+    /// Whether this is a multi-recipe extraction (more than 1 recipe)
+    var isMultiRecipeExtraction: Bool {
+        (detectedRecipeCount ?? 0) > 1
     }
 }
 

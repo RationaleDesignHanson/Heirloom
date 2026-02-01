@@ -43,7 +43,6 @@ struct CookbookScannerView: View {
     @State private var failedItems: [(index: Int, error: String)] = []
     @State private var showBatchSummary = false
     @State private var showPDFImport = false
-    @State private var showProgressView = false
 
     enum ImageSource {
         case camera
@@ -107,7 +106,8 @@ struct CookbookScannerView: View {
                         }
                     }
 
-                    if capturedImage != nil && !isProcessing {
+                    // Only show Extract button for camera captures (photo library auto-starts)
+                    if capturedImage != nil && !isProcessing && imageSource == .camera {
                         ToolbarItem(placement: .primaryAction) {
                             Button("Extract Recipe") {
                                 processImageWithQueue()
@@ -138,17 +138,6 @@ struct CookbookScannerView: View {
                         dismiss()
                     })
                 }
-                .sheet(isPresented: $showProgressView) {
-                    // Don't capture job as constant - move check inside NavigationStack
-                    // This prevents showing stale completion screen when starting new import
-                    NavigationStack {
-                        if let job = importManager.activeJob {
-                            ImportProgressView(manager: importManager, job: job)
-                                .navigationBarTitleDisplayMode(.inline)
-                                .id(job.id) // Force view recreation when job ID changes
-                        }
-                    }
-                }
                 .alert("Scan Error", isPresented: .constant(errorMessage != nil)) {
                     Button("OK") {
                         errorMessage = nil
@@ -170,13 +159,16 @@ struct CookbookScannerView: View {
 
                     Task {
                         if newItems.count == 1 {
-                            // Single photo mode - use existing behavior
+                            // Single photo mode - auto-start extraction
                             if let data = try? await newItems[0].loadTransferable(type: Data.self),
                                let image = UIImage(data: data) {
                                 await MainActor.run {
                                     capturedImage = image
                                     imageSource = .photoLibrary
                                     selectedPhotoItems = []
+
+                                    // Auto-start extraction for photo library (no extra tap needed)
+                                    processImageWithQueue()
                                 }
                             }
                         } else {
@@ -435,9 +427,19 @@ struct CookbookScannerView: View {
                 // Start processing
                 try await importManager.startJob(job, context: modelContext)
 
-                // Show progress view
+                // Dismiss CookbookScannerView and let user see ImportProgressBottomBanner
                 await MainActor.run {
-                    showProgressView = true
+                    dismiss()
+
+                    // Track analytics
+                    analytics.track(event: .recipeImported, properties: [
+                        "source": "cookbook_scan_single_queue",
+                        "collection_name": collectionName
+                    ])
+
+                    Log.info("Cookbook import job started successfully", category: .import, metadata: [
+                        "jobId": job.id.uuidString
+                    ])
                 }
 
             } catch {

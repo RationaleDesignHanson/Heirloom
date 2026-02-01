@@ -401,18 +401,41 @@ class DeepLinkHandler: ObservableObject {
 
     // MARK: - Video Import Handling (from share extension)
 
-    private func handleVideoImport(_ importID: UUID) {
-        Log.info("Handling import from share extension", category: .general, metadata: ["importId": importID.uuidString])
-        DeviceLogger.shared.log("📥 [DeepLink] Handling import from share extension: \(importID.uuidString)")
+    private func handleVideoImport(_ importID: UUID, retryAttempt: Int = 0) {
+        Log.info("Handling import from share extension", category: .general, metadata: [
+            "importId": importID.uuidString,
+            "retryAttempt": retryAttempt
+        ])
+        DeviceLogger.shared.log("📥 [DeepLink] Handling import from share extension: \(importID.uuidString) (attempt \(retryAttempt + 1))")
 
         // Load the pending import to determine if it's a video or URL
         Task {
             let pendingImport = await PendingImportManager.shared.load(id: importID)
 
             guard let importData = pendingImport else {
-                Log.error("Pending import not found", category: .general, metadata: ["importId": importID.uuidString])
-                DeviceLogger.shared.log("❌ [DeepLink] Pending import not found: \(importID.uuidString)")
-                return
+                // File not found - implement retry logic with exponential backoff
+                let maxRetries = 5
+                if retryAttempt < maxRetries {
+                    let delay = pow(2.0, Double(retryAttempt)) * 0.5 // 0.5s, 1s, 2s, 4s, 8s
+                    Log.warning("Pending import not found yet, retrying...", category: .general, metadata: [
+                        "importId": importID.uuidString,
+                        "attempt": retryAttempt + 1,
+                        "maxRetries": maxRetries,
+                        "delaySeconds": delay
+                    ])
+                    DeviceLogger.shared.log("⏳ [DeepLink] Import file not ready, retrying in \(delay)s... (\(retryAttempt + 1)/\(maxRetries))")
+
+                    try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                    handleVideoImport(importID, retryAttempt: retryAttempt + 1)
+                    return
+                } else {
+                    Log.error("Pending import not found after all retries", category: .general, metadata: [
+                        "importId": importID.uuidString,
+                        "totalAttempts": maxRetries + 1
+                    ])
+                    DeviceLogger.shared.log("❌ [DeepLink] Pending import not found after \(maxRetries + 1) attempts: \(importID.uuidString)")
+                    return
+                }
             }
 
             // Check for bulk content import FIRST (no file URL)

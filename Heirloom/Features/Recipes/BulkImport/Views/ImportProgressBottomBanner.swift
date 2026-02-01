@@ -65,9 +65,22 @@ struct ImportProgressBottomBanner: View {
                         }
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(titleText(for: job))
-                                .font(HeirloomFonts.bodyBold)
-                                .foregroundStyle(HeirloomColors.charcoal)
+                            HStack(spacing: 6) {
+                                Text(titleText(for: job))
+                                    .font(HeirloomFonts.bodyBold)
+                                    .foregroundStyle(HeirloomColors.charcoal)
+
+                                // Recipe count badge for multi-recipe imports
+                                if job.totalItems > 1 && job.status != .completed {
+                                    Text("+\(job.totalItems)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 5)
+                                        .padding(.vertical, 2)
+                                        .background(HeirloomColors.tomato)
+                                        .cornerRadius(8)
+                                }
+                            }
 
                             Text(subtitleText(for: job))
                                 .font(HeirloomFonts.caption1)
@@ -80,6 +93,10 @@ struct ImportProgressBottomBanner: View {
                         if job.status == .completed {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(.green)
+                                .font(HeirloomFonts.title2)
+                        } else if job.status == .failed {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .foregroundStyle(.red)
                                 .font(HeirloomFonts.title2)
                         } else {
                             Text("\(Int(job.overallProgress * 100))%")
@@ -142,24 +159,36 @@ struct ImportProgressBottomBanner: View {
 
     private func subtitleText(for job: ImportJob) -> String {
         if job.status == .completed {
-            // Show success/failure summary
+            // Show success/failure summary with collection name
             let successCount = job.successfulItems
             let failCount = job.failedItems
 
-            if failCount > 0 {
-                return "\(successCount) recipes added, \(failCount) failed"
+            if let collectionName = job.cookbookName, !collectionName.isEmpty {
+                if failCount > 0 {
+                    return "\(successCount) added to \(collectionName), \(failCount) failed"
+                } else {
+                    return "Saved to \(collectionName)"
+                }
             } else {
-                return "\(successCount) recipes added"
+                if failCount > 0 {
+                    return "\(successCount) recipes added, \(failCount) failed"
+                } else {
+                    return "\(successCount) recipes added"
+                }
             }
         } else if job.status == .paused {
             // Paused state - show call to action
-            return "Tap to resume • \(job.completedItems) of \(job.totalItems) recipes"
+            return "Tap to resume • \(job.completedItems) of \(job.totalItems) complete"
         } else if job.status == .failed && job.canResume {
-            // Failed but can resume
-            return "Tap to resume from checkpoint"
+            // Failed but can resume - show helpful message
+            return "Tap to retry from last checkpoint"
         } else {
-            // Processing state - show progress
-            return "\(job.completedItems) of \(job.totalItems) recipes"
+            // Processing state - show phase-specific progress
+            if job.totalItems > 1 {
+                return "\(job.phase.displayName) • \(job.completedItems) of \(job.totalItems)"
+            } else {
+                return job.phase.displayName
+            }
         }
     }
 }

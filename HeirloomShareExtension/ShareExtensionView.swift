@@ -699,8 +699,8 @@ struct ShareExtensionView: View {
 
         state = successState
 
-        // Wait a moment for UI to update
-        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        // Wait for file to be fully written to disk before firing deep link (increased from 0.5s to 1.5s)
+        try await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 seconds
 
         print("⚠️ Share Extension (video): Attempting to open URL: \(deepLinkURL.absoluteString)")
 
@@ -708,8 +708,8 @@ struct ShareExtensionView: View {
         let opened = await openURL(deepLinkURL)
         print("⚠️ Share Extension (video): URL open result: \(opened)")
 
-        // Give the open attempt a moment to work
-        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        // Give the open attempt a moment to work before completing (increased from 0.5s to 1s)
+        try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
 
         // Complete extension successfully regardless of whether URL opening worked
         // The main app will detect the pending import when it becomes active

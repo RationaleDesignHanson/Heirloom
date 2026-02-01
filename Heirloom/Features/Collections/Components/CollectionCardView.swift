@@ -102,9 +102,12 @@ struct CollectionCardView: View {
     @ViewBuilder
     private var customBackgroundView: some View {
         if let bgPath = collection.customBackgroundImagePath ?? collection.generatedBackgroundImagePath {
+            // Detect if path is a URL (Firebase Storage) or local file
+            let isFirebaseURL = bgPath.hasPrefix("http://") || bgPath.hasPrefix("https://")
+
             AsyncRecipeImage(
-                imageFileName: bgPath,
-                firebaseImageURL: nil,
+                imageFileName: isFirebaseURL ? nil : bgPath,
+                firebaseImageURL: isFirebaseURL ? bgPath : nil,
                 placeholder: collection.iconName
             )
         } else {

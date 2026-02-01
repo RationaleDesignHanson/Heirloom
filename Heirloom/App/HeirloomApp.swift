@@ -559,7 +559,7 @@ struct HeirloomApp: App {
         // Check timestamp to prevent re-processing stale URLs from previous sessions
         if let timestamp = groupDefaults.object(forKey: "pendingImportTimestamp") as? Date {
             let ageInSeconds = Date().timeIntervalSince(timestamp)
-            let maxAgeSeconds: TimeInterval = 300 // 5 minutes
+            let maxAgeSeconds: TimeInterval = 86400 // 24 hours (was 5 minutes - too short, lost imports on crash)
 
             if ageInSeconds > maxAgeSeconds {
                 Log.warning("Ignoring stale pending import URL", category: .general, metadata: [

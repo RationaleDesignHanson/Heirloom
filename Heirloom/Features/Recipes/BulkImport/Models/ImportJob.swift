@@ -40,6 +40,9 @@ final class ImportJob {
     /// Collection type for auto-categorization (stored as raw value)
     var collectionTypeRawValue: String?
 
+    /// Collection created for this job (to avoid duplicate collections within same job)
+    var createdCollectionID: UUID?
+
     // MARK: - Relationships
     @Relationship(deleteRule: .cascade, inverse: \ImportItem.job)
     var items: [ImportItem]?

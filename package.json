@@ -1,0 +1,28 @@
+{
+  "name": "heirloom",
+  "version": "1.0.0",
+  "description": "[![Tests](https://github.com/RationaleDesignHanson/Heirloom/actions/workflows/tests.yml/badge.svg)](https://github.com/RationaleDesignHanson/Heirloom/actions/workflows/tests.yml) [![VideoLab Tests](https://github.com/RationaleDesignHanson/Heirloom/actions/workflows/videolab-tests.yml/badge.svg)](https://github.com/RationaleDesignHanson/Heirloom/actions/workflows/videolab-tests.yml) ![iOS 17+](https://img.shields.io/badge/iOS-17%2B-blue) ![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange)",
+  "main": "import_test_users.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RationaleDesignHanson/Heirloom.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/RationaleDesignHanson/Heirloom/issues"
+  },
+  "homepage": "https://github.com/RationaleDesignHanson/Heirloom#readme",
+  "dependencies": {
+    "firebase": "^12.8.0",
+    "firebase-admin": "^13.6.0"
+  }
+}

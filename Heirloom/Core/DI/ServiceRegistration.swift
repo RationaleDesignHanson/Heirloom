@@ -390,6 +390,11 @@ extension ServiceContainer {
             container.resolve(FirebaseDiscoveryService.self) as any DiscoveryServiceProtocol
         }
 
+        // DuplicateDetectionService - Detects duplicate recipes using content hashing
+        register(DuplicateDetectionService.self, lifecycle: .singleton) { _ in
+            DuplicateDetectionService()
+        }
+
         register(DinnerPartyShoppingSync.self, lifecycle: .singleton) { _ in
             DinnerPartyShoppingSync()
         }

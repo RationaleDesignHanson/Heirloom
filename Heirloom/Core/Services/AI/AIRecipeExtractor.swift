@@ -88,22 +88,116 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
 
     // MARK: - Extracted Recipe Structure
 
+    /// Flexible ingredient representation supporting multiple formats
+    enum IngredientStructure: Codable, Equatable {
+        /// Simple flat list: ["2 cups flour", "1 cup sugar"]
+        case flat([String])
+
+        /// Grouped by section: {"Cake": [...], "Frosting": [...]}
+        case grouped([String: [String]])
+
+        /// Recipe variants: {"Old Way": [...], "New Way": [...]}
+        case variants([String: [String]])
+
+        /// Decode from JSON (handles both array and object)
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+
+            // Try array first (most common)
+            if let array = try? container.decode([String].self) {
+                self = .flat(array)
+                return
+            }
+
+            // Try object (grouped/variants)
+            if let dict = try? container.decode([String: [String]].self) {
+                // Heuristic: if keys look like variants (Old Way, New Way, Version 1, etc)
+                let variantKeywords = ["old", "new", "version", "variant", "option", "way", "method"]
+                let hasVariantKeys = dict.keys.contains { key in
+                    variantKeywords.contains(where: { key.lowercased().contains($0) })
+                }
+
+                if hasVariantKeys {
+                    self = .variants(dict)
+                } else {
+                    self = .grouped(dict)
+                }
+                return
+            }
+
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Ingredients must be array or object"
+            )
+        }
+
+        /// Encode to JSON (always as array or object)
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+
+            switch self {
+            case .flat(let items):
+                try container.encode(items)
+            case .grouped(let sections):
+                try container.encode(sections)
+            case .variants(let versions):
+                try container.encode(versions)
+            }
+        }
+
+        /// Get primary ingredient list (flattened for display)
+        var flattened: [String] {
+            switch self {
+            case .flat(let items):
+                return items
+            case .grouped(let sections):
+                // Flatten with section headers
+                return sections.flatMap { section, items in
+                    ["[\(section)]"] + items
+                }
+            case .variants(let versions):
+                // Use first variant or combine all
+                if let primary = versions.sorted(by: { $0.key < $1.key }).first?.value {
+                    return primary
+                }
+                return []
+            }
+        }
+
+        /// Check if has multiple groups
+        var hasGroups: Bool {
+            if case .grouped = self { return true }
+            return false
+        }
+
+        /// Check if has variants
+        var hasVariants: Bool {
+            if case .variants = self { return true }
+            return false
+        }
+    }
+
     struct ExtractedRecipe: Codable {
         let title: String
         let servings: String?
         let prepTime: String?
         let cookTime: String?
-        let ingredients: [String]
+        let ingredientStructure: IngredientStructure
         let instructions: [String]
         let notes: String?
         let confidence: Double? // Added for multi-recipe detection
+
+        /// Convenience accessor for flattened ingredients (backward compat)
+        var ingredients: [String] {
+            ingredientStructure.flattened
+        }
 
         enum CodingKeys: String, CodingKey {
             case title
             case servings
             case prepTime = "prep_time"
             case cookTime = "cook_time"
-            case ingredients
+            case ingredientStructure = "ingredients"
             case instructions
             case notes
             case confidence
@@ -113,6 +207,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     /// Result of detecting multiple recipes in a single image
     struct MultiRecipeExtractionResult {
         let recipes: [ExtractedRecipe]
+        let extractionResults: [ExtractionResult]
         let sourceImage: UIImage?
 
         var count: Int {
@@ -125,6 +220,14 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
 
         var hasMultipleRecipes: Bool {
             recipes.count > 1
+        }
+
+        var successfulCount: Int {
+            extractionResults.filter { $0.success }.count
+        }
+
+        var failedCount: Int {
+            extractionResults.filter { !$0.success }.count
         }
     }
 
@@ -311,7 +414,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
               configuration.isConfigured(provider: .anthropic) else {
             // Fall back to basic extraction (assumes single recipe)
             let recipe = extractRecipeBasic(from: ocrText)
-            return MultiRecipeExtractionResult(recipes: [recipe], sourceImage: sourceImage)
+            return MultiRecipeExtractionResult(recipes: [recipe], extractionResults: [], sourceImage: sourceImage)
         }
 
         do {
@@ -324,7 +427,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                 "recipe_count": recipes.count
             ])
 
-            return MultiRecipeExtractionResult(recipes: recipes, sourceImage: sourceImage)
+            return MultiRecipeExtractionResult(recipes: recipes, extractionResults: [], sourceImage: sourceImage)
 
         } catch {
             // Track failure
@@ -337,7 +440,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
 
             // Fallback: Try to split into multiple recipes based on heuristics
             let recipes = extractMultipleRecipesBasic(from: ocrText)
-            return MultiRecipeExtractionResult(recipes: recipes, sourceImage: sourceImage)
+            return MultiRecipeExtractionResult(recipes: recipes, extractionResults: [], sourceImage: sourceImage)
         }
     }
 
@@ -420,12 +523,16 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         ])
 
         var extractedRecipes: [ExtractedRecipe] = []
+        var extractionResults: [ExtractionResult] = []
 
         for (index, detected) in detectedRecipes.enumerated() {
+            let startTime = Date()
+
             Log.info("🔄 Extracting recipe \(index + 1) of \(detectedRecipes.count)", category: .import, metadata: [
                 "title": detected.title,
                 "confidence": detected.confidence.rawValue
             ])
+
             do {
                 Log.info("📸 Calling extractRecipeFromImage with bounding box", category: .import, metadata: [
                     "title": detected.title,
@@ -434,6 +541,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                     "bbox_width": detected.boundingBox.width,
                     "bbox_height": detected.boundingBox.height
                 ])
+
                 let recipe = try await extractRecipeFromImage(
                     image: image,
                     boundingBox: detected.boundingBox
@@ -442,8 +550,35 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                 Log.info("✅ Recipe extraction succeeded", category: .import, metadata: [
                     "title": recipe.title,
                     "ingredient_count": recipe.ingredients.count,
-                    "instruction_length": recipe.instructions.count
+                    "instruction_length": recipe.instructions.count,
+                    "has_variants": recipe.ingredientStructure.hasVariants,
+                    "has_groups": recipe.ingredientStructure.hasGroups
                 ])
+
+                // Validate recipe quality
+                if let validationError = validateRecipeQuality(recipe) {
+                    Log.warning("⚠️ Recipe extraction failed (quality check)", category: .import, metadata: [
+                        "recipe_index": index + 1,
+                        "title": detected.title,
+                        "error": validationError
+                    ])
+
+                    extractionResults.append(ExtractionResult(
+                        detectedTitle: detected.title,
+                        success: false,
+                        recipeID: nil,
+                        errorType: "incomplete_recipe",
+                        errorMessage: validationError,
+                        boundingBox: ExtractionResult.BoundingBox(
+                            x: detected.boundingBox.x,
+                            y: detected.boundingBox.y,
+                            width: detected.boundingBox.width,
+                            height: detected.boundingBox.height
+                        ),
+                        extractionDuration: Date().timeIntervalSince(startTime)
+                    ))
+                    continue  // Skip this recipe
+                }
 
                 // Add confidence from detection
                 let recipeWithConfidence = ExtractedRecipe(
@@ -451,21 +586,91 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                     servings: recipe.servings,
                     prepTime: recipe.prepTime,
                     cookTime: recipe.cookTime,
-                    ingredients: recipe.ingredients,
+                    ingredientStructure: recipe.ingredientStructure,
                     instructions: recipe.instructions,
                     notes: recipe.notes,
                     confidence: detected.confidence.score
                 )
 
                 extractedRecipes.append(recipeWithConfidence)
+
+                // Track success
+                extractionResults.append(ExtractionResult(
+                    detectedTitle: detected.title,
+                    success: true,
+                    recipeID: nil,  // Will be set after Recipe model creation
+                    errorType: nil,
+                    errorMessage: nil,
+                    boundingBox: ExtractionResult.BoundingBox(
+                        x: detected.boundingBox.x,
+                        y: detected.boundingBox.y,
+                        width: detected.boundingBox.width,
+                        height: detected.boundingBox.height
+                    ),
+                    extractionDuration: Date().timeIntervalSince(startTime)
+                ))
+
+            } catch DecodingError.dataCorrupted(let context) {
+                // JSON schema mismatch
+                let errorMsg = "Recipe format not supported: \(context.debugDescription)"
+                Log.warning("⚠️ Recipe extraction failed (schema mismatch)", category: .import, metadata: [
+                    "recipe_index": index + 1,
+                    "title": detected.title,
+                    "error": errorMsg
+                ])
+
+                extractionResults.append(ExtractionResult(
+                    detectedTitle: detected.title,
+                    success: false,
+                    recipeID: nil,
+                    errorType: "json_schema_mismatch",
+                    errorMessage: errorMsg,
+                    boundingBox: ExtractionResult.BoundingBox(
+                        x: detected.boundingBox.x,
+                        y: detected.boundingBox.y,
+                        width: detected.boundingBox.width,
+                        height: detected.boundingBox.height
+                    ),
+                    extractionDuration: Date().timeIntervalSince(startTime)
+                ))
+
             } catch {
-                Log.warning("Failed to extract individual recipe from multi-recipe image", category: .ocr, metadata: ["title": detected.title, "error": error.localizedDescription])
-                // Continue with other recipes even if one fails
-                continue
+                // Unknown error
+                let errorMsg = error.localizedDescription
+                Log.warning("⚠️ Recipe extraction failed (unknown)", category: .import, metadata: [
+                    "recipe_index": index + 1,
+                    "title": detected.title,
+                    "error": errorMsg
+                ])
+
+                extractionResults.append(ExtractionResult(
+                    detectedTitle: detected.title,
+                    success: false,
+                    recipeID: nil,
+                    errorType: "extraction_error",
+                    errorMessage: errorMsg,
+                    boundingBox: ExtractionResult.BoundingBox(
+                        x: detected.boundingBox.x,
+                        y: detected.boundingBox.y,
+                        width: detected.boundingBox.width,
+                        height: detected.boundingBox.height
+                    ),
+                    extractionDuration: Date().timeIntervalSince(startTime)
+                ))
             }
         }
 
-        return MultiRecipeExtractionResult(recipes: extractedRecipes, sourceImage: image)
+        Log.info("📊 Extraction summary", category: .import, metadata: [
+            "total_detected": detectedRecipes.count,
+            "successful": extractedRecipes.count,
+            "failed": detectedRecipes.count - extractedRecipes.count
+        ])
+
+        return MultiRecipeExtractionResult(
+            recipes: extractedRecipes,
+            extractionResults: extractionResults,
+            sourceImage: image
+        )
     }
 
     private func buildVisionExtractionPrompt(boundingBox: BoundingBox?) -> String {
@@ -486,13 +691,30 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         }
 
         prompt += """
-        Return ONLY valid JSON with this structure:
+        IMPORTANT: Handle various ingredient formats intelligently:
+
+        1. Simple list (most common):
+           "ingredients": ["2 cups flour", "1 cup sugar"]
+
+        2. Grouped by section (Cake/Frosting/Sauce):
+           "ingredients": {
+             "Cake": ["2 cups flour", "1 cup sugar"],
+             "Frosting": ["1 cup butter", "2 cups powdered sugar"]
+           }
+
+        3. Recipe variants (Old Way/New Way, Version 1/Version 2):
+           "ingredients": {
+             "Old Way": ["1 quart pumpkin", "1 cup milk"],
+             "New Way": ["1 quart pumpkin", "1 cup evaporated milk"]
+           }
+
+        Return ONLY valid JSON:
         {
           "title": "Recipe Title",
           "servings": "4 servings",
           "prep_time": "15 min",
           "cook_time": "30 min",
-          "ingredients": ["2 cups flour", "1 cup sugar", ...],
+          "ingredients": <array OR object with sections/variants>,
           "instructions": ["Step 1: Mix ingredients", "Step 2: Bake", ...],
           "notes": "Optional notes or tips",
           "confidence": 0.95
@@ -501,6 +723,9 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         Instructions:
         - Extract ALL ingredients with exact quantities
         - Preserve original measurements (cups, tsp, etc.)
+        - If ingredients are in columns (Old Way/New Way), use object format
+        - If ingredients have sections (CAKE, FROSTING), use object format
+        - Otherwise, use simple array format
         - Number instructions in logical order
         - Include all preparation steps
         - Set confidence based on text clarity (0.0-1.0)
@@ -902,6 +1127,53 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         """
     }
 
+    // MARK: - Recipe Quality Validation
+
+    /// Validates that an extracted recipe has sufficient content to be considered complete
+    /// - Parameter recipe: The extracted recipe to validate
+    /// - Returns: Error message if validation fails, nil if recipe is valid
+    private func validateRecipeQuality(_ recipe: ExtractedRecipe) -> String? {
+        let ingredients = recipe.ingredients
+        let instructions = recipe.instructions
+
+        // Check for placeholder text
+        let hasPlaceholderIngredients = ingredients.contains { $0.contains("No ingredients found") }
+        let hasPlaceholderInstructions = instructions.contains { $0.contains("No instructions found") }
+
+        if hasPlaceholderIngredients {
+            return "Recipe has no ingredients"
+        }
+
+        if hasPlaceholderInstructions {
+            return "Recipe has no instructions"
+        }
+
+        // Check minimum ingredient count (at least 3 for a valid recipe)
+        if ingredients.count < 3 {
+            return "Recipe has too few ingredients (\(ingredients.count) found, need at least 3)"
+        }
+
+        // Check minimum instruction count (at least 2 for a valid recipe)
+        if instructions.count < 2 {
+            return "Recipe has too few instructions (\(instructions.count) found, need at least 2)"
+        }
+
+        // Check that ingredients aren't all very short (likely extraction error)
+        let averageIngredientLength = ingredients.map { $0.count }.reduce(0, +) / max(ingredients.count, 1)
+        if averageIngredientLength < 5 {
+            return "Recipe ingredients appear incomplete (avg length: \(averageIngredientLength) chars)"
+        }
+
+        // Check that instructions aren't all very short (likely extraction error)
+        let averageInstructionLength = instructions.map { $0.count }.reduce(0, +) / max(instructions.count, 1)
+        if averageInstructionLength < 10 {
+            return "Recipe instructions appear incomplete (avg length: \(averageInstructionLength) chars)"
+        }
+
+        // Recipe passes quality checks
+        return nil
+    }
+
     // MARK: - Fallback Basic Extraction
 
     func extractRecipeBasic(from text: String) -> ExtractedRecipe {
@@ -990,7 +1262,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             servings: servings,
             prepTime: prepTime,
             cookTime: cookTime,
-            ingredients: ingredients.isEmpty ? ["No ingredients found"] : ingredients,
+            ingredientStructure: .flat(ingredients.isEmpty ? ["No ingredients found"] : ingredients),
             instructions: instructions.isEmpty ? ["No instructions found"] : instructions,
             notes: nil,
             confidence: nil

@@ -1,0 +1,268 @@
+{
+  "users": {
+    "test-user-1": {
+      "profile": {
+        "data": {
+          "userId": "test-user-1",
+          "displayName": "Matt Chef",
+          "bio": "Love Italian cooking and fresh pasta",
+          "photoURL": null,
+          "handle": null,
+          "location": "New York",
+          "specialties": ["Italian", "Pasta", "Baking"],
+          "websiteURL": null,
+          "currentKitchenTableId": null,
+          "kitchenTableIds": null,
+          "connectionCount": 0,
+          "followerCount": 0,
+          "followingCount": 0,
+          "sharedRecipeCount": 0,
+          "heritageGenerationCount": 0,
+          "recipeAcceptanceCount": 0,
+          "privacySettings": {
+            "profileVisibility": "private",
+            "allowMentions": true,
+            "allowSearchIndexing": true,
+            "hideFromSearch": false,
+            "showLocationInSearch": true,
+            "showSpecialtiesInSearch": true
+          },
+          "hasPublicProfile": false,
+          "publicProfileSlug": null,
+          "joinedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "updatedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "lastActiveAt": null,
+          "locale": "en_US",
+          "isVerified": false,
+          "verificationType": null
+        }
+      }
+    },
+    "test-user-2": {
+      "profile": {
+        "data": {
+          "userId": "test-user-2",
+          "displayName": "Sarah Baker",
+          "bio": "Specializing in artisan breads and pastries",
+          "photoURL": null,
+          "handle": null,
+          "location": "San Francisco",
+          "specialties": ["Baking", "Desserts", "Soups"],
+          "websiteURL": null,
+          "currentKitchenTableId": null,
+          "kitchenTableIds": null,
+          "connectionCount": 0,
+          "followerCount": 0,
+          "followingCount": 0,
+          "sharedRecipeCount": 0,
+          "heritageGenerationCount": 0,
+          "recipeAcceptanceCount": 0,
+          "privacySettings": {
+            "profileVisibility": "private",
+            "allowMentions": true,
+            "allowSearchIndexing": true,
+            "hideFromSearch": false,
+            "showLocationInSearch": true,
+            "showSpecialtiesInSearch": true
+          },
+          "hasPublicProfile": false,
+          "publicProfileSlug": null,
+          "joinedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "updatedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "lastActiveAt": null,
+          "locale": "en_US",
+          "isVerified": false,
+          "verificationType": null
+        }
+      }
+    },
+    "test-user-3": {
+      "profile": {
+        "data": {
+          "userId": "test-user-3",
+          "displayName": "Maria Garcia",
+          "bio": "Mexican cuisine enthusiast and taco expert",
+          "photoURL": null,
+          "handle": null,
+          "location": "Austin",
+          "specialties": ["Mexican", "Grilling", "Salads"],
+          "websiteURL": null,
+          "currentKitchenTableId": null,
+          "kitchenTableIds": null,
+          "connectionCount": 0,
+          "followerCount": 0,
+          "followingCount": 0,
+          "sharedRecipeCount": 0,
+          "heritageGenerationCount": 0,
+          "recipeAcceptanceCount": 0,
+          "privacySettings": {
+            "profileVisibility": "private",
+            "allowMentions": true,
+            "allowSearchIndexing": true,
+            "hideFromSearch": false,
+            "showLocationInSearch": true,
+            "showSpecialtiesInSearch": true
+          },
+          "hasPublicProfile": false,
+          "publicProfileSlug": null,
+          "joinedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "updatedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "lastActiveAt": null,
+          "locale": "en_US",
+          "isVerified": false,
+          "verificationType": null
+        }
+      }
+    },
+    "test-user-4": {
+      "profile": {
+        "data": {
+          "userId": "test-user-4",
+          "displayName": "John Smith",
+          "bio": "BBQ and grilling expert, competition winner",
+          "photoURL": null,
+          "handle": null,
+          "location": "Dallas",
+          "specialties": ["Grilling", "BBQ", "Seafood"],
+          "websiteURL": null,
+          "currentKitchenTableId": null,
+          "kitchenTableIds": null,
+          "connectionCount": 0,
+          "followerCount": 0,
+          "followingCount": 0,
+          "sharedRecipeCount": 0,
+          "heritageGenerationCount": 0,
+          "recipeAcceptanceCount": 0,
+          "privacySettings": {
+            "profileVisibility": "private",
+            "allowMentions": true,
+            "allowSearchIndexing": true,
+            "hideFromSearch": false,
+            "showLocationInSearch": true,
+            "showSpecialtiesInSearch": true
+          },
+          "hasPublicProfile": false,
+          "publicProfileSlug": null,
+          "joinedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "updatedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "lastActiveAt": null,
+          "locale": "en_US",
+          "isVerified": false,
+          "verificationType": null
+        }
+      }
+    },
+    "test-user-5": {
+      "profile": {
+        "data": {
+          "userId": "test-user-5",
+          "displayName": "Emily Chen",
+          "bio": "Asian fusion and vegetarian dishes",
+          "photoURL": null,
+          "handle": null,
+          "location": "Seattle",
+          "specialties": ["Asian", "Vegetarian", "Vegan"],
+          "websiteURL": null,
+          "currentKitchenTableId": null,
+          "kitchenTableIds": null,
+          "connectionCount": 0,
+          "followerCount": 0,
+          "followingCount": 0,
+          "sharedRecipeCount": 0,
+          "heritageGenerationCount": 0,
+          "recipeAcceptanceCount": 0,
+          "privacySettings": {
+            "profileVisibility": "private",
+            "allowMentions": true,
+            "allowSearchIndexing": true,
+            "hideFromSearch": false,
+            "showLocationInSearch": true,
+            "showSpecialtiesInSearch": true
+          },
+          "hasPublicProfile": false,
+          "publicProfileSlug": null,
+          "joinedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "updatedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "lastActiveAt": null,
+          "locale": "en_US",
+          "isVerified": false,
+          "verificationType": null
+        }
+      }
+    },
+    "test-user-6": {
+      "profile": {
+        "data": {
+          "userId": "test-user-6",
+          "displayName": "Matthew Anderson",
+          "bio": "Home cook learning new techniques",
+          "photoURL": null,
+          "handle": null,
+          "location": "Portland",
+          "specialties": ["Soups", "Salads", "Pasta"],
+          "websiteURL": null,
+          "currentKitchenTableId": null,
+          "kitchenTableIds": null,
+          "connectionCount": 0,
+          "followerCount": 0,
+          "followingCount": 0,
+          "sharedRecipeCount": 0,
+          "heritageGenerationCount": 0,
+          "recipeAcceptanceCount": 0,
+          "privacySettings": {
+            "profileVisibility": "private",
+            "allowMentions": true,
+            "allowSearchIndexing": true,
+            "hideFromSearch": false,
+            "showLocationInSearch": true,
+            "showSpecialtiesInSearch": true
+          },
+          "hasPublicProfile": false,
+          "publicProfileSlug": null,
+          "joinedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "updatedAt": {
+            "__datatype__": "timestamp",
+            "value": "2026-01-30T12:00:00Z"
+          },
+          "lastActiveAt": null,
+          "locale": "en_US",
+          "isVerified": false,
+          "verificationType": null
+        }
+      }
+    }
+  }
+}

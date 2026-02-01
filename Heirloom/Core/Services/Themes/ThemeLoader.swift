@@ -97,6 +97,13 @@ actor ThemeLoader {
         existing.region = new.region
         existing.sortOrder = new.sortOrder
         existing.updatedAt = Date()
+
+        // Update associated collection's background image if cover image changed
+        if let collection = existing.collection,
+           let coverImageURL = new.coverImageURL {
+            collection.generatedBackgroundImagePath = coverImageURL
+            collection.useCustomBackground = true
+        }
     }
 }
 
