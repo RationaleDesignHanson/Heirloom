@@ -49,6 +49,12 @@ struct ImportProgressView: View {
             phaseContentView()
                 .frame(maxHeight: 250)
 
+            // Error summary for failed jobs
+            if job.status == .failed {
+                errorSummaryView()
+                    .padding(.horizontal, HeirloomSpacing.lg)
+            }
+
             // Stats
             HStack(spacing: HeirloomSpacing.xl) {
                 statColumn("Success", job.successfulItems, .green)
@@ -473,6 +479,55 @@ struct ImportProgressView: View {
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private func errorSummaryView() -> some View {
+        if let items = job.items {
+            let failedItems = items.filter { $0.status == .failed }
+
+            if !failedItems.isEmpty {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.red)
+                        Text("Why did it fail?")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+                    }
+
+                    // Show first 3 error messages
+                    ForEach(failedItems.prefix(3), id: \.id) { item in
+                        HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.red)
+                                .font(.caption)
+
+                            if let error = item.errorMessage {
+                                Text(error)
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(HeirloomColors.secondaryText)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            } else {
+                                Text("Recipe extraction failed")
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(HeirloomColors.secondaryText)
+                            }
+                        }
+                    }
+
+                    if failedItems.count > 3 {
+                        Text("+ \(failedItems.count - 3) more errors")
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                            .padding(.leading, 20)
+                    }
+                }
+                .padding(HeirloomSpacing.md)
+                .background(Color.red.opacity(0.08))
+                .cornerRadius(12)
+            }
+        }
     }
 }
 

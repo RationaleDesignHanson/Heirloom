@@ -1182,7 +1182,32 @@ final class ImportJobManager: ObservableObject {
     // MARK: - Job Completion
 
     private func completeJob(_ job: ImportJob, context: ModelContext) async {
-        job.status = .completed
+        // Set status based on success/failure outcomes
+        if job.successfulItems == 0 && job.totalItems > 0 {
+            // All items failed - mark as failed
+            job.status = .failed
+            Log.error("Import job completed with ALL items failed", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "totalItems": job.totalItems,
+                "failedItems": job.failedItems
+            ])
+        } else if job.successfulItems > 0 && job.failedItems > 0 {
+            // Partial success - mark as completed but log warning
+            job.status = .completed
+            Log.warning("Import job completed with some failures", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "successfulItems": job.successfulItems,
+                "failedItems": job.failedItems
+            ])
+        } else {
+            // All items succeeded
+            job.status = .completed
+            Log.info("Import job completed successfully", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "successfulItems": job.successfulItems
+            ])
+        }
+
         job.phase = .completed
         job.phaseProgress = 1.0
         job.completedAt = Date()
