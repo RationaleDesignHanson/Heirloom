@@ -169,6 +169,9 @@ struct CookbookScannerView: View {
 
                                     // Auto-start extraction for photo library (no extra tap needed)
                                     processImageWithQueue()
+
+                                    // Dismiss sheet immediately to show ImportProgressBottomBanner
+                                    dismiss()
                                 }
                             }
                         } else {
