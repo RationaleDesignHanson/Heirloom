@@ -196,6 +196,7 @@ enum AccessibilityIdentifiers {
         static let view = "tabBarView"
         static let recipesTab = "tabBarRecipesTab"
         static let collectionsTab = "tabBarCollectionsTab"
+        static let discoveryTab = "tabBarDiscoveryTab"
         static let shoppingTab = "tabBarShoppingTab"
         static let mealPlanningTab = "tabBarMealPlanningTab"
         static let settingsTab = "tabBarSettingsTab"

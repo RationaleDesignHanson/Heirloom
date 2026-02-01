@@ -72,6 +72,14 @@ actor CollectionImageGenerator {
             }
             prompt += ". Style: contemporary, bright natural lighting, clean aesthetic, tech-savvy cooking, warm atmosphere, no text or words"
 
+        case .communityRecipes:
+            // Community-shared recipes aesthetic
+            prompt = "A warm, inviting community kitchen scene with diverse people sharing recipes and cooking together"
+            if !recipeNames.isEmpty {
+                prompt += " featuring dishes like \(recipeNames.components(separatedBy: ", ").first ?? "traditional favorites")"
+            }
+            prompt += ". Style: diverse community gathering, warm natural lighting, shared cooking experience, cultural exchange, cozy welcoming atmosphere, no text or words"
+
         default:
             // Default warm nostalgic scene for user-created and theme collections
             prompt = "A warm, nostalgic kitchen scene representing a family cookbook collection"
@@ -89,7 +97,8 @@ actor CollectionImageGenerator {
         if collection.type != .videoImports &&
            collection.type != .cookbook &&
            collection.type != .photoImports &&
-           collection.type != .webImports {
+           collection.type != .webImports &&
+           collection.type != .communityRecipes {
             prompt += ". Style: soft natural lighting, cozy atmosphere, watercolor illustration, warm tones, no text or words"
         }
 

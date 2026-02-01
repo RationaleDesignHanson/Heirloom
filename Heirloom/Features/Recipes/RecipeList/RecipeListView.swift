@@ -194,9 +194,6 @@ struct RecipeListView: View {
     // Heritage unlock
     @State private var showHeritageUnlock = false
 
-    // Public discovery (Phase 11)
-    @State private var showDiscovery = false
-
     var body: some View {
         NavigationStack {
             mainContent
@@ -212,9 +209,6 @@ struct RecipeListView: View {
                 .sheet(isPresented: $showSignInPrompt) {
                     SignInPromptSheet()
                         .presentationDetents([.medium])
-                }
-                .fullScreenCover(isPresented: $showDiscovery) {
-                    DiscoveryView()
                 }
                 // TODO: Re-enable for Phase A3
                 // .sheet(isPresented: $showHeritageUnlock) {
@@ -291,16 +285,7 @@ struct RecipeListView: View {
             noResultsState
                 .frame(minHeight: geometry.size.height)
         } else {
-            VStack(spacing: 0) {
-                // Discovery entry banner (Phase 11)
-                DiscoveryEntryBanner {
-                    showDiscovery = true
-                }
-                .padding(.horizontal, HeirloomSpacing.md)
-                .padding(.bottom, HeirloomSpacing.md)
-
-                recipeGridContent
-            }
+            recipeGridContent
         }
     }
 

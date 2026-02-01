@@ -351,6 +351,45 @@ service cloud.firestore {
     }
 
     // ========================================
+    // USER TAGS (User-Scoped)
+    // Stored at: users/{userId}/tags/{tagId}
+    // ========================================
+    match /users/{userId}/tags/{tagId} {
+      // Users can read and write their own tags
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+
+      // Any authenticated user can read tags (for sharing)
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // USER SHOPPING CART (User-Scoped)
+    // Stored at: users/{userId}/shoppingCart/{cartRecipeId}
+    // ========================================
+    match /users/{userId}/shoppingCart/{cartRecipeId} {
+      // Users can read and write their own shopping cart
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+
+      // Any authenticated user can read cart (for sharing)
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // USER DINNER PARTIES (User-Scoped)
+    // Stored at: users/{userId}/dinnerParties/{partyId}
+    // ========================================
+    match /users/{userId}/dinnerParties/{partyId} {
+      // Users can read and write their own dinner parties
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+
+      // Any authenticated user can read parties (for sharing)
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
     // PUBLIC RECIPES (Phase 11 - Public Discovery)
     // For community recipe discovery
     // Stored at: publicRecipes/{publicRecipeId}
@@ -371,6 +410,30 @@ service cloud.firestore {
       // Only the recipe owner can delete (unpublish) their public recipe
       allow delete: if isAuthenticated() &&
                        resource.data.ownerId == request.auth.uid;
+    }
+
+    // ========================================
+    // PUBLIC RECIPE REPORTS (Phase 11 - Moderation)
+    // For reporting inappropriate public recipes
+    // Stored at: publicRecipeReports/{reportId}
+    // ========================================
+    match /publicRecipeReports/{reportId} {
+      // Users can read their own reports (to check if already reported)
+      allow read: if isAuthenticated() &&
+                     (request.auth.uid == resource.data.reporterId ||
+                      request.auth.uid == resource.data.reviewedBy);
+
+      // Any authenticated user can create reports
+      // Reporter ID must match auth user
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == request.resource.data.reporterId &&
+                       request.resource.data.status == 'pending';
+
+      // Only moderators/admins can update (via Cloud Functions)
+      allow update: if false;
+
+      // Only moderators/admins can delete (via Cloud Functions)
+      allow delete: if false;
     }
 
     // ========================================

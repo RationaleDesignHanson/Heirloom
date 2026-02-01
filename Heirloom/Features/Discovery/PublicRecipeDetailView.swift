@@ -79,6 +79,23 @@ struct PublicRecipeDetailView: View {
                 // Hero image
                 heroImage(recipe)
 
+                // Community recipe badge
+                HStack(spacing: HeirloomSpacing.xs) {
+                    Image(systemName: "globe")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(HeirloomColors.familyGreen)
+
+                    Text("Community Recipe")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.familyGreen)
+                }
+                .padding(.horizontal, HeirloomSpacing.sm)
+                .padding(.vertical, 6)
+                .background(HeirloomColors.familyGreen.opacity(0.1))
+                .cornerRadius(6)
+                .padding(.horizontal, HeirloomSpacing.md)
+                .padding(.top, HeirloomSpacing.sm)
+
                 VStack(alignment: .leading, spacing: HeirloomSpacing.lg) {
                     // Title and creator
                     titleSection(recipe)
@@ -129,14 +146,14 @@ struct PublicRecipeDetailView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 300)
+                        .frame(height: 240)
                         .clipped()
                 case .failure:
                     placeholderImage
                 case .empty:
                     ZStack {
                         Color.gray.opacity(0.1)
-                            .frame(height: 300)
+                            .frame(height: 240)
                         ProgressView()
                     }
                 @unknown default:
@@ -151,7 +168,7 @@ struct PublicRecipeDetailView: View {
     private var placeholderImage: some View {
         ZStack {
             HeirloomColors.cream
-                .frame(height: 300)
+                .frame(height: 240)
 
             Image(systemName: "fork.knife")
                 .font(.system(size: 64))
@@ -193,7 +210,7 @@ struct PublicRecipeDetailView: View {
                         .foregroundStyle(HeirloomColors.primaryText)
 
                     Text("Published \(recipe.publishedAt.formatted(.relative(presentation: .named)))")
-                        .font(HeirloomFonts.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
 
@@ -225,11 +242,11 @@ struct PublicRecipeDetailView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(value)")
-                    .font(HeirloomFonts.headlineBold)
+                    .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.primaryText)
 
                 Text(label)
-                    .font(HeirloomFonts.caption2)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
         }
@@ -241,7 +258,7 @@ struct PublicRecipeDetailView: View {
     private func descriptionSection(_ description: String) -> some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             Text("About")
-                .font(HeirloomFonts.title3Bold)
+                .font(HeirloomFonts.title3)
                 .foregroundStyle(HeirloomColors.primaryText)
 
             Text(description)
@@ -284,7 +301,7 @@ struct PublicRecipeDetailView: View {
                 .foregroundStyle(HeirloomColors.primaryText)
 
             Text(label)
-                .font(HeirloomFonts.caption2)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
         .frame(minWidth: 60)
@@ -296,7 +313,7 @@ struct PublicRecipeDetailView: View {
     private func ingredientsSection(_ recipe: PublicRecipe) -> some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             Text("Ingredients")
-                .font(HeirloomFonts.title3Bold)
+                .font(HeirloomFonts.title3)
                 .foregroundStyle(HeirloomColors.primaryText)
 
             VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
@@ -325,13 +342,13 @@ struct PublicRecipeDetailView: View {
     private func tagsSection(_ recipe: PublicRecipe) -> some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             Text("Tags")
-                .font(HeirloomFonts.title3Bold)
+                .font(HeirloomFonts.title3)
                 .foregroundStyle(HeirloomColors.primaryText)
 
             FlowLayout(spacing: HeirloomSpacing.sm) {
                 ForEach(recipe.tags, id: \.self) { tag in
                     Text(tag)
-                        .font(HeirloomFonts.caption)
+                        .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.primaryText)
                         .padding(.horizontal, HeirloomSpacing.sm)
                         .padding(.vertical, HeirloomSpacing.xs)
@@ -398,7 +415,7 @@ struct PublicRecipeDetailView: View {
                 .foregroundStyle(HeirloomColors.tomato)
 
             Text("Failed to Load Recipe")
-                .font(HeirloomFonts.headline)
+                .font(HeirloomFonts.bodyBold)
                 .foregroundStyle(HeirloomColors.primaryText)
 
             Text(message)
@@ -468,7 +485,7 @@ class PublicRecipeDetailViewModel {
                 try? await discoveryService.trackView(publicRecipeId: publicRecipeId)
 
                 // Track analytics
-                analytics.track(event: .publicRecipeViewed, properties: [
+                analytics.track(event: .recipeViewed, properties: [
                     "recipe_id": publicRecipeId,
                     "recipe_title": fetchedRecipe?.title ?? ""
                 ])

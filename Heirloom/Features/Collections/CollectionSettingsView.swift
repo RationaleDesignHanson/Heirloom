@@ -82,14 +82,18 @@ struct CollectionSettingsView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "sparkles")
+                                    .foregroundStyle(isGeneratingImage ? .secondary : HeirloomColors.tomato)
                                 Text("Generate with AI")
+                                    .foregroundStyle(isGeneratingImage ? .secondary : .primary)
                                 Spacer()
                                 if isGeneratingImage {
                                     ProgressView()
+                                        .tint(HeirloomColors.tomato)
                                 }
                             }
                         }
                         .disabled(isGeneratingImage)
+                        .opacity(isGeneratingImage ? 0.6 : 1.0)
 
                         if isGeneratingImage {
                             Text("Generating themed image...")
@@ -160,11 +164,16 @@ struct CollectionSettingsView: View {
     }
 
     private func generateBackground() async {
+        // Show starting toast
+        await MainActor.run {
+            toastManager.info(title: "Generating Image", message: "Creating a custom AI image for your collection...")
+        }
+
         isGeneratingImage = true
         defer { isGeneratingImage = false }
 
         do {
-            // Generate AI image
+            // Generate AI image (this can take 10-30 seconds)
             let imagePath = try await collectionImageGenerator.generateBackground(for: collection)
 
             await MainActor.run {
@@ -174,7 +183,9 @@ struct CollectionSettingsView: View {
                 collection.lastRecipeCountAtGeneration = collection.recipes?.count ?? 0
                 collection.useCustomBackground = true
                 try? modelContext.save()
-                toastManager.success(title: "Image Generated", message: "AI created a custom image for your collection card")
+
+                // Show success toast
+                toastManager.success(title: "Image Generated", message: "AI created a beautiful image for your collection")
             }
         } catch {
             await MainActor.run {

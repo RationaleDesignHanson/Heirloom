@@ -38,29 +38,8 @@
       "collectionGroup": "short_urls",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "longUrl", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "short_urls",
-      "queryScope": "COLLECTION",
-      "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "short_urls",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "expiresAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "publicRecipes",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "publishedAt", "order": "DESCENDING" }
       ]
     },
     {
@@ -85,13 +64,6 @@
       "fields": [
         { "fieldPath": "searchKeywords", "arrayConfig": "CONTAINS" },
         { "fieldPath": "publishedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "publicRecipes",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "updatedAt", "order": "DESCENDING" }
       ]
     }
   ],

@@ -74,6 +74,7 @@ struct CollectionsListView: View {
     /// Note: Empty collections are already filtered by isVisibleInMainList, no need to check recipe count here
     private var myCollections: [RecipeCollection] {
         visibleCollections.filter { collection in
+            collection.type == .communityRecipes ||
             collection.type == .fromFriends ||
             collection.type == .videoImports ||
             collection.type == .webImports ||
@@ -466,29 +467,6 @@ struct CollectionsListView: View {
 
     private var themeSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            // Section header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(UXCopy.Collections.discoverySectionTitle)
-                        .font(HeirloomFonts.title3)
-                        .foregroundStyle(HeirloomColors.primaryText)
-                }
-
-                Spacer()
-
-                // New unlocks badge
-                if themeUnlockTracker.hasNewUnlocks {
-                    Text(UXCopy.Unlock.newBadge)
-                        .font(HeirloomFonts.caption2)
-                        .fontWeight(.semibold)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(HeirloomColors.tomato)
-                        .foregroundStyle(.white)
-                        .cornerRadius(8)
-                }
-            }
-
             // Theme collection cards (full width)
             ForEach(themeCollections) { collection in
                 NavigationLink(value: collection) {
@@ -527,11 +505,6 @@ struct CollectionsListView: View {
 
     private var myCollectionsSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            // Section header
-            Text("My Collections")
-                .font(HeirloomFonts.title3)
-                .foregroundStyle(HeirloomColors.primaryText)
-
             // Collection cards
             ForEach(myCollections) { collection in
                 NavigationLink(value: collection) {
@@ -907,11 +880,6 @@ struct CollectionsListView: View {
 
     private var emptyThemeSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            // Section header
-            Text("Your Discoveries")
-                .font(HeirloomFonts.title3)
-                .foregroundStyle(HeirloomColors.primaryText)
-
             // Empty state card
             VStack(spacing: HeirloomSpacing.md) {
                 Image(systemName: "sparkles")

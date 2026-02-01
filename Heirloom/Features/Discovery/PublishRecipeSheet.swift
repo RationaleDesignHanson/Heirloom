@@ -69,7 +69,7 @@ struct PublishRecipeSheet: View {
                     .foregroundStyle(viewModel.canPublish ? HeirloomColors.familyGreen : HeirloomColors.tomato)
 
                 Text(viewModel.canPublish ? "Ready to Share" : "Can't Share Publicly")
-                    .font(HeirloomFonts.title3Bold)
+                    .font(HeirloomFonts.title3)
                     .foregroundStyle(HeirloomColors.primaryText)
             }
 
@@ -91,7 +91,7 @@ struct PublishRecipeSheet: View {
     private var previewSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             Text("What Gets Shared")
-                .font(HeirloomFonts.title3Bold)
+                .font(HeirloomFonts.title3)
                 .foregroundStyle(HeirloomColors.primaryText)
 
             VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
@@ -163,7 +163,7 @@ struct PublishRecipeSheet: View {
             HStack(spacing: HeirloomSpacing.sm) {
                 Image(systemName: "info.circle.fill")
                     .font(.system(size: 20))
-                    .foregroundStyle(HeirloomColors.familyBlue)
+                    .foregroundStyle(HeirloomColors.familyGreen)
 
                 Text("Privacy Notice")
                     .font(HeirloomFonts.bodyBold)
@@ -171,12 +171,12 @@ struct PublishRecipeSheet: View {
             }
 
             Text("Your recipe will be visible to all Heirloom users in the discovery feed. You can unpublish it anytime from the recipe menu.")
-                .font(HeirloomFonts.caption)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding()
-        .background(HeirloomColors.familyBlue.opacity(0.1))
+        .background(HeirloomColors.familyGreen.opacity(0.1))
         .cornerRadius(8)
     }
 
@@ -271,7 +271,7 @@ class PublishRecipeViewModel {
             ])
 
             // Track analytics
-            analytics.track(event: .recipePublished, properties: [
+            analytics.track(event: .recipeShared, properties: [
                 "recipe_id": recipe.id.uuidString,
                 "public_recipe_id": publicRecipeId,
                 "source_type": recipe.sourceType?.rawValue ?? "unknown"

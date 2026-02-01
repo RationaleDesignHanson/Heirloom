@@ -148,6 +148,8 @@ final class RecipeCollection {
             return "Photo Imports"
         case .fromFriends:
             return "From Friends"
+        case .communityRecipes:
+            return "Community Recipes"
         case .userCreated, .theme, .system:
             // User-created, theme, and system collections use their custom name
             return name

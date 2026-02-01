@@ -25,7 +25,7 @@ struct PublicRecipeBadge: View {
         .padding(.vertical, compact ? 3 : 4)
         .background(
             Capsule()
-                .fill(HeirloomColors.familyBlue)
+                .fill(HeirloomColors.familyGreen)
         )
     }
 }

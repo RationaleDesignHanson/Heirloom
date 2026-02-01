@@ -8,8 +8,9 @@
 
 import Foundation
 import FirebaseFirestore
-import FirebaseFunctions
+// import FirebaseFunctions  // TODO: Re-enable when Firebase Functions package is added
 import SwiftData
+import UIKit
 
 // MARK: - Protocol
 
@@ -48,6 +49,7 @@ enum DiscoveryError: LocalizedError {
     case invalidQuery
     case cloudFunctionError(Error)
     case firestoreError(Error)
+    case alreadySaved
 
     var errorDescription: String? {
         switch self {
@@ -59,6 +61,8 @@ enum DiscoveryError: LocalizedError {
             return "Failed to track view: \(error.localizedDescription)"
         case .firestoreError(let error):
             return "Failed to fetch recipes: \(error.localizedDescription)"
+        case .alreadySaved:
+            return "You've already saved this recipe to your collection."
         }
     }
 }
@@ -72,7 +76,7 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
     // MARK: - Dependencies
 
     private let db: Firestore
-    private let functions: Functions
+    // private let functions: Functions  // TODO: Re-enable when Firebase Functions package is added
 
     // MARK: - Cache
 
@@ -95,11 +99,11 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
     // MARK: - Initialization
 
     init(
-        firestore: Firestore = Firestore.firestore(),
-        functions: Functions = Functions.functions()
+        firestore: Firestore = Firestore.firestore()
+        // functions: Functions = Functions.functions()  // TODO: Re-enable when Firebase Functions package is added
     ) {
         self.db = firestore
-        self.functions = functions
+        // self.functions = functions  // TODO: Re-enable when Firebase Functions package is added
     }
 
     // MARK: - Fetch Methods
@@ -331,24 +335,20 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
 
     // MARK: - Engagement Tracking
 
-    /// Track view on a public recipe (calls Cloud Function with rate limiting)
+    /// Track view on a public recipe (direct Firestore increment - TODO: migrate to Cloud Function)
     func trackView(publicRecipeId: String) async throws {
         do {
-            let callable = functions.httpsCallable("incrementPublicRecipeView")
-            let result = try await callable.call(["recipeId": publicRecipeId])
+            // Direct Firestore increment (bypassing Cloud Function for now)
+            // TODO: Re-enable Cloud Function when FirebaseFunctions package is added
+            let docRef = db.collection("publicRecipes").document(publicRecipeId)
+            try await docRef.updateData([
+                "viewCount": FieldValue.increment(Int64(1)),
+                "updatedAt": FieldValue.serverTimestamp()
+            ])
 
-            if let data = result.data as? [String: Any],
-               let success = data["success"] as? Bool,
-               success {
-                let rateLimited = data["rateLimited"] as? Bool ?? false
-                let viewCount = data["viewCount"] as? Int ?? 0
-
-                Log.debug("View tracked", category: .social, metadata: [
-                    "recipeId": publicRecipeId,
-                    "viewCount": viewCount,
-                    "rateLimited": rateLimited
-                ])
-            }
+            Log.debug("View tracked (direct Firestore)", category: .social, metadata: [
+                "recipeId": publicRecipeId
+            ])
 
         } catch {
             Log.warning("Failed to track view", category: .social, metadata: [
@@ -363,6 +363,22 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
 
     /// Save a public recipe to user's local collection with upstream attribution
     func saveToMyRecipes(publicRecipe: PublicRecipe, context: ModelContext) async throws -> Recipe {
+        // Check for duplicates - prevent saving the same public recipe twice
+        let publicRecipeIdToCheck: String? = publicRecipe.id  // Make explicitly optional for predicate comparison
+        let duplicateDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { recipe in
+                recipe.sourcePublicRecipeId == publicRecipeIdToCheck
+            }
+        )
+
+        if let existingRecipe = try context.fetch(duplicateDescriptor).first {
+            Log.warning("Recipe already saved", category: .social, metadata: [
+                "publicRecipeId": publicRecipe.id,
+                "existingRecipeId": existingRecipe.id.uuidString
+            ])
+            throw DiscoveryError.alreadySaved
+        }
+
         // Create local recipe from public recipe
         let recipe = Recipe(
             title: publicRecipe.title,
@@ -379,6 +395,9 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
         recipe.sourcePublicRecipeCreatorName = publicRecipe.creatorName
         recipe.sourcePublicRecipeLastSynced = Date()
         recipe.sourcePublicRecipeStillAvailable = true
+
+        // Find or create "Community Recipes" collection
+        let communityCollection = try findOrCreateCommunityCollection(context: context)
 
         // Copy description to notes
         if let description = publicRecipe.description {
@@ -401,6 +420,57 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
 
         // Insert recipe
         context.insert(recipe)
+
+        // Add to Community Recipes collection (bidirectional relationship)
+        if communityCollection.recipes == nil {
+            communityCollection.recipes = []
+        }
+        communityCollection.recipes?.append(recipe)
+
+        // Also add collection to recipe (ensure bidirectional relationship)
+        if recipe.collections == nil {
+            recipe.collections = []
+        }
+        recipe.collections?.append(communityCollection)
+
+        // Download and save image from public recipe
+        if let imageURL = publicRecipe.imageURL {
+            do {
+                Log.info("Downloading public recipe image", category: .social, metadata: [
+                    "imageURL": imageURL,
+                    "recipeId": recipe.id.uuidString
+                ])
+
+                // Download image
+                guard let url = URL(string: imageURL) else {
+                    Log.warning("Invalid image URL", category: .social, metadata: ["imageURL": imageURL])
+                    throw DiscoveryError.firestoreError(NSError(domain: "Invalid URL", code: -1))
+                }
+
+                let (data, _) = try await URLSession.shared.data(from: url)
+
+                guard let image = UIImage(data: data) else {
+                    Log.warning("Failed to create image from data", category: .social)
+                    throw DiscoveryError.firestoreError(NSError(domain: "Invalid image data", code: -1))
+                }
+
+                // Save to local storage
+                let imageStorage = ServiceContainer.shared.resolve(ImageStorageService.self)
+                let fileName = try await imageStorage.saveImage(image, recipeId: recipe.id)
+                recipe.imageFileName = fileName
+
+                Log.info("Saved public recipe image", category: .social, metadata: [
+                    "fileName": fileName,
+                    "recipeId": recipe.id.uuidString
+                ])
+            } catch {
+                Log.warning("Failed to download public recipe image", category: .social, metadata: [
+                    "error": error.localizedDescription,
+                    "imageURL": imageURL
+                ])
+                // Don't fail the entire save if image download fails
+            }
+        }
 
         // Save context
         do {
@@ -433,22 +503,48 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
         }
     }
 
-    /// Track save on a public recipe (calls Cloud Function)
+    /// Find or create the "Community Recipes" collection for saved public recipes
+    private func findOrCreateCommunityCollection(context: ModelContext) throws -> RecipeCollection {
+        // Try to find existing Community Recipes collection
+        let descriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate { $0.name == "Community Recipes" }
+        )
+
+        if let existing = try context.fetch(descriptor).first {
+            return existing
+        }
+
+        // Create new Community Recipes collection
+        let collection = RecipeCollection(
+            name: "Community Recipes",
+            description: "Recipes saved from the community",
+            iconName: "globe",
+            color: "#2D5A27",  // HeirloomColors.familyGreen
+            isSystemCollection: false,  // Show in My Collections section
+            collectionType: .communityRecipes
+        )
+
+        context.insert(collection)
+
+        Log.info("Created Community Recipes collection", category: .social)
+
+        return collection
+    }
+
+    /// Track save on a public recipe (direct Firestore increment - TODO: migrate to Cloud Function)
     private func trackSave(publicRecipeId: String) async throws {
         do {
-            let callable = functions.httpsCallable("incrementPublicRecipeSave")
-            let result = try await callable.call(["recipeId": publicRecipeId])
+            // Direct Firestore increment (bypassing Cloud Function for now)
+            // TODO: Re-enable Cloud Function when FirebaseFunctions package is added
+            let docRef = db.collection("publicRecipes").document(publicRecipeId)
+            try await docRef.updateData([
+                "saveCount": FieldValue.increment(Int64(1)),
+                "updatedAt": FieldValue.serverTimestamp()
+            ])
 
-            if let data = result.data as? [String: Any],
-               let success = data["success"] as? Bool,
-               success {
-                let saveCount = data["saveCount"] as? Int ?? 0
-
-                Log.debug("Save tracked", category: .social, metadata: [
-                    "recipeId": publicRecipeId,
-                    "saveCount": saveCount
-                ])
-            }
+            Log.debug("Save tracked (direct Firestore)", category: .social, metadata: [
+                "recipeId": publicRecipeId
+            ])
 
         } catch {
             Log.warning("Failed to track save", category: .social, metadata: [

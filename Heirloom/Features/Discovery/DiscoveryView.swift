@@ -5,6 +5,7 @@ import FirebaseFirestore
 /// Discovery feed showing trending, new, and popular public recipes
 struct DiscoveryView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
 
     private var discoveryService: DiscoveryServiceProtocol {
         ServiceContainer.shared.resolve((any DiscoveryServiceProtocol).self)
@@ -35,10 +36,10 @@ struct DiscoveryView: View {
     @State private var hasMoreResults = true
 
     // Navigation
-    @State private var selectedPublicRecipeId: String?
+    @State private var navigationPath = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             VStack(spacing: 0) {
                 // Search bar
                 searchBar
@@ -61,6 +62,16 @@ struct DiscoveryView: View {
             }
             .navigationTitle(isSearching ? "Search Results" : "Discover")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
             .navigationDestination(for: String.self) { publicRecipeId in
                 // Navigate to PublicRecipeDetailView
                 PublicRecipeDetailView(publicRecipeId: publicRecipeId)
@@ -134,19 +145,18 @@ struct DiscoveryView: View {
         ScrollView {
             LazyVStack(spacing: HeirloomSpacing.md) {
                 ForEach(currentContent, id: \.id) { recipe in
-                    Button {
-                        selectedPublicRecipeId = recipe.id
-
-                        // Track analytics
-                        analytics.track(event: .trendingRecipeViewed, properties: [
-                            "recipe_id": recipe.id,
-                            "recipe_title": recipe.title,
-                            "discovery_tab": isSearching ? "search" : selectedTab.rawValue
-                        ])
-                    } label: {
-                        PublicRecipeCard(recipe: recipe, tab: selectedTab)
-                    }
-                    .buttonStyle(.plain)
+                    PublicRecipeCard(
+                        recipe: recipe,
+                        tab: selectedTab,
+                        onTapCard: {
+                            navigationPath.append(recipe.id)
+                        },
+                        onSave: {
+                            Task {
+                                await saveRecipe(recipe)
+                            }
+                        }
+                    )
                 }
 
                 // Load more button
@@ -199,7 +209,7 @@ struct DiscoveryView: View {
                 .foregroundStyle(HeirloomColors.tomato)
 
             Text("Failed to Load")
-                .font(HeirloomFonts.headline)
+                .font(HeirloomFonts.bodyBold)
                 .foregroundStyle(HeirloomColors.primaryText)
 
             Text(message)
@@ -268,7 +278,7 @@ struct DiscoveryView: View {
 
     // MARK: - Search Handling
 
-    private var searchTask: Task<Void, Never>?
+    @State private var searchTask: Task<Void, Never>?
 
     private func handleSearchChange(_ query: String) {
         // Cancel previous search task
@@ -321,7 +331,7 @@ struct DiscoveryView: View {
             }
 
             // Track analytics
-            analytics.track(event: .discoverySearchPerformed, properties: [
+            analytics.track(event: .searchPerformed, properties: [
                 "query": query,
                 "results_count": recipes.count
             ])
@@ -516,6 +526,55 @@ struct DiscoveryView: View {
             await loadContent()
         }
     }
+
+    // MARK: - Save Recipe
+
+    @State private var toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+
+    private func saveRecipe(_ publicRecipe: PublicRecipe) async {
+        do {
+            let savedRecipe = try await discoveryService.saveToMyRecipes(
+                publicRecipe: publicRecipe,
+                context: modelContext
+            )
+
+            await MainActor.run {
+                toastManager.success(
+                    title: "Recipe Saved",
+                    message: "Added \"\(savedRecipe.title)\" to your collection"
+                )
+            }
+
+            // Track analytics
+            analytics.track(event: .recipeCreated, properties: [
+                "source": "discovery_feed",
+                "public_recipe_id": publicRecipe.id,
+                "tab": isSearching ? "search" : selectedTab.rawValue
+            ])
+
+        } catch let error as DiscoveryError {
+            await MainActor.run {
+                if case .alreadySaved = error {
+                    toastManager.warning(
+                        title: "Already Saved",
+                        message: "You've already added this recipe to your collection"
+                    )
+                } else {
+                    toastManager.error(
+                        title: "Failed to Save",
+                        message: error.localizedDescription
+                    )
+                }
+            }
+        } catch {
+            await MainActor.run {
+                toastManager.error(
+                    title: "Failed to Save",
+                    message: error.localizedDescription
+                )
+            }
+        }
+    }
 }
 
 // MARK: - Discovery Tabs
@@ -566,95 +625,142 @@ enum DiscoveryTab: String, CaseIterable {
 private struct PublicRecipeCard: View {
     let recipe: PublicRecipe
     let tab: DiscoveryTab
+    let onTapCard: () -> Void
+    let onSave: () -> Void
+
+    @State private var isSaving = false
 
     var body: some View {
-        HStack(spacing: HeirloomSpacing.md) {
-            // Recipe image (async load from URL)
-            AsyncImage(url: URL(string: recipe.imageURL ?? "")) { phase in
-                switch phase {
-                case .empty:
-                    ProgressView()
-                        .frame(width: 80, height: 80)
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 80, height: 80)
-                        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
-                case .failure:
-                    Image(systemName: "fork.knife")
-                        .font(.system(size: 32))
-                        .foregroundStyle(HeirloomColors.warmGray)
-                        .frame(width: 80, height: 80)
-                        .background(HeirloomColors.cream)
-                        .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
-                @unknown default:
-                    EmptyView()
-                }
-            }
+        VStack(spacing: 0) {
+            // Top row: Save button
+            HStack {
+                Spacer()
 
-            // Recipe details
-            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                // Title with tab badge
-                HStack {
-                    Text(recipe.title)
-                        .font(HeirloomFonts.headline)
-                        .foregroundStyle(HeirloomColors.primaryText)
-                        .lineLimit(2)
-
-                    Spacer()
-
-                    // Tab-specific badge
-                    if tab == .trending {
-                        Text("🔥")
-                            .font(.system(size: 16))
-                    } else if tab == .new {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 12))
-                            .foregroundStyle(HeirloomColors.amber)
-                    } else if tab == .popular {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 12))
-                            .foregroundStyle(HeirloomColors.familyGreen)
+                Button {
+                    isSaving = true
+                    onSave()
+                    // Reset after a delay (visual feedback)
+                    Task {
+                        try? await Task.sleep(for: .seconds(1))
+                        isSaving = false
                     }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: isSaving ? "checkmark.circle.fill" : "plus.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(isSaving ? HeirloomColors.familyGreen : HeirloomColors.tomato)
+
+                        Text(isSaving ? "Saved" : "Add")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(isSaving ? HeirloomColors.familyGreen : HeirloomColors.tomato)
+                    }
+                    .padding(.horizontal, HeirloomSpacing.sm)
+                    .padding(.vertical, 6)
+                    .background(
+                        (isSaving ? HeirloomColors.familyGreen : HeirloomColors.tomato)
+                            .opacity(0.1)
+                    )
+                    .cornerRadius(8)
                 }
+                .disabled(isSaving)
+            }
+            .padding(.horizontal, HeirloomSpacing.md)
+            .padding(.top, HeirloomSpacing.md)
+            .padding(.bottom, HeirloomSpacing.xs)
 
-                // Creator attribution
-                if let creatorName = recipe.creatorName {
-                    Text("by \(creatorName)")
-                        .font(HeirloomFonts.caption)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                }
+            // Card content (tappable)
+            Button {
+                onTapCard()
+            } label: {
+                HStack(spacing: HeirloomSpacing.md) {
+                    // Recipe image (async load from URL)
+                    AsyncImage(url: URL(string: recipe.imageURL ?? "")) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(width: 80, height: 80)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 80, height: 80)
+                                .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
+                        case .failure:
+                            Image(systemName: "fork.knife")
+                                .font(.system(size: 32))
+                                .foregroundStyle(HeirloomColors.warmGray)
+                                .frame(width: 80, height: 80)
+                                .background(HeirloomColors.cream)
+                                .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
 
-                // Engagement stats
-                HStack(spacing: HeirloomSpacing.sm) {
-                    statLabel(icon: "eye.fill", value: recipe.viewCount)
-                    statLabel(icon: "heart.fill", value: recipe.saveCount)
+                    // Recipe details
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                        // Title with tab badge
+                        HStack {
+                            Text(recipe.title)
+                                .font(HeirloomFonts.bodyBold)
+                                .foregroundStyle(HeirloomColors.primaryText)
+                                .lineLimit(2)
 
-                    if let servings = recipe.servings {
-                        HStack(spacing: 2) {
-                            Image(systemName: "person.2.fill")
-                                .font(.system(size: 10))
-                                .foregroundStyle(HeirloomColors.secondaryText)
+                            Spacer()
 
-                            Text("\(servings)")
-                                .font(HeirloomFonts.caption2)
-                                .foregroundStyle(HeirloomColors.secondaryText)
+                            // Tab-specific badge
+                            if tab == .trending {
+                                Text("🔥")
+                                    .font(.system(size: 16))
+                            } else if tab == .new {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(HeirloomColors.amber)
+                            } else if tab == .popular {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(HeirloomColors.familyGreen)
+                            }
+                        }
+
+                        // Creator attribution
+                        Text("by \(recipe.creatorName)")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+
+                        // Engagement stats
+                        HStack(spacing: HeirloomSpacing.sm) {
+                            statLabel(icon: "eye.fill", value: recipe.viewCount)
+                            statLabel(icon: "heart.fill", value: recipe.saveCount)
+
+                            if let servings = recipe.servings {
+                                HStack(spacing: 2) {
+                                    Image(systemName: "person.2.fill")
+                                        .font(.system(size: 10))
+                                        .foregroundStyle(HeirloomColors.secondaryText)
+
+                                    Text("\(servings)")
+                                        .font(HeirloomFonts.caption1)
+                                        .foregroundStyle(HeirloomColors.secondaryText)
+                                }
+                            }
+                        }
+
+                        // Time metadata
+                        if let prepTime = recipe.prepTime, let cookTime = recipe.cookTime {
+                            HStack(spacing: HeirloomSpacing.xs) {
+                                Text("⏱️ \(prepTime + cookTime)m")
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(HeirloomColors.secondaryText)
+                            }
                         }
                     }
                 }
-
-                // Time metadata
-                if let prepTime = recipe.prepTime, let cookTime = recipe.cookTime {
-                    HStack(spacing: HeirloomSpacing.xs) {
-                        Text("⏱️ \(prepTime + cookTime)m")
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-                }
+                .padding(.horizontal, HeirloomSpacing.md)
+                .padding(.bottom, HeirloomSpacing.md)
             }
+            .buttonStyle(.plain)
         }
-        .padding(HeirloomSpacing.md)
         .background(HeirloomColors.cardBackground)
         .cornerRadius(12)
         .shadow(
@@ -673,7 +779,7 @@ private struct PublicRecipeCard: View {
                 .foregroundStyle(HeirloomColors.secondaryText)
 
             Text("\(value)")
-                .font(HeirloomFonts.caption2)
+                .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
     }

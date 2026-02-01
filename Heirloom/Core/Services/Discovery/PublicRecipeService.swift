@@ -181,7 +181,7 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
             throw PublishError.recipeNotPublished
         }
 
-        guard let userId = auth.currentUser?.uid else {
+        guard auth.currentUser?.uid != nil else {
             throw PublishError.notAuthenticated
         }
 
@@ -246,7 +246,8 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
     /// Upload recipe image to Firebase Storage
     private func uploadRecipeImage(recipeId: String, fileName: String) async throws -> String {
         // Load image from local storage
-        guard let imageData = await imageService.loadImageData(fileName: fileName) else {
+        guard let image = await imageService.loadImage(fileName: fileName),
+              let imageData = image.jpegData(compressionQuality: 0.8) else {
             throw PublishError.missingImage
         }
 
@@ -272,8 +273,29 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
         imageURL: String,
         creatorProfile: UserProfile
     ) -> PublicRecipe {
-        // Extract ingredient names
-        let ingredientNames = recipe.ingredients?.compactMap { $0.name } ?? []
+        // Extract ingredient names with quantities
+        let ingredientNames: [String] = recipe.ingredients?.compactMap { ingredient -> String in
+            var parts: [String] = []
+
+            // Add quantity if present
+            if let quantity = ingredient.quantity, quantity > 0 {
+                // Format quantity nicely (remove .0 for whole numbers)
+                let quantityStr = quantity.truncatingRemainder(dividingBy: 1) == 0
+                    ? String(Int(quantity))
+                    : String(quantity)
+                parts.append(quantityStr)
+            }
+
+            // Add unit if present
+            if let unit = ingredient.unit, !unit.isEmpty {
+                parts.append(unit)
+            }
+
+            // Add name
+            parts.append(ingredient.name)
+
+            return parts.joined(separator: " ")
+        } ?? []
 
         // Generate search keywords
         let searchKeywords = PublicRecipe.generateSearchKeywords(

@@ -157,14 +157,21 @@ struct ImportProgressView: View {
             "Cancel Import",
             isPresented: $showingCancelConfirmation
         ) {
-            Button("Cancel Import", role: .destructive) {
+            Button("Pause Import") {
                 Task {
                     try? manager.pauseJob(job, context: modelContext)
                     dismiss()
                 }
             }
+
+            Button("Delete Job", role: .destructive) {
+                Task {
+                    try? manager.deleteJob(job, context: modelContext)
+                    dismiss()
+                }
+            }
         } message: {
-            Text("Stop importing recipes? Progress will be saved.")
+            Text("Pause to resume later, or delete to remove completely.")
         }
     }
 

@@ -369,11 +369,10 @@ extension ServiceContainer {
 
         // PublicRecipeService - Manages publishing recipes to public discovery
         register(FirebasePublicRecipeService.self, lifecycle: .singleton) { container in
-            // Resolve ProfileService - need to check if we have ProfileServiceProtocol or FirebaseUserProfileService
-            let imageService = container.resolve(FirebaseImageService.self)
-            // TODO: Verify ProfileService protocol name and resolve properly
+            let profileService = container.resolve((any ProfileServiceProtocol).self)
+            let imageService = container.resolve(ImageStorageService.self)
             return FirebasePublicRecipeService(
-                profileService: container.resolve(FirebaseUserProfileService.self),
+                profileService: profileService,
                 imageService: imageService
             )
         }

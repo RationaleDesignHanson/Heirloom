@@ -1365,6 +1365,40 @@ final class ImportJobManager: ObservableObject {
         activeJob = nil
     }
 
+    /// Delete a job completely (for clearing stuck/unwanted jobs)
+    func deleteJob(_ job: ImportJob, context: ModelContext) throws {
+        // Cancel any active tasks for this job
+        if activeJob?.id == job.id {
+            currentTasks.values.forEach { $0.cancel() }
+            currentTasks.removeAll()
+            activeJob = nil
+            activeContext = nil
+            isProcessing = false
+        }
+
+        // Delete checkpoint if exists
+        if let checkpoint = job.checkpoint {
+            context.delete(checkpoint)
+        }
+
+        // Delete all items
+        if let items = job.items {
+            for item in items {
+                context.delete(item)
+            }
+        }
+
+        // Delete the job
+        context.delete(job)
+
+        try context.save()
+
+        Log.info("Deleted import job", category: .import, metadata: [
+            "job_id": job.id.uuidString,
+            "status": job.status.rawValue
+        ])
+    }
+
     // MARK: - Rate Limiting
 
     private func setupRateLimiter() {

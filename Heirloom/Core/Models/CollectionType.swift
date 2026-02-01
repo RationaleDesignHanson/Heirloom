@@ -33,6 +33,9 @@ enum CollectionType: String, Codable, CaseIterable {
     /// User-created custom collections
     case userCreated = "userCreated"
 
+    /// Recipes saved from public discovery
+    case communityRecipes = "communityRecipes"
+
     // MARK: - Display Properties
 
     var displayName: String {
@@ -45,6 +48,7 @@ enum CollectionType: String, Codable, CaseIterable {
         case .photoImports: return "From Photos"
         case .cookbook: return "From Cookbooks"
         case .userCreated: return "My Collection"
+        case .communityRecipes: return "Community Recipes"
         }
     }
 
@@ -58,6 +62,7 @@ enum CollectionType: String, Codable, CaseIterable {
         case .photoImports: return "photo.fill"
         case .cookbook: return "book.closed.fill"
         case .userCreated: return "folder.fill"
+        case .communityRecipes: return "globe"
         }
     }
 
@@ -65,7 +70,7 @@ enum CollectionType: String, Codable, CaseIterable {
     var isVisibleInMainList: Bool {
         switch self {
         case .system: return false
-        case .theme, .fromFriends, .videoImports, .webImports, .photoImports, .cookbook, .userCreated: return true
+        case .theme, .fromFriends, .videoImports, .webImports, .photoImports, .cookbook, .userCreated, .communityRecipes: return true
         }
     }
 
@@ -73,6 +78,7 @@ enum CollectionType: String, Codable, CaseIterable {
     /// NOTE: My Collections section appears ABOVE Your Discoveries (themes)
     var sortPriority: Int {
         switch self {
+        case .communityRecipes: return -1  // Community Recipes appears FIRST
         case .fromFriends: return 0
         case .videoImports: return 1
         case .webImports: return 2

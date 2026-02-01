@@ -556,11 +556,25 @@ class DeepLinkHandler: ObservableObject {
 
                         try context.save()
 
+                        // Get queue count before showing toast
+                        let descriptor = FetchDescriptor<VideoProcessingJob>()
+                        let allJobs = (try? context.fetch(descriptor)) ?? []
+                        let queueCount = allJobs.filter { $0.status == .pending || $0.status == .processing }.count
+
                         // Clean up the pending import
                         await PendingImportManager.shared.delete(id: importID)
 
                         Log.info("Video processing job created", category: .general, metadata: ["jobId": job.id.uuidString])
                         DeviceLogger.shared.log("✅ [DeepLink] Video job created: \(job.id.uuidString)")
+
+                        // Show toast notification
+                        await MainActor.run {
+                            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                            toastManager.info(
+                                title: "Added to Queue",
+                                message: "Video will be processed (\(queueCount) in queue)"
+                            )
+                        }
                     } catch {
                         Log.error("Failed to create video job", category: .general, metadata: ["error": error.localizedDescription])
                         DeviceLogger.shared.log("❌ [DeepLink] Failed to create video job: \(error.localizedDescription)")

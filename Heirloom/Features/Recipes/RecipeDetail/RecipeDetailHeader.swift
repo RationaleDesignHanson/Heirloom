@@ -17,6 +17,7 @@ struct RecipeDetailHeader: View {
     let isInShoppingCart: Bool
     let onToggleFavorite: () -> Void
     let onAddToShoppingList: () -> Void
+    let onViewOriginalRecipe: (() -> Void)?
 
     // MARK: - Body
 
@@ -51,6 +52,32 @@ struct RecipeDetailHeader: View {
                         .font(HeirloomFonts.caption1)
                     Text(recipe.sourceDisplayName)
                         .font(HeirloomFonts.caption1)
+
+                    // Community attribution (if from public recipe) - tappable to view original
+                    if let creatorName = recipe.sourcePublicRecipeCreatorName,
+                       recipe.hasPublicUpstream,
+                       let onViewOriginal = onViewOriginalRecipe {
+                        Text("•")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.charcoal.opacity(0.4))
+
+                        Button {
+                            onViewOriginal()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "globe")
+                                    .font(.system(size: 10))
+
+                                Text("by \(creatorName)")
+                                    .font(HeirloomFonts.caption1)
+
+                                Image(systemName: "arrow.up.forward.square")
+                                    .font(.system(size: 9))
+                                    .opacity(0.7)
+                            }
+                            .foregroundStyle(HeirloomColors.familyGreen)
+                        }
+                    }
                 }
                 .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
             }
@@ -107,7 +134,8 @@ struct RecipeDetailHeader: View {
         displayTitle: "Classic Chocolate Chip Cookies",
         isInShoppingCart: false,
         onToggleFavorite: { Log.debug("Preview: Toggle favorite", category: .ui) },
-        onAddToShoppingList: { Log.debug("Preview: Add to shopping list", category: .ui) }
+        onAddToShoppingList: { Log.debug("Preview: Add to shopping list", category: .ui) },
+        onViewOriginalRecipe: nil
     )
     .padding()
     .background(HeirloomColors.cream)

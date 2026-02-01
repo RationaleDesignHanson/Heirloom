@@ -34,6 +34,11 @@ struct RecipeDetailView: View {
     @State private var selectedCollection: RecipeCollection?
     @State private var showVideoAttributionSheet = false
 
+    // Public recipe discovery (Phase 11)
+    @State private var showPublishSheet = false
+    @State private var showUnpublishConfirmation = false
+    @State private var selectedPublicRecipeId: String?
+
     // Version selector
     @StateObject private var versionViewModel = RecipeVersionSelectorViewModel()
     @State private var selectedVersion: RecipeLineageVersion?
@@ -44,10 +49,6 @@ struct RecipeDetailView: View {
 
     // Coach mark for first-time recipe view
     @State private var showRecipeCoachMark = false
-
-    // Public discovery (Phase 11)
-    @State private var showPublishSheet = false
-    @State private var showUnpublishConfirmation = false
 
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     @State private var isDiffExpanded = false
@@ -473,12 +474,22 @@ struct RecipeDetailView: View {
                 selectedVersion: $selectedVersion,
                 showLineageView: $showLineageView,
                 targetServings: $targetServings,
+                showPublishSheet: $showPublishSheet,
+                showUnpublishConfirmation: $showUnpublishConfirmation,
                 handleShareTapped: handleShareTapped,
                 handleEditTapped: handleEditTapped,
                 duplicateRecipe: duplicateRecipe,
                 deleteRecipe: deleteRecipe,
                 createUserCopyAndEdit: createUserCopyAndEdit
             ))
+            .navigationDestination(isPresented: Binding(
+                get: { selectedPublicRecipeId != nil },
+                set: { if !$0 { selectedPublicRecipeId = nil } }
+            )) {
+                if let publicRecipeId = selectedPublicRecipeId {
+                    PublicRecipeDetailView(publicRecipeId: publicRecipeId)
+                }
+            }
     }
 
     // MARK: - Main Content
@@ -510,7 +521,10 @@ struct RecipeDetailView: View {
                         displayTitle: displayTitle,
                         isInShoppingCart: isInShoppingCart,
                         onToggleFavorite: toggleFavorite,
-                        onAddToShoppingList: addToShoppingList
+                        onAddToShoppingList: addToShoppingList,
+                        onViewOriginalRecipe: recipe.hasPublicUpstream ? {
+                            selectedPublicRecipeId = recipe.sourcePublicRecipeId
+                        } : nil
                     )
 
                     // Attribution Banner (for video recipes without attribution)
@@ -612,6 +626,8 @@ private struct RecipeDetailModifiers: ViewModifier {
     @Binding var selectedVersion: RecipeLineageVersion?
     @Binding var showLineageView: Bool
     @Binding var targetServings: Int
+    @Binding var showPublishSheet: Bool
+    @Binding var showUnpublishConfirmation: Bool
 
     let handleShareTapped: () -> Void
     let handleEditTapped: () -> Void
@@ -1585,6 +1601,41 @@ extension RecipeDetailView {
 
     // MARK: - Language Toggle
     // MARK: - Attribution Banner
+
+    private var communityRecipeAttributionBanner: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            HStack(spacing: HeirloomSpacing.md) {
+                Image(systemName: "globe")
+                    .font(.title2)
+                    .foregroundStyle(HeirloomColors.familyGreen)
+
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                    Text("From the Community")
+                        .font(HeirloomFonts.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    if let creatorName = recipe.sourcePublicRecipeCreatorName {
+                        Text("Based on recipe by \(creatorName)")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+                }
+
+                Spacer()
+            }
+        }
+        .padding(HeirloomSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                .fill(HeirloomColors.familyGreen.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                        .stroke(HeirloomColors.familyGreen.opacity(0.3), lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, HeirloomSpacing.lg)
+    }
 
     private var attributionBanner: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {

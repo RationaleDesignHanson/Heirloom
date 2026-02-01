@@ -27,9 +27,10 @@ class TabNavigationCoordinator: ObservableObject {
 
     enum Tab: Int {
         case collections = 0
-        case shopping = 1
-        case dinnerParty = 2
-        case settings = 3
+        case discovery = 1
+        case shopping = 2
+        case mealPlanning = 3
+        case settings = 4
     }
 
     // MARK: - Context Tracking

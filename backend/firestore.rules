@@ -203,6 +203,113 @@ service cloud.firestore {
     }
 
     // ========================================
+    // THEMES (Read-Only)
+    // ========================================
+    match /themes/{themeId} {
+      // Any authenticated user can read themes (for discovery selection)
+      allow read: if isAuthenticated();
+      allow write: if false; // Server-only writes
+    }
+
+    // ========================================
+    // USER COLLECTIONS (User-Scoped)
+    // ========================================
+    match /users/{userId}/collections/{collectionId} {
+      // Users can read and write their own collections
+      allow read, write: if isOwner(userId);
+
+      // Any authenticated user can read collections (for sharing)
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // USER CONNECTIONS (User-Scoped - for social features)
+    // ========================================
+    match /users/{userId}/connections/{connectionId} {
+      // Users can read and write their own connections
+      allow read, write: if isOwner(userId);
+
+      // Any authenticated user can read connections (for social features)
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // USER TAGS (User-Scoped)
+    // ========================================
+    match /users/{userId}/tags/{tagId} {
+      // Users can read and write their own tags
+      allow read, write: if isOwner(userId);
+
+      // Any authenticated user can read tags (for sharing)
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // USER SHOPPING CART (User-Scoped)
+    // ========================================
+    match /users/{userId}/shoppingCart/{cartRecipeId} {
+      // Users can read and write their own shopping cart
+      allow read, write: if isOwner(userId);
+
+      // Any authenticated user can read cart (for sharing)
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // USER DINNER PARTIES (User-Scoped)
+    // ========================================
+    match /users/{userId}/dinnerParties/{partyId} {
+      // Users can read and write their own dinner parties
+      allow read, write: if isOwner(userId);
+
+      // Any authenticated user can read parties (for sharing)
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // USER PROFILES (for public discovery attribution)
+    // ========================================
+    match /users/{userId}/profile/{document=**} {
+      // Users can read and write their own profile
+      allow read, write: if isOwner(userId);
+
+      // Any authenticated user can read profiles (for discovery attribution)
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // USER PROFILES (Top-Level - for authentication and settings)
+    // ========================================
+    match /userProfiles/{userId} {
+      // Users can read and write their own profile
+      allow read, write: if isOwner(userId);
+
+      // Any authenticated user can read profiles (for social features)
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // PUBLIC PROFILES (Top-Level - for public discovery)
+    // ========================================
+    match /publicProfiles/{slug} {
+      // Anyone can read public profiles (for discovery attribution)
+      allow read: if true;
+
+      // Only authenticated users can create their own public profile
+      // Profile owner must match auth user
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == request.resource.data.userId;
+
+      // Only profile owner can update
+      allow update: if isAuthenticated() &&
+                       request.auth.uid == resource.data.userId;
+
+      // Only profile owner can delete
+      allow delete: if isAuthenticated() &&
+                       request.auth.uid == resource.data.userId;
+    }
+
+    // ========================================
     // PUBLIC RECIPES (Phase 11: Public Discovery)
     // ========================================
     match /publicRecipes/{recipeId} {

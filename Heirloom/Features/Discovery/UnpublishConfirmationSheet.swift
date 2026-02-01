@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 /// Confirmation sheet for unpublishing a recipe from public discovery
 struct UnpublishConfirmationSheet: View {
@@ -11,6 +12,10 @@ struct UnpublishConfirmationSheet: View {
 
     private var publicRecipeService: PublicRecipeServiceProtocol {
         ServiceContainer.shared.resolve((any PublicRecipeServiceProtocol).self)
+    }
+
+    private var discoveryService: DiscoveryServiceProtocol {
+        ServiceContainer.shared.resolve((any DiscoveryServiceProtocol).self)
     }
 
     private var analytics: AnalyticsService {
@@ -37,7 +42,7 @@ struct UnpublishConfirmationSheet: View {
                     .multilineTextAlignment(.center)
 
                 Text("Current stats: \(recipe.publicViewCount) views, \(recipe.publicSaveCount) saves")
-                    .font(HeirloomFonts.caption)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
                     .multilineTextAlignment(.center)
             }
@@ -139,8 +144,11 @@ struct UnpublishConfirmationSheet: View {
                 "recipeId": recipe.id.uuidString
             ])
 
+            // Clear discovery cache to remove from all tabs
+            discoveryService.clearCache()
+
             // Track analytics
-            analytics.track(event: .recipeUnpublished, properties: [
+            analytics.track(event: .recipeEdited, properties: [
                 "recipe_id": recipe.id.uuidString,
                 "view_count": recipe.publicViewCount,
                 "save_count": recipe.publicSaveCount

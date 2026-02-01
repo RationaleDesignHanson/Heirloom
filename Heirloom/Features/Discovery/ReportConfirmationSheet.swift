@@ -19,6 +19,11 @@ struct ReportConfirmationSheet: View {
 
     private var reportService = ReportPublicRecipeService()
 
+    init(publicRecipeId: String, recipeTitle: String) {
+        self.publicRecipeId = publicRecipeId
+        self.recipeTitle = recipeTitle
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -142,7 +147,7 @@ struct ReportConfirmationSheet: View {
             HStack(spacing: HeirloomSpacing.sm) {
                 Image(systemName: reason.icon)
                     .font(.system(size: 18))
-                    .foregroundStyle(selectedReason == reason ? HeirloomColors.familyBlue : HeirloomColors.warmGray)
+                    .foregroundStyle(selectedReason == reason ? HeirloomColors.familyGreen : HeirloomColors.warmGray)
 
                 Text(reason.description)
                     .font(HeirloomFonts.body)
@@ -152,17 +157,17 @@ struct ReportConfirmationSheet: View {
 
                 if selectedReason == reason {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(HeirloomColors.familyBlue)
+                        .foregroundStyle(HeirloomColors.familyGreen)
                 }
             }
             .padding(HeirloomSpacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(selectedReason == reason ? HeirloomColors.familyBlue.opacity(0.1) : Color.clear)
+                    .fill(selectedReason == reason ? HeirloomColors.familyGreen.opacity(0.1) : Color.clear)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(selectedReason == reason ? HeirloomColors.familyBlue : HeirloomColors.warmGray.opacity(0.3), lineWidth: 1)
+                    .stroke(selectedReason == reason ? HeirloomColors.familyGreen : HeirloomColors.warmGray.opacity(0.3), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -222,12 +227,9 @@ struct ReportConfirmationSheet: View {
             ])
 
             // Track analytics
-            let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
-            analytics.track(event: .other(name: "public_recipe_reported"), properties: [
-                "public_recipe_id": publicRecipeId,
-                "reason": selectedReason.rawValue,
-                "has_details": !additionalDetails.isEmpty
-            ])
+            // TODO: Add custom analytics event for public recipe reporting
+            // let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+            // analytics.track(event: .other(name: "public_recipe_reported"), properties: [...])
 
             // Show success
             isSubmitting = false
@@ -248,9 +250,10 @@ struct ReportConfirmationSheet: View {
 
 // MARK: - Preview
 
-#Preview {
-    ReportConfirmationSheet(
-        publicRecipeId: "test-recipe-123",
-        recipeTitle: "Grandma's Apple Pie"
-    )
-}
+// Temporarily disabled - access control issue
+// #Preview {
+//     ReportConfirmationSheet(
+//         publicRecipeId: "test-recipe-123",
+//         recipeTitle: "Grandma's Apple Pie"
+//     )
+// }

@@ -130,7 +130,7 @@ final class Recipe {
     // MARK: - Camera Origin Detection (Phase 11 - Path A+)
     /// Confidence level that this recipe's photo came from device camera
     /// Used to enforce camera-only public sharing policy
-    var cameraOriginConfidence: CameraOriginConfidence = .likelyCamera
+    var cameraOriginConfidence: CameraOriginConfidence = CameraOriginConfidence.likelyCamera
 
     // MARK: - Public Discovery Attribution (for saved copies)
     /// Link to original public recipe (if saved from discovery)

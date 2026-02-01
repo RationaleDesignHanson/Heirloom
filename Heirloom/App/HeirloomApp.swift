@@ -1230,12 +1230,23 @@ struct ContentView: View {
                 .accessibilityLabel("Collections")
                 .accessibilityHint("View heritage and user collections")
 
+            DiscoveryView()
+                .environmentObject(notificationService)
+                .environmentObject(tabCoordinator)
+                .tabItem {
+                    Label("Discover", systemImage: "magnifyingglass")
+                }
+                .tag(1)
+                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.discoveryTab)
+                .accessibilityLabel("Discover")
+                .accessibilityHint("Browse and discover community recipes")
+
             ShoppingListView()
                 .environmentObject(tabCoordinator)
                 .tabItem {
                     Label("Shopping", systemImage: "cart.fill")
                 }
-                .tag(1)
+                .tag(2)
                 .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.shoppingTab)
                 .accessibilityLabel("Shopping List")
                 .accessibilityHint("View your shopping list with ingredients from recipes")
@@ -1244,7 +1255,7 @@ struct ContentView: View {
                 .tabItem {
                     Label("Meal Planning", systemImage: "calendar")
                 }
-                .tag(2)
+                .tag(3)
                 .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.mealPlanningTab)
                 .accessibilityLabel("Meal Planning")
                 .accessibilityHint("Plan and manage dinner parties")
@@ -1254,7 +1265,7 @@ struct ContentView: View {
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
-                .tag(3)
+                .tag(4)
                 .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.settingsTab)
                 .accessibilityLabel("Settings")
                 .accessibilityHint("App settings and preferences")
