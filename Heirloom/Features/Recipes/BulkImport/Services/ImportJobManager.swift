@@ -826,6 +826,14 @@ final class ImportJobManager: ObservableObject {
     // MARK: - Item Processing
 
     private func processItem(_ item: ImportItem, job: ImportJob, context: ModelContext) async {
+        Log.info("🚀 Starting processItem", category: .import, metadata: [
+            "item_id": item.id.uuidString,
+            "job_id": job.id.uuidString,
+            "source": item.source.rawValue,
+            "has_image_data": item.imageData != nil,
+            "image_data_size_kb": (item.imageData?.count ?? 0) / 1024
+        ])
+
         // Mark as processing
         item.startProcessing()
         try? context.save()
@@ -836,17 +844,33 @@ final class ImportJobManager: ObservableObject {
 
             switch item.source {
             case .url:
+                Log.info("🌐 Processing URL import", category: .import, metadata: [
+                    "item_id": item.id.uuidString
+                ])
                 let recipe = try await processURLImport(item)
                 recipes = [recipe]
 
             case .pdf:
+                Log.info("📄 Processing PDF page", category: .import, metadata: [
+                    "item_id": item.id.uuidString,
+                    "page_number": item.pageNumber ?? -1
+                ])
                 // PDF pages can contain multiple recipes
                 recipes = try await processPDFPage(item)
 
             case .camera, .photoLibrary:
+                Log.info("📸 Processing camera/photo import", category: .import, metadata: [
+                    "item_id": item.id.uuidString,
+                    "source": item.source.rawValue
+                ])
                 // Camera/photo imports can return multiple recipes from one image
                 recipes = try await processImageImport(item)
             }
+
+            Log.info("✅ Source-specific processing completed", category: .import, metadata: [
+                "item_id": item.id.uuidString,
+                "recipe_count": recipes.count
+            ])
 
             // Apply cookbook metadata to all recipes if available (from PDF front matter)
             for recipe in recipes {
@@ -1047,20 +1071,42 @@ final class ImportJobManager: ObservableObject {
         let detected = try await aiRecipeExtractor.detectRecipes(from: image)
 
         // Extract recipe(s) from image
+        Log.info("📝 Extracting recipes from image", category: .import, metadata: [
+            "item_id": item.id.uuidString,
+            "detected_count": detected.count
+        ])
         let result = try await aiRecipeExtractor.extractRecipesFromImage(
             image: image,
             detectedRecipes: detected
         )
 
+        Log.info("✅ Recipe extraction completed", category: .import, metadata: [
+            "item_id": item.id.uuidString,
+            "extracted_count": result.recipes.count
+        ])
+
         // Ensure we found at least one recipe
         guard !result.recipes.isEmpty else {
+            Log.error("❌ No recipes found in image", category: .import, metadata: [
+                "item_id": item.id.uuidString,
+                "detected_count": detected.count
+            ])
             throw ImportJobError.noRecipeFound
         }
 
         // Convert ALL detected recipes to Recipe models
+        Log.info("🔄 Converting extracted recipes to Recipe models", category: .import, metadata: [
+            "item_id": item.id.uuidString,
+            "recipe_count": result.recipes.count
+        ])
         let recipes = result.recipes.map { extractedRecipe in
             createRecipe(from: extractedRecipe, sourceImage: image, sourceType: .scan)
         }
+
+        Log.info("✅ Recipe models created", category: .import, metadata: [
+            "item_id": item.id.uuidString,
+            "recipe_titles": recipes.map { $0.title }.joined(separator: " | ")
+        ])
 
         // Extract food images from PDF page for all recipes (if present)
         for recipe in recipes {
@@ -1082,16 +1128,43 @@ final class ImportJobManager: ObservableObject {
     /// Process camera/photo library import
     /// - Returns: Array of recipes extracted from the image (may be multiple if image contains multiple recipes)
     private func processImageImport(_ item: ImportItem) async throws -> [Recipe] {
+        Log.info("🔍 Starting image import processing", category: .import, metadata: [
+            "item_id": item.id.uuidString,
+            "source": item.source.rawValue
+        ])
+
         guard let imageData = item.imageData else {
+            Log.error("❌ Missing image data for import item", category: .import, metadata: [
+                "item_id": item.id.uuidString
+            ])
             throw ImportJobError.missingImageData
         }
 
         guard let image = UIImage(data: imageData) else {
+            Log.error("❌ Failed to create UIImage from data", category: .import, metadata: [
+                "item_id": item.id.uuidString,
+                "data_size_bytes": imageData.count
+            ])
             throw ImportJobError.invalidImageData
         }
 
+        Log.info("📸 Image loaded successfully", category: .import, metadata: [
+            "item_id": item.id.uuidString,
+            "width": image.size.width,
+            "height": image.size.height,
+            "data_size_kb": imageData.count / 1024
+        ])
+
         // Detect recipes in the image
+        Log.info("🔍 Calling AIRecipeExtractor.detectRecipes()", category: .import, metadata: [
+            "item_id": item.id.uuidString
+        ])
         let detected = try await aiRecipeExtractor.detectRecipes(from: image)
+
+        Log.info("✅ Recipe detection completed", category: .import, metadata: [
+            "item_id": item.id.uuidString,
+            "detected_count": detected.count
+        ])
 
         // Extract recipe(s) from image
         let result = try await aiRecipeExtractor.extractRecipesFromImage(

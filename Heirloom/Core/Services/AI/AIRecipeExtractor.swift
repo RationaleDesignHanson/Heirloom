@@ -132,6 +132,11 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
 
     /// Detect recipes in an image with bounding boxes
     func detectRecipes(from image: UIImage) async throws -> [DetectedRecipe] {
+        Log.info("🔍 AIRecipeExtractor.detectRecipes() called", category: .import, metadata: [
+            "image_width": image.size.width,
+            "image_height": image.size.height
+        ])
+
         let prompt = """
         Analyze this image and detect all distinct recipes present. For each recipe you find, provide:
         1. A descriptive title
@@ -176,6 +181,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         )
 
         do {
+            Log.info("📡 Calling AI service for recipe detection", category: .import)
             let response: DetectionResponse = try await aiService.completeWithVisionStructured(
                 image: image,
                 prompt: prompt,
@@ -184,11 +190,21 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                 useCase: .ocr  // Use high-quality OCR settings
             )
 
+            Log.info("✅ AI recipe detection succeeded", category: .import, metadata: [
+                "detected_count": response.recipes.count,
+                "titles": response.recipes.map { $0.title }.joined(separator: " | ")
+            ])
+
             return response.recipes
         } catch {
-            Log.warning("Recipe detection failed, assuming single recipe", category: .ocr, metadata: ["error": error.localizedDescription])
+            Log.warning("⚠️ Recipe detection failed, assuming single recipe", category: .ocr, metadata: [
+                "error": error.localizedDescription,
+                "error_type": "\(type(of: error))"
+            ])
             // If detection fails, assume single recipe covering whole image
-            return [DetectedRecipe.fullImage()]
+            let fallback = [DetectedRecipe.fullImage()]
+            Log.info("📋 Using fallback: single full-image recipe", category: .import)
+            return fallback
         }
     }
 
@@ -378,14 +394,36 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         image: UIImage,
         detectedRecipes: [DetectedRecipe]
     ) async throws -> MultiRecipeExtractionResult {
+        Log.info("📝 AIRecipeExtractor.extractRecipesFromImage() called", category: .import, metadata: [
+            "detected_count": detectedRecipes.count,
+            "detected_titles": detectedRecipes.map { $0.title }.joined(separator: " | ")
+        ])
+
         var extractedRecipes: [ExtractedRecipe] = []
 
-        for detected in detectedRecipes {
+        for (index, detected) in detectedRecipes.enumerated() {
+            Log.info("🔄 Extracting recipe \(index + 1) of \(detectedRecipes.count)", category: .import, metadata: [
+                "title": detected.title,
+                "confidence": detected.confidence.rawValue
+            ])
             do {
+                Log.info("📸 Calling extractRecipeFromImage with bounding box", category: .import, metadata: [
+                    "title": detected.title,
+                    "bbox_x": detected.boundingBox.x,
+                    "bbox_y": detected.boundingBox.y,
+                    "bbox_width": detected.boundingBox.width,
+                    "bbox_height": detected.boundingBox.height
+                ])
                 let recipe = try await extractRecipeFromImage(
                     image: image,
                     boundingBox: detected.boundingBox
                 )
+
+                Log.info("✅ Recipe extraction succeeded", category: .import, metadata: [
+                    "title": recipe.title,
+                    "ingredient_count": recipe.ingredients.count,
+                    "instruction_length": recipe.instructions.count
+                ])
 
                 // Add confidence from detection
                 let recipeWithConfidence = ExtractedRecipe(
