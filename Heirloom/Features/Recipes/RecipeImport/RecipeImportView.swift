@@ -388,6 +388,75 @@ struct RecipeImportView: View {
         recipe.sourceURL = imported.sourceURL
         recipe.notes = imported.description
 
+        // Check for duplicates before inserting
+        let duplicateDetectionService = ServiceContainer.shared.resolve(DuplicateDetectionService.self)
+
+        do {
+            let duplicates = try duplicateDetectionService.findDuplicates(
+                for: recipe,
+                in: modelContext,
+                threshold: 0.85
+            )
+
+            if !duplicates.isEmpty {
+                let exactMatches = duplicates.filter { $0.matchType == .exactHash }
+                let nearPerfectMatches = duplicates.filter { $0.similarityScore >= 0.95 }
+
+                if !exactMatches.isEmpty {
+                    // Exact duplicate - don't insert
+                    let match = exactMatches[0]
+                    Log.warning("⚠️ Web import blocked - exact duplicate", category: .network, metadata: [
+                        "title": recipe.title,
+                        "duplicate_id": match.recipe.id.uuidString,
+                        "duplicate_title": match.recipe.title
+                    ])
+
+                    await MainActor.run {
+                        isSaving = false
+                        toastManager.warning(
+                            title: "Recipe Already Exists",
+                            message: "You already have '\(match.recipe.title)' in your collection"
+                        )
+                        dismiss()
+                    }
+                    return
+                } else if !nearPerfectMatches.isEmpty {
+                    // Near-perfect match - don't insert
+                    let match = nearPerfectMatches[0]
+                    Log.warning("⚠️ Web import blocked - near-identical duplicate", category: .network, metadata: [
+                        "title": recipe.title,
+                        "similarity_score": match.similarityScore,
+                        "duplicate_id": match.recipe.id.uuidString,
+                        "duplicate_title": match.recipe.title
+                    ])
+
+                    await MainActor.run {
+                        isSaving = false
+                        toastManager.warning(
+                            title: "Very Similar Recipe Exists",
+                            message: "'\(match.recipe.title)' is already in your collection"
+                        )
+                        dismiss()
+                    }
+                    return
+                } else {
+                    // Similar but not near-identical - insert with warning
+                    Log.info("ℹ️ Web import - similar recipe exists (importing anyway)", category: .network, metadata: [
+                        "title": recipe.title,
+                        "similarity_score": duplicates[0].similarityScore,
+                        "match_type": "\(duplicates[0].matchType)",
+                        "similar_to": duplicates[0].recipe.title
+                    ])
+                }
+            }
+        } catch {
+            // Duplicate detection failed - insert anyway (don't block import)
+            Log.warning("⚠️ Web import duplicate detection failed, importing anyway", category: .network, metadata: [
+                "title": recipe.title,
+                "error": error.localizedDescription
+            ])
+        }
+
         // Insert recipe first
         modelContext.insert(recipe)
 

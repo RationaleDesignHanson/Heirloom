@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import Vision
 
 /// AI-powered recipe extraction from OCR text or cookbook images
 /// Handles messy OCR output and structures it into proper recipe format
@@ -329,7 +330,8 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     /// - Parameter image: Image containing recipe
     /// - Returns: Recipe object
     func extract(from image: UIImage) async throws -> Recipe {
-        let extracted = try await extractRecipeFromImage(image: image, boundingBox: nil)
+        // Use enhanced extraction with handwriting detection (Phase 2)
+        let extracted = try await extractRecipeEnhanced(from: image, text: nil, boundingBox: nil)
         return convertToRecipe(extracted, sourceImage: image)
     }
 
@@ -534,7 +536,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             ])
 
             do {
-                Log.info("📸 Calling extractRecipeFromImage with bounding box", category: .import, metadata: [
+                Log.info("📸 Calling extractRecipeEnhanced with bounding box", category: .import, metadata: [
                     "title": detected.title,
                     "bbox_x": detected.boundingBox.x,
                     "bbox_y": detected.boundingBox.y,
@@ -542,8 +544,10 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                     "bbox_height": detected.boundingBox.height
                 ])
 
-                let recipe = try await extractRecipeFromImage(
-                    image: image,
+                // Use enhanced extraction (Phase 2: handwriting detection + two-pass)
+                let recipe = try await extractRecipeEnhanced(
+                    from: image,
+                    text: nil,
                     boundingBox: detected.boundingBox
                 )
 
@@ -580,6 +584,9 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                     continue  // Skip this recipe
                 }
 
+                // Normalize instructions (parse inline numbered lists)
+                let normalizedInstructions = normalizeInstructions(recipe.instructions)
+
                 // Add confidence from detection
                 let recipeWithConfidence = ExtractedRecipe(
                     title: recipe.title,
@@ -587,7 +594,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                     prepTime: recipe.prepTime,
                     cookTime: recipe.cookTime,
                     ingredientStructure: recipe.ingredientStructure,
-                    instructions: recipe.instructions,
+                    instructions: normalizedInstructions,
                     notes: recipe.notes,
                     confidence: detected.confidence.score
                 )
@@ -755,6 +762,280 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         }
 
         return UIImage(cgImage: croppedCGImage, scale: scale, orientation: image.imageOrientation)
+    }
+
+    // MARK: - OCR Enhancement (Phase 2: Handwriting Support)
+
+    /// Pre-process image for better OCR accuracy using CIFilter enhancements
+    /// - Parameter image: Original recipe image
+    /// - Returns: Enhanced image with better contrast and sharpness
+    private func preprocessImageForOCR(_ image: UIImage) -> UIImage {
+        // TEMPORARY: Disable preprocessing to debug hallucination issue
+        // Will re-enable with gentler settings once we confirm extraction works
+        #if DEBUG
+        Log.info("⏭ Preprocessing disabled (debug mode)", category: .ocr)
+        return image
+        #else
+        guard let ciImage = CIImage(image: image) else {
+            Log.warning("Failed to create CIImage for preprocessing", category: .ocr)
+            return image
+        }
+
+        var processedImage = ciImage
+
+        // 1. Very subtle contrast boost for faded text (REDUCED - was too aggressive)
+        if let contrastFilter = CIFilter(name: "CIColorControls") {
+            contrastFilter.setValue(processedImage, forKey: kCIInputImageKey)
+            contrastFilter.setValue(1.05, forKey: kCIInputContrastKey) // Gentle 5% contrast boost
+            contrastFilter.setValue(1.02, forKey: kCIInputBrightnessKey) // Minimal brightness adjustment
+            if let output = contrastFilter.outputImage {
+                processedImage = output
+            }
+        }
+
+        // 2. Gentle sharpening for handwriting (REDUCED - was over-sharpening)
+        if let sharpenFilter = CIFilter(name: "CISharpenLuminance") {
+            sharpenFilter.setValue(processedImage, forKey: kCIInputImageKey)
+            sharpenFilter.setValue(0.3, forKey: kCIInputSharpnessKey) // Light sharpening only
+            if let output = sharpenFilter.outputImage {
+                processedImage = output
+            }
+        }
+
+        // 3. Minimal noise reduction (REDUCED)
+        if let noiseFilter = CIFilter(name: "CINoiseReduction") {
+            noiseFilter.setValue(processedImage, forKey: kCIInputImageKey)
+            noiseFilter.setValue(0.01, forKey: "inputNoiseLevel") // Very subtle
+            if let output = noiseFilter.outputImage {
+                processedImage = output
+            }
+        }
+
+        // Convert back to UIImage
+        let context = CIContext()
+        guard let cgImage = context.createCGImage(processedImage, from: processedImage.extent) else {
+            Log.warning("Failed to create CGImage after preprocessing", category: .ocr)
+            return image
+        }
+
+        let enhancedImage = UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+        Log.info("✨ Image preprocessed for OCR", category: .ocr)
+        return enhancedImage
+        #endif
+    }
+
+    /// Detect if image contains primarily handwritten text using Vision API
+    /// - Parameter image: Recipe image to analyze
+    /// - Returns: True if handwriting detected (>40% of text has handwriting characteristics)
+    private func detectHandwriting(in image: UIImage) async throws -> Bool {
+        guard let cgImage = image.cgImage else {
+            return false
+        }
+
+        return try await withCheckedThrowingContinuation { continuation in
+            let request = VNRecognizeTextRequest { request, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                guard let observations = request.results as? [VNRecognizedTextObservation] else {
+                    continuation.resume(returning: false)
+                    return
+                }
+
+                // Analyze confidence scores and bounding box characteristics
+                var handwritingIndicators = 0
+                var totalObservations = 0
+
+                for observation in observations {
+                    guard let topCandidate = observation.topCandidates(1).first else { continue }
+                    totalObservations += 1
+
+                    // Handwriting indicators:
+                    // 1. Lower confidence scores (< 0.8)
+                    // 2. Irregular bounding boxes (variable heights)
+                    // 3. String length variance
+
+                    let confidence = topCandidate.confidence
+                    let boundingBox = observation.boundingBox
+
+                    // Low confidence suggests handwriting
+                    if confidence < 0.8 {
+                        handwritingIndicators += 1
+                    }
+
+                    // Irregular bounding box heights (handwriting varies more)
+                    if boundingBox.height > 0.05 || boundingBox.height < 0.02 {
+                        handwritingIndicators += 1
+                    }
+                }
+
+                // If >60% of observations have handwriting indicators, classify as handwritten
+                // (Raised from 40% to avoid false positives on printed text with low OCR confidence)
+                let handwritingRatio = totalObservations > 0 ? Double(handwritingIndicators) / Double(totalObservations * 2) : 0.0
+                let isHandwritten = handwritingRatio > 0.6
+
+                Log.info("🖊 Handwriting detection complete", category: .ocr, metadata: [
+                    "total_observations": totalObservations,
+                    "handwriting_indicators": handwritingIndicators,
+                    "ratio": String(format: "%.2f", handwritingRatio),
+                    "is_handwritten": isHandwritten
+                ])
+
+                continuation.resume(returning: isHandwritten)
+            }
+
+            // Use accurate recognition level for better detection
+            request.recognitionLevel = .accurate
+            request.usesLanguageCorrection = true
+
+            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+            do {
+                try handler.perform([request])
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+
+    /// Enhance handwritten recipe extraction using two-pass strategy
+    /// - Parameters:
+    ///   - recipe: First-pass extracted recipe
+    ///   - originalImage: Original recipe image (for context)
+    ///   - text: OCR text (may have errors)
+    /// - Returns: Enhanced recipe with corrected instructions/ingredients
+    private func enhanceHandwrittenExtraction(
+        _ recipe: ExtractedRecipe,
+        originalImage: UIImage,
+        text: String
+    ) async throws -> ExtractedRecipe {
+        // Build prompt for Claude to enhance handwritten extraction
+        let prompt = """
+        This recipe was extracted from a handwritten image. The OCR may have missed some text or made errors.
+        Please review and enhance the extraction, filling in any gaps or correcting obvious errors.
+
+        CURRENT EXTRACTION:
+        Title: \(recipe.title)
+        Ingredients (\(recipe.ingredients.count)): \(recipe.ingredients.joined(separator: " | "))
+        Instructions (\(recipe.instructions.count)): \(recipe.instructions.joined(separator: " | "))
+
+        RAW OCR TEXT (for reference):
+        \(text)
+
+        TASK:
+        1. Verify the title is correct
+        2. Review ingredients list - add any missing ingredients you can see
+        3. Review instructions - expand abbreviated steps, add missing steps
+        4. Correct OCR errors (e.g., "l/2" → "1/2", "bake" → "Bake")
+        5. If instructions are very short, infer complete steps based on typical recipes
+
+        Return enhanced recipe in JSON format:
+        {
+          "title": "Recipe Title",
+          "servings": "\(recipe.servings ?? "null")",
+          "prep_time": "\(recipe.prepTime ?? "null")",
+          "cook_time": "\(recipe.cookTime ?? "null")",
+          "ingredients": ["ingredient 1", "ingredient 2", ...],
+          "instructions": ["step 1", "step 2", ...],
+          "notes": "\(recipe.notes ?? "null")"
+        }
+
+        IMPORTANT: Only add content you're confident about from the image or OCR text. Don't invent steps.
+        """
+
+        let model = configuration.model(for: .pdfVision)
+
+        let enhanced = try await aiService.completeWithVisionStructured(
+            image: originalImage,
+            prompt: prompt,
+            schema: ExtractedRecipe.self,
+            options: AICompletionOptions(
+                model: model,
+                temperature: 0.3,
+                maxTokens: 2000,
+                systemMessage: "You are an expert at correcting OCR errors in handwritten recipes."
+            ),
+            useCase: .ocr
+        )
+
+        Log.info("✨ Handwritten recipe enhanced", category: .ocr, metadata: [
+            "original_ingredients": recipe.ingredients.count,
+            "enhanced_ingredients": enhanced.ingredients.count,
+            "original_instructions": recipe.instructions.count,
+            "enhanced_instructions": enhanced.instructions.count
+        ])
+
+        return enhanced
+    }
+
+    /// Enhanced extraction for recipes (detects handwriting and applies two-pass strategy)
+    /// - Parameters:
+    ///   - image: Recipe image
+    ///   - text: Pre-extracted OCR text (optional)
+    ///   - boundingBox: Optional bounding box to focus on specific region
+    /// - Returns: Extracted recipe (enhanced if handwriting detected)
+    private func extractRecipeEnhanced(
+        from image: UIImage,
+        text: String? = nil,
+        boundingBox: BoundingBox? = nil
+    ) async throws -> ExtractedRecipe {
+        // IMPORTANT: Crop FIRST if bounding box provided, THEN preprocess
+        // (preprocessing the full image then cropping can cause over-exposure)
+        let imageToProcess: UIImage
+        if let bbox = boundingBox, !bbox.isFullImage {
+            Log.info("✂️ Cropping image before preprocessing", category: .import, metadata: [
+                "bbox_x": bbox.x,
+                "bbox_y": bbox.y,
+                "bbox_width": bbox.width,
+                "bbox_height": bbox.height
+            ])
+            imageToProcess = cropImage(image, to: bbox)
+        } else {
+            imageToProcess = image
+        }
+
+        // Pre-process the cropped image for better OCR
+        let preprocessedImage = preprocessImageForOCR(imageToProcess)
+
+        // Detect if handwriting on the preprocessed region
+        let isHandwritten = try await detectHandwriting(in: preprocessedImage)
+
+        if isHandwritten {
+            Log.info("🖊 Handwriting detected - using two-pass extraction", category: .ocr)
+
+            // Pass 1: Standard extraction (use preprocessed image, no bounding box since already cropped)
+            let firstPass = try await extractRecipeFromImage(
+                image: preprocessedImage,
+                boundingBox: nil
+            )
+
+            // Pass 2: Enhance with Claude using original cropped region + OCR context
+            let enhanced = try await enhanceHandwrittenExtraction(
+                firstPass,
+                originalImage: imageToProcess,
+                text: text ?? ""
+            )
+
+            // Track success
+            analytics.track(event: .aiEnhancementSuccess, properties: [
+                "source": "handwriting_enhanced",
+                "first_pass_ingredients": firstPass.ingredients.count,
+                "enhanced_ingredients": enhanced.ingredients.count,
+                "first_pass_instructions": firstPass.instructions.count,
+                "enhanced_instructions": enhanced.instructions.count
+            ])
+
+            return enhanced
+
+        } else {
+            Log.info("📝 Printed text detected - using standard extraction", category: .ocr)
+            // Use standard extraction for printed text (no bounding box since already cropped)
+            return try await extractRecipeFromImage(
+                image: preprocessedImage,
+                boundingBox: nil
+            )
+        }
     }
 
     // MARK: - AI Extraction (Text-Based - Legacy)
@@ -1129,12 +1410,93 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
 
     // MARK: - Recipe Quality Validation
 
+    /// Parses inline numbered or bulleted instructions into separate steps
+    /// Handles formats like: "1. Mix flour 2. Add eggs 3. Bake"
+    /// - Parameter instructions: Raw instruction strings (may contain inline lists)
+    /// - Returns: Normalized array with each instruction as a separate element
+    private func normalizeInstructions(_ instructions: [String]) -> [String] {
+        var normalized: [String] = []
+
+        for instruction in instructions {
+            let trimmed = instruction.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { continue }
+
+            // Check if this instruction contains multiple numbered steps on one line
+            // Patterns to detect: "1.", "2.", "3." or "Step 1:", "Step 2:"
+            let numberedPattern = #"(\d+\.\s+)"#
+            let stepPattern = #"(Step\s+\d+:?\s+)"#
+
+            // Try numbered pattern first (1., 2., 3.)
+            if let regex = try? NSRegularExpression(pattern: numberedPattern, options: [.caseInsensitive]) {
+                let matches = regex.matches(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed))
+
+                // If we found 2+ numbered markers, split by them
+                if matches.count >= 2 {
+                    var lastEnd = trimmed.startIndex
+                    for match in matches {
+                        if match.range.location > 0 {
+                            // Extract the text between previous number and this number
+                            let startIndex = trimmed.index(trimmed.startIndex, offsetBy: match.range.location)
+                            let text = String(trimmed[lastEnd..<startIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+                            if !text.isEmpty {
+                                normalized.append(text)
+                            }
+                        }
+                        lastEnd = trimmed.index(trimmed.startIndex, offsetBy: match.range.location)
+                    }
+                    // Add the last instruction
+                    if lastEnd < trimmed.endIndex {
+                        let text = String(trimmed[lastEnd...]).trimmingCharacters(in: .whitespacesAndNewlines)
+                        // Remove leading number marker
+                        if let cleanedText = text.replacingOccurrences(of: #"^\d+\.\s*"#, with: "", options: .regularExpression, range: text.startIndex..<text.endIndex) as String?, !cleanedText.isEmpty {
+                            normalized.append(cleanedText)
+                        }
+                    }
+                    continue
+                }
+            }
+
+            // Try "Step X:" pattern
+            if let regex = try? NSRegularExpression(pattern: stepPattern, options: [.caseInsensitive]) {
+                let matches = regex.matches(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed))
+
+                if matches.count >= 2 {
+                    var lastEnd = trimmed.startIndex
+                    for match in matches {
+                        if match.range.location > 0 {
+                            let startIndex = trimmed.index(trimmed.startIndex, offsetBy: match.range.location)
+                            let text = String(trimmed[lastEnd..<startIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+                            if !text.isEmpty {
+                                normalized.append(text)
+                            }
+                        }
+                        lastEnd = trimmed.index(trimmed.startIndex, offsetBy: match.range.location)
+                    }
+                    // Add the last instruction
+                    if lastEnd < trimmed.endIndex {
+                        let text = String(trimmed[lastEnd...]).trimmingCharacters(in: .whitespacesAndNewlines)
+                        if let cleanedText = text.replacingOccurrences(of: #"^Step\s+\d+:?\s*"#, with: "", options: .regularExpression, range: text.startIndex..<text.endIndex) as String?, !cleanedText.isEmpty {
+                            normalized.append(cleanedText)
+                        }
+                    }
+                    continue
+                }
+            }
+
+            // No inline list detected - add as-is
+            normalized.append(trimmed)
+        }
+
+        return normalized
+    }
+
     /// Validates that an extracted recipe has sufficient content to be considered complete
     /// - Parameter recipe: The extracted recipe to validate
     /// - Returns: Error message if validation fails, nil if recipe is valid
     private func validateRecipeQuality(_ recipe: ExtractedRecipe) -> String? {
         let ingredients = recipe.ingredients
-        let instructions = recipe.instructions
+        // Normalize instructions before validation (parse inline numbered lists)
+        let instructions = normalizeInstructions(recipe.instructions)
 
         // Check for placeholder text
         let hasPlaceholderIngredients = ingredients.contains { $0.contains("No ingredients found") }

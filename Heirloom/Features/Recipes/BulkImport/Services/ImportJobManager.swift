@@ -901,9 +901,10 @@ final class ImportJobManager: ObservableObject {
                     if !duplicates.isEmpty {
                         // Found potential duplicate(s)
                         let exactMatches = duplicates.filter { $0.matchType == .exactHash }
+                        let nearPerfectMatches = duplicates.filter { $0.similarityScore >= 0.95 }
 
                         if !exactMatches.isEmpty {
-                            // Exact duplicate - skip insertion
+                            // Exact duplicate (content hash match) - skip insertion
                             Log.warning("⚠️ Skipping exact duplicate recipe", category: .import, metadata: [
                                 "title": recipe.title,
                                 "content_hash": recipe.contentHash ?? "none",
@@ -912,8 +913,19 @@ final class ImportJobManager: ObservableObject {
                             ])
                             skippedDuplicates.append((recipe, duplicates))
                             continue
+                        } else if !nearPerfectMatches.isEmpty {
+                            // Near-perfect title/content match (>=0.95 similarity) - skip insertion
+                            Log.warning("⚠️ Skipping near-identical duplicate recipe", category: .import, metadata: [
+                                "title": recipe.title,
+                                "similarity_score": nearPerfectMatches[0].similarityScore,
+                                "match_type": "\(nearPerfectMatches[0].matchType)",
+                                "duplicate_id": nearPerfectMatches[0].recipe.id.uuidString,
+                                "duplicate_title": nearPerfectMatches[0].recipe.title
+                            ])
+                            skippedDuplicates.append((recipe, duplicates))
+                            continue
                         } else {
-                            // Similar but not exact - insert with warning
+                            // Similar but not near-identical - insert with warning
                             Log.info("ℹ️ Recipe similar to existing recipe (inserting anyway)", category: .import, metadata: [
                                 "title": recipe.title,
                                 "similarity_score": duplicates[0].similarityScore,

@@ -372,6 +372,69 @@ struct UnifiedVideoImportView: View {
 
         // Insert recipe into SwiftData if not already inserted
         if recipe.modelContext == nil {
+            // Check for duplicates before inserting
+            let duplicateDetectionService = ServiceContainer.shared.resolve(DuplicateDetectionService.self)
+
+            do {
+                let duplicates = try duplicateDetectionService.findDuplicates(
+                    for: recipe,
+                    in: modelContext,
+                    threshold: 0.85
+                )
+
+                if !duplicates.isEmpty {
+                    let exactMatches = duplicates.filter { $0.matchType == .exactHash }
+                    let nearPerfectMatches = duplicates.filter { $0.similarityScore >= 0.95 }
+
+                    if !exactMatches.isEmpty {
+                        // Exact duplicate found - don't insert
+                        let match = exactMatches[0]
+                        Log.warning("⚠️ Video import blocked - exact duplicate", category: .video, metadata: [
+                            "title": recipe.title,
+                            "duplicate_id": match.recipe.id.uuidString,
+                            "duplicate_title": match.recipe.title
+                        ])
+
+                        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                        toastManager.warning(
+                            title: "Recipe Already Exists",
+                            message: "You already have '\(match.recipe.title)' in your collection"
+                        )
+                        return
+                    } else if !nearPerfectMatches.isEmpty {
+                        // Near-perfect match found - don't insert
+                        let match = nearPerfectMatches[0]
+                        Log.warning("⚠️ Video import blocked - near-identical duplicate", category: .video, metadata: [
+                            "title": recipe.title,
+                            "similarity_score": match.similarityScore,
+                            "duplicate_id": match.recipe.id.uuidString,
+                            "duplicate_title": match.recipe.title
+                        ])
+
+                        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                        toastManager.warning(
+                            title: "Very Similar Recipe Exists",
+                            message: "'\(match.recipe.title)' is already in your collection"
+                        )
+                        return
+                    } else {
+                        // Similar but not near-identical - insert with warning
+                        Log.info("ℹ️ Video import - similar recipe exists (importing anyway)", category: .video, metadata: [
+                            "title": recipe.title,
+                            "similarity_score": duplicates[0].similarityScore,
+                            "match_type": "\(duplicates[0].matchType)",
+                            "similar_to": duplicates[0].recipe.title
+                        ])
+                    }
+                }
+            } catch {
+                // Duplicate detection failed - insert anyway (don't block import)
+                Log.warning("⚠️ Video import duplicate detection failed, importing anyway", category: .video, metadata: [
+                    "title": recipe.title,
+                    "error": error.localizedDescription
+                ])
+            }
+
             modelContext.insert(recipe)
 
             // Insert ingredients
@@ -404,6 +467,71 @@ struct UnifiedVideoImportView: View {
 
         // Insert recipe into SwiftData if not already inserted
         if recipe.modelContext == nil {
+            // Check for duplicates before inserting
+            let duplicateDetectionService = ServiceContainer.shared.resolve(DuplicateDetectionService.self)
+
+            do {
+                let duplicates = try duplicateDetectionService.findDuplicates(
+                    for: recipe,
+                    in: modelContext,
+                    threshold: 0.85
+                )
+
+                if !duplicates.isEmpty {
+                    let exactMatches = duplicates.filter { $0.matchType == .exactHash }
+                    let nearPerfectMatches = duplicates.filter { $0.similarityScore >= 0.95 }
+
+                    if !exactMatches.isEmpty {
+                        // Exact duplicate found - don't insert
+                        let match = exactMatches[0]
+                        Log.warning("⚠️ Video import blocked - exact duplicate", category: .video, metadata: [
+                            "title": recipe.title,
+                            "duplicate_id": match.recipe.id.uuidString,
+                            "duplicate_title": match.recipe.title
+                        ])
+
+                        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                        toastManager.warning(
+                            title: "Recipe Already Exists",
+                            message: "You already have '\(match.recipe.title)' in your collection"
+                        )
+                        dismiss()
+                        return
+                    } else if !nearPerfectMatches.isEmpty {
+                        // Near-perfect match found - don't insert
+                        let match = nearPerfectMatches[0]
+                        Log.warning("⚠️ Video import blocked - near-identical duplicate", category: .video, metadata: [
+                            "title": recipe.title,
+                            "similarity_score": match.similarityScore,
+                            "duplicate_id": match.recipe.id.uuidString,
+                            "duplicate_title": match.recipe.title
+                        ])
+
+                        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                        toastManager.warning(
+                            title: "Very Similar Recipe Exists",
+                            message: "'\(match.recipe.title)' is already in your collection"
+                        )
+                        dismiss()
+                        return
+                    } else {
+                        // Similar but not near-identical - insert with warning
+                        Log.info("ℹ️ Video import - similar recipe exists (importing anyway)", category: .video, metadata: [
+                            "title": recipe.title,
+                            "similarity_score": duplicates[0].similarityScore,
+                            "match_type": "\(duplicates[0].matchType)",
+                            "similar_to": duplicates[0].recipe.title
+                        ])
+                    }
+                }
+            } catch {
+                // Duplicate detection failed - insert anyway (don't block import)
+                Log.warning("⚠️ Video import duplicate detection failed, importing anyway", category: .video, metadata: [
+                    "title": recipe.title,
+                    "error": error.localizedDescription
+                ])
+            }
+
             modelContext.insert(recipe)
 
             // Insert ingredients
