@@ -10,6 +10,12 @@ struct CollectionCardView: View {
         Array((collection.recipes ?? []).prefix(3))
     }
 
+    /// Check if collection contains any recipes added within last 24 hours
+    private var hasNewRecipes: Bool {
+        guard let recipes = collection.recipes else { return false }
+        return recipes.contains { $0.dateAdded.timeIntervalSinceNow > -86400 }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Background section - custom/generated or recipe collage
@@ -61,6 +67,18 @@ struct CollectionCardView: View {
                 Spacer()
 
                 HStack(spacing: HeirloomSpacing.xs) {
+                    // "NEW" badge if collection has recipes added within last 24 hours
+                    if hasNewRecipes {
+                        Text("NEW")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(HeirloomColors.tomato)
+                            .cornerRadius(6)
+                            .accessibilityLabel("Contains recently added recipes")
+                    }
+
                     Image(systemName: collection.iconName)
                         .font(.system(size: 14))
                     Text("\(collection.recipes?.count ?? 0)")
