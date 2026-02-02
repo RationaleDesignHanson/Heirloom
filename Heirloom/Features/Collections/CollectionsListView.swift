@@ -22,6 +22,7 @@ struct CollectionsListView: View {
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
+    @State private var showReadRecipe = false
     @State private var selectedCollection: RecipeCollection?
     @State private var showRecipeCoachMark = false
     @State private var collectionToDelete: RecipeCollection?
@@ -224,6 +225,15 @@ struct CollectionsListView: View {
                 UnifiedVideoImportView()
                     .environmentObject(notificationService)
                     .environmentObject(tabCoordinator)
+            }
+            .sheet(isPresented: $showReadRecipe) {
+                ReadRecipeView(
+                    dictationService: ServiceContainer.shared.resolve(VoiceDictationServiceProtocol.self),
+                    recipeExtractor: ServiceContainer.shared.resolve(AIRecipeExtractorProtocol.self),
+                    imageGenerator: ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
+                )
+                .environmentObject(notificationService)
+                .environmentObject(tabCoordinator)
             }
             .sheet(isPresented: $showCollectionPicker) {
                 if let recipe = generatedRecipe {
@@ -731,6 +741,7 @@ struct CollectionsListView: View {
                 onBulkImport: handleBulkImport,
                 onCookbookScanner: handleCookbookScanner,
                 onVideoImport: handleVideoImport,
+                onReadRecipe: handleReadRecipe,
                 onAddCollection: handleAddCollection,
                 onCollectionSettings: nil, // Not applicable in collections list view
                 onOpenSettings: { showSettings = true }
@@ -1147,6 +1158,11 @@ struct CollectionsListView: View {
     private func handleVideoImport() {
         tabCoordinator.willCreateRecipe(from: .collectionsTab)
         showVideoImport = true
+    }
+
+    private func handleReadRecipe() {
+        tabCoordinator.willCreateRecipe(from: .collectionsTab)
+        showReadRecipe = true
     }
 
     /// Handle tap on + affordance in collection card - routes to appropriate ingress based on collection type

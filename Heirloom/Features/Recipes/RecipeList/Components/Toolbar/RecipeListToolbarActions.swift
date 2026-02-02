@@ -19,6 +19,7 @@ struct RecipeListToolbarActions: View {
     let onBulkImport: () -> Void
     let onCookbookScanner: () -> Void
     let onVideoImport: () -> Void
+    let onReadRecipe: () -> Void
     let onAddCollection: () -> Void
     let onCollectionSettings: (() -> Void)? // Optional - only shown in collection detail views
     let onOpenSettings: () -> Void
@@ -101,6 +102,24 @@ struct RecipeListToolbarActions: View {
                 }
                 .accessibilityLabel("Import recipe from video")
                 .accessibilityHint("Select a cooking video from camera roll or share from Instagram/TikTok")
+
+                Button {
+                    onReadRecipe()
+                } label: {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Read Recipe")
+                            Text("Dictate recipe verbally")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "mic.circle.fill")
+                            .foregroundStyle(.red)
+                    }
+                }
+                .accessibilityLabel("Record recipe with voice")
+                .accessibilityHint("Dictate an entire recipe verbally and it will be transcribed and structured")
 
                 Divider()
 

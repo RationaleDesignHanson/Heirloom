@@ -400,6 +400,9 @@
 		C5EF77732F3057060097779E /* RecipeGenerationRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF776C2F3057060097779E /* RecipeGenerationRequest.swift */; };
 		C5EF77772F3057190097779E /* RecipeGeneratorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77752F3057190097779E /* RecipeGeneratorView.swift */; };
 		C5EF77782F3057190097779E /* GeneratedRecipePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77742F3057190097779E /* GeneratedRecipePreviewView.swift */; };
+		C5EF777C2F305DA80097779E /* VoiceDictationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF777B2F305DA80097779E /* VoiceDictationService.swift */; };
+		C5EF777D2F305DA80097779E /* ReadRecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF777A2F305DA80097779E /* ReadRecipeView.swift */; };
+		C5EF777E2F305DA80097779E /* ReadRecipePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77792F305DA80097779E /* ReadRecipePreviewView.swift */; };
 		CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC154590CE51056017C5D6 /* CommentService.swift */; };
 		CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD518726BAFEC566E22D0315 /* Tag.swift */; };
 		CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBB366ABEF58AF23B4D64FE /* ImportItem.swift */; };
@@ -824,6 +827,9 @@
 		C5EF776D2F3057060097779E /* RecipeImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImageGenerator.swift; sourceTree = "<group>"; };
 		C5EF77742F3057190097779E /* GeneratedRecipePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedRecipePreviewView.swift; sourceTree = "<group>"; };
 		C5EF77752F3057190097779E /* RecipeGeneratorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGeneratorView.swift; sourceTree = "<group>"; };
+		C5EF77792F305DA80097779E /* ReadRecipePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadRecipePreviewView.swift; sourceTree = "<group>"; };
+		C5EF777A2F305DA80097779E /* ReadRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadRecipeView.swift; sourceTree = "<group>"; };
+		C5EF777B2F305DA80097779E /* VoiceDictationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceDictationService.swift; sourceTree = "<group>"; };
 		C6DCC0C21D884197B1F0F9AA /* ScalingWarningBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingWarningBanner.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C9A499F6282CBE6AC6C45E99 /* RecipeStructureParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeStructureParser.swift; sourceTree = "<group>"; };
@@ -2177,6 +2183,9 @@
 		C5EF77762F3057190097779E /* RecipeGeneration */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77792F305DA80097779E /* ReadRecipePreviewView.swift */,
+				C5EF777A2F305DA80097779E /* ReadRecipeView.swift */,
+				C5EF777B2F305DA80097779E /* VoiceDictationService.swift */,
 				C5EF77742F3057190097779E /* GeneratedRecipePreviewView.swift */,
 				C5EF77752F3057190097779E /* RecipeGeneratorView.swift */,
 			);
@@ -2794,6 +2803,9 @@
 				C5DBEC6C2F200E6600C1B6BA /* ExtractionMode.swift in Sources */,
 				C5DBEC7D2F200FDE00C1B6BA /* UnifiedVideoImportView.swift in Sources */,
 				C5DBEC6D2F200E6600C1B6BA /* OnScreenTextResult.swift in Sources */,
+				C5EF777C2F305DA80097779E /* VoiceDictationService.swift in Sources */,
+				C5EF777D2F305DA80097779E /* ReadRecipeView.swift in Sources */,
+				C5EF777E2F305DA80097779E /* ReadRecipePreviewView.swift in Sources */,
 				C5CE3F242F2CFAE000A2E62F /* ConnectionRow.swift in Sources */,
 				C5CE3F252F2CFAE000A2E62F /* ConnectionRequestCard.swift in Sources */,
 				C5CE3F262F2CFAE000A2E62F /* InviteConnectionView.swift in Sources */,

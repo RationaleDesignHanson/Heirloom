@@ -16,6 +16,7 @@ struct RecipeSheetModifiers: ViewModifier {
     @Binding var showBulkImport: Bool
     @Binding var showCookbookScanner: Bool
     @Binding var showVideoImport: Bool
+    @Binding var showReadRecipe: Bool
     @Binding var showCreateCollection: Bool
     @Binding var showFilters: Bool
     @Binding var filters: RecipeFilters
@@ -50,6 +51,13 @@ struct RecipeSheetModifiers: ViewModifier {
             }
             .sheet(isPresented: $showVideoImport) {
                 UnifiedVideoImportView()
+            }
+            .sheet(isPresented: $showReadRecipe) {
+                ReadRecipeView(
+                    dictationService: ServiceContainer.shared.resolve(VoiceDictationServiceProtocol.self),
+                    recipeExtractor: ServiceContainer.shared.resolve(AIRecipeExtractorProtocol.self),
+                    imageGenerator: ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
+                )
             }
             .sheet(isPresented: $showCreateCollection) {
                 CollectionEditorView()

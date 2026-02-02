@@ -15,6 +15,7 @@ struct CollectionDetailView: View {
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
     @State private var showVideoImport = false
+    @State private var showReadRecipe = false
     @State private var showDeleteConfirmation = false
     @State private var showAddRecipeMenu = false
     @State private var showCollectionSettings = false
@@ -268,6 +269,10 @@ struct CollectionDetailView: View {
                         tabCoordinator.willCreateRecipe(from: .collectionDetail)
                         showVideoImport = true
                     },
+                    onReadRecipe: {
+                        tabCoordinator.willCreateRecipe(from: .collectionDetail)
+                        showReadRecipe = true
+                    },
                     onAddCollection: {}, // Not applicable within a collection detail view
                     onCollectionSettings: {
                         showCollectionSettings = true
@@ -397,6 +402,14 @@ struct CollectionDetailView: View {
         .sheet(isPresented: $showVideoImport) {
             UnifiedVideoImportView()
                 .environmentObject(tabCoordinator)
+        }
+        .sheet(isPresented: $showReadRecipe) {
+            ReadRecipeView(
+                dictationService: ServiceContainer.shared.resolve(VoiceDictationServiceProtocol.self),
+                recipeExtractor: ServiceContainer.shared.resolve(AIRecipeExtractorProtocol.self),
+                imageGenerator: ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
+            )
+            .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showCollectionSettings) {
             NavigationStack {

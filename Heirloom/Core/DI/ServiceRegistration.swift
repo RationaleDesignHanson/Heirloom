@@ -625,6 +625,15 @@ extension ServiceContainer {
             container.resolve(RecipeImageGenerator.self) as any RecipeImageGeneratorProtocol
         }
 
+        // VoiceDictationService (Speech recognition for voice recipe dictation)
+        register(VoiceDictationService.self, lifecycle: .singleton) { _ in
+            VoiceDictationService()
+        }
+
+        register((any VoiceDictationServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(VoiceDictationService.self) as any VoiceDictationServiceProtocol
+        }
+
         // MARK: - OCR
         // Note: EnhancedOCRService doesn't fully implement OCRServiceProtocol yet
         // Registering concrete type only for now
