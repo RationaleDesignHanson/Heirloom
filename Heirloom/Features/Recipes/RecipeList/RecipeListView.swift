@@ -508,7 +508,7 @@ struct RecipeListView: View {
     // MARK: - Empty State
     private var emptyState: some View {
         EmptyStateView.noRecipes {
-            showAddRecipe = true
+            showRecipeGenerator = true
         }
     }
 

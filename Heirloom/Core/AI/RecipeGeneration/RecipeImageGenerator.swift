@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 
 /// Protocol for recipe image generation service
+@MainActor
 protocol RecipeImageGeneratorProtocol {
     /// Generate and save an AI image for a recipe
     func generateAndSaveImage(for recipe: Recipe) async throws
