@@ -161,23 +161,14 @@ struct OnboardingSubscriptionScreen: View {
                         }
                         .disabled(isLoading)
                     } else {
-                        // Products failed to load - show fallback CTAs
+                        // Products unavailable (not set up in App Store Connect yet)
+                        // Show simple continue option without confusing "Try again"
                         VStack(spacing: 12) {
                             Button(action: {
                                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                Task {
-                                    isLoadingProducts = true
-                                    do {
-                                        try await storeManager.loadProducts()
-                                        errorMessage = nil
-                                        isLoadingProducts = false
-                                    } catch {
-                                        errorMessage = "Could not load subscription options"
-                                        isLoadingProducts = false
-                                    }
-                                }
+                                onSkip()
                             }) {
-                                Text("Try again")
+                                Text("Continue free")
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .frame(maxWidth: .infinity)
@@ -185,21 +176,12 @@ struct OnboardingSubscriptionScreen: View {
                                     .background(HeirloomColors.tomato)
                                     .foregroundColor(.white)
                                     .cornerRadius(16)
+                                    .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
                             }
 
-                            Button(action: {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                onSkip()
-                            }) {
-                                Text("Continue free")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 48)
-                                    .background(Color.secondary.opacity(0.1))
-                                    .foregroundColor(.primary)
-                                    .cornerRadius(12)
-                            }
+                            Text("Premium features coming soon")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
                     }
 

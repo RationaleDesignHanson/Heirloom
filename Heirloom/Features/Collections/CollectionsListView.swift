@@ -498,7 +498,9 @@ struct CollectionsListView: View {
     private var unifiedCollectionsSection: some View {
         LazyVStack(spacing: HeirloomSpacing.lg) {
             // CTA banner (FIRST - pinned to top until user has substantial recipes)
-            if allRecipes.count <= 5 {
+            // Only count user-added recipes (exclude theme collection recipes)
+            let userRecipes = allRecipes.filter { $0.sourceThemeId == nil }
+            if userRecipes.count <= 5 {
                 ctaBanner
                     .padding(.bottom, HeirloomSpacing.sm)
             }
