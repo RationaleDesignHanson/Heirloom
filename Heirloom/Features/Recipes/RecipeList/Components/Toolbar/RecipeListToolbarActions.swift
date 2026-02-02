@@ -35,62 +35,13 @@ struct RecipeListToolbarActions: View {
             .accessibilityLabel(selectedCount == filteredCount ? "Deselect all recipes" : "Select all recipes")
         } else {
             Menu {
-                Button {
-                    onGenerateRecipe()
-                } label: {
-                    Label("Generate Recipe", systemImage: "wand.and.stars")
-                }
-                .accessibilityLabel("Generate Recipe")
-                .accessibilityHint("AI-generate a recipe from dish name and ingredients")
-
-                Button {
-                    onImportRecipe()
-                } label: {
-                    Label {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Recipe Website Link")
-                            Text("Paste URL from recipe website")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Image(systemName: "link")
-                    }
-                }
-                .accessibilityLabel("Import from recipe website")
-                .accessibilityHint("Paste a URL from a recipe website like AllRecipes or NYT Cooking")
-
-                Button {
-                    onBulkImport()
-                } label: {
-                    Label("Bulk Import", systemImage: "square.stack.3d.down.forward")
-                }
-                .accessibilityLabel("Bulk Import")
-                .accessibilityHint("Import multiple recipes from photos")
-
-                Button {
-                    onCookbookScanner()
-                } label: {
-                    Label {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Scan Cookbook Page")
-                            Text("Camera, PDF, or photo from camera roll")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Image(systemName: "book.pages")
-                    }
-                }
-                .accessibilityLabel("Scan cookbook page with camera or photo")
-                .accessibilityHint("Scan recipe images using camera, PDF, or photos from camera roll")
-
+                // 1. Recipe Video Import
                 Button {
                     onVideoImport()
                 } label: {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Video Import")
+                            Text("Recipe Video Import")
                             Text("Auto-detects speech, text, or visual content")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundStyle(.secondary)
@@ -103,6 +54,70 @@ struct RecipeListToolbarActions: View {
                 .accessibilityLabel("Import recipe from video")
                 .accessibilityHint("Select a cooking video from camera roll or share from Instagram/TikTok")
 
+                // 2. Website Link
+                Button {
+                    onImportRecipe()
+                } label: {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Website Link")
+                            Text("Paste URL from recipe website")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "link")
+                    }
+                }
+                .accessibilityLabel("Import from recipe website")
+                .accessibilityHint("Paste a URL from a recipe website like AllRecipes or NYT Cooking")
+
+                // 3. Multiple Website Links
+                Button {
+                    onBulkImport()
+                } label: {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Multiple Website Links")
+                            Text("Import multiple recipes from URLs")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "link.badge.plus")
+                    }
+                }
+                .accessibilityLabel("Import multiple recipes from URLs")
+                .accessibilityHint("Paste multiple recipe website URLs at once")
+
+                // 4. Scan Cookbook Page(s)
+                Button {
+                    onCookbookScanner()
+                } label: {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Scan Cookbook Page(s)")
+                            Text("Camera, PDF, or photo from camera roll")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "book.pages")
+                    }
+                }
+                .accessibilityLabel("Scan cookbook page with camera or photo")
+                .accessibilityHint("Scan recipe images using camera, PDF, or photos from camera roll")
+
+                // 5. Generate Recipe
+                Button {
+                    onGenerateRecipe()
+                } label: {
+                    Label("Generate Recipe", systemImage: "wand.and.stars")
+                }
+                .accessibilityLabel("Generate Recipe")
+                .accessibilityHint("AI-generate a recipe from dish name and ingredients")
+
+                // 6. Read Recipe
                 Button {
                     onReadRecipe()
                 } label: {

@@ -109,8 +109,8 @@ struct RecipeGeneratorView: View {
         // Create new collection
         let collection = RecipeCollection(
             name: "Generated Recipes",
-            type: .userCreated,
-            icon: "wand.and.stars"
+            iconName: "wand.and.stars",
+            collectionType: .userCreated
         )
         modelContext.insert(collection)
         return collection

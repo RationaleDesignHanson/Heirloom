@@ -524,45 +524,32 @@ struct CollectionsListView: View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
             // CTA to guide users to add their own recipes (only show if they have few custom collections)
             if myCollections.count <= 2 {
-                HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Text("Add your own recipes")
+                Button(action: {
+                    // Show toolbar menu by triggering it programmatically
+                    // Since we can't programmatically open a Menu, we'll show a toast instead
+                    // Actually, let's just make this a visual guide
+                }) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Add your own recipe")
                             .font(HeirloomFonts.body)
                             .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
 
-                        Image(systemName: "arrow.up")
-                            .font(.body)
-                            .foregroundStyle(HeirloomColors.tomato)
+                        Text("Press the + button above to import or generate recipes")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
                     }
-
-                    Text("Press the")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(.secondary)
-                    + Text(" + ")
-                        .font(HeirloomFonts.caption1)
-                        .fontWeight(.bold)
-                        .foregroundStyle(HeirloomColors.tomato)
-                    + Text("button above to import or generate recipes")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(.systemBackground))
+                            .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+                    )
                 }
-
-                Spacer()
-
-                // Visual + indicator
-                Image(systemName: "plus.circle.fill")
-                    .font(.title)
-                    .foregroundStyle(HeirloomColors.tomato)
-            }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
-            )
-            .padding(.horizontal, HeirloomSpacing.md)
-            .padding(.bottom, HeirloomSpacing.sm)
+                .buttonStyle(.plain)
+                .padding(.horizontal, HeirloomSpacing.md)
+                .padding(.bottom, HeirloomSpacing.sm)
             }
 
             // Theme collection cards (full width)

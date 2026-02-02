@@ -188,8 +188,8 @@ struct ReadRecipeView: View {
         // Create new collection
         let collection = RecipeCollection(
             name: "Read Recipes",
-            type: .userCreated,
-            icon: "mic.circle.fill"
+            iconName: "mic.circle.fill",
+            collectionType: .userCreated
         )
         modelContext.insert(collection)
         return collection
