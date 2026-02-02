@@ -522,6 +522,49 @@ struct CollectionsListView: View {
 
     private var themeSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            // CTA to guide users to add their own recipes (only show if they have few custom collections)
+            if myCollections.count <= 2 {
+                HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text("Add your own recipes")
+                            .font(HeirloomFonts.body)
+                            .fontWeight(.semibold)
+
+                        Image(systemName: "arrow.up")
+                            .font(.body)
+                            .foregroundStyle(HeirloomColors.tomato)
+                    }
+
+                    Text("Press the")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(.secondary)
+                    + Text(" + ")
+                        .font(HeirloomFonts.caption1)
+                        .fontWeight(.bold)
+                        .foregroundStyle(HeirloomColors.tomato)
+                    + Text("button above to import or generate recipes")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                // Visual + indicator
+                Image(systemName: "plus.circle.fill")
+                    .font(.title)
+                    .foregroundStyle(HeirloomColors.tomato)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+            )
+            .padding(.horizontal, HeirloomSpacing.md)
+            .padding(.bottom, HeirloomSpacing.sm)
+            }
+
             // Theme collection cards (full width)
             ForEach(themeCollections) { collection in
                 NavigationLink(value: collection) {

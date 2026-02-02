@@ -89,17 +89,31 @@ struct RecipeGeneratorView: View {
                 }
             }
             .navigationDestination(item: $generatedRecipe) { recipe in
-                GeneratedRecipePreviewView(
-                    recipe: recipe,
-                    onSave: {
-                        dismiss()
-                    },
-                    onRegenerate: {
-                        generatedRecipe = nil
-                    }
-                )
+                RecipeDetailView(recipe: recipe)
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    private func findOrCreateGeneratedRecipesCollection() -> RecipeCollection {
+        // Try to find existing "Generated Recipes" collection
+        let descriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate { $0.name == "Generated Recipes" }
+        )
+
+        if let existing = try? modelContext.fetch(descriptor).first {
+            return existing
+        }
+
+        // Create new collection
+        let collection = RecipeCollection(
+            name: "Generated Recipes",
+            type: .userCreated,
+            icon: "wand.and.stars"
+        )
+        modelContext.insert(collection)
+        return collection
     }
 
     // MARK: - Generation
@@ -142,7 +156,21 @@ struct RecipeGeneratorView: View {
                 // Continue without image - user can add one later
             }
 
-            // Show preview
+            // Find or create "Generated Recipes" collection
+            let collection = findOrCreateGeneratedRecipesCollection()
+
+            // Add recipe to collection
+            if collection.recipes == nil {
+                collection.recipes = []
+            }
+            if !collection.recipes!.contains(where: { $0.id == recipe.id }) {
+                collection.recipes!.append(recipe)
+            }
+
+            // Save context
+            try modelContext.save()
+
+            // Navigate to recipe detail
             generatedRecipe = recipe
 
         } catch let error as ImageGenerationError {

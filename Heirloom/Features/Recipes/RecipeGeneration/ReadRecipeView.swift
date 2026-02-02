@@ -155,17 +155,7 @@ struct ReadRecipeView: View {
                 }
             }
             .navigationDestination(item: $structuredRecipe) { recipe in
-                ReadRecipePreviewView(
-                    recipe: recipe,
-                    onSave: {
-                        dismiss()
-                    },
-                    onRerecord: {
-                        structuredRecipe = nil
-                        transcribedText = ""
-                        recordingDuration = 0
-                    }
-                )
+                RecipeDetailView(recipe: recipe)
             }
             .alert("Permissions Required", isPresented: $showingPermissionAlert) {
                 Button("Open Settings", role: nil) {
@@ -181,6 +171,28 @@ struct ReadRecipeView: View {
                 setupTranscriptionPublisher()
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    private func findOrCreateReadRecipesCollection() -> RecipeCollection {
+        // Try to find existing "Read Recipes" collection
+        let descriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate { $0.name == "Read Recipes" }
+        )
+
+        if let existing = try? modelContext.fetch(descriptor).first {
+            return existing
+        }
+
+        // Create new collection
+        let collection = RecipeCollection(
+            name: "Read Recipes",
+            type: .userCreated,
+            icon: "mic.circle.fill"
+        )
+        modelContext.insert(collection)
+        return collection
     }
 
     // MARK: - Recording
@@ -280,7 +292,21 @@ struct ReadRecipeView: View {
                 // Continue without image - user can add one later
             }
 
-            // Show preview
+            // Find or create "Read Recipes" collection
+            let collection = findOrCreateReadRecipesCollection()
+
+            // Add recipe to collection
+            if collection.recipes == nil {
+                collection.recipes = []
+            }
+            if !collection.recipes!.contains(where: { $0.id == recipe.id }) {
+                collection.recipes!.append(recipe)
+            }
+
+            // Save context
+            try modelContext.save()
+
+            // Navigate to recipe detail
             structuredRecipe = recipe
 
         } catch AIError.notConfigured(let provider) {
