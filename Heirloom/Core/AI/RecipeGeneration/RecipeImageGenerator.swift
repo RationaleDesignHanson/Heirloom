@@ -127,40 +127,4 @@ actor RecipeImageGenerator: RecipeImageGeneratorProtocol {
     }
 }
 
-// MARK: - DALL-E Response Model
-
-private struct DALLEResponse: Codable {
-    let data: [DALLEImage]
-}
-
-private struct DALLEImage: Codable {
-    let url: String?
-}
-
-// MARK: - Errors
-
-enum ImageGenerationError: LocalizedError {
-    case noAPIKey
-    case invalidResponse
-    case apiError(statusCode: Int, message: String?)
-    case noImageReturned
-    case invalidImageData
-
-    var errorDescription: String? {
-        switch self {
-        case .noAPIKey:
-            return "No OpenAI API key configured. Please add your API key in Settings."
-        case .invalidResponse:
-            return "Invalid response from image generation service."
-        case .apiError(let statusCode, let message):
-            if let message = message {
-                return "Image generation failed: \(message)"
-            }
-            return "Image generation failed with status code \(statusCode)."
-        case .noImageReturned:
-            return "No image was returned from the generation service."
-        case .invalidImageData:
-            return "The generated image data is invalid."
-        }
-    }
-}
+// Note: DALLEResponse, DALLEImage, and ImageGenerationError are defined in CollectionImageGenerator.swift

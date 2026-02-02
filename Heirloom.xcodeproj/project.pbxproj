@@ -394,6 +394,12 @@
 		C5EF77652F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77632F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift */; };
 		C5EF77672F304F000097779E /* VisualStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77662F304F000097779E /* VisualStyle.swift */; };
 		C5EF77692F304F130097779E /* VisualStylePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77682F304F130097779E /* VisualStylePickerView.swift */; };
+		C5EF77702F3057060097779E /* AIRecipeGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF776A2F3057060097779E /* AIRecipeGenerator.swift */; };
+		C5EF77712F3057060097779E /* RecipeImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF776D2F3057060097779E /* RecipeImageGenerator.swift */; };
+		C5EF77722F3057060097779E /* GeneratedRecipeResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF776B2F3057060097779E /* GeneratedRecipeResponse.swift */; };
+		C5EF77732F3057060097779E /* RecipeGenerationRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF776C2F3057060097779E /* RecipeGenerationRequest.swift */; };
+		C5EF77772F3057190097779E /* RecipeGeneratorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77752F3057190097779E /* RecipeGeneratorView.swift */; };
+		C5EF77782F3057190097779E /* GeneratedRecipePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77742F3057190097779E /* GeneratedRecipePreviewView.swift */; };
 		CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC154590CE51056017C5D6 /* CommentService.swift */; };
 		CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD518726BAFEC566E22D0315 /* Tag.swift */; };
 		CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBB366ABEF58AF23B4D64FE /* ImportItem.swift */; };
@@ -812,6 +818,12 @@
 		C5EF77632F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingShareAndAcceptScreen.swift; sourceTree = "<group>"; };
 		C5EF77662F304F000097779E /* VisualStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualStyle.swift; sourceTree = "<group>"; };
 		C5EF77682F304F130097779E /* VisualStylePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualStylePickerView.swift; sourceTree = "<group>"; };
+		C5EF776A2F3057060097779E /* AIRecipeGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIRecipeGenerator.swift; sourceTree = "<group>"; };
+		C5EF776B2F3057060097779E /* GeneratedRecipeResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedRecipeResponse.swift; sourceTree = "<group>"; };
+		C5EF776C2F3057060097779E /* RecipeGenerationRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenerationRequest.swift; sourceTree = "<group>"; };
+		C5EF776D2F3057060097779E /* RecipeImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImageGenerator.swift; sourceTree = "<group>"; };
+		C5EF77742F3057190097779E /* GeneratedRecipePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedRecipePreviewView.swift; sourceTree = "<group>"; };
+		C5EF77752F3057190097779E /* RecipeGeneratorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGeneratorView.swift; sourceTree = "<group>"; };
 		C6DCC0C21D884197B1F0F9AA /* ScalingWarningBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingWarningBanner.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C9A499F6282CBE6AC6C45E99 /* RecipeStructureParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeStructureParser.swift; sourceTree = "<group>"; };
@@ -1204,6 +1216,7 @@
 		8AC18A265A5E4A850FD25D2C /* Recipes */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77762F3057190097779E /* RecipeGeneration */,
 				C502EAA42F2322E600BF1696 /* Lineage */,
 				C5DBEC7A2F200FCC00C1B6BA /* Components */,
 				C5A7BDB32F1714B100D99B07 /* PDFImport */,
@@ -2142,6 +2155,34 @@
 			path = DuplicateDetection;
 			sourceTree = "<group>";
 		};
+		C5EF776E2F3057060097779E /* RecipeGeneration */ = {
+			isa = PBXGroup;
+			children = (
+				C5EF776A2F3057060097779E /* AIRecipeGenerator.swift */,
+				C5EF776B2F3057060097779E /* GeneratedRecipeResponse.swift */,
+				C5EF776C2F3057060097779E /* RecipeGenerationRequest.swift */,
+				C5EF776D2F3057060097779E /* RecipeImageGenerator.swift */,
+			);
+			path = RecipeGeneration;
+			sourceTree = "<group>";
+		};
+		C5EF776F2F3057060097779E /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				C5EF776E2F3057060097779E /* RecipeGeneration */,
+			);
+			path = AI;
+			sourceTree = "<group>";
+		};
+		C5EF77762F3057190097779E /* RecipeGeneration */ = {
+			isa = PBXGroup;
+			children = (
+				C5EF77742F3057190097779E /* GeneratedRecipePreviewView.swift */,
+				C5EF77752F3057190097779E /* RecipeGeneratorView.swift */,
+			);
+			path = RecipeGeneration;
+			sourceTree = "<group>";
+		};
 		C75F52ACB0394FFEBF87F1D1 /* Diagnostics */ = {
 			isa = PBXGroup;
 			children = (
@@ -2208,6 +2249,7 @@
 		CE482F3082BC4015FE64856D /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF776F2F3057060097779E /* AI */,
 				C5364FE42F27F071003D342E /* Constants */,
 				C5364FD02F27C7D8003D342E /* ViewModels */,
 				C502FA4E2F24175F00BF1696 /* FeatureManagement */,
@@ -2608,6 +2650,10 @@
 				C5CE3F462F2D6E5900A2E62F /* SharedWithMeView.swift in Sources */,
 				C58319702F123CFF0096478E /* ASMRProcessingProtocols.swift in Sources */,
 				C58319712F123CFF0096478E /* ASMRVideoProcessor.swift in Sources */,
+				C5EF77702F3057060097779E /* AIRecipeGenerator.swift in Sources */,
+				C5EF77712F3057060097779E /* RecipeImageGenerator.swift in Sources */,
+				C5EF77722F3057060097779E /* GeneratedRecipeResponse.swift in Sources */,
+				C5EF77732F3057060097779E /* RecipeGenerationRequest.swift in Sources */,
 				C58319722F123CFF0096478E /* ASMRUsageManager.swift in Sources */,
 				C58319732F123CFF0096478E /* ASMRFrameExtractionService.swift in Sources */,
 				C58319742F123CFF0096478E /* ASMRSoundAnalysisService.swift in Sources */,
@@ -2834,6 +2880,8 @@
 				C5364FF02F2876C5003D342E /* IngredientFormatter.swift in Sources */,
 				C58319812F123D280096478E /* ASMRProcessingView.swift in Sources */,
 				C5364FD72F27CA35003D342E /* ThemeSelectionScreen.swift in Sources */,
+				C5EF77772F3057190097779E /* RecipeGeneratorView.swift in Sources */,
+				C5EF77782F3057190097779E /* GeneratedRecipePreviewView.swift in Sources */,
 				C58319822F123D280096478E /* ASMRVideoImportView.swift in Sources */,
 				199F5CD019A20502FDBFEAF9 /* SampleRecipeLibrary.swift in Sources */,
 				C5E955392F055F5F006CD3C2 /* AIIngredientSpellChecker.swift in Sources */,
