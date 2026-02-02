@@ -1386,6 +1386,14 @@ final class ImportJobManager: ObservableObject {
         let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
         let collectionName = job.cookbookName ?? "your library"
 
+        // CRITICAL: Recalculate success/failure counts from actual item statuses
+        // These values are only set at job creation and don't auto-update
+        if let items = job.items {
+            job.successfulItems = items.filter { $0.status == .success }.count
+            job.failedItems = items.filter { $0.status == .failed }.count
+            job.completedItems = items.filter { $0.isCompleted }.count
+        }
+
         // Set status based on success/failure outcomes
         if job.successfulItems == 0 && job.totalItems > 0 {
             // All items failed - mark as failed

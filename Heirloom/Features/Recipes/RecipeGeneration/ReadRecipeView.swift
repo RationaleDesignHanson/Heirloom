@@ -305,12 +305,24 @@ struct ReadRecipeView: View {
             // Save context
             try modelContext.save()
 
+            // Sync to Firebase if active
+            if ServiceContainer.shared.resolve(BackendConfig.self).isFirebaseActive {
+                do {
+                    let firebaseSync = ServiceContainer.shared.resolve(FirebaseRecipeSyncProtocol.self)
+                    try await firebaseSync.uploadRecipe(recipe)
+                    Log.info("Voice-dictated recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title])
+                } catch {
+                    Log.warning("Failed to sync voice-dictated recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
+                    // Don't fail the entire operation if sync fails
+                }
+            }
+
             // Show success toast
             toastManager.show(type: .success, title: "🎙️ \(recipe.title) is ready!")
 
         } catch AIError.notConfigured(let provider) {
             toastManager.show(type: .error, title: "API key not configured for \(provider)")
-        } catch AIError.quotaExceeded(let provider, let limit, _) {
+        } catch AIError.quotaExceeded(_, let limit, _) {
             toastManager.show(type: .error, title: "Daily limit of \(String(describing: limit)) requests exceeded")
         } catch {
             toastManager.show(type: .error, title: "Failed to process recipe")
