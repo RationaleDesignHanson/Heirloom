@@ -10,7 +10,7 @@ struct CollectionDetailView: View {
     @EnvironmentObject private var syncService: FirebaseSyncService
     let collection: RecipeCollection
 
-    @State private var showAddRecipe = false
+    @State private var showRecipeGenerator = false
     @State private var showImportRecipe = false
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
@@ -248,9 +248,9 @@ struct CollectionDetailView: View {
                     selectedCount: 0,
                     filteredCount: recipes.count,
                     onSelectAllToggle: {},
-                    onAddRecipe: {
+                    onGenerateRecipe: {
                         tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                        showAddRecipe = true
+                        showRecipeGenerator = true
                     },
                     onImportRecipe: {
                         tabCoordinator.willCreateRecipe(from: .collectionDetail)
@@ -375,9 +375,12 @@ struct CollectionDetailView: View {
         .toolbar {
             toolbarContent
         }
-        .sheet(isPresented: $showAddRecipe) {
-            RecipeEditorView()
-                .environmentObject(tabCoordinator)
+        .sheet(isPresented: $showRecipeGenerator) {
+            RecipeGeneratorView(
+                generator: ServiceContainer.shared.resolve(AIRecipeGeneratorProtocol.self),
+                imageGenerator: ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
+            )
+            .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showImportRecipe) {
             RecipeImportView()

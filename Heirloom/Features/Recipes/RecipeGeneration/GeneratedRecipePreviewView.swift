@@ -1,0 +1,255 @@
+//
+//  GeneratedRecipePreviewView.swift
+//  Heirloom
+//
+//  Created by Claude Code on 2026-02-01.
+//
+
+import SwiftUI
+import SwiftData
+
+/// Preview screen for AI-generated recipes before saving
+struct GeneratedRecipePreviewView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    let recipe: Recipe
+    let onSave: () -> Void
+    let onRegenerate: () -> Void
+
+    @State private var showingRecipeDetail = false
+    @State private var showingCollectionPicker = false
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // Recipe Image
+                if let imageFileName = recipe.imageFileName {
+                    AsyncImage(url: imageURL(for: imageFileName)) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                    }
+                    .frame(height: 250)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+
+                // Title
+                Text(recipe.title)
+                    .font(HeirloomFonts.largeTitle)
+                    .fontWeight(.bold)
+
+                // Summary/Notes
+                if let notes = recipe.notes, !notes.isEmpty {
+                    Text(notes)
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(.secondary)
+                }
+
+                // Meta Info
+                HStack(spacing: 16) {
+                    if let prepTime = recipe.prepTime {
+                        Label(prepTime, systemImage: "clock")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
+                    }
+                    if let cookTime = recipe.cookTime {
+                        Label(cookTime, systemImage: "flame")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
+                    }
+                    if let servings = recipe.servings {
+                        Label(servings, systemImage: "person.2")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                // Ingredients
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Ingredients")
+                        .font(HeirloomFonts.title2)
+                        .fontWeight(.semibold)
+
+                    if let ingredients = recipe.ingredients {
+                        ForEach(ingredients, id: \.id) { ingredient in
+                            HStack(alignment: .top, spacing: 8) {
+                                Circle()
+                                    .fill(Color.secondary.opacity(0.3))
+                                    .frame(width: 6, height: 6)
+                                    .padding(.top, 6)
+
+                                Text(ingredient.displayText)
+                                    .font(HeirloomFonts.body)
+                            }
+                        }
+                    }
+                }
+
+                // Instructions
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Instructions")
+                        .font(HeirloomFonts.title2)
+                        .fontWeight(.semibold)
+
+                    ForEach(Array(recipe.instructions.enumerated()), id: \.offset) { index, instruction in
+                        HStack(alignment: .top, spacing: 12) {
+                            Text("\(index + 1)")
+                                .font(HeirloomFonts.body)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.white)
+                                .frame(width: 28, height: 28)
+                                .background(Circle().fill(Color.accentColor))
+
+                            Text(instruction)
+                                .font(HeirloomFonts.body)
+                        }
+                    }
+                }
+
+                // Tags
+                if let tags = recipe.tags, !tags.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Tags")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
+
+                        FlowLayout(spacing: 8) {
+                            ForEach(tags, id: \.id) { tag in
+                                Text(tag.name)
+                                    .font(HeirloomFonts.caption1)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(tag.swiftUIColor.opacity(0.2))
+                                    .foregroundStyle(tag.swiftUIColor)
+                                    .clipShape(Capsule())
+                            }
+                        }
+                    }
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("Preview")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Regenerate") {
+                    onRegenerate()
+                }
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button {
+                        saveRecipe()
+                    } label: {
+                        Label("Save Recipe", systemImage: "checkmark")
+                    }
+
+                    Button {
+                        showingRecipeDetail = true
+                    } label: {
+                        Label("Save & View", systemImage: "doc.text")
+                    }
+
+                    Button {
+                        saveRecipe()
+                        showingCollectionPicker = true
+                    } label: {
+                        Label("Save to Collection", systemImage: "folder.badge.plus")
+                    }
+                } label: {
+                    Text("Save")
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+        .sheet(isPresented: $showingCollectionPicker) {
+            CollectionPickerView(recipe: recipe)
+        }
+        .fullScreenCover(isPresented: $showingRecipeDetail) {
+            NavigationStack {
+                RecipeDetailView(recipe: recipe)
+            }
+        }
+    }
+
+    // MARK: - Actions
+
+    private func saveRecipe() {
+        // Recipe is already inserted in context by generator
+        // Just save the context and call onSave
+        do {
+            try modelContext.save()
+            onSave()
+        } catch {
+            Log.error("Failed to save recipe", category: .database, metadata: [
+                "error": error.localizedDescription
+            ])
+        }
+    }
+
+    private func imageURL(for fileName: String) -> URL? {
+        let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+        return imageStorageService.imageURL(for: fileName)
+    }
+}
+
+// MARK: - Flow Layout
+
+/// Simple flow layout for tags (wraps to multiple lines)
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = FlowResult(
+            in: proposal.replacingUnspecifiedDimensions().width,
+            subviews: subviews,
+            spacing: spacing
+        )
+        return result.size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = FlowResult(
+            in: bounds.width,
+            subviews: subviews,
+            spacing: spacing
+        )
+        for (index, subview) in subviews.enumerated() {
+            subview.place(at: CGPoint(x: bounds.minX + result.frames[index].minX, y: bounds.minY + result.frames[index].minY), proposal: .unspecified)
+        }
+    }
+
+    struct FlowResult {
+        var frames: [CGRect] = []
+        var size: CGSize = .zero
+
+        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
+            var currentX: CGFloat = 0
+            var currentY: CGFloat = 0
+            var lineHeight: CGFloat = 0
+
+            for subview in subviews {
+                let size = subview.sizeThatFits(.unspecified)
+
+                if currentX + size.width > maxWidth && currentX > 0 {
+                    // New line
+                    currentX = 0
+                    currentY += lineHeight + spacing
+                    lineHeight = 0
+                }
+
+                frames.append(CGRect(x: currentX, y: currentY, width: size.width, height: size.height))
+                lineHeight = max(lineHeight, size.height)
+                currentX += size.width + spacing
+            }
+
+            self.size = CGSize(width: maxWidth, height: currentY + lineHeight)
+        }
+    }
+}

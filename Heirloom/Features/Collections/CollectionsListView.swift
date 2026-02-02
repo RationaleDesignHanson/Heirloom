@@ -17,7 +17,7 @@ struct CollectionsListView: View {
     @State private var searchText = ""
 
     @State private var showCreateCollection = false
-    @State private var showAddRecipe = false
+    @State private var showRecipeGenerator = false
     @State private var showImportRecipe = false
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
@@ -201,9 +201,12 @@ struct CollectionsListView: View {
                 CollectionEditorView()
                     .environmentObject(tabCoordinator)
             }
-            .sheet(isPresented: $showAddRecipe) {
-                RecipeEditorView()
-                    .environmentObject(tabCoordinator)
+            .sheet(isPresented: $showRecipeGenerator) {
+                RecipeGeneratorView(
+                    generator: ServiceContainer.shared.resolve(AIRecipeGeneratorProtocol.self),
+                    imageGenerator: ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
+                )
+                .environmentObject(tabCoordinator)
             }
             .sheet(isPresented: $showImportRecipe) {
                 RecipeImportView()
@@ -723,7 +726,7 @@ struct CollectionsListView: View {
                 selectedCount: 0,
                 filteredCount: 0,
                 onSelectAllToggle: {},
-                onAddRecipe: handleAddRecipe,
+                onGenerateRecipe: handleGenerateRecipe,
                 onImportRecipe: handleImportRecipe,
                 onBulkImport: handleBulkImport,
                 onCookbookScanner: handleCookbookScanner,
@@ -1121,9 +1124,9 @@ struct CollectionsListView: View {
 
     // MARK: - Toolbar Action Handlers
 
-    private func handleAddRecipe() {
+    private func handleGenerateRecipe() {
         tabCoordinator.willCreateRecipe(from: .collectionsTab)
-        showAddRecipe = true
+        showRecipeGenerator = true
     }
 
     private func handleImportRecipe() {

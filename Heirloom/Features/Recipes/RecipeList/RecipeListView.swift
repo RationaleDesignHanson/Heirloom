@@ -155,7 +155,7 @@ struct RecipeListView: View {
     // @State private var unlockTracker: ThemeUnlockTracker?
 
     @State private var searchText = ""
-    @State private var showAddRecipe = false
+    @State private var showRecipeGenerator = false
     @State private var showImportRecipe = false
     @State private var showBulkImport = false
     @State private var showCookbookScanner = false
@@ -340,9 +340,9 @@ struct RecipeListView: View {
                 selectedCount: selectedRecipeIds.count,
                 filteredCount: filteredRecipes.count,
                 onSelectAllToggle: selectAllToggle,
-                onAddRecipe: {
+                onGenerateRecipe: {
                     tabCoordinator.willCreateRecipe(from: .collectionsTab)
-                    showAddRecipe = true
+                    showRecipeGenerator = true
                 },
                 onImportRecipe: {
                     tabCoordinator.willCreateRecipe(from: .collectionsTab)
@@ -372,7 +372,7 @@ struct RecipeListView: View {
 
     private var sheetModifiers: RecipeSheetModifiers {
         RecipeSheetModifiers(
-            showAddRecipe: $showAddRecipe,
+            showRecipeGenerator: $showRecipeGenerator,
             showImportRecipe: $showImportRecipe,
             showBulkImport: $showBulkImport,
             showCookbookScanner: $showCookbookScanner,

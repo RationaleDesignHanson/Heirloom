@@ -14,7 +14,7 @@ struct RecipeListToolbarActions: View {
     let selectedCount: Int
     let filteredCount: Int
     let onSelectAllToggle: () -> Void
-    let onAddRecipe: () -> Void
+    let onGenerateRecipe: () -> Void
     let onImportRecipe: () -> Void
     let onBulkImport: () -> Void
     let onCookbookScanner: () -> Void
@@ -35,12 +35,12 @@ struct RecipeListToolbarActions: View {
         } else {
             Menu {
                 Button {
-                    onAddRecipe()
+                    onGenerateRecipe()
                 } label: {
-                    Label("New Recipe", systemImage: "square.and.pencil")
+                    Label("Generate Recipe", systemImage: "wand.and.stars")
                 }
-                .accessibilityLabel("New Recipe")
-                .accessibilityHint("Create a new recipe manually")
+                .accessibilityLabel("Generate Recipe")
+                .accessibilityHint("AI-generate a recipe from dish name and ingredients")
 
                 Button {
                     onImportRecipe()

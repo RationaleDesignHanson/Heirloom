@@ -11,7 +11,7 @@ import SwiftData
 /// ViewModifier that handles all sheet and dialog presentations for RecipeListView
 /// Encapsulates: add recipe, import, bulk import, cookbook scanner, collection editor, filters, delete confirmations, collection picker, conflict resolution
 struct RecipeSheetModifiers: ViewModifier {
-    @Binding var showAddRecipe: Bool
+    @Binding var showRecipeGenerator: Bool
     @Binding var showImportRecipe: Bool
     @Binding var showBulkImport: Bool
     @Binding var showCookbookScanner: Bool
@@ -33,8 +33,11 @@ struct RecipeSheetModifiers: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .sheet(isPresented: $showAddRecipe) {
-                RecipeEditorView()
+            .sheet(isPresented: $showRecipeGenerator) {
+                RecipeGeneratorView(
+                    generator: ServiceContainer.shared.resolve(AIRecipeGeneratorProtocol.self),
+                    imageGenerator: ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
+                )
             }
             .sheet(isPresented: $showImportRecipe) {
                 RecipeImportView()

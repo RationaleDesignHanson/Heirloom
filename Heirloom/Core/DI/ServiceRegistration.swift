@@ -603,6 +603,28 @@ extension ServiceContainer {
             return CollectionImageGenerator(aiConfig: aiConfig, imageStorage: imageStorage, styleConfig: styleConfig)
         }
 
+        // AIRecipeGenerator (AI recipe generation from minimal input)
+        register(AIRecipeGenerator.self, lifecycle: .singleton) { container in
+            let aiService = container.resolve((any AIServiceProtocol).self)
+            let configuration = container.resolve((any AIConfigurationProtocol).self)
+            return AIRecipeGenerator(aiService: aiService, configuration: configuration)
+        }
+
+        register((any AIRecipeGeneratorProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(AIRecipeGenerator.self) as any AIRecipeGeneratorProtocol
+        }
+
+        // RecipeImageGenerator (DALL-E recipe image generation)
+        register(RecipeImageGenerator.self, lifecycle: .singleton) { container in
+            let aiConfig = container.resolve(AIConfiguration.self)
+            let styleConfig = container.resolve(VisualStyleConfiguration.self)
+            return RecipeImageGenerator(aiConfig: aiConfig, styleConfig: styleConfig)
+        }
+
+        register((any RecipeImageGeneratorProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(RecipeImageGenerator.self) as any RecipeImageGeneratorProtocol
+        }
+
         // MARK: - OCR
         // Note: EnhancedOCRService doesn't fully implement OCRServiceProtocol yet
         // Registering concrete type only for now
