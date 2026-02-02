@@ -334,6 +334,13 @@ final class VideoProcessingJobManager: ObservableObject {
 
         // Verify file exists
         guard FileManager.default.fileExists(atPath: videoURL.path) else {
+            Log.error("Video file missing when resuming job", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "videoPath": job.videoURL,
+                "wasInterrupted": job.wasInterrupted,
+                "currentPhase": job.currentPhase.rawValue,
+                "checkpoint_resumePhase": job.checkpoint?.resumePhase.rawValue ?? "none"
+            ])
             throw VideoProcessingError.videoFileNotFound
         }
 
@@ -722,6 +729,24 @@ final class VideoProcessingJobManager: ObservableObject {
             refreshQueue(context: context)
 
             Log.info("User cancelled failed job", category: .video, metadata: [
+                "jobId": job.id.uuidString
+            ])
+
+        case .startOver:
+            // Delete failed job so user can re-import video
+            context.delete(job)
+            try context.save()
+
+            refreshQueue(context: context)
+
+            // Show helpful message
+            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+            toastManager.info(
+                title: "Job Cleared",
+                message: "You can now re-import your video"
+            )
+
+            Log.info("User cleared failed job to start over", category: .video, metadata: [
                 "jobId": job.id.uuidString
             ])
         }
@@ -1169,6 +1194,7 @@ enum RecoveryAction {
     case tryASMRMode(dishName: String)
     case retry
     case cancel
+    case startOver  // Delete failed job and let user re-import
 }
 
 enum RecoveryError: LocalizedError {

@@ -60,6 +60,35 @@ struct JobRecoverySheet: View {
 
                     // Recovery Actions
                     VStack(spacing: 12) {
+                        // "Re-import Video" button (only for file not found errors)
+                        if safeErrorType == .fileNotFound {
+                            Button {
+                                handleAction(.startOver)
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Re-import Video")
+                                            .fontWeight(.semibold)
+                                        Text("Start fresh with a new video")
+                                            .font(HeirloomFonts.caption1)
+                                            .foregroundStyle(.white.opacity(0.8))
+                                    }
+                                    Spacer()
+                                    if isProcessing {
+                                        ProgressView()
+                                            .tint(HeirloomColors.buttonTextLight)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(HeirloomColors.tomato)
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
+                                .cornerRadius(12)
+                            }
+                            .disabled(isProcessing)
+                        }
+
                         // Special ASMR button (only for audio failures)
                         if shouldShowASMROption {
                             if isPremium {
@@ -328,6 +357,11 @@ struct JobRecoverySheet: View {
             return "This video doesn't have clear narration. Our visual extraction feature can analyze the video frames to extract the recipe."
         }
 
+        // Special messaging for fileNotFound after crash
+        if safeErrorType == .fileNotFound {
+            return "The video file was removed (possibly after an app crash or by iCloud). Please re-import your video to try again."
+        }
+
         // For other errors, show error message or fallback
         if let errorMessage = job.errorMessage {
             return errorMessage
@@ -342,7 +376,7 @@ struct JobRecoverySheet: View {
         case .insufficientAudioData:
             return "This video doesn't have clear narration. Our visual extraction feature can analyze the video frames to extract the recipe."
         case .fileNotFound:
-            return "Video file could not be accessed. It may be stored in iCloud and not downloaded."
+            return "The video file was removed (possibly after an app crash or by iCloud). Please re-import your video to try again."
         case .permissionDenied:
             return "Permission denied accessing video. Please check app permissions in Settings."
         case .other:

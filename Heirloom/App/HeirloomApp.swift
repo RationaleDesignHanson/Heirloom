@@ -1101,12 +1101,33 @@ struct RootView: View {
             // Mark them as interrupted if not already marked
             for job in interruptedJobs {
                 if !job.wasInterrupted {
-                    Log.info("🏷️ Marking video job as interrupted", category: .video, metadata: [
-                        "job_id": job.id.uuidString
-                    ])
+                    // Check if video file still exists
+                    let videoURL = URL(fileURLWithPath: job.videoURL)
+                    let fileExists = FileManager.default.fileExists(atPath: videoURL.path)
 
-                    job.wasInterrupted = true
-                    job.interruptedAt = Date()
+                    if fileExists {
+                        // File exists - mark as interrupted for resume
+                        Log.info("🏷️ Marking video job as interrupted", category: .video, metadata: [
+                            "job_id": job.id.uuidString,
+                            "video_path": job.videoURL
+                        ])
+
+                        job.wasInterrupted = true
+                        job.interruptedAt = Date()
+                    } else {
+                        // File missing - mark as failed immediately
+                        Log.warning("⚠️ Video file missing for interrupted job, marking as failed", category: .video, metadata: [
+                            "job_id": job.id.uuidString,
+                            "missing_path": job.videoURL
+                        ])
+
+                        job.status = .failed
+                        job.errorType = .fileNotFound
+                        job.errorMessage = "Video file was removed after app crash. Please re-import your video."
+                        job.completedAt = Date()
+                        job.wasInterrupted = true
+                        job.interruptedAt = Date()
+                    }
                 }
             }
 
@@ -1266,7 +1287,7 @@ struct ContentView: View {
             KitchenTableView()
                 .environmentObject(tabCoordinator)
                 .tabItem {
-                    Label("Table", systemImage: "fork.knife")
+                    Label("Table", systemImage: "person.3")
                 }
                 .badge(badgeService.pendingRequestCount)
                 .tag(4)
