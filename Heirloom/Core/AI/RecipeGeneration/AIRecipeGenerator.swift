@@ -7,7 +7,6 @@
 
 import Foundation
 import SwiftData
-import UIKit
 
 /// Protocol for AI recipe generation service
 @MainActor
@@ -42,7 +41,7 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
         ingredients: [String]?,
         context: ModelContext
     ) async throws -> Recipe {
-        Log.info("Generating recipe from AI", category: .ai, metadata: [
+        Log.info("Generating recipe from AI", category: .general, metadata: [
             "dishName": dishName,
             "hasIngredients": ingredients != nil
         ])
@@ -53,8 +52,8 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
         // Call AI service with structured response
         let options = AICompletionOptions(
             model: configuration.model(for: .parsing),
-            maxTokens: 2048,
             temperature: 0.8, // Higher creativity for recipe generation
+            maxTokens: 2048,
             systemMessage: systemPrompt
         )
 
@@ -66,7 +65,7 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
                 options: options
             )
         } catch {
-            Log.error("Failed to generate recipe", category: .ai, metadata: [
+            Log.error("Failed to generate recipe", category: .general, metadata: [
                 "error": error.localizedDescription
             ])
             throw error
@@ -75,7 +74,7 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
         // Create Recipe model from response
         let recipe = createRecipe(from: response, context: context)
 
-        Log.info("Recipe generated successfully", category: .ai, metadata: [
+        Log.info("Recipe generated successfully", category: .general, metadata: [
             "title": recipe.title,
             "ingredientCount": recipe.ingredients?.count ?? 0,
             "instructionCount": recipe.instructions.count

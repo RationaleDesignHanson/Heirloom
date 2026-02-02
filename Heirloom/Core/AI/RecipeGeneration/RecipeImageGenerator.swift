@@ -29,13 +29,13 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
     /// Generate and save image for recipe
     func generateAndSaveImage(for recipe: Recipe) async throws {
         // Check for API key (with fallback to default key)
-        guard let apiKey = await aiConfig.apiKeyWithFallback(for: .openai) else {
+        guard let apiKey = aiConfig.apiKeyWithFallback(for: .openai) else {
             throw ImageGenerationError.noAPIKey
         }
 
         // Build prompt from recipe
         let prompt = buildPrompt(for: recipe)
-        Log.info("Generating recipe image", category: .ai, metadata: ["prompt": prompt, "title": recipe.title])
+        Log.info("Generating recipe image", category: .general, metadata: ["prompt": prompt, "title": recipe.title])
 
         // Call DALL-E API
         let imageURL = try await generateWithDALLE(prompt: prompt, apiKey: apiKey)
@@ -49,7 +49,7 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
         // Save using recipe's saveImage method (uses ImageStorageService)
         try await recipe.saveImage(uiImage)
 
-        Log.info("Saved AI-generated recipe image", category: .ai, metadata: [
+        Log.info("Saved AI-generated recipe image", category: .general, metadata: [
             "title": recipe.title,
             "fileName": recipe.imageFileName ?? "none"
         ])
@@ -110,7 +110,7 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
             if let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let error = errorJson["error"] as? [String: Any],
                let message = error["message"] as? String {
-                Log.error("DALL-E API error", category: .ai, metadata: ["error": message])
+                Log.error("DALL-E API error", category: .general, metadata: ["error": message])
                 throw ImageGenerationError.apiError(statusCode: httpResponse.statusCode, message: message)
             }
             throw ImageGenerationError.apiError(statusCode: httpResponse.statusCode, message: nil)
