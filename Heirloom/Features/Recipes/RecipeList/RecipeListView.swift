@@ -1533,7 +1533,7 @@ struct RecipeCardView: View {
             VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(recipe.title)
                     .font(HeirloomFonts.subheadline)
-                    .foregroundStyle(recipe.isThemeRecipe ? HeirloomColors.familyGreen : HeirloomColors.primaryText)
+                    .foregroundStyle(recipe.isThemeRecipe ? Color(red: 0.4, green: 0.26, blue: 0.13) : HeirloomColors.primaryText)
                     .fontWeight(.semibold)
                     .lineLimit(2)
                     .frame(height: 36, alignment: .topLeading)
@@ -1552,14 +1552,14 @@ struct RecipeCardView: View {
                     } else {
                         Text(recipe.sourceDisplayName)
                             .font(HeirloomFonts.caption1)
-                            .foregroundStyle(recipe.isThemeRecipe ? HeirloomColors.familyGreen.opacity(0.8) : HeirloomColors.secondaryText)
+                            .foregroundStyle(recipe.isThemeRecipe ? Color(red: 0.4, green: 0.26, blue: 0.13).opacity(0.8) : HeirloomColors.secondaryText)
                             .lineLimit(1)
                     }
 
                     if recipe.timesCooked > 0 {
                         Text("•")
                             .font(HeirloomFonts.caption1)
-                            .foregroundStyle(recipe.isThemeRecipe ? HeirloomColors.familyGreen.opacity(0.8) : HeirloomColors.secondaryText)
+                            .foregroundStyle(recipe.isThemeRecipe ? Color(red: 0.4, green: 0.26, blue: 0.13).opacity(0.8) : HeirloomColors.secondaryText)
 
                         Label("\(recipe.timesCooked)", systemImage: "flame.fill")
                             .font(HeirloomFonts.caption1)

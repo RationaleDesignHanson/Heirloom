@@ -102,6 +102,51 @@ struct UnifiedCollectionCard: View {
         return progress.unlocked >= progress.total
     }
 
+    private var cardBackgroundColor: Color {
+        switch variant {
+        case .standard:
+            return HeirloomColors.cardBackground
+        case .themed:
+            return HeirloomColors.themeTan
+        }
+    }
+
+    private var cardBorderColor: Color {
+        switch variant {
+        case .standard:
+            return .clear
+        case .themed:
+            return HeirloomColors.familyGreen.opacity(0.2)
+        }
+    }
+
+    private var cardBorderWidth: CGFloat {
+        switch variant {
+        case .standard:
+            return 0
+        case .themed:
+            return 1
+        }
+    }
+
+    private var textColor: Color {
+        switch variant {
+        case .standard:
+            return HeirloomColors.primaryText
+        case .themed:
+            return Color(red: 0.4, green: 0.26, blue: 0.13) // Dark brown
+        }
+    }
+
+    private var subtitleColor: Color {
+        switch variant {
+        case .standard:
+            return HeirloomColors.secondaryText
+        case .themed:
+            return Color(red: 0.4, green: 0.26, blue: 0.13).opacity(0.8) // Dark brown with opacity
+        }
+    }
+
     // MARK: - Body
 
     var body: some View {
@@ -134,8 +179,12 @@ struct UnifiedCollectionCard: View {
             // Info bar
             infoBar
         }
-        .background(HeirloomColors.cardBackground)
+        .background(cardBackgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(cardBorderColor, lineWidth: cardBorderWidth)
+        )
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
@@ -267,18 +316,43 @@ struct UnifiedCollectionCard: View {
 
     // MARK: - Info Bar
 
+    @ViewBuilder
     private var infoBar: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(displayName)
-                    .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(HeirloomColors.primaryText)
-                    .lineLimit(1)
+        let verticalPadding: CGFloat = {
+            switch variant {
+            case .themed: return 8
+            case .standard: return HeirloomSpacing.sm
+            }
+        }()
 
-                Text(subtitleText)
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .lineLimit(1)
+        HStack(spacing: 8) {
+            // For themed: inline layout, for standard: stacked layout
+            if case .themed = variant {
+                // Inline layout for themed cards
+                HStack(spacing: 8) {
+                    Text(displayName)
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(textColor)
+                        .lineLimit(1)
+
+                    Text(subtitleText)
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(subtitleColor)
+                        .lineLimit(1)
+                }
+            } else {
+                // Stacked layout for standard cards
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(displayName)
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(textColor)
+                        .lineLimit(1)
+
+                    Text(subtitleText)
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(subtitleColor)
+                        .lineLimit(1)
+                }
             }
 
             Spacer()
@@ -287,7 +361,7 @@ struct UnifiedCollectionCard: View {
             infoBadge
         }
         .padding(.horizontal, HeirloomSpacing.md)
-        .padding(.vertical, HeirloomSpacing.sm)
+        .padding(.vertical, verticalPadding)
     }
 
     private var displayName: String {
@@ -345,17 +419,11 @@ struct UnifiedCollectionCard: View {
             .cornerRadius(8)
 
         case .themed:
-            // Progress indicator or checkmark
-            if !isComplete, let progress = unlockProgress {
-                CircularProgressView(
-                    progress: Double(progress.unlocked) / Double(max(progress.total, 1)),
-                    lineWidth: 3
-                )
-                .frame(width: 32, height: 32)
-            } else {
+            // Just show checkmark when complete, nothing when in progress
+            if isComplete {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(HeirloomColors.familyGreen)
+                    .foregroundStyle(Color(red: 0.4, green: 0.26, blue: 0.13)) // Dark brown
             }
         }
     }
