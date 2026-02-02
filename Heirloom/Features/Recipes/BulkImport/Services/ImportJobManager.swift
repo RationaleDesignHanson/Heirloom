@@ -1030,6 +1030,11 @@ final class ImportJobManager: ObservableObject {
                 }
             }
 
+            // Create snapshots for edit tracking
+            for recipe in recipes {
+                recipe.createSnapshot()
+            }
+
             try context.save()
 
             // Sync all recipes to Firebase if active

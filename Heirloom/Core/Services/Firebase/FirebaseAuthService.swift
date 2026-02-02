@@ -61,10 +61,26 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
             Task { @MainActor in
                 guard let self = self else { return }
 
+                // Detect if a DIFFERENT user is signing in (user switch scenario)
+                let previousUserId = self.currentUser?.uid
+                let newUserId = user?.uid
+                let isDifferentUser = previousUserId != nil && newUserId != nil && previousUserId != newUserId
+
                 // Prevent redundant updates if auth state hasn't changed
                 if self.hasCheckedInitialAuthState &&
-                   self.currentUser?.uid == user?.uid {
+                   previousUserId == newUserId {
                     return
+                }
+
+                // CRITICAL: If a different user is signing in, clear previous user's data
+                if isDifferentUser {
+                    self.logger.log("⚠️ Different user signing in - clearing previous user's data", category: .auth, level: .warning, metadata: [
+                        "previousUser": previousUserId ?? "unknown",
+                        "newUser": newUserId ?? "unknown"
+                    ])
+
+                    // Clear previous user's data to prevent privacy leak
+                    await self.clearAllUserData()
                 }
 
                 self.currentUser = user
@@ -87,6 +103,9 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
                     }
                 } else {
                     self.logger.log("User signed out", category: .auth, level: .info, metadata: nil)
+
+                    // Clear user data on sign out as well
+                    await self.clearAllUserData()
                 }
             }
         }
@@ -338,6 +357,42 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
         }.joined()
 
         return hashString
+    }
+
+    /// Clear all user data from local storage
+    /// Called when user signs out or when a different user signs in
+    ///
+    /// CRITICAL PRIVACY PROTECTION:
+    /// This method is called in two scenarios to prevent data leakage:
+    /// 1. When a DIFFERENT user signs in on the same device (user switch)
+    /// 2. After a user signs out (auth state listener detects nil user)
+    ///
+    /// IMPLEMENTATION STRATEGY:
+    /// We use NotificationCenter because FirebaseAuthService doesn't have direct
+    /// access to ModelContext (which is needed to delete SwiftData objects).
+    /// - FirebaseAuthService posts "ClearAllUserDataNotification"
+    /// - RootView (in HeirloomApp.swift) listens for this notification
+    /// - RootView has access to ModelContext and performs the actual deletion
+    ///
+    /// IMPORTANT: Sign out does NOT clear data immediately to prevent data loss
+    /// if Firebase sync hasn't completed. Data is only cleared after auth state
+    /// confirms the user is signed out OR when a different user signs in.
+    @MainActor
+    private func clearAllUserData() async {
+        logger.log("🧹 Clearing all local user data", category: .auth, level: .info, metadata: nil)
+
+        // Clear UserDefaults
+        UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
+        UserDefaults.standard.removeObject(forKey: "lastSyncTimestamp")
+
+        // Post notification for app to clear SwiftData
+        // (We can't access ModelContext directly from this service)
+        NotificationCenter.default.post(
+            name: NSNotification.Name("ClearAllUserDataNotification"),
+            object: nil
+        )
+
+        logger.log("✅ Local user data clear requested", category: .auth, level: .info, metadata: nil)
     }
 }
 

@@ -185,10 +185,40 @@ struct RecipeDiffView: View {
     /// Normalizes ingredient text for comparison by converting fractions to decimals
     /// This prevents false positives like "1/2 cup" vs "0.5 cup"
     private func normalizeIngredient(_ text: String) -> String {
-        var normalized = text.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        var normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // Common fraction mappings
+        // Strip descriptive text in parentheses or after commas
+        // e.g. "(about 1½ lb. total)" or ", divided" or ", quartered"
+        normalized = normalized.replacingOccurrences(
+            of: "\\s*\\([^)]*\\)",
+            with: "",
+            options: .regularExpression
+        )
+        normalized = normalized.replacingOccurrences(
+            of: ",\\s*[^,]+$",
+            with: "",
+            options: .regularExpression
+        )
+
+        // NOW lowercase after stripping descriptive text
+        normalized = normalized.lowercased()
+
+        // Common fraction mappings (including Unicode fractions)
         let fractionMappings: [(String, String)] = [
+            ("½", "0.5"),
+            ("⅓", "0.33"),
+            ("⅔", "0.67"),
+            ("¼", "0.25"),
+            ("¾", "0.75"),
+            ("⅛", "0.13"),
+            ("⅜", "0.38"),
+            ("⅝", "0.63"),
+            ("⅞", "0.88"),
+            ("⅙", "0.17"),
+            ("⅚", "0.83"),
+            ("⅖", "0.4"),
+            ("⅗", "0.6"),
+            ("⅘", "0.8"),
             ("1/2", "0.5"),
             ("1/3", "0.33"),
             ("2/3", "0.67"),
@@ -202,7 +232,13 @@ struct RecipeDiffView: View {
             ("5/6", "0.83"),
             ("2/5", "0.4"),
             ("3/5", "0.6"),
-            ("4/5", "0.8")
+            ("4/5", "0.8"),
+            ("1½", "1.5"),
+            ("2½", "2.5"),
+            ("1¼", "1.25"),
+            ("1¾", "1.75"),
+            ("1⅓", "1.33"),
+            ("2⅓", "2.33")
         ]
 
         // Replace fractions with decimals
@@ -210,7 +246,42 @@ struct RecipeDiffView: View {
             normalized = normalized.replacingOccurrences(of: fraction, with: decimal)
         }
 
-        // Normalize decimal representations (0.50 → 0.5)
+        // Normalize unit abbreviations to full words (case-insensitive since we already lowercased)
+        let unitMappings: [(String, String)] = [
+            ("tsp.", "teaspoon"),
+            ("tbsp.", "tablespoon"),
+            ("oz.", "ounce"),
+            ("lb.", "pound"),
+            ("lbs.", "pound"),
+            ("c.", "cup"),
+            ("pt.", "pint"),
+            ("qt.", "quart"),
+            ("gal.", "gallon"),
+            ("fl. oz.", "fluid ounce"),
+            ("ml.", "milliliter"),
+            ("l.", "liter"),
+            ("g.", "gram"),
+            ("kg.", "kilogram"),
+            ("mg.", "milligram")
+        ]
+
+        // Replace unit abbreviations (word boundary aware)
+        for (abbrev, full) in unitMappings {
+            normalized = normalized.replacingOccurrences(
+                of: "\\b\(NSRegularExpression.escapedPattern(for: abbrev))\\b",
+                with: full,
+                options: .regularExpression
+            )
+        }
+
+        // Normalize plural units to singular
+        normalized = normalized.replacingOccurrences(of: "\\bteaspoons\\b", with: "teaspoon", options: .regularExpression)
+        normalized = normalized.replacingOccurrences(of: "\\btablespoons\\b", with: "tablespoon", options: .regularExpression)
+        normalized = normalized.replacingOccurrences(of: "\\bounces\\b", with: "ounce", options: .regularExpression)
+        normalized = normalized.replacingOccurrences(of: "\\bpounds\\b", with: "pound", options: .regularExpression)
+        normalized = normalized.replacingOccurrences(of: "\\bcups\\b", with: "cup", options: .regularExpression)
+
+        // Normalize decimal representations (0.50 → 0.5, but also 0.33 → 0.33)
         let decimalPattern = "\\b0\\.(\\d*?)0+\\b"
         if let regex = try? NSRegularExpression(pattern: decimalPattern) {
             let range = NSRange(normalized.startIndex..., in: normalized)
@@ -223,6 +294,7 @@ struct RecipeDiffView: View {
 
         // Remove extra whitespace
         normalized = normalized.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        normalized = normalized.trimmingCharacters(in: .whitespacesAndNewlines)
 
         return normalized
     }

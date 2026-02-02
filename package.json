@@ -22,7 +22,10 @@
   },
   "homepage": "https://github.com/RationaleDesignHanson/Heirloom#readme",
   "dependencies": {
-    "firebase": "^12.8.0",
+    "firebase": "^12.8.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
     "firebase-admin": "^13.6.0"
   }
 }

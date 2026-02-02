@@ -403,6 +403,11 @@
 		C5EF777C2F305DA80097779E /* VoiceDictationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF777B2F305DA80097779E /* VoiceDictationService.swift */; };
 		C5EF777D2F305DA80097779E /* ReadRecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF777A2F305DA80097779E /* ReadRecipeView.swift */; };
 		C5EF777E2F305DA80097779E /* ReadRecipePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77792F305DA80097779E /* ReadRecipePreviewView.swift */; };
+		C5EF77802F30F10E0097779E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C5EF777F2F30F10E0097779E /* PrivacyInfo.xcprivacy */; };
+		C5EF77822F312EC30097779E /* RecipeGenerationJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77812F312EC30097779E /* RecipeGenerationJob.swift */; };
+		C5EF77842F312ED40097779E /* RecipeGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77832F312ED40097779E /* RecipeGenerationService.swift */; };
+		C5EF77862F312EE70097779E /* RecipeGenerationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77852F312EE70097779E /* RecipeGenerationBanner.swift */; };
+		C5EF77882F31384C0097779E /* RecipeImportDiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77872F31384C0097779E /* RecipeImportDiffView.swift */; };
 		CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC154590CE51056017C5D6 /* CommentService.swift */; };
 		CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD518726BAFEC566E22D0315 /* Tag.swift */; };
 		CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBB366ABEF58AF23B4D64FE /* ImportItem.swift */; };
@@ -830,6 +835,11 @@
 		C5EF77792F305DA80097779E /* ReadRecipePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadRecipePreviewView.swift; sourceTree = "<group>"; };
 		C5EF777A2F305DA80097779E /* ReadRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadRecipeView.swift; sourceTree = "<group>"; };
 		C5EF777B2F305DA80097779E /* VoiceDictationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceDictationService.swift; sourceTree = "<group>"; };
+		C5EF777F2F30F10E0097779E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		C5EF77812F312EC30097779E /* RecipeGenerationJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenerationJob.swift; sourceTree = "<group>"; };
+		C5EF77832F312ED40097779E /* RecipeGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenerationService.swift; sourceTree = "<group>"; };
+		C5EF77852F312EE70097779E /* RecipeGenerationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenerationBanner.swift; sourceTree = "<group>"; };
+		C5EF77872F31384C0097779E /* RecipeImportDiffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImportDiffView.swift; sourceTree = "<group>"; };
 		C6DCC0C21D884197B1F0F9AA /* ScalingWarningBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingWarningBanner.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C9A499F6282CBE6AC6C45E99 /* RecipeStructureParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeStructureParser.swift; sourceTree = "<group>"; };
@@ -1207,6 +1217,7 @@
 		8AB8FD6644DE541C5E0077DC /* RecipeDetail */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77872F31384C0097779E /* RecipeImportDiffView.swift */,
 				C583F59C2F099E750096478E /* RecipeDetailHeader.swift */,
 				C583F59D2F099E750096478E /* RecipeIngredientsSection.swift */,
 				C583F59E2F099E750096478E /* RecipeInstructionsSection.swift */,
@@ -1255,6 +1266,7 @@
 		99534F5D5C4435D669F1B56B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77812F312EC30097779E /* RecipeGenerationJob.swift */,
 				C5EF77662F304F000097779E /* VisualStyle.swift */,
 				C5CE3F382F2D368F00A2E62F /* Search */,
 				C5CE3EFF2F2CCE9000A2E62F /* Export */,
@@ -2183,6 +2195,7 @@
 		C5EF77762F3057190097779E /* RecipeGeneration */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77852F312EE70097779E /* RecipeGenerationBanner.swift */,
 				C5EF77792F305DA80097779E /* ReadRecipePreviewView.swift */,
 				C5EF777A2F305DA80097779E /* ReadRecipeView.swift */,
 				C5EF777B2F305DA80097779E /* VoiceDictationService.swift */,
@@ -2278,6 +2291,7 @@
 		D1410A1826A4F1BF9127D673 /* AI */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77832F312ED40097779E /* RecipeGenerationService.swift */,
 				C5EF775E2F300CC10097779E /* GoogleVisionOCRService.swift */,
 				C5364C9E2F26FD46003D342E /* CollectionImageGenerator.swift */,
 				C583FFBF2F0CB3860096478E /* AIRecipeDetector.swift */,
@@ -2316,6 +2330,7 @@
 				5BB257FBB97C951B5E07EF21 /* Products */,
 				C56F3E692F04A9E000D19743 /* Frameworks */,
 				C5E9553A2F056341006CD3C2 /* Config.xcconfig */,
+				C5EF777F2F30F10E0097779E /* PrivacyInfo.xcprivacy */,
 			);
 			sourceTree = "<group>";
 		};
@@ -2545,6 +2560,7 @@
 				C3F4F1430F87ACCB0530FA31 /* Assets.xcassets in Resources */,
 				C56F3E662F04A4B300D19743 /* GoogleService-Info.plist in Resources */,
 				C5830E1E2F103AC20096478E /* Configuration.storekit in Resources */,
+				C5EF77802F30F10E0097779E /* PrivacyInfo.xcprivacy in Resources */,
 				C58300732F0CC6F40096478E /* heritage-recipes.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2719,8 +2735,10 @@
 				F22F7A301F871867FF273924 /* ImportJob.swift in Sources */,
 				C5830E0F2F103A580096478E /* UserDefaultsKeys.swift in Sources */,
 				3CC6B00DE8E62E4254000E3A /* ImportJobManager.swift in Sources */,
+				C5EF77862F312EE70097779E /* RecipeGenerationBanner.swift in Sources */,
 				C502FA472F24110C00BF1696 /* OnboardingSubscriptionScreen.swift in Sources */,
 				E65CA0A636B690DCB9F89D0C /* ImportPreviewView.swift in Sources */,
+				C5EF77842F312ED40097779E /* RecipeGenerationService.swift in Sources */,
 				C5364FCA2F27AE05003D342E /* RecipeTheme.swift in Sources */,
 				C5364FCB2F27AE05003D342E /* CollectionType.swift in Sources */,
 				C5830E202F103B500096478E /* HeirloomSubscriptionStatus.swift in Sources */,
@@ -2750,6 +2768,7 @@
 				77F45D61EB2A03C59BE9C93F /* IngredientParser.swift in Sources */,
 				C5B317892F00D89A0087CF6D /* RecipeSelectionView.swift in Sources */,
 				C5364FEC2F2836D8003D342E /* ThemeRecipeService.swift in Sources */,
+				C5EF77882F31384C0097779E /* RecipeImportDiffView.swift in Sources */,
 				F338CD690F1EB5301AC2C49A /* LoadingViews.swift in Sources */,
 				C583FFA52F0CAA610096478E /* FirebaseImageService.swift in Sources */,
 				455227C53BB8C306AE866038 /* MixpanelService.swift in Sources */,
@@ -2919,6 +2938,7 @@
 				E22C72C65B878B0F11D713E1 /* TrialDebugView.swift in Sources */,
 				A41FEDF5357B4C3BBA121A88 /* MigrationTestView.swift in Sources */,
 				C5EF77672F304F000097779E /* VisualStyle.swift in Sources */,
+				C5EF77822F312EC30097779E /* RecipeGenerationJob.swift in Sources */,
 				C56F3DCF2F02285600D19743 /* DebugLogView.swift in Sources */,
 				3815ADF1F8A3B87269E3F76B /* ShareOptions.swift in Sources */,
 				3DC4370D13356E958ECE4985 /* SharePreviewCard.swift in Sources */,

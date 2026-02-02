@@ -60,13 +60,14 @@ class GoogleVisionOCRService {
     // MARK: - Private Methods
 
     private func sendRequest(_ request: [String: Any]) async throws -> [String: Any] {
-        guard let url = URL(string: "\(endpoint)?key=\(apiKey)") else {
+        guard let url = URL(string: endpoint) else {
             throw GoogleVisionError.invalidURL
         }
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue(apiKey, forHTTPHeaderField: "X-Goog-Api-Key")
         urlRequest.httpBody = try JSONSerialization.data(withJSONObject: request)
 
         let (data, response) = try await URLSession.shared.data(for: urlRequest)

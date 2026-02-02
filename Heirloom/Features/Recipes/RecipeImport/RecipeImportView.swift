@@ -495,6 +495,7 @@ struct RecipeImportView: View {
                 ingredient.unit = parsedData.unit
                 ingredient.normalizedUnit = parsedData.normalizedUnit
                 ingredient.name = parsedData.name
+                ingredient.preparation = parsedData.preparation
                 ingredient.category = parsedData.category
             }
 
@@ -537,6 +538,9 @@ struct RecipeImportView: View {
                 // Continue without image - don't fail the import
             }
         }
+
+        // Create snapshot for edit tracking
+        recipe.createSnapshot()
 
         // Save to database immediately (now with image if available)
         do {
@@ -631,14 +635,17 @@ struct RecipeImportView: View {
         let aiConfig: AIConfiguration = ServiceContainer.shared.resolve(AIConfiguration.self)
 
         // Use AI batch parsing for better efficiency
-        let parsedIngredients: [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)]
+        let parsedIngredients: [(quantity: Double?, quantityMax: Double?, unit: String?, name: String, preparation: String?)]
 
         do {
             parsedIngredients = try await aiIngredientParser.parseBatchToTuple(ingredientTexts)
             Log.info("AI parsing successful", category: .general)
         } catch {
             Log.warning("Batch parsing encountered an error, using fallback", category: .general, metadata: ["error": error.localizedDescription])
-            parsedIngredients = ingredientTexts.map { IngredientParser.parse($0) }
+            parsedIngredients = ingredientTexts.map {
+                let result = IngredientParser.parse($0)
+                return (result.0, result.1, result.2, result.3, nil as String?)
+            }
         }
 
         // Update existing ingredients with parsed data
@@ -653,6 +660,7 @@ struct RecipeImportView: View {
                 ingredient.quantity = parsed.quantity
                 ingredient.quantityMax = parsed.quantityMax
                 ingredient.unit = parsed.unit
+                ingredient.preparation = parsed.preparation
             }
 
             // Save updated ingredients

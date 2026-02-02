@@ -957,6 +957,10 @@ final class VideoProcessingJobManager: ObservableObject {
 
         // STEP 6: Insert and save recipe
         context.insert(recipe)
+
+        // Create snapshot for edit tracking
+        recipe.createSnapshot()
+
         try context.save()
 
         Log.info("Recipe saved from job", category: .video, metadata: [

@@ -8,6 +8,7 @@
 
 import SwiftUI
 import FirebaseAuth
+import FirebaseFirestore
 
 struct KitchenTableView: View {
     @Environment(\.dismiss) private var dismiss
@@ -49,6 +50,13 @@ struct KitchenTableView: View {
     @State private var showSharedWithMe = false
     @State private var showShareAnalytics = false
     @State private var showSettings = false
+
+    // Real-time listener
+    @State private var connectionsListener: ListenerRegistration?
+
+    // Share counts for profile header
+    @State private var directSharesCount: Int = 0
+    @State private var publicSharesCount: Int = 0
 
     // MARK: - Body
 
@@ -126,6 +134,7 @@ struct KitchenTableView: View {
             .sheet(isPresented: $showContributorProfile) {
                 if let connection = selectedConnection {
                     ContributorProfileSheet(connection: connection)
+                        .id(connection.id)  // Force recreation when connection changes
                 }
             }
             .sheet(isPresented: $showSharedWithMe) {
@@ -157,16 +166,21 @@ struct KitchenTableView: View {
             }
             .task {
                 await loadProfile()
-                await loadConnections()
                 await loadPendingSharesCount()
+                await loadShareCounts()
+                setupConnectionsListener()
+            }
+            .onDisappear {
+                cleanupConnectionsListener()
             }
             .refreshable {
                 await loadConnections(forceRefresh: true)
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                // Refresh when app returns to foreground (e.g., after notification)
+                // Listener will automatically update when app returns to foreground
+                // Just refresh pending shares count
                 Task {
-                    await loadConnections(forceRefresh: true)
+                    await loadPendingSharesCount()
                 }
             }
         }
@@ -181,6 +195,8 @@ struct KitchenTableView: View {
                 ProfileHeaderView(
                     profile: profile,
                     connectionsCount: connections.count,
+                    directSharesCount: directSharesCount,
+                    publicSharesCount: publicSharesCount,
                     onEditProfile: { showEditProfile = true }
                 )
                 .padding(.horizontal, HeirloomSpacing.md)
@@ -523,6 +539,67 @@ struct KitchenTableView: View {
             Log.error("Failed to load user profile for Kitchen Table", category: .social, error: error)
             // Don't show error to user - profile header will show placeholder
         }
+    }
+
+    /// Load share counts for profile header
+    private func loadShareCounts() async {
+        guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else {
+            return
+        }
+
+        do {
+            let db = Firestore.firestore()
+
+            // Count direct shares (recipes shared to friends via shares collection)
+            let directSharesSnapshot = try await db.collection("shares")
+                .whereField("ownerId", isEqualTo: userId)
+                .whereField("isDirectShare", isEqualTo: true)
+                .getDocuments()
+
+            // Count public recipes
+            let publicRecipesSnapshot = try await db.collection("publicRecipes")
+                .whereField("ownerId", isEqualTo: userId)
+                .getDocuments()
+
+            await MainActor.run {
+                self.directSharesCount = directSharesSnapshot.documents.count
+                self.publicSharesCount = publicRecipesSnapshot.documents.count
+            }
+
+            Log.info("Loaded share counts", category: .social, metadata: [
+                "directShares": directSharesSnapshot.documents.count,
+                "publicShares": publicRecipesSnapshot.documents.count
+            ])
+        } catch {
+            Log.error("Failed to load share counts", category: .social, error: error)
+            // Don't show error to user - just log it
+        }
+    }
+
+    private func setupConnectionsListener() {
+        // Clean up any existing listener first
+        cleanupConnectionsListener()
+
+        // Set up real-time listener for all connections
+        connectionsListener = connectionService.observeConnections(status: nil) { allConnections in
+            Task { @MainActor in
+                // Separate pending requests from connected
+                self.pendingRequests = allConnections.filter { $0.status == .pending }
+                self.connections = allConnections.filter { $0.status == .connected }
+
+                self.isLoading = false
+
+                Log.info("Loaded \(self.connections.count) connections and \(self.pendingRequests.count) pending requests", category: .social)
+            }
+        }
+
+        Log.debug("Set up connections real-time listener", category: .social)
+    }
+
+    private func cleanupConnectionsListener() {
+        connectionsListener?.remove()
+        connectionsListener = nil
+        Log.debug("Removed connections real-time listener", category: .social)
     }
 
     // MARK: - Computed Properties

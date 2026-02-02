@@ -53,7 +53,7 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
         let options = AICompletionOptions(
             model: configuration.model(for: .parsing),
             temperature: 0.8, // Higher creativity for recipe generation
-            maxTokens: 2048,
+            maxTokens: 3072, // Increased from 2048 to avoid truncation for complex recipes
             systemMessage: systemPrompt
         )
 
@@ -88,7 +88,23 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
     private var systemPrompt: String {
         """
         You are a professional recipe developer. Generate complete, well-structured recipes
-        that are practical and easy to follow. Always return valid JSON matching the schema.
+        that are practical and easy to follow.
+
+        CRITICAL: You MUST return ONLY valid JSON matching the exact schema provided.
+        Do not wrap the JSON in markdown code blocks.
+        Do not add any explanatory text before or after the JSON.
+        Ensure all required fields are present and all values are properly formatted.
+
+        For ingredients:
+        - Parse quantities as numbers (e.g., 2, 0.5, 1.5)
+        - Use standard units (cup, tablespoon, teaspoon, ounce, pound, gram, etc.)
+        - Put preparation details in the "preparation" field (e.g., "diced", "chopped")
+
+        For times:
+        - Format as "{number} min" or "{number} hour" (e.g., "15 min", "1 hour")
+
+        For servings:
+        - Format as "{number} servings" (e.g., "4 servings")
         """
     }
 

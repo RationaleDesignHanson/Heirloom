@@ -625,6 +625,13 @@ extension ServiceContainer {
             container.resolve(RecipeImageGenerator.self) as any RecipeImageGeneratorProtocol
         }
 
+        // RecipeGenerationService (Recipe generation with progress tracking and retry logic)
+        register(RecipeGenerationService.self, lifecycle: .singleton) { container in
+            let aiGenerator = container.resolve((any AIRecipeGeneratorProtocol).self)
+            let imageGenerator = container.resolve((any RecipeImageGeneratorProtocol).self)
+            return RecipeGenerationService(aiGenerator: aiGenerator, imageGenerator: imageGenerator)
+        }
+
         // VoiceDictationService (Speech recognition for voice recipe dictation)
         register(VoiceDictationService.self, lifecycle: .singleton) { _ in
             VoiceDictationService()

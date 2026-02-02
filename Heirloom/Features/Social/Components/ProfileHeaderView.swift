@@ -11,6 +11,8 @@ import SwiftUI
 struct ProfileHeaderView: View {
     let profile: UserProfile?
     let connectionsCount: Int
+    let directSharesCount: Int
+    let publicSharesCount: Int
     let onEditProfile: () -> Void
 
     var body: some View {
@@ -65,15 +67,32 @@ struct ProfileHeaderView: View {
                             .font(HeirloomFonts.caption2)
                     }
 
-                    Text("•")
-                        .font(HeirloomFonts.caption2)
-                        .opacity(0.5)
-
-                    HStack(spacing: 4) {
-                        Text("\(profile?.sharedRecipeCount ?? 0)")
-                            .font(HeirloomFonts.bodyBold)
-                        Text("Shared")
+                    if directSharesCount > 0 || publicSharesCount > 0 {
+                        Text("•")
                             .font(HeirloomFonts.caption2)
+                            .opacity(0.5)
+
+                        HStack(spacing: 4) {
+                            if directSharesCount > 0 {
+                                Text("\(directSharesCount)")
+                                    .font(HeirloomFonts.bodyBold)
+                                Text("to friends")
+                                    .font(HeirloomFonts.caption2)
+                            }
+
+                            if directSharesCount > 0 && publicSharesCount > 0 {
+                                Text("·")
+                                    .font(HeirloomFonts.caption2)
+                                    .opacity(0.5)
+                            }
+
+                            if publicSharesCount > 0 {
+                                Text("\(publicSharesCount)")
+                                    .font(HeirloomFonts.bodyBold)
+                                Text("public")
+                                    .font(HeirloomFonts.caption2)
+                            }
+                        }
                     }
                 }
                 .foregroundStyle(.white)

@@ -114,6 +114,21 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             recipeToShare = recipe
         }
 
+        // Initialize provenance for the original recipe if not set
+        // This ensures the original owner sees "Original" badge
+        if recipeToShare.provenance == nil {
+            let provenanceSource = recipeToShare.sourceType?.toProvenanceSourceType() ?? .userCreated
+            recipeToShare.provenance = ProvenanceMetadata(
+                sourceType: provenanceSource,
+                sourceURL: recipeToShare.sourceURL,
+                generation: 0  // Original recipe
+            )
+            Log.info("Initialized provenance for original recipe", category: .firebase, metadata: [
+                "recipeId": recipeToShare.id.uuidString,
+                "title": recipeToShare.title
+            ])
+        }
+
         // 1. Ensure recipe is uploaded to Firebase (including image)
         // uploadRecipe() handles the complete upload flow including image upload
         // and updating firebaseImageURL property before it returns
@@ -660,6 +675,28 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         // 14.5. Route to "From Friends" collection
         let collectionRouter = CollectionRouter(modelContext: context)
         collectionRouter.routeSharedRecipe(sharedRecipe, from: ownerName)
+
+        // 14.6. Update connection counts for both sender and receiver
+        // Get connection service
+        let connectionService = ServiceContainer.shared.resolve(ConnectionServiceProtocol.self) as? FirebaseConnectionService
+
+        // Find connection between recipient (current user) and sender (owner)
+        do {
+            let connectionsQuery = db.collection("users/\(userId)/connections")
+                .whereField("connectedUserId", isEqualTo: ownerId)
+                .whereField("status", isEqualTo: ConnectionStatus.connected.rawValue)
+
+            let snapshot = try await connectionsQuery.getDocuments()
+
+            if let connectionDoc = snapshot.documents.first {
+                // Increment recipesReceivedCount for the recipient
+                try await connectionService?.recordRecipeReceived(connectionId: connectionDoc.documentID)
+                logger.log("Updated recipe received count for connection", category: .firebase, level: .info, metadata: ["connectionId": connectionDoc.documentID])
+            }
+        } catch {
+            logger.log("Failed to update connection received count", category: .firebase, level: .error, metadata: ["ownerId": ownerId, "error": error.localizedDescription])
+            // Continue even if this fails - don't block share acceptance
+        }
 
         // 15. Track analytics
         analytics.track(event: .recipeImported, properties: [

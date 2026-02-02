@@ -215,11 +215,8 @@ struct CollectionsListView: View {
                     .environmentObject(tabCoordinator)
             }
             .sheet(isPresented: $showRecipeGenerator) {
-                RecipeGeneratorView(
-                    generator: ServiceContainer.shared.resolve(AIRecipeGeneratorProtocol.self),
-                    imageGenerator: ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
-                )
-                .environmentObject(tabCoordinator)
+                RecipeGeneratorView()
+                    .environmentObject(tabCoordinator)
             }
             .sheet(isPresented: $showImportRecipe) {
                 RecipeImportView()
@@ -240,9 +237,7 @@ struct CollectionsListView: View {
             }
             .sheet(isPresented: $showReadRecipe) {
                 ReadRecipeView(
-                    dictationService: ServiceContainer.shared.resolve(VoiceDictationServiceProtocol.self),
-                    recipeExtractor: ServiceContainer.shared.resolve(AIRecipeExtractorProtocol.self),
-                    imageGenerator: ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
+                    dictationService: ServiceContainer.shared.resolve(VoiceDictationServiceProtocol.self)
                 )
                 .environmentObject(notificationService)
                 .environmentObject(tabCoordinator)

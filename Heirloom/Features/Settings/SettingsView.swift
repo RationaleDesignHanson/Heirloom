@@ -1205,8 +1205,14 @@ struct SettingsView: View {
             // Sign out from Firebase
             try firebaseAuth.signOut()
 
-            // Clear sync timestamps (but keep local recipes for offline use)
-            UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
+            // Note: We intentionally DO NOT clear local data here to prevent data loss
+            // If we cleared data before sync completed, user recipes could be lost forever
+            //
+            // Instead, data clearing happens in FirebaseAuthService when:
+            // 1. A DIFFERENT user signs in (user switch scenario)
+            // 2. After sign out is complete (in the auth state listener)
+            //
+            // This ensures data is safely synced to Firebase before being removed
 
             // Success feedback
             toastManager.success(title: "Signed out successfully")

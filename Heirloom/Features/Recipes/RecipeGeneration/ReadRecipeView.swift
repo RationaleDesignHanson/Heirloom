@@ -18,25 +18,20 @@ struct ReadRecipeView: View {
     @State private var transcribedText: String = ""
     @State private var recordingDuration: TimeInterval = 0
     @State private var timer: Timer?
-    @State private var isProcessing: Bool = false
-    @State private var structuredRecipe: Recipe?
     @State private var errorMessage: String?
     @State private var showingPermissionAlert: Bool = false
     @State private var cancellables = Set<AnyCancellable>()
 
     private let dictationService: VoiceDictationServiceProtocol
-    private let recipeExtractor: AIRecipeExtractorProtocol
-    private let imageGenerator: RecipeImageGeneratorProtocol
-    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var generationService: RecipeGenerationService {
+        ServiceContainer.shared.resolve(RecipeGenerationService.self)
+    }
+    private var toastManager: ToastManager {
+        ServiceContainer.shared.resolve(ToastManager.self)
+    }
 
-    init(
-        dictationService: VoiceDictationServiceProtocol,
-        recipeExtractor: AIRecipeExtractorProtocol,
-        imageGenerator: RecipeImageGeneratorProtocol
-    ) {
+    init(dictationService: VoiceDictationServiceProtocol) {
         self.dictationService = dictationService
-        self.recipeExtractor = recipeExtractor
-        self.imageGenerator = imageGenerator
     }
 
     var body: some View {
@@ -49,10 +44,17 @@ struct ReadRecipeView: View {
                         .fontWeight(.semibold)
 
                     if !isRecording && transcribedText.isEmpty {
-                        Text("Tap the microphone and dictate your recipe")
-                            .font(HeirloomFonts.body)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                        if dictationService.isAvailable {
+                            Text("Tap the microphone and dictate your recipe")
+                                .font(HeirloomFonts.body)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        } else {
+                            Text("Please enable permissions below to record")
+                                .font(HeirloomFonts.body)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
                     }
                 }
                 .padding(.top, 32)
@@ -70,7 +72,7 @@ struct ReadRecipeView: View {
                     } label: {
                         ZStack {
                             Circle()
-                                .fill(isRecording ? Color.red : Color.accentColor)
+                                .fill(isRecording ? Color.red : (dictationService.isAvailable ? Color.accentColor : Color.gray.opacity(0.5)))
                                 .frame(width: 120, height: 120)
 
                             Image(systemName: isRecording ? "stop.fill" : "mic.fill")
@@ -78,6 +80,7 @@ struct ReadRecipeView: View {
                                 .foregroundStyle(.white)
                         }
                     }
+                    .disabled(!dictationService.isAvailable && !isRecording)
                     .scaleEffect(isRecording ? 1.1 : 1.0)
                     .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isRecording)
 
@@ -112,8 +115,33 @@ struct ReadRecipeView: View {
                     .padding(.horizontal)
                 }
 
-                // Error message
-                if let errorMessage = errorMessage {
+                // Error message or permissions prompt
+                if !dictationService.isAvailable {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                            Text("Microphone or speech recognition permission not granted.")
+                                .font(HeirloomFonts.body)
+                                .foregroundStyle(.red)
+                        }
+
+                        Button {
+                            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(settingsURL)
+                            }
+                        } label: {
+                            Label("Open Settings", systemImage: "gear")
+                                .font(HeirloomFonts.bodyBold)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 12)
+                                .background(HeirloomColors.tomato)
+                                .cornerRadius(12)
+                        }
+                    }
+                    .padding()
+                } else if let errorMessage = errorMessage {
                     HStack {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(.red)
@@ -150,41 +178,19 @@ struct ReadRecipeView: View {
                 }
             }
             .alert("Permissions Required", isPresented: $showingPermissionAlert) {
-                Button("Open Settings", role: nil) {
+                Button("Open Settings") {
                     if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(settingsURL)
                     }
                 }
-                Button("Cancel", role: .cancel) { }
+                Button("Not Now", role: .cancel) { }
             } message: {
-                Text("Heirloom needs microphone and speech recognition permissions to record recipes. Please enable them in Settings.")
+                Text("Heirloom needs microphone and speech recognition permissions to record recipes.\n\nPlease enable:\n• Microphone\n• Speech Recognition\n\nTap 'Open Settings' to go to Heirloom's settings page.")
             }
             .onAppear {
                 setupTranscriptionPublisher()
             }
         }
-    }
-
-    // MARK: - Helpers
-
-    private func findOrCreateReadRecipesCollection() -> RecipeCollection {
-        // Try to find existing "Read Recipes" collection
-        let descriptor = FetchDescriptor<RecipeCollection>(
-            predicate: #Predicate { $0.name == "Read Recipes" }
-        )
-
-        if let existing = try? modelContext.fetch(descriptor).first {
-            return existing
-        }
-
-        // Create new collection
-        let collection = RecipeCollection(
-            name: "Read Recipes",
-            iconName: "mic.circle.fill",
-            collectionType: .userCreated
-        )
-        modelContext.insert(collection)
-        return collection
     }
 
     // MARK: - Recording
@@ -256,76 +262,25 @@ struct ReadRecipeView: View {
     // MARK: - Processing
 
     private func startBackgroundProcessing() {
-        // Capture transcription
         let transcription = transcribedText
 
-        // Show toast and dismiss immediately
-        toastManager.show(type: .info, title: "Processing your recipe...")
+        // Dismiss immediately (cookbook scan pattern)
         dismiss()
 
-        // Process in background
-        Task.detached { @MainActor in
-            await self.processTranscriptionInBackground(transcription)
-        }
-    }
-
-    @MainActor
-    private func processTranscriptionInBackground(_ transcription: String) async {
-        do {
-            // Extract recipe structure from transcription
-            let recipe = try await recipeExtractor.extract(from: transcription)
-
-            // Mark as voice dictated
-            recipe.voiceDictated = true
-
-            // Insert into context
-            modelContext.insert(recipe)
-
-            // Generate image (non-blocking if fails)
+        Task { @MainActor in
             do {
-                try await imageGenerator.generateAndSaveImage(for: recipe)
+                // Start voice generation (shows banner automatically)
+                try await generationService.generateFromVoice(
+                    transcript: transcription,
+                    context: modelContext
+                )
+
+                // Progress UI shows automatically via bottom banner
+
             } catch {
-                Log.error("Failed to generate image for voice-dictated recipe", category: .general, metadata: [
-                    "error": error.localizedDescription
-                ])
-                // Continue without image - user can add one later
+                toastManager.error(title: "Failed to start voice generation")
+                Log.error("Failed to create voice generation job", category: .general, error: error)
             }
-
-            // Find or create "Read Recipes" collection
-            let collection = findOrCreateReadRecipesCollection()
-
-            // Add recipe to collection
-            if collection.recipes == nil {
-                collection.recipes = []
-            }
-            if !collection.recipes!.contains(where: { $0.id == recipe.id }) {
-                collection.recipes!.append(recipe)
-            }
-
-            // Save context
-            try modelContext.save()
-
-            // Sync to Firebase if active
-            if ServiceContainer.shared.resolve(BackendConfig.self).isFirebaseActive {
-                do {
-                    let firebaseSync = ServiceContainer.shared.resolve((any FirebaseRecipeSyncProtocol).self)
-                    try await firebaseSync.uploadRecipe(recipe)
-                    Log.info("Voice-dictated recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title])
-                } catch {
-                    Log.warning("Failed to sync voice-dictated recipe to Firebase", category: .firebase, metadata: ["error": error.localizedDescription])
-                    // Don't fail the entire operation if sync fails
-                }
-            }
-
-            // Show success toast
-            toastManager.show(type: .success, title: "🎙️ \(recipe.title) is ready!")
-
-        } catch AIError.notConfigured(let provider) {
-            toastManager.show(type: .error, title: "API key not configured for \(provider)")
-        } catch AIError.quotaExceeded(_, let limit, _) {
-            toastManager.show(type: .error, title: "Daily limit of \(String(describing: limit)) requests exceeded")
-        } catch {
-            toastManager.show(type: .error, title: "Failed to process recipe")
         }
     }
 }

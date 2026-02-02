@@ -373,6 +373,9 @@ struct OCRReviewView: View {
             await saveImage(image, for: recipe)
         }
 
+        // Create snapshot for edit tracking
+        recipe.createSnapshot()
+
         // Save to database
         do {
             try modelContext.save()
@@ -434,13 +437,16 @@ struct OCRReviewView: View {
 
     private func parseAndSaveIngredients(recipe: Recipe, ingredientTexts: [String]) async {
         // Use AI batch parsing for better efficiency
-        let parsedIngredients: [(quantity: Double?, quantityMax: Double?, unit: String?, name: String)]
+        let parsedIngredients: [(quantity: Double?, quantityMax: Double?, unit: String?, name: String, preparation: String?)]
 
         do {
             parsedIngredients = try await aiIngredientParser.parseBatchToTuple(ingredientTexts)
         } catch {
             Log.warning("Batch ingredient parsing failed, falling back to local parser", category: .ocr, metadata: ["error": error.localizedDescription, "ingredientCount": ingredientTexts.count])
-            parsedIngredients = ingredientTexts.map { IngredientParser.parse($0) }
+            parsedIngredients = ingredientTexts.map {
+                let result = IngredientParser.parse($0)
+                return (result.0, result.1, result.2, result.3, nil as String?)
+            }
         }
 
         // Create Ingredient objects
@@ -456,6 +462,7 @@ struct OCRReviewView: View {
                 orderIndex: index
             )
             ingredient.quantityMax = parsed.quantityMax
+            ingredient.preparation = parsed.preparation
             ingredient.recipe = recipe
             modelContext.insert(ingredient)
             ingredients.append(ingredient)

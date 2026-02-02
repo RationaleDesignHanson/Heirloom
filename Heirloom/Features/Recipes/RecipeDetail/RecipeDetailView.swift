@@ -267,12 +267,23 @@ struct RecipeDetailView: View {
             return "\(versionCount) versions"
         }
 
-        // Otherwise, fall back to generation-based badge
-        guard let provenance = recipe.provenance else { return nil }
-        if provenance.isOriginal {
-            return "Original"
-        } else if provenance.generation > 0 {
-            return "Gen \(provenance.generation)"
+        // Check provenance first
+        if let provenance = recipe.provenance {
+            if provenance.isOriginal {
+                return "Original"
+            } else if provenance.generation > 0 {
+                return "Gen \(provenance.generation)"
+            }
+        }
+
+        // Fallback: Check if we have lineage data from versionViewModel
+        // If current version is generation 0, show "Original"
+        if let currentVersion = selectedVersion ?? versionViewModel.versions.first(where: { $0.isCurrent }) {
+            if currentVersion.generation == 0 {
+                return "Original"
+            } else if currentVersion.generation > 0 {
+                return "Gen \(currentVersion.generation)"
+            }
         }
 
         return nil
@@ -1787,6 +1798,45 @@ extension RecipeDetailView {
             Text("Added \(recipe.dateAdded, style: .date)")
                 .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
+
+            // Show edit indicator if recipe was edited after import (unshared only)
+            if recipe.wasEditedAfterImport {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                    HStack(spacing: HeirloomSpacing.xs) {
+                        Image(systemName: "pencil.circle.fill")
+                            .foregroundStyle(HeirloomColors.tomato)
+                            .font(.caption)
+
+                        Text("Last edited \(recipe.lastModified, style: .date)")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.charcoal.opacity(0.5))
+
+                        Spacer()
+
+                        // Diff toggle button
+                        Button {
+                            withAnimation {
+                                isDiffExpanded.toggle()
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(isDiffExpanded ? "Hide original" : "Show original")
+                                Image(systemName: isDiffExpanded ? "chevron.up" : "chevron.down")
+                            }
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(HeirloomColors.tomato)
+                        }
+                    }
+
+                    // Diff view (when expanded)
+                    if isDiffExpanded, let diff = recipe.computeDiff() {
+                        RecipeImportDiffView(diff: diff, currentRecipe: recipe)
+                            .padding(.top, HeirloomSpacing.sm)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                }
+                .padding(.top, HeirloomSpacing.xs)
+            }
         }
         .padding(.top, HeirloomSpacing.lg)
     }

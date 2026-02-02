@@ -11,6 +11,7 @@ class DeviceLogger {
     }
 
     private func setupLogFile() {
+        #if DEBUG
         guard let documentsDirectory = FileManager.default.urls(
             for: .documentDirectory,
             in: .userDomainMask
@@ -29,10 +30,13 @@ class DeviceLogger {
         if let url = logFileURL {
             log("📁 Log file created at: \(url.path)")
         }
+        #endif
     }
 
     /// Log a message with timestamp
+    /// Note: File logging is disabled in production builds for security
     func log(_ message: String, level: LogLevel = .info) {
+        #if DEBUG
         let timestamp = ISO8601DateFormatter().string(from: Date())
         let logMessage = "\(timestamp) [\(level.emoji)] \(message)\n"
 
@@ -53,6 +57,10 @@ class DeviceLogger {
             // If file doesn't exist, create it
             try? logMessage.write(to: url, atomically: true, encoding: .utf8)
         }
+        #else
+        // No-op in production builds
+        // Prevents sensitive information from being written to accessible log files
+        #endif
     }
 
     /// Clear the log file

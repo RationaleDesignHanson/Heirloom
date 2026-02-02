@@ -28,6 +28,8 @@ struct ContributorProfileSheet: View {
     @State private var showEditNote = false
     @State private var editingNote = ""
     @State private var isSavingNote = false
+    @State private var showRemoveConfirmation = false
+    @State private var isRemoving = false
 
     var body: some View {
         NavigationStack {
@@ -147,19 +149,43 @@ struct ContributorProfileSheet: View {
                 HStack(spacing: 0) {
                     statCard(
                         value: "\(connection.recipesSharedCount)",
-                        label: "Shared"
+                        label: "You Shared"
                     )
                     Divider()
                         .frame(height: 50)
                     statCard(
                         value: "\(connection.recipesReceivedCount)",
-                        label: "Received"
+                        label: "They Shared"
                     )
                 }
                 .background(HeirloomColors.cardBackground)
                 .cornerRadius(12)
                 .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
                 .padding(.horizontal, HeirloomSpacing.md)
+
+                // Remove Connection Button
+                Button(role: .destructive) {
+                    showRemoveConfirmation = true
+                } label: {
+                    HStack {
+                        if isRemoving {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                        } else {
+                            Image(systemName: "person.fill.xmark")
+                            Text("Remove Connection")
+                        }
+                    }
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, HeirloomSpacing.md)
+                    .background(Color.red.opacity(0.1))
+                    .cornerRadius(12)
+                }
+                .disabled(isRemoving)
+                .padding(.horizontal, HeirloomSpacing.md)
+                .padding(.top, HeirloomSpacing.lg)
 
                 // TODO: Fetch full profile data (bio, location, specialties) via ProfileService
                 // This requires implementing fetchProfile(userId:) method
@@ -168,6 +194,16 @@ struct ContributorProfileSheet: View {
                 // This requires fetching recipes shared between connections via ConnectionService
             }
             .padding(.bottom, HeirloomSpacing.xl)
+        }
+        .alert("Remove Connection", isPresented: $showRemoveConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Remove", role: .destructive) {
+                Task {
+                    await removeConnection()
+                }
+            }
+        } message: {
+            Text("Are you sure you want to remove \(connection.connectedUserDisplayName) from your connections? This cannot be undone.")
         }
     }
 
@@ -307,6 +343,35 @@ struct ContributorProfileSheet: View {
                 toastManager.error(title: "Failed to save note")
             }
             Log.error("Failed to save private note", category: .social, error: error)
+        }
+    }
+
+    private func removeConnection() async {
+        isRemoving = true
+
+        do {
+            try await connectionService.removeConnection(connectionId: connection.id)
+
+            await MainActor.run {
+                isRemoving = false
+                dismiss()
+
+                // Show toast after dismissal
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    toastManager.success(title: "Connection removed")
+                }
+            }
+
+            Log.info("Removed connection", category: .social, metadata: [
+                "connectionId": connection.id,
+                "connectedUser": connection.connectedUserDisplayName
+            ])
+        } catch {
+            await MainActor.run {
+                isRemoving = false
+                toastManager.error(title: "Failed to remove connection")
+            }
+            Log.error("Failed to remove connection", category: .social, error: error)
         }
     }
 }

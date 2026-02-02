@@ -108,13 +108,15 @@ final class IngredientFormatter {
             ) {
                 // Conversion successful - use converted values
                 let formattedQty = formatQuantity(converted.quantity, unit: converted.unit)
-                return (formattedQty, converted.unit)
+                let finalUnit = singularizeUnit(converted.unit, quantity: converted.quantity)
+                return (formattedQty, finalUnit)
             }
         }
 
         // No conversion needed or possible - use original values
         let formattedQty = formatQuantity(quantity, unit: unit)
-        return (formattedQty, unit)
+        let finalUnit = unit.map { singularizeUnit($0, quantity: quantity) }
+        return (formattedQty, finalUnit)
     }
 
     /// Format a quantity value based on the unit type
@@ -132,9 +134,13 @@ final class IngredientFormatter {
         let isMetric = MeasurementConversionService.isMetricUnit(unit)
 
         if isMetric {
-            // Metric: round to whole numbers (no decimals for ml, g, etc.)
-            let rounded = round(value)
-            return "\(Int(rounded))"
+            // Metric: round to tenths place (e.g., 250.5 g, 100.2 ml)
+            let rounded = round(value * 10) / 10
+            if rounded == Double(Int(rounded)) {
+                // Whole number - no decimal point
+                return "\(Int(rounded))"
+            }
+            return String(format: "%.1f", rounded)
         } else {
             // Imperial: use practical fractions only
             return formatImperialFraction(value)
@@ -173,5 +179,63 @@ final class IngredientFormatter {
             return "\(Int(rounded))"
         }
         return String(format: "%.1f", rounded)
+    }
+
+    /// Singularize a unit if the quantity is 1 or less
+    /// - Parameters:
+    ///   - unit: The unit string (e.g., "cups", "teaspoons")
+    ///   - quantity: The quantity value
+    /// - Returns: Singular or plural unit as appropriate
+    private nonisolated func singularizeUnit(_ unit: String, quantity: Double) -> String {
+        // Only singularize if quantity <= 1
+        guard quantity <= 1.0 else {
+            return unit
+        }
+
+        let lowerUnit = unit.lowercased()
+
+        // Common plural → singular mappings
+        let pluralMappings: [String: String] = [
+            "cups": "cup",
+            "teaspoons": "teaspoon",
+            "tablespoons": "tablespoon",
+            "ounces": "ounce",
+            "pounds": "pound",
+            "grams": "gram",
+            "kilograms": "kilogram",
+            "milliliters": "milliliter",
+            "liters": "liter",
+            "pints": "pint",
+            "quarts": "quart",
+            "gallons": "gallon",
+            "cloves": "clove",
+            "slices": "slice",
+            "pieces": "piece",
+            "sticks": "stick",
+            "bunches": "bunch",
+            "sprigs": "sprig",
+            "leaves": "leaf",
+            "stalks": "stalk",
+            "heads": "head",
+            "cans": "can",
+            "packages": "package",
+            "containers": "container",
+            "jars": "jar",
+            "bottles": "bottle",
+            "pinches": "pinch",
+            "dashes": "dash"
+        ]
+
+        // Check for exact match
+        if let singular = pluralMappings[lowerUnit] {
+            // Preserve original capitalization
+            if unit.first?.isUppercase == true {
+                return singular.prefix(1).uppercased() + singular.dropFirst()
+            }
+            return singular
+        }
+
+        // If not in our mapping, return as-is
+        return unit
     }
 }

@@ -76,6 +76,13 @@ final class Recipe {
     var totalTime: String?
     var notes: String?
 
+    // MARK: - Edit Tracking (for imported recipes)
+
+    /// Snapshot of original imported content (for diff view)
+    /// Only populated for imported recipes (sourceType != .manual)
+    /// JSON-encoded RecipeSnapshot struct
+    var originalSnapshotData: Data?
+
     // MARK: - Personalization (Phase 2)
     @Relationship(deleteRule: .cascade, inverse: \RecipeCardStyle.recipe)
     var cardStyle: RecipeCardStyle?
@@ -934,6 +941,26 @@ enum RecipeSourceType: String, Codable, CaseIterable {
             return "Recipes you've received from others can only be shared privately."
         }
     }
+
+    /// Map RecipeSourceType to ProvenanceMetadata.SourceType
+    func toProvenanceSourceType() -> ProvenanceMetadata.SourceType {
+        switch self {
+        case .url:
+            return .imported
+        case .cookbook:
+            return .imported
+        case .family:
+            return .shared
+        case .manual:
+            return .userCreated
+        case .scan:
+            return .scanned
+        case .heritage:
+            return .shared
+        case .video:
+            return .video
+        }
+    }
 }
 
 /// Confidence level that a recipe's photo originated from device camera
@@ -1424,5 +1451,125 @@ extension Recipe {
                 return "\(count) of \(total) ingredients missing quantities"
             }
         }
+    }
+}
+
+// MARK: - Recipe Snapshot
+
+/// Lightweight snapshot for tracking edits to imported recipes
+struct RecipeSnapshot: Codable, Hashable {
+    let title: String
+    let ingredients: [IngredientSnapshot]
+    let instructions: [String]
+    let servings: String?
+    let prepTime: String?
+    let cookTime: String?
+    let notes: String?
+    let snapshotDate: Date
+
+    struct IngredientSnapshot: Codable, Hashable {
+        let originalText: String
+        let name: String
+        let quantity: Double?
+        let unit: String?
+    }
+}
+
+// MARK: - Edit Tracking Extension
+
+extension Recipe {
+    /// Create snapshot of current state (call after import)
+    func createSnapshot() {
+        guard sourceType != .manual else { return }
+
+        let snapshot = RecipeSnapshot(
+            title: title,
+            ingredients: (ingredients ?? []).map { ing in
+                RecipeSnapshot.IngredientSnapshot(
+                    originalText: ing.originalText,
+                    name: ing.name,
+                    quantity: ing.quantity,
+                    unit: ing.unit
+                )
+            },
+            instructions: instructions,
+            servings: servings,
+            prepTime: prepTime,
+            cookTime: cookTime,
+            notes: notes,
+            snapshotDate: Date()
+        )
+
+        originalSnapshotData = try? JSONEncoder().encode(snapshot)
+    }
+
+    /// Get original snapshot
+    var originalSnapshot: RecipeSnapshot? {
+        guard let data = originalSnapshotData else { return nil }
+        return try? JSONDecoder().decode(RecipeSnapshot.self, from: data)
+    }
+
+    /// Check if this recipe is shared/heirloom
+    var isShared: Bool {
+        // Check if recipe has been shared
+        return sharedBy != nil ||
+               provenance?.sourceType == .shared ||
+               !(versions?.isEmpty ?? true)
+    }
+
+    /// Check if edited after import (only for unshared recipes)
+    var wasEditedAfterImport: Bool {
+        guard sourceType != .manual,
+              originalSnapshotData != nil,
+              !isShared else {
+            return false
+        }
+
+        // 1-minute buffer for post-import edits
+        return lastModified > dateAdded.addingTimeInterval(60)
+    }
+
+    /// Compute diff between current and original
+    func computeDiff() -> RecipeDiff? {
+        guard let original = originalSnapshot else { return nil }
+
+        return RecipeDiff(
+            titleChanged: title != original.title,
+            ingredientsChanged: !ingredientsMatchSnapshot(original.ingredients),
+            instructionsChanged: instructions != original.instructions,
+            servingsChanged: servings != original.servings,
+            prepTimeChanged: prepTime != original.prepTime,
+            cookTimeChanged: cookTime != original.cookTime,
+            notesChanged: notes != original.notes,
+            original: original
+        )
+    }
+
+    private func ingredientsMatchSnapshot(_ snapshot: [RecipeSnapshot.IngredientSnapshot]) -> Bool {
+        let current = ingredients ?? []
+        guard current.count == snapshot.count else { return false }
+
+        return zip(current, snapshot).allSatisfy { curr, snap in
+            curr.originalText == snap.originalText &&
+            curr.name == snap.name &&
+            curr.quantity == snap.quantity &&
+            curr.unit == snap.unit
+        }
+    }
+}
+
+struct RecipeDiff {
+    let titleChanged: Bool
+    let ingredientsChanged: Bool
+    let instructionsChanged: Bool
+    let servingsChanged: Bool
+    let prepTimeChanged: Bool
+    let cookTimeChanged: Bool
+    let notesChanged: Bool
+    let original: RecipeSnapshot
+
+    var hasChanges: Bool {
+        titleChanged || ingredientsChanged || instructionsChanged ||
+        servingsChanged || prepTimeChanged || cookTimeChanged || notesChanged
     }
 }

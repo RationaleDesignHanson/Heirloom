@@ -36,14 +36,17 @@ struct ConnectionRow: View {
                         .foregroundStyle(HeirloomColors.secondaryText)
                 }
 
-                // Recipe count
-                HStack(spacing: HeirloomSpacing.xs) {
-                    Image(systemName: "doc.text")
-                        .font(.caption2)
-                    Text("\(connection.recipesSharedCount) recipes shared")
+                // Recipe count (total shared between users)
+                let totalRecipes = connection.recipesSharedCount + connection.recipesReceivedCount
+                if totalRecipes > 0 {
+                    HStack(spacing: HeirloomSpacing.xs) {
+                        Image(systemName: "doc.text")
+                            .font(.caption2)
+                        Text("\(totalRecipes) \(totalRecipes == 1 ? "recipe" : "recipes") shared")
+                    }
+                    .font(HeirloomFonts.caption2)
+                    .foregroundStyle(HeirloomColors.secondaryText)
                 }
-                .font(HeirloomFonts.caption2)
-                .foregroundStyle(HeirloomColors.secondaryText)
             }
 
             Spacer()

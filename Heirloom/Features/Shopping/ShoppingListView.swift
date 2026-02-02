@@ -533,11 +533,9 @@ struct ShoppingListView: View {
                 let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
                 let qtyString = formatter.formatQuantity(total, unit: nil)
 
-                var parts: [String] = [qtyString, name]
-                if let prep = scaledIngredients[0].originalIngredient.preparation {
-                    parts.append("(\(prep))")
-                }
-                return parts.joined(separator: " ")
+                // Don't show preparation when consolidating multiple ingredients
+                // (you'll prepare them differently for different recipes)
+                return "\(qtyString) \(name)"
             }
 
             // Multiple ingredients with units - group by normalized unit first
@@ -575,17 +573,13 @@ struct ShoppingListView: View {
 
                 let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
                 let qtyString = formatter.formatQuantity(convertedQty, unit: convertedUnit)
-                var parts: [String] = [qtyString, convertedUnit, name]
-                if let prep = scaledIngredients[0].originalIngredient.preparation {
-                    parts.append("(\(prep))")
-                }
-                return parts.joined(separator: " ")
+                // Don't show preparation when consolidating multiple ingredients
+                return "\(qtyString) \(convertedUnit) \(name)"
             }
 
             // Step 4: Multiple unit groups - try to convert and combine intelligently
             // Use the shortest, simplest name (prefer "eggs" over "large eggs")
             let name = scaledIngredients.map { $0.originalIngredient.name }.min(by: { $0.count < $1.count }) ?? scaledIngredients[0].originalIngredient.name
-            let prep = scaledIngredients[0].originalIngredient.preparation
 
             // Try to convert smaller units to larger units
             var convertedGroups = unitGroups
@@ -619,11 +613,8 @@ struct ShoppingListView: View {
                 let rounded = roundForCooking(group.total)
                 let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
                 let qtyString = formatter.formatQuantity(rounded, unit: group.displayUnit)
-                var parts: [String] = [qtyString, group.displayUnit, name]
-                if let prep = prep {
-                    parts.append("(\(prep))")
-                }
-                return parts.joined(separator: " ")
+                // Don't show preparation when consolidating multiple ingredients
+                return "\(qtyString) \(group.displayUnit) \(name)"
             }
 
             // Still multiple units - show as "2 cups + 1 tablespoon butter"
@@ -637,10 +628,8 @@ struct ShoppingListView: View {
                 quantityParts.append("\(qty) \(group.displayUnit)")
             }
 
-            var result = quantityParts.joined(separator: " + ") + " " + name
-            if let prep = prep {
-                result += " (\(prep))"
-            }
+            let result = quantityParts.joined(separator: " + ") + " " + name
+            // Don't show preparation when consolidating multiple ingredients
 
             // FINAL STEP: Simplify any " + " expressions
             return simplifyAdditionExpression(result)

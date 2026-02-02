@@ -351,6 +351,16 @@ class DeepLinkHandler: ObservableObject {
         Log.info("Handling Firebase share", category: .firebase, metadata: ["shareId": shareID])
         DeviceLogger.shared.log("🔥 [DeepLink] Handling Firebase share ID: \(shareID)")
 
+        // CRITICAL: Dismiss any existing share sheet first
+        if showShareAcceptanceSheet {
+            showShareAcceptanceSheet = false
+            DeviceLogger.shared.log("🧹 [DeepLink] Dismissing old share sheet before showing new one")
+        }
+
+        // Clear previous share data to prevent showing stale cached data
+        pendingShareMetadata = nil
+        pendingShareURL = nil
+
         // Store URL for acceptance flow
         pendingShareURL = originalURL
 

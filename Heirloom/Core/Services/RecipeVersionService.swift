@@ -341,9 +341,50 @@ final class RecipeVersionService {
         // Set sharing permission to heirloom
         recipe.sharingPermission = .heirloom
 
-        // Create base version if doesn't exist
-        if recipe.baseVersion == nil {
-            _ = try createBaseVersion(for: recipe, context: context)
+        // Check if recipe has lightweight tracking (original snapshot)
+        if let snapshot = recipe.originalSnapshot, recipe.baseVersion == nil {
+            // Transition from lightweight tracking to full versioning
+            // Create base version from original import snapshot
+            let baseVersion = RecipeVersion(
+                creatorUserID: "original-import",
+                creatorDisplayName: recipe.provenance?.displaySource ?? "Original Import",
+                creationYear: String(Calendar.current.component(.year, from: snapshot.snapshotDate)),
+                isBaseVersion: true
+            )
+
+            // Populate from snapshot
+            baseVersion.title = snapshot.title
+            baseVersion.ingredients = snapshot.ingredients.map { $0.originalText }
+            baseVersion.instructions = snapshot.instructions
+            baseVersion.servings = snapshot.servings
+            baseVersion.prepTime = snapshot.prepTime
+            baseVersion.cookTime = snapshot.cookTime
+            baseVersion.notes = snapshot.notes
+
+            // Add to recipe
+            if recipe.versions == nil {
+                recipe.versions = []
+            }
+            recipe.versions?.append(baseVersion)
+
+            // Create user's version from current state
+            let userVersion = try createVersion(for: recipe, context: context)
+
+            // Select user's version by default
+            recipe.selectedVersionID = userVersion.id
+
+            // Clear lightweight tracking data (transition complete)
+            recipe.originalSnapshotData = nil
+
+            Log.info("Transitioned recipe from lightweight tracking to full versioning", category: .database, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "title": recipe.title
+            ])
+        } else {
+            // Create base version if doesn't exist (standard path)
+            if recipe.baseVersion == nil {
+                _ = try createBaseVersion(for: recipe, context: context)
+            }
         }
     }
 

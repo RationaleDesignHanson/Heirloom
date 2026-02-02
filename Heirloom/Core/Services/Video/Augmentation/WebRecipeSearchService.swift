@@ -39,28 +39,42 @@ class WebRecipeSearchService {
     func searchSimilarRecipes(
         for extractedRecipe: StructuredRecipe
     ) async throws -> [WebRecipeResult] {
+        #if DEBUG
         print("🔍 Searching web for similar recipes to: \(extractedRecipe.title)")
+        #endif
 
         // 1. Try exact title search first
         let exactQuery = buildSearchQuery(from: extractedRecipe)
+        #if DEBUG
         print("🔍 Exact search query: \(exactQuery)")
+        #endif
 
         var searchResults = try await performDuckDuckGoSearch(query: exactQuery)
+        #if DEBUG
         print("🔍 Found \(searchResults.count) exact match results")
+        #endif
 
         // 2. If no results, try broader search with key ingredients
         if searchResults.isEmpty {
+            #if DEBUG
             print("🔍 No exact matches - trying broader search with key ingredients")
+            #endif
             let broaderQuery = buildBroaderQuery(from: extractedRecipe)
+            #if DEBUG
             print("🔍 Broader search query: \(broaderQuery)")
+            #endif
             searchResults = try await performDuckDuckGoSearch(query: broaderQuery)
+            #if DEBUG
             print("🔍 Found \(searchResults.count) broader results")
+            #endif
         }
 
         // 3. Filter for recipe sites
         let recipeURLs = filterRecipeURLs(searchResults)
             .prefix(Self.maxWebSearches)
+        #if DEBUG
         print("🔍 Filtered to \(recipeURLs.count) recipe URLs")
+        #endif
 
         // 4. Fetch and parse recipes in parallel
         return await withTaskGroup(of: WebRecipeResult?.self) { group in
@@ -69,7 +83,9 @@ class WebRecipeSearchService {
                     do {
                         return try await self.fetchRecipe(from: url, originalQuery: extractedRecipe.title)
                     } catch {
+                        #if DEBUG
                         print("⚠️ Failed to fetch recipe from \(url): \(error.localizedDescription)")
+                        #endif
                         return nil
                     }
                 }
@@ -94,12 +110,16 @@ class WebRecipeSearchService {
         // If no API key, fallback to direct recipe site search
 
         if let braveResults = try? await performBraveSearch(query) {
+            #if DEBUG
             print("🔍 Using Brave Search API (\(braveResults.count) results)")
+            #endif
             return braveResults
         }
 
         // Fallback: Direct recipe site search (no search engine needed)
+        #if DEBUG
         print("🔍 Fallback: Searching recipe sites directly")
+        #endif
         return try await searchRecipeSitesDirectly(query)
     }
 
@@ -126,12 +146,16 @@ class WebRecipeSearchService {
         }
 
         if httpResponse.statusCode == 401 {
+            #if DEBUG
             print("⚠️ Brave Search API: Invalid or missing API key")
+            #endif
             throw WebSearchError.networkError
         }
 
         guard (200...299).contains(httpResponse.statusCode) else {
+            #if DEBUG
             print("⚠️ Brave Search API returned status \(httpResponse.statusCode)")
+            #endif
             throw WebSearchError.networkError
         }
 
@@ -175,7 +199,7 @@ class WebRecipeSearchService {
         // Brave Search API key
         // Free tier: 2,000 queries/month
         // Get yours at: https://brave.com/search/api/
-        return "BSAM9tnW1iuxgNPzucVHG6HKs6MGwPG"
+        return "BSAlCWqf1tp_j98WflvJLH8xCgn2ZUu"
     }
 
     /// Fallback: Search recipe sites directly without search engine
@@ -188,11 +212,15 @@ class WebRecipeSearchService {
             .replacingOccurrences(of: "allrecipes.com OR foodnetwork.com OR seriouseats.com OR bonappetit.com", with: "")
             .trimmingCharacters(in: .whitespaces)
 
+        #if DEBUG
         print("🔍 Scraping recipe sites directly for: \(recipeName)")
+        #endif
 
         // Try AllRecipes first (most reliable structure)
         if let allRecipesResults = try? await scrapeAllRecipes(recipeName) {
+            #if DEBUG
             print("✅ Found \(allRecipesResults.count) recipes from AllRecipes")
+            #endif
             if !allRecipesResults.isEmpty {
                 return allRecipesResults
             }
@@ -200,14 +228,18 @@ class WebRecipeSearchService {
 
         // Try FoodNetwork as fallback
         if let foodNetworkResults = try? await scrapeFoodNetwork(recipeName) {
+            #if DEBUG
             print("✅ Found \(foodNetworkResults.count) recipes from FoodNetwork")
+            #endif
             if !foodNetworkResults.isEmpty {
                 return foodNetworkResults
             }
         }
 
         // Last resort: return empty (augmentation will use Claude knowledge only)
+        #if DEBUG
         print("⚠️ No recipes found from direct site scraping")
+        #endif
         return []
     }
 
@@ -317,46 +349,27 @@ class WebRecipeSearchService {
             throw WebSearchError.parseError
         }
 
-        // DEBUG: Print first 1000 chars of HTML to see structure
-        print("🔍 DEBUG: DuckDuckGo HTML response (first 1000 chars):")
-        print(String(htmlString.prefix(1000)))
-        print("...")
-
         let doc = try SwiftSoup.parse(htmlString)
         let results = try doc.select("div.result")
 
-        print("🔍 DEBUG: Found \(results.count) div.result elements")
-
         var searchResults: [SearchResult] = []
 
-        for (index, result) in results.enumerated() {
-            if index == 0 {
-                // Print structure of first result for debugging
-                print("🔍 DEBUG: First result HTML:")
-                if let html = try? result.html() {
-                    print(html)
-                }
-            }
-
+        for (_, result) in results.enumerated() {
             // Extract title
             guard let titleElement = try? result.select("a.result__a").first(),
                   let title = try? titleElement.text(),
                   !title.isEmpty else {
-                print("🔍 DEBUG: Failed to extract title from result \(index)")
                 continue
             }
 
             // Extract URL
             guard let urlString = try? titleElement.attr("href"),
                   !urlString.isEmpty else {
-                print("🔍 DEBUG: Failed to extract URL from result \(index)")
                 continue
             }
 
             // Extract snippet
             let snippet = (try? result.select("a.result__snippet").first()?.text()) ?? ""
-
-            print("🔍 DEBUG: Successfully parsed result \(index): \(title)")
 
             searchResults.append(SearchResult(
                 title: title,
@@ -591,12 +604,16 @@ class WebRecipeSearchService {
 
     /// Fetch and parse a recipe from URL
     private func fetchRecipe(from urlString: String, originalQuery: String) async throws -> WebRecipeResult {
+        #if DEBUG
         print("📥 Fetching recipe from: \(urlString)")
+        #endif
 
         // Use existing RecipeImportService to parse the recipe
         let importedRecipe = try await recipeImportService.importRecipe(from: urlString)
 
+        #if DEBUG
         print("✅ Successfully parsed recipe: \(importedRecipe.title)")
+        #endif
 
         // Convert ingredients to WebRecipeResult format
         let ingredients = importedRecipe.ingredients.map { ingredientText in

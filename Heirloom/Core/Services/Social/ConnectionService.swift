@@ -59,6 +59,15 @@ protocol ConnectionServiceProtocol {
     /// Increment recipe share counter
     func recordRecipeShare(connectionId: String) async throws
 
+    /// Increment recipesReceivedCount for a connection
+    func recordRecipeReceived(connectionId: String) async throws
+
+    /// Listen for real-time connection updates
+    func observeConnections(
+        status: ConnectionStatus?,
+        callback: @escaping ([Connection]) -> Void
+    ) -> ListenerRegistration?
+
     /// Clear cache (useful for logout or testing)
     func clearCache()
 }
@@ -638,20 +647,40 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             )
         }
 
+        // Find the reciprocal connection from the other user's collection
+        let reciprocalQuery = db.collection("users")
+            .document(connection.connectedUserId)
+            .collection("connections")
+            .whereField("connectedUserId", isEqualTo: userId)
+
+        let reciprocalSnapshot = try await reciprocalQuery.getDocuments()
+
         // Delete both connections
         let batch = db.batch()
 
+        // Delete user's own connection
         let userRef = db.collection("users")
             .document(userId)
             .collection("connections")
             .document(connectionId)
         batch.deleteDocument(userRef)
 
-        let connectedUserRef = db.collection("users")
-            .document(connection.connectedUserId)
-            .collection("connections")
-            .document(connectionId)
-        batch.deleteDocument(connectedUserRef)
+        // Delete reciprocal connection (if found)
+        if let reciprocalDoc = reciprocalSnapshot.documents.first {
+            let reciprocalRef = db.collection("users")
+                .document(connection.connectedUserId)
+                .collection("connections")
+                .document(reciprocalDoc.documentID)
+            batch.deleteDocument(reciprocalRef)
+
+            Log.debug("Found reciprocal connection to delete", category: .social, metadata: [
+                "reciprocalConnectionId": reciprocalDoc.documentID
+            ])
+        } else {
+            Log.warning("Reciprocal connection not found", category: .social, metadata: [
+                "connectedUserId": connection.connectedUserId
+            ])
+        }
 
         try await batch.commit()
 
@@ -661,7 +690,8 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
 
         Log.info("Removed connection", category: .social, metadata: [
             "userId": userId,
-            "connectionId": connectionId
+            "connectionId": connectionId,
+            "connectedUserId": connection.connectedUserId
         ])
     }
 
@@ -876,6 +906,91 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
         Log.debug("Recorded recipe share", category: .social, metadata: [
             "connectionId": connectionId
         ])
+    }
+
+    func recordRecipeReceived(connectionId: String) async throws {
+        guard let userId = auth.currentUser?.uid else {
+            throw NSError(
+                domain: "ConnectionService",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "Not authenticated"]
+            )
+        }
+
+        try await db.collection("users")
+            .document(userId)
+            .collection("connections")
+            .document(connectionId)
+            .updateData([
+                "recipesReceivedCount": FieldValue.increment(Int64(1)),
+                "updatedAt": Timestamp(date: Date())
+            ])
+
+        Log.debug("Recorded recipe received", category: .social, metadata: [
+            "connectionId": connectionId
+        ])
+    }
+
+    // MARK: - Real-time Listener
+
+    /// Listen for real-time connection updates
+    func observeConnections(
+        status: ConnectionStatus?,
+        callback: @escaping ([Connection]) -> Void
+    ) -> ListenerRegistration? {
+        guard let userId = auth.currentUser?.uid else {
+            Log.error("Cannot observe connections - not authenticated", category: .social)
+            return nil
+        }
+
+        var query: Query = db.collection("users")
+            .document(userId)
+            .collection("connections")
+
+        // Apply status filter if provided
+        if let status = status {
+            query = query.whereField("status", isEqualTo: status.rawValue)
+        }
+
+        let listener = query.addSnapshotListener { [weak self] snapshot, error in
+            guard let self = self else { return }
+
+            if let error = error {
+                Log.error("Connection listener error", category: .social, error: error)
+                return
+            }
+
+            guard let snapshot = snapshot else {
+                Log.warning("Connection snapshot is nil", category: .social)
+                return
+            }
+
+            let connections = snapshot.documents.compactMap { doc -> Connection? in
+                do {
+                    let connection = try doc.data(as: Connection.self)
+                    return connection
+                } catch {
+                    Log.error("Failed to decode connection", category: .social, error: error, metadata: [
+                        "documentId": doc.documentID
+                    ])
+                    return nil
+                }
+            }
+
+            // Update cache
+            Task { @MainActor in
+                self.connectionsCache[userId] = connections
+
+                Log.debug("Real-time connection update", category: .social, metadata: [
+                    "count": connections.count,
+                    "status": status?.rawValue ?? "all"
+                ])
+
+                callback(connections)
+            }
+        }
+
+        return listener
     }
 
     // MARK: - Cache Management

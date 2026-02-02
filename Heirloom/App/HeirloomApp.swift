@@ -823,28 +823,40 @@ struct RootView: View {
 
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
 
+    // Use the singleton from ServiceContainer so all views share the same instance
+    @ObservedObject private var generationService: RecipeGenerationService = ServiceContainer.shared.resolve(RecipeGenerationService.self)
+
     var body: some View {
-        // MANDATORY AUTH: Require Firebase authentication to access app
-        // Recipes require Firebase for sync, sharing, and lineage tracking
-        Group {
-            if authService.isAuthenticated {
-                let tabCoordinator = ServiceContainer.shared.resolve(TabNavigationCoordinator.self)
-                ContentView(
-                    tabCoordinator: tabCoordinator,
-                    notificationService: notificationService
-                )
-                    .modelContainer(modelContainer)
-                    .environment(\.firebaseAuth, authService)
-            } else {
-                // Show sign-in screen if not authenticated
-                FirebaseSignInView()
-                    .modelContainer(modelContainer)
-                    .environment(\.firebaseAuth, authService)
+        VStack(spacing: 0) {
+            // Recipe generation banner at top (matches import/video banner placement)
+            RecipeGenerationBanner(service: generationService)
+                .animation(.spring(), value: generationService.activeJob != nil)
+
+            // MANDATORY AUTH: Require Firebase authentication to access app
+            // Recipes require Firebase for sync, sharing, and lineage tracking
+            Group {
+                if authService.isAuthenticated {
+                    let tabCoordinator = ServiceContainer.shared.resolve(TabNavigationCoordinator.self)
+                    ContentView(
+                        tabCoordinator: tabCoordinator,
+                        notificationService: notificationService
+                    )
+                        .modelContainer(modelContainer)
+                        .environment(\.firebaseAuth, authService)
+                } else {
+                    // Show sign-in screen if not authenticated
+                    FirebaseSignInView()
+                        .modelContainer(modelContainer)
+                        .environment(\.firebaseAuth, authService)
+                }
             }
         }
             .onAppear {
                 Log.info("🚀 ROOTVIEW.ONAPPEAR: Starting", category: .video)
                 DeviceLogger.shared.log("🚀 [Video] RootView.onAppear: Starting detection tasks")
+
+                // CRITICAL: Set up listener for user data clearing (user switch scenario)
+                setupUserDataClearListener()
 
                 // Mark interrupted imports on app launch
                 Task {
@@ -920,6 +932,68 @@ struct RootView: View {
                     Log.info("Cleared badge and stopped listener on sign out", category: .social)
                 }
             }
+    }
+
+    // MARK: - User Data Clear Listener
+
+    /// Set up notification listener for clearing user data when different user signs in
+    /// This prevents privacy leak where User B sees User A's cached recipes on same device
+    private func setupUserDataClearListener() {
+        let container = self.modelContainer
+
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("ClearAllUserDataNotification"),
+            object: nil,
+            queue: .main
+        ) { _ in
+            Log.info("🧹 Received user data clear notification - clearing SwiftData", category: .auth)
+            DeviceLogger.shared.log("🧹 [Auth] Clearing all SwiftData (user switch detected)")
+
+            Task { @MainActor in
+                do {
+                    let modelContext = container.mainContext
+
+                    // Delete all recipes
+                    let recipeDescriptor = FetchDescriptor<Recipe>()
+                    let allRecipes = try modelContext.fetch(recipeDescriptor)
+
+                    Log.info("Deleting recipes from local storage", category: .auth, metadata: [
+                        "count": allRecipes.count
+                    ])
+
+                    for recipe in allRecipes {
+                        modelContext.delete(recipe)
+                    }
+
+                    // Delete all collections
+                    let collectionDescriptor = FetchDescriptor<RecipeCollection>()
+                    let allCollections = try modelContext.fetch(collectionDescriptor)
+
+                    Log.info("Deleting collections from local storage", category: .auth, metadata: [
+                        "count": allCollections.count
+                    ])
+
+                    for collection in allCollections {
+                        modelContext.delete(collection)
+                    }
+
+                    // Save changes
+                    try modelContext.save()
+
+                    Log.info("✅ Successfully cleared all user data from SwiftData", category: .auth)
+                    DeviceLogger.shared.log("✅ [Auth] All user data cleared from local storage")
+
+                } catch {
+                    Log.error("Failed to clear user data from SwiftData", category: .auth, metadata: [
+                        "error": error.localizedDescription
+                    ])
+                    DeviceLogger.shared.log("❌ [Auth] Failed to clear user data: \(error.localizedDescription)", level: .error)
+                }
+            }
+        }
+
+        Log.info("User data clear listener registered", category: .auth)
+        DeviceLogger.shared.log("✅ [Auth] User data clear listener registered")
     }
 
     // MARK: - Interrupted Import Detection
@@ -1310,6 +1384,7 @@ struct ContentView: View {
                     shareURL: shareURL,
                     shareMetadata: deepLinkCoordinator.pendingShareMetadata
                 )
+                .id(shareURL.absoluteString)  // Force recreation when URL changes
             }
         }
         .sheet(isPresented: $deepLinkCoordinator.showURLImportSheet) {

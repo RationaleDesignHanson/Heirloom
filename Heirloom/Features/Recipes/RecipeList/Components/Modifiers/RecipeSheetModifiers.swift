@@ -35,10 +35,7 @@ struct RecipeSheetModifiers: ViewModifier {
     func body(content: Content) -> some View {
         content
             .sheet(isPresented: $showRecipeGenerator) {
-                RecipeGeneratorView(
-                    generator: ServiceContainer.shared.resolve(AIRecipeGeneratorProtocol.self),
-                    imageGenerator: ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
-                )
+                RecipeGeneratorView()
             }
             .sheet(isPresented: $showImportRecipe) {
                 RecipeImportView()
@@ -54,9 +51,7 @@ struct RecipeSheetModifiers: ViewModifier {
             }
             .sheet(isPresented: $showReadRecipe) {
                 ReadRecipeView(
-                    dictationService: ServiceContainer.shared.resolve(VoiceDictationServiceProtocol.self),
-                    recipeExtractor: ServiceContainer.shared.resolve(AIRecipeExtractorProtocol.self),
-                    imageGenerator: ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
+                    dictationService: ServiceContainer.shared.resolve(VoiceDictationServiceProtocol.self)
                 )
             }
             .sheet(isPresented: $showCreateCollection) {

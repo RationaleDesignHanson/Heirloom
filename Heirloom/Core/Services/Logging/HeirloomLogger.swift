@@ -8,6 +8,9 @@
 
 import Foundation
 import os.log
+#if canImport(FirebaseCrashlytics)
+import FirebaseCrashlytics
+#endif
 
 /// Production logging implementation using OSLog for performance
 final class HeirloomLogger: LoggingService {
@@ -193,10 +196,26 @@ final class HeirloomLogger: LoggingService {
             self.outputToConsole(level: level, message: logMessage)
         }
 
-        // In production, could also:
-        // - Send errors to crash reporting (Sentry, Crashlytics)
-        // - Write to file for diagnostics
-        // - Send to analytics
+        // Send errors and critical logs to Crashlytics for tracking
+        #if canImport(FirebaseCrashlytics)
+        if level == .error || level == .critical {
+            let errorToRecord = NSError(
+                domain: "com.rationaledesign.heirloom",
+                code: level == .critical ? -1 : -2,
+                userInfo: [
+                    NSLocalizedDescriptionKey: message,
+                    "category": category.rawValue,
+                    "file": file,
+                    "function": function,
+                    "line": line
+                ]
+            )
+            Crashlytics.crashlytics().record(error: errorToRecord)
+
+            // Also log the message context
+            Crashlytics.crashlytics().log("\(level.description): \(message)")
+        }
+        #endif
     }
 
     // MARK: - Formatting

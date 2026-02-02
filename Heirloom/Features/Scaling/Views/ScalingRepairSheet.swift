@@ -143,6 +143,7 @@ struct ScalingRepairSheet: View {
                             ingredient.quantityMax = parsedData.quantityMax
                             ingredient.unit = parsedData.unit
                             ingredient.normalizedUnit = parsedData.normalizedUnit
+                            ingredient.preparation = parsedData.preparation
                             fixedCount += 1
                         }
                     }

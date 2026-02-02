@@ -41,11 +41,18 @@ service firebase.storage {
     // ========================================
     // USER RECIPE IMAGES (User-Scoped)
     // User-owned recipe images for Firebase sync
+    //
+    // NOTE: Storage Rules cannot query Firestore to check sharing permissions.
+    // Images are readable by all authenticated users to enable recipe sharing.
+    // Security is enforced by:
+    // 1. Recipe image paths contain recipe UUIDs (unguessable)
+    // 2. Users need the share link to know the image path
+    // 3. Only authenticated users can read
     // ========================================
     match /users/{userId}/recipes/{recipeId}/{imageFile} {
-      // Public read for sharing (recipe URLs contain unguessable UUIDs)
-      // This allows share recipients to see recipe images in preview before accepting
-      allow read: if true;
+      // Authenticated users can read recipe images (for sharing)
+      // Image paths contain UUIDs, preventing enumeration
+      allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
@@ -73,6 +80,19 @@ service firebase.storage {
       allow read: if true;
       // Server only (Cloud Function generates these)
       allow write: if false;
+    }
+
+    // ========================================
+    // PUBLIC RECIPE IMAGES (Public Discovery)
+    // Images for recipes published to public discovery
+    // Stored as: publicRecipes/{recipeId}/image.jpg
+    // ========================================
+    match /publicRecipes/{recipeId}/{imageFile} {
+      // Public read - these are community-shared recipes
+      allow read: if true;
+      // Only authenticated users can upload (when publishing)
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
     }
 
     // ========================================

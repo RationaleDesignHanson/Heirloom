@@ -25,6 +25,7 @@ struct RecipeEditorView: View {
     private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     private var paywallManager: PaywallManager { ServiceContainer.shared.resolve(PaywallManager.self) }
+    private var ingredientFormatter: IngredientFormatter { ServiceContainer.shared.resolve(IngredientFormatter.self) }
 
     @State private var recipe: Recipe
     @State private var isNewRecipe: Bool
@@ -743,7 +744,7 @@ struct RecipeEditorView: View {
         for (index, ingredientText) in currentIngredients.enumerated() {
             let parsed = IngredientParser.parse(ingredientText)
             let ingredient = Ingredient(
-                originalText: ingredientText,
+                originalText: ingredientText, // Will be reformatted below
                 name: parsed.name.isEmpty ? ingredientText : parsed.name,
                 quantity: parsed.quantity,
                 unit: parsed.unit,
@@ -751,6 +752,13 @@ struct RecipeEditorView: View {
                 orderIndex: index
             )
             ingredient.quantityMax = parsed.quantityMax
+
+            // Reformat the ingredient text to preserve fractions for imperial, decimals for metric
+            if parsed.quantity != nil || parsed.unit != nil {
+                let formatted = ingredientFormatter.format(ingredient, scaleFactor: 1.0, convertUnits: false)
+                ingredient.originalText = formatted
+            }
+
             ingredient.recipe = newRecipe
             modelContext.insert(ingredient)
         }
@@ -1023,13 +1031,20 @@ struct RecipeEditorView: View {
                     let category = GroceryCategory.categorize(parsed.name)
 
                     let ingredient = Ingredient(
-                        originalText: ingredientText,
+                        originalText: ingredientText, // Will be reformatted below
                         name: parsed.name,
                         quantity: parsed.quantity,
                         unit: parsed.unit,
                         category: category,
                         orderIndex: index
                     )
+
+                    // Reformat the ingredient text to preserve fractions for imperial, decimals for metric
+                    if parsed.quantity != nil || parsed.unit != nil {
+                        let formatted = ingredientFormatter.format(ingredient, scaleFactor: 1.0, convertUnits: false)
+                        ingredient.originalText = formatted
+                    }
+
                     ingredient.recipe = recipe
                     newIngredients.append(ingredient)
                     modelContext.insert(ingredient)

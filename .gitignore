@@ -86,3 +86,6 @@ TestResults/
 scripts/node_modules/
 firebase/serviceAccountKey.json
 service-account-key.json
+
+build_output.txt
+PRODUCTION_READINESS_IMPLEMENTATION.md

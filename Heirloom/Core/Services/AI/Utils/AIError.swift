@@ -163,6 +163,9 @@ enum AIError: LocalizedError, CustomStringConvertible {
         case .apiError(let statusCode, _):
             // Retry on 5xx server errors
             return statusCode >= 500
+        case .jsonDecodingFailed:
+            // Retry JSON decoding failures (AI might have returned truncated/malformed JSON)
+            return true
         default:
             return false
         }
