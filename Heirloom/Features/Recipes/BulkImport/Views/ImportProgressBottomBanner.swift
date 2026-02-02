@@ -187,7 +187,12 @@ struct ImportProgressBottomBanner: View {
             if job.totalItems > 1 {
                 return "\(job.phase.displayName) • \(job.completedItems) of \(job.totalItems)"
             } else {
-                return job.phase.displayName
+                // Single item - show cookbook name if available, otherwise helpful context
+                if let cookbookName = job.cookbookName, !cookbookName.isEmpty {
+                    return "Saving to \(cookbookName)"
+                } else {
+                    return "Processing your recipe"
+                }
             }
         }
     }

@@ -260,7 +260,7 @@ struct ReadRecipeView: View {
         let transcription = transcribedText
 
         // Show toast and dismiss immediately
-        toastManager.show("Processing your recipe...", type: .info)
+        toastManager.show(type: .info, title: "Processing your recipe...")
         dismiss()
 
         // Process in background
@@ -306,14 +306,14 @@ struct ReadRecipeView: View {
             try modelContext.save()
 
             // Show success toast
-            toastManager.show("🎙️ \(recipe.title) is ready!", type: .success)
+            toastManager.show(type: .success, title: "🎙️ \(recipe.title) is ready!")
 
         } catch AIError.notConfigured(let provider) {
-            toastManager.show("API key not configured for \(provider)", type: .error)
+            toastManager.show(type: .error, title: "API key not configured for \(provider)")
         } catch AIError.quotaExceeded(let provider, let limit, _) {
-            toastManager.show("Daily limit of \(String(describing: limit)) requests exceeded", type: .error)
+            toastManager.show(type: .error, title: "Daily limit of \(String(describing: limit)) requests exceeded")
         } catch {
-            toastManager.show("Failed to process recipe", type: .error)
+            toastManager.show(type: .error, title: "Failed to process recipe")
         }
     }
 }

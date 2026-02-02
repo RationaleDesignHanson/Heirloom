@@ -116,7 +116,7 @@ struct RecipeGeneratorView: View {
         let recipeIngredients = ingredients
 
         // Show toast and dismiss immediately
-        toastManager.show("Generating \(recipeDishName)...", type: .info)
+        toastManager.show(type: .info, title: "Generating \(recipeDishName)...")
         dismiss()
 
         // Generate in background
@@ -174,16 +174,16 @@ struct RecipeGeneratorView: View {
             try modelContext.save()
 
             // Show success toast
-            toastManager.show("✨ \(recipe.title) is ready!", type: .success)
+            toastManager.show(type: .success, title: "✨ \(recipe.title) is ready!")
 
         } catch let error as ImageGenerationError {
-            toastManager.show(error.errorDescription ?? "Image generation failed", type: .error)
+            toastManager.show(type: .error, title: error.errorDescription ?? "Image generation failed")
         } catch AIError.notConfigured(let provider) {
-            toastManager.show("API key not configured for \(provider)", type: .error)
+            toastManager.show(type: .error, title: "API key not configured for \(provider)")
         } catch AIError.quotaExceeded(let provider, let limit, _) {
-            toastManager.show("Daily limit of \(String(describing: limit)) requests exceeded", type: .error)
+            toastManager.show(type: .error, title: "Daily limit of \(String(describing: limit)) requests exceeded")
         } catch {
-            toastManager.show("Failed to generate recipe", type: .error)
+            toastManager.show(type: .error, title: "Failed to generate recipe")
         }
     }
 }
