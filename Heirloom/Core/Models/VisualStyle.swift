@@ -116,11 +116,10 @@ enum VisualStyle: String, CaseIterable, Identifiable {
 }
 
 /// Configuration manager for visual style preferences
-@Observable
-class VisualStyleConfiguration {
+class VisualStyleConfiguration: ObservableObject {
     private static let storageKey = "visual_style_preference"
 
-    var selectedStyle: VisualStyle {
+    @Published var selectedStyle: VisualStyle {
         didSet {
             UserDefaults.standard.set(selectedStyle.rawValue, forKey: Self.storageKey)
         }
