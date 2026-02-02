@@ -20,7 +20,6 @@ struct RecipeListToolbarActions: View {
     let onCookbookScanner: () -> Void
     let onVideoImport: () -> Void
     let onAddCollection: () -> Void
-    let onAddNormalSample: () -> Void
     let onCollectionSettings: (() -> Void)? // Optional - only shown in collection detail views
     let onOpenSettings: () -> Void
 
@@ -123,22 +122,6 @@ struct RecipeListToolbarActions: View {
                 }
                 .accessibilityLabel("New Collection")
                 .accessibilityHint("Create a new collection")
-
-                Divider()
-
-                Menu {
-                    Button {
-                        onAddNormalSample()
-                    } label: {
-                        Label("Normal Recipe", systemImage: "fork.knife")
-                    }
-                    .accessibilityLabel("Normal Recipe")
-                    .accessibilityHint("Add a normal sample recipe")
-                } label: {
-                    Label("Generate Sample Recipe", systemImage: "sparkles")
-                }
-                .accessibilityLabel("Generate Sample Recipe")
-                .accessibilityHint("Generate a sample recipe for testing")
 
                 Divider()
 

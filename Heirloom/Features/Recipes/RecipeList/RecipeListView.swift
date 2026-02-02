@@ -364,7 +364,6 @@ struct RecipeListView: View {
                     tabCoordinator.willCreateCollection(from: .collectionsTab)
                     showCreateCollection = true
                 },
-                onAddNormalSample: addSampleRecipe,
                 onCollectionSettings: nil, // Not applicable in main recipe list
                 onOpenSettings: { showSettings = true }
             )
