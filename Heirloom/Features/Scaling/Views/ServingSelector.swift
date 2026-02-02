@@ -19,10 +19,80 @@ struct ServingSelector: View {
 
     var body: some View {
         if recipe.isScalingAllowed {
-            scalableView
+            // Check if servings are unparseable
+            let hasServingsIssue = recipe.scalingValidation.issues.contains { issue in
+                if case .servingsUnparseable = issue { return true }
+                return false
+            }
+
+            if hasServingsIssue {
+                multiplierView
+            } else {
+                scalableView
+            }
         } else {
             lockedView
         }
+    }
+
+    // MARK: - Multiplier View (for unparseable servings)
+
+    private var multiplierView: some View {
+        HStack(spacing: HeirloomSpacing.md) {
+            // Label
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                Text("Scale")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+
+                Text(multiplierText)
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(HeirloomColors.charcoal)
+            }
+
+            Spacer()
+
+            // Multiplier buttons
+            HStack(spacing: 8) {
+                ForEach([0.25, 0.5, 1.0, 2.0, 4.0], id: \.self) { multiplier in
+                    Button {
+                        setMultiplier(multiplier)
+                    } label: {
+                        Text(formatMultiplier(multiplier))
+                            .font(.caption)
+                            .fontWeight(currentMultiplier == multiplier ? .bold : .regular)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                currentMultiplier == multiplier
+                                    ? HeirloomColors.tomato
+                                    : Color.clear
+                            )
+                            .foregroundStyle(
+                                currentMultiplier == multiplier
+                                    ? .white
+                                    : HeirloomColors.charcoal
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .strokeBorder(
+                                        currentMultiplier == multiplier
+                                            ? Color.clear
+                                            : HeirloomColors.warmGray.opacity(0.3),
+                                        lineWidth: 1
+                                    )
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                }
+            }
+        }
+        .padding(HeirloomSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                .fill(.white)
+                .heirloomShadow(HeirloomShadows.subtle)
+        )
     }
 
     // MARK: - Scalable Recipe View
@@ -137,6 +207,40 @@ struct ServingSelector: View {
     private func incrementServings() {
         guard canIncrement else { return }
         targetServings += 1
+    }
+
+    // MARK: - Multiplier Logic
+
+    private var currentMultiplier: Double {
+        let base = Double(recipe.parsedServingCount)
+        return Double(targetServings) / base
+    }
+
+    private var multiplierText: String {
+        let mult = currentMultiplier
+        if mult == 1.0 {
+            return "1x"
+        } else if mult < 1.0 {
+            return String(format: "%.2gx", mult)
+        } else {
+            return String(format: "%.0fx", mult)
+        }
+    }
+
+    private func formatMultiplier(_ multiplier: Double) -> String {
+        if multiplier == 1.0 {
+            return "1x"
+        } else if multiplier < 1.0 {
+            return String(format: "%.2gx", multiplier)
+        } else {
+            return String(format: "%.0fx", multiplier)
+        }
+    }
+
+    private func setMultiplier(_ multiplier: Double) {
+        let base = recipe.parsedServingCount
+        let newServings = Int(Double(base) * multiplier)
+        targetServings = max(1, newServings) // Ensure at least 1 serving
     }
 }
 

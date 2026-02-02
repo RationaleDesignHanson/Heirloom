@@ -20,7 +20,13 @@ struct ScalingWarningBanner: View {
     @Binding var showRepairSheet: Bool
 
     var body: some View {
-        if !validation.isFullyScalable {
+        // Filter out servings issues (handled by multiplier UI)
+        let relevantIssues = validation.issues.filter { issue in
+            if case .servingsUnparseable = issue { return false }
+            return true
+        }
+
+        if !relevantIssues.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -36,7 +42,7 @@ struct ScalingWarningBanner: View {
                     .buttonStyle(.bordered)
                 }
 
-                ForEach(validation.issues, id: \.userMessage) { issue in
+                ForEach(relevantIssues, id: \.userMessage) { issue in
                     Text("• \(issue.userMessage)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
