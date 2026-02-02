@@ -102,9 +102,26 @@ struct OnboardingSubscriptionScreen: View {
                 // Fixed bottom CTAs
                 VStack(spacing: 12) {
                     if isLoadingProducts {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .frame(height: 64)
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+
+                            // Fallback CTA during loading
+                            Button(action: {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                onSkip()
+                            }) {
+                                Text("Continue free")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 48)
+                                    .background(Color.secondary.opacity(0.1))
+                                    .foregroundColor(.primary)
+                                    .cornerRadius(12)
+                            }
+                        }
+                        .frame(height: 120)
                     } else if let annualProduct = storeManager.products[ProductIdentifier.annual] {
                         // Start Free Trial Button - PRIMARY
                         Button(action: {
@@ -143,19 +160,62 @@ struct OnboardingSubscriptionScreen: View {
                                 .cornerRadius(12)
                         }
                         .disabled(isLoading)
+                    } else {
+                        // Products failed to load - show fallback CTAs
+                        VStack(spacing: 12) {
+                            Button(action: {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                Task {
+                                    isLoadingProducts = true
+                                    do {
+                                        try await storeManager.loadProducts()
+                                        errorMessage = nil
+                                        isLoadingProducts = false
+                                    } catch {
+                                        errorMessage = "Could not load subscription options"
+                                        isLoadingProducts = false
+                                    }
+                                }
+                            }) {
+                                Text("Try again")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 56)
+                                    .background(HeirloomColors.tomato)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(16)
+                            }
+
+                            Button(action: {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                onSkip()
+                            }) {
+                                Text("Continue free")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 48)
+                                    .background(Color.secondary.opacity(0.1))
+                                    .foregroundColor(.primary)
+                                    .cornerRadius(12)
+                            }
+                        }
                     }
 
-                    // Continue Free Button
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        onSkip()
-                    }) {
-                        Text("Continue free")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    // Continue Free Button (only show if products loaded)
+                    if !isLoadingProducts && storeManager.products[ProductIdentifier.annual] != nil {
+                        Button(action: {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            onSkip()
+                        }) {
+                            Text("Continue free")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        .disabled(isLoading)
+                        .padding(.bottom, 4)
                     }
-                    .disabled(isLoading)
-                    .padding(.bottom, 4)
 
                     // Error Message
                     if let error = errorMessage {
