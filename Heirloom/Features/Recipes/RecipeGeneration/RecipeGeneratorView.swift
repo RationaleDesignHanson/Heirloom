@@ -21,6 +21,7 @@ struct RecipeGeneratorView: View {
 
     private let generator: AIRecipeGeneratorProtocol
     private let imageGenerator: RecipeImageGeneratorProtocol
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
     init(generator: AIRecipeGeneratorProtocol, imageGenerator: RecipeImageGeneratorProtocol) {
         self.generator = generator
@@ -74,22 +75,13 @@ struct RecipeGeneratorView: View {
 
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        Task {
-                            await generateRecipe()
-                        }
+                        startBackgroundGeneration()
                     } label: {
-                        if isGenerating {
-                            ProgressView()
-                        } else {
-                            Text("Generate")
-                                .fontWeight(.semibold)
-                        }
+                        Text("Generate")
+                            .fontWeight(.semibold)
                     }
-                    .disabled(dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isGenerating)
+                    .disabled(dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
-            }
-            .navigationDestination(item: $generatedRecipe) { recipe in
-                RecipeDetailView(recipe: recipe)
             }
         }
     }
@@ -118,15 +110,26 @@ struct RecipeGeneratorView: View {
 
     // MARK: - Generation
 
-    @MainActor
-    private func generateRecipe() async {
-        errorMessage = nil
-        isGenerating = true
+    private func startBackgroundGeneration() {
+        // Capture current input values
+        let recipeDishName = dishName
+        let recipeIngredients = ingredients
 
-        defer {
-            isGenerating = false
+        // Show toast and dismiss immediately
+        toastManager.show("Generating \(recipeDishName)...", type: .info)
+        dismiss()
+
+        // Generate in background
+        Task.detached { @MainActor in
+            await self.generateRecipeInBackground(
+                dishName: recipeDishName,
+                ingredients: recipeIngredients
+            )
         }
+    }
 
+    @MainActor
+    private func generateRecipeInBackground(dishName: String, ingredients: String) async {
         do {
             // Parse ingredients if provided
             let ingredientList: [String]?
@@ -170,17 +173,17 @@ struct RecipeGeneratorView: View {
             // Save context
             try modelContext.save()
 
-            // Navigate to recipe detail
-            generatedRecipe = recipe
+            // Show success toast
+            toastManager.show("✨ \(recipe.title) is ready!", type: .success)
 
         } catch let error as ImageGenerationError {
-            errorMessage = error.errorDescription ?? "Image generation failed"
+            toastManager.show(error.errorDescription ?? "Image generation failed", type: .error)
         } catch AIError.notConfigured(let provider) {
-            errorMessage = "API key not configured for \(provider). Please add your API key in Settings."
+            toastManager.show("API key not configured for \(provider)", type: .error)
         } catch AIError.quotaExceeded(let provider, let limit, _) {
-            errorMessage = "Daily limit of \(String(describing: limit)) requests exceeded for \(provider). Please try again tomorrow or add your own API key in Settings."
+            toastManager.show("Daily limit of \(String(describing: limit)) requests exceeded", type: .error)
         } catch {
-            errorMessage = "Failed to generate recipe: \(error.localizedDescription)"
+            toastManager.show("Failed to generate recipe", type: .error)
         }
     }
 }

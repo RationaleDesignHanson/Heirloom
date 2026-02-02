@@ -497,12 +497,18 @@ struct CollectionsListView: View {
 
     private var unifiedCollectionsSection: some View {
         LazyVStack(spacing: HeirloomSpacing.lg) {
-            // My Collections section (FIRST - appears above themes)
+            // CTA banner (FIRST - pinned to top until user has substantial recipes)
+            if allRecipes.count <= 5 {
+                ctaBanner
+                    .padding(.bottom, HeirloomSpacing.sm)
+            }
+
+            // My Collections section (SECOND - appears above themes)
             if !myCollections.isEmpty {
                 myCollectionsSection
             }
 
-            // Theme collections section (SECOND - appears below My Collections)
+            // Theme collections section (THIRD - appears below My Collections)
             if !themeCollections.isEmpty {
                 themeSection
             } else if !myCollections.isEmpty {
@@ -518,40 +524,37 @@ struct CollectionsListView: View {
         .padding(.horizontal, HeirloomSpacing.lg)
     }
 
+    // MARK: - CTA Banner
+
+    private var ctaBanner: some View {
+        Button(action: {
+            // Visual guide only - user taps + button in toolbar
+        }) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Add your own recipe")
+                    .font(HeirloomFonts.body)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+
+                Text("Press the + button above to import or generate recipes")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(HeirloomColors.familyGreen)
+                    .shadow(color: HeirloomColors.familyGreen.opacity(0.3), radius: 8, y: 4)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - Theme Section
 
     private var themeSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            // CTA to guide users to add their own recipes (only show if they have few custom collections)
-            if myCollections.count <= 2 {
-                Button(action: {
-                    // Show toolbar menu by triggering it programmatically
-                    // Since we can't programmatically open a Menu, we'll show a toast instead
-                    // Actually, let's just make this a visual guide
-                }) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Add your own recipe")
-                            .font(HeirloomFonts.body)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.primary)
-
-                        Text("Press the + button above to import or generate recipes")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.systemBackground))
-                            .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
-                    )
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, HeirloomSpacing.md)
-                .padding(.bottom, HeirloomSpacing.sm)
-            }
-
             // Theme collection cards (full width)
             ForEach(themeCollections) { collection in
                 NavigationLink(value: collection) {

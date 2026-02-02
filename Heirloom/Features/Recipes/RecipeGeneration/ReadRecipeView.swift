@@ -27,6 +27,7 @@ struct ReadRecipeView: View {
     private let dictationService: VoiceDictationServiceProtocol
     private let recipeExtractor: AIRecipeExtractorProtocol
     private let imageGenerator: RecipeImageGeneratorProtocol
+    private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
 
     init(
         dictationService: VoiceDictationServiceProtocol,
@@ -140,22 +141,13 @@ struct ReadRecipeView: View {
 
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        Task {
-                            await processTranscription()
-                        }
+                        startBackgroundProcessing()
                     } label: {
-                        if isProcessing {
-                            ProgressView()
-                        } else {
-                            Text("Done")
-                                .fontWeight(.semibold)
-                        }
+                        Text("Done")
+                            .fontWeight(.semibold)
                     }
-                    .disabled(transcribedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isRecording || isProcessing)
+                    .disabled(transcribedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isRecording)
                 }
-            }
-            .navigationDestination(item: $structuredRecipe) { recipe in
-                RecipeDetailView(recipe: recipe)
             }
             .alert("Permissions Required", isPresented: $showingPermissionAlert) {
                 Button("Open Settings", role: nil) {
@@ -263,18 +255,25 @@ struct ReadRecipeView: View {
 
     // MARK: - Processing
 
-    @MainActor
-    private func processTranscription() async {
-        errorMessage = nil
-        isProcessing = true
+    private func startBackgroundProcessing() {
+        // Capture transcription
+        let transcription = transcribedText
 
-        defer {
-            isProcessing = false
+        // Show toast and dismiss immediately
+        toastManager.show("Processing your recipe...", type: .info)
+        dismiss()
+
+        // Process in background
+        Task.detached { @MainActor in
+            await self.processTranscriptionInBackground(transcription)
         }
+    }
 
+    @MainActor
+    private func processTranscriptionInBackground(_ transcription: String) async {
         do {
             // Extract recipe structure from transcription
-            let recipe = try await recipeExtractor.extract(from: transcribedText)
+            let recipe = try await recipeExtractor.extract(from: transcription)
 
             // Mark as voice dictated
             recipe.voiceDictated = true
@@ -306,15 +305,15 @@ struct ReadRecipeView: View {
             // Save context
             try modelContext.save()
 
-            // Navigate to recipe detail
-            structuredRecipe = recipe
+            // Show success toast
+            toastManager.show("🎙️ \(recipe.title) is ready!", type: .success)
 
         } catch AIError.notConfigured(let provider) {
-            errorMessage = "API key not configured for \(provider). Please add your API key in Settings."
+            toastManager.show("API key not configured for \(provider)", type: .error)
         } catch AIError.quotaExceeded(let provider, let limit, _) {
-            errorMessage = "Daily limit of \(String(describing: limit)) requests exceeded for \(provider). Please try again tomorrow or add your own API key in Settings."
+            toastManager.show("Daily limit of \(String(describing: limit)) requests exceeded", type: .error)
         } catch {
-            errorMessage = "Failed to process recipe: \(error.localizedDescription)"
+            toastManager.show("Failed to process recipe", type: .error)
         }
     }
 }
