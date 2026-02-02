@@ -3,15 +3,15 @@
 //  Heirloom
 //
 //  Created by Claude Code on 2026-01-23.
-//  Subscription offer screen during onboarding flow
+//  Updated for new 5-screen onboarding flow on 2026-02-01
 //
 
 import SwiftUI
 import UIKit
 import StoreKit
 
-/// Subscription offer screen shown at end of onboarding
-/// Presents trial offer with option to skip
+/// Premium trial screen - Screen 2 of 5
+/// Presents early premium upsell with clear "Continue free" option
 struct OnboardingSubscriptionScreen: View {
 
     // MARK: - Environment
@@ -46,199 +46,116 @@ struct OnboardingSubscriptionScreen: View {
             )
             .ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 32) {
-                    Spacer()
-                        .frame(height: 40)
+            VStack(spacing: 0) {
+                // Progress indicator
+                Text("2/5")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundColor(HeirloomColors.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 16)
+                    .padding(.bottom, 8)
 
-                    // Header
-                    VStack(spacing: 16) {
-                        Image(systemName: "gift.fill")
-                            .font(.system(size: 60))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [Color.orange, Color.pink],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                // Scrollable content
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Header
+                        VStack(spacing: 12) {
+                            Text("Unlock faster saving")
+                                .font(HeirloomFonts.title1Elevated)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(2)
+                                .kerning(-0.5)
+
+                            Text("Video Import, Cookbook Scan, and Cloud Sync—ready when you are.")
+                                .font(HeirloomFonts.body)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+
+                        // Features (3 items)
+                        VStack(spacing: 16) {
+                            SubscriptionFeatureRow(
+                                icon: "video.fill",
+                                title: "Save recipes from videos",
+                                description: "TikTok, Instagram, YouTube—instant recipes"
                             )
 
-                        Text("Try Premium Free")
-                            .font(HeirloomFonts.title1Elevated)
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(2)
-                            .kerning(-0.5)
+                            SubscriptionFeatureRow(
+                                icon: "book.fill",
+                                title: "Scan cookbook pages",
+                                description: "Photograph any recipe, digitize in seconds"
+                            )
 
-                        Text("Start your 14-day free trial")
-                            .font(HeirloomFonts.body)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(.horizontal)
-
-                    // Features
-                    VStack(spacing: 20) {
-                        SubscriptionFeatureRow(
-                            icon: "video.fill",
-                            title: "Unlimited Video Imports",
-                            description: "Extract recipes from any cooking video"
-                        )
-
-                        SubscriptionFeatureRow(
-                            icon: "book.fill",
-                            title: "Cookbook Scanner",
-                            description: "Digitize recipes from physical cookbooks"
-                        )
-
-                        SubscriptionFeatureRow(
-                            icon: "sparkles",
-                            title: "Visual Recipe Extraction",
-                            description: "ASMR-style recipe extraction from videos"
-                        )
-
-                        SubscriptionFeatureRow(
-                            icon: "calendar.badge.plus",
-                            title: "Daily Heritage Recipes",
-                            description: "New classic recipes delivered daily during your trial"
-                        )
-
-                        SubscriptionFeatureRow(
-                            icon: "arrow.triangle.2.circlepath",
-                            title: "Sync Across Devices",
-                            description: "Access your recipes on all your devices"
-                        )
-                    }
-                    .padding(.horizontal, 24)
-
-                    // Pricing
-                    if let annualProduct = storeManager.products[ProductIdentifier.annual] {
-                        VStack(spacing: 8) {
-                            Text("Then \(annualProduct.displayPrice)/year")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-
-                            Text("Cancel anytime during trial")
-                                .font(.caption)
-                                .foregroundColor(.secondary.opacity(0.6))
+                            SubscriptionFeatureRow(
+                                icon: "icloud.fill",
+                                title: "Sync across devices",
+                                description: "iPhone, iPad, Mac—access everywhere"
+                            )
                         }
+                        .padding(.horizontal, 24)
                     }
+                    .padding(.bottom, 16)
+                }
 
-                    // CTA Buttons
-                    VStack(spacing: HeirloomSpacing.md) {
-                        if isLoadingProducts {
-                            // Loading indicator while products load
-                            ProgressView()
-                                .progressViewStyle(.circular)
-                                .frame(height: 64)
-                        } else if let annualProduct = storeManager.products[ProductIdentifier.annual] {
-                        // Subscribe Now Button - PRIMARY UPSELL
-                            VStack(spacing: 8) {
-                                // Best Value Badge
-                                HStack {
-                                    Spacer()
-                                    Text("BEST VALUE")
-                                        .font(.caption2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 4)
-                                        .background(
-                                            Capsule()
-                                                .fill(Color.green)
-                                        )
-                                    Spacer()
-                                }
-
-                                Button(action: {
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                    subscribeNow()
-                                }) {
-                                    VStack(spacing: 4) {
-                                        Text("Subscribe Now")
-                                            .font(.headline)
-                                            .fontWeight(.bold)
-                                        Text("\(annualProduct.displayPrice)/year • Full Access")
-                                            .font(.caption)
-                                            .opacity(0.9)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 64)
-                                    .background(
-                                        LinearGradient(
-                                            colors: [Color.green, Color.green.opacity(0.8)],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .foregroundColor(.white)
-                                    .cornerRadius(16)
-                                }
-                                .heirloomShadow(HeirloomShadows.elevated)
-                                .disabled(isLoading)
-                            }
-                        }
-
-                        // Divider with "OR"
-                        HStack {
-                            Rectangle()
-                                .fill(Color.secondary.opacity(0.3))
-                                .frame(height: 1)
-                            Text("OR")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal, 8)
-                            Rectangle()
-                                .fill(Color.secondary.opacity(0.3))
-                                .frame(height: 1)
-                        }
-                        .padding(.vertical, 4)
-
-                        // Start Trial Button - SECONDARY OPTION
+                // Fixed bottom CTAs
+                VStack(spacing: 12) {
+                    if isLoadingProducts {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .frame(height: 64)
+                    } else if let annualProduct = storeManager.products[ProductIdentifier.annual] {
+                        // Start Free Trial Button - PRIMARY
                         Button(action: {
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                             startTrial()
                         }) {
-                            HStack {
-                                if isLoading {
-                                    ProgressView()
-                                        .progressViewStyle(.circular)
-                                        .tint(HeirloomColors.charcoal)
-                                } else {
-                                    VStack(spacing: 2) {
-                                        Text("Try Free for 14 Days")
-                                            .font(.headline)
-                                        Text("Then \(storeManager.products[.annual]?.displayPrice ?? "$29.99")/year")
-                                            .font(.caption)
-                                            .opacity(0.7)
-                                    }
-                                }
+                            VStack(spacing: 4) {
+                                Text("Start free trial")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                Text("Then \(annualProduct.displayPrice)/year")
+                                    .font(.caption)
+                                    .opacity(0.9)
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
-                            .background(HeirloomColors.cream)
-                            .foregroundColor(HeirloomColors.charcoal)
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .strokeBorder(HeirloomColors.charcoal.opacity(0.2), lineWidth: 1.5)
-                            )
+                            .background(HeirloomColors.tomato)
+                            .foregroundColor(.white)
+                            .cornerRadius(16)
+                            .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
                         }
                         .disabled(isLoading)
 
-                        // Skip Button - MINIMAL
+                        // Subscribe Now Button - SECONDARY (no trial)
                         Button(action: {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            onSkip()
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            subscribeNow()
                         }) {
-                            Text("Continue with Limited Features")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .underline()
+                            Text("Subscribe now (\(annualProduct.displayPrice)/year)")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 48)
+                                .background(HeirloomColors.familyGreen)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
                         }
                         .disabled(isLoading)
-                        .padding(.top, 4)
                     }
-                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
+
+                    // Continue Free Button
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        onSkip()
+                    }) {
+                        Text("Continue free")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .disabled(isLoading)
+                    .padding(.bottom, 4)
 
                     // Error Message
                     if let error = errorMessage {
@@ -246,25 +163,15 @@ struct OnboardingSubscriptionScreen: View {
                             .font(.caption)
                             .foregroundColor(.red)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal)
                     }
 
-                    // Legal
-                    VStack(spacing: 8) {
-                        // Primary focus on trial and pricing
-                        Text("Free for 14 days, then \(storeManager.products[.annual]?.displayPrice ?? "$29.99")/year")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .fontWeight(.medium)
-                            .multilineTextAlignment(.center)
-
-                        // Secondary benefit - daily recipe bonuses
-                        Text("Includes daily heritage recipe bonuses during trial")
-                            .font(.caption2)
+                    // Microcopy
+                    VStack(spacing: 4) {
+                        Text("Cancel anytime")
+                            .font(HeirloomFonts.caption2)
                             .foregroundColor(.secondary.opacity(0.6))
-                            .multilineTextAlignment(.center)
 
-                        HStack(spacing: 16) {
+                        HStack(spacing: 8) {
                             Link("Terms", destination: URL(string: "https://heirloom-ios-prod.web.app/terms.html")!)
                             Text("•")
                             Link("Privacy", destination: URL(string: "https://heirloom-ios-prod.web.app/privacy.html")!)
@@ -272,9 +179,19 @@ struct OnboardingSubscriptionScreen: View {
                         .font(.caption2)
                         .foregroundColor(.secondary.opacity(0.6))
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 32)
                 }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 20)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.95, green: 0.90, blue: 0.85).opacity(0),
+                            Color(red: 0.95, green: 0.90, blue: 0.85)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
             }
         }
         .task {

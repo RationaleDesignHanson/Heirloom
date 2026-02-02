@@ -390,6 +390,8 @@
 		C5EF775D2F2FC6140097779E /* DuplicateDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF775B2F2FC6140097779E /* DuplicateDetectionService.swift */; };
 		C5EF775F2F300CC10097779E /* GoogleVisionOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF775E2F300CC10097779E /* GoogleVisionOCRService.swift */; };
 		C5EF77612F303B870097779E /* ProfileHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77602F303B870097779E /* ProfileHeaderView.swift */; };
+		C5EF77642F304BFC0097779E /* OnboardingDiscoverScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77622F304BFC0097779E /* OnboardingDiscoverScreen.swift */; };
+		C5EF77652F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77632F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift */; };
 		CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC154590CE51056017C5D6 /* CommentService.swift */; };
 		CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD518726BAFEC566E22D0315 /* Tag.swift */; };
 		CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBB366ABEF58AF23B4D64FE /* ImportItem.swift */; };
@@ -804,6 +806,8 @@
 		C5EF775B2F2FC6140097779E /* DuplicateDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateDetectionService.swift; sourceTree = "<group>"; };
 		C5EF775E2F300CC10097779E /* GoogleVisionOCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleVisionOCRService.swift; sourceTree = "<group>"; };
 		C5EF77602F303B870097779E /* ProfileHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileHeaderView.swift; sourceTree = "<group>"; };
+		C5EF77622F304BFC0097779E /* OnboardingDiscoverScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingDiscoverScreen.swift; sourceTree = "<group>"; };
+		C5EF77632F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingShareAndAcceptScreen.swift; sourceTree = "<group>"; };
 		C6DCC0C21D884197B1F0F9AA /* ScalingWarningBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingWarningBanner.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C9A499F6282CBE6AC6C45E99 /* RecipeStructureParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeStructureParser.swift; sourceTree = "<group>"; };
@@ -1118,6 +1122,8 @@
 		7163C016CDBBBFAAE25B1F74 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77622F304BFC0097779E /* OnboardingDiscoverScreen.swift */,
+				C5EF77632F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift */,
 				C5364FD62F27CA35003D342E /* ThemeSelectionScreen.swift */,
 				C502FA462F24110C00BF1696 /* OnboardingSubscriptionScreen.swift */,
 				C502EB792F2341FD00BF1696 /* Components */,
@@ -2812,6 +2818,8 @@
 				595A6356EEFF0154AED1955E /* RecipeStructureParser.swift in Sources */,
 				1E7D0C95CDBDC0560A371AE2 /* RemindersService.swift in Sources */,
 				C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */,
+				C5EF77642F304BFC0097779E /* OnboardingDiscoverScreen.swift in Sources */,
+				C5EF77652F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift in Sources */,
 				C583197F2F123D280096478E /* ASMRPassProgressCard.swift in Sources */,
 				C5CE3F2A2F2D1B1000A2E62F /* UserSearchResult.swift in Sources */,
 				C58319802F123D280096478E /* ASMRUsageBadge.swift in Sources */,

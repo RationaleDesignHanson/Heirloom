@@ -3,20 +3,23 @@
 //  Heirloom
 //
 //  Created by Claude Code on 2026-01-08.
+//  Updated for new 5-screen onboarding flow on 2026-02-01
 //
 
 import SwiftUI
 import SwiftData
 
-/// Container view that manages the 3-screen onboarding flow
+/// Container view that manages the 5-screen onboarding flow
 struct OnboardingContainerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var notificationService: FirebaseNotificationService
     @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
-    @State private var currentScreen: OnboardingScreen = .videoHero
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
+    @State private var currentScreen: OnboardingScreen = .welcome
     @State private var hasSeededHeritage = false
     @State private var selectedThemeIds: [String] = []
+    @State private var showThemeSelection = false
 
     /// Binding to control which tab should be selected after onboarding
     @Binding var selectedTab: Int
@@ -25,81 +28,84 @@ struct OnboardingContainerView: View {
     var onComplete: () -> Void
 
     enum OnboardingScreen {
-        case videoHero
-        case shareExtension
-        case flexibility
-        case organization
-        case themeSelection // NEW: Theme selection
-        case subscription
+        case welcome           // Screen 1: Recipe box vision
+        case premiumTrial      // Screen 2: Early premium upsell
+        case shareSheetAha     // Screen 3: One-tap save tutorial
+        case shareAndAccept    // Screen 4: Intentional sharing model
+        case discover          // Screen 5: Optional community
     }
 
     var body: some View {
         NavigationStack {
             switch currentScreen {
-            case .videoHero:
-                OnboardingVideoHeroScreen {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .shareExtension
-                    }
-                }
-                .transition(.asymmetric(
-                    insertion: .move(edge: .trailing),
-                    removal: .move(edge: .leading)
-                ))
-
-            case .shareExtension:
-                OnboardingShareExtensionScreen {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .flexibility
-                    }
-                }
-                .transition(.asymmetric(
-                    insertion: .move(edge: .trailing),
-                    removal: .move(edge: .leading)
-                ))
-
-            case .flexibility:
-                OnboardingFlexibilityScreen {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .organization
-                    }
-                }
-                .transition(.asymmetric(
-                    insertion: .move(edge: .trailing),
-                    removal: .move(edge: .leading)
-                ))
-
-            case .organization:
-                OnboardingOrganizationScreen {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        currentScreen = .themeSelection
-                    }
-                }
-                .transition(.asymmetric(
-                    insertion: .move(edge: .trailing),
-                    removal: .move(edge: .leading)
-                ))
-
-            case .themeSelection:
-                ThemeSelectionScreen { themeIds in
-                    handleThemeSelection(themeIds)
-                }
-                .transition(.asymmetric(
-                    insertion: .move(edge: .trailing),
-                    removal: .move(edge: .leading)
-                ))
-                .task {
-                    await loadThemesIfNeeded()
-                }
-
-            case .subscription:
-                OnboardingSubscriptionScreen(
-                    onStartTrial: {
-                        // User chose to start trial - complete onboarding
-                        completeOnboarding()
+            case .welcome:
+                OnboardingWelcomeScreen(
+                    onContinue: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentScreen = .premiumTrial
+                        }
                     },
                     onSkip: {
-                        // User chose to continue free - complete onboarding
+                        // User chose to skip entire onboarding
+                        completeOnboarding()
+                    }
+                )
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+
+            case .premiumTrial:
+                OnboardingSubscriptionScreen(
+                    onStartTrial: {
+                        // User started trial - continue to next screen
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentScreen = .shareSheetAha
+                        }
+                    },
+                    onSkip: {
+                        // User chose to continue free - continue to next screen
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentScreen = .shareSheetAha
+                        }
+                    }
+                )
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+
+            case .shareSheetAha:
+                OnboardingShareExtensionScreen {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        currentScreen = .shareAndAccept
+                    }
+                }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+
+            case .shareAndAccept:
+                OnboardingShareAndAcceptScreen {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        currentScreen = .discover
+                    }
+                }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+
+            case .discover:
+                OnboardingDiscoverScreen(
+                    onStartSaving: {
+                        // Complete onboarding and navigate to Collections tab
+                        completeOnboarding()
+                    },
+                    onExploreDiscover: {
+                        // Complete onboarding and navigate to Discover tab
+                        selectedTab = 1 // Discover tab
                         completeOnboarding()
                     }
                 )
@@ -125,6 +131,14 @@ struct OnboardingContainerView: View {
                 }
             }
         }
+        .sheet(isPresented: $showThemeSelection) {
+            ThemeSelectionScreen { themeIds in
+                handleThemeSelection(themeIds)
+            }
+            .task {
+                await loadThemesIfNeeded()
+            }
+        }
     }
 
     // MARK: - Private Methods
@@ -134,21 +148,25 @@ struct OnboardingContainerView: View {
     private func handleThemeSelection(_ themeIds: [String]) {
         selectedThemeIds = themeIds
 
-        // Start the trial
-        themeUnlockTracker.startTrial(withThemeIds: themeIds)
+        // Only setup themes if user selected any
+        if !themeIds.isEmpty {
+            // Start the trial (if user has premium)
+            themeUnlockTracker.startTrial(withThemeIds: themeIds)
 
-        // Create collections for selected themes
-        createThemeCollections(for: themeIds)
+            // Create collections for selected themes
+            createThemeCollections(for: themeIds)
 
-        // Download initial recipes
-        Task {
-            await downloadInitialRecipes(for: themeIds)
+            // Download initial recipes
+            Task {
+                await downloadInitialRecipes(for: themeIds)
+            }
         }
 
-        // Continue to subscription
-        withAnimation(.easeInOut(duration: 0.3)) {
-            currentScreen = .subscription
-        }
+        // Close theme selection sheet
+        showThemeSelection = false
+
+        // Complete onboarding (theme selection was the final step after main flow)
+        finalizeOnboarding()
     }
 
     // MARK: - Theme Loading
@@ -232,6 +250,12 @@ struct OnboardingContainerView: View {
     }
 
     private func completeOnboarding() {
+        // Show theme selection sheet after main onboarding flow
+        // User can select heritage themes or skip
+        showThemeSelection = true
+    }
+
+    private func finalizeOnboarding() {
         // Mark onboarding as complete
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
 

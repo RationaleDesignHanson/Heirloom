@@ -35,7 +35,7 @@ struct OnboardingRecipeCard: View {
                         .foregroundStyle(HeirloomColors.buttonTextLight)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 3)
-                        .background(HeirloomColors.tomato)
+                        .background(HeirloomColors.familyGreen)
                         .cornerRadius(4)
                         .padding(HeirloomSpacing.sm)
                 }

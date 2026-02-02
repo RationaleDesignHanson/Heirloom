@@ -56,12 +56,12 @@ struct ThemeSelectionScreen: View {
 
     private var headerSection: some View {
         VStack(spacing: HeirloomSpacing.sm) {
-            Text("What sounds delicious?")
+            Text("Preserve culinary heritage")
                 .font(HeirloomFonts.largeTitle)
                 .foregroundStyle(HeirloomColors.primaryText)
                 .multilineTextAlignment(.center)
 
-            Text("Pick \(minSelections)-\(maxSelections) themes. We'll unlock recipes from your selections over the next 14 days.")
+            Text("Choose \(minSelections)-\(maxSelections) heritage themes to explore. Don't let these recipes be lost to history.")
                 .font(HeirloomFonts.body)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .multilineTextAlignment(.center)
@@ -141,9 +141,20 @@ struct ThemeSelectionScreen: View {
             }
             .disabled(!canContinue || isLoading)
 
+            // Skip button
+            Button {
+                skipSelection()
+            } label: {
+                Text("Skip for now")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+            .disabled(isLoading)
+            .padding(.top, HeirloomSpacing.xs)
+
             // Helper text
             if selectedThemeIds.count < minSelections {
-                Text("Select at least \(minSelections - selectedThemeIds.count) more theme\(minSelections - selectedThemeIds.count == 1 ? "" : "s")")
+                Text("Select at least \(minSelections - selectedThemeIds.count) more theme\(minSelections - selectedThemeIds.count == 1 ? "" : "s"), or skip")
                     .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
             } else if selectedThemeIds.count == maxSelections {
@@ -182,6 +193,11 @@ struct ThemeSelectionScreen: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             onComplete(Array(selectedThemeIds))
         }
+    }
+
+    private func skipSelection() {
+        // User chose to skip theme selection - complete with empty array
+        onComplete([])
     }
 }
 

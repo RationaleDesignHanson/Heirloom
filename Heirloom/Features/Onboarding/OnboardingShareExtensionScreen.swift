@@ -3,11 +3,13 @@
 //  Heirloom
 //
 //  Created by Claude Code on 2026-01-23.
+//  Updated for new 5-screen onboarding flow on 2026-02-01
 //
 
 import SwiftUI
 
-/// Second onboarding screen - Share Extension tutorial
+/// Share Sheet Aha screen - Screen 3 of 5
+/// Teaches the core one-tap save workflow
 struct OnboardingShareExtensionScreen: View {
     let onContinue: () -> Void
 
@@ -15,60 +17,100 @@ struct OnboardingShareExtensionScreen: View {
 
     var body: some View {
         ZStack {
-            // Background with paper texture
-            backgroundLayer
+            // Background gradient
+            LinearGradient(
+                colors: [
+                    Color(red: 0.98, green: 0.95, blue: 0.90), // Warm cream
+                    Color(red: 0.95, green: 0.90, blue: 0.85)  // Soft beige
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Spacer()
-                    .frame(minHeight: 30, maxHeight: 50)
+                // Progress indicator
+                Text("3/5")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundColor(HeirloomColors.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 16)
+                    .padding(.bottom, 8)
 
-                // Title
-                Text("Share from anywhere")
-                    .font(HeirloomFonts.largeTitle)
-                    .foregroundStyle(HeirloomColors.charcoal)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(2)
-                    .kerning(-0.5)
-                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
+                // Scrollable content
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Header
+                        VStack(spacing: 12) {
+                            Text("Save from anywhere")
+                                .font(HeirloomFonts.title1Elevated)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(2)
+                                .kerning(-0.5)
 
-                // Subtitle
-                Text("Share videos, links, or photos to Heirloom from anywhere")
-                    .font(HeirloomFonts.body)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-                    .padding(.top, HeirloomSpacing.sm)
+                            Text("Tap Share → Save to Heirloom. Done.")
+                                .font(HeirloomFonts.body)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
 
-                // Share sheet mockup
-                shareSheetMock
-                    .padding(.top, HeirloomSpacing.onboardingScreenPadding)
-                    .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
+                        // Share sheet mockup
+                        shareSheetMock
+                            .padding(.horizontal, 24)
 
-                // 3-step tutorial
-                tutorialSteps
-                    .padding(.top, HeirloomSpacing.onboardingSectionSpacing)
-                    .padding(.horizontal, 40)
-
-                Spacer()
-                    .frame(minHeight: 20, maxHeight: 40)
-
-                // Continue Button
-                Button {
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    onContinue()
-                } label: {
-                    Text("Continue")
-                        .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(HeirloomColors.buttonTextLight)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(HeirloomColors.tomato)
-                        .cornerRadius(12)
+                        // 3-step tutorial
+                        tutorialSteps
+                            .padding(.horizontal, 24)
+                    }
+                    .padding(.bottom, 16)
                 }
-                .padding(.horizontal, HeirloomSpacing.onboardingScreenPadding)
 
-                Spacer()
-                    .frame(minHeight: 30, maxHeight: 50)
+                // Fixed bottom CTAs
+                VStack(spacing: 12) {
+                    Button {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        onContinue()
+                    } label: {
+                        Text("Continue")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(HeirloomColors.tomato)
+                            .foregroundColor(.white)
+                            .cornerRadius(16)
+                            .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
+                    }
+
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        onContinue()
+                    } label: {
+                        Text("Show me later")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.bottom, 4)
+
+                    // Microcopy
+                    Text("Works from Safari, PDFs, and videos.")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundColor(.secondary.opacity(0.6))
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 20)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.95, green: 0.90, blue: 0.85).opacity(0),
+                            Color(red: 0.95, green: 0.90, blue: 0.85)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
             }
         }
         .onAppear {

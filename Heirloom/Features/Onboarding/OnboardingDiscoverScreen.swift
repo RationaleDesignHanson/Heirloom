@@ -1,20 +1,17 @@
 //
-//  OnboardingWelcomeScreen.swift
+//  OnboardingDiscoverScreen.swift
 //  Heirloom
 //
 //  Created by Claude Code on 2026-02-01.
-//  Updated for new 5-screen onboarding flow
 //
 
 import SwiftUI
 
-/// Welcome screen - Screen 1 of 5
-/// Shows the "recipe box" vision to set context
-struct OnboardingWelcomeScreen: View {
-    let onContinue: () -> Void
-    let onSkip: () -> Void
-
-    @State private var showCards = false
+/// Discover screen - Screen 5 of 5
+/// Introduces optional community browsing with privacy emphasis
+struct OnboardingDiscoverScreen: View {
+    let onStartSaving: () -> Void
+    let onExploreDiscover: () -> Void
 
     var body: some View {
         ZStack {
@@ -31,7 +28,7 @@ struct OnboardingWelcomeScreen: View {
 
             VStack(spacing: 0) {
                 // Progress indicator
-                Text("1/5")
+                Text("5/5")
                     .font(HeirloomFonts.caption1)
                     .foregroundColor(HeirloomColors.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -43,13 +40,13 @@ struct OnboardingWelcomeScreen: View {
                     VStack(spacing: 20) {
                         // Header
                         VStack(spacing: 12) {
-                            Text("Your Recipe Box, finally")
+                            Text("Discover when you want")
                                 .font(HeirloomFonts.title1Elevated)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(2)
                                 .kerning(-0.5)
 
-                            Text("Save recipes from links, PDFs, and videos—in one tap.")
+                            Text("Browse community recipes—or keep everything private.")
                                 .font(HeirloomFonts.body)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -57,9 +54,9 @@ struct OnboardingWelcomeScreen: View {
                         .padding(.horizontal, 24)
                         .padding(.top, 8)
 
-                        // Recipe box mockup
-                        recipeBoxMockup
-                            .padding(.horizontal, HeirloomSpacing.md)
+                        // Discover feed mockup
+                        discoverFeedMockup
+                            .padding(.horizontal, 24)
                     }
                     .padding(.bottom, 16)
                 }
@@ -68,9 +65,9 @@ struct OnboardingWelcomeScreen: View {
                 VStack(spacing: 12) {
                     Button(action: {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        onContinue()
+                        onStartSaving()
                     }) {
-                        Text("Continue")
+                        Text("Start saving")
                             .font(.headline)
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity)
@@ -83,16 +80,16 @@ struct OnboardingWelcomeScreen: View {
 
                     Button(action: {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        onSkip()
+                        onExploreDiscover()
                     }) {
-                        Text("Skip")
+                        Text("Explore Discover")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     .padding(.bottom, 4)
 
                     // Microcopy
-                    Text("Private by default")
+                    Text("Publish only what you choose.")
                         .font(HeirloomFonts.caption2)
                         .foregroundColor(.secondary.opacity(0.6))
                 }
@@ -110,95 +107,102 @@ struct OnboardingWelcomeScreen: View {
                 )
             }
         }
-        .onAppear {
-            // Trigger card animations
-            withAnimation(.easeOut(duration: 0.4).delay(0.2)) {
-                showCards = true
-            }
-        }
     }
 
-    // MARK: - Recipe Box Mockup
+    // MARK: - Discover Feed Mockup
 
-    private var recipeBoxMockup: some View {
+    private var discoverFeedMockup: some View {
         VStack(spacing: 16) {
-            // Search bar mockup
+            // Header with privacy indicator
             HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                Text("Search recipes...")
-                    .foregroundColor(.secondary)
-                Spacer()
-            }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                Text("Discover Feed")
+                    .font(HeirloomFonts.title3)
+                    .foregroundColor(HeirloomColors.primaryText)
 
-            // Recipe cards grid (2x3)
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ], spacing: 12) {
-                recipeCardMockup(name: "Pasta", time: "20min", index: 0)
-                recipeCardMockup(name: "Bread", time: "2hrs", index: 1)
-                recipeCardMockup(name: "Salad", time: "10min", index: 2)
-                recipeCardMockup(name: "Curry", time: "45min", index: 3)
-                recipeCardMockup(name: "Soup", time: "30min", index: 4)
-                recipeCardMockup(name: "Stir Fry", time: "25min", index: 5)
+                Spacer()
+
+                // Private by default badge
+                HStack(spacing: 4) {
+                    Image(systemName: "lock.shield.fill")
+                        .font(.caption2)
+                    Text("Private by default")
+                        .font(HeirloomFonts.caption2)
+                }
+                .foregroundColor(HeirloomColors.familyGreen)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(HeirloomColors.familyGreen.opacity(0.1))
+                .cornerRadius(8)
             }
+            .padding(.horizontal)
+            .padding(.top)
+
+            Divider()
+                .padding(.horizontal)
+
+            // Recipe cards
+            VStack(spacing: 12) {
+                discoverRecipeCard(name: "Classic Carbonara", author: "Italian Chef")
+                discoverRecipeCard(name: "Chocolate Cake", author: "Home Baker")
+                discoverRecipeCard(name: "Thai Green Curry", author: "Spice Master")
+            }
+            .padding(.horizontal)
+            .padding(.bottom)
         }
-        .padding()
         .background(HeirloomColors.cardBackground)
         .cornerRadius(20)
         .shadow(color: .black.opacity(0.08), radius: 12, y: 6)
     }
 
-    private func recipeCardMockup(name: String, time: String, index: Int) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Image placeholder
+    private func discoverRecipeCard(name: String, author: String) -> some View {
+        HStack(spacing: 12) {
+            // Recipe image placeholder
             RoundedRectangle(cornerRadius: 8)
                 .fill(HeirloomColors.warmGray.opacity(0.2))
-                .frame(height: 80)
+                .frame(width: 80, height: 80)
                 .overlay(
                     Image(systemName: "photo")
-                        .font(.title2)
+                        .font(.title3)
                         .foregroundColor(HeirloomColors.warmGray.opacity(0.5))
                 )
 
-            // Recipe name
-            Text(name)
-                .font(HeirloomFonts.bodyBold)
-                .foregroundColor(HeirloomColors.primaryText)
+            // Recipe info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(name)
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundColor(HeirloomColors.primaryText)
 
-            // Time
-            HStack(spacing: 4) {
-                Image(systemName: "clock")
-                    .font(.caption2)
-                Text(time)
-                    .font(HeirloomFonts.caption2)
+                Text("by \(author)")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundColor(HeirloomColors.secondaryText)
             }
-            .foregroundColor(HeirloomColors.secondaryText)
+
+            Spacer()
+
+            // Save button
+            Button(action: {}) {
+                Text("Save")
+                    .font(HeirloomFonts.caption1)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(HeirloomColors.tomato)
+                    .cornerRadius(8)
+            }
         }
-        .padding(12)
+        .padding()
         .background(Color.white)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-        .opacity(showCards ? 1 : 0)
-        .offset(y: showCards ? 0 : 20)
-        .animation(
-            .easeOut(duration: 0.4)
-                .delay(Double(index) * 0.1),
-            value: showCards
-        )
     }
 }
 
 // MARK: - Preview
 
 #Preview {
-    OnboardingWelcomeScreen(
-        onContinue: { print("Continue tapped") },
-        onSkip: { print("Skip tapped") }
+    OnboardingDiscoverScreen(
+        onStartSaving: { print("Start saving tapped") },
+        onExploreDiscover: { print("Explore Discover tapped") }
     )
 }
