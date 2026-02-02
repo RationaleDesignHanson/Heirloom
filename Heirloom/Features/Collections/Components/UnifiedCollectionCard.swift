@@ -304,9 +304,9 @@ struct UnifiedCollectionCard: View {
                 placeholder: collection.iconName
             )
         }
-        // Show + affordance in first empty slot when collection has exactly 1 recipe (standard only)
+        // Show + affordance in first empty slot when collection has 1-3 recipes (standard only)
         else if case .standard(let onAddRecipeTap) = variant,
-                recipeCount == 1 && recipe == nil && isFirstSlot {
+                recipe == nil && isFirstSlot && recipeCount <= 3 {
             addRecipeAffordance(onTap: onAddRecipeTap)
         }
         else {
