@@ -16,12 +16,17 @@ struct KitchenTableView: View {
         ServiceContainer.shared.resolve(ConnectionServiceProtocol.self)
     }
 
+    private var profileService: ProfileServiceProtocol {
+        ServiceContainer.shared.resolve(ProfileServiceProtocol.self)
+    }
+
     private var toastManager: ToastManager {
         ServiceContainer.shared.resolve(ToastManager.self)
     }
 
     // MARK: - State
 
+    @State private var profile: UserProfile?
     @State private var connections: [Connection] = []
     @State private var pendingRequests: [Connection] = []
     @State private var isLoading = true
@@ -37,11 +42,13 @@ struct KitchenTableView: View {
     @State private var showUserSearch = false
     @State private var selectedConnection: Connection?
     @State private var showContributorProfile = false
+    @State private var showEditProfile = false
 
     // Phase 1: Inter-Heirloom Sharing
     @State private var pendingSharesCount: Int = 0
     @State private var showSharedWithMe = false
     @State private var showShareAnalytics = false
+    @State private var showSettings = false
 
     // MARK: - Body
 
@@ -56,47 +63,48 @@ struct KitchenTableView: View {
                     contentView
                 }
             }
-            .navigationTitle("Kitchen Table")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("Table")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        Task {
-                            isRefreshing = true
-                            await loadConnections(forceRefresh: true)
-                            isRefreshing = false
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Button {
+                            Task {
+                                await loadConnections(forceRefresh: true)
+                            }
+                        } label: {
+                            Label("Refresh", systemImage: "arrow.clockwise")
+                        }
+                        .disabled(isRefreshing)
+
+                        Button {
+                            showUserSearch = true
+                        } label: {
+                            Label("Search Users", systemImage: "magnifyingglass")
+                        }
+
+                        Button {
+                            showInviteView = true
+                        } label: {
+                            Label("Invite Connection", systemImage: "person.badge.plus")
+                        }
+
+                        Button {
+                            showShareAnalytics = true
+                        } label: {
+                            Label("Analytics", systemImage: "chart.bar")
+                        }
+
+                        Divider()
+
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Label("Settings", systemImage: "gearshape")
                         }
                     } label: {
-                        if isRefreshing {
-                            ProgressView()
-                        } else {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                    }
-                    .disabled(isRefreshing)
-                }
-
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showUserSearch = true
-                    } label: {
-                        Image(systemName: "magnifyingglass")
-                    }
-                }
-
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showInviteView = true
-                    } label: {
-                        Image(systemName: "person.badge.plus")
-                    }
-                }
-
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showShareAnalytics = true
-                    } label: {
-                        Image(systemName: "chart.bar")
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(HeirloomColors.primaryText)
                     }
                 }
             }
@@ -126,7 +134,23 @@ struct KitchenTableView: View {
             .sheet(isPresented: $showShareAnalytics) {
                 ShareAnalyticsDashboard()
             }
+            .sheet(isPresented: $showSettings) {
+                NavigationStack {
+                    SettingsView()
+                }
+            }
+            .sheet(isPresented: $showEditProfile) {
+                if let unwrappedProfile = Binding($profile) {
+                    EditProfileView(profile: unwrappedProfile)
+                        .onDisappear {
+                            Task {
+                                await loadProfile()
+                            }
+                        }
+                }
+            }
             .task {
+                await loadProfile()
                 await loadConnections()
                 await loadPendingSharesCount()
             }
@@ -145,28 +169,41 @@ struct KitchenTableView: View {
     // MARK: - Content View
 
     private var contentView: some View {
-        VStack(spacing: 0) {
-            // Pending shares banner (Phase 1: Inter-Heirloom Sharing)
-            if pendingSharesCount > 0 {
-                pendingSharesBanner
-            }
+        ScrollView {
+            VStack(spacing: HeirloomSpacing.lg) {
+                // Profile Header
+                ProfileHeaderView(
+                    profile: profile,
+                    connectionsCount: connections.count,
+                    onEditProfile: { showEditProfile = true }
+                )
+                .padding(.horizontal, HeirloomSpacing.md)
+                .padding(.top, HeirloomSpacing.sm)
 
-            // Pending requests banner (Phase 9: Badge System)
-            if badgeService.pendingRequestCount > 0 {
-                pendingRequestsBanner
-            }
+                VStack(spacing: 0) {
+                    // Pending shares banner (Phase 1: Inter-Heirloom Sharing)
+                    if pendingSharesCount > 0 {
+                        pendingSharesBanner
+                    }
 
-            // Search bar
-            searchBar
+                    // Pending requests banner (Phase 9: Badge System)
+                    if badgeService.pendingRequestCount > 0 {
+                        pendingRequestsBanner
+                    }
 
-            // Filter tabs
-            filterTabs
+                    // Search bar
+                    searchBar
 
-            // Connections list
-            if filteredConnections.isEmpty {
-                emptyStateView
-            } else {
-                connectionsList
+                    // Filter tabs
+                    filterTabs
+
+                    // Connections list
+                    if filteredConnections.isEmpty {
+                        emptyStateView
+                    } else {
+                        connectionsList
+                    }
+                }
             }
         }
     }
@@ -465,6 +502,20 @@ struct KitchenTableView: View {
         } catch {
             Log.error("Failed to load pending shares count", category: .social, error: error)
             // Don't show error to user - just log it
+        }
+    }
+
+    /// Load current user's profile
+    private func loadProfile() async {
+        do {
+            let userProfile = try await profileService.fetchCurrentUserProfile()
+            await MainActor.run {
+                self.profile = userProfile
+            }
+            Log.info("Loaded user profile for Kitchen Table", category: .social)
+        } catch {
+            Log.error("Failed to load user profile for Kitchen Table", category: .social, error: error)
+            // Don't show error to user - profile header will show placeholder
         }
     }
 

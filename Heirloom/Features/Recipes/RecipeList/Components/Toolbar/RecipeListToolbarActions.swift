@@ -22,6 +22,7 @@ struct RecipeListToolbarActions: View {
     let onAddCollection: () -> Void
     let onAddNormalSample: () -> Void
     let onCollectionSettings: (() -> Void)? // Optional - only shown in collection detail views
+    let onOpenSettings: () -> Void
 
     // Track menu presentation state for shimmer control
     @State private var isMenuPresented = false
@@ -138,6 +139,16 @@ struct RecipeListToolbarActions: View {
                 }
                 .accessibilityLabel("Generate Sample Recipe")
                 .accessibilityHint("Generate a sample recipe for testing")
+
+                Divider()
+
+                Button {
+                    onOpenSettings()
+                } label: {
+                    Label("Settings", systemImage: "gearshape")
+                }
+                .accessibilityLabel("Settings")
+                .accessibilityHint("Open app settings")
             } label: {
                 Image(systemName: "plus")
                     .holographicShimmer(

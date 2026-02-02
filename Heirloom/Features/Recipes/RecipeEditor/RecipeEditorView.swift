@@ -63,6 +63,9 @@ struct RecipeEditorView: View {
     // Edit mode for ingredient/instruction deletion
     @State private var isEditingList = false
 
+    // Sign in sheet
+    @State private var showSignIn = false
+
     // Spell checking
     @State private var spellCheckResults: [Int: AIIngredientSpellChecker.SpellingResult] = [:]
     @State private var spellCheckTask: Task<Void, Never>?
@@ -313,6 +316,9 @@ struct RecipeEditorView: View {
                             dismiss()
                         }
                 }
+            }
+            .sheet(isPresented: $showSignIn) {
+                FirebaseSignInView()
             }
         }
     }
@@ -642,9 +648,8 @@ struct RecipeEditorView: View {
                 Spacer()
 
                 Button {
-                    // Navigate to settings to sign in
-                    tabCoordinator.selectedTab = TabNavigationCoordinator.Tab.settings.rawValue
-                    dismiss()
+                    // Show sign in sheet
+                    showSignIn = true
                 } label: {
                     Text("Sign In")
                         .font(HeirloomFonts.caption1Bold)

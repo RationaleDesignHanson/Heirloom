@@ -29,6 +29,7 @@ struct ShoppingListView: View {
 
     @State private var selectedRecipeIds: Set<UUID> = []
     @State private var selectedIngredientData: IngredientRecipeData?
+    @State private var showSettings = false
 
     var body: some View {
         NavigationStack {
@@ -40,11 +41,21 @@ struct ShoppingListView: View {
                 }
             }
             .navigationTitle("Shopping List")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if !cartRecipes.isEmpty {
-                    ToolbarItem(placement: .primaryAction) {
-                        Menu {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        if cartRecipes.isEmpty {
+                            // Empty state menu items
+                            Button {
+                                tabCoordinator.selectedTab = TabNavigationCoordinator.Tab.collections.rawValue
+                            } label: {
+                                Label("Add Recipes", systemImage: "plus.circle")
+                            }
+                            .accessibilityLabel("Add recipes to shopping list")
+                            .accessibilityHint("Navigate to Collections to add recipes")
+                        } else {
+                            // Non-empty state menu items
                             Button {
                                 Task {
                                     await exportToReminders()
@@ -80,12 +91,23 @@ struct ShoppingListView: View {
                             }
                             .accessibilityLabel("Clear Shopping List")
                             .accessibilityHint("Removes all recipes and items from shopping list")
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
                         }
-                        .accessibilityLabel("Shopping List Options")
-                        .accessibilityHint("Opens menu with export, check off, and clear options")
+
+                        Divider()
+
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Label("Settings", systemImage: "gearshape")
+                        }
+                        .accessibilityLabel("Settings")
+                        .accessibilityHint("Open app settings")
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(HeirloomColors.primaryText)
                     }
+                    .accessibilityLabel("Shopping List Options")
+                    .accessibilityHint("Opens menu with shopping list and app options")
                 }
             }
             .sheet(item: $selectedIngredientData) { data in
@@ -94,6 +116,12 @@ struct ShoppingListView: View {
                     displayText: data.displayText,
                     recipeData: data.recipes
                 )
+            }
+            .sheet(isPresented: $showSettings) {
+                NavigationStack {
+                    SettingsView()
+                        .environmentObject(tabCoordinator)
+                }
             }
         }
     }
@@ -496,7 +524,8 @@ struct ShoppingListView: View {
 
                 // Use the shortest, simplest name
                 let name = scaledIngredients.map { $0.originalIngredient.name }.min(by: { $0.count < $1.count }) ?? scaledIngredients[0].originalIngredient.name
-                let qtyString = formatQuantity(total)
+                let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
+                let qtyString = formatter.formatQuantity(total, unit: nil)
 
                 var parts: [String] = [qtyString, name]
                 if let prep = scaledIngredients[0].originalIngredient.preparation {
@@ -538,7 +567,8 @@ struct ShoppingListView: View {
                 // Try to convert to a better unit if appropriate
                 let (convertedQty, convertedUnit) = smartConvertUnit(quantity: group.total, unit: group.displayUnit, normalizedUnit: normalizedUnit)
 
-                let qtyString = formatQuantity(convertedQty)
+                let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
+                let qtyString = formatter.formatQuantity(convertedQty, unit: convertedUnit)
                 var parts: [String] = [qtyString, convertedUnit, name]
                 if let prep = scaledIngredients[0].originalIngredient.preparation {
                     parts.append("(\(prep))")
@@ -581,7 +611,8 @@ struct ShoppingListView: View {
             if convertedGroups.count == 1, let (_, group) = convertedGroups.first {
                 // Round the quantity intelligently before formatting
                 let rounded = roundForCooking(group.total)
-                let qtyString = formatQuantity(rounded)
+                let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
+                let qtyString = formatter.formatQuantity(rounded, unit: group.displayUnit)
                 var parts: [String] = [qtyString, group.displayUnit, name]
                 if let prep = prep {
                     parts.append("(\(prep))")
@@ -594,8 +625,9 @@ struct ShoppingListView: View {
             let sortedGroups = convertedGroups.sorted { $0.value.total > $1.value.total }
 
             var quantityParts: [String] = []
+            let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
             for (_, group) in sortedGroups {
-                let qty = formatQuantity(group.total)
+                let qty = formatter.formatQuantity(group.total, unit: group.displayUnit)
                 quantityParts.append("\(qty) \(group.displayUnit)")
             }
 
@@ -648,7 +680,8 @@ struct ShoppingListView: View {
             // Case 1: No real units (all unitless or size descriptors) - just sum quantities
             if uniqueRealUnits.isEmpty {
                 let total = quantities.reduce(0.0) { $0 + $1.qty }
-                let qtyString = formatQuantity(total)
+                let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
+                let qtyString = formatter.formatQuantity(total, unit: nil)
                 return "\(qtyString) \(ingredientName)".trimmingCharacters(in: .whitespaces)
             }
 
@@ -668,7 +701,8 @@ struct ShoppingListView: View {
                     }
                 }
 
-                let qtyString = formatQuantity(total)
+                let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
+                let qtyString = formatter.formatQuantity(total, unit: targetUnit)
                 return "\(qtyString) \(targetUnit) \(ingredientName)".trimmingCharacters(in: .whitespaces)
             }
 
@@ -839,15 +873,17 @@ struct ShoppingListView: View {
                 return nil
             }
 
+            let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
+
             if isVolume {
                 let (resultQty, resultUnit) = convertFromTeaspoons(totalTeaspoons)
-                let qtyString = formatQuantity(resultQty)
+                let qtyString = formatter.formatQuantity(resultQty, unit: resultUnit)
                 return "\(qtyString) \(resultUnit) \(ingredientName)"
             }
 
             if isWeight {
                 let (resultQty, resultUnit) = convertFromGrams(totalGrams)
-                let qtyString = formatQuantity(resultQty)
+                let qtyString = formatter.formatQuantity(resultQty, unit: resultUnit)
                 return "\(qtyString) \(resultUnit) \(ingredientName)"
             }
 
@@ -993,42 +1029,6 @@ struct ShoppingListView: View {
             return value
         }
 
-        private func formatQuantity(_ value: Double) -> String {
-            // Handle zero or very small values
-            if value < 0.05 {
-                return ""
-            }
-
-            // Convert decimals to fractions for better display
-            let fractions: [(Double, String)] = [
-                (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
-                (0.375, "⅜"), (0.5, "½"), (0.625, "⅝"),
-                (0.667, "⅔"), (0.75, "¾"), (0.875, "⅞")
-            ]
-
-            let whole = Int(value)
-            let fraction = value - Double(whole)
-
-            // If it's essentially a whole number
-            if fraction < 0.05 {
-                return "\(whole)"
-            }
-
-            // Try to match common fractions
-            for (threshold, symbol) in fractions {
-                if abs(fraction - threshold) < 0.05 {
-                    return whole > 0 ? "\(whole) \(symbol)" : symbol
-                }
-            }
-
-            // Fallback: use decimal notation for odd values
-            // Round to 1 decimal place
-            let rounded = round(value * 10) / 10
-            if rounded == Double(Int(rounded)) {
-                return "\(Int(rounded))"
-            }
-            return String(format: "%.1f", rounded)
-        }
 
         var isCheckedOff: Bool {
             scaledIngredients.allSatisfy { $0.originalIngredient.isCheckedOff }

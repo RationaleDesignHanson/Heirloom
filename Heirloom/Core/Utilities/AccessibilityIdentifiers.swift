@@ -199,7 +199,7 @@ enum AccessibilityIdentifiers {
         static let discoveryTab = "tabBarDiscoveryTab"
         static let shoppingTab = "tabBarShoppingTab"
         static let mealPlanningTab = "tabBarMealPlanningTab"
-        static let settingsTab = "tabBarSettingsTab"
+        static let tableTab = "tabBarTableTab"
 
         // Legacy (kept for backwards compatibility)
         static let addTab = "tabBarAddTab"

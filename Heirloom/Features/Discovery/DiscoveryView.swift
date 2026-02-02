@@ -37,6 +37,7 @@ struct DiscoveryView: View {
 
     // Navigation
     @State private var navigationPath = NavigationPath()
+    @State private var showSettings = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -61,15 +62,22 @@ struct DiscoveryView: View {
                 }
             }
             .navigationTitle(isSearching ? "Search Results" : "Discover")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        dismiss()
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Label("Settings", systemImage: "gearshape")
+                        }
+                        .accessibilityLabel("Settings")
+                        .accessibilityHint("Open app settings")
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(HeirloomColors.primaryText)
                     }
+                    .accessibilityLabel("Discover Options")
                 }
             }
             .navigationDestination(for: String.self) { publicRecipeId in
@@ -81,6 +89,11 @@ struct DiscoveryView: View {
             }
             .refreshable {
                 await refreshContent()
+            }
+            .sheet(isPresented: $showSettings) {
+                NavigationStack {
+                    SettingsView()
+                }
             }
         }
     }

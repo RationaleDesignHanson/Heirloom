@@ -41,18 +41,9 @@ struct SettingsView: View {
     @State private var showDowngradeAlert = false
     @State private var showClearCollectionsConfirmation = false
 
-    // Social Layer Phase 4
-    @State private var showProfile = false
-    @State private var showKitchenTable = false
-    @ObservedObject private var badgeService = ServiceContainer.shared.resolve(BadgeService.self)
-    @State private var profileRefreshTrigger = UUID() // Force profile row refresh after edits
-
     var body: some View {
         NavigationStack {
             List {
-                // Social Section (Phase 4)
-                socialSection
-
                 // Subscription Section
                 subscriptionSection
 
@@ -78,7 +69,7 @@ struct SettingsView: View {
                 developerSection
             }
             .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .task {
                 await calculateStorageSize()
             }
@@ -131,18 +122,6 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
-            }
-            .sheet(isPresented: $showProfile) {
-                ProfileView()
-            }
-            .sheet(isPresented: $showKitchenTable) {
-                KitchenTableView()
-            }
-            .onChange(of: showProfile) { _, isShowing in
-                // Refresh profile row when returning from profile edit
-                if !isShowing {
-                    profileRefreshTrigger = UUID()
-                }
             }
             .onChange(of: firebaseAuth.isAuthenticated) { _, _ in
                 // Toggle state to force view refresh when auth state changes
@@ -200,98 +179,6 @@ struct SettingsView: View {
             Text("Intelligence")
         } footer: {
             Text("Configure AI-powered features like smart ingredient parsing and recipe enhancement.")
-        }
-    }
-
-    // MARK: - Social Section
-
-    private var socialSection: some View {
-        Section {
-            // Force view dependency on authStateChanged to trigger re-renders
-            let _ = authStateChanged
-
-            if firebaseAuth.isAuthenticated {
-                // My Profile Row
-                Button {
-                    showProfile = true
-                } label: {
-                    SettingsProfileRow()
-                        .id(profileRefreshTrigger) // Force refresh after profile edits
-                }
-                .buttonStyle(.plain)
-
-                // Kitchen Table Row
-                Button {
-                    showKitchenTable = true
-                } label: {
-                    HStack(spacing: HeirloomSpacing.md) {
-                        // Icon
-                        ZStack {
-                            Circle()
-                                .fill(HeirloomColors.warmGray.opacity(0.1))
-                                .frame(width: 44, height: 44)
-
-                            Image(systemName: "figure.2.and.child.holdinghands")
-                                .font(.title3)
-                                .foregroundStyle(HeirloomColors.tomato)
-                        }
-
-                        // Label
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Kitchen Table")
-                                .font(HeirloomFonts.bodyBold)
-                                .foregroundStyle(HeirloomColors.primaryText)
-
-                            Text("Connections & sharing")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(HeirloomColors.secondaryText)
-                        }
-
-                        Spacer()
-
-                        // Badge (if pending requests)
-                        if badgeService.pendingRequestCount > 0 {
-                            Text("\(badgeService.pendingRequestCount)")
-                                .font(HeirloomFonts.caption2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(HeirloomColors.tomato)
-                                .clipShape(Capsule())
-                        }
-
-                        // Chevron
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-                    .padding(.vertical, HeirloomSpacing.xs)
-                }
-                .buttonStyle(.plain)
-            } else {
-                // Not signed in - show sign in prompt
-                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                    Text("Sign in to connect with other cooks and share recipes")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Button {
-                        showSignIn = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "person.circle.fill")
-                            Text("Sign In")
-                                .fontWeight(.semibold)
-                        }
-                        .foregroundStyle(HeirloomColors.tomato)
-                    }
-                }
-                .padding(.vertical, HeirloomSpacing.xs)
-            }
-        } header: {
-            Text("Social")
         }
     }
 

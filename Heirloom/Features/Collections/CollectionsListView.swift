@@ -40,6 +40,7 @@ struct CollectionsListView: View {
     @State private var isRefreshingRecipes = false
     @State private var showRestoreFromFile = false
     @State private var isRestoringFromFile = false
+    @State private var showSettings = false
 
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
     private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
@@ -191,7 +192,7 @@ struct CollectionsListView: View {
                 }
             }
             .navigationTitle("Collections")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, prompt: "Search recipes")
             .toolbar {
                 toolbarContent
@@ -233,6 +234,12 @@ struct CollectionsListView: View {
             // }
             .sheet(item: $selectedCollectionForSettings) { collection in
                 CollectionSettingsView(collection: collection)
+            }
+            .sheet(isPresented: $showSettings) {
+                NavigationStack {
+                    SettingsView()
+                        .environmentObject(tabCoordinator)
+                }
             }
             .navigationDestination(for: RecipeCollection.self) { collection in
                 CollectionDetailView(collection: collection)
@@ -723,7 +730,8 @@ struct CollectionsListView: View {
                 onVideoImport: handleVideoImport,
                 onAddCollection: handleAddCollection,
                 onAddNormalSample: handleAddNormalSample,
-                onCollectionSettings: nil // Not applicable in collections list view
+                onCollectionSettings: nil, // Not applicable in collections list view
+                onOpenSettings: { showSettings = true }
             )
         }
     }

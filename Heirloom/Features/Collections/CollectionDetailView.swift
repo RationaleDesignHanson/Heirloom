@@ -18,6 +18,7 @@ struct CollectionDetailView: View {
     @State private var showDeleteConfirmation = false
     @State private var showAddRecipeMenu = false
     @State private var showCollectionSettings = false
+    @State private var showSettings = false
     @EnvironmentObject private var unlockTracker: ThemeUnlockTracker
     @State private var isGeneratingBackground = false
 
@@ -271,7 +272,8 @@ struct CollectionDetailView: View {
                     onAddNormalSample: addNormalSampleRecipe,
                     onCollectionSettings: {
                         showCollectionSettings = true
-                    }
+                    },
+                    onOpenSettings: { showSettings = true }
                 )
             }
         }
@@ -370,7 +372,7 @@ struct CollectionDetailView: View {
             .padding(.vertical, HeirloomSpacing.lg)
         }
         .navigationTitle(collection.name)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
         }
@@ -397,6 +399,12 @@ struct CollectionDetailView: View {
         .sheet(isPresented: $showCollectionSettings) {
             NavigationStack {
                 CollectionSettingsView(collection: collection)
+                    .environmentObject(tabCoordinator)
+            }
+        }
+        .sheet(isPresented: $showSettings) {
+            NavigationStack {
+                SettingsView()
                     .environmentObject(tabCoordinator)
             }
         }

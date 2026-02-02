@@ -30,7 +30,7 @@ class TabNavigationCoordinator: ObservableObject {
         case discovery = 1
         case shopping = 2
         case mealPlanning = 3
-        case settings = 4
+        case table = 4
     }
 
     // MARK: - Context Tracking

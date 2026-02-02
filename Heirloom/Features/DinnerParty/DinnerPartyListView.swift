@@ -12,6 +12,7 @@ struct DinnerPartyListView: View {
 
     @State private var showCreateParty = false
     @State private var selectedParty: DinnerParty?
+    @State private var showSettings = false
 
     var upcomingParties: [DinnerParty] {
         dinnerParties.filter { !$0.isPast }
@@ -63,13 +64,26 @@ struct DinnerPartyListView: View {
             }
             .background(HeirloomColors.appBackground)
             .navigationTitle("Meal Planning")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showCreateParty = true
+                    Menu {
+                        Button {
+                            showCreateParty = true
+                        } label: {
+                            Label("New Meal Plan", systemImage: "plus")
+                        }
+
+                        Divider()
+
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Label("Settings", systemImage: "gearshape")
+                        }
                     } label: {
-                        Image(systemName: "plus")
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(HeirloomColors.primaryText)
                     }
                 }
             }
@@ -78,6 +92,11 @@ struct DinnerPartyListView: View {
             }
             .sheet(item: $selectedParty) { party in
                 DinnerPartyDetailView(party: party)
+            }
+            .sheet(isPresented: $showSettings) {
+                NavigationStack {
+                    SettingsView()
+                }
             }
         }
     }

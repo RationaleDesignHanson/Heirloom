@@ -1151,6 +1151,9 @@ struct ContentView: View {
     // Notification service (injected from DI container)
     @ObservedObject var notificationService: FirebaseNotificationService
 
+    // Badge service for connection requests
+    @ObservedObject private var badgeService = ServiceContainer.shared.resolve(BadgeService.self)
+
     // Daily unlock celebration state
     @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
     @State private var showUnlockCelebration = false
@@ -1260,15 +1263,16 @@ struct ContentView: View {
                 .accessibilityLabel("Meal Planning")
                 .accessibilityHint("Plan and manage dinner parties")
 
-            SettingsView()
+            KitchenTableView()
                 .environmentObject(tabCoordinator)
                 .tabItem {
-                    Label("Settings", systemImage: "gearshape.fill")
+                    Label("Table", systemImage: "fork.knife")
                 }
+                .badge(badgeService.pendingRequestCount)
                 .tag(4)
-                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.settingsTab)
-                .accessibilityLabel("Settings")
-                .accessibilityHint("App settings and preferences")
+                .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.tableTab)
+                .accessibilityLabel("Table")
+                .accessibilityHint("Kitchen table and connections")
         }
         .preferredColorScheme(.light)
         .tint(HeirloomColors.familyGreen)

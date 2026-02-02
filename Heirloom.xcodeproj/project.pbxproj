@@ -389,6 +389,7 @@
 		C5EF75CC2F2EF71B0097779E /* ReportPublicRecipeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF75C02F2EF71B0097779E /* ReportPublicRecipeService.swift */; };
 		C5EF775D2F2FC6140097779E /* DuplicateDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF775B2F2FC6140097779E /* DuplicateDetectionService.swift */; };
 		C5EF775F2F300CC10097779E /* GoogleVisionOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF775E2F300CC10097779E /* GoogleVisionOCRService.swift */; };
+		C5EF77612F303B870097779E /* ProfileHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77602F303B870097779E /* ProfileHeaderView.swift */; };
 		CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC154590CE51056017C5D6 /* CommentService.swift */; };
 		CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD518726BAFEC566E22D0315 /* Tag.swift */; };
 		CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBB366ABEF58AF23B4D64FE /* ImportItem.swift */; };
@@ -802,6 +803,7 @@
 		C5EF75C22F2EF71B0097779E /* UnpublishConfirmationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnpublishConfirmationSheet.swift; sourceTree = "<group>"; };
 		C5EF775B2F2FC6140097779E /* DuplicateDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateDetectionService.swift; sourceTree = "<group>"; };
 		C5EF775E2F300CC10097779E /* GoogleVisionOCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleVisionOCRService.swift; sourceTree = "<group>"; };
+		C5EF77602F303B870097779E /* ProfileHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileHeaderView.swift; sourceTree = "<group>"; };
 		C6DCC0C21D884197B1F0F9AA /* ScalingWarningBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingWarningBanner.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C9A499F6282CBE6AC6C45E99 /* RecipeStructureParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeStructureParser.swift; sourceTree = "<group>"; };
@@ -2024,6 +2026,7 @@
 		C5CE3F232F2CFAE000A2E62F /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77602F303B870097779E /* ProfileHeaderView.swift */,
 				C5CE3F2F2F2D1B2800A2E62F /* UserSearchResultRow.swift */,
 				C5CE3F272F2D07FB00A2E62F /* ConnectionInviteAcceptanceView.swift */,
 				C5CE3F202F2CFAE000A2E62F /* ConnectionRequestCard.swift */,
@@ -2833,6 +2836,7 @@
 				C58316352F119E7C0096478E /* SimilarRecipeModels.swift in Sources */,
 				C58316362F119E7C0096478E /* VideoRecipeModels.swift in Sources */,
 				C583FFBD2F0CB3720096478E /* StickerLibraryService.swift in Sources */,
+				C5EF77612F303B870097779E /* ProfileHeaderView.swift in Sources */,
 				C583FFBE2F0CB3720096478E /* TrendingService.swift in Sources */,
 				64CF275134BD2DF05BC42B58 /* SchemaV1.swift in Sources */,
 				1086A03B0F949141C61B5D54 /* ServingSelector.swift in Sources */,

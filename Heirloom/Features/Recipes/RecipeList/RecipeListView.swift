@@ -194,6 +194,9 @@ struct RecipeListView: View {
     // Heritage unlock
     @State private var showHeritageUnlock = false
 
+    // Settings sheet
+    @State private var showSettings = false
+
     var body: some View {
         NavigationStack {
             mainContent
@@ -209,6 +212,11 @@ struct RecipeListView: View {
                 .sheet(isPresented: $showSignInPrompt) {
                     SignInPromptSheet()
                         .presentationDetents([.medium])
+                }
+                .sheet(isPresented: $showSettings) {
+                    NavigationStack {
+                        SettingsView()
+                    }
                 }
                 // TODO: Re-enable for Phase A3
                 // .sheet(isPresented: $showHeritageUnlock) {
@@ -257,7 +265,7 @@ struct RecipeListView: View {
             .background(HeirloomColors.appBackground)
         }
         .navigationTitle("Recipes")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .refreshable {
             await refreshRecipes()
         }
@@ -357,7 +365,8 @@ struct RecipeListView: View {
                     showCreateCollection = true
                 },
                 onAddNormalSample: addSampleRecipe,
-                onCollectionSettings: nil // Not applicable in main recipe list
+                onCollectionSettings: nil, // Not applicable in main recipe list
+                onOpenSettings: { showSettings = true }
             )
         }
     }
@@ -1413,7 +1422,7 @@ struct RecipeCardView: View {
                     placeholder: recipe.sourceType?.iconName ?? "fork.knife"
                 )
                 .frame(maxWidth: .infinity)
-                .aspectRatio(4/3, contentMode: .fill)
+                .aspectRatio(3/2, contentMode: .fill)
                 .clipped()
                 .cornerRadius(HeirloomSpacing.cardCornerRadius)
                 .accessibilityHidden(true) // Hide image from VoiceOver, recipe title is more important
@@ -1434,8 +1443,8 @@ struct RecipeCardView: View {
                             .accessibilityLabel("Favorite")
                     }
 
-                    // "New" badge for recipes added within last 24 hours
-                    if recipe.dateAdded.timeIntervalSinceNow > -86400 {
+                    // "New" badge for recipes added within last 24 hours AND not yet viewed
+                    if recipe.dateAdded.timeIntervalSinceNow > -86400 && !recipe.hasBeenViewed {
                         Text("NEW")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(.white)
@@ -1524,10 +1533,10 @@ struct RecipeCardView: View {
             VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                 Text(recipe.title)
                     .font(HeirloomFonts.subheadline)
-                    .foregroundStyle(HeirloomColors.primaryText)
+                    .foregroundStyle(recipe.isThemeRecipe ? HeirloomColors.familyGreen : HeirloomColors.primaryText)
                     .fontWeight(.semibold)
                     .lineLimit(2)
-                    .frame(height: 40, alignment: .topLeading)
+                    .frame(height: 36, alignment: .topLeading)
 
                 // Consolidated: Source, Times Cooked, and Generation Badge on one line
                 HStack(spacing: 6) {
@@ -1543,14 +1552,14 @@ struct RecipeCardView: View {
                     } else {
                         Text(recipe.sourceDisplayName)
                             .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
+                            .foregroundStyle(recipe.isThemeRecipe ? HeirloomColors.familyGreen.opacity(0.8) : HeirloomColors.secondaryText)
                             .lineLimit(1)
                     }
 
                     if recipe.timesCooked > 0 {
                         Text("•")
                             .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
+                            .foregroundStyle(recipe.isThemeRecipe ? HeirloomColors.familyGreen.opacity(0.8) : HeirloomColors.secondaryText)
 
                         Label("\(recipe.timesCooked)", systemImage: "flame.fill")
                             .font(HeirloomFonts.caption1)
@@ -1584,9 +1593,9 @@ struct RecipeCardView: View {
             }
             .accessibilityElement(children: .combine)
         }
-        .padding(HeirloomSpacing.sm)
+        .padding(HeirloomSpacing.xs)
         .frame(maxWidth: .infinity)
-        .background(HeirloomColors.cream)
+        .background(recipe.isThemeRecipe ? HeirloomColors.themeTan : HeirloomColors.cream)
         .contentShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
         .cornerRadius(HeirloomSpacing.cardCornerRadius)
         .shadow(
@@ -1597,8 +1606,10 @@ struct RecipeCardView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
-                .stroke(HeirloomColors.tomato, lineWidth: 2)
-                .opacity(isSelected ? 1 : 0)
+                .stroke(
+                    isSelected ? HeirloomColors.tomato : (recipe.isThemeRecipe ? HeirloomColors.familyGreen.opacity(0.2) : .clear),
+                    lineWidth: isSelected ? 2 : 1
+                )
                 .animation(.easeInOut(duration: 0.2), value: isSelected)
         )
     }
