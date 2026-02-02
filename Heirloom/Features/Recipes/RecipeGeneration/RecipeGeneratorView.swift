@@ -136,7 +136,7 @@ struct RecipeGeneratorView: View {
             do {
                 try await imageGenerator.generateAndSaveImage(for: recipe)
             } catch {
-                Log.error("Failed to generate image for recipe", category: .ai, metadata: [
+                Log.error("Failed to generate image for recipe", category: .general, metadata: [
                     "error": error.localizedDescription
                 ])
                 // Continue without image - user can add one later
@@ -146,7 +146,7 @@ struct RecipeGeneratorView: View {
             generatedRecipe = recipe
 
         } catch let error as ImageGenerationError {
-            errorMessage = error.errorDescription
+            errorMessage = error.errorDescription ?? "Image generation failed"
         } catch AIError.notConfigured(let provider) {
             errorMessage = "API key not configured for \(provider). Please add your API key in Settings."
         } catch AIError.quotaExceeded(let provider, let limit, _) {

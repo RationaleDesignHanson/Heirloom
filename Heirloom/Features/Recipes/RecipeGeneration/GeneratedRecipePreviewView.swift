@@ -19,22 +19,26 @@ struct GeneratedRecipePreviewView: View {
 
     @State private var showingRecipeDetail = false
     @State private var showingCollectionPicker = false
+    @State private var recipeImage: UIImage?
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Recipe Image
-                if let imageFileName = recipe.imageFileName {
-                    AsyncImage(url: imageURL(for: imageFileName)) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.2))
-                    }
-                    .frame(height: 250)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                if let image = recipeImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: 250)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else if recipe.imageFileName != nil {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(height: 250)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .task {
+                            await loadRecipeImage()
+                        }
                 }
 
                 // Title
@@ -117,15 +121,18 @@ struct GeneratedRecipePreviewView: View {
                             .font(HeirloomFonts.caption1)
                             .foregroundStyle(.secondary)
 
-                        FlowLayout(spacing: 8) {
-                            ForEach(tags, id: \.id) { tag in
-                                Text(tag.name)
-                                    .font(HeirloomFonts.caption1)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(tag.swiftUIColor.opacity(0.2))
-                                    .foregroundStyle(tag.swiftUIColor)
-                                    .clipShape(Capsule())
+                        // Simple horizontal scroll for tags
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(tags, id: \.id) { tag in
+                                    Text(tag.name)
+                                        .font(HeirloomFonts.caption1)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(tag.swiftUIColor.opacity(0.2))
+                                        .foregroundStyle(tag.swiftUIColor)
+                                        .clipShape(Capsule())
+                                }
                             }
                         }
                     }
@@ -169,7 +176,7 @@ struct GeneratedRecipePreviewView: View {
             }
         }
         .sheet(isPresented: $showingCollectionPicker) {
-            CollectionPickerView(recipe: recipe)
+            TagCollectionPickerView(recipe: recipe)
         }
         .fullScreenCover(isPresented: $showingRecipeDetail) {
             NavigationStack {
@@ -193,9 +200,10 @@ struct GeneratedRecipePreviewView: View {
         }
     }
 
-    private func imageURL(for fileName: String) -> URL? {
+    private func loadRecipeImage() async {
+        guard let fileName = recipe.imageFileName else { return }
         let imageStorageService = ServiceContainer.shared.resolve(ImageStorageService.self)
-        return imageStorageService.imageURL(for: fileName)
+        recipeImage = await imageStorageService.loadImage(fileName: fileName)
     }
 }
 
