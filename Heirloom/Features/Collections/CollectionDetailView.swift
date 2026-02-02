@@ -417,7 +417,7 @@ struct CollectionDetailView: View {
         ) {
             Button("New Recipe") {
                 tabCoordinator.willCreateRecipe(from: .collectionDetail)
-                showAddRecipe = true
+                showRecipeGenerator = true
             }
 
             Button("Recipe Website Link") {
@@ -1153,7 +1153,7 @@ struct CollectionDetailView: View {
             showCookbookScanner = true
         case .userCreated:
             tabCoordinator.willCreateRecipe(from: .collectionDetail)
-            showAddRecipe = true
+            showRecipeGenerator = true
         default:
             break
         }

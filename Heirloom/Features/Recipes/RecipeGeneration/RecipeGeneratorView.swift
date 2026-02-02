@@ -150,7 +150,7 @@ struct RecipeGeneratorView: View {
         } catch AIError.notConfigured(let provider) {
             errorMessage = "API key not configured for \(provider). Please add your API key in Settings."
         } catch AIError.quotaExceeded(let provider, let limit, _) {
-            errorMessage = "Daily limit of \(limit) requests exceeded for \(provider). Please try again tomorrow or add your own API key in Settings."
+            errorMessage = "Daily limit of \(String(describing: limit)) requests exceeded for \(provider). Please try again tomorrow or add your own API key in Settings."
         } catch {
             errorMessage = "Failed to generate recipe: \(error.localizedDescription)"
         }
