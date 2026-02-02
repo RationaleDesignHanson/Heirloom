@@ -9,14 +9,14 @@ import Foundation
 import UIKit
 
 /// Protocol for recipe image generation service
-@MainActor
 protocol RecipeImageGeneratorProtocol {
     /// Generate and save an AI image for a recipe
     func generateAndSaveImage(for recipe: Recipe) async throws
 }
 
 /// Generates recipe images using OpenAI DALL-E 3
-actor RecipeImageGenerator: RecipeImageGeneratorProtocol {
+@MainActor
+class RecipeImageGenerator: RecipeImageGeneratorProtocol {
     private let aiConfig: AIConfiguration
     private let styleConfig: VisualStyleConfiguration
 
@@ -26,7 +26,6 @@ actor RecipeImageGenerator: RecipeImageGeneratorProtocol {
     }
 
     /// Generate and save image for recipe
-    @MainActor
     func generateAndSaveImage(for recipe: Recipe) async throws {
         // Check for API key (with fallback to default key)
         guard let apiKey = await aiConfig.apiKeyWithFallback(for: .openai) else {
@@ -58,7 +57,7 @@ actor RecipeImageGenerator: RecipeImageGeneratorProtocol {
     // MARK: - Private Methods
 
     private func buildPrompt(for recipe: Recipe) -> String {
-        let selectedStyle = await styleConfig.selectedStyle
+        let selectedStyle = styleConfig.selectedStyle
 
         // Build subject from recipe details
         var subject = "A delicious \(recipe.title)"
