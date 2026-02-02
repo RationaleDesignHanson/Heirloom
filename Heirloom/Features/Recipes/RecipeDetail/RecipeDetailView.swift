@@ -727,8 +727,9 @@ private struct RecipeDetailModifiers: ViewModifier {
                 targetServings = recipe.parsedServingCount
             }
 
-            // Track last viewed timestamp
+            // Track last viewed timestamp and mark as viewed
             recipe.lastViewed = Date()
+            recipe.hasBeenViewed = true
             try? modelContext.save()
 
             analytics.trackRecipeViewed(recipe: recipe)

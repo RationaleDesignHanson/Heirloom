@@ -152,8 +152,10 @@ struct StandardCollectionCard: View {
                 placeholder: collection.iconName
             )
         }
-        // Show + affordance in first empty slot when collection has exactly 1 recipe
-        else if recipeCount == 1 && recipe == nil && isFirstSlot {
+        // Show + affordance in appropriate empty slots
+        // - First slot when collection has 1 recipe
+        // - Second slot when collection has 2 recipes
+        else if recipe == nil && ((isFirstSlot && recipeCount == 1) || (!isFirstSlot && recipeCount == 2)) {
             addRecipeAffordance
         }
         else {
@@ -165,41 +167,36 @@ struct StandardCollectionCard: View {
 
     @ViewBuilder
     private var addRecipeAffordance: some View {
+        let content = VStack(spacing: 8) {
+            Image(systemName: "plus.circle.fill")
+                .font(.title)
+                .foregroundStyle(HeirloomColors.tomato)
+
+            Text("Add Recipe")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(HeirloomColors.primaryText)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(HeirloomColors.cream)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(
+                    HeirloomColors.tomato.opacity(0.3),
+                    style: StrokeStyle(lineWidth: 2, dash: [6, 4])
+                )
+        )
+
         if let onAddRecipeTap = onAddRecipeTap {
             // Interactive affordance (when tap handler provided)
             Button {
                 onAddRecipeTap()
             } label: {
-                Rectangle()
-                    .fill(HeirloomColors.warmGray.opacity(0.1))
-                    .overlay(
-                        VStack(spacing: 4) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.title3)
-                                .foregroundStyle(HeirloomColors.tomato)
-
-                            Text("Add")
-                                .font(HeirloomFonts.caption2)
-                                .foregroundStyle(HeirloomColors.secondaryText)
-                        }
-                    )
+                content
             }
             .buttonStyle(.plain)
         } else {
             // Non-interactive affordance (for preview/non-interactive contexts)
-            Rectangle()
-                .fill(HeirloomColors.warmGray.opacity(0.1))
-                .overlay(
-                    VStack(spacing: 4) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(HeirloomColors.tomato)
-
-                        Text("Add")
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                    }
-                )
+            content
         }
     }
 

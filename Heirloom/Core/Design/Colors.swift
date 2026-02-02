@@ -19,6 +19,9 @@ enum HeirloomColors {
     static let warmGray = Color(hex: "6B6B6B")
     static let familyGreen = Color(hex: "2D5A27")
 
+    // MARK: - Theme-Specific Colors
+    static let themeTan = Color(hex: "D4C4B0")  // Brownish tan for theme collection cards
+
     // MARK: - Semantic Colors (Adaptive for Light/Dark Mode)
     static let cardBackground = Color(light: cream, dark: Color(hex: "2A2A2A"))
     static let primaryText = Color(light: charcoal, dark: Color(hex: "F5F5F5"))

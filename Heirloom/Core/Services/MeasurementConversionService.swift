@@ -328,7 +328,7 @@ final class MeasurementConversionService {
     }
 
     /// Check if a unit is metric
-    static func isMetricUnit(_ unit: String?) -> Bool {
+    nonisolated static func isMetricUnit(_ unit: String?) -> Bool {
         guard let unit = unit?.lowercased().trimmingCharacters(in: .whitespaces) else {
             return false
         }

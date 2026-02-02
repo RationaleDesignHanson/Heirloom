@@ -317,7 +317,8 @@ extension ServiceContainer {
 
         register(RecipeExportService.self, lifecycle: .singleton) { container in
             let toastManager = container.resolve(ToastManager.self)
-            return RecipeExportService(toastManager: toastManager)
+            let ingredientFormatter = container.resolve(IngredientFormatter.self)
+            return RecipeExportService(toastManager: toastManager, ingredientFormatter: ingredientFormatter)
         }
 
         register(RecipeExporter.self, lifecycle: .singleton) { _ in
@@ -446,6 +447,11 @@ extension ServiceContainer {
         // UnitsConfiguration
         register(UnitsConfiguration.self, lifecycle: .singleton) { _ in
             UnitsConfiguration()
+        }
+
+        // VisualStyleConfiguration
+        register(VisualStyleConfiguration.self, lifecycle: .singleton) { _ in
+            VisualStyleConfiguration()
         }
 
         // MeasurementConversionService - stateless singleton
@@ -593,7 +599,8 @@ extension ServiceContainer {
         register(CollectionImageGenerator.self, lifecycle: .singleton) { container in
             let aiConfig = container.resolve(AIConfiguration.self)
             let imageStorage = container.resolve(ImageStorageService.self)
-            return CollectionImageGenerator(aiConfig: aiConfig, imageStorage: imageStorage)
+            let styleConfig = container.resolve(VisualStyleConfiguration.self)
+            return CollectionImageGenerator(aiConfig: aiConfig, imageStorage: imageStorage, styleConfig: styleConfig)
         }
 
         // MARK: - OCR

@@ -10,10 +10,10 @@ struct CollectionCardView: View {
         Array((collection.recipes ?? []).prefix(3))
     }
 
-    /// Check if collection contains any recipes added within last 24 hours
+    /// Check if collection contains any recipes added within last 24 hours AND not yet viewed
     private var hasNewRecipes: Bool {
         guard let recipes = collection.recipes else { return false }
-        return recipes.contains { $0.dateAdded.timeIntervalSinceNow > -86400 }
+        return recipes.contains { $0.dateAdded.timeIntervalSinceNow > -86400 && !$0.hasBeenViewed }
     }
 
     var body: some View {

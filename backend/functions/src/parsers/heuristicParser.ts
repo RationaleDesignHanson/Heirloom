@@ -15,6 +15,9 @@ export class HeuristicParser {
     try {
       const $ = cheerio.load(html);
 
+      // Remove comment sections FIRST to prevent extracting user comments
+      this.removeCommentSections($);
+
       // Extract components
       const title = this.extractTitle($);
       const ingredients = this.extractIngredients($);
@@ -54,6 +57,55 @@ export class HeuristicParser {
         }],
       };
     }
+  }
+
+  /**
+   * Remove comment sections from DOM to prevent extracting user comments as instructions
+   */
+  private static removeCommentSections($: cheerio.CheerioAPI): void {
+    // Remove common comment containers
+    const commentSelectors = [
+      '.comments',
+      '#comments',
+      '.comment-section',
+      '.comment-list',
+      '.comment-content',
+      '.discussion',
+      '.reviews',
+      '.review-section',
+      '.disqus',
+      '.facebook-comments',
+      '.utterances',
+      '.commento',
+      '[class*="comment-"]',
+      '[id*="comment-"]',
+      '[class*="disqus"]',
+      '[class*="discussion"]',
+      '[id*="reviews"]',
+      '[id*="respond"]',
+    ];
+
+    commentSelectors.forEach(selector => {
+      try {
+        $(selector).remove();
+      } catch (e) {
+        // Ignore errors from invalid selectors
+      }
+    });
+
+    // Also remove anything after a "Comments" heading
+    $('h1, h2, h3, h4, h5').each((_, el) => {
+      const text = $(el).text().toLowerCase().trim();
+      if (text.includes('comment') ||
+          text.includes('review') ||
+          text.includes('discussion') ||
+          text === 'leave a reply' ||
+          text === 'leave a comment') {
+        // Remove this heading and all siblings after it
+        $(el).nextAll().remove();
+        $(el).remove();
+      }
+    });
   }
 
   /**
@@ -154,7 +206,7 @@ export class HeuristicParser {
       if (items.length > 0) {
         items.each((_, el) => {
           const text = $(el).text().trim();
-          if (text && text.length > 10 && text.length < 1000) {
+          if (text && text.length > 10 && text.length < 1000 && this.looksLikeInstruction(text)) {
             instructions.push(text);
           }
         });
@@ -178,7 +230,7 @@ export class HeuristicParser {
         if (container.length > 0) {
           container.find('p').each((_, el) => {
             const text = $(el).text().trim();
-            if (text && text.length > 20 && text.length < 1000) {
+            if (text && text.length > 20 && text.length < 1000 && this.looksLikeInstruction(text)) {
               instructions.push(text);
             }
           });
@@ -189,6 +241,44 @@ export class HeuristicParser {
     }
 
     return instructions;
+  }
+
+  /**
+   * Check if text looks like a recipe instruction (not a user comment)
+   */
+  private static looksLikeInstruction(text: string): boolean {
+    // Exclude comment patterns (first-person narratives, reviews)
+    const commentPatterns = [
+      /^(I|We|My|This) .*(love|loved|tried|made|recommend|favorite)/i,
+      /^These (are|were) (amazing|delicious|perfect|great|wonderful)/i,
+      /thank you (for|so much)/i,
+      /can'?t wait to (try|make)/i,
+      /just made this/i,
+      /turned out (great|perfect|amazing)/i,
+      /^(So|Very) (good|delicious|tasty|yummy)/i,
+      /will (definitely |certainly )?make (this |these )?again/i,
+      /my (family|kids|husband|wife) loved/i,
+    ];
+
+    if (commentPatterns.some(pattern => pattern.test(text))) {
+      return false;
+    }
+
+    // Prefer imperative mood (typical recipe instructions)
+    const instructionPatterns = [
+      /^(Preheat|Heat|Warm|Cool)/i,
+      /^(Mix|Combine|Blend|Stir|Whisk|Beat|Fold)/i,
+      /^(Add|Pour|Place|Put|Set|Arrange)/i,
+      /^(Bake|Cook|Roast|Grill|Fry|Sauté|Boil|Simmer)/i,
+      /^(Chill|Refrigerate|Freeze|Rest|Let sit)/i,
+      /^(Remove|Transfer|Drain|Strain)/i,
+      /^(Cut|Chop|Slice|Dice|Mince)/i,
+      /^(Season|Sprinkle|Garnish|Top)/i,
+      /^(In a (bowl|pan|pot|skillet))/i,
+      /\d+\s*(minutes?|hours?|degrees?|°F|°C)/i, // Contains time/temp measurements
+    ];
+
+    return instructionPatterns.some(pattern => pattern.test(text));
   }
 
   /**

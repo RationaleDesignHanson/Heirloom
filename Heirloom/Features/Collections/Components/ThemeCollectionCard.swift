@@ -78,37 +78,61 @@ struct ThemeCollectionCard: View {
             }
 
             // Info bar
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 8) {
+                // Name and unlock progress inline
+                HStack(spacing: 8) {
                     Text(collection.name)
                         .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(HeirloomColors.primaryText)
+                        .foregroundStyle(.white)
 
                     Text(subtitleText)
                         .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .foregroundStyle(.white.opacity(0.8))
                 }
 
                 Spacer()
 
                 // Progress indicator
                 if !isComplete {
-                    CircularProgressView(
-                        progress: Double(unlockProgress.unlocked) / Double(max(unlockProgress.total, 1)),
-                        lineWidth: 3
-                    )
-                    .frame(width: 32, height: 32)
+                    VStack(spacing: 4) {
+                        Text("\(unlockProgress.unlocked)/\(unlockProgress.total)")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.white)
+
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                // Background
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(.white.opacity(0.3))
+                                    .frame(height: 4)
+
+                                // Progress
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(.white)
+                                    .frame(
+                                        width: geometry.size.width * (Double(unlockProgress.unlocked) / Double(max(unlockProgress.total, 1))),
+                                        height: 4
+                                    )
+                            }
+                        }
+                        .frame(height: 4)
+                    }
+                    .frame(width: 60)
                 } else {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(HeirloomColors.familyGreen)
+                        .foregroundStyle(.white)
                 }
             }
             .padding(.horizontal, HeirloomSpacing.md)
-            .padding(.vertical, HeirloomSpacing.sm)
+            .padding(.vertical, 8)
         }
-        .background(HeirloomColors.cardBackground)
+        .background(HeirloomColors.themeTan)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(HeirloomColors.familyGreen.opacity(0.2), lineWidth: 1)
+        )
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 

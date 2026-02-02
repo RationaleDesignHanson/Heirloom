@@ -122,7 +122,7 @@ final class IngredientFormatter {
     ///   - value: The numeric value to format
     ///   - unit: The unit string (determines fraction vs decimal formatting)
     /// - Returns: Formatted quantity string
-    func formatQuantity(_ value: Double, unit: String? = nil) -> String {
+    nonisolated func formatQuantity(_ value: Double, unit: String? = nil) -> String {
         // Handle zero or very small values
         if value < 0.05 {
             return ""
@@ -142,7 +142,7 @@ final class IngredientFormatter {
     }
 
     /// Format a value using imperial fractions
-    private func formatImperialFraction(_ value: Double) -> String {
+    private nonisolated func formatImperialFraction(_ value: Double) -> String {
         let practicalFractions: [(Double, String)] = [
             (0.125, "⅛"),  // 1/8
             (0.25, "¼"),   // 1/4

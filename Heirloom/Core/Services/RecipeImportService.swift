@@ -384,7 +384,54 @@ class RecipeImportService {
             }
         }
 
-        return steps
+        // Filter out comment-like text
+        return steps.filter { looksLikeInstruction($0) }
+    }
+
+    /// Check if text looks like a recipe instruction (not a user comment)
+    private func looksLikeInstruction(_ text: String) -> Bool {
+        let lowercased = text.lowercased()
+
+        // Exclude comment patterns (first-person narratives, reviews)
+        let commentPatterns = [
+            "i love", "i loved", "i tried", "i made", "i recommend",
+            "we love", "we loved", "we tried", "my favorite",
+            "these are amazing", "these were amazing", "this is delicious",
+            "thank you for", "thank you so much",
+            "can't wait to", "just made this", "turned out great",
+            "so good", "very delicious", "will make again",
+            "my family loved", "my kids loved", "my husband loved"
+        ]
+
+        for pattern in commentPatterns {
+            if lowercased.contains(pattern) {
+                return false
+            }
+        }
+
+        // Prefer imperative mood (typical recipe instructions)
+        let instructionPrefixes = [
+            "preheat", "heat", "warm", "cool",
+            "mix", "combine", "blend", "stir", "whisk", "beat", "fold",
+            "add", "pour", "place", "put", "set", "arrange",
+            "bake", "cook", "roast", "grill", "fry", "sauté", "boil", "simmer",
+            "chill", "refrigerate", "freeze", "rest", "let sit",
+            "remove", "transfer", "drain", "strain",
+            "cut", "chop", "slice", "dice", "mince",
+            "season", "sprinkle", "garnish", "top",
+            "in a bowl", "in a pan", "in a pot", "in a skillet"
+        ]
+
+        for prefix in instructionPrefixes {
+            if lowercased.hasPrefix(prefix) {
+                return true
+            }
+        }
+
+        // Also check for time/temperature measurements
+        let hasTimeOrTemp = lowercased.range(of: #"(\d+\s*(minute|hour|degree|°f|°c))"#, options: .regularExpression) != nil
+
+        return hasTimeOrTemp
     }
 
     // MARK: - Microdata Parsing (Fallback)

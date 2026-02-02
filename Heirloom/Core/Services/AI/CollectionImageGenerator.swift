@@ -5,10 +5,12 @@ import UIKit
 actor CollectionImageGenerator {
     private let aiConfig: AIConfiguration
     private let imageStorage: ImageStorageService
+    private let styleConfig: VisualStyleConfiguration
 
-    init(aiConfig: AIConfiguration, imageStorage: ImageStorageService) {
+    init(aiConfig: AIConfiguration, imageStorage: ImageStorageService, styleConfig: VisualStyleConfiguration) {
         self.aiConfig = aiConfig
         self.imageStorage = imageStorage
+        self.styleConfig = styleConfig
     }
 
     /// Generate background image for collection
@@ -35,72 +37,56 @@ actor CollectionImageGenerator {
     private func buildPrompt(for collection: RecipeCollection) -> String {
         let recipes = collection.recipes ?? []
         let recipeNames = recipes.prefix(5).map { $0.title }.joined(separator: ", ")
+        let selectedStyle = styleConfig.selectedStyle
 
-        // Base prompt varies by collection type
-        var prompt: String
+        // Base subject varies by collection type
+        var subject: String
 
         switch collection.type {
         case .videoImports:
-            // User feedback: "a creator making a recipe as the contents subject"
-            prompt = "A modern kitchen scene showing a content creator filming a recipe"
+            subject = "A modern kitchen scene showing a content creator filming a recipe"
             if !recipeNames.isEmpty {
-                prompt += " making \(recipeNames.components(separatedBy: ", ").first ?? "a delicious dish")"
+                subject += " making \(recipeNames.components(separatedBy: ", ").first ?? "a delicious dish")"
             }
-            prompt += ". Style: bright natural lighting, contemporary kitchen, camera setup visible, YouTube aesthetic, warm inviting atmosphere, no text or words"
 
         case .cookbook:
-            // Vintage cookbook aesthetic
-            prompt = "A vintage cookbook open on a kitchen counter with worn pages and handwritten notes"
+            subject = "A vintage cookbook open on a kitchen counter with worn pages and handwritten notes"
             if !recipeNames.isEmpty {
-                prompt += " featuring recipes like \(recipeNames)"
+                subject += " featuring recipes like \(recipeNames)"
             }
-            prompt += ". Style: nostalgic, warm sepia tones, vintage cookbook photography, soft lighting, heirloom quality, no text or words"
 
         case .photoImports:
-            // Clean food photography
-            prompt = "A beautifully styled overhead flat lay of homemade food"
+            subject = "A beautifully styled overhead flat lay of homemade food"
             if !recipeNames.isEmpty {
-                prompt += " showing \(recipeNames.components(separatedBy: ", ").first ?? "delicious dishes")"
+                subject += " showing \(recipeNames.components(separatedBy: ", ").first ?? "delicious dishes")"
             }
-            prompt += ". Style: clean food photography, natural lighting, minimalist aesthetic, Instagram-worthy, warm tones, no text or words"
 
         case .webImports:
-            // Modern digital recipe aesthetic
-            prompt = "A modern kitchen scene with a tablet showing a recipe"
+            subject = "A modern kitchen scene with a tablet showing a recipe"
             if !recipeNames.isEmpty {
-                prompt += " for \(recipeNames.components(separatedBy: ", ").first ?? "cooking")"
+                subject += " for \(recipeNames.components(separatedBy: ", ").first ?? "cooking")"
             }
-            prompt += ". Style: contemporary, bright natural lighting, clean aesthetic, tech-savvy cooking, warm atmosphere, no text or words"
 
         case .communityRecipes:
-            // Community-shared recipes aesthetic
-            prompt = "A warm, inviting community kitchen scene with diverse people sharing recipes and cooking together"
+            subject = "A warm, inviting community kitchen scene with diverse people sharing recipes and cooking together"
             if !recipeNames.isEmpty {
-                prompt += " featuring dishes like \(recipeNames.components(separatedBy: ", ").first ?? "traditional favorites")"
+                subject += " featuring dishes like \(recipeNames.components(separatedBy: ", ").first ?? "traditional favorites")"
             }
-            prompt += ". Style: diverse community gathering, warm natural lighting, shared cooking experience, cultural exchange, cozy welcoming atmosphere, no text or words"
 
         default:
-            // Default warm nostalgic scene for user-created and theme collections
-            prompt = "A warm, nostalgic kitchen scene representing a family cookbook collection"
+            subject = "A warm, nostalgic kitchen scene representing a family cookbook collection"
             if !recipeNames.isEmpty {
-                prompt += " featuring dishes like \(recipeNames)"
+                subject += " featuring dishes like \(recipeNames)"
             }
         }
 
-        // Add custom description if provided (for all types)
+        // Add custom description if provided
         if let description = collection.desc, !description.isEmpty {
-            prompt += ". Additional theme: \(description)"
+            subject += ". Additional theme: \(description)"
         }
 
-        // Add default style notes for non-type-specific cases
-        if collection.type != .videoImports &&
-           collection.type != .cookbook &&
-           collection.type != .photoImports &&
-           collection.type != .webImports &&
-           collection.type != .communityRecipes {
-            prompt += ". Style: soft natural lighting, cozy atmosphere, watercolor illustration, warm tones, no text or words"
-        }
+        // Combine subject with user's selected visual style
+        let prompt = "\(subject). \(selectedStyle.promptModifier)"
 
         return prompt
     }

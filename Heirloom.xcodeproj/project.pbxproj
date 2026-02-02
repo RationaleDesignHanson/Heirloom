@@ -392,6 +392,8 @@
 		C5EF77612F303B870097779E /* ProfileHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77602F303B870097779E /* ProfileHeaderView.swift */; };
 		C5EF77642F304BFC0097779E /* OnboardingDiscoverScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77622F304BFC0097779E /* OnboardingDiscoverScreen.swift */; };
 		C5EF77652F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77632F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift */; };
+		C5EF77672F304F000097779E /* VisualStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77662F304F000097779E /* VisualStyle.swift */; };
+		C5EF77692F304F130097779E /* VisualStylePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77682F304F130097779E /* VisualStylePickerView.swift */; };
 		CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC154590CE51056017C5D6 /* CommentService.swift */; };
 		CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD518726BAFEC566E22D0315 /* Tag.swift */; };
 		CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBB366ABEF58AF23B4D64FE /* ImportItem.swift */; };
@@ -808,6 +810,8 @@
 		C5EF77602F303B870097779E /* ProfileHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileHeaderView.swift; sourceTree = "<group>"; };
 		C5EF77622F304BFC0097779E /* OnboardingDiscoverScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingDiscoverScreen.swift; sourceTree = "<group>"; };
 		C5EF77632F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingShareAndAcceptScreen.swift; sourceTree = "<group>"; };
+		C5EF77662F304F000097779E /* VisualStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualStyle.swift; sourceTree = "<group>"; };
+		C5EF77682F304F130097779E /* VisualStylePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualStylePickerView.swift; sourceTree = "<group>"; };
 		C6DCC0C21D884197B1F0F9AA /* ScalingWarningBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingWarningBanner.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C9A499F6282CBE6AC6C45E99 /* RecipeStructureParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeStructureParser.swift; sourceTree = "<group>"; };
@@ -1158,6 +1162,7 @@
 		82DB2D05EA149582BC4C7525 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77682F304F130097779E /* VisualStylePickerView.swift */,
 				C5CE3F4E2F2D77A200A2E62F /* Privacy */,
 				C5CE3F0F2F2CD87200A2E62F /* Components */,
 				C502FA482F24111D00BF1696 /* FeatureFlagsDebugView.swift */,
@@ -1231,6 +1236,7 @@
 		99534F5D5C4435D669F1B56B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77662F304F000097779E /* VisualStyle.swift */,
 				C5CE3F382F2D368F00A2E62F /* Search */,
 				C5CE3EFF2F2CCE9000A2E62F /* Export */,
 				C5CE3EF82F2CCE8700A2E62F /* Social */,
@@ -2535,6 +2541,7 @@
 				189E866732B2A3EF7F6A0483 /* AIError.swift in Sources */,
 				C56F3E772F04AC9800D19743 /* FirebaseSyncService.swift in Sources */,
 				C583FFD32F0CB7970096478E /* CollectionsListView.swift in Sources */,
+				C5EF77692F304F130097779E /* VisualStylePickerView.swift in Sources */,
 				64D4CE8DD0862C4231AFE553 /* AIIngredientParser.swift in Sources */,
 				C59AD31C2F2D7FDC0021F52B /* ProfilePrivacyView.swift in Sources */,
 				B5427115D9C624069E2F954E /* AIRecipeExtractor.swift in Sources */,
@@ -2851,6 +2858,7 @@
 				218A8EDAF2DFA141EFA33091 /* SettingsView.swift in Sources */,
 				E22C72C65B878B0F11D713E1 /* TrialDebugView.swift in Sources */,
 				A41FEDF5357B4C3BBA121A88 /* MigrationTestView.swift in Sources */,
+				C5EF77672F304F000097779E /* VisualStyle.swift in Sources */,
 				C56F3DCF2F02285600D19743 /* DebugLogView.swift in Sources */,
 				3815ADF1F8A3B87269E3F76B /* ShareOptions.swift in Sources */,
 				3DC4370D13356E958ECE4985 /* SharePreviewCard.swift in Sources */,

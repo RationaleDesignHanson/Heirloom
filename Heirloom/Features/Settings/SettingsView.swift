@@ -30,6 +30,9 @@ struct SettingsView: View {
     // Units configuration for measurement system
     @ObservedObject private var unitsConfig: UnitsConfiguration = ServiceContainer.shared.resolve(UnitsConfiguration.self)
 
+    // Visual style configuration for AI-generated images
+    @ObservedObject private var visualStyleConfig: VisualStyleConfiguration = ServiceContainer.shared.resolve(VisualStyleConfiguration.self)
+
     @State private var showClearDataConfirmation = false
     @State private var showSignOutConfirmation = false
     @State private var showSignIn = false
@@ -628,10 +631,22 @@ struct SettingsView: View {
                 }
             }
             .pickerStyle(.menu)
+
+            // Visual Style for AI-generated images
+            NavigationLink {
+                VisualStylePickerView(styleConfig: visualStyleConfig)
+            } label: {
+                HStack {
+                    Label("Visual Style", systemImage: visualStyleConfig.selectedStyle.iconName)
+                    Spacer()
+                    Text(visualStyleConfig.selectedStyle.displayName)
+                        .foregroundStyle(.secondary)
+                }
+            }
         } header: {
             Text("User Experience")
         } footer: {
-            Text("Choose your preferred measurement system. This affects how ingredients are displayed throughout the app.")
+            Text("Choose your preferred measurement system and visual style for AI-generated collection images.")
         }
     }
 

@@ -95,6 +95,7 @@ final class Recipe {
     var timesCooked: Int = 0
     var lastCooked: Date?
     var lastViewed: Date?
+    var hasBeenViewed: Bool = false
     var isFavorite: Bool = false
     var isInShoppingList: Bool = false
 

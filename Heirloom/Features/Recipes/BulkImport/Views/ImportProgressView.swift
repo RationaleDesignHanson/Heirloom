@@ -10,6 +10,8 @@ struct ImportProgressView: View {
     let job: ImportJob
 
     @State private var showingCancelConfirmation = false
+    @State private var mockProgress: Double = 0
+    @State private var timer: Timer?
 
     var body: some View {
         VStack(spacing: HeirloomSpacing.xl) {
@@ -20,29 +22,42 @@ struct ImportProgressView: View {
 
             // Progress Circle (using overallProgress for all phases)
             ZStack {
+                // Background ring with subtle shadow
                 Circle()
-                    .stroke(HeirloomColors.warmGray.opacity(0.2), lineWidth: 12)
-                    .frame(width: 160, height: 160)
+                    .stroke(HeirloomColors.warmGray.opacity(0.15), lineWidth: 14)
+                    .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
 
+                // Progress ring with gradient
                 Circle()
-                    .trim(from: 0, to: job.overallProgress)
-                    .stroke(HeirloomColors.tomato, lineWidth: 12)
-                    .frame(width: 160, height: 160)
+                    .trim(from: 0, to: displayProgress)
+                    .stroke(
+                        AngularGradient(
+                            colors: [
+                                HeirloomColors.tomato,
+                                HeirloomColors.tomato.opacity(0.8),
+                                HeirloomColors.tomato
+                            ],
+                            center: .center
+                        ),
+                        style: StrokeStyle(lineWidth: 14, lineCap: .round)
+                    )
                     .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 0.3), value: job.overallProgress)
+                    .animation(.easeInOut(duration: 0.5), value: job.overallProgress)
 
-                VStack(spacing: HeirloomSpacing.xs) {
-                    Text("\(Int(job.overallProgress * 100))%")
-                        .font(HeirloomFonts.largeTitle)
+                // Center content with better hierarchy
+                VStack(spacing: 4) {
+                    Text("\(Int(displayProgress * 100))%")
+                        .font(.system(size: 48, weight: .bold, design: .rounded))
                         .foregroundStyle(HeirloomColors.primaryText)
 
-                    Text(progressSubtitle)
+                    Text(statusText)
                         .font(HeirloomFonts.caption1)
                         .foregroundStyle(HeirloomColors.secondaryText)
                         .multilineTextAlignment(.center)
-                        .lineLimit(2)
+                        .frame(maxWidth: 120)
                 }
             }
+            .frame(width: 180, height: 180)
             .padding(HeirloomSpacing.xl)
 
             // Phase-specific content
@@ -55,15 +70,42 @@ struct ImportProgressView: View {
                     .padding(.horizontal, HeirloomSpacing.lg)
             }
 
-            // Stats
-            HStack(spacing: HeirloomSpacing.xl) {
-                statColumn("Success", job.successfulItems, .green)
-                statColumn("Failed", job.failedItems, .red)
-                statColumn("Remaining", job.totalItems - job.completedItems, HeirloomColors.secondaryText)
+            // Stats Bar
+            HStack(spacing: 0) {
+                // Success
+                statColumnEnhanced(
+                    icon: "checkmark.circle.fill",
+                    color: HeirloomColors.success,
+                    value: "\(job.successfulItems)",
+                    label: "Success"
+                )
+
+                Divider()
+                    .frame(height: 40)
+
+                // Failed
+                statColumnEnhanced(
+                    icon: "xmark.circle.fill",
+                    color: HeirloomColors.error,
+                    value: "\(job.failedItems)",
+                    label: "Failed"
+                )
+
+                Divider()
+                    .frame(height: 40)
+
+                // Remaining
+                statColumnEnhanced(
+                    icon: "clock.fill",
+                    color: HeirloomColors.warmGray,
+                    value: "\(job.totalItems - job.completedItems)",
+                    label: "Remaining"
+                )
             }
-            .padding(HeirloomSpacing.lg)
+            .padding(.vertical, HeirloomSpacing.md)
             .background(HeirloomColors.cardBackground)
             .cornerRadius(12)
+            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
             .padding(.horizontal, HeirloomSpacing.lg)
 
             Spacer()
@@ -79,13 +121,14 @@ struct ImportProgressView: View {
                         HStack {
                             Image(systemName: "pause.circle.fill")
                             Text("Pause")
-                                .fontWeight(.semibold)
+                                .font(.headline.weight(.semibold))
                         }
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(HeirloomColors.secondaryText)
-                        .foregroundStyle(HeirloomColors.buttonTextLight)
-                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                        .padding(.vertical, 16)
+                        .background(HeirloomColors.warmGray)
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
+                        .shadow(color: HeirloomColors.warmGray.opacity(0.3), radius: 8, y: 4)
                     }
                 } else if job.status == .paused {
                     Button {
@@ -96,13 +139,14 @@ struct ImportProgressView: View {
                         HStack {
                             Image(systemName: "play.circle.fill")
                             Text("Resume")
-                                .fontWeight(.semibold)
+                                .font(.headline.weight(.semibold))
                         }
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.vertical, 16)
                         .background(HeirloomColors.tomato)
-                        .foregroundStyle(HeirloomColors.buttonTextLight)
-                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
+                        .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 8, y: 4)
                     }
                 }
 
@@ -116,13 +160,14 @@ struct ImportProgressView: View {
                         HStack {
                             Image(systemName: "arrow.clockwise.circle.fill")
                             Text("Resume from Checkpoint")
-                                .fontWeight(.semibold)
+                                .font(.headline.weight(.semibold))
                         }
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.vertical, 16)
                         .background(HeirloomColors.tomato)
-                        .foregroundStyle(HeirloomColors.buttonTextLight)
-                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
+                        .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 8, y: 4)
                     }
                 }
 
@@ -137,13 +182,14 @@ struct ImportProgressView: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                             Text("Done")
-                                .fontWeight(.semibold)
+                                .font(.headline.weight(.semibold))
                         }
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.vertical, 16)
                         .background(HeirloomColors.tomato)
-                        .foregroundStyle(HeirloomColors.buttonTextLight)
-                        .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
+                        .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 8, y: 4)
                     }
                 }
 
@@ -179,7 +225,50 @@ struct ImportProgressView: View {
         } message: {
             Text("Pause to resume later, or delete to remove completely.")
         }
+        .onAppear {
+            startMockProgressTimer()
+        }
+        .onDisappear {
+            stopMockProgressTimer()
+        }
     }
+
+    // MARK: - Computed Properties
+
+    /// Display progress that uses mock progress when real progress is slow
+    private var displayProgress: Double {
+        // If real progress is moving (> 5%), use it
+        if job.overallProgress > 0.05 {
+            return job.overallProgress
+        }
+        // Otherwise use mock progress (capped at 85% until real completion)
+        return min(mockProgress, 0.85)
+    }
+
+    // MARK: - Mock Progress Timer
+
+    private func startMockProgressTimer() {
+        // Start with small initial progress
+        mockProgress = 0.05
+
+        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+            // Only increment if real progress is still low
+            if job.overallProgress < 0.05 && mockProgress < 0.85 {
+                // Increment by 2-5% every 0.5s for visible movement
+                mockProgress += Double.random(in: 0.02...0.05)
+            } else if job.overallProgress >= 0.05 {
+                // Real progress has started, stop mock progress
+                stopMockProgressTimer()
+            }
+        }
+    }
+
+    private func stopMockProgressTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    // MARK: - Status & Progress Text
 
     private var statusText: String {
         switch job.status {
@@ -216,16 +305,31 @@ struct ImportProgressView: View {
         HStack(spacing: HeirloomSpacing.md) {
             Image(systemName: job.phase.iconName)
                 .font(HeirloomFonts.title2)
-                .foregroundStyle(HeirloomColors.tomato)
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .background(
+                    LinearGradient(
+                        colors: [HeirloomColors.tomato, HeirloomColors.tomato.opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .cornerRadius(12)
 
-            Text(job.phase.displayName)
-                .font(HeirloomFonts.bodyBold)
-                .foregroundStyle(HeirloomColors.primaryText)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(job.phase.displayName)
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(HeirloomColors.primaryText)
+                Text(progressSubtitle)
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
         }
         .padding(.horizontal, HeirloomSpacing.lg)
-        .padding(.vertical, HeirloomSpacing.sm)
+        .padding(.vertical, HeirloomSpacing.md)
         .background(HeirloomColors.cardBackground)
-        .cornerRadius(20)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
     }
 
     // MARK: - Phase-Specific Content
@@ -476,6 +580,23 @@ struct ImportProgressView: View {
 
             Text(label)
                 .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func statColumnEnhanced(icon: String, color: Color, value: String, label: String) -> some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(color)
+
+            Text(value)
+                .font(.title2.weight(.bold))
+                .foregroundStyle(HeirloomColors.primaryText)
+
+            Text(label)
+                .font(.caption2)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
         .frame(maxWidth: .infinity)

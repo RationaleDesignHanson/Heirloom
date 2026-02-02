@@ -58,52 +58,21 @@ struct ScaledIngredient: Identifiable {
         self.adjustmentReason = adjustmentReason
         self.notes = notes
 
-        // Format the display quantity using the same formatter as Ingredient
+        // Format the display quantity using IngredientFormatter
         if let qty = scaledQuantity {
-            self.displayQuantity = Self.formatQuantity(qty, max: scaledQuantityMax)
+            let formatter = ServiceContainer.sharedUnsafe.resolveUnsafe(IngredientFormatter.self)
+            let qtyStr = formatter.formatQuantity(qty, unit: originalIngredient.unit)
+            if let maxQty = scaledQuantityMax {
+                let maxStr = formatter.formatQuantity(maxQty, unit: originalIngredient.unit)
+                self.displayQuantity = "\(qtyStr)-\(maxStr)"
+            } else {
+                self.displayQuantity = qtyStr
+            }
         } else {
             self.displayQuantity = ""
         }
     }
 
-    /// Format quantity with Unicode fractions
-    private static func formatQuantity(_ value: Double, max: Double? = nil) -> String {
-        let fractions: [(Double, String)] = [
-            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
-            (0.375, "⅜"), (0.5, "½"), (0.625, "⅝"),
-            (0.667, "⅔"), (0.75, "¾"), (0.875, "⅞")
-        ]
-
-        func format(_ val: Double) -> String {
-            let whole = Int(val)
-            let fraction = val - Double(whole)
-
-            // Find closest fraction
-            if fraction > 0.01 {
-                if let match = fractions.min(by: { abs($0.0 - fraction) < abs($1.0 - fraction) }),
-                   abs(match.0 - fraction) < 0.05 {
-                    if whole > 0 {
-                        return "\(whole) \(match.1)"
-                    } else {
-                        return match.1
-                    }
-                }
-            }
-
-            // No fraction match, show decimal if needed
-            if fraction > 0.01 {
-                return String(format: "%.2f", val)
-            } else {
-                return "\(whole)"
-            }
-        }
-
-        if let max = max {
-            return "\(format(value))-\(format(max))"
-        } else {
-            return format(value)
-        }
-    }
 
     /// Full display string: "2 ½ cups flour"
     var fullDisplayString: String {

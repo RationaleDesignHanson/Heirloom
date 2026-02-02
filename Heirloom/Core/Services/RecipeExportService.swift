@@ -7,11 +7,13 @@ class RecipeExportService {
     // MARK: - Dependencies
 
     private let toastManager: ToastManager
+    private let ingredientFormatter: IngredientFormatter
 
     // MARK: - Initialization
 
-    init(toastManager: ToastManager) {
+    init(toastManager: ToastManager, ingredientFormatter: IngredientFormatter) {
         self.toastManager = toastManager
+        self.ingredientFormatter = ingredientFormatter
     }
 
     // MARK: - Share Methods
@@ -235,7 +237,9 @@ class RecipeExportService {
                     } else {
                         quantity
                     }
-                    ingredientDict["quantity"] = scaledQty
+                    // Format using IngredientFormatter to get proper fractions (⅓) not decimals (0.33333334326744)
+                    let formattedQty = ingredientFormatter.formatQuantity(scaledQty, unit: ingredient.unit)
+                    ingredientDict["quantity"] = formattedQty
                 }
                 if let quantityMax = ingredient.quantityMax {
                     let scaledMax = if let factor = scaleFactor {
@@ -243,7 +247,9 @@ class RecipeExportService {
                     } else {
                         quantityMax
                     }
-                    ingredientDict["quantityMax"] = scaledMax
+                    // Format using IngredientFormatter
+                    let formattedMax = ingredientFormatter.formatQuantity(scaledMax, unit: ingredient.unit)
+                    ingredientDict["quantityMax"] = formattedMax
                 }
                 if let unit = ingredient.unit {
                     ingredientDict["unit"] = unit
@@ -671,11 +677,11 @@ class RecipeExportService {
         // Build scaled display text
         var parts: [String] = []
 
-        // Format quantity with fractions
-        parts.append(formatQuantity(scaledQty))
+        // Format quantity with fractions using IngredientFormatter
+        parts.append(ingredientFormatter.formatQuantity(scaledQty, unit: ingredient.unit))
 
         if let max = scaledQtyMax {
-            parts.append("-\(formatQuantity(max))")
+            parts.append("-\(ingredientFormatter.formatQuantity(max, unit: ingredient.unit))")
         }
 
         if let unit = ingredient.unit {
@@ -691,49 +697,6 @@ class RecipeExportService {
         return parts.joined(separator: " ")
     }
 
-    private func formatQuantity(_ value: Double) -> String {
-        let fractions: [(Double, String)] = [
-            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
-            (0.375, "⅜"), (0.5, "½"), (0.625, "⅝"),
-            (0.666, "⅔"), (0.75, "¾"), (0.875, "⅞")
-        ]
-
-        let wholePart = Int(value)
-        let fractionalPart = value - Double(wholePart)
-
-        // First pass: exact matches (within 0.01)
-        for (decimalValue, fractionSymbol) in fractions {
-            if abs(fractionalPart - decimalValue) < 0.01 {
-                if wholePart > 0 {
-                    return "\(wholePart) \(fractionSymbol)"
-                } else {
-                    return fractionSymbol
-                }
-            }
-        }
-
-        // Second pass: snap to nearest common fraction (within 0.12)
-        let commonFractions: [(Double, String)] = [
-            (0.125, "⅛"), (0.25, "¼"), (0.333, "⅓"),
-            (0.5, "½"), (0.666, "⅔"), (0.75, "¾")
-        ]
-
-        for (decimalValue, fractionSymbol) in commonFractions {
-            if abs(fractionalPart - decimalValue) < 0.12 {
-                if wholePart > 0 {
-                    return "\(wholePart) \(fractionSymbol)"
-                } else {
-                    return fractionSymbol
-                }
-            }
-        }
-
-        if fractionalPart < 0.01 {
-            return "\(wholePart)"
-        }
-
-        return String(format: "%.1f", value)
-    }
 
     // MARK: - Import Errors
 
