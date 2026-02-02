@@ -268,7 +268,7 @@ struct CollectionsListView: View {
                 titleVisibility: .visible
             ) {
                 Button("New Recipe") {
-                    handleAddRecipe()
+                    handleGenerateRecipe()
                 }
 
                 Button("Recipe Website Link") {
