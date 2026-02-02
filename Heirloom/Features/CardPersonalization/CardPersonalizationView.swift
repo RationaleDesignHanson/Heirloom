@@ -870,8 +870,9 @@ struct CardPersonalizationView: View {
 
             toastManager.success(title: "Card updated!")
 
+            // TODO: Re-enable milestone celebrations after redesign
             // Check card personalization milestone
-            milestoneManager.checkFirstCardPersonalization()
+            // milestoneManager.checkFirstCardPersonalization()
 
             dismiss()
         } catch {

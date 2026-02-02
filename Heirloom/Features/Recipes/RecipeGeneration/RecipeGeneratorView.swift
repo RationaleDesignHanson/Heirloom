@@ -176,7 +176,7 @@ struct RecipeGeneratorView: View {
             // Sync to Firebase if active
             if ServiceContainer.shared.resolve(BackendConfig.self).isFirebaseActive {
                 do {
-                    let firebaseSync = ServiceContainer.shared.resolve(FirebaseRecipeSyncProtocol.self)
+                    let firebaseSync = ServiceContainer.shared.resolve((any FirebaseRecipeSyncProtocol).self)
                     try await firebaseSync.uploadRecipe(recipe)
                     Log.info("AI-generated recipe synced to Firebase", category: .firebase, metadata: ["title": recipe.title])
                 } catch {

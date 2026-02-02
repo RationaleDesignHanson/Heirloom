@@ -61,9 +61,15 @@ struct DiscoveryView: View {
                     feedContent
                 }
             }
-            .navigationTitle(isSearching ? "Search Results" : "Discover")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(isSearching ? "Search Results" : "Discover")
+                        .font(HeirloomFonts.title2)
+                        .fontWeight(.semibold)
+                }
+
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button {

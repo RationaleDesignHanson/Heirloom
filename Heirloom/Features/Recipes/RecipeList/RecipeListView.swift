@@ -1146,30 +1146,32 @@ struct RecipeListView: View {
     }
 
     private func checkRecipeMilestones() {
-        let recipeCount = recipes.count
-
-        // Check first recipe
-        if recipeCount == 1 {
-            milestoneManager.checkFirstRecipeAdded()
-        }
-
-        // Check milestone thresholds
-        if recipeCount == 10 {
-            milestoneManager.checkTenRecipes()
-        } else if recipeCount == 50 {
-            milestoneManager.checkFiftyRecipes()
-        }
+        // TODO: Re-enable milestone celebrations after redesign
+        // let recipeCount = recipes.count
+        //
+        // // Check first recipe
+        // if recipeCount == 1 {
+        //     milestoneManager.checkFirstRecipeAdded()
+        // }
+        //
+        // // Check milestone thresholds
+        // if recipeCount == 10 {
+        //     milestoneManager.checkTenRecipes()
+        // } else if recipeCount == 50 {
+        //     milestoneManager.checkFiftyRecipes()
+        // }
     }
 
     private func checkShoppingListMilestone() {
-        // Count total shopping list recipes
-        let descriptor = FetchDescriptor<ShoppingCartRecipe>()
-        if let cartRecipes = try? modelContext.fetch(descriptor) {
-            // Check first shopping list
-            if cartRecipes.count == 1 {
-                milestoneManager.checkFirstShoppingList()
-            }
-        }
+        // TODO: Re-enable milestone celebrations after redesign
+        // // Count total shopping list recipes
+        // let descriptor = FetchDescriptor<ShoppingCartRecipe>()
+        // if let cartRecipes = try? modelContext.fetch(descriptor) {
+        //     // Check first shopping list
+        //     if cartRecipes.count == 1 {
+        //         milestoneManager.checkFirstShoppingList()
+        //     }
+        // }
     }
 
     private func handleConflictNotification(_ notification: Notification) {
@@ -1409,12 +1411,21 @@ struct ConflictResolutionWrapper: View {
 // MARK: - Recipe Card View
 struct RecipeCardView: View {
     let recipe: Recipe
+    var collection: RecipeCollection? = nil  // Optional collection context for theme recipes
     var isSelectionMode: Bool = false
     var isSelected: Bool = false
     @EnvironmentObject private var notificationService: FirebaseNotificationService
 
     private var unreadCount: Int {
         notificationService.unreadCount(for: recipe.id)
+    }
+
+    // Display name with collection context for theme recipes
+    private var displayName: String {
+        if let collection = collection, collection.type == .theme, recipe.isThemeRecipe {
+            return collection.name
+        }
+        return recipe.sourceDisplayName
     }
 
     var body: some View {
@@ -1535,27 +1546,26 @@ struct RecipeCardView: View {
                 }
             }
 
-            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(recipe.title)
                     .font(HeirloomFonts.subheadline)
                     .foregroundStyle(recipe.isThemeRecipe ? Color(red: 0.4, green: 0.26, blue: 0.13) : HeirloomColors.primaryText)
                     .fontWeight(.semibold)
                     .lineLimit(2)
-                    .frame(height: 36, alignment: .topLeading)
 
                 // Consolidated: Source, Times Cooked, and Generation Badge on one line
                 HStack(spacing: 6) {
                     // Creator name link for video recipes
                     if recipe.sourceType == .video, let profileURL = recipe.creatorProfileURL {
                         Link(destination: profileURL) {
-                            Text(recipe.sourceDisplayName)
+                            Text(displayName)
                                 .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.tomato)
                                 .underline()
                                 .lineLimit(1)
                         }
                     } else {
-                        Text(recipe.sourceDisplayName)
+                        Text(displayName)
                             .font(HeirloomFonts.caption1)
                             .foregroundStyle(recipe.isThemeRecipe ? Color(red: 0.4, green: 0.26, blue: 0.13).opacity(0.8) : HeirloomColors.secondaryText)
                             .lineLimit(1)

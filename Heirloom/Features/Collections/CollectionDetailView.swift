@@ -136,7 +136,7 @@ struct CollectionDetailView: View {
     private func recipeCard(for recipe: Recipe) -> some View {
         if isSelectionMode && collection.isAllRecipes {
             // Selection mode: tap to select/deselect
-            RecipeCardView(recipe: recipe)
+            RecipeCardView(recipe: recipe, collection: collection)
                 .overlay(alignment: .topTrailing) {
                     if selectedRecipeIDs.contains(recipe.id) {
                         Image(systemName: "checkmark.circle.fill")
@@ -159,7 +159,7 @@ struct CollectionDetailView: View {
                 RecipeDetailView(recipe: recipe)
                     .environmentObject(notificationService)
             } label: {
-                RecipeCardView(recipe: recipe)
+                RecipeCardView(recipe: recipe, collection: collection)
             }
             .buttonStyle(.plain)
             .contextMenu {
@@ -1193,53 +1193,24 @@ struct CollectionDetailView: View {
             }
             .padding(.vertical, HeirloomSpacing.lg)
 
-            // Nudge card
-            Button {
-                showAddRecipeMenu = true
-            } label: {
-                HStack(spacing: HeirloomSpacing.md) {
-                    // Icon
-                    ZStack {
-                        Circle()
-                            .fill(HeirloomColors.tomato.opacity(0.1))
-                            .frame(width: 48, height: 48)
+            // CTA banner (matches CollectionsListView style)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Add your own recipe")
+                    .font(HeirloomFonts.body)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
 
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(HeirloomColors.tomato)
-                    }
-
-                    // Text
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(UXCopy.Nudges.addRecipeTitle)
-                            .font(HeirloomFonts.bodyBold)
-                            .foregroundStyle(HeirloomColors.primaryText)
-
-                        Text(UXCopy.Nudges.addRecipeSubtitle(themeName: collection.name))
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
-                            .lineLimit(2)
-                    }
-
-                    Spacer()
-
-                    // Arrow
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(HeirloomColors.tomato)
-                }
-                .padding(HeirloomSpacing.md)
-                .background(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(HeirloomColors.cardBackground)
-                        .shadow(color: HeirloomColors.tomato.opacity(0.1), radius: 8, x: 0, y: 4)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(HeirloomColors.tomato.opacity(0.2), lineWidth: 1)
-                )
+                Text("Press the + button above to import or generate recipes")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(.white.opacity(0.9))
             }
-            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(HeirloomColors.familyGreen)
+                    .shadow(color: HeirloomColors.familyGreen.opacity(0.3), radius: 8, y: 4)
+            )
         }
         .padding(.horizontal, HeirloomSpacing.md)
     }

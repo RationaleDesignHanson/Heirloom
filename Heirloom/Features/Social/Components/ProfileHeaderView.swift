@@ -14,108 +14,102 @@ struct ProfileHeaderView: View {
     let onEditProfile: () -> Void
 
     var body: some View {
-        VStack(spacing: HeirloomSpacing.md) {
-            // Avatar and Edit Button
-            ZStack(alignment: .bottomTrailing) {
-                if let photoURL = profile?.photoURL, let url = URL(string: photoURL) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        case .failure, .empty:
-                            avatarPlaceholder
-                        @unknown default:
-                            avatarPlaceholder
-                        }
+        HStack(spacing: HeirloomSpacing.md) {
+            // Avatar
+            if let photoURL = profile?.photoURL, let url = URL(string: photoURL) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    case .failure, .empty:
+                        avatarPlaceholder
+                    @unknown default:
+                        avatarPlaceholder
                     }
-                    .frame(width: 80, height: 80)
-                    .clipShape(Circle())
-                } else {
-                    avatarPlaceholder
                 }
-
-                // Edit button badge
-                Button {
-                    onEditProfile()
-                } label: {
-                    Image(systemName: "pencil.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(.white)
-                        .background(
-                            Circle()
-                                .fill(HeirloomColors.tomato)
-                                .frame(width: 28, height: 28)
-                        )
-                }
+                .frame(width: 60, height: 60)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(.white.opacity(0.3), lineWidth: 2)
+                )
+            } else {
+                avatarPlaceholder
             }
 
-            // Name and Location
-            VStack(spacing: 4) {
+            // Name, Location, and Stats
+            VStack(alignment: .leading, spacing: 4) {
                 Text(profile?.displayName ?? "Your Name")
-                    .font(HeirloomFonts.title2)
+                    .font(HeirloomFonts.title3)
                     .fontWeight(.bold)
-                    .foregroundStyle(HeirloomColors.primaryText)
+                    .foregroundStyle(.white)
 
                 if let location = profile?.location, !location.isEmpty {
                     HStack(spacing: 4) {
                         Image(systemName: "mappin.circle.fill")
-                            .font(.caption)
+                            .font(.caption2)
                         Text(location)
                             .font(HeirloomFonts.caption1)
                     }
-                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .foregroundStyle(.white.opacity(0.9))
                 }
+
+                // Compact stats row
+                HStack(spacing: HeirloomSpacing.md) {
+                    HStack(spacing: 4) {
+                        Text("\(connectionsCount)")
+                            .font(HeirloomFonts.bodyBold)
+                        Text("Connections")
+                            .font(HeirloomFonts.caption2)
+                    }
+
+                    Text("•")
+                        .font(HeirloomFonts.caption2)
+                        .opacity(0.5)
+
+                    HStack(spacing: 4) {
+                        Text("\(profile?.sharedRecipeCount ?? 0)")
+                            .font(HeirloomFonts.bodyBold)
+                        Text("Shared")
+                            .font(HeirloomFonts.caption2)
+                    }
+                }
+                .foregroundStyle(.white)
+                .padding(.top, 2)
             }
 
-            // Connection Stats
-            HStack(spacing: HeirloomSpacing.xl) {
-                StatView(
-                    value: "\(connectionsCount)",
-                    label: "Connections"
-                )
+            Spacer()
 
-                StatView(
-                    value: "\(profile?.sharedRecipeCount ?? 0)",
-                    label: "Shared"
-                )
+            // Edit button
+            Button {
+                onEditProfile()
+            } label: {
+                Image(systemName: "pencil.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.white)
             }
-            .padding(.top, HeirloomSpacing.sm)
         }
-        .padding(.vertical, HeirloomSpacing.lg)
-        .padding(.horizontal, HeirloomSpacing.md)
-        .background(HeirloomColors.cardBackground)
+        .padding(HeirloomSpacing.md)
+        .background(HeirloomColors.familyGreen)
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+        .shadow(color: HeirloomColors.familyGreen.opacity(0.3), radius: 8, y: 4)
     }
 
     private var avatarPlaceholder: some View {
         Circle()
-            .fill(HeirloomColors.warmGray.opacity(0.2))
-            .frame(width: 80, height: 80)
+            .fill(.white.opacity(0.2))
+            .frame(width: 60, height: 60)
             .overlay(
                 Image(systemName: "person.fill")
-                    .font(.system(size: 32))
-                    .foregroundStyle(HeirloomColors.warmGray)
+                    .font(.system(size: 24))
+                    .foregroundStyle(.white.opacity(0.8))
+            )
+            .overlay(
+                Circle()
+                    .stroke(.white.opacity(0.3), lineWidth: 2)
             )
     }
 }
 
-private struct StatView: View {
-    let value: String
-    let label: String
-
-    var body: some View {
-        VStack(spacing: 4) {
-            Text(value)
-                .font(HeirloomFonts.title3)
-                .fontWeight(.bold)
-                .foregroundStyle(HeirloomColors.primaryText)
-
-            Text(label)
-                .font(HeirloomFonts.caption1)
-                .foregroundStyle(HeirloomColors.secondaryText)
-        }
-    }
-}

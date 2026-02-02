@@ -1298,7 +1298,8 @@ struct ContentView: View {
         .preferredColorScheme(.light)
         .tint(HeirloomColors.familyGreen)
         .toastContainer()
-        .milestonesCelebration()
+        // TODO: Re-enable milestone celebrations after redesign
+        // .milestonesCelebration()
         .sheet(isPresented: $showAddRecipe) {
             RecipeEditorView()
                 .environmentObject(tabCoordinator)

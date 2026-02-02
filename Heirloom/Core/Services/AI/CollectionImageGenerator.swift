@@ -143,8 +143,9 @@ actor CollectionImageGenerator {
             throw ImageGenerationError.invalidImageData
         }
 
-        // Save with special naming for collection backgrounds
-        let fileName = "collection-bg-ai-\(collectionId.uuidString).jpg"
+        // Save with special naming for collection backgrounds (include timestamp to force UI refresh on regeneration)
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let fileName = "collection-bg-ai-\(collectionId.uuidString)-\(timestamp).jpg"
         let savedPath = try await imageStorage.saveImage(uiImage, fileName: fileName)
 
         Log.info("Saved AI-generated collection image", category: .general, metadata: [

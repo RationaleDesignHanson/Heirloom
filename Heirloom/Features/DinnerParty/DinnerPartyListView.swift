@@ -62,10 +62,15 @@ struct DinnerPartyListView: View {
                     }
                 }
             }
-            .background(HeirloomColors.appBackground)
-            .navigationTitle("Meal Planning")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Meal Planning")
+                        .font(HeirloomFonts.title2)
+                        .fontWeight(.semibold)
+                }
+
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button {
@@ -253,17 +258,33 @@ struct DinnerPartyListView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        ContentUnavailableView {
-            Label("No Meal Plans", systemImage: "fork.knife")
-        } description: {
+        VStack(spacing: HeirloomSpacing.lg) {
+            Image(systemName: "fork.knife")
+                .font(.system(size: 48))
+                .foregroundStyle(HeirloomColors.warmGray)
+
+            Text("No Meal Plans")
+                .font(HeirloomFonts.title2)
+                .fontWeight(.semibold)
+                .foregroundStyle(HeirloomColors.primaryText)
+
             Text("Create a meal plan to coordinate cooking multiple recipes for your guests")
-        } actions: {
+                .font(HeirloomFonts.body)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, HeirloomSpacing.xl)
+
             Button("Create Meal Plan") {
                 showCreateParty = true
             }
-            .buttonStyle(.borderedProminent)
-            .tint(HeirloomColors.tomato)
+            .font(HeirloomFonts.bodyBold)
+            .foregroundStyle(.white)
+            .padding(.horizontal, HeirloomSpacing.lg)
+            .padding(.vertical, HeirloomSpacing.md)
+            .background(HeirloomColors.tomato)
+            .cornerRadius(12)
         }
+        .padding(.vertical, HeirloomSpacing.xxl)
     }
 
     // MARK: - Actions

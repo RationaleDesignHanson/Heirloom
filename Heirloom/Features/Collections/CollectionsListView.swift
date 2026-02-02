@@ -86,6 +86,12 @@ struct CollectionsListView: View {
         }
     }
 
+    /// User-added recipes (excludes theme collection recipes)
+    /// Used for determining when to show the "Add your own recipe" CTA banner
+    private var userRecipes: [Recipe] {
+        allRecipes.filter { $0.sourceThemeId == nil }
+    }
+
     // MARK: - Task #6: Grouped Collections by Category
 
     /// Collections grouped by category for organized display
@@ -192,10 +198,16 @@ struct CollectionsListView: View {
                     }
                 }
             }
-            .navigationTitle("Collections")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, prompt: "Search recipes")
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Collections")
+                        .font(HeirloomFonts.title2)
+                        .fontWeight(.semibold)
+                }
+
                 toolbarContent
             }
             .sheet(isPresented: $showCreateCollection) {
@@ -497,10 +509,9 @@ struct CollectionsListView: View {
 
     private var unifiedCollectionsSection: some View {
         LazyVStack(spacing: HeirloomSpacing.lg) {
-            // CTA banner (FIRST - pinned to top until user has substantial recipes)
+            // CTA banner (FIRST - pinned to top until user has 2+ recipes)
             // Only count user-added recipes (exclude theme collection recipes)
-            let userRecipes = allRecipes.filter { $0.sourceThemeId == nil }
-            if userRecipes.count <= 5 {
+            if userRecipes.count < 2 {
                 ctaBanner
                     .padding(.bottom, HeirloomSpacing.sm)
             }
@@ -529,28 +540,23 @@ struct CollectionsListView: View {
     // MARK: - CTA Banner
 
     private var ctaBanner: some View {
-        Button(action: {
-            // Visual guide only - user taps + button in toolbar
-        }) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Add your own recipe")
-                    .font(HeirloomFonts.body)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Add your own recipe")
+                .font(HeirloomFonts.body)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
 
-                Text("Press the + button above to import or generate recipes")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(.white.opacity(0.9))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(HeirloomColors.familyGreen)
-                    .shadow(color: HeirloomColors.familyGreen.opacity(0.3), radius: 8, y: 4)
-            )
+            Text("Press the + button above to import or generate recipes")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(.white.opacity(0.9))
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(HeirloomColors.familyGreen)
+                .shadow(color: HeirloomColors.familyGreen.opacity(0.3), radius: 8, y: 4)
+        )
     }
 
     // MARK: - Theme Section
@@ -873,15 +879,16 @@ struct CollectionsListView: View {
         // CRITICAL: Verify Heritage recipes exist if they should
         verifyHeritageRecipes()
 
+        // TODO: Re-enable coach marks after redesign
         // Show coach mark after 10 seconds if not seen before
-        if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
-            Task {
-                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
-                if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
-                    showRecipeCoachMark = true
-                }
-            }
-        }
+        // if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
+        //     Task {
+        //         try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+        //         if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
+        //             showRecipeCoachMark = true
+        //         }
+        //     }
+        // }
     }
 
     /// Verify Heritage recipes exist in database, promote from cache if missing

@@ -962,8 +962,43 @@ final class ImportJobManager: ObservableObject {
                 ])
             }
 
-            // Ensure we have at least one recipe
+            // Handle case where all recipes were duplicates
             guard !recipes.isEmpty else {
+                // If we have skipped duplicates, this is a successful extraction
+                // (the recipes were found, just already exist in the database)
+                if !skippedDuplicates.isEmpty {
+                    // Get the existing recipe IDs from the duplicates
+                    let existingRecipeIDs = skippedDuplicates.compactMap { $0.1.first?.recipe.id }
+
+                    // Mark as successful with the existing recipe IDs
+                    item.markSuccess(recipeIDs: existingRecipeIDs)
+
+                    Log.info("✅ All recipes were duplicates (extraction succeeded)", category: .import, metadata: [
+                        "item_id": item.id.uuidString,
+                        "duplicate_count": skippedDuplicates.count,
+                        "duplicate_titles": skippedDuplicates.map { $0.0.title }.joined(separator: " | ")
+                    ])
+
+                    // Update job progress
+                    job.updateProgress(success: true)
+                    item.wasCheckpointed = true
+
+                    // Update checkpoint
+                    if let items = job.items,
+                       let itemIndex = items.firstIndex(where: { $0.id == item.id }) {
+                        job.checkpoint?.updateExtractionProgress(itemIndex: itemIndex)
+
+                        Log.info("Checkpointed duplicate recipe", category: .import, metadata: [
+                            "recipe_index": itemIndex,
+                            "total_completed": job.successfulItems
+                        ])
+                    }
+
+                    // Return early - this is a successful extraction (duplicates)
+                    return
+                }
+
+                // No recipes extracted and no duplicates - genuine failure
                 throw ImportJobError.noRecipeFound
             }
 

@@ -63,9 +63,15 @@ struct KitchenTableView: View {
                     contentView
                 }
             }
-            .navigationTitle("Table")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Table")
+                        .font(HeirloomFonts.title2)
+                        .fontWeight(.semibold)
+                }
+
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button {

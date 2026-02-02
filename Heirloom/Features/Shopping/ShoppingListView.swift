@@ -40,9 +40,15 @@ struct ShoppingListView: View {
                     shoppingList
                 }
             }
-            .navigationTitle("Shopping List")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Shopping")
+                        .font(HeirloomFonts.title2)
+                        .fontWeight(.semibold)
+                }
+
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         if cartRecipes.isEmpty {
