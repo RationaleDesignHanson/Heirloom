@@ -96,6 +96,39 @@ class AIConfiguration: ObservableObject, AIConfigurationProtocol {
         return defaultAPIKey(for: provider)
     }
 
+    // MARK: - Google Vision API Key
+
+    /// Get Google Vision API key (used for handwriting OCR)
+    func googleVisionAPIKey() -> String? {
+        // Check user-provided key first
+        if let userKey = keychain.get("google_vision_api_key"), !userKey.isEmpty {
+            return userKey
+        }
+
+        // Fall back to default key from bundle
+        let key = Bundle.main.object(forInfoDictionaryKey: "DEFAULT_GOOGLE_VISION_KEY") as? String
+        if let key = key, key != "YOUR_GOOGLE_VISION_KEY_HERE", !key.isEmpty {
+            return key
+        }
+
+        return nil
+    }
+
+    /// Set Google Vision API key
+    func setGoogleVisionAPIKey(_ key: String?) {
+        if let key = key {
+            keychain.set("google_vision_api_key", value: key)
+        } else {
+            keychain.delete("google_vision_api_key")
+        }
+        objectWillChange.send()
+    }
+
+    /// Check if Google Vision is configured
+    var isGoogleVisionConfigured: Bool {
+        return googleVisionAPIKey() != nil
+    }
+
     /// Set API key for a provider
     func setAPIKey(_ key: String?, for provider: AIProvider) {
         if let key = key {

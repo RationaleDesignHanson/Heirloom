@@ -11,6 +11,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     private let aiService: AIServiceProtocol
     private let configuration: AIConfigurationProtocol
     private let analytics: AnalyticsService
+    private var googleVisionService: GoogleVisionOCRService?
 
     // MARK: - Initialization
 
@@ -22,6 +23,14 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         self.aiService = aiService
         self.configuration = configuration
         self.analytics = analytics
+
+        // Lazily initialize Google Vision if API key is configured
+        if let apiKey = (configuration as? AIConfiguration)?.googleVisionAPIKey() {
+            self.googleVisionService = GoogleVisionOCRService(apiKey: apiKey)
+            Log.info("✅ Google Vision OCR enabled for handwriting recognition", category: .ocr)
+        } else {
+            Log.info("ℹ️ Google Vision OCR not configured - will use standard extraction for handwriting", category: .ocr)
+        }
     }
 
     // MARK: - Detection Models (from AIRecipeDetector)
@@ -299,7 +308,41 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                 "titles": response.recipes.map { $0.title }.joined(separator: " | ")
             ])
 
-            return response.recipes
+            // Normalize bounding boxes - Claude sometimes returns pixels instead of percentages
+            let normalizedRecipes = response.recipes.map { recipe in
+                let bbox = recipe.boundingBox
+
+                // Check if values look like pixels (> 100 or larger than reasonable percentages)
+                let looksLikePixels = bbox.x > 100 || bbox.y > 100 || bbox.width > 100 || bbox.height > 100
+
+                if looksLikePixels {
+                    // Convert from pixels to percentages
+                    let normalizedBbox = BoundingBox(
+                        x: (bbox.x / image.size.width) * 100.0,
+                        y: (bbox.y / image.size.height) * 100.0,
+                        width: (bbox.width / image.size.width) * 100.0,
+                        height: (bbox.height / image.size.height) * 100.0
+                    )
+
+                    Log.info("🔄 Converted bounding box from pixels to percentages", category: .import, metadata: [
+                        "title": recipe.title,
+                        "original": "(\(bbox.x), \(bbox.y), \(bbox.width), \(bbox.height))",
+                        "normalized": "(\(normalizedBbox.x)%, \(normalizedBbox.y)%, \(normalizedBbox.width)%, \(normalizedBbox.height)%)"
+                    ])
+
+                    return DetectedRecipe(
+                        id: recipe.id,
+                        title: recipe.title,
+                        boundingBox: normalizedBbox,
+                        confidence: recipe.confidence
+                    )
+                } else {
+                    // Already percentages, return as-is
+                    return recipe
+                }
+            }
+
+            return normalizedRecipes
         } catch {
             Log.warning("⚠️ Recipe detection failed, assuming single recipe", category: .ocr, metadata: [
                 "error": error.localizedDescription,
@@ -452,10 +495,16 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     /// - Parameters:
     ///   - image: Recipe image
     ///   - boundingBox: Optional bounding box to focus on specific region
+    ///   - expectedTitle: Expected recipe title (for multi-recipe pages)
     /// - Returns: Structured recipe extracted via vision
     func extractRecipeFromImage(
         image: UIImage,
-        boundingBox: BoundingBox? = nil
+        boundingBox: BoundingBox? = nil,
+        ocrText: String? = nil,
+        expectedTitle: String? = nil,
+        paddingTop: CGFloat = 0.15,
+        paddingBottom: CGFloat = 0.15,
+        paddingSide: CGFloat = 0.15
     ) async throws -> ExtractedRecipe {
         // Check if AI is configured
         guard configuration.enableAIEnhancement,
@@ -463,27 +512,20 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             throw AIError.notConfigured(provider: "Anthropic")
         }
 
-        // Crop image to bounding box if provided
+        // For multi-recipe pages: send full image with explicit title constraint (no cropping)
+        // For single recipes: crop to bounding box if provided
         let imageToProcess: UIImage
-        if let bbox = boundingBox, !bbox.isFullImage {
-            Log.info("✂️ Cropping image to bounding box", category: .import, metadata: [
-                "bbox_x": bbox.x,
-                "bbox_y": bbox.y,
-                "bbox_width": bbox.width,
-                "bbox_height": bbox.height,
-                "original_width": image.size.width,
-                "original_height": image.size.height
-            ])
-            imageToProcess = cropImage(image, to: bbox)
-            Log.info("✅ Image cropped successfully", category: .import, metadata: [
-                "cropped_width": imageToProcess.size.width,
-                "cropped_height": imageToProcess.size.height
-            ])
+        if expectedTitle != nil {
+            // Multi-recipe: use full image, rely on title constraint in prompt
+            imageToProcess = image
+        } else if let bbox = boundingBox, !bbox.isFullImage {
+            // Single recipe: crop to bounding box
+            imageToProcess = cropImage(image, to: bbox, paddingTop: 0, paddingBottom: 0, paddingSide: 0)
         } else {
             imageToProcess = image
         }
 
-        let prompt = buildVisionExtractionPrompt(boundingBox: nil) // No need to mention bbox in prompt anymore
+        let prompt = buildVisionExtractionPrompt(boundingBox: expectedTitle == nil ? nil : nil, ocrText: ocrText, expectedTitle: expectedTitle)
         let model = configuration.model(for: .pdfVision)
 
         let recipe = try await aiService.completeWithVisionStructured(
@@ -510,6 +552,460 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         return recipe
     }
 
+    // MARK: - Bounding Box Validation (Task #27)
+
+    /// Validate bounding boxes to detect excessive overlap (>30%)
+    /// - Parameter boxes: Array of bounding boxes to validate
+    /// - Returns: True if boxes are valid (no excessive overlap), false otherwise
+    private func validateBoundingBoxes(_ boxes: [BoundingBox]) -> Bool {
+        // Single box is always valid
+        guard boxes.count > 1 else { return true }
+
+        // Check all pairs for overlap
+        for i in 0..<boxes.count {
+            for j in (i+1)..<boxes.count {
+                let overlapPercentage = calculateOverlap(boxes[i], boxes[j])
+
+                if overlapPercentage > 0.3 {  // 30% threshold
+                    Log.warning("⚠️ Bounding box overlap detected", category: .import, metadata: [
+                        "box1_index": i,
+                        "box2_index": j,
+                        "overlap_percentage": String(format: "%.1f%%", overlapPercentage * 100)
+                    ])
+                    return false
+                }
+            }
+        }
+
+        return true
+    }
+
+    /// Expand bounding boxes to include full recipe content while preventing overlaps
+    /// Claude's bounding boxes are tight - we need to expand to capture ingredients/instructions
+    /// Strategy: Expand each box to fill halfway into the gap with neighbors
+    /// - Parameters:
+    ///   - recipes: Detected recipes with original bounding boxes
+    ///   - imageSize: Size of the source image
+    /// - Returns: Recipes with expanded bounding boxes (padding is always 0 since boxes are pre-expanded)
+    private func adjustBoundingBoxPadding(_ recipes: [DetectedRecipe], imageSize: CGSize) -> [(recipe: DetectedRecipe, paddingTop: CGFloat, paddingBottom: CGFloat, paddingSide: CGFloat)] {
+        guard recipes.count > 1 else {
+            // Single recipe - expand to near full image with modest padding
+            let recipe = recipes[0]
+            return [(recipe: recipe, paddingTop: 0.10, paddingBottom: 0.10, paddingSide: 0.10)]
+        }
+
+        // Sort recipes by Y position (top to bottom)
+        let sortedRecipes = recipes.sorted { $0.boundingBox.y < $1.boundingBox.y }
+
+        var expandedRecipes: [(recipe: DetectedRecipe, paddingTop: CGFloat, paddingBottom: CGFloat, paddingSide: CGFloat)] = []
+
+        for (index, recipe) in sortedRecipes.enumerated() {
+            let bbox = recipe.boundingBox
+
+            // Expand box boundaries, not padding
+            var expandedY = bbox.y
+            var expandedHeight = bbox.height
+
+            // Expand upward - take half the gap to previous recipe (minimum 10% of height)
+            if index > 0 {
+                let prevBbox = sortedRecipes[index - 1].boundingBox
+                let prevBottom = prevBbox.y + prevBbox.height
+                let gapAbove = bbox.y - prevBottom
+
+                // Force minimum 10% expansion upward even if boxes are tightly tiled
+                let minExpansion = bbox.height * 0.10
+                let expansionAmount = max(minExpansion, gapAbove / 2.0)
+
+                expandedY = bbox.y - expansionAmount
+                expandedHeight += expansionAmount
+            } else {
+                // First recipe - expand to top of image
+                expandedHeight += bbox.y
+                expandedY = 0
+            }
+
+            // Expand downward - take half the gap to next recipe (minimum 10% of height)
+            if index < sortedRecipes.count - 1 {
+                let nextBbox = sortedRecipes[index + 1].boundingBox
+                let currentBottom = bbox.y + bbox.height
+                let gapBelow = nextBbox.y - currentBottom
+
+                // Force minimum 10% expansion downward even if boxes are tightly tiled
+                let minExpansion = bbox.height * 0.10
+                let expansionAmount = max(minExpansion, gapBelow / 2.0)
+
+                expandedHeight += expansionAmount
+            } else {
+                // Last recipe - expand to bottom of image
+                let remainingSpace = 100.0 - (bbox.y + bbox.height)
+                expandedHeight += remainingSpace
+            }
+
+            // Create expanded bounding box
+            let expandedBbox = BoundingBox(
+                x: bbox.x,
+                y: expandedY,
+                width: bbox.width,
+                height: expandedHeight
+            )
+
+            let expandedRecipe = DetectedRecipe(
+                id: recipe.id,
+                title: recipe.title,
+                boundingBox: expandedBbox,
+                confidence: recipe.confidence
+            )
+
+            Log.info("📐 Expanded bounding box for recipe", category: .import, metadata: [
+                "title": recipe.title,
+                "index": index + 1,
+                "original_y": String(format: "%.1f%%", bbox.y),
+                "original_height": String(format: "%.1f%%", bbox.height),
+                "expanded_y": String(format: "%.1f%%", expandedY),
+                "expanded_height": String(format: "%.1f%%", expandedHeight)
+            ])
+
+            // No padding needed - boxes are already expanded
+            expandedRecipes.append((recipe: expandedRecipe, paddingTop: 0, paddingBottom: 0, paddingSide: 0))
+        }
+
+        return expandedRecipes
+    }
+
+    /// Calculate overlap area between two bounding boxes
+    /// - Parameters:
+    ///   - box1: First bounding box
+    ///   - box2: Second bounding box
+    /// - Returns: Overlap area as percentage of smaller box (0.0 to 1.0)
+    private func calculateOverlap(_ box1: BoundingBox, _ box2: BoundingBox) -> Double {
+        // Calculate intersection rectangle
+        let x1 = max(box1.x, box2.x)
+        let y1 = max(box1.y, box2.y)
+        let x2 = min(box1.x + box1.width, box2.x + box2.width)
+        let y2 = min(box1.y + box1.height, box2.y + box2.height)
+
+        // No intersection if x2 <= x1 or y2 <= y1
+        guard x2 > x1 && y2 > y1 else { return 0.0 }
+
+        // Calculate intersection area
+        let intersectionArea = (x2 - x1) * (y2 - y1)
+
+        // Calculate areas of both boxes
+        let area1 = box1.width * box1.height
+        let area2 = box2.width * box2.height
+
+        // Return overlap as percentage of smaller box
+        let smallerArea = min(area1, area2)
+        return intersectionArea / smallerArea
+    }
+
+    /// Fallback extraction when bounding boxes are invalid
+    /// - Parameters:
+    ///   - image: Source image
+    ///   - detectedRecipes: Detected recipes (titles only, bboxes ignored)
+    /// - Returns: Array of extracted recipes using full-page extraction
+    private func fallbackExtraction(
+        image: UIImage,
+        detectedRecipes: [DetectedRecipe]
+    ) async throws -> [ExtractedRecipe] {
+        Log.warning("🔄 Using fallback extraction (full-page) due to invalid bounding boxes", category: .import, metadata: [
+            "detected_count": detectedRecipes.count
+        ])
+
+        // Extract entire image without bounding boxes
+        let fullRecipe = try await extractRecipeEnhanced(
+            from: image,
+            text: nil,
+            boundingBox: nil
+        )
+
+        // Validate quality
+        guard validateRecipeQuality(fullRecipe) == nil else {
+            Log.warning("⚠️ Fallback extraction failed quality check", category: .import)
+            return []
+        }
+
+        // Normalize instructions
+        let normalizedInstructions = normalizeInstructions(fullRecipe.instructions)
+
+        // Create recipe with normalized instructions
+        let normalizedRecipe = ExtractedRecipe(
+            title: fullRecipe.title,
+            servings: fullRecipe.servings,
+            prepTime: fullRecipe.prepTime,
+            cookTime: fullRecipe.cookTime,
+            ingredientStructure: fullRecipe.ingredientStructure,
+            instructions: normalizedInstructions,
+            notes: fullRecipe.notes,
+            confidence: 0.8  // Medium confidence for fallback extraction
+        )
+
+        // Try to split merged recipe into separate recipes
+        if let splitRecipes = splitMergedRecipe(normalizedRecipe, detectedTitles: detectedRecipes.map { $0.title }) {
+            Log.info("✅ Successfully split merged recipe into \(splitRecipes.count) separate recipes", category: .import, metadata: [
+                "original_title": normalizedRecipe.title,
+                "split_titles": splitRecipes.map { $0.title }.joined(separator: " | ")
+            ])
+            return splitRecipes
+        }
+
+        // Return single recipe if splitting failed
+        return [normalizedRecipe]
+    }
+
+    /// Parse a single instruction paragraph into multiple steps
+    /// - Parameter paragraph: Long instruction text as single string
+    /// - Returns: Array of individual instruction steps
+    private func parseInstructionParagraph(_ paragraph: String) -> [String] {
+        // Common abbreviations that should NOT be treated as sentence endings
+        let abbreviations = [
+            "qt.", "tsp.", "tbsp.", "oz.", "lb.", "lbs.", "pt.", "gal.",
+            "min.", "hr.", "hrs.", "sec.", "deg.", "F.", "C.",
+            "in.", "ft.", "cm.", "mm.", "ml.", "cl.", "dl.",
+            "no.", "approx.", "temp.", "med."
+        ]
+
+        // Replace abbreviations temporarily with placeholders to avoid false splits
+        var text = paragraph
+        for (index, abbr) in abbreviations.enumerated() {
+            text = text.replacingOccurrences(of: abbr, with: "<<<ABBR\(index)>>>", options: .caseInsensitive)
+        }
+
+        // Split by ". " (period followed by space and capital letter or period at end)
+        let sentencePattern = "\\.\\s+(?=[A-Z])|\\.$"
+        guard let regex = try? NSRegularExpression(pattern: sentencePattern, options: []) else {
+            // Fallback: return original as single instruction
+            return [paragraph]
+        }
+
+        var instructions: [String] = []
+        var lastEnd = text.startIndex
+
+        let matches = regex.matches(in: text, range: NSRange(text.startIndex..., in: text))
+
+        for match in matches {
+            if let range = Range(match.range, in: text) {
+                let sentence = String(text[lastEnd..<range.lowerBound])
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+
+                if !sentence.isEmpty {
+                    // Restore abbreviations
+                    var restored = sentence
+                    for (index, abbr) in abbreviations.enumerated() {
+                        restored = restored.replacingOccurrences(of: "<<<ABBR\(index)>>>", with: abbr)
+                    }
+                    instructions.append(restored)
+                }
+
+                lastEnd = range.upperBound
+            }
+        }
+
+        // Add remaining text
+        if lastEnd < text.endIndex {
+            let remaining = String(text[lastEnd...])
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            if !remaining.isEmpty {
+                // Restore abbreviations
+                var restored = remaining
+                for (index, abbr) in abbreviations.enumerated() {
+                    restored = restored.replacingOccurrences(of: "<<<ABBR\(index)>>>", with: abbr)
+                }
+                instructions.append(restored)
+            }
+        }
+
+        // If no splits found, return original
+        return instructions.isEmpty ? [paragraph] : instructions
+    }
+
+    /// Detect and split merged recipes based on instruction patterns
+    /// - Parameters:
+    ///   - recipe: Merged recipe from fallback extraction
+    ///   - detectedTitles: Original detected recipe titles
+    /// - Returns: Array of split recipes, or nil if not a merged recipe
+    private func splitMergedRecipe(_ recipe: ExtractedRecipe, detectedTitles: [String]) -> [ExtractedRecipe]? {
+        // Look for "For [Recipe Name]:" patterns in instructions
+        let instructionText = recipe.instructions.joined(separator: " ")
+
+        // Build regex pattern to match "For [Recipe Name]:" using detected titles
+        let titlePatterns = detectedTitles.map { NSRegularExpression.escapedPattern(for: $0) }
+        let pattern = "For (\(titlePatterns.joined(separator: "|"))):"
+
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+            return nil
+        }
+
+        let matches = regex.matches(in: instructionText, range: NSRange(instructionText.startIndex..., in: instructionText))
+
+        // Need at least 2 matches to split (2+ recipes)
+        guard matches.count >= 2 else {
+            Log.info("No multi-recipe pattern detected in instructions", category: .import, metadata: [
+                "pattern_matches": matches.count
+            ])
+            return nil
+        }
+
+        Log.info("🔍 Detected \(matches.count) recipe sections in merged recipe", category: .import)
+
+        // Split instructions by recipe
+        var recipeSections: [(title: String, instructions: [String])] = []
+
+        for instruction in recipe.instructions {
+            // Check if this instruction starts a new recipe section
+            if let match = regex.firstMatch(in: instruction, range: NSRange(instruction.startIndex..., in: instruction)) {
+                if let titleRange = Range(match.range(at: 1), in: instruction) {
+                    let recipeTitle = String(instruction[titleRange])
+
+                    // Extract instruction text after "For [Title]:"
+                    let instructionText = instruction.replacingOccurrences(
+                        of: "For \(recipeTitle):",
+                        with: "",
+                        options: .caseInsensitive
+                    ).trimmingCharacters(in: .whitespaces)
+
+                    // Parse instruction paragraph into individual steps
+                    let parsedInstructions = parseInstructionParagraph(instructionText)
+                    recipeSections.append((title: recipeTitle, instructions: parsedInstructions))
+                }
+            } else if !recipeSections.isEmpty {
+                // Add instruction to most recent recipe section
+                recipeSections[recipeSections.count - 1].instructions.append(instruction)
+            }
+        }
+
+        // Need at least 2 sections to proceed
+        guard recipeSections.count >= 2 else { return nil }
+
+        // Split ingredients by recipe
+        let ingredientSections = splitIngredients(recipe.ingredientStructure, recipeTitles: recipeSections.map { $0.title })
+
+        // Create separate ExtractedRecipe objects
+        var splitRecipes: [ExtractedRecipe] = []
+
+        for (index, section) in recipeSections.enumerated() {
+            let ingredients = index < ingredientSections.count ? ingredientSections[index] : .flat([])
+
+            // Only include recipes with valid ingredients
+            guard !ingredients.flattened.isEmpty else {
+                Log.warning("⚠️ Skipping recipe section with no ingredients", category: .import, metadata: [
+                    "title": section.title
+                ])
+                continue
+            }
+
+            let splitRecipe = ExtractedRecipe(
+                title: section.title,
+                servings: nil,  // Can't reliably split servings
+                prepTime: nil,  // Can't reliably split times
+                cookTime: nil,
+                ingredientStructure: ingredients,
+                instructions: section.instructions.filter { !$0.isEmpty },
+                notes: nil,
+                confidence: 0.7  // Lower confidence for split recipes
+            )
+
+            splitRecipes.append(splitRecipe)
+        }
+
+        return splitRecipes.isEmpty ? nil : splitRecipes
+    }
+
+    /// Split ingredients by recipe based on detected sections
+    /// - Parameters:
+    ///   - ingredientStructure: Full ingredient structure from merged recipe
+    ///   - recipeTitles: Titles of detected recipes
+    /// - Returns: Array of ingredient structures (one per recipe)
+    private func splitIngredients(_ ingredientStructure: IngredientStructure, recipeTitles: [String]) -> [IngredientStructure] {
+        switch ingredientStructure {
+        case .flat(let ingredients):
+            // For flat list, try to find recipe name markers as ingredients
+            return splitFlatIngredients(ingredients, recipeTitles: recipeTitles)
+
+        case .grouped(let groups):
+            // For grouped ingredients, match group names to recipe titles
+            return splitGroupedIngredients(groups, recipeTitles: recipeTitles)
+
+        case .variants:
+            // Variants already represent different versions - treat as flat
+            return [ingredientStructure]
+        }
+    }
+
+    /// Split flat ingredient list by recipe name markers
+    private func splitFlatIngredients(_ ingredients: [String], recipeTitles: [String]) -> [IngredientStructure] {
+        var sections: [[String]] = []
+        var currentSection: [String] = []
+
+        for ingredient in ingredients {
+            // Check if ingredient is a recipe name marker (e.g., "[Easy Biscuit Swirls]")
+            let isMarker = recipeTitles.contains { title in
+                ingredient.lowercased().contains(title.lowercased()) ||
+                ingredient.contains("[\(title)]")
+            }
+
+            if isMarker {
+                // Start new section
+                if !currentSection.isEmpty {
+                    sections.append(currentSection)
+                    currentSection = []
+                }
+            } else {
+                // Add to current section
+                currentSection.append(ingredient)
+            }
+        }
+
+        // Add final section
+        if !currentSection.isEmpty {
+            sections.append(currentSection)
+        }
+
+        // Convert to IngredientStructure
+        return sections.map { .flat($0) }
+    }
+
+    /// Split grouped ingredients by matching group names to recipe titles
+    private func splitGroupedIngredients(_ groups: [String: [String]], recipeTitles: [String]) -> [IngredientStructure] {
+        var recipeIngredients: [[String: [String]]] = Array(repeating: [:], count: recipeTitles.count)
+        var unmatchedGroups: [String: [String]] = [:]
+
+        for (groupName, ingredients) in groups {
+            var matched = false
+
+            // Try to match group name to a recipe title
+            for (index, recipeTitle) in recipeTitles.enumerated() {
+                if groupName.lowercased().contains(recipeTitle.lowercased()) ||
+                   recipeTitle.lowercased().contains(groupName.lowercased()) {
+                    recipeIngredients[index][groupName] = ingredients
+                    matched = true
+                    break
+                }
+            }
+
+            if !matched {
+                unmatchedGroups[groupName] = ingredients
+            }
+        }
+
+        // Add unmatched groups to first recipe (fallback)
+        if !unmatchedGroups.isEmpty && !recipeIngredients.isEmpty {
+            recipeIngredients[0].merge(unmatchedGroups) { current, _ in current }
+        }
+
+        // Convert to IngredientStructure (flatten if only one group)
+        return recipeIngredients.map { groups in
+            if groups.count == 1, let onlyGroup = groups.first {
+                return .flat(onlyGroup.value)
+            } else if !groups.isEmpty {
+                return .grouped(groups)
+            } else {
+                return .flat([])
+            }
+        }
+    }
+
     /// Extract multiple recipes from image using vision API with bounding boxes
     /// - Parameters:
     ///   - image: Source image containing recipes
@@ -524,11 +1020,19 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             "detected_titles": detectedRecipes.map { $0.title }.joined(separator: " | ")
         ])
 
+        // TASK #27: Adjust padding to prevent overlaps
+        let adjustedRecipes = adjustBoundingBoxPadding(detectedRecipes, imageSize: image.size)
+
+        Log.info("📐 Adjusted bounding boxes for non-overlapping extraction", category: .import, metadata: [
+            "recipe_count": adjustedRecipes.count
+        ])
+
         var extractedRecipes: [ExtractedRecipe] = []
         var extractionResults: [ExtractionResult] = []
 
-        for (index, detected) in detectedRecipes.enumerated() {
+        for (index, adjustedRecipe) in adjustedRecipes.enumerated() {
             let startTime = Date()
+            let detected = adjustedRecipe.recipe
 
             Log.info("🔄 Extracting recipe \(index + 1) of \(detectedRecipes.count)", category: .import, metadata: [
                 "title": detected.title,
@@ -545,10 +1049,15 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                 ])
 
                 // Use enhanced extraction (Phase 2: handwriting detection + two-pass)
+                // Pass expected title to constrain extraction on multi-recipe pages
                 let recipe = try await extractRecipeEnhanced(
                     from: image,
                     text: nil,
-                    boundingBox: detected.boundingBox
+                    boundingBox: detected.boundingBox,
+                    expectedTitle: detected.title,
+                    paddingTop: adjustedRecipe.paddingTop,
+                    paddingBottom: adjustedRecipe.paddingBottom,
+                    paddingSide: adjustedRecipe.paddingSide
                 )
 
                 Log.info("✅ Recipe extraction succeeded", category: .import, metadata: [
@@ -564,7 +1073,21 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                     Log.warning("⚠️ Recipe extraction failed (quality check)", category: .import, metadata: [
                         "recipe_index": index + 1,
                         "title": detected.title,
-                        "error": validationError
+                        "error": validationError,
+                        "ingredient_count": recipe.ingredients.count,
+                        "instruction_count": recipe.instructions.count,
+                        "bbox": "x:\(detected.boundingBox.x) y:\(detected.boundingBox.y) w:\(detected.boundingBox.width) h:\(detected.boundingBox.height)"
+                    ])
+
+                    // DEBUG: Log extracted content to diagnose regression
+                    let ingredientsPreview = recipe.ingredients.prefix(3).joined(separator: " | ")
+                    let instructionsPreview = recipe.instructions.prefix(2).joined(separator: " | ")
+                    Log.info("📋 Failed recipe debug info", category: .import, metadata: [
+                        "title": detected.title,
+                        "ingredients_found": recipe.ingredients.count,
+                        "instructions_found": recipe.instructions.count,
+                        "sample_ingredients": String(ingredientsPreview.prefix(150)),
+                        "sample_instructions": String(instructionsPreview.prefix(150))
                     ])
 
                     extractionResults.append(ExtractionResult(
@@ -680,19 +1203,38 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         )
     }
 
-    private func buildVisionExtractionPrompt(boundingBox: BoundingBox?) -> String {
+    private func buildVisionExtractionPrompt(boundingBox: BoundingBox?, ocrText: String? = nil, expectedTitle: String? = nil) -> String {
         var prompt = """
         Extract the recipe from this image and return it as structured JSON.
 
         """
 
-        if let bbox = boundingBox, !bbox.isFullImage {
+        if let title = expectedTitle {
+            prompt += """
+            CRITICAL: This image contains multiple recipes. You MUST extract ONLY the recipe titled "\(title)".
+            - DO NOT extract any other recipe on this page
+            - Focus specifically on "\(title)" and ignore all other recipes
+            - If you cannot find "\(title)", return an error
+            - The recipe you're extracting is "\(title)" - nothing else
+
+            """
+        } else if let bbox = boundingBox, !bbox.isFullImage {
             prompt += """
             Focus on the recipe in this region:
             - X: \(bbox.x)% from left
             - Y: \(bbox.y)% from top
             - Width: \(bbox.width)%
             - Height: \(bbox.height)%
+
+            """
+        }
+
+        if let ocr = ocrText, !ocr.isEmpty {
+            prompt += """
+            OCR Text provided:
+            \(ocr)
+
+            Use this text to help extract the recipe more accurately.
 
             """
         }
@@ -742,7 +1284,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     }
 
     /// Crop UIImage to bounding box coordinates (percentages)
-    private func cropImage(_ image: UIImage, to boundingBox: BoundingBox) -> UIImage {
+    private func cropImage(_ image: UIImage, to boundingBox: BoundingBox, paddingTop: CGFloat = 0.15, paddingBottom: CGFloat = 0.15, paddingSide: CGFloat = 0.15) -> UIImage {
         let imageWidth = image.size.width
         let imageHeight = image.size.height
         let scale = image.scale
@@ -753,7 +1295,31 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         let width = (boundingBox.width / 100.0) * imageWidth
         let height = (boundingBox.height / 100.0) * imageHeight
 
-        let cropRect = CGRect(x: x * scale, y: y * scale, width: width * scale, height: height * scale)
+        // Calculate padding in pixels using custom padding ratios
+        let xPadding = width * paddingSide
+        let yPaddingTop = height * paddingTop
+        let yPaddingBottom = height * paddingBottom
+
+        // Apply padding while staying within image bounds
+        let paddedX = max(0, x - xPadding)
+        let paddedY = max(0, y - yPaddingTop)
+        let paddedWidth = min(imageWidth - paddedX, width + (xPadding * 2))
+        let paddedHeight = min(imageHeight - paddedY, height + yPaddingTop + yPaddingBottom)
+
+        let cropRect = CGRect(
+            x: paddedX * scale,
+            y: paddedY * scale,
+            width: paddedWidth * scale,
+            height: paddedHeight * scale
+        )
+
+        Log.info("📐 Bounding box with padding", category: .import, metadata: [
+            "original": "(\(Int(x)), \(Int(y)), \(Int(width)), \(Int(height)))",
+            "padded": "(\(Int(paddedX)), \(Int(paddedY)), \(Int(paddedWidth)), \(Int(paddedHeight)))",
+            "padding_top_px": Int(yPaddingTop),
+            "padding_bottom_px": Int(yPaddingBottom),
+            "padding_side_px": Int(xPadding)
+        ])
 
         guard let cgImage = image.cgImage,
               let croppedCGImage = cgImage.cropping(to: cropRect) else {
@@ -822,6 +1388,79 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         Log.info("✨ Image preprocessed for OCR", category: .ocr)
         return enhancedImage
         #endif
+    }
+
+    /// Calculate confidence score based on recipe structure completeness
+    /// - Parameter recipe: Extracted recipe to evaluate
+    /// - Returns: Confidence score from 0.0 to 1.0
+    private func calculateStructureConfidence(_ recipe: ExtractedRecipe) -> Double {
+        var score: Double = 0.0
+
+        // Title presence (20% weight)
+        if !recipe.title.isEmpty && recipe.title.count >= 3 {
+            score += 0.2
+        }
+
+        // Ingredient count and quality (30% weight)
+        let ingredientCount = recipe.ingredients.count
+        if ingredientCount >= 3 {
+            // Check for instruction-like text in ingredients (quality penalty)
+            let instructionKeywords = ["bake", "cook", "mix", "stir", "pour", "add", "combine", "heat", "boil", "cover"]
+            var ingredientQualityPenalty: Double = 0.0
+
+            for ingredient in recipe.ingredients {
+                let lowercased = ingredient.lowercased()
+                // If ingredient contains multiple instruction keywords or is very long, likely misclassified
+                let keywordMatches = instructionKeywords.filter { lowercased.contains($0) }.count
+                if keywordMatches >= 2 || ingredient.count > 100 {
+                    ingredientQualityPenalty += 0.05 // 5% penalty per bad ingredient
+                }
+            }
+
+            // Scale from 3-10 ingredients (3 = min viable, 10 = excellent)
+            let baseIngredientScore = min(Double(ingredientCount - 3) / 7.0, 1.0) * 0.3
+            let adjustedIngredientScore = max(baseIngredientScore - ingredientQualityPenalty, 0.0)
+            score += adjustedIngredientScore
+        }
+
+        // Instruction count and quality (30% weight)
+        let instructionCount = recipe.instructions.count
+        if instructionCount >= 2 {
+            // Check for ingredient-like text in instructions (quality penalty)
+            var instructionQualityPenalty: Double = 0.0
+
+            for instruction in recipe.instructions {
+                // If instruction is very short and doesn't contain action verbs, likely misclassified
+                let hasActionVerb = instruction.lowercased().contains("add") ||
+                                   instruction.lowercased().contains("mix") ||
+                                   instruction.lowercased().contains("bake") ||
+                                   instruction.lowercased().contains("cook") ||
+                                   instruction.lowercased().contains("pour") ||
+                                   instruction.lowercased().contains("stir")
+
+                if instruction.count < 20 && !hasActionVerb {
+                    instructionQualityPenalty += 0.05 // 5% penalty per suspicious instruction
+                }
+            }
+
+            // Scale from 2-8 instructions (2 = min viable, 8 = excellent)
+            let baseInstructionScore = min(Double(instructionCount - 2) / 6.0, 1.0) * 0.3
+            let adjustedInstructionScore = max(baseInstructionScore - instructionQualityPenalty, 0.0)
+            score += adjustedInstructionScore
+        }
+
+        // Servings/times presence (10% weight)
+        let hasMetadata = recipe.servings != nil || recipe.prepTime != nil || recipe.cookTime != nil
+        if hasMetadata {
+            score += 0.1
+        }
+
+        // Notes/description presence (10% weight)
+        if let notes = recipe.notes, !notes.isEmpty {
+            score += 0.1
+        }
+
+        return min(score, 1.0)
     }
 
     /// Detect if image contains primarily handwritten text using Vision API
@@ -978,48 +1617,111 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     private func extractRecipeEnhanced(
         from image: UIImage,
         text: String? = nil,
-        boundingBox: BoundingBox? = nil
+        boundingBox: BoundingBox? = nil,
+        expectedTitle: String? = nil,
+        paddingTop: CGFloat = 0.15,
+        paddingBottom: CGFloat = 0.15,
+        paddingSide: CGFloat = 0.15
     ) async throws -> ExtractedRecipe {
-        // IMPORTANT: Crop FIRST if bounding box provided, THEN preprocess
-        // (preprocessing the full image then cropping can cause over-exposure)
+        // For multi-recipe pages: use full image with title constraint (no cropping)
+        // For single recipes: crop to bounding box if provided
         let imageToProcess: UIImage
-        if let bbox = boundingBox, !bbox.isFullImage {
-            Log.info("✂️ Cropping image before preprocessing", category: .import, metadata: [
-                "bbox_x": bbox.x,
-                "bbox_y": bbox.y,
-                "bbox_width": bbox.width,
-                "bbox_height": bbox.height
-            ])
-            imageToProcess = cropImage(image, to: bbox)
+        if expectedTitle != nil {
+            // Multi-recipe: send full image, rely on title constraint
+            imageToProcess = image
+        } else if let bbox = boundingBox, !bbox.isFullImage {
+            // Single recipe: crop to bounding box
+            imageToProcess = cropImage(image, to: bbox, paddingTop: 0, paddingBottom: 0, paddingSide: 0)
         } else {
             imageToProcess = image
         }
 
-        // Pre-process the cropped image for better OCR
+        // Pre-process the image for better OCR
         let preprocessedImage = preprocessImageForOCR(imageToProcess)
 
         // Detect if handwriting on the preprocessed region
         let isHandwritten = try await detectHandwriting(in: preprocessedImage)
 
         if isHandwritten {
-            Log.info("🖊 Handwriting detected - using two-pass extraction", category: .ocr)
+            Log.info("🖊 Handwriting detected - using enhanced extraction", category: .ocr)
 
-            // Pass 1: Standard extraction (use preprocessed image, no bounding box since already cropped)
+            // Use Google Vision for better handwriting OCR if available
+            if let googleVision = googleVisionService {
+                Log.info("🔍 Using Google Vision API for handwriting OCR", category: .ocr)
+
+                do {
+                    // Pass 1: Get high-quality OCR text from Google Vision
+                    let visionResult = try await googleVision.recognizeHandwriting(in: imageToProcess)
+
+                    // DEBUG: Log OCR text length to detect empty extractions
+                    Log.info("📝 Google Vision OCR result", category: .ocr, metadata: [
+                        "text_length": visionResult.text.count,
+                        "confidence": visionResult.confidence,
+                        "text_preview": String(visionResult.text.prefix(150))
+                    ])
+
+                    // Pass 2: Structure the OCR text into recipe format using Claude
+                    let extracted = try await extractRecipeFromImage(
+                        image: image,
+                        boundingBox: boundingBox,
+                        ocrText: visionResult.text,
+                        expectedTitle: expectedTitle
+                    )
+
+                    // Calculate confidence score based on Google Vision confidence + structure completeness
+                    let structureConfidence = calculateStructureConfidence(extracted)
+                    let combinedConfidence = (visionResult.confidence + structureConfidence) / 2.0
+
+                    let recipe = ExtractedRecipe(
+                        title: extracted.title,
+                        servings: extracted.servings,
+                        prepTime: extracted.prepTime,
+                        cookTime: extracted.cookTime,
+                        ingredientStructure: extracted.ingredientStructure,
+                        instructions: extracted.instructions,
+                        notes: extracted.notes,
+                        confidence: combinedConfidence
+                    )
+
+                    // Track success
+                    analytics.track(event: .aiEnhancementSuccess, properties: [
+                        "source": "google_vision_handwriting",
+                        "vision_confidence": visionResult.confidence,
+                        "structure_confidence": structureConfidence,
+                        "combined_confidence": combinedConfidence,
+                        "ingredients": extracted.ingredients.count,
+                        "instructions": extracted.instructions.count
+                    ])
+
+                    return recipe
+
+                } catch {
+                    Log.warning("Google Vision OCR failed, falling back to standard extraction", category: .ocr, metadata: [
+                        "error": error.localizedDescription
+                    ])
+                    // Fall through to two-pass extraction below
+                }
+            }
+
+            // Fallback: Standard two-pass extraction (when Google Vision not available or fails)
+            Log.info("🔄 Using two-pass extraction fallback", category: .ocr)
+
             let firstPass = try await extractRecipeFromImage(
                 image: preprocessedImage,
-                boundingBox: nil
+                boundingBox: boundingBox,
+                ocrText: nil,
+                expectedTitle: expectedTitle
             )
 
-            // Pass 2: Enhance with Claude using original cropped region + OCR context
             let enhanced = try await enhanceHandwrittenExtraction(
                 firstPass,
-                originalImage: imageToProcess,
+                originalImage: image,
                 text: text ?? ""
             )
 
             // Track success
             analytics.track(event: .aiEnhancementSuccess, properties: [
-                "source": "handwriting_enhanced",
+                "source": "handwriting_enhanced_fallback",
                 "first_pass_ingredients": firstPass.ingredients.count,
                 "enhanced_ingredients": enhanced.ingredients.count,
                 "first_pass_instructions": firstPass.instructions.count,
@@ -1030,10 +1732,12 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
 
         } else {
             Log.info("📝 Printed text detected - using standard extraction", category: .ocr)
-            // Use standard extraction for printed text (no bounding box since already cropped)
+            // Use standard extraction for printed text
             return try await extractRecipeFromImage(
                 image: preprocessedImage,
-                boundingBox: nil
+                boundingBox: boundingBox,
+                ocrText: nil,
+                expectedTitle: expectedTitle
             )
         }
     }

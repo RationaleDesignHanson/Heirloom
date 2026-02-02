@@ -84,6 +84,41 @@ struct CollectionsListView: View {
         }
     }
 
+    // MARK: - Task #6: Grouped Collections by Category
+
+    /// Collections grouped by category for organized display
+    private var groupedCollections: [CollectionCategory: [RecipeCollection]] {
+        var grouped: [CollectionCategory: [RecipeCollection]] = [:]
+
+        for collection in visibleCollections {
+            let category = collection.category
+            if grouped[category] == nil {
+                grouped[category] = []
+            }
+            grouped[category]?.append(collection)
+        }
+
+        // Sort collections within each category
+        for (category, collections) in grouped {
+            grouped[category] = collections.sorted { lhs, rhs in
+                if lhs.displayOrder != rhs.displayOrder {
+                    return lhs.displayOrder < rhs.displayOrder
+                }
+                return lhs.displayName < rhs.displayName
+            }
+        }
+
+        return grouped
+    }
+
+    /// Categories to display, sorted by display order
+    private var categoriesToShow: [CollectionCategory] {
+        let categories = Set(visibleCollections.map { $0.category })
+        return categories
+            .filter { $0 != .system } // Hide system category
+            .sorted { $0.displayOrder < $1.displayOrder }
+    }
+
     // Filter user collections (non-system, non-theme) - kept for existing functionality
     var userCollections: [RecipeCollection] {
         allCollections.filter { !$0.isSystemCollection && $0.type != .theme }

@@ -166,6 +166,41 @@ final class RecipeCollection {
         }
     }
 
+    // MARK: - Task #6: Collection Categories and Rules
+
+    /// Collection category for organizational grouping (delegates to CollectionType)
+    var category: CollectionCategory {
+        type.category
+    }
+
+    /// Whether this collection can be shared with other users (delegates to CollectionType)
+    var canShare: Bool {
+        type.canShare
+    }
+
+    /// Whether this collection is system-managed and cannot be deleted (delegates to CollectionType)
+    var isSystemManaged: Bool {
+        type.isSystemManaged
+    }
+
+    /// Explanation text when user tries to share a restricted collection
+    var shareRestrictionReason: String? {
+        type.shareRestrictionReason
+    }
+
+    /// Display order for sorting within category sections
+    var displayOrder: Int {
+        type.sortPriority
+    }
+
+    /// Category-specific icon (defaults to collection's icon or category icon)
+    var categoryIcon: String {
+        if !iconName.isEmpty && iconName != "folder.fill" {
+            return iconName
+        }
+        return category.sectionIcon
+    }
+
     // MARK: - Predefined Icons
 
     static let predefinedIcons = [

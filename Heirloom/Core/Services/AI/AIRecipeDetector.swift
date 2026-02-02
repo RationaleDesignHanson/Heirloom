@@ -142,6 +142,95 @@ enum ConfidenceLevel: String, Codable {
     }
 }
 
+// MARK: - Cookbook Metadata Detection
+
+extension AIRecipeDetector {
+    /// Detect cookbook name from scanned image (cover or pages with header/footer)
+    /// - Parameter image: Scanned cookbook page or cover
+    /// - Returns: Detected cookbook title, or nil if not found
+    func detectCookbookName(from image: UIImage) async throws -> String? {
+        let prompt = """
+        Analyze this image to identify the cookbook title.
+
+        Look for:
+        1. **Cover page** - Large title text, author name, publisher
+        2. **Page headers/footers** - Small text at top/bottom of recipe pages showing book title
+        3. **Title pages** - Copyright page, table of contents with book name
+        4. **Spine text** - If visible in the image
+
+        Common patterns:
+        - "The Joy of Cooking"
+        - "Better Homes and Gardens New Cook Book"
+        - "Mastering the Art of French Cooking"
+        - Page headers like "BETTY CROCKER'S COOKBOOK"
+
+        IMPORTANT:
+        - Return ONLY the cookbook title (no author, no subtitle, no "by...")
+        - If this appears to be a regular recipe page without clear cookbook branding, return null
+        - Ignore recipe titles - we want the BOOK title
+        - Prefer full titles over abbreviated headers
+
+        Return ONLY valid JSON in this exact format:
+        {
+          "cookbookTitle": "The Actual Book Name" or null,
+          "confidence": "high" or "medium" or "low",
+          "source": "cover" or "header" or "footer" or "none"
+        }
+
+        Examples:
+        {"cookbookTitle": "Betty Crocker's Cookbook", "confidence": "high", "source": "header"}
+        {"cookbookTitle": null, "confidence": "low", "source": "none"}
+        """
+
+        let options = AICompletionOptions(
+            model: aiConfig.model(for: .pdfVision),
+            temperature: 0.2,  // Lower temperature for more consistent detection
+            maxTokens: 500
+        )
+
+        struct CookbookDetectionResponse: Codable {
+            let cookbookTitle: String?
+            let confidence: String
+            let source: String
+        }
+
+        let detection: CookbookDetectionResponse
+        do {
+            detection = try await aiService.completeWithVisionStructured(
+                image: image,
+                prompt: prompt,
+                schema: CookbookDetectionResponse.self,
+                options: options
+            )
+        } catch {
+            Log.warning("Cookbook name detection failed", category: .import, metadata: [
+                "error": error.localizedDescription
+            ])
+            return nil
+        }
+
+        // Only return high/medium confidence detections
+        guard detection.confidence == "high" || detection.confidence == "medium" else {
+            Log.info("Low confidence cookbook detection, ignoring", category: .import, metadata: [
+                "title": detection.cookbookTitle ?? "nil",
+                "confidence": detection.confidence
+            ])
+            return nil
+        }
+
+        if let title = detection.cookbookTitle, !title.isEmpty {
+            Log.info("✅ Detected cookbook title", category: .import, metadata: [
+                "title": title,
+                "confidence": detection.confidence,
+                "source": detection.source
+            ])
+            return title
+        }
+
+        return nil
+    }
+}
+
 // MARK: - API Response
 
 private struct DetectionResponse: Codable {

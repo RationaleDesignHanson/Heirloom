@@ -580,6 +580,15 @@ extension ServiceContainer {
             return AIRecipeDetector(aiConfig: aiConfig, aiService: aiService)
         }
 
+        // GoogleVisionOCRService (Handwriting OCR)
+        register(GoogleVisionOCRService.self, lifecycle: .singleton) { container in
+            let aiConfig = container.resolve(AIConfiguration.self)
+            guard let apiKey = aiConfig.googleVisionAPIKey() else {
+                fatalError("Google Vision API key not configured. Please add DEFAULT_GOOGLE_VISION_KEY to Config.xcconfig")
+            }
+            return GoogleVisionOCRService(apiKey: apiKey)
+        }
+
         // CollectionImageGenerator (DALL-E collection backgrounds)
         register(CollectionImageGenerator.self, lifecycle: .singleton) { container in
             let aiConfig = container.resolve(AIConfiguration.self)

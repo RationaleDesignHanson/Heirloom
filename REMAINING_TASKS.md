@@ -22,6 +22,7 @@ After completing 16 of 19 tasks, the following 3 tasks remain. These are primari
 - Task #5: Redesign import bottom sheets for consistency and elegance
 - Task #6: Reorganize collection structure and shareability rules
 - Task #10: Create missing Firestore composite index for connections
+- Task #27: Improve multi-recipe bounding box accuracy for side-by-side layouts
 
 ---
 
@@ -662,6 +663,263 @@ var displayIcon: String {
 
 ---
 
+## Task #27: Improve Multi-Recipe Bounding Box Accuracy
+
+**Priority:** Medium (Quality Improvement)
+**Effort:** 3-4 hours (Phase 1: overlap detection + fallback)
+**Type:** Detection Accuracy
+
+### Current State
+
+Test Suite 6 (Test 6.1) revealed that multi-recipe detection struggles with side-by-side cookbook layouts. The Claude API vision model detects the correct number of recipes and titles, but returns incorrect bounding boxes.
+
+**Test Case Evidence:**
+- **Page:** "Hearty Mid-Week Supper" with 2 recipes side-by-side
+- **Expected:** Pork and Lentil Soup (left) + Easy Biscuit Swirls (right)
+- **Actual Result:**
+  - Recipe 1 bbox captured Recipe 2's text instead ("Easy Biscuit Swirls")
+  - Recipe 2 bbox captured only partial text (failed quality validation)
+- **Outcome:** 1 recipe inserted (wrong one), 1 recipe rejected (correct)
+
+**Impact:**
+- Multi-recipe detection works (finds correct count and titles)
+- Quality validation works (rejects incomplete recipes)
+- **Problem:** Bounding box coordinates misalign for side-by-side layouts
+- Users get wrong recipes or incomplete extractions
+
+### Problem Analysis
+
+**Root Cause:** Bounding boxes are percentage-based (0-100 scale) and appear to overlap or misalign when recipes are positioned horizontally next to each other on the same page.
+
+**Current Architecture:**
+1. `AIRecipeExtractor.detectRecipes()` calls Claude API with vision
+2. Claude returns: `[{title, confidence, boundingBox: {x, y, width, height}}]`
+3. `extractRecipesFromImage()` crops image using bounding boxes
+4. Extracts each cropped region separately
+
+**Why It Fails:**
+- Side-by-side recipes have horizontal adjacency
+- Bounding boxes overlap or capture wrong spatial regions
+- Percentage-based coordinates don't account for layout complexity
+- Claude vision model optimized for vertical recipe layouts
+
+### Implementation Options
+
+#### **Option 1: Bounding Box Overlap Detection** (Recommended for Phase 1)
+
+Add validation to detect overlapping bounding boxes and fall back to alternative extraction.
+
+**Pros:**
+- Simple to implement
+- No additional API costs
+- Low risk
+
+**Cons:**
+- Doesn't fix root cause
+- Falls back to less optimal extraction
+
+**Implementation:**
+```swift
+// In AIRecipeExtractor.swift
+
+/// Validates bounding boxes don't overlap excessively
+private func validateBoundingBoxes(_ boxes: [BoundingBox]) -> Bool {
+    for (i, box1) in boxes.enumerated() {
+        for (j, box2) in boxes.enumerated() where i < j {
+            let overlapArea = calculateOverlap(box1, box2)
+            if overlapArea > 0.3 { // 30% overlap threshold
+                Log.warning("⚠️ Bounding boxes overlap excessively", category: .import, metadata: [
+                    "recipe1": i,
+                    "recipe2": j,
+                    "overlap": overlapArea
+                ])
+                return false
+            }
+        }
+    }
+    return true
+}
+
+/// Calculates overlap percentage between two bounding boxes
+private func calculateOverlap(_ box1: BoundingBox, _ box2: BoundingBox) -> Double {
+    let x1 = max(box1.x, box2.x)
+    let y1 = max(box1.y, box2.y)
+    let x2 = min(box1.x + box1.width, box2.x + box2.width)
+    let y2 = min(box1.y + box1.height, box2.y + box2.height)
+
+    if x2 < x1 || y2 < y1 {
+        return 0.0 // No overlap
+    }
+
+    let overlapWidth = x2 - x1
+    let overlapHeight = y2 - y1
+    let overlapArea = overlapWidth * overlapHeight
+
+    let box1Area = box1.width * box1.height
+    let box2Area = box2.width * box2.height
+    let minArea = min(box1Area, box2Area)
+
+    return overlapArea / minArea
+}
+
+/// Modified extractRecipesFromImage to use validation
+func extractRecipesFromImage(...) async throws -> [ExtractedRecipe] {
+    // ... existing detection code ...
+
+    let detectedRecipes = try await detectRecipes(image: image)
+    let boundingBoxes = detectedRecipes.map { $0.boundingBox }
+
+    // Validate bounding boxes
+    if !validateBoundingBoxes(boundingBoxes) {
+        Log.warning("⚠️ Invalid bounding boxes detected - using fallback extraction", category: .import)
+        return try await fallbackExtraction(image: image, recipeCount: detectedRecipes.count)
+    }
+
+    // ... continue with normal extraction ...
+}
+
+/// Fallback extraction without bounding boxes
+private func fallbackExtraction(image: UIImage, recipeCount: Int) async throws -> [ExtractedRecipe] {
+    // Option A: Extract full page and ask Claude to separate recipes
+    let fullPageText = try await performOCR(on: image)
+
+    let separationPrompt = """
+    This image contains \(recipeCount) recipes. Please extract each recipe separately.
+
+    Full OCR text:
+    \(fullPageText)
+
+    Return array of \(recipeCount) recipes in JSON format.
+    """
+
+    return try await sendClaudeRequest(
+        prompt: separationPrompt,
+        image: image,
+        responseFormat: .jsonArray
+    )
+}
+```
+
+#### **Option 2: Improved Prompt Engineering**
+
+Update detection prompt to request more precise bounding boxes for side-by-side layouts.
+
+**Implementation:**
+```swift
+let detectionPrompt = """
+Analyze this image and detect ALL recipes present.
+
+IMPORTANT: If recipes are positioned SIDE-BY-SIDE (horizontally adjacent), ensure bounding boxes:
+1. Do NOT overlap
+2. Capture only the text for that specific recipe
+3. Use precise percentage coordinates
+4. Account for horizontal adjacency (left recipe vs right recipe)
+
+For each recipe, return:
+{
+  "title": "Recipe Title",
+  "confidence": "high" | "medium" | "low",
+  "boundingBox": {
+    "x": <percentage from left>,
+    "y": <percentage from top>,
+    "width": <percentage of image width>,
+    "height": <percentage of image height>
+  },
+  "layoutPosition": "left" | "right" | "center" | "full-width"
+}
+"""
+```
+
+**Pros:** No code changes needed
+**Cons:** May not solve Claude API limitations
+
+#### **Option 3: Two-Pass Extraction Strategy**
+
+1. First pass: Detect recipes and get titles
+2. Second pass: For each title, ask Claude to extract just that specific recipe by name
+
+**Implementation:**
+```swift
+func extractWithTwoPassStrategy(image: UIImage) async throws -> [ExtractedRecipe] {
+    // Pass 1: Detect recipe titles only
+    let titles = try await detectRecipeTitles(image: image)
+
+    // Pass 2: Extract each recipe by title
+    var recipes: [ExtractedRecipe] = []
+    for title in titles {
+        let prompt = """
+        Extract ONLY the recipe titled "\(title)" from this image.
+        Ignore any other recipes present.
+        """
+
+        let recipe = try await sendClaudeRequest(
+            prompt: prompt,
+            image: image,
+            responseFormat: .json
+        )
+
+        recipes.append(recipe)
+    }
+
+    return recipes
+}
+```
+
+**Pros:** More accurate per-recipe extraction
+**Cons:** 2x API calls (cost + latency)
+
+### Recommended Approach
+
+**Phase 1 (Immediate):** Implement Option 1 - Bounding Box Overlap Detection
+- Add validation for overlapping boxes
+- Implement fallback extraction strategy
+- Log bbox validation failures for monitoring
+- **Effort:** 3-4 hours
+
+**Phase 2 (If needed):** Combine Option 1 + Option 2
+- Keep overlap detection as safety net
+- Improve prompt to request better boxes
+- **Effort:** 1-2 hours
+
+**Phase 3 (Future):** Implement Option 3 if accuracy still poor
+- Two-pass extraction for complex layouts
+- Only use for side-by-side detection
+- **Effort:** 2-3 hours
+
+### Acceptance Criteria
+
+- ✅ Side-by-side recipes extracted correctly 80%+ of time
+- ✅ Bounding box overlap detection implemented
+- ✅ Fallback extraction strategy for invalid boxes
+- ✅ Test with 5+ different cookbook layouts
+- ✅ Log bbox validation failures for monitoring
+- ✅ Quality validation continues to work correctly
+
+### Files to Modify
+
+- `AIRecipeExtractor.swift` - Add bbox validation logic
+- Add `validateBoundingBoxes()` helper
+- Add `calculateOverlap()` helper
+- Implement `fallbackExtraction()` method
+- Update `extractRecipesFromImage()` to use validation
+
+### Testing Plan
+
+**Test Cases:**
+1. Side-by-side 2-recipe layout (like "Hearty Mid-Week Supper")
+2. Vertical stacked 2-recipe layout
+3. 3-column recipe layout
+4. Full-page single recipe (no bbox issues expected)
+5. 4-recipe grid layout
+
+**Success Metrics:**
+- 80%+ accuracy for side-by-side layouts
+- No regression on vertical layouts
+- Fallback triggered <20% of time
+- Quality validation rejection rate unchanged
+
+---
+
 ## Task #10: Create Missing Firestore Composite Index
 
 **Priority:** Low (Backend)
@@ -866,38 +1124,45 @@ let connections = try await query.getDocuments()
 
 ### Task Priorities After Manual Testing
 
-**If Testing Finds Bugs:**
-1. Fix critical bugs immediately
-2. Fix medium bugs if time allows
-3. Defer low-priority bugs to backlog
+**✅ Testing Complete - Results:**
+- 16/17 tests passed (94% pass rate)
+- 1 edge case bug found (Task #26 - share extension crash recovery)
+- 1 quality improvement found (Task #27 - bbox accuracy for side-by-side layouts)
 
-**If Testing Passes Cleanly:**
-1. **Task #5** - Redesign sheets (3-4 hours) - Good UX polish
-2. **Task #6** - Reorganize collections (4-6 hours) - Improves organization
-3. **Task #10** - Firestore index (30 min) - Only if using connections feature
+**Recommended Priority Order:**
+1. **Task #10** - Firestore index (30 min) - Quick backend fix
+2. **Task #27** - Bounding box accuracy (3-4 hours) - Improves multi-recipe extraction
+3. **Task #5** - Redesign sheets (3-4 hours) - UX polish and consistency
+4. **Task #6** - Reorganize collections (4-6 hours) - Architecture improvement
+5. **Task #26** - Share extension crash recovery (deferred) - Rare edge case
 
 ### Estimated Time to 100% Completion
 
-- Manual testing: 1-2 hours
-- Bug fixes (if any): 0-2 hours
+- ✅ Manual testing: Complete
+- ✅ Bug fixes: 5 issues resolved during testing
+- Task #10 (index): 0.5 hours
+- Task #27 (bbox accuracy): 3-4 hours
 - Task #5 (sheets): 3-4 hours
 - Task #6 (collections): 4-6 hours
-- Task #10 (index): 0.5 hours
 
-**Total: 9-15 hours** remaining to complete all work
+**Total: 11-15 hours** remaining to complete all polish work
 
 ---
 
 ## Next Steps
 
-1. ✅ **Run Manual Test Plan** (Test Suites 1-11)
-2. **Document Test Results** in `MANUAL_TEST_PLAN.md`
-3. **Fix Any Critical Bugs** discovered during testing
-4. **Decide Priority** for remaining tasks based on test outcomes
-5. **Execute Remaining Tasks** (#5, #6, #10) in priority order
+1. ✅ **Run Manual Test Plan** - COMPLETE (16/17 tests passed)
+2. ✅ **Document Test Results** - COMPLETE (MANUAL_TEST_RESULTS.md updated)
+3. ✅ **Fix Critical Bugs** - COMPLETE (5 issues resolved)
+4. ✅ **Prioritize Remaining Tasks** - COMPLETE (see priority order above)
+5. **Execute Remaining Tasks** in order:
+   - Task #10: Firestore index (quick backend fix)
+   - Task #27: Bounding box accuracy (quality improvement)
+   - Task #5: Redesign sheets (UX polish)
+   - Task #6: Reorganize collections (architecture)
 
 ---
 
 **Document Created:** 2026-02-01
-**Last Updated:** 2026-02-01
-**Status:** Ready for manual testing phase
+**Last Updated:** 2026-02-01 (Post-testing)
+**Status:** ✅ Testing complete - Ready for remaining polish work

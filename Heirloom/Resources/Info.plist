@@ -52,6 +52,8 @@
 	<true/>
 	<key>DEFAULT_ANTHROPIC_KEY</key>
 	<string>$(DEFAULT_ANTHROPIC_KEY)</string>
+	<key>DEFAULT_GOOGLE_VISION_KEY</key>
+	<string>AIzaSyB7iRiZ87iqOQWEGfvN-sqPZo3a_xpGMj4</string>
 	<key>DEFAULT_OPENAI_KEY</key>
 	<string>$(DEFAULT_OPENAI_KEY)</string>
 	<key>NSCameraUsageDescription</key>

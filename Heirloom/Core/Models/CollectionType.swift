@@ -89,4 +89,109 @@ enum CollectionType: String, Codable, CaseIterable {
         case .system: return 99
         }
     }
+
+    // MARK: - Task #6: Collection Categories and Rules
+
+    /// Collection category for organizational grouping
+    var category: CollectionCategory {
+        switch self {
+        case .fromFriends, .videoImports, .webImports, .photoImports, .communityRecipes:
+            return .imported
+        case .cookbook:
+            return .cookbooks
+        case .theme:
+            return .themes
+        case .userCreated:
+            return .user
+        case .system:
+            return .system
+        }
+    }
+
+    /// Whether collections of this type can be shared with other users
+    var canShare: Bool {
+        switch self {
+        case .fromFriends:
+            // Don't allow resharing recipes from friends (prevents unauthorized redistribution)
+            return false
+        case .theme:
+            // Don't allow sharing theme collections (curated content, licensing)
+            return false
+        case .system:
+            // System collections can't be shared
+            return false
+        case .communityRecipes:
+            // Community recipes can be reshared
+            return true
+        case .videoImports, .webImports, .photoImports, .cookbook, .userCreated:
+            // User's own imports and collections can be shared
+            return true
+        }
+    }
+
+    /// Whether collections of this type are system-managed (not deletable)
+    var isSystemManaged: Bool {
+        switch self {
+        case .fromFriends, .videoImports, .webImports, .photoImports, .communityRecipes, .theme, .system:
+            // Auto-created collections are system-managed
+            return true
+        case .cookbook, .userCreated:
+            // User-created and cookbook collections can be deleted
+            return false
+        }
+    }
+
+    /// Explanation text when user tries to share a restricted collection
+    var shareRestrictionReason: String? {
+        switch self {
+        case .fromFriends:
+            return "Collections of recipes from friends cannot be reshared to prevent unauthorized distribution."
+        case .theme:
+            return "Theme collections are curated content and cannot be shared individually. Share individual recipes instead."
+        case .system:
+            return "System collections cannot be shared."
+        default:
+            return nil
+        }
+    }
+}
+
+/// Collection category for UI grouping
+enum CollectionCategory: String, Codable {
+    case imported      // System-managed import collections (From Friends, From Web, etc.)
+    case cookbooks     // Auto-created from cookbook scans
+    case themes        // Curated theme collections (Discovery)
+    case user          // User-created custom collections
+    case system        // System collections (hidden)
+
+    var displayName: String {
+        switch self {
+        case .imported: return "Imported"
+        case .cookbooks: return "Cookbooks"
+        case .themes: return "Themes"
+        case .user: return "My Collections"
+        case .system: return "System"
+        }
+    }
+
+    var sectionIcon: String {
+        switch self {
+        case .imported: return "square.and.arrow.down"
+        case .cookbooks: return "book.closed"
+        case .themes: return "sparkles"
+        case .user: return "folder"
+        case .system: return "gear"
+        }
+    }
+
+    /// Display order for category sections
+    var displayOrder: Int {
+        switch self {
+        case .imported: return 1
+        case .cookbooks: return 2
+        case .themes: return 3
+        case .user: return 4
+        case .system: return 99
+        }
+    }
 }

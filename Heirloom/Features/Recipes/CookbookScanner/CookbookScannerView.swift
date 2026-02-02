@@ -413,12 +413,31 @@ struct CookbookScannerView: View {
 
         Task {
             do {
-                // Create import job with cookbook-specific or default collection name
-                let collectionName = cookbookName.isEmpty ? "Cookbook Pages" : cookbookName
+                // Detect cookbook name from image if not manually entered
+                var collectionName = cookbookName
+                if collectionName.isEmpty {
+                    Log.info("Attempting to detect cookbook name from image", category: .import)
+
+                    // Try to detect cookbook title using AI
+                    let aiDetector = ServiceContainer.shared.resolve(AIRecipeDetector.self)
+                    if let detectedTitle = try? await aiDetector.detectCookbookName(from: image) {
+                        collectionName = detectedTitle
+                        Log.info("✅ Using AI-detected cookbook name", category: .import, metadata: [
+                            "detectedName": detectedTitle
+                        ])
+                    } else {
+                        // Fallback to default
+                        collectionName = "Cookbook Pages"
+                        Log.info("No cookbook name detected, using default", category: .import, metadata: [
+                            "defaultName": "Cookbook Pages"
+                        ])
+                    }
+                }
+
                 Log.info("Creating cookbook import job", category: .import, metadata: [
                     "collectionName": collectionName,
                     "userEnteredName": cookbookName,
-                    "isEmpty": cookbookName.isEmpty
+                    "wasDetected": cookbookName.isEmpty
                 ])
                 let job = try await importManager.createCameraImportJob(
                     images: [image],
