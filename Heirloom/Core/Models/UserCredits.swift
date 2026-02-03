@@ -158,4 +158,24 @@ extension UserCredits {
         case mixed = 3       // Average cost (some text, some Vision API)
         case scanned = 5     // Expensive (full Vision API pipeline)
     }
+
+    /// Credit costs for different video extraction modes
+    enum VideoCreditCost: Int {
+        case regular = 1     // Audio transcription or OCR mode (on-device processing)
+        case asmr = 5        // ASMR/Vision mode (Claude Vision API, expensive)
+
+        var displayName: String {
+            switch self {
+            case .regular: return "Audio"
+            case .asmr: return "ASMR"
+            }
+        }
+
+        var description: String {
+            switch self {
+            case .regular: return "Uses audio transcription or on-screen text"
+            case .asmr: return "Uses AI vision analysis (for silent/music videos)"
+            }
+        }
+    }
 }

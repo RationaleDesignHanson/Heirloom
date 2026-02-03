@@ -374,6 +374,7 @@
 		C5DBEC7D2F200FDE00C1B6BA /* UnifiedVideoImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC7C2F200FDE00C1B6BA /* UnifiedVideoImportView.swift */; };
 		C5DBEC842F20102E00C1B6BA /* PendingImportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC812F20102E00C1B6BA /* PendingImportManager.swift */; };
 		C5DBEC852F20102E00C1B6BA /* AudioAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC7F2F20102E00C1B6BA /* AudioAnalyzer.swift */; };
+		CLAUDE20260203A /* VideoCostAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLAUDE20260203B /* VideoCostAnalyzer.swift */; };
 		C5DBEC862F20102E00C1B6BA /* OnScreenTextDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC802F20102E00C1B6BA /* OnScreenTextDetector.swift */; };
 		C5DBEC872F20102E00C1B6BA /* WatermarkDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC832F20102E00C1B6BA /* WatermarkDetector.swift */; };
 		C5DBEC882F20102E00C1B6BA /* AttributionResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC7E2F20102E00C1B6BA /* AttributionResolver.swift */; };
@@ -828,6 +829,7 @@
 		C5DBEC7C2F200FDE00C1B6BA /* UnifiedVideoImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedVideoImportView.swift; sourceTree = "<group>"; };
 		C5DBEC7E2F20102E00C1B6BA /* AttributionResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributionResolver.swift; sourceTree = "<group>"; };
 		C5DBEC7F2F20102E00C1B6BA /* AudioAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioAnalyzer.swift; sourceTree = "<group>"; };
+		CLAUDE20260203B /* VideoCostAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCostAnalyzer.swift; sourceTree = "<group>"; };
 		C5DBEC802F20102E00C1B6BA /* OnScreenTextDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnScreenTextDetector.swift; sourceTree = "<group>"; };
 		C5DBEC812F20102E00C1B6BA /* PendingImportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingImportManager.swift; sourceTree = "<group>"; };
 		C5DBEC822F20102E00C1B6BA /* PendingImportProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingImportProcessor.swift; sourceTree = "<group>"; };
@@ -1710,6 +1712,7 @@
 				C5DBEEAB2F202D1E00C1B6BA /* SocialMetadataService.swift */,
 				C5DBEC7E2F20102E00C1B6BA /* AttributionResolver.swift */,
 				C5DBEC7F2F20102E00C1B6BA /* AudioAnalyzer.swift */,
+				CLAUDE20260203B /* VideoCostAnalyzer.swift */,
 				C5DBEC802F20102E00C1B6BA /* OnScreenTextDetector.swift */,
 				C5DBEC812F20102E00C1B6BA /* PendingImportManager.swift */,
 				C5DBEC822F20102E00C1B6BA /* PendingImportProcessor.swift */,
@@ -2821,6 +2824,7 @@
 				C5830E202F103B500096478E /* HeirloomSubscriptionStatus.swift in Sources */,
 				C5DBEC842F20102E00C1B6BA /* PendingImportManager.swift in Sources */,
 				C5DBEC852F20102E00C1B6BA /* AudioAnalyzer.swift in Sources */,
+				CLAUDE20260203A /* VideoCostAnalyzer.swift in Sources */,
 				C5DBEC862F20102E00C1B6BA /* OnScreenTextDetector.swift in Sources */,
 				C5DBEC872F20102E00C1B6BA /* WatermarkDetector.swift in Sources */,
 				C5DBEC882F20102E00C1B6BA /* AttributionResolver.swift in Sources */,

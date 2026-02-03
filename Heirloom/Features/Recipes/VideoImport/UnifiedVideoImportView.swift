@@ -21,6 +21,12 @@ struct UnifiedVideoImportView: View {
     @State private var subscriptionManager: SubscriptionManager?
     @State private var paywallManager: PaywallManager?
 
+    // Cost analysis state
+    @State private var videoCostAnalyzer: VideoCostAnalyzer?
+    @State private var analyzedCreditCost: Int = 0
+    @State private var analyzedMode: String = ""
+    @State private var currentPendingImportID: UUID?  // For Share Extension cleanup
+
     // Initialization state
     @State private var isProcessorReady = false
 
@@ -31,9 +37,21 @@ struct UnifiedVideoImportView: View {
         self.pendingImportID = pendingImportID
     }
 
+    /// Whether the sheet can be dismissed (false during analysis/extraction)
+    private var canDismiss: Bool {
+        switch importState {
+        case .analyzing, .extracting:
+            return false
+        default:
+            return true
+        }
+    }
+
     enum ImportState {
         case selecting
         case analyzing(stage: String)
+        case costConfirmation(credits: Int, mode: String, reasoning: String)
+        case insufficientCredits(needed: Int, available: Int)
         case premiumRequired(audioReasoning: String, ocrReasoning: String)
         case extracting(mode: ExtractionMode, progress: Float)
         case success
@@ -48,6 +66,10 @@ struct UnifiedVideoImportView: View {
                     videoSelectionView
                 case .analyzing(let stage):
                     analysisView(stage: stage)
+                case .costConfirmation(let credits, let mode, let reasoning):
+                    costConfirmationView(credits: credits, mode: mode, reasoning: reasoning)
+                case .insufficientCredits(let needed, let available):
+                    insufficientCreditsView(needed: needed, available: available)
                 case .premiumRequired(let audioReasoning, let ocrReasoning):
                     premiumRequiredView(audioReasoning: audioReasoning, ocrReasoning: ocrReasoning)
                 case .extracting(let mode, let progress):
@@ -62,9 +84,13 @@ struct UnifiedVideoImportView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    // Hide cancel button during non-cancellable states
+                    if canDismiss {
+                        Button("Cancel") { dismiss() }
+                    }
                 }
             }
+            .interactiveDismissDisabled(!canDismiss)
             .task { @MainActor in
                 // Initialize services from ServiceContainer
                 self.subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
@@ -162,6 +188,135 @@ struct UnifiedVideoImportView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             Spacer()
+        }
+    }
+
+    // MARK: - Cost Confirmation View
+
+    private func costConfirmationView(credits: Int, mode: String, reasoning: String) -> some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            // Icon based on mode
+            Image(systemName: mode == "ASMR" ? "eye.circle.fill" : "waveform.circle.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.blue)
+
+            Text("\(mode) Mode")
+                .font(.title2.bold())
+
+            // Credit cost display
+            GroupBox {
+                VStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "creditcard")
+                            .foregroundColor(.green)
+                        Text("Cost: \(credits) credit\(credits == 1 ? "" : "s")")
+                            .font(.headline)
+                        Spacer()
+                    }
+
+                    Divider()
+
+                    Text(reasoning)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.vertical, 4)
+            }
+            .padding(.horizontal)
+
+            // Import button
+            Button {
+                proceedWithImport()
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.down.circle.fill")
+                    Text("Import for \(credits) Credit\(credits == 1 ? "" : "s")")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding(.horizontal)
+
+            // Cancel button
+            Button {
+                importState = .selecting
+                selectedItem = nil
+                videoURL = nil
+            } label: {
+                Text("Cancel")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .padding(.horizontal)
+
+            Spacer()
+        }
+    }
+
+    // MARK: - Insufficient Credits View
+
+    private func insufficientCreditsView(needed: Int, available: Int) -> some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Image(systemName: "creditcard.trianglebadge.exclamationmark")
+                .font(.system(size: 60))
+                .foregroundColor(.orange)
+
+            Text("Insufficient Credits")
+                .font(.title2.bold())
+
+            Text("This import requires \(needed) credit\(needed == 1 ? "" : "s"), but you only have \(available) available.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+
+            // Purchase button
+            Button {
+                // TODO: Show credit purchase sheet
+                let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                toastManager.info(title: "Coming Soon", message: "Credit purchases will be available shortly")
+            } label: {
+                HStack {
+                    Image(systemName: "cart.fill")
+                    Text("Get More Credits")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding(.horizontal)
+
+            // Try different video
+            Button {
+                importState = .selecting
+                selectedItem = nil
+                videoURL = nil
+            } label: {
+                Text("Try a Different Video")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .padding(.horizontal)
+
+            Spacer()
+
+            // Hint about daily quota
+            GroupBox {
+                HStack {
+                    Image(systemName: "clock")
+                        .foregroundColor(.blue)
+                    Text("Your free daily credits reset at midnight")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal)
         }
     }
 
@@ -566,8 +721,7 @@ struct UnifiedVideoImportView: View {
     // MARK: - Processing
 
     private func processSelectedVideo(_ item: PhotosPickerItem) {
-        // Use VideoProcessingJobManager for camera roll imports
-        Task {
+        Task { @MainActor in
             do {
                 // Load video using VideoPickerView's transferable
                 guard let videoData = try await item.loadTransferable(type: VideoTransferable.self) else {
@@ -575,19 +729,117 @@ struct UnifiedVideoImportView: View {
                     return
                 }
 
-                // Get the job manager
+                // Store video URL for later processing
+                self.videoURL = videoData.url
+
+                // STEP 1: Analyze video to determine mode and cost
+                importState = .analyzing(stage: "Analyzing video...")
+
+                // Initialize cost analyzer if needed
+                if videoCostAnalyzer == nil {
+                    videoCostAnalyzer = await VideoCostAnalyzer.makeDefault()
+                }
+
+                guard let analyzer = videoCostAnalyzer else {
+                    importState = .error("Failed to initialize analyzer")
+                    return
+                }
+
+                let costResult = await analyzer.analyze(videoAt: videoData.url)
+
+                Log.info("Video cost analysis completed", category: .video, metadata: [
+                    "canProceed": costResult.canProceed,
+                    "creditCost": costResult.creditCost,
+                    "modeName": costResult.modeName,
+                    "reasoning": costResult.reasoning
+                ])
+
+                guard costResult.canProceed else {
+                    if case .failed(let error) = costResult {
+                        importState = .error(error.localizedDescription)
+                    } else {
+                        importState = .error("Analysis failed")
+                    }
+                    return
+                }
+
+                // Store analysis results
+                analyzedCreditCost = costResult.creditCost
+                analyzedMode = costResult.modeName
+
+                // STEP 2: Check credit balance
+                Log.info("Checking credit balance...", category: .video)
+                let userCredits = try fetchOrCreateUserCredits()
+                let availableCredits = userCredits.availableToday
+
+                Log.info("Credit check complete", category: .video, metadata: [
+                    "available": availableCredits,
+                    "needed": costResult.creditCost
+                ])
+
+                if availableCredits < costResult.creditCost {
+                    // Not enough credits
+                    importState = .insufficientCredits(
+                        needed: costResult.creditCost,
+                        available: availableCredits
+                    )
+                    return
+                }
+
+                // STEP 3: Show cost confirmation
+                Log.info("Setting cost confirmation state", category: .video, metadata: [
+                    "credits": costResult.creditCost,
+                    "mode": costResult.modeName
+                ])
+
+                importState = .costConfirmation(
+                    credits: costResult.creditCost,
+                    mode: costResult.modeName,
+                    reasoning: costResult.reasoning
+                )
+
+                Log.info("Import state set to costConfirmation", category: .video)
+
+            } catch {
+                Log.error("Video import error", category: .video, metadata: [
+                    "error": error.localizedDescription,
+                    "errorType": String(describing: type(of: error))
+                ])
+                importState = .error(error.localizedDescription)
+            }
+        }
+    }
+
+    /// Called when user confirms the cost and wants to proceed
+    private func proceedWithImport() {
+        guard let videoURL = videoURL else {
+            importState = .error("Video not found")
+            return
+        }
+
+        Task { @MainActor in
+            do {
+                // Deduct credits first
+                let userCredits = try fetchOrCreateUserCredits()
+                try userCredits.deductCredits(analyzedCreditCost)
+                try modelContext.save()
+
+                Log.info("Credits deducted for video import", category: .video, metadata: [
+                    "credits": analyzedCreditCost,
+                    "mode": analyzedMode
+                ])
+
+                // Now queue the job
                 let jobManager = ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
 
-                // Create attribution (empty for now, will be collected in review)
                 let attribution = VideoSourceAttribution(
                     sourceURL: nil,
                     captionText: nil
                 )
 
-                // Create and queue the job
                 let job = try jobManager.createJob(
-                    videoURL: videoData.url,
-                    videoType: .standard,
+                    videoURL: videoURL,
+                    videoType: analyzedMode == "ASMR" ? .asmr : .standard,
                     userCaption: nil,
                     videoDuration: nil,
                     sourceAttribution: attribution,
@@ -606,21 +858,48 @@ struct UnifiedVideoImportView: View {
                 // Show success
                 importState = .success
 
-                // Toast notification with queue info
+                // Clean up pending import if this came from Share Extension
+                if let pendingID = currentPendingImportID {
+                    await PendingImportManager.shared.delete(id: pendingID)
+                    currentPendingImportID = nil
+                }
+
+                // Toast notification
                 let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
                 toastManager.success(
                     title: "Video queued (\(queuePosition + 1) of \(totalInQueue))",
-                    message: "You'll be notified when it's ready to review"
+                    message: "\(analyzedCreditCost) credit\(analyzedCreditCost == 1 ? "" : "s") used"
                 )
 
                 // Dismiss after a moment
-                try await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 seconds
+                try await Task.sleep(nanoseconds: 1_500_000_000)
                 dismiss()
 
             } catch {
                 importState = .error(error.localizedDescription)
             }
         }
+    }
+
+    /// Fetch or create UserCredits for current user
+    private func fetchOrCreateUserCredits() throws -> UserCredits {
+        guard let userId = FirebaseAuthService.shared.currentUserId else {
+            throw CreditError.insufficientCredits(needed: 1, available: 0)
+        }
+
+        var descriptor = FetchDescriptor<UserCredits>()
+        descriptor.predicate = #Predicate<UserCredits> { credits in
+            credits.userId == userId
+        }
+
+        if let existing = try modelContext.fetch(descriptor).first {
+            return existing
+        }
+
+        // Create new UserCredits
+        let newCredits = UserCredits(userId: userId)
+        modelContext.insert(newCredits)
+        return newCredits
     }
 
     private func processPendingImport(_ importID: UUID) async {
@@ -638,51 +917,62 @@ struct UnifiedVideoImportView: View {
         }
 
         self.videoURL = videoURL
+        self.currentPendingImportID = importID  // Store for cleanup after success
 
-        // Process using same flow as photo library import
-        do {
-            guard let processor = self.processor else {
-                throw VideoImportError.extractionFailed("Processor not initialized")
-            }
+        // Use unified cost analysis flow (same as camera roll)
+        importState = .analyzing(stage: "Analyzing video...")
 
-            importState = .analyzing(stage: "Analyzing audio...")
-
-            let result = try await processor.analyzeVideo(at: videoURL)
-
-            switch result {
-            case .canProceedFree(let mode, let transcript, let onScreenText):
-                importState = .extracting(mode: mode, progress: 0)
-
-                let recipe = try await processor.processImport(
-                    pendingImport,
-                    mode: mode,
-                    transcript: transcript,
-                    onScreenText: onScreenText
-                )
-
-                importedRecipe = recipe
-                importState = .success
-
-                // Clean up pending import
-                await PendingImportManager.shared.delete(id: importID)
-
-            case .requiresPremium(let audioReasoning, let ocrReasoning):
-                if subscriptionManager?.isPremium == true {
-                    proceedWithVisualExtraction(videoURL: videoURL)
-                } else {
-                    importState = .premiumRequired(
-                        audioReasoning: audioReasoning,
-                        ocrReasoning: ocrReasoning
-                    )
-                }
-
-            case .failed(let error):
-                importState = .error(error.localizedDescription)
-            }
-
-        } catch {
-            importState = .error(error.localizedDescription)
+        // Initialize cost analyzer if needed
+        if videoCostAnalyzer == nil {
+            videoCostAnalyzer = await VideoCostAnalyzer.makeDefault()
         }
+
+        guard let analyzer = videoCostAnalyzer else {
+            importState = .error("Failed to initialize analyzer")
+            return
+        }
+
+        let costResult = await analyzer.analyze(videoAt: videoURL)
+
+        guard costResult.canProceed else {
+            if case .failed(let error) = costResult {
+                importState = .error(error.localizedDescription)
+            } else {
+                importState = .error("Analysis failed")
+            }
+            return
+        }
+
+        // Store analysis results
+        analyzedCreditCost = costResult.creditCost
+        analyzedMode = costResult.modeName
+
+        // Check credit balance
+        do {
+            let userCredits = try fetchOrCreateUserCredits()
+            let availableCredits = userCredits.availableToday
+
+            if availableCredits < costResult.creditCost {
+                importState = .insufficientCredits(
+                    needed: costResult.creditCost,
+                    available: availableCredits
+                )
+                return
+            }
+        } catch {
+            importState = .error("Failed to check credits: \(error.localizedDescription)")
+            return
+        }
+
+        // Show cost confirmation (user will call proceedWithImport)
+        importState = .costConfirmation(
+            credits: costResult.creditCost,
+            mode: costResult.modeName,
+            reasoning: costResult.reasoning
+        )
+
+        // Note: proceedWithImport() handles the actual processing and credit deduction
+        // Clean up pending import happens in proceedWithImport after success
     }
 
     private func proceedWithVisualExtraction(videoURL: URL) {

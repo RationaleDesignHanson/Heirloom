@@ -27,6 +27,17 @@ struct PendingVideoImport: Codable, Identifiable {
     var bulkContent: BulkImportContent?  // For Notes with URLs + text
     var imageURLs: [URL]?  // For multiple images from Share Extension
 
+    // MARK: - Credit Analysis Results (populated by main app after analysis)
+
+    /// Estimated credit cost for this import (determined after analysis)
+    var estimatedCreditCost: Int?
+
+    /// Analysis mode string for display ("Audio", "ASMR", "Text-Rich", "Scanned")
+    var analysisMode: String?
+
+    /// Human-readable reasoning for the analysis result
+    var analysisReasoning: String?
+
     enum SourceType: String, Codable {
         case shareExtensionVideo
         case shareExtensionURL
