@@ -42,26 +42,19 @@ actor PendingImportProcessor {
 
     @MainActor
     private static func makeVideoProcessor() async -> VideoRecipeProcessor {
-        // Get AI configuration and services from ServiceContainer
-        let aiConfig = ServiceContainer.shared.resolve(AIConfiguration.self)
-        let usageTracker = ServiceContainer.shared.resolve(AIUsageTracker.self)
-
-        // Create AnthropicAIService (uses corporate key from Config.xcconfig)
-        let anthropicService = AnthropicAIService(
-            configuration: aiConfig,
-            usageTracker: usageTracker
-        )
+        // Get AI service from ServiceContainer (uses Firebase Gateway - secure)
+        let aiService = ServiceContainer.shared.resolve((any AIServiceProtocol).self)
 
         // Create services
         let transcriptionService = await WhisperKitTranscriptionService()
-        let recipeStructurer = ClaudeRecipeStructurer(aiService: anthropicService)
+        let recipeStructurer = ClaudeRecipeStructurer(aiService: aiService)
 
         // Create VideoRecipeProcessor using convenience initializer
         // This will automatically create AudioExtractionService and FrameAnalysisService
         let videoProcessor = VideoRecipeProcessor(
             transcriptionService: transcriptionService,
             recipeStructurer: recipeStructurer,
-            aiService: anthropicService,
+            aiService: aiService,
             enableFrameAnalysis: true,
             enableCaching: true,
             enableAugmentation: false  // Disable augmentation for Share Extension imports

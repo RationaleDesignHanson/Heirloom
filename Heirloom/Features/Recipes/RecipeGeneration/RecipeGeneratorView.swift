@@ -73,10 +73,20 @@ struct RecipeGeneratorView: View {
                     Button {
                         startBackgroundGeneration()
                     } label: {
-                        Text("Generate")
-                            .fontWeight(.semibold)
+                        let dishEmpty = dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        let ingredientsEmpty = ingredients.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+                        // Easter egg: Show "Surprise Me!" only when BOTH fields are empty
+                        if dishEmpty && ingredientsEmpty {
+                            Text("Surprise Me! 🎲")
+                                .fontWeight(.semibold)
+                        } else {
+                            Text("Generate")
+                                .fontWeight(.semibold)
+                        }
                     }
-                    .disabled(dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                             !ingredients.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
@@ -85,20 +95,25 @@ struct RecipeGeneratorView: View {
     // MARK: - Generation
 
     private func startBackgroundGeneration() {
-        let recipeDishName = dishName
-        let recipeIngredients = ingredients
+        let recipeDishName = dishName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let recipeIngredients = ingredients.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // Dismiss immediately (cookbook scan pattern)
         dismiss()
 
         Task { @MainActor in
             do {
-                // Start generation (shows banner automatically)
-                try await generationService.generateRecipe(
-                    dishName: recipeDishName,
-                    ingredients: recipeIngredients.isEmpty ? nil : recipeIngredients,
-                    context: modelContext
-                )
+                // Easter egg: Generate silly recipe if both fields empty
+                if recipeDishName.isEmpty && recipeIngredients.isEmpty {
+                    try await generationService.generateSillyRecipe(context: modelContext)
+                } else {
+                    // Normal generation
+                    try await generationService.generateRecipe(
+                        dishName: recipeDishName,
+                        ingredients: recipeIngredients.isEmpty ? nil : recipeIngredients,
+                        context: modelContext
+                    )
+                }
 
                 // Progress UI shows automatically via bottom banner
 

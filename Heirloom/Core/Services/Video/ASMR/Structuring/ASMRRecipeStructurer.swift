@@ -15,7 +15,7 @@ class ASMRRecipeStructurer {
 
     // MARK: - Dependencies
 
-    private let aiService: AnthropicAIService
+    private let aiService: any AIServiceProtocol
     private let frameExtractor: ASMRFrameExtractionService
     private let augmentationService: RecipeAugmentationService
     private let similarRecipeService: LocalRecipeSimilarityService?
@@ -29,7 +29,7 @@ class ASMRRecipeStructurer {
     // MARK: - Initialization
 
     init(
-        aiService: AnthropicAIService? = nil,
+        aiService: (any AIServiceProtocol)? = nil,
         frameExtractor: ASMRFrameExtractionService? = nil,
         augmentationService: RecipeAugmentationService? = nil,
         similarRecipeService: LocalRecipeSimilarityService? = nil,
@@ -38,16 +38,15 @@ class ASMRRecipeStructurer {
         if let aiService = aiService {
             self.aiService = aiService
         } else {
-            self.aiService = ServiceContainer.shared.resolve(AnthropicAIService.self)
+            self.aiService = ServiceContainer.shared.resolve((any AIServiceProtocol).self)
         }
         self.frameExtractor = frameExtractor ?? ASMRFrameExtractionService()
 
-        // RecipeAugmentationService needs an AI service (cast to protocol)
+        // RecipeAugmentationService needs an AI service
         if let augmentationService = augmentationService {
             self.augmentationService = augmentationService
         } else {
-            let aiServiceProtocol: AIServiceProtocol = self.aiService
-            self.augmentationService = RecipeAugmentationService(aiService: aiServiceProtocol)
+            self.augmentationService = RecipeAugmentationService(aiService: self.aiService)
         }
 
         // LocalRecipeSimilarityService needs ModelContext

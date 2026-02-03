@@ -560,3 +560,27 @@ exports.monitorPublicRecipeReports = onDocumentWritten('publicRecipeReports/{rep
     return null;
   }
 });
+
+/**
+ * AI Gateway Functions
+ * Secure proxy for AI service requests (Anthropic, OpenAI, Google Vision, Brave Search)
+ * All API keys stay server-side, clients use Firebase Auth tokens
+ */
+
+// Export AI gateway functions (compiled from TypeScript in lib/)
+exports.aiComplete = require('./lib/ai-gateway').aiComplete;
+exports.aiCompleteStructured = require('./lib/ai-gateway').aiCompleteStructured;
+exports.aiCompleteWithVision = require('./lib/ai-gateway').aiCompleteWithVision;
+
+// Export Google Vision OCR
+exports.googleVisionOCR = require('./lib/google-vision').googleVisionOCR;
+
+// Export Brave Search
+exports.braveSearch = require('./lib/brave-search').braveSearch;
+
+// Export rate limiting utilities
+exports.checkUserRateLimit = require('./lib/rate-limiter').checkUserRateLimit;
+exports.getUserUsageStats = require('./lib/rate-limiter').getUserUsageStats;
+
+// Export DALL-E image generation
+exports.dalleGenerateImage = require('./lib/dalle-image').dalleGenerateImage;

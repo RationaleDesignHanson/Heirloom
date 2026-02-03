@@ -8,9 +8,9 @@ import UIKit
 class AIRecipeDetector {
 
     private let aiConfig: AIConfiguration
-    private let aiService: AnthropicAIService
+    private let aiService: any AIServiceProtocol
 
-    init(aiConfig: AIConfiguration, aiService: AnthropicAIService) {
+    init(aiConfig: AIConfiguration, aiService: any AIServiceProtocol) {
         self.aiConfig = aiConfig
         self.aiService = aiService
     }
@@ -67,7 +67,8 @@ class AIRecipeDetector {
                 image: image,
                 prompt: prompt,
                 schema: DetectionResponse.self,
-                options: options
+                options: options,
+                useCase: .ocr
             )
 
             return response.recipes
@@ -200,7 +201,8 @@ extension AIRecipeDetector {
                 image: image,
                 prompt: prompt,
                 schema: CookbookDetectionResponse.self,
-                options: options
+                options: options,
+                useCase: .ocr
             )
         } catch {
             Log.warning("Cookbook name detection failed", category: .import, metadata: [

@@ -26,72 +26,36 @@ struct SharePreviewCard: View {
                     .fill(HeirloomColors.cream)
                     .heirloomShadow(HeirloomShadows.card)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    // Recipe image
+                VStack(alignment: .leading, spacing: 10) {
+                    // Recipe image (reduced height)
                     if let image = recipeImage {
                         Image(uiImage: image)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(height: 120)
+                            .frame(height: 80)
                             .clipShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
                     }
 
-                    // Title
+                    // Title (smaller font)
                     Text(recipe.title)
-                        .font(.title2)
+                        .font(.title3)
                         .fontWeight(.bold)
                         .foregroundStyle(HeirloomColors.primaryText)
+                        .lineLimit(2)
 
                     // Attribution
                     if let sharerName = options.sharerName {
                         HStack(spacing: HeirloomSpacing.xs) {
                             Image(systemName: "person.fill")
-                                .font(HeirloomFonts.caption1)
+                                .font(HeirloomFonts.caption2)
                             Text("Shared by \(sharerName)")
-                                .font(HeirloomFonts.body)
+                                .font(HeirloomFonts.caption1)
                         }
                         .foregroundStyle(HeirloomColors.secondaryText)
                     }
 
-                    // Personal message
-                    if let message = options.personalMessage, !message.isEmpty {
-                        VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                            HStack(spacing: HeirloomSpacing.xs) {
-                                Image(systemName: "quote.bubble.fill")
-                                    .font(HeirloomFonts.caption1)
-                                Text("Note from \(options.sharerName ?? "sender")")
-                                    .font(HeirloomFonts.caption1)
-                                    .fontWeight(.semibold)
-                            }
-                            .foregroundStyle(HeirloomColors.secondaryText)
-
-                            Text("\"\(message)\"")
-                                .font(HeirloomFonts.body)
-                                .italic()
-                                .foregroundStyle(HeirloomColors.secondaryText)
-                                .padding(.leading, 8)
-                        }
-                        .padding(12)
-                        .background(HeirloomColors.amber.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-
-                    // Rating (if included)
-                    if options.includeRating, let rating = recipe.provenance?.cachedMetrics.averageRating {
-                        HStack(spacing: HeirloomSpacing.xs) {
-                            ForEach(1...5, id: \.self) { star in
-                                Image(systemName: star <= Int(rating) ? "star.fill" : "star")
-                                    .foregroundStyle(.yellow)
-                                    .font(HeirloomFonts.caption1)
-                            }
-                            Text(String(format: "%.1f", rating))
-                                .font(HeirloomFonts.caption1)
-                                .foregroundStyle(HeirloomColors.secondaryText)
-                        }
-                    }
-
-                    // Basic info
-                    HStack(spacing: HeirloomSpacing.md) {
+                    // Basic info (moved up, removed rating to save space)
+                    HStack(spacing: HeirloomSpacing.sm) {
                         if let servings = recipe.servings {
                             InfoPill(icon: "person.2.fill", text: servings)
                         }
@@ -99,8 +63,6 @@ struct SharePreviewCard: View {
                             InfoPill(icon: "clock.fill", text: prepTime)
                         }
                     }
-
-                    Spacer()
 
                     // What's included indicator
                     HStack(spacing: HeirloomSpacing.sm) {
@@ -117,7 +79,7 @@ struct SharePreviewCard: View {
                 }
                 .padding(HeirloomSpacing.md)
             }
-            .frame(height: 420)
+            .frame(height: 240)
         }
         .task {
             recipeImage = await recipe.loadImage()

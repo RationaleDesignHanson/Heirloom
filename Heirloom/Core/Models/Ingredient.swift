@@ -186,6 +186,46 @@ extension Ingredient {
     }
 }
 
+// MARK: - Scaling Support
+extension Ingredient {
+    /// Determines if this ingredient has a flexible quantity that shouldn't be flagged as missing.
+    /// Examples: "salt to taste", "pinch of pepper", spices without quantities
+    var isFlexibleQuantity: Bool {
+        // Only check ingredients with nil quantity
+        guard quantity == nil else { return false }
+
+        let text = originalText.lowercased()
+
+        // Pattern detection for common flexible quantity phrases
+        let flexiblePatterns = [
+            "to taste",
+            "pinch",
+            "pinch of",
+            "dash",
+            "dash of",
+            "as needed",
+            "for garnish",
+            "for serving",
+            "optional"
+        ]
+
+        if flexiblePatterns.contains(where: { text.contains($0) }) {
+            return true
+        }
+
+        // Common seasonings by category
+        if category == .spices {
+            return true
+        }
+
+        // Specific ingredient names that are typically "to taste"
+        let ingredientName = name.lowercased()
+        let commonSeasonings = ["salt", "pepper", "seasoning"]
+
+        return commonSeasonings.contains(where: { ingredientName.contains($0) })
+    }
+}
+
 // MARK: - GroceryCategory
 enum GroceryCategory: String, Codable, CaseIterable, Identifiable {
     case produce = "Produce"

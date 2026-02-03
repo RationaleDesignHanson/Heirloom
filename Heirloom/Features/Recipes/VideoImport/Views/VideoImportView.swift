@@ -361,7 +361,7 @@ struct VideoProcessingContainerView: View {
 
     private func initializeProcessor() async {
         // Initialize services
-        let aiService = ServiceContainer.shared.resolve(AnthropicAIService.self)
+        let aiService = ServiceContainer.shared.resolve((any AIServiceProtocol).self)
         let transcriptionService = await WhisperKitTranscriptionService()
         let recipeStructurer = ClaudeRecipeStructurer(aiService: aiService)
 

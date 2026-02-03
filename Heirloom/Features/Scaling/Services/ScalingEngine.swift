@@ -93,6 +93,16 @@ class ScalingEngine {
     ) -> ScaledIngredient {
         guard let originalQuantity = ingredient.quantity else {
             // No quantity to scale (e.g., "salt to taste")
+            // Try to provide smart suggested amounts
+            if let suggested = suggestSeasoningAmount(
+                for: ingredient,
+                scaleFactor: scaleFactor,
+                category: recipeCategory
+            ) {
+                return suggested
+            }
+
+            // Fallback: no suggestion available
             return ScaledIngredient(
                 originalIngredient: ingredient,
                 scaledQuantity: nil,
@@ -317,5 +327,96 @@ class ScalingEngine {
         }
 
         return nil // No adjustment needed
+    }
+
+    // MARK: - Seasoning Suggestions
+
+    /// Suggests amount for "to taste" seasonings using research-backed defaults
+    ///
+    /// - Parameters:
+    ///   - ingredient: The ingredient with nil quantity
+    ///   - scaleFactor: The scaling factor being applied
+    ///   - category: Recipe category for cuisine-specific adjustments
+    /// - Returns: ScaledIngredient with suggested amount range, or nil if no suggestion
+    private func suggestSeasoningAmount(
+        for ingredient: Ingredient,
+        scaleFactor: Double,
+        category: RecipeCategory?
+    ) -> ScaledIngredient? {
+        // Calculate target serving count (assume base recipe is 4 servings)
+        let baseServings = 4
+        let targetServings = Int(Double(baseServings) * scaleFactor)
+
+        // Get suggested amount from research-backed defaults
+        guard let suggestion = SeasoningDefaults.suggestedAmount(
+            for: ingredient.name,
+            servingCount: targetServings,
+            category: category
+        ) else {
+            return nil
+        }
+
+        // Round to practical measurements
+        let roundedMin = roundToPracticalMeasurement(suggestion.min, unit: suggestion.unit)
+        let roundedMax = roundToPracticalMeasurement(suggestion.max, unit: suggestion.unit)
+
+        // Format the note
+        let note = formatSeasoningSuggestionNote(
+            min: roundedMin,
+            max: roundedMax,
+            unit: suggestion.unit
+        )
+
+        // Note: ScaledIngredient will use originalIngredient.unit for display
+        // For "to taste" ingredients, unit is typically nil, so we include it in notes
+        return ScaledIngredient(
+            originalIngredient: ingredient,
+            scaledQuantity: nil, // Don't show quantity in main display
+            scaledQuantityMax: nil,
+            notes: note // Put full suggestion in notes
+        )
+    }
+
+    /// Formats a user-friendly note for seasoning suggestions
+    private func formatSeasoningSuggestionNote(
+        min: Double,
+        max: Double,
+        unit: String
+    ) -> String {
+        if abs(max - min) < 0.01 {
+            // Single value suggestion
+            return "Suggested: \(formatQuantityForDisplay(min)) \(unit) (adjust to taste)"
+        } else {
+            // Range suggestion
+            return "Suggested: \(formatQuantityForDisplay(min))-\(formatQuantityForDisplay(max)) \(unit) (adjust to taste)"
+        }
+    }
+
+    /// Formats a quantity for display (e.g., 0.25 → "¼", 0.5 → "½", 1.0 → "1")
+    private func formatQuantityForDisplay(_ value: Double) -> String {
+        let fractions: [(Double, String)] = [
+            (0.0625, "1/16"),
+            (0.125, "⅛"),
+            (0.25, "¼"),
+            (0.333, "⅓"),
+            (0.5, "½"),
+            (0.667, "⅔"),
+            (0.75, "¾")
+        ]
+
+        // Check if it's essentially a whole number
+        if abs(value - round(value)) < 0.01 {
+            return "\(Int(round(value)))"
+        }
+
+        // Try to match fraction
+        for (threshold, symbol) in fractions {
+            if abs(value - threshold) < 0.01 {
+                return symbol
+            }
+        }
+
+        // Decimal fallback
+        return String(format: "%.2f", value)
     }
 }

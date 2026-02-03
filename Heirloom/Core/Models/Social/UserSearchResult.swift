@@ -17,6 +17,9 @@ struct UserSearchResult: Codable, Identifiable {
     /// User's display name
     let displayName: String
 
+    /// User's email (for disambiguation when multiple users have same name)
+    let email: String?
+
     /// Optional profile photo URL
     let photoURL: String?
 

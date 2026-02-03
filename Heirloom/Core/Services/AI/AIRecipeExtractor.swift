@@ -11,26 +11,23 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     private let aiService: AIServiceProtocol
     private let configuration: AIConfigurationProtocol
     private let analytics: AnalyticsService
-    private var googleVisionService: GoogleVisionOCRService?
+    private var googleVisionService: FirebaseGoogleVisionService?
 
     // MARK: - Initialization
 
     init(
         aiService: AIServiceProtocol,
         configuration: AIConfigurationProtocol,
-        analytics: AnalyticsService
+        analytics: AnalyticsService,
+        googleVisionService: FirebaseGoogleVisionService? = nil
     ) {
         self.aiService = aiService
         self.configuration = configuration
         self.analytics = analytics
 
-        // Lazily initialize Google Vision if API key is configured
-        if let apiKey = (configuration as? AIConfiguration)?.googleVisionAPIKey() {
-            self.googleVisionService = GoogleVisionOCRService(apiKey: apiKey)
-            Log.info("✅ Google Vision OCR enabled for handwriting recognition", category: .ocr)
-        } else {
-            Log.info("ℹ️ Google Vision OCR not configured - will use standard extraction for handwriting", category: .ocr)
-        }
+        // Use provided Firebase Google Vision service (secure - no API keys in client)
+        self.googleVisionService = googleVisionService ?? FirebaseGoogleVisionService()
+        Log.info("✅ Firebase Google Vision OCR enabled for handwriting recognition (secure gateway)", category: .ocr)
     }
 
     // MARK: - Detection Models (from AIRecipeDetector)
@@ -415,8 +412,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     /// - Returns: Structured recipe with cleaned data
     func extractRecipe(from ocrText: String) async throws -> ExtractedRecipe {
         // Check if AI enhancement is enabled
-        guard configuration.enableAIEnhancement,
-              configuration.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIEnhancement else {
             // Fall back to basic text extraction
             return extractRecipeBasic(from: ocrText)
         }
@@ -455,8 +451,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
     /// - Returns: Result containing array of detected recipes
     func extractMultipleRecipes(from ocrText: String, sourceImage: UIImage? = nil) async throws -> MultiRecipeExtractionResult {
         // Check if AI enhancement is enabled
-        guard configuration.enableAIEnhancement,
-              configuration.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIEnhancement else {
             // Fall back to basic extraction (assumes single recipe)
             let recipe = extractRecipeBasic(from: ocrText)
             return MultiRecipeExtractionResult(recipes: [recipe], extractionResults: [], sourceImage: sourceImage)
@@ -507,9 +502,8 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         paddingSide: CGFloat = 0.15
     ) async throws -> ExtractedRecipe {
         // Check if AI is configured
-        guard configuration.enableAIEnhancement,
-              configuration.isConfigured(provider: .anthropic) else {
-            throw AIError.notConfigured(provider: "Anthropic")
+        guard configuration.enableAIEnhancement else {
+            throw AIError.notConfigured(provider: "Firebase AI Gateway")
         }
 
         // For multi-recipe pages: send full image with explicit title constraint (no cropping)

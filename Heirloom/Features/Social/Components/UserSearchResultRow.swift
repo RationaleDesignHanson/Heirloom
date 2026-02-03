@@ -11,6 +11,31 @@ import SwiftUI
 struct UserSearchResultRow: View {
     let user: UserSearchResult
 
+    // MARK: - Email Masking Helper
+
+    private func maskEmail(_ email: String) -> String {
+        let parts = email.split(separator: "@")
+        guard parts.count == 2 else { return email }
+
+        let username = String(parts[0])
+        let domain = String(parts[1])
+
+        if username.count <= 2 {
+            return "\(username.prefix(1))***@\(domain)"
+        }
+
+        let visibleCount = min(max(Int(Double(username.count) * 0.4), 1), 10)
+        let finalVisibleCount: Int
+        if visibleCount >= username.count - 1 {
+            finalVisibleCount = max(username.count - 2, 1)
+        } else {
+            finalVisibleCount = visibleCount
+        }
+
+        let visiblePart = username.prefix(finalVisibleCount)
+        return "\(visiblePart)***@\(domain)"
+    }
+
     var body: some View {
         HStack(spacing: HeirloomSpacing.md) {
             // Avatar
@@ -33,6 +58,13 @@ struct UserSearchResultRow: View {
                 Text(user.displayName)
                     .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.primaryText)
+
+                // Show masked email for disambiguation (especially important for duplicate names)
+                if let email = user.email {
+                    Text(maskEmail(email))
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.secondaryText.opacity(0.8))
+                }
 
                 if let bio = user.bio {
                     Text(bio)

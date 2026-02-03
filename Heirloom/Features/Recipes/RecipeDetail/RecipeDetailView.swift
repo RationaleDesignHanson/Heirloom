@@ -994,11 +994,30 @@ extension RecipeDetailView {
         FlipCard(
             isFlipped: $isCardFlipped,
             front: {
-                AsyncRecipeImage(
-                    imageFileName: displayImageFileName,
-                    firebaseImageURL: displayFirebaseImageURL,
-                    placeholder: recipe.sourceType?.iconName ?? "fork.knife"
-                )
+                ZStack {
+                    AsyncRecipeImage(
+                        imageFileName: displayImageFileName,
+                        firebaseImageURL: displayFirebaseImageURL,
+                        placeholder: recipe.sourceType?.iconName ?? "fork.knife"
+                    )
+
+                    // Public recipe badge (bottom right overlay) - Phase 11
+                    if recipe.isPublic {
+                        PublicRecipeBadge(viewCount: recipe.publicViewCount)
+                            .padding(HeirloomSpacing.sm)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    } else if recipe.canMakePublic {
+                        // Publishable badge - tappable to open publish sheet
+                        Button(action: {
+                            showPublishSheet = true
+                        }) {
+                            PublishableBadge()
+                                .padding(HeirloomSpacing.sm)
+                        }
+                        .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    }
+                }
             },
             back: {
                 // Safely check if card back exists with optional binding

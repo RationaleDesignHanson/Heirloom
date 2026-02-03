@@ -105,7 +105,7 @@ final class VideoProcessingJobManager: ObservableObject {
         }
 
         let transcriptionService = await WhisperKitTranscriptionService()
-        let aiService = ServiceContainer.shared.resolve(AnthropicAIService.self)
+        let aiService = ServiceContainer.shared.resolve((any AIServiceProtocol).self)
         let recipeStructurer = ClaudeRecipeStructurer(aiService: aiService)
         let processor = VideoRecipeProcessor(
             transcriptionService: transcriptionService,

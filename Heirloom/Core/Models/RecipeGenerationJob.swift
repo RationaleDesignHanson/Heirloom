@@ -12,6 +12,7 @@ final class RecipeGenerationJob {
     // MARK: - Input Data
     var ingredients: String?
     var transcript: String?
+    var isSillyRecipe: Bool = false  // Easter egg flag
 
     // MARK: - Status
     var status: RecipeGenerationStatus

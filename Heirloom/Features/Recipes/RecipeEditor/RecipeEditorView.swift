@@ -71,6 +71,11 @@ struct RecipeEditorView: View {
     @State private var spellCheckResults: [Int: AIIngredientSpellChecker.SpellingResult] = [:]
     @State private var spellCheckTask: Task<Void, Never>?
 
+    // AI ingredient parsing (on blur)
+    @State private var parsedIngredients: [Int: Ingredient] = [:]
+    @State private var ingredientParsingTasks: [Int: Task<Void, Never>] = [:]
+    @State private var lastFocusedIngredientIndex: Int?
+
     // Version creation prompt
     @State private var showVersionPrompt = false
     @State private var shouldCreateNewVersion = false
@@ -321,6 +326,13 @@ struct RecipeEditorView: View {
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
             }
+            .onChange(of: focusedIngredientIndex) { oldIndex, newIndex in
+                // When focus changes, parse the ingredient that just lost focus
+                if let oldIndex = oldIndex, oldIndex != newIndex {
+                    parseIngredientWithAI(at: oldIndex)
+                }
+                lastFocusedIngredientIndex = oldIndex
+            }
         }
     }
 
@@ -502,8 +514,11 @@ struct RecipeEditorView: View {
                             } label: {
                                 Image(systemName: "minus.circle.fill")
                                     .foregroundStyle(.red)
-                                    .imageScale(.large)
+                                    .font(.system(size: 22))
+                                    .frame(width: 44, height: 44)
+                                    .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
                         }
                     }
 
@@ -513,6 +528,18 @@ struct RecipeEditorView: View {
                             suggestionChip(for: suggestion, index: index)
                         }
                     }
+                }
+            }
+            .onDelete { indexSet in
+                // Only allow deletion if more than 1 ingredient remains
+                guard ingredientInputs.count > 1 else { return }
+
+                withAnimation {
+                    ingredientInputs.remove(atOffsets: indexSet)
+                    // Clean up spell check results for deleted ingredients
+                    indexSet.forEach { spellCheckResults.removeValue(forKey: $0) }
+                    // Clean up parsed ingredients cache
+                    indexSet.forEach { parsedIngredients.removeValue(forKey: $0) }
                 }
             }
 
@@ -566,13 +593,24 @@ struct RecipeEditorView: View {
                         } label: {
                             Image(systemName: "minus.circle.fill")
                                 .foregroundStyle(.red)
-                                .imageScale(.large)
+                                .font(.system(size: 22))
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                     }
                 }
             }
             .onMove { from, to in
                 instructions.move(fromOffsets: from, toOffset: to)
+            }
+            .onDelete { indexSet in
+                // Only allow deletion if more than 1 instruction remains
+                guard instructions.count > 1 else { return }
+
+                withAnimation {
+                    instructions.remove(atOffsets: indexSet)
+                }
             }
 
             if !isEditingList {
@@ -742,19 +780,36 @@ struct RecipeEditorView: View {
         // Create ingredients
         let currentIngredients = ingredientInputs.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
         for (index, ingredientText) in currentIngredients.enumerated() {
-            let parsed = IngredientParser.parse(ingredientText)
-            let ingredient = Ingredient(
-                originalText: ingredientText, // Will be reformatted below
-                name: parsed.name.isEmpty ? ingredientText : parsed.name,
-                quantity: parsed.quantity,
-                unit: parsed.unit,
-                category: GroceryCategory.categorize(parsed.name.isEmpty ? ingredientText : parsed.name),
-                orderIndex: index
-            )
-            ingredient.quantityMax = parsed.quantityMax
+            // Use AI-parsed ingredient if available, otherwise fall back to basic parser
+            let ingredient: Ingredient
+            if let aiParsed = parsedIngredients[index] {
+                // Use AI-parsed result (includes preparation)
+                ingredient = Ingredient(
+                    originalText: ingredientText,
+                    name: aiParsed.name,
+                    quantity: aiParsed.quantity,
+                    unit: aiParsed.unit,
+                    category: GroceryCategory.categorize(aiParsed.name),
+                    orderIndex: index
+                )
+                ingredient.quantityMax = aiParsed.quantityMax
+                ingredient.preparation = aiParsed.preparation
+            } else {
+                // Fall back to basic regex parser
+                let parsed = IngredientParser.parse(ingredientText)
+                ingredient = Ingredient(
+                    originalText: ingredientText,
+                    name: parsed.name.isEmpty ? ingredientText : parsed.name,
+                    quantity: parsed.quantity,
+                    unit: parsed.unit,
+                    category: GroceryCategory.categorize(parsed.name.isEmpty ? ingredientText : parsed.name),
+                    orderIndex: index
+                )
+                ingredient.quantityMax = parsed.quantityMax
+            }
 
             // Reformat the ingredient text to preserve fractions for imperial, decimals for metric
-            if parsed.quantity != nil || parsed.unit != nil {
+            if ingredient.quantity != nil || ingredient.unit != nil {
                 let formatted = ingredientFormatter.format(ingredient, scaleFactor: 1.0, convertUnits: false)
                 ingredient.originalText = formatted
             }
@@ -1018,14 +1073,20 @@ struct RecipeEditorView: View {
                         category: .database,
                         metadata: ["count": filteredIngredients.count, "recipeId": recipe.id.uuidString])
 
-                // Parse all ingredients in batch for efficiency
-                let parsedResults = try await aiIngredientParser.parseBatch(filteredIngredients)
-
                 var newIngredients: [Ingredient] = []
 
                 // Phase 3: Create new ingredient models
                 for (index, ingredientText) in filteredIngredients.enumerated() {
-                    let parsed = parsedResults[index]
+                    // Use cached AI-parsed ingredient if available (from blur), otherwise parse now
+                    let parsed: Ingredient
+                    if let cachedParsed = parsedIngredients[index] {
+                        parsed = cachedParsed
+                        Log.debug("Using cached AI parse", category: .ai, metadata: ["index": index])
+                    } else {
+                        // Parse now with AI
+                        parsed = try await aiIngredientParser.parse(ingredientText)
+                        Log.debug("Parsing on save", category: .ai, metadata: ["index": index])
+                    }
 
                     // Categorize based on ingredient name
                     let category = GroceryCategory.categorize(parsed.name)
@@ -1038,6 +1099,8 @@ struct RecipeEditorView: View {
                         category: category,
                         orderIndex: index
                     )
+                    ingredient.quantityMax = parsed.quantityMax
+                    ingredient.preparation = parsed.preparation
 
                     // Reformat the ingredient text to preserve fractions for imperial, decimals for metric
                     if parsed.quantity != nil || parsed.unit != nil {
@@ -1386,6 +1449,69 @@ struct RecipeEditorView: View {
             "original": suggestion.original,
             "corrected": suggestion.corrected
         ])
+    }
+
+    // MARK: - AI Ingredient Parsing
+
+    private func parseIngredientWithAI(at index: Int) {
+        // Don't parse empty ingredients
+        guard index < ingredientInputs.count else { return }
+        let text = ingredientInputs[index].trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+
+        // Cancel any existing parsing task for this index
+        ingredientParsingTasks[index]?.cancel()
+
+        // Start new parsing task
+        let task = Task {
+            do {
+                Log.debug("Parsing ingredient with AI", category: .ai, metadata: [
+                    "index": index,
+                    "text": text
+                ])
+
+                let parsed = try await aiIngredientParser.parse(text)
+
+                // Check if task was cancelled
+                guard !Task.isCancelled else { return }
+
+                // Store parsed result
+                await MainActor.run {
+                    parsedIngredients[index] = parsed
+
+                    Log.info("Ingredient parsed successfully", category: .ai, metadata: [
+                        "index": index,
+                        "name": parsed.name,
+                        "quantity": parsed.quantity ?? 0,
+                        "unit": parsed.unit ?? "",
+                        "preparation": parsed.preparation ?? ""
+                    ])
+                }
+
+                // Track analytics
+                analytics.track(event: .featureUsed, properties: [
+                    "feature": "ai_ingredient_parsing",
+                    "success": true,
+                    "has_quantity": parsed.quantity != nil,
+                    "has_unit": parsed.unit != nil,
+                    "has_preparation": parsed.preparation != nil
+                ])
+
+            } catch {
+                // Don't interrupt user - just log and fall back to regex parser on save
+                Log.warning("AI ingredient parsing failed, will use fallback", category: .ai, metadata: [
+                    "error": error.localizedDescription
+                ])
+
+                analytics.track(event: .featureUsed, properties: [
+                    "feature": "ai_ingredient_parsing",
+                    "success": false,
+                    "error": error.localizedDescription
+                ])
+            }
+        }
+
+        ingredientParsingTasks[index] = task
     }
 
 }

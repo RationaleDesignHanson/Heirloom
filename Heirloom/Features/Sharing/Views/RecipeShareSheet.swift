@@ -37,6 +37,7 @@ struct RecipeShareSheet: View {
                     VStack(spacing: HeirloomSpacing.lg) {
                         // Share type selector (PROMINENT)
                         shareTypeSelector
+                            .zIndex(0)
 
                         // NEW: Share method selector (Phase 1: Inter-Heirloom Sharing)
                         shareMethodSelector
@@ -44,11 +45,13 @@ struct RecipeShareSheet: View {
                         // NEW: Connection picker (if sharing to connections)
                         if shareMethod == .connections {
                             connectionPickerSection
+                                .zIndex(0)
                         }
 
                         // Preview card
                         SharePreviewCard(recipe: recipe, options: options)
                             .padding(.horizontal)
+                            .zIndex(0)
 
                         // Advanced settings (COLLAPSED)
                         advancedSettingsSection
@@ -136,6 +139,8 @@ struct RecipeShareSheet: View {
             .frame(height: 44) // Explicit minimum tap target height
         }
         .background(Color.clear) // Ensure no overlay blocking
+        .zIndex(1) // Ensure picker is above other content
+        .allowsHitTesting(true) // Explicitly enable touch events
     }
 
     // MARK: - Connection Picker Section (Phase 1: Inter-Heirloom Sharing)
@@ -728,61 +733,48 @@ struct ShareTypeCard: View {
     let action: () -> Void
 
     private var selectedColor: Color {
-        type == .heirloom ? HeirloomColors.tomato : HeirloomColors.familyGreen
+        // Changed to green for better visual clarity
+        type == .heirloom ? HeirloomColors.familyGreen : HeirloomColors.familyGreen
     }
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 12) {
-                // Icon
+            HStack(spacing: 12) {
+                // Icon (smaller for banner layout)
                 Image(systemName: type.iconName)
-                    .font(.system(size: 32, weight: .medium))
-                    .foregroundStyle(isSelected ? .white : selectedColor)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(.white)
 
-                // Title
-                Text(type.displayName)
-                    .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(isSelected ? .white : HeirloomColors.primaryText)
+                // Text content
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(type.displayName)
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(.white)
 
-                // Description
-                Text(type.description)
-                    .font(.system(size: 11))
-                    .foregroundStyle(isSelected ? .white.opacity(0.9) : HeirloomColors.secondaryText)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(3)
-                    .fixedSize(horizontal: false, vertical: true)
+                    Text(type.description)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.9))
+                        .lineLimit(2)
+                }
 
-                // Badge (always present for consistent height)
-                Group {
-                    if type == .heirloom {
-                        Text("\(versionCount) \(versionCount == 1 ? "version" : "versions")")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(isSelected ? HeirloomColors.tomato : .white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(isSelected ? .white : HeirloomColors.tomato)
-                            .clipShape(Capsule())
-                    } else {
-                        // Generic badge - distinct visual identity
-                        Text("Frozen")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(isSelected ? HeirloomColors.familyGreen : .white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(isSelected ? .white : HeirloomColors.familyGreen)
-                            .clipShape(Capsule())
-                    }
+                Spacer()
+
+                // Badge (compact)
+                if type == .heirloom {
+                    Text("\(versionCount) \(versionCount == 1 ? "version" : "versions")")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(HeirloomColors.familyGreen)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.white)
+                        .clipShape(Capsule())
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 180)
-            .padding(.vertical, 20)
-            .padding(.horizontal, 12)
-            .background(isSelected ? selectedColor : Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(isSelected ? selectedColor : Color.clear, lineWidth: 2)
-            )
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(selectedColor)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
     }

@@ -42,7 +42,6 @@ struct KitchenTableView: View {
     @State private var showInviteView = false
     @State private var showUserSearch = false
     @State private var selectedConnection: Connection?
-    @State private var showContributorProfile = false
     @State private var showEditProfile = false
 
     // Phase 1: Inter-Heirloom Sharing
@@ -131,11 +130,8 @@ struct KitchenTableView: View {
             .sheet(isPresented: $showUserSearch) {
                 UserSearchView()
             }
-            .sheet(isPresented: $showContributorProfile) {
-                if let connection = selectedConnection {
-                    ContributorProfileSheet(connection: connection)
-                        .id(connection.id)  // Force recreation when connection changes
-                }
+            .sheet(item: $selectedConnection) { connection in
+                ContributorProfileSheet(connection: connection)
             }
             .sheet(isPresented: $showSharedWithMe) {
                 SharedWithMeView()
@@ -371,7 +367,6 @@ struct KitchenTableView: View {
                                 ConnectionRow(connection: connection)
                                     .onTapGesture {
                                         selectedConnection = connection
-                                        showContributorProfile = true
                                     }
                             }
                         } header: {

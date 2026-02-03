@@ -13,11 +13,16 @@ import SwiftSoup
 @MainActor
 class WebRecipeSearchService {
     private let recipeImportService: RecipeImportService
+    private let braveSearchService: FirebaseBraveSearchService?
     private let session: URLSession
     private static let maxWebSearches = 3 // Limit to control processing time
 
-    init(recipeImportService: RecipeImportService) {
+    init(
+        recipeImportService: RecipeImportService,
+        braveSearchService: FirebaseBraveSearchService? = nil
+    ) {
         self.recipeImportService = recipeImportService
+        self.braveSearchService = braveSearchService ?? FirebaseBraveSearchService()
 
         // Configure URLSession with timeout
         let config = URLSessionConfiguration.default
@@ -28,7 +33,10 @@ class WebRecipeSearchService {
 
     /// Convenience initializer with default RecipeImportService
     convenience init() {
-        self.init(recipeImportService: RecipeImportService())
+        self.init(
+            recipeImportService: RecipeImportService(),
+            braveSearchService: FirebaseBraveSearchService()
+        )
     }
 
     // MARK: - Public API
@@ -123,84 +131,41 @@ class WebRecipeSearchService {
         return try await searchRecipeSitesDirectly(query)
     }
 
-    /// Brave Search API (free tier, no blocking)
+    /// Brave Search API via Firebase gateway (secure - no API keys in client)
     private func performBraveSearch(_ query: String) async throws -> [SearchResult] {
-        // Get API key from environment or config
-        guard let apiKey = ProcessInfo.processInfo.environment["BRAVE_SEARCH_API_KEY"] ?? getHardcodedBraveKey() else {
-            throw WebSearchError.networkError
-        }
-
-        guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://api.search.brave.com/res/v1/web/search?q=\(encodedQuery)&count=10") else {
-            throw WebSearchError.invalidQuery
-        }
-
-        var request = URLRequest(url: url)
-        request.setValue(apiKey, forHTTPHeaderField: "X-Subscription-Token")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-
-        let (data, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw WebSearchError.networkError
-        }
-
-        if httpResponse.statusCode == 401 {
+        guard let braveService = braveSearchService else {
             #if DEBUG
-            print("⚠️ Brave Search API: Invalid or missing API key")
+            print("⚠️ Brave Search service not available")
             #endif
             throw WebSearchError.networkError
         }
 
-        guard (200...299).contains(httpResponse.statusCode) else {
+        do {
+            // Use Firebase gateway for secure Brave Search
+            let braveResults = try await braveService.search(query: query, count: 10)
+
             #if DEBUG
-            print("⚠️ Brave Search API returned status \(httpResponse.statusCode)")
+            print("🔍 Firebase Brave Search returned \(braveResults.count) results")
             #endif
-            throw WebSearchError.networkError
-        }
 
-        return try parseBraveSearchJSON(data)
-    }
-
-    /// Parse Brave Search JSON response
-    private func parseBraveSearchJSON(_ data: Data) throws -> [SearchResult] {
-        struct BraveResponse: Codable {
-            let web: WebResults?
-
-            struct WebResults: Codable {
-                let results: [Result]
-
-                struct Result: Codable {
-                    let title: String
-                    let url: String
-                    let description: String?
-                }
+            // Convert BraveSearchResult to internal SearchResult format
+            return braveResults.map { result in
+                SearchResult(
+                    title: result.title,
+                    url: result.url,
+                    snippet: result.description ?? ""
+                )
             }
-        }
-
-        let decoder = JSONDecoder()
-        let braveResponse = try decoder.decode(BraveResponse.self, from: data)
-
-        guard let results = braveResponse.web?.results else {
-            return []
-        }
-
-        return results.map { result in
-            SearchResult(
-                title: result.title,
-                url: result.url,
-                snippet: result.description ?? ""
-            )
+        } catch {
+            #if DEBUG
+            print("⚠️ Firebase Brave Search error: \(error.localizedDescription)")
+            #endif
+            throw WebSearchError.networkError
         }
     }
 
-    /// Hardcoded Brave API key for VideoLab (free tier)
-    private func getHardcodedBraveKey() -> String? {
-        // Brave Search API key
-        // Free tier: 2,000 queries/month
-        // Get yours at: https://brave.com/search/api/
-        return "BSAlCWqf1tp_j98WflvJLH8xCgn2ZUu"
-    }
+    // REMOVED: parseBraveSearchJSON - Now handled by Firebase gateway
+    // REMOVED: getHardcodedBraveKey - API key is server-side only in Firebase
 
     /// Fallback: Search recipe sites directly without search engine
     private func searchRecipeSitesDirectly(_ query: String) async throws -> [SearchResult] {

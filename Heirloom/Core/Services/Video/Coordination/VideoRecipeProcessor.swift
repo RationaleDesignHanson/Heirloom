@@ -190,7 +190,7 @@ class VideoRecipeProcessor: VideoRecipeProcessorProtocol, ObservableObject {
                     visualElements = try await frameAnalyzer.analyzeForRecipeElements(frames)
 
                     // Step 4.5: Detect watermarks (NEW - Week 5)
-                    if let aiService = aiService as? AnthropicAIService {
+                    if let aiService = aiService {
                         print("\n🔍 WATERMARK DETECTION:")
                         let watermarkService = WatermarkDetectionService(aiService: aiService)
                         detectedWatermark = try await watermarkService.detectWatermark(from: frames)

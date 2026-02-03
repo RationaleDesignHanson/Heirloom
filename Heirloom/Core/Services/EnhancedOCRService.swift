@@ -124,7 +124,24 @@ final class EnhancedOCRService {
         var allText = ""
         var totalConfidence: Float = 0
 
-        for observation in observations {
+        // Sort observations in reading order: top-to-bottom, left-to-right
+        // Vision coordinates are normalized with origin at bottom-left
+        // So we sort by (1 - y) for top-to-bottom, then by x for left-to-right
+        let sortedObservations = observations.sorted { obs1, obs2 in
+            let y1 = 1 - obs1.boundingBox.midY
+            let y2 = 1 - obs2.boundingBox.midY
+            let x1 = obs1.boundingBox.midX
+            let x2 = obs2.boundingBox.midX
+
+            // Group by vertical position (within 5% tolerance for same line)
+            if abs(y1 - y2) < 0.05 {
+                return x1 < x2  // Same line: sort left to right
+            } else {
+                return y1 < y2  // Different lines: sort top to bottom
+            }
+        }
+
+        for observation in sortedObservations {
             // Get top candidate (most confident recognition)
             guard let candidate = observation.topCandidates(1).first else {
                 continue

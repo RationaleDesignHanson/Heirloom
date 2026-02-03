@@ -74,6 +74,39 @@ final class RecipeGenerationService: ObservableObject {
         }
     }
 
+    /// 🎲 Easter Egg: Generate a silly/random recipe for fun
+    func generateSillyRecipe(context: ModelContext) async throws {
+        self.context = context
+
+        // Random silly recipe combos (name + absurd ingredients)
+        let sillyRecipes: [(name: String, ingredients: String)] = [
+            ("Jellied Rainbow Surprise", "lime jello, canned tuna, miniature marshmallows, cream cheese, maraschino cherries"),
+            ("Spam & Banana Casserole", "canned spam, overripe bananas, mayonnaise, bread crumbs, brown sugar"),
+            ("Pickle Juice Smoothie", "dill pickle juice, vanilla ice cream, cucumber, mint leaves, cottage cheese"),
+            ("Tuna Jello Salad", "lemon jello, canned tuna, celery, pimentos, hard-boiled eggs"),
+            ("Mayonnaise Cake Delight", "mayonnaise, chocolate cake mix, raisins, cream cheese frosting"),
+            ("Hot Dog Jello Ring", "strawberry jello, sliced hot dogs, canned pineapple, whipped cream"),
+            ("Cheese & Grape Aspic", "unflavored gelatin, cheddar cheese cubes, whole grapes, chicken broth"),
+            ("Candied Olive Medley", "black olives, marshmallows, brown sugar, butter, cream cheese"),
+            ("Liver Sausage Pineapple", "liver sausage, canned pineapple rings, cream cheese, pecans"),
+            ("Tomato Aspic Tower", "tomato juice, unflavored gelatin, cottage cheese, canned shrimp, celery")
+        ]
+
+        let silly = sillyRecipes.randomElement() ?? (name: "Mystery Recipe", ingredients: "mystery ingredients")
+
+        // Create job with silly flag and absurd ingredients
+        let job = RecipeGenerationJob(dishName: silly.name, ingredients: silly.ingredients)
+        job.isSillyRecipe = true  // Mark as silly for sharing restrictions
+        context.insert(job)
+        try context.save()
+
+        self.activeJob = job
+
+        Task.detached { @MainActor in
+            await self.processJob(job)  // Process with absurd ingredients
+        }
+    }
+
     // MARK: - Job Processing
 
     private func processJob(_ job: RecipeGenerationJob) async {
@@ -101,6 +134,11 @@ final class RecipeGenerationService: ObservableObject {
                     ingredients: ingredientList,
                     context: context
                 )
+            }
+
+            // 🎲 Easter Egg: Add silly recipe disclaimers
+            if job.isSillyRecipe {
+                addSillyRecipeDisclaimers(to: recipe)
             }
 
             // Phase 3: Enriching (80%)
@@ -398,5 +436,27 @@ final class RecipeGenerationService: ObservableObject {
             ])
             // Don't fail the entire operation if sync fails
         }
+    }
+
+    // MARK: - Silly Recipe Helpers
+
+    /// 🎲 Add disclaimers and warnings to silly Easter egg recipes
+    private func addSillyRecipeDisclaimers(to recipe: Recipe) {
+        // Add disclaimer to beginning of instructions
+        let disclaimer = "⚠️ DISCLAIMER: This is a silly, randomly-generated recipe for entertainment purposes only. We do NOT recommend actually cooking or eating this!"
+
+        if recipe.instructions.isEmpty {
+            recipe.instructions.append(disclaimer)
+        } else {
+            recipe.instructions.insert(disclaimer, at: 0)
+        }
+
+        // Add warning note to back of card
+        let warningNote = "🎲 This recipe was randomly generated as a fun Easter egg. It may contain unusual or bizarre ingredient combinations inspired by vintage recipe trends. Please don't actually make this!"
+        recipe.notes = (recipe.notes?.isEmpty ?? true) ? warningNote : "\(warningNote)\n\n\(recipe.notes!)"
+
+        Log.info("Added silly recipe disclaimers", category: .general, metadata: [
+            "title": recipe.title
+        ])
     }
 }

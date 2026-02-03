@@ -85,8 +85,7 @@ class AIIngredientParser: AIIngredientParserProtocol {
     /// - Returns: Tuple matching IngredientParser output format
     func parseToTuple(_ text: String) async throws -> (quantity: Double?, quantityMax: Double?, unit: String?, name: String, preparation: String?) {
         // Check if AI parsing is enabled
-        guard configuration.enableAIParsing,
-              configuration.isConfigured(provider: .anthropic) else {
+        guard configuration.enableAIParsing else {
             // Fall back to regex parser
             let result = IngredientParser.parse(text)
             return (result.0, result.1, result.2, result.3, nil) // regex parser doesn't extract preparation

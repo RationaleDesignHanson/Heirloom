@@ -621,18 +621,37 @@ extension Recipe {
         }
     }
 
+    /// Inferred serving count with smart category-based defaults
+    /// Uses parsed servings if available, otherwise falls back to category presets
+    var inferredServingCount: Int {
+        if let parsed = ServingsParser.parse(servings) {
+            return parsed
+        }
+
+        // Smart default based on category
+        if let cat = category {
+            return cat.presetServingSizes.first ?? 4
+        }
+
+        return 4  // Final fallback
+    }
+
     /// Validates recipe scaling capability and identifies issues
     var scalingValidation: ScalingValidation {
         var issues: [ScalingIssue] = []
 
-        // Check servings
-        if servings == nil || parsedServingCount == 4 {
+        // Check servings using confidence scoring
+        let servingsResult = ServingsParser.parseWithConfidence(servings)
+        if case .unparseable = servingsResult {
             issues.append(.servingsUnparseable(raw: servings))
         }
+        // Note: confident(4) and uncertain(4) are now allowed
 
-        // Check ingredient quantities
+        // Check ingredient quantities (excluding flexible quantities like "to taste")
         let ingredients = self.ingredients ?? []
-        let missingQuantities = ingredients.filter { $0.quantity == nil }
+        let missingQuantities = ingredients.filter {
+            $0.quantity == nil && !$0.isFlexibleQuantity
+        }
         if !missingQuantities.isEmpty {
             issues.append(.missingQuantities(
                 count: missingQuantities.count,
@@ -1448,7 +1467,7 @@ extension Recipe {
             case .servingsUnparseable(let raw):
                 return "Could not determine serving count from '\(raw ?? "none")'"
             case .missingQuantities(let count, let total):
-                return "\(count) of \(total) ingredients missing quantities"
+                return "\(count) of \(total) ingredients missing quantities (excluding seasonings)"
             }
         }
     }

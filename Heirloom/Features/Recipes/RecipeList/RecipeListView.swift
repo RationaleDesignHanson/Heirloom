@@ -456,7 +456,9 @@ struct RecipeListView: View {
                         }
                     } else {
                         NavigationLink(value: recipe) {
-                            RecipeCardView(recipe: recipe)
+                            RecipeCardView(
+                                recipe: recipe
+                            )
                         }
                         .buttonStyle(.plain)
                         .onLongPressGesture(minimumDuration: 0.5) {

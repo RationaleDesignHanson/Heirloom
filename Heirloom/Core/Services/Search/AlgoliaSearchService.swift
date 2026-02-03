@@ -17,6 +17,7 @@ protocol SearchServiceProtocol {
 private struct AlgoliaHit: Codable {
     let objectID: String
     let displayName: String
+    let email: String?
     let photoURL: String?
     let bio: String?
 }
@@ -85,6 +86,7 @@ class AlgoliaSearchService: SearchServiceProtocol {
                 UserSearchResult(
                     id: hit.objectID,
                     displayName: hit.displayName,
+                    email: hit.email,
                     photoURL: hit.photoURL,
                     bio: hit.bio
                 )

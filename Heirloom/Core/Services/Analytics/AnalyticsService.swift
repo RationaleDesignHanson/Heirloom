@@ -132,6 +132,15 @@ enum AnalyticsEvent: String {
     case recipesExported = "Recipes Exported"
     case purchasesRestored = "Purchases Restored"
     case manageSubscriptionOpened = "Manage Subscription Opened"
+
+    // Daily Unlocks (Theme Collections)
+    case themeTrialStarted = "Theme Trial Started"
+    case dailyUnlockTriggered = "Daily Unlock Triggered"
+    case dailyUnlockViewed = "Daily Unlock Viewed"
+    case themeRecipeUnlocked = "Theme Recipe Unlocked"
+    case themeTrialCompleted = "Theme Trial Completed"
+    case unlockDayReached = "Unlock Day Reached"
+    case unlockVerificationFailed = "Unlock Verification Failed"
 }
 
 // MARK: - Console-Only Analytics (Fallback)

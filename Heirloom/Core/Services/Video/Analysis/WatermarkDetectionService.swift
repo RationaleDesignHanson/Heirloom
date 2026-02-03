@@ -17,11 +17,19 @@ struct WatermarkDetectionResult {
     let detectionSource: String  // e.g., "@username in top-left corner"
 }
 
+/// Structured response from AI for watermark detection
+private struct WatermarkAIResponse: Codable {
+    let creator: String?
+    let platform: String?
+    let confidence: Double?
+    let source: String?
+}
+
 /// Detects creator watermarks and handles in video frames using Claude's vision API
 class WatermarkDetectionService {
-    private let aiService: AnthropicAIService
+    private let aiService: any AIServiceProtocol
 
-    init(aiService: AnthropicAIService) {
+    init(aiService: any AIServiceProtocol) {
         self.aiService = aiService
     }
 
@@ -89,11 +97,12 @@ class WatermarkDetectionService {
         Example: "TikTok/@chef_maria" → "chef_maria"
         """
 
-        // Call Claude with vision using existing completeWithVision method
+        // Call Claude with vision using structured output
         do {
-            let response = try await aiService.completeWithVision(
+            let response = try await aiService.completeWithVisionStructured(
                 image: frame,
                 prompt: prompt,
+                schema: WatermarkAIResponse.self,
                 options: AICompletionOptions(
                     temperature: 0.3,  // Lower temperature for more deterministic parsing
                     maxTokens: 300
@@ -101,17 +110,32 @@ class WatermarkDetectionService {
                 useCase: .ocr  // Optimize for text recognition
             )
 
-            // Parse JSON response from the content
-            if let result = parseWatermarkResponse(response.content) {
-                return result
+            // Convert AI response to WatermarkDetectionResult
+            guard let creator = response.creator else {
+                return nil
             }
+
+            let platform: VideoPlatform? = {
+                guard let platformStr = response.platform?.lowercased() else { return nil }
+                switch platformStr {
+                case "tiktok": return .tiktok
+                case "youtube": return .youtube
+                case "instagram": return .instagram
+                default: return nil
+                }
+            }()
+
+            return WatermarkDetectionResult(
+                creatorHandle: creator,
+                platform: platform,
+                confidence: response.confidence ?? 0.5,
+                detectionSource: response.source ?? "Unknown location"
+            )
         } catch {
             print("⚠️ Claude vision API error: \(error)")
             // Don't throw - just return nil for this frame
             return nil
         }
-
-        return nil
     }
 
     /// Parse Claude's JSON response into WatermarkDetectionResult

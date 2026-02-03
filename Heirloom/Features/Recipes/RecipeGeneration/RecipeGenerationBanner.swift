@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Bottom banner showing recipe generation progress
+/// Top banner showing recipe generation progress
 /// Follows cookbook scan pattern: simple, non-blocking, auto-dismisses
 struct RecipeGenerationBanner: View {
     @ObservedObject var service: RecipeGenerationService
@@ -49,8 +49,8 @@ struct RecipeGenerationBanner: View {
                 .padding(HeirloomSpacing.md)
             }
             .background(HeirloomColors.cardBackground)
-            .shadow(color: .black.opacity(0.1), radius: 8, y: -2)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
+            .transition(.move(edge: .top).combined(with: .opacity))
         }
     }
 

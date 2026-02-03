@@ -170,6 +170,18 @@ service cloud.firestore {
     }
 
     // ========================================
+    // USER PROFILE DATA (User-Scoped Subcollection)
+    // Profile data stored under users collection
+    // ========================================
+    match /users/{userId}/profile/{document=**} {
+      // Any authenticated user can read (for social features)
+      allow read: if isAuthenticated();
+
+      // Only owner can write their profile data
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
     // USER COLLECTIONS (User-Scoped)
     // ========================================
     match /users/{userId}/collections/{collectionId} {
@@ -181,6 +193,34 @@ service cloud.firestore {
     }
 
     // ========================================
+    // USER CONNECTIONS (User-Scoped)
+    // Social connections, friend requests, and blocking
+    // ========================================
+    match /users/{userId}/connections/{connectionId} {
+      // Users can read their own connections (includes pending requests)
+      // Users can also query to check if blocked (checkIfBlocked function)
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId) || (isAuthenticated() && request.query.limit <= 10);
+
+      // Users can create connections for themselves OR when sending a request to another user
+      // When sending a friend request, both users get a connection document
+      allow create: if isAuthenticated() && (
+        // Creating own connection
+        isOwner(userId) ||
+        // Creating connection request for another user (bidirectional friend request)
+        request.resource.data.initiatedBy == request.auth.uid
+      );
+
+      // Users can update their own connections (accept, reject, favorite, notes)
+      // OR update connections where they are the connectedUserId (reciprocal accept)
+      allow update: if isOwner(userId) || request.auth.uid == resource.data.connectedUserId;
+
+      // Users can delete their own connections (unfriend, reject, unblock)
+      // OR delete connections where they are the connectedUserId (reciprocal delete)
+      allow delete: if isOwner(userId) || request.auth.uid == resource.data.connectedUserId;
+    }
+
+    // ========================================
     // THEME STATE (User-Scoped)
     // Tracks user theme selection and unlock progress
     // ========================================
@@ -189,6 +229,19 @@ service cloud.firestore {
       allow read: if isOwner(userId);
 
       // Users can write their own theme state
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
+    // HERITAGE STATE (User-Scoped - Legacy)
+    // Legacy path from blind box system, kept for backward compatibility
+    // Current unlock system uses local SwiftData (ThemeUnlockTracker)
+    // ========================================
+    match /users/{userId}/heritageState/{document=**} {
+      // Users can read their own heritage state
+      allow read: if isOwner(userId);
+
+      // Users can write their own heritage state
       allow write: if isOwner(userId);
     }
 
@@ -226,8 +279,44 @@ service cloud.firestore {
     }
 
     // ========================================
+    // PUBLIC RECIPES (Top-Level)
+    // Published recipes for public discovery
+    // ========================================
+    match /publicRecipes/{publicRecipeId} {
+      // Anyone authenticated can read public recipes
+      allow read: if isAuthenticated();
+
+      // Only owner can create public recipes
+      // Note: Required fields match PublicRecipe.toFirestoreData()
+      allow create: if isAuthenticated() &&
+                       request.auth.uid == request.resource.data.ownerId &&
+                       request.resource.data.keys().hasAll([
+                         'sourceRecipeId', 'ownerId', 'title',
+                         'ingredients', 'tags', 'creatorName',
+                         'viewCount', 'saveCount', 'searchKeywords',
+                         'publishedAt', 'updatedAt'
+                       ]);
+
+      // Only owner can delete their published recipes
+      allow delete: if isAuthenticated() &&
+                       request.auth.uid == resource.data.ownerId;
+
+      // Allow updates for view counts, saves, and reports (from Cloud Functions)
+      // Users can also update their own recipes
+      allow update: if isAuthenticated() && (
+        // Owner can update their recipe
+        request.auth.uid == resource.data.ownerId ||
+        // OR: Allow incrementing viewCount/saveCount (these come from Cloud Functions)
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount', 'saveCount', 'reportCount', 'updatedAt']))
+      );
+    }
+
+    // ========================================
     // FALLBACK: Deny all other access
     // ========================================
+    // Note: rateLimits, aiUsage, userCosts are managed by Cloud Functions
+    // and are not explicitly defined here. They fall through to this catch-all
+    // which blocks client access. Admin SDK bypasses these rules.
     match /{document=**} {
       allow read, write: if false;
     }

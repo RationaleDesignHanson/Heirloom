@@ -1211,6 +1211,13 @@ struct CollectionsListView: View {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
 
+        // Special case: "Generated Recipes" collection should open recipe generator directly
+        if collection.name == "Generated Recipes" && collection.type == .userCreated {
+            showRecipeGenerator = true
+            Log.info("Opening recipe generator from Generated Recipes collection", category: .collections)
+            return
+        }
+
         // Smart routing: Open the appropriate import flow based on collection type
         switch collection.type {
         case .webImports:

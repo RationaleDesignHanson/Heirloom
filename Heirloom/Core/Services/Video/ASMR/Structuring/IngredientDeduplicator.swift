@@ -10,9 +10,9 @@
 import Foundation
 
 struct IngredientDeduplicator {
-    private let aiService: AnthropicAIService
+    private let aiService: any AIServiceProtocol
 
-    init(aiService: AnthropicAIService) {
+    init(aiService: any AIServiceProtocol) {
         self.aiService = aiService
     }
 

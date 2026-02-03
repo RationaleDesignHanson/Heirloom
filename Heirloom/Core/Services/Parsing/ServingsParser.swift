@@ -22,29 +22,56 @@ import Foundation
 /// 4. Filtering out non-serving numbers (temperatures, years)
 struct ServingsParser {
 
+    /// Result of parsing with confidence level
+    enum ParseResult {
+        /// Successfully parsed with keyword (e.g., "Serves 6" → confident(6))
+        case confident(Int)
+        /// Found a number but no keyword (e.g., "4" → uncertain(4))
+        case uncertain(Int)
+        /// No servings info at all (e.g., nil, "", "some" → unparseable)
+        case unparseable
+    }
+
+    /// Parses servings with confidence level
+    ///
+    /// - Parameter servingsString: The raw servings string to parse
+    /// - Returns: ParseResult indicating confidence and extracted count
+    static func parseWithConfidence(_ servingsString: String?) -> ParseResult {
+        guard let text = servingsString?.lowercased(), !text.isEmpty else {
+            return .unparseable
+        }
+
+        // Strategy 1: Look for keywords followed by numbers (CONFIDENT)
+        if let count = extractWithKeywords(text) {
+            return .confident(count)
+        }
+
+        // Strategy 2: Handle "dozen" unit (CONFIDENT - clear unit)
+        if let count = extractDozens(text) {
+            return .confident(count)
+        }
+
+        // Strategy 3: Extract first reasonable number (UNCERTAIN - no keyword)
+        if let count = extractFirstNumber(text) {
+            return .uncertain(count)
+        }
+
+        return .unparseable
+    }
+
     /// Attempts multiple strategies to extract serving count
     ///
     /// - Parameter servingsString: The raw servings string to parse
     /// - Returns: Extracted serving count, or nil if unparseable
     static func parse(_ servingsString: String?) -> Int? {
-        guard let text = servingsString?.lowercased() else { return nil }
+        let result = parseWithConfidence(servingsString)
 
-        // Strategy 1: Look for keywords followed by numbers
-        if let count = extractWithKeywords(text) {
+        switch result {
+        case .confident(let count), .uncertain(let count):
             return count
+        case .unparseable:
+            return nil
         }
-
-        // Strategy 2: Extract first reasonable number
-        if let count = extractFirstNumber(text) {
-            return count
-        }
-
-        // Strategy 3: Handle "dozen" unit
-        if let count = extractDozens(text) {
-            return count
-        }
-
-        return nil
     }
 
     /// Extracts number after common serving keywords

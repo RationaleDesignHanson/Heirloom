@@ -414,6 +414,7 @@ class FirebaseProfileService: ProfileServiceProtocol {
             let result = UserSearchResult(
                 id: userId,
                 displayName: data["displayName"] as? String ?? "Unknown",
+                email: data["email"] as? String,
                 photoURL: data["photoURL"] as? String,
                 bio: data["bio"] as? String
             )

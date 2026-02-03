@@ -827,29 +827,28 @@ struct RootView: View {
     @ObservedObject private var generationService: RecipeGenerationService = ServiceContainer.shared.resolve(RecipeGenerationService.self)
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Recipe generation banner at top (matches import/video banner placement)
+        // MANDATORY AUTH: Require Firebase authentication to access app
+        // Recipes require Firebase for sync, sharing, and lineage tracking
+        Group {
+            if authService.isAuthenticated {
+                let tabCoordinator = ServiceContainer.shared.resolve(TabNavigationCoordinator.self)
+                ContentView(
+                    tabCoordinator: tabCoordinator,
+                    notificationService: notificationService
+                )
+                    .modelContainer(modelContainer)
+                    .environment(\.firebaseAuth, authService)
+            } else {
+                // Show sign-in screen if not authenticated
+                FirebaseSignInView()
+                    .modelContainer(modelContainer)
+                    .environment(\.firebaseAuth, authService)
+            }
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            // Recipe generation banner at top (overlays content)
             RecipeGenerationBanner(service: generationService)
                 .animation(.spring(), value: generationService.activeJob != nil)
-
-            // MANDATORY AUTH: Require Firebase authentication to access app
-            // Recipes require Firebase for sync, sharing, and lineage tracking
-            Group {
-                if authService.isAuthenticated {
-                    let tabCoordinator = ServiceContainer.shared.resolve(TabNavigationCoordinator.self)
-                    ContentView(
-                        tabCoordinator: tabCoordinator,
-                        notificationService: notificationService
-                    )
-                        .modelContainer(modelContainer)
-                        .environment(\.firebaseAuth, authService)
-                } else {
-                    // Show sign-in screen if not authenticated
-                    FirebaseSignInView()
-                        .modelContainer(modelContainer)
-                        .environment(\.firebaseAuth, authService)
-                }
-            }
         }
             .onAppear {
                 Log.info("🚀 ROOTVIEW.ONAPPEAR: Starting", category: .video)
@@ -1363,7 +1362,7 @@ struct ContentView: View {
                 .tabItem {
                     Label("Table", systemImage: "person.3")
                 }
-                .badge(badgeService.pendingRequestCount)
+                .badge(badgeService.totalBadgeCount)
                 .tag(4)
                 .accessibilityIdentifier(AccessibilityIdentifiers.TabBar.tableTab)
                 .accessibilityLabel("Table")

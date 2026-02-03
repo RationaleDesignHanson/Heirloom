@@ -90,6 +90,7 @@ protocol AIConfigurationProtocol {
     var enableAIParsing: Bool { get }
     var enableAIEnhancement: Bool { get }
     var currentAPIKey: String? { get }
+    var selectedProvider: AIProvider { get }
 
     func isConfigured(provider: AIProvider) -> Bool
     func model(for task: AITask) -> String

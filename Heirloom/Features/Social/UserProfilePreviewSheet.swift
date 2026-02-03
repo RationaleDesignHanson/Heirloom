@@ -14,6 +14,31 @@ struct UserProfilePreviewSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isSendingRequest = false
 
+    // MARK: - Email Masking Helper
+
+    private func maskEmail(_ email: String) -> String {
+        let parts = email.split(separator: "@")
+        guard parts.count == 2 else { return email }
+
+        let username = String(parts[0])
+        let domain = String(parts[1])
+
+        if username.count <= 2 {
+            return "\(username.prefix(1))***@\(domain)"
+        }
+
+        let visibleCount = min(max(Int(Double(username.count) * 0.4), 1), 10)
+        let finalVisibleCount: Int
+        if visibleCount >= username.count - 1 {
+            finalVisibleCount = max(username.count - 2, 1)
+        } else {
+            finalVisibleCount = visibleCount
+        }
+
+        let visiblePart = username.prefix(finalVisibleCount)
+        return "\(visiblePart)***@\(domain)"
+    }
+
     private var connectionService: ConnectionServiceProtocol {
         ServiceContainer.shared.resolve(ConnectionServiceProtocol.self)
     }
@@ -46,6 +71,13 @@ struct UserProfilePreviewSheet: View {
                 Text(user.displayName)
                     .font(HeirloomFonts.title2)
                     .foregroundStyle(HeirloomColors.primaryText)
+
+                // Masked email (for verification before connecting)
+                if let email = user.email {
+                    Text(maskEmail(email))
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText.opacity(0.8))
+                }
 
                 // Bio
                 if let bio = user.bio {

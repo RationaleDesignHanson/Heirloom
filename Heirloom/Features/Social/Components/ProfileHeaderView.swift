@@ -59,8 +59,8 @@ struct ProfileHeaderView: View {
                 }
 
                 // Compact stats row
-                HStack(spacing: HeirloomSpacing.md) {
-                    HStack(spacing: 4) {
+                HStack(spacing: HeirloomSpacing.lg) {
+                    VStack(spacing: 2) {
                         Text("\(connectionsCount)")
                             .font(HeirloomFonts.bodyBold)
                         Text("Connections")
@@ -71,13 +71,17 @@ struct ProfileHeaderView: View {
                         Text("•")
                             .font(HeirloomFonts.caption2)
                             .opacity(0.5)
+                            .padding(.horizontal, 8)
 
-                        HStack(spacing: 4) {
+                        HStack(spacing: 16) {
                             if directSharesCount > 0 {
-                                Text("\(directSharesCount)")
-                                    .font(HeirloomFonts.bodyBold)
-                                Text("to friends")
-                                    .font(HeirloomFonts.caption2)
+                                VStack(spacing: 2) {
+                                    Text("\(directSharesCount)")
+                                        .font(HeirloomFonts.bodyBold)
+                                    Text("shared")
+                                        .font(HeirloomFonts.caption2)
+                                        .lineLimit(1)
+                                }
                             }
 
                             if directSharesCount > 0 && publicSharesCount > 0 {
@@ -87,10 +91,13 @@ struct ProfileHeaderView: View {
                             }
 
                             if publicSharesCount > 0 {
-                                Text("\(publicSharesCount)")
-                                    .font(HeirloomFonts.bodyBold)
-                                Text("public")
-                                    .font(HeirloomFonts.caption2)
+                                VStack(spacing: 2) {
+                                    Text("\(publicSharesCount)")
+                                        .font(HeirloomFonts.bodyBold)
+                                    Text("public")
+                                        .font(HeirloomFonts.caption2)
+                                        .lineLimit(1)
+                                }
                             }
                         }
                     }

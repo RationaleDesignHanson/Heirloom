@@ -647,15 +647,8 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             )
         }
 
-        // Find the reciprocal connection from the other user's collection
-        let reciprocalQuery = db.collection("users")
-            .document(connection.connectedUserId)
-            .collection("connections")
-            .whereField("connectedUserId", isEqualTo: userId)
-
-        let reciprocalSnapshot = try await reciprocalQuery.getDocuments()
-
-        // Delete both connections
+        // Delete both connections using batch write
+        // Both connections share the same document ID (set during creation)
         let batch = db.batch()
 
         // Delete user's own connection
@@ -665,22 +658,17 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             .document(connectionId)
         batch.deleteDocument(userRef)
 
-        // Delete reciprocal connection (if found)
-        if let reciprocalDoc = reciprocalSnapshot.documents.first {
-            let reciprocalRef = db.collection("users")
-                .document(connection.connectedUserId)
-                .collection("connections")
-                .document(reciprocalDoc.documentID)
-            batch.deleteDocument(reciprocalRef)
+        // Delete reciprocal connection (same document ID in other user's collection)
+        let reciprocalRef = db.collection("users")
+            .document(connection.connectedUserId)
+            .collection("connections")
+            .document(connectionId)  // Same ID!
+        batch.deleteDocument(reciprocalRef)
 
-            Log.debug("Found reciprocal connection to delete", category: .social, metadata: [
-                "reciprocalConnectionId": reciprocalDoc.documentID
-            ])
-        } else {
-            Log.warning("Reciprocal connection not found", category: .social, metadata: [
-                "connectedUserId": connection.connectedUserId
-            ])
-        }
+        Log.debug("Deleting both connection documents", category: .social, metadata: [
+            "connectionId": connectionId,
+            "connectedUserId": connection.connectedUserId
+        ])
 
         try await batch.commit()
 

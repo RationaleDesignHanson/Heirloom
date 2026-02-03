@@ -3,7 +3,7 @@
 //  Heirloom
 //
 //  Phase 9: Badge System
-//  Manages app icon badge and in-app badge counts for connection requests
+//  Manages app icon badge and in-app badge counts for connection requests and recipe shares
 //
 
 import Foundation
@@ -12,7 +12,7 @@ import FirebaseAuth
 import UserNotifications
 import Combine
 
-/// Service for managing badge counts for pending connection requests
+/// Service for managing badge counts for pending connection requests and recipe shares
 @MainActor
 class BadgeService: ObservableObject {
 
@@ -20,6 +20,14 @@ class BadgeService: ObservableObject {
 
     /// Current count of pending connection requests
     @Published private(set) var pendingRequestCount: Int = 0
+
+    /// Current count of pending recipe shares
+    @Published private(set) var pendingSharesCount: Int = 0
+
+    /// Total badge count (connection requests + pending shares)
+    var totalBadgeCount: Int {
+        pendingRequestCount + pendingSharesCount
+    }
 
     // MARK: - Dependencies
 
@@ -30,6 +38,7 @@ class BadgeService: ObservableObject {
     // MARK: - State
 
     private var connectionListener: ListenerRegistration?
+    private var sharesListener: ListenerRegistration?
     private var isListening = false
 
     // MARK: - Initialization
@@ -47,10 +56,12 @@ class BadgeService: ObservableObject {
     }
 
     deinit {
-        // Cleanup Firebase listener
+        // Cleanup Firebase listeners
         // Note: Cannot call MainActor methods from deinit
         connectionListener?.remove()
         connectionListener = nil
+        sharesListener?.remove()
+        sharesListener = nil
     }
 
     // MARK: - Listener Management
@@ -68,7 +79,7 @@ class BadgeService: ObservableObject {
             return
         }
 
-        Log.info("Starting badge listener for pending connection requests", category: .social, metadata: ["userId": userId])
+        Log.info("Starting badge listeners for connections and shares", category: .social, metadata: ["userId": userId])
 
         // Listen to incoming connection requests (where user is recipient)
         connectionListener = db.collection("users")
@@ -80,19 +91,54 @@ class BadgeService: ObservableObject {
                 guard let self = self else { return }
 
                 if let error = error {
-                    Log.error("Badge listener error", category: .social, error: error)
+                    Log.error("Connection badge listener error", category: .social, error: error)
                     return
                 }
 
                 let count = snapshot?.documents.count ?? 0
 
                 Task { @MainActor in
-                    self.updateCount(count)
+                    self.updateRequestCount(count)
+                }
+            }
+
+        // Listen to pending recipe shares (where user is recipient but hasn't accepted)
+        sharesListener = db.collection("shares")
+            .whereField("recipientUserIds", arrayContains: userId)
+            .whereField("isDirectShare", isEqualTo: true)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self = self else { return }
+
+                if let error = error {
+                    Log.error("Shares badge listener error", category: .social, error: error)
+                    return
+                }
+
+                // Filter shares where user hasn't accepted yet
+                let now = Date()
+                let pendingShares = snapshot?.documents.filter { doc in
+                    let data = doc.data()
+
+                    // Check if not expired
+                    if let expiresAt = (data["expiresAt"] as? Timestamp)?.dateValue(),
+                       expiresAt < now {
+                        return false
+                    }
+
+                    // Check if not already accepted
+                    let acceptedBy = data["acceptedBy"] as? [String] ?? []
+                    return !acceptedBy.contains(userId)
+                } ?? []
+
+                let count = pendingShares.count
+
+                Task { @MainActor in
+                    self.updateSharesCount(count)
                 }
             }
 
         isListening = true
-        Log.info("Badge listener started", category: .social)
+        Log.info("Badge listeners started", category: .social)
     }
 
     /// Stop listening for changes
@@ -101,35 +147,51 @@ class BadgeService: ObservableObject {
 
         connectionListener?.remove()
         connectionListener = nil
+        sharesListener?.remove()
+        sharesListener = nil
         isListening = false
 
-        // Clear badge on stop
+        // Clear badges on stop
         pendingRequestCount = 0
+        pendingSharesCount = 0
         updateAppIconBadge()
 
-        Log.info("Badge listener stopped", category: .social)
+        Log.info("Badge listeners stopped", category: .social)
     }
 
     // MARK: - Badge Updates
 
-    /// Update badge count and app icon badge
-    private func updateCount(_ count: Int) {
-        // Update published count for UI
+    /// Update connection request count and app icon badge
+    private func updateRequestCount(_ count: Int) {
         let oldCount = pendingRequestCount
         pendingRequestCount = count
-
-        // Update app icon badge
         updateAppIconBadge()
 
-        Log.info("Badge count updated", category: .social, metadata: [
+        Log.info("Connection request badge count updated", category: .social, metadata: [
             "oldCount": oldCount,
-            "newCount": count
+            "newCount": count,
+            "totalBadge": totalBadgeCount
         ])
     }
 
-    /// Update iOS app icon badge
+    /// Update pending shares count and app icon badge
+    private func updateSharesCount(_ count: Int) {
+        let oldCount = pendingSharesCount
+        pendingSharesCount = count
+        updateAppIconBadge()
+
+        Log.info("Pending shares badge count updated", category: .social, metadata: [
+            "oldCount": oldCount,
+            "newCount": count,
+            "totalBadge": totalBadgeCount
+        ])
+    }
+
+    /// Update iOS app icon badge with total count
     private func updateAppIconBadge() {
-        let badgeCount = pendingRequestCount
+        let badgeCount = totalBadgeCount
+        let requestCount = pendingRequestCount
+        let shareCount = pendingSharesCount
 
         UNUserNotificationCenter.current().setBadgeCount(badgeCount) { error in
             if let error = error {
@@ -138,7 +200,11 @@ class BadgeService: ObservableObject {
                     "error": error.localizedDescription
                 ])
             } else {
-                Log.debug("App icon badge updated", category: .social, metadata: ["count": badgeCount])
+                Log.debug("App icon badge updated", category: .social, metadata: [
+                    "count": badgeCount,
+                    "requests": requestCount,
+                    "shares": shareCount
+                ])
             }
         }
     }
@@ -154,7 +220,7 @@ class BadgeService: ObservableObject {
             let count = try await connectionService.getPendingRequestCount()
 
             await MainActor.run {
-                updateCount(count)
+                updateRequestCount(count)
             }
 
             Log.debug("Badge count manually refreshed", category: .social, metadata: ["count": count])

@@ -32,7 +32,7 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
     private let structurer: ASMRRecipeStructurer
     private let usageManager: ASMRUsageManager
     private let cacheService: ASMRCacheService
-    private let aiService: AnthropicAIService?  // For watermark detection
+    private let aiService: (any AIServiceProtocol)?  // For watermark detection
 
     // MARK: - Cancellation
 
@@ -68,7 +68,7 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         structurer: ASMRRecipeStructurer? = nil,
         usageManager: ASMRUsageManager? = nil,
         cacheService: ASMRCacheService? = nil,
-        aiService: AnthropicAIService? = nil,
+        aiService: (any AIServiceProtocol)? = nil,
         modelContext: ModelContext? = nil
     ) {
         self.soundAnalyzer = soundAnalyzer ?? ASMRSoundAnalysisService()
@@ -76,7 +76,7 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         self.structurer = structurer ?? ASMRRecipeStructurer(modelContext: modelContext)
         self.usageManager = usageManager ?? ASMRUsageManager.shared
         self.cacheService = cacheService ?? ASMRCacheService.shared
-        self.aiService = aiService ?? ServiceContainer.shared.resolve(AnthropicAIService.self)
+        self.aiService = aiService ?? ServiceContainer.shared.resolve((any AIServiceProtocol).self)
     }
 
     // MARK: - Public API

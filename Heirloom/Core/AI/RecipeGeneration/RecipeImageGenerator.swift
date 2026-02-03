@@ -15,30 +15,25 @@ protocol RecipeImageGeneratorProtocol {
     func generateAndSaveImage(for recipe: Recipe) async throws
 }
 
-/// Generates recipe images using OpenAI DALL-E 3
+/// Generates recipe images using OpenAI DALL-E 3 via Firebase Cloud Functions
 @MainActor
 class RecipeImageGenerator: RecipeImageGeneratorProtocol {
-    private let aiConfig: AIConfiguration
     private let styleConfig: VisualStyleConfiguration
+    private let firebaseService: FirebaseImageGenerationService
 
-    init(aiConfig: AIConfiguration, styleConfig: VisualStyleConfiguration) {
-        self.aiConfig = aiConfig
+    init(styleConfig: VisualStyleConfiguration, firebaseService: FirebaseImageGenerationService) {
         self.styleConfig = styleConfig
+        self.firebaseService = firebaseService
     }
 
     /// Generate and save image for recipe
     func generateAndSaveImage(for recipe: Recipe) async throws {
-        // Check for API key (with fallback to default key)
-        guard let apiKey = aiConfig.apiKeyWithFallback(for: .openai) else {
-            throw ImageGenerationError.noAPIKey
-        }
-
         // Build prompt from recipe
         let prompt = buildPrompt(for: recipe)
         Log.info("Generating recipe image", category: .general, metadata: ["prompt": prompt, "title": recipe.title])
 
-        // Call DALL-E API
-        let imageURL = try await generateWithDALLE(prompt: prompt, apiKey: apiKey)
+        // Call DALL-E via Firebase Function
+        let imageURL = try await firebaseService.generateImage(prompt: prompt)
 
         // Download image
         let (data, _) = try await URLSession.shared.data(from: imageURL)
@@ -79,51 +74,6 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
         let prompt = "\(subject). \(selectedStyle.promptModifier)"
 
         return prompt
-    }
-
-    private func generateWithDALLE(prompt: String, apiKey: String) async throws -> URL {
-        let url = URL(string: "https://api.openai.com/v1/images/generations")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 120 // DALL-E can take a while
-
-        let body: [String: Any] = [
-            "model": "dall-e-3",
-            "prompt": prompt,
-            "n": 1,
-            "size": "1792x1024", // Landscape for recipe cards
-            "quality": "standard"
-        ]
-
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw ImageGenerationError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            // Try to parse error message
-            if let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let error = errorJson["error"] as? [String: Any],
-               let message = error["message"] as? String {
-                Log.error("DALL-E API error", category: .general, metadata: ["error": message])
-                throw ImageGenerationError.apiError(statusCode: httpResponse.statusCode, message: message)
-            }
-            throw ImageGenerationError.apiError(statusCode: httpResponse.statusCode, message: nil)
-        }
-
-        let dalleResponse = try JSONDecoder().decode(DALLEResponse.self, from: data)
-
-        guard let urlString = dalleResponse.data.first?.url,
-              let imageURL = URL(string: urlString) else {
-            throw ImageGenerationError.noImageReturned
-        }
-
-        return imageURL
     }
 }
 

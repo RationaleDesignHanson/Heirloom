@@ -88,6 +88,10 @@ extension ServiceContainer {
             container.resolve(FirebaseImageService.self) as any FirebaseImageServiceProtocol
         }
 
+        register(FirebaseImageGenerationService.self, lifecycle: .singleton) { _ in
+            FirebaseImageGenerationService()
+        }
+
         register(FirebaseCollectionSync.self, lifecycle: .singleton) { container in
             let logger = container.resolve(LoggingService.self)
             let config = container.resolve(FirebaseConfiguration.self)
@@ -476,15 +480,26 @@ extension ServiceContainer {
             container.resolve(AIConfiguration.self) as any AIConfigurationProtocol
         }
 
-        // AnthropicAIService (Core AI provider)
+        // MARK: AI Service - Firebase Gateway (Secure)
+        // Uses Firebase Cloud Functions to proxy AI requests - NO API KEYS IN CLIENT
+
+        // FirebaseAIGatewayService (Secure AI provider via Firebase Functions)
+        register(FirebaseAIGatewayService.self, lifecycle: .singleton) { container in
+            let configuration = container.resolve((any AIConfigurationProtocol).self)
+            let usageTracker = container.resolve(AIUsageTracker.self)
+            return FirebaseAIGatewayService(configuration: configuration, usageTracker: usageTracker)
+        }
+
+        register((any AIServiceProtocol).self, lifecycle: .singleton) { container in
+            container.resolve(FirebaseAIGatewayService.self) as any AIServiceProtocol
+        }
+
+        // Legacy: AnthropicAIService (Direct API - DEPRECATED, API keys in client)
+        // Keeping for rollback if needed during migration
         register(AnthropicAIService.self, lifecycle: .singleton) { container in
             let configuration = container.resolve((any AIConfigurationProtocol).self)
             let usageTracker = container.resolve(AIUsageTracker.self)
             return AnthropicAIService(configuration: configuration, usageTracker: usageTracker)
-        }
-
-        register((any AIServiceProtocol).self, lifecycle: .singleton) { container in
-            container.resolve(AnthropicAIService.self) as any AIServiceProtocol
         }
 
         // AIRecipeExtractor (Recipe extraction from OCR/images)
@@ -492,10 +507,12 @@ extension ServiceContainer {
             let aiService = container.resolve((any AIServiceProtocol).self)
             let configuration = container.resolve((any AIConfigurationProtocol).self)
             let analytics = container.resolve(AnalyticsService.self)
+            let googleVisionService = container.resolve(FirebaseGoogleVisionService.self)
             return AIRecipeExtractor(
                 aiService: aiService,
                 configuration: configuration,
-                analytics: analytics
+                analytics: analytics,
+                googleVisionService: googleVisionService
             )
         }
 
@@ -582,25 +599,43 @@ extension ServiceContainer {
         // AIRecipeDetector
         register(AIRecipeDetector.self, lifecycle: .singleton) { container in
             let aiConfig = container.resolve(AIConfiguration.self)
-            let aiService = container.resolve(AnthropicAIService.self)
+            let aiService = container.resolve((any AIServiceProtocol).self)
             return AIRecipeDetector(aiConfig: aiConfig, aiService: aiService)
         }
 
-        // GoogleVisionOCRService (Handwriting OCR)
+        // MARK: Google Vision OCR - Firebase Gateway (Secure)
+        // Uses Firebase Cloud Functions - NO API KEYS IN CLIENT
+
+        // FirebaseGoogleVisionService (Secure OCR via Firebase Functions)
+        register(FirebaseGoogleVisionService.self, lifecycle: .singleton) { _ in
+            FirebaseGoogleVisionService()
+        }
+
+        // Legacy: GoogleVisionOCRService (Direct API - DEPRECATED, API keys in client)
+        // Keeping for rollback if needed during migration
         register(GoogleVisionOCRService.self, lifecycle: .singleton) { container in
             let aiConfig = container.resolve(AIConfiguration.self)
             guard let apiKey = aiConfig.googleVisionAPIKey() else {
-                fatalError("Google Vision API key not configured. Please add DEFAULT_GOOGLE_VISION_KEY to Config.xcconfig")
+                // Return a dummy service if API key not configured (using Firebase gateway now)
+                return GoogleVisionOCRService(apiKey: "")
             }
             return GoogleVisionOCRService(apiKey: apiKey)
         }
 
-        // CollectionImageGenerator (DALL-E collection backgrounds)
+        // MARK: Brave Search - Firebase Gateway (Secure)
+        // Uses Firebase Cloud Functions for web recipe search - NO API KEYS IN CLIENT
+
+        // FirebaseBraveSearchService (Secure web search via Firebase Functions)
+        register(FirebaseBraveSearchService.self, lifecycle: .singleton) { _ in
+            FirebaseBraveSearchService()
+        }
+
+        // CollectionImageGenerator (DALL-E collection backgrounds via Firebase)
         register(CollectionImageGenerator.self, lifecycle: .singleton) { container in
-            let aiConfig = container.resolve(AIConfiguration.self)
             let imageStorage = container.resolve(ImageStorageService.self)
             let styleConfig = container.resolve(VisualStyleConfiguration.self)
-            return CollectionImageGenerator(aiConfig: aiConfig, imageStorage: imageStorage, styleConfig: styleConfig)
+            let firebaseService = container.resolve(FirebaseImageGenerationService.self)
+            return CollectionImageGenerator(imageStorage: imageStorage, styleConfig: styleConfig, firebaseService: firebaseService)
         }
 
         // AIRecipeGenerator (AI recipe generation from minimal input)
@@ -614,11 +649,11 @@ extension ServiceContainer {
             container.resolve(AIRecipeGenerator.self) as any AIRecipeGeneratorProtocol
         }
 
-        // RecipeImageGenerator (DALL-E recipe image generation)
+        // RecipeImageGenerator (DALL-E recipe image generation via Firebase)
         register(RecipeImageGenerator.self, lifecycle: .singleton) { container in
-            let aiConfig = container.resolve(AIConfiguration.self)
             let styleConfig = container.resolve(VisualStyleConfiguration.self)
-            return RecipeImageGenerator(aiConfig: aiConfig, styleConfig: styleConfig)
+            let firebaseService = container.resolve(FirebaseImageGenerationService.self)
+            return RecipeImageGenerator(styleConfig: styleConfig, firebaseService: firebaseService)
         }
 
         register((any RecipeImageGeneratorProtocol).self, lifecycle: .singleton) { container in

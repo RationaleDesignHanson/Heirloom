@@ -1,31 +1,26 @@
 import Foundation
 import UIKit
 
-/// Generates themed background images for collections using OpenAI DALL-E 3
+/// Generates themed background images for collections using OpenAI DALL-E 3 via Firebase
 actor CollectionImageGenerator {
-    private let aiConfig: AIConfiguration
     private let imageStorage: ImageStorageService
     private let styleConfig: VisualStyleConfiguration
+    private let firebaseService: FirebaseImageGenerationService
 
-    init(aiConfig: AIConfiguration, imageStorage: ImageStorageService, styleConfig: VisualStyleConfiguration) {
-        self.aiConfig = aiConfig
+    init(imageStorage: ImageStorageService, styleConfig: VisualStyleConfiguration, firebaseService: FirebaseImageGenerationService) {
         self.imageStorage = imageStorage
         self.styleConfig = styleConfig
+        self.firebaseService = firebaseService
     }
 
     /// Generate background image for collection
     func generateBackground(for collection: RecipeCollection) async throws -> String {
-        // Check for API key (with fallback to default key)
-        guard let apiKey = await aiConfig.apiKeyWithFallback(for: .openai) else {
-            throw ImageGenerationError.noAPIKey
-        }
-
         // Build prompt
         let prompt = buildPrompt(for: collection)
         Log.info("Generating collection image", category: .general, metadata: ["prompt": prompt])
 
-        // Call DALL-E API
-        let imageURL = try await generateWithDALLE(prompt: prompt, apiKey: apiKey)
+        // Call DALL-E via Firebase Function
+        let imageURL = try await firebaseService.generateImage(prompt: prompt)
 
         // Download and save locally
         let localPath = try await downloadAndSave(imageURL: imageURL, collectionId: collection.id)
@@ -89,51 +84,6 @@ actor CollectionImageGenerator {
         let prompt = "\(subject). \(selectedStyle.promptModifier)"
 
         return prompt
-    }
-
-    private func generateWithDALLE(prompt: String, apiKey: String) async throws -> URL {
-        let url = URL(string: "https://api.openai.com/v1/images/generations")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 120 // DALL-E can take a while
-
-        let body: [String: Any] = [
-            "model": "dall-e-3",
-            "prompt": prompt,
-            "n": 1,
-            "size": "1792x1024", // Landscape for collection cards
-            "quality": "standard"
-        ]
-
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw ImageGenerationError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            // Try to parse error message
-            if let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let error = errorJson["error"] as? [String: Any],
-               let message = error["message"] as? String {
-                Log.error("DALL-E API error", category: .general, metadata: ["error": message])
-                throw ImageGenerationError.apiError(statusCode: httpResponse.statusCode, message: message)
-            }
-            throw ImageGenerationError.apiError(statusCode: httpResponse.statusCode, message: nil)
-        }
-
-        let dalleResponse = try JSONDecoder().decode(DALLEResponse.self, from: data)
-
-        guard let urlString = dalleResponse.data.first?.url,
-              let imageURL = URL(string: urlString) else {
-            throw ImageGenerationError.noImageReturned
-        }
-
-        return imageURL
     }
 
     private func downloadAndSave(imageURL: URL, collectionId: UUID) async throws -> String {

@@ -1501,11 +1501,16 @@ final class ImportJobManager: ObservableObject {
         // Don't clear activeJob - let UI dismiss sheet explicitly
         // activeJob will be cleared when user taps "Done" button in ImportProgressView
 
-        // Auto-create collection and add successful recipes if cookbook name exists
-        if let cookbookName = job.cookbookName, !cookbookName.isEmpty {
+        // Auto-create collection and add successful recipes
+        // Determine collection name based on import type (single-page vs multi-page)
+        let effectiveCookbookName = determineCollectionName(for: job)
+
+        if let cookbookName = effectiveCookbookName, !cookbookName.isEmpty {
             Log.info("Auto-creating collection for completed job", category: .import, metadata: [
                 "jobId": job.id.uuidString,
-                "cookbookName": cookbookName,
+                "originalCookbookName": job.cookbookName ?? "nil",
+                "effectiveCookbookName": cookbookName,
+                "isSinglePageImport": isSinglePageImport(job: job),
                 "collectionType": job.collectionType?.rawValue ?? "nil",
                 "successfulRecipes": job.successfulItems
             ])
@@ -1641,6 +1646,77 @@ final class ImportJobManager: ObservableObject {
             "job_id": job.id.uuidString,
             "status": job.status.rawValue
         ])
+    }
+
+    // MARK: - Collection Name Logic
+
+    /// Determine the effective collection name based on import type
+    /// - Single-page imports (camera, photo library, or single-page PDFs) → "Cookbook Pages"
+    /// - Multi-page imports (multi-page PDFs) → use original cookbook name
+    private func determineCollectionName(for job: ImportJob) -> String? {
+        // Check if this is a single-page import
+        let isSinglePage = isSinglePageImport(job: job)
+
+        if isSinglePage {
+            // Single-page imports always go to "Cookbook Pages" collection
+            Log.info("Routing single-page import to Cookbook Pages", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "originalCookbookName": job.cookbookName ?? "nil",
+                "source": job.items?.first?.source.rawValue ?? "unknown"
+            ])
+            return "Cookbook Pages"
+        } else {
+            // Multi-page imports use original cookbook name (or default if not set)
+            let cookbookName = job.cookbookName
+            Log.info("Routing multi-page import to named collection", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "cookbookName": cookbookName ?? "nil",
+                "source": job.items?.first?.source.rawValue ?? "unknown"
+            ])
+            return cookbookName
+        }
+    }
+
+    /// Check if this job represents a single-page import
+    /// Returns true if:
+    /// - Job has camera/photo library items (always single-page)
+    /// - Job has PDF items that are ALL single-page recipes
+    private func isSinglePageImport(job: ImportJob) -> Bool {
+        guard let items = job.items?.filter({ $0.status == .success }), !items.isEmpty else {
+            // No successful items - default to single-page (safer for camera imports)
+            return true
+        }
+
+        // Check source type of first item (all items in a job have same source)
+        guard let firstItem = items.first else { return true }
+
+        switch firstItem.source {
+        case .camera, .photoLibrary:
+            // Camera and photo library imports are always treated as single-page
+            return true
+
+        case .pdf:
+            // For PDFs, check if ALL items are single-page recipes
+            let allSinglePage = items.allSatisfy { item in
+                let isSinglePage = !(item.isMultiPageRecipe ?? false)
+                let totalPages = item.totalPages ?? 1
+                return isSinglePage && totalPages == 1
+            }
+
+            Log.info("PDF import page analysis", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "totalItems": items.count,
+                "allSinglePage": allSinglePage,
+                "sampleItem_isMultiPage": items.first?.isMultiPageRecipe ?? false,
+                "sampleItem_totalPages": items.first?.totalPages ?? 1
+            ])
+
+            return allSinglePage
+
+        case .url:
+            // URL imports are treated as single-page
+            return true
+        }
     }
 
     // MARK: - Rate Limiting

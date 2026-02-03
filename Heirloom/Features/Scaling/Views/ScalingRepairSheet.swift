@@ -119,16 +119,16 @@ struct ScalingRepairSheet: View {
 
         var fixedCount = 0
 
-        // Try to re-parse servings if needed
-        if recipe.servings == nil || recipe.parsedServingCount == 4 {
-            // Could prompt user to enter servings manually in future
-            // For now, log the issue
-            Log.warning("Cannot auto-repair servings for recipe \(recipe.id)")
+        // Try to repair servings with smart inference
+        if attemptServingsRepair() {
+            fixedCount += 1
         }
 
-        // Try to re-parse ingredient quantities
+        // Try to re-parse ingredient quantities (excluding flexible quantities like "to taste")
         if let ingredients = recipe.ingredients {
-            let unparsed = ingredients.filter { $0.quantity == nil }
+            let unparsed = ingredients.filter {
+                $0.quantity == nil && !$0.isFlexibleQuantity
+            }
 
             if !unparsed.isEmpty {
                 do {
@@ -170,6 +170,63 @@ struct ScalingRepairSheet: View {
         )
 
         isRepairing = false
+    }
+
+    /// Attempts to repair servings using smart inference
+    /// - Returns: True if servings were successfully repaired
+    private func attemptServingsRepair() -> Bool {
+        let result = ServingsParser.parseWithConfidence(recipe.servings)
+
+        switch result {
+        case .confident:
+            return true  // Already good, no repair needed
+
+        case .uncertain(_):
+            // Try to validate with context
+            if let inferredCount = inferServingsFromContext() {
+                recipe.servings = "\(inferredCount) servings"
+                return true
+            }
+            // If we can't validate, keep the uncertain parse
+            return false
+
+        case .unparseable:
+            // Use category default or context inference
+            if let inferredCount = inferServingsFromContext() {
+                recipe.servings = "\(inferredCount) servings"
+                return true
+            }
+            return false
+        }
+    }
+
+    /// Infers servings from recipe context (title, category)
+    /// - Returns: Inferred serving count, or nil if unable to infer
+    private func inferServingsFromContext() -> Int? {
+        // Check recipe title for clues
+        let title = recipe.title.lowercased()
+
+        // Check for "dozen" in title
+        if title.contains("dozen") {
+            return 12
+        }
+
+        // Check for batch multipliers
+        if title.contains("double batch") {
+            return 24  // Assumes typical cookie batch
+        }
+
+        // Check for common baked goods keywords
+        if title.contains("cookie") || title.contains("muffin") || title.contains("cupcake") {
+            return 12
+        }
+
+        // Use category defaults
+        if let category = recipe.category {
+            return category.presetServingSizes.first
+        }
+
+        return nil
     }
 }
 

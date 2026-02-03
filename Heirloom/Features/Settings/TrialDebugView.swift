@@ -9,7 +9,6 @@
 import SwiftUI
 import SwiftData
 import Foundation
-import FirebaseFirestore
 
 struct TrialDebugView: View {
     @Environment(\.modelContext) private var modelContext
@@ -22,6 +21,8 @@ struct TrialDebugView: View {
         List {
             trialPeriodSection
             heritageUnlocksSection
+            unlockDiagnosticsSection
+            unlockVerificationSection
             paywallTriggersSection
         }
         .navigationTitle("Trial Debug")
@@ -86,6 +87,21 @@ struct TrialDebugView: View {
                 LabeledContent("Is In Trial", value: tracker.isInTrialPeriod ? "Yes" : "No")
                 LabeledContent("Is Complete", value: tracker.isTrialComplete ? "Yes" : "No")
 
+                Divider()
+
+                LabeledContent("Background Timer", value: tracker.isDayChangeTimerActive ? "✅ Active" : "⏸️ Paused")
+                    .foregroundStyle(tracker.isDayChangeTimerActive ? .green : .secondary)
+
+                if let lastTimerCheck = tracker.lastTimerCheckDate {
+                    LabeledContent("Last Timer Check", value: formatDate(lastTimerCheck))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    LabeledContent("Last Timer Check", value: "Never")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Button("Trigger Daily Unlock Check") {
                     let hadUnlocks = tracker.checkForNewUnlocks()
                     Log.info("Manual unlock check", category: .trial, metadata: ["hadUnlocks": hadUnlocks])
@@ -128,6 +144,117 @@ struct TrialDebugView: View {
                 }
                 .foregroundStyle(.purple)
                 #endif
+            } else {
+                Text("Loading...")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var unlockDiagnosticsSection: some View {
+        Section("Unlock Diagnostics") {
+            if let tracker = themeUnlockTracker {
+                // Fetch theme recipes for diagnostic counts
+                let descriptor = FetchDescriptor<Recipe>(
+                    predicate: #Predicate { $0.isThemeRecipe == true }
+                )
+
+                if let themeRecipes = try? modelContext.fetch(descriptor) {
+                    let unlockedCount = themeRecipes.filter { tracker.isUnlocked($0) }.count
+                    let totalCount = themeRecipes.count
+
+                    LabeledContent("Total Theme Recipes", value: "\(totalCount)")
+                    LabeledContent("Unlocked Recipes", value: "\(unlockedCount)")
+                    LabeledContent("Locked Recipes", value: "\(totalCount - unlockedCount)")
+
+                    if let lastCheck = tracker.lastCheckDate {
+                        LabeledContent("Last Unlock Check", value: formatDate(lastCheck))
+                    } else {
+                        LabeledContent("Last Unlock Check", value: "Never")
+                    }
+
+                    // Show next unlock day
+                    if tracker.currentTrialDay < 14 {
+                        LabeledContent("Next Unlock Day", value: "\(tracker.currentTrialDay + 1)")
+                    } else {
+                        LabeledContent("Next Unlock Day", value: "Trial Complete")
+                    }
+
+                    // Show unlock timeline
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Unlock Timeline")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        ForEach(1...14, id: \.self) { day in
+                            let recipesForDay = themeRecipes.filter { $0.unlockDay == day }
+                            let isUnlocked = day <= tracker.currentTrialDay
+                            let icon = isUnlocked ? "✅" : "🔒"
+
+                            HStack {
+                                Text("\(icon) Day \(day):")
+                                    .font(.caption)
+                                Text("\(recipesForDay.count) recipes")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                if day == tracker.currentTrialDay {
+                                    Text("(today)")
+                                        .font(.caption)
+                                        .foregroundStyle(.blue)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                } else {
+                    Text("Unable to fetch recipes")
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text("Loading...")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var unlockVerificationSection: some View {
+        Section("Unlock Verification") {
+            if let tracker = themeUnlockTracker {
+                Button("🔍 Verify Unlock System") {
+                    let result = tracker.verifyUnlockIntegrity(modelContext: modelContext)
+                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+
+                    if result.isValid {
+                        toastManager.show(
+                            type: .success,
+                            title: "Verification Passed",
+                            message: result.warnings.isEmpty ? "All checks passed" : "\(result.warnings.count) warnings"
+                        )
+                    } else {
+                        toastManager.show(
+                            type: .error,
+                            title: "Verification Failed",
+                            message: "\(result.errors.count) errors found"
+                        )
+                    }
+
+                    // Log full results
+                    Log.info("Verification completed", category: .trial, metadata: [
+                        "isValid": result.isValid,
+                        "errors": result.errors.joined(separator: " | "),
+                        "warnings": result.warnings.joined(separator: " | ")
+                    ])
+
+                    print("=== Unlock System Verification ===")
+                    print(result.summary)
+                    print("=================================")
+                }
+                .foregroundStyle(.blue)
+
+                Button("📊 Export Debug Log") {
+                    exportDebugLog(tracker: tracker)
+                }
+                .foregroundStyle(.purple)
             } else {
                 Text("Loading...")
                     .foregroundStyle(.secondary)
@@ -256,32 +383,8 @@ struct TrialDebugView: View {
             Log.info("Reset theme unlock tracking for day skip", category: .trial)
         }
 
-        // CRITICAL: Reset Firebase lastDailyUnlock THEN refresh (must be sequential)
+        // Refresh subscription manager to trigger unlock checks with new date
         Task {
-            // First, update Firebase (if authenticated) - WAIT for this to complete
-            do {
-                if let authService = ServiceContainer.shared.resolveOptional(FirebaseAuthService.self),
-                   authService.isAuthenticated,
-                   let userId = authService.currentUser?.uid {
-                    let db = Firestore.firestore()
-                    let yesterday = Date().addingTimeInterval(-24 * 60 * 60)
-
-                    // CRITICAL: Update the correct Firestore path where HeritageUnlockService reads from
-                    try await db.collection("users")
-                        .document(userId)
-                        .collection("heritageState")
-                        .document("current")
-                        .updateData([
-                            "lastDailyUnlock": Timestamp(date: yesterday)
-                        ])
-
-                    print("✅ Reset Firebase lastDailyUnlock to yesterday (users/{userId}/heritageState/current)")
-                }
-            } catch {
-                print("⚠️ Failed to reset Firebase lastDailyUnlock: \(error)")
-            }
-
-            // Then refresh subscription manager (now it will read the updated date)
             await subscriptionManager?.refreshStatus(force: true)
 
             // Finally update UI
@@ -300,6 +403,77 @@ struct TrialDebugView: View {
         }
 
         Log.info("Skipped ahead 1 day (now on Day \(currentDay))", category: .general)
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
+    private func exportDebugLog(tracker: ThemeUnlockTracker) {
+        var logLines: [String] = []
+
+        logLines.append("=== Daily Unlock Debug Log ===")
+        logLines.append("Generated: \(Date())")
+        logLines.append("")
+
+        logLines.append("Trial Status:")
+        logLines.append("  Current Day: \(tracker.currentTrialDay) / 14")
+        logLines.append("  Days Remaining: \(tracker.daysRemaining)")
+        logLines.append("  Trial Start: \(tracker.trialStartDate)")
+        logLines.append("  Is In Trial: \(tracker.isInTrialPeriod)")
+        logLines.append("  Is Complete: \(tracker.isTrialComplete)")
+        logLines.append("")
+
+        logLines.append("Selected Themes:")
+        if tracker.selectedThemeIds.isEmpty {
+            logLines.append("  None")
+        } else {
+            tracker.selectedThemeIds.forEach { logLines.append("  • \($0)") }
+        }
+        logLines.append("")
+
+        // Fetch theme recipes
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { $0.isThemeRecipe == true }
+        )
+
+        if let themeRecipes = try? modelContext.fetch(descriptor) {
+            let unlockedCount = themeRecipes.filter { tracker.isUnlocked($0) }.count
+            logLines.append("Recipe Status:")
+            logLines.append("  Total Theme Recipes: \(themeRecipes.count)")
+            logLines.append("  Unlocked: \(unlockedCount)")
+            logLines.append("  Locked: \(themeRecipes.count - unlockedCount)")
+            logLines.append("")
+
+            logLines.append("Unlock Timeline:")
+            for day in 1...14 {
+                let recipesForDay = themeRecipes.filter { $0.unlockDay == day }
+                let icon = day <= tracker.currentTrialDay ? "✅" : "🔒"
+                logLines.append("  \(icon) Day \(day): \(recipesForDay.count) recipes")
+            }
+        }
+
+        logLines.append("")
+        logLines.append("Verification:")
+        let result = tracker.verifyUnlockIntegrity(modelContext: modelContext)
+        logLines.append(result.summary)
+
+        logLines.append("")
+        logLines.append("=== End Debug Log ===")
+
+        let logText = logLines.joined(separator: "\n")
+
+        // Copy to clipboard
+        UIPasteboard.general.string = logText
+
+        // Show confirmation
+        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+        toastManager.show(type: .success, title: "Debug log copied to clipboard")
+
+        print(logText)
     }
 }
 

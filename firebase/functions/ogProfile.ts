@@ -69,7 +69,7 @@ export const ogProfile = functions.https.onRequest(async (req, res) => {
     const profileData = profileDoc.data() as UserProfile;
 
     // Check if profile is public (visibility = "open")
-    const visibility = profileData['profileVisibility'] || 'closed';
+    const visibility = (profileData as any)['profileVisibility'] || 'closed';
     if (visibility !== 'open') {
       res.status(403).send('Profile is not public');
       return;
