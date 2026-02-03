@@ -1247,6 +1247,12 @@ final class ImportJobManager: ObservableObject {
             "recipe_titles": recipes.map { $0.title }.joined(separator: " | ")
         ])
 
+        // CRITICAL: Parse ingredients immediately to enable automatic scaling
+        // This prevents the need for warning symbols and "Fix" buttons
+        for recipe in recipes {
+            await parseIngredientsImmediately(for: recipe)
+        }
+
         // Extract food images from PDF page for all recipes (if present)
         for recipe in recipes {
             await extractFoodImage(from: image, for: recipe)
@@ -1338,6 +1344,12 @@ final class ImportJobManager: ObservableObject {
             createRecipe(from: extractedRecipe, sourceImage: image, sourceType: sourceType)
         }
 
+        // CRITICAL: Parse ingredients immediately to enable automatic scaling
+        // This prevents the need for warning symbols and "Fix" buttons
+        for recipe in recipes {
+            await parseIngredientsImmediately(for: recipe)
+        }
+
         // Log if multiple recipes were detected
         if recipes.count > 1 {
             Log.info("✨ Multiple recipes extracted from single image", category: .import, metadata: [
@@ -1396,6 +1408,57 @@ final class ImportJobManager: ObservableObject {
         DuplicateDetectionService.updateContentHash(for: recipe)
 
         return recipe
+    }
+
+    /// Parse ingredients immediately to enable automatic scaling
+    /// This matches the behavior of web imports and prevents warning symbols
+    private func parseIngredientsImmediately(for recipe: Recipe) async {
+        guard let ingredients = recipe.ingredients, !ingredients.isEmpty else {
+            Log.debug("No ingredients to parse", category: .import, metadata: ["recipeId": recipe.id.uuidString])
+            return
+        }
+
+        // Extract ingredient texts
+        let ingredientTexts = ingredients.map { $0.originalText }
+
+        Log.info("Parsing ingredients immediately for scaling", category: .import, metadata: [
+            "recipeId": recipe.id.uuidString,
+            "count": ingredientTexts.count
+        ])
+
+        do {
+            // Get AI ingredient parser from container
+            let aiIngredientParser: AIIngredientParser = ServiceContainer.shared.resolve(AIIngredientParser.self)
+
+            // Parse all ingredients
+            let parsed = try await aiIngredientParser.parseBatch(ingredientTexts)
+
+            // Update ingredients with parsed data
+            for (index, ingredient) in ingredients.enumerated() {
+                guard index < parsed.count else { continue }
+                let parsedData = parsed[index]
+                ingredient.quantity = parsedData.quantity
+                ingredient.quantityMax = parsedData.quantityMax
+                ingredient.unit = parsedData.unit
+                ingredient.normalizedUnit = parsedData.normalizedUnit
+                ingredient.name = parsedData.name
+                ingredient.preparation = parsedData.preparation
+                ingredient.category = parsedData.category
+            }
+
+            let withQuantities = ingredients.filter { $0.quantity != nil }.count
+            Log.info("Ingredients parsed successfully", category: .import, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "total": ingredients.count,
+                "withQuantities": withQuantities
+            ])
+        } catch {
+            Log.error("Failed to parse ingredients immediately", category: .import, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "error": error.localizedDescription
+            ])
+            // Continue without parsed ingredients - they will remain as placeholders
+        }
     }
 
     /// Extract food image from page image using Vision framework
