@@ -11,10 +11,10 @@ const db = admin.firestore();
 
 // Rate limits per operation type
 const RATE_LIMITS = {
-  ai_complete: { limit: 500, windowMs: 24 * 60 * 60 * 1000 }, // 500 per day (increased for development)
-  ai_vision: { limit: 200, windowMs: 24 * 60 * 60 * 1000 }, // 200 per day (increased for cookbook testing)
-  google_vision: { limit: 500, windowMs: 24 * 60 * 60 * 1000 }, // 500 OCR per day (increased for development)
-  brave_search: { limit: 500, windowMs: 24 * 60 * 60 * 1000 }, // 500 searches per day (increased for development)
+  ai_complete: { limit: 1000, windowMs: 24 * 60 * 60 * 1000 }, // 1000 per day (increased for development)
+  ai_vision: { limit: 400, windowMs: 24 * 60 * 60 * 1000 }, // 400 per day (doubled for cookbook testing - multi-page analyzer uses this too)
+  google_vision: { limit: 1000, windowMs: 24 * 60 * 60 * 1000 }, // 1000 OCR per day (increased for development)
+  brave_search: { limit: 1000, windowMs: 24 * 60 * 60 * 1000 }, // 1000 searches per day (increased for development)
 };
 
 /**
