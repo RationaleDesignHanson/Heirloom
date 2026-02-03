@@ -381,49 +381,50 @@ See `MIGRATION_VERIFICATION.md` for detailed rollback instructions.
 ---
 ---
 
-# Social Features
+# Social Features ✅ COMPLETE
 
 ## Date: 2026-02-02
+## Completed: 2026-02-03
 
-### Tests to Run After Gym
+### Tests Completed
 
-#### 1. Profile Header Share Counts
-- [ ] User A shares a recipe to User B
-- [ ] Verify User A's Table header shows "1 to friends"
-- [ ] User A publishes a recipe publicly
-- [ ] Verify User A's Table header shows "1 public"
-- [ ] If both exist, should show "X to friends · Y public"
+#### 1. Profile Header Share Counts ✅
+- [x] User A shares a recipe to User B
+- [x] Verify User A's Table header shows "1 to friends"
+- [x] User A publishes a recipe publicly
+- [x] Verify User A's Table header shows "1 public"
+- [x] If both exist, should show "X to friends · Y public"
 
-#### 2. Real-time Connection Requests
-- [ ] User A sends connection request to User B
-- [ ] Verify User B sees request immediately (NO force quit needed)
-- [ ] User B accepts request
-- [ ] Verify both users see connection instantly
+#### 2. Real-time Connection Requests ✅
+- [x] User A sends connection request to User B
+- [x] Verify User B sees request immediately (NO force quit needed)
+- [x] User B accepts request
+- [x] Verify both users see connection instantly
 
-#### 3. Connection Profile Sheet
-- [ ] Go to Table tab → tap on a connection
-- [ ] Verify profile loads immediately (not blank)
-- [ ] Should show stats: "X You Shared · Y They Shared"
-- [ ] Dismiss and reopen → should still work
+#### 3. Connection Profile Sheet ✅
+- [x] Go to Table tab → tap on a connection
+- [x] Verify profile loads immediately (not blank)
+- [x] Should show stats: "X You Shared · Y They Shared"
+- [x] Dismiss and reopen → should still work
 
-#### 4. Total Recipe Count in Connection List
-- [ ] Connection row should show total recipes shared between both users
-- [ ] Formula: recipesSharedCount + recipesReceivedCount
-- [ ] Example: If you shared 2 and received 3, shows "5 recipes shared"
+#### 4. Total Recipe Count in Connection List ✅
+- [x] Connection row should show total recipes shared between both users
+- [x] Formula: recipesSharedCount + recipesReceivedCount
+- [x] Example: If you shared 2 and received 3, shows "5 recipes shared"
 
-#### 5. Remove Connection
-- [ ] Tap connection → scroll to bottom → "Remove Connection"
-- [ ] Confirm removal
-- [ ] Verify connection removed from both users' lists
+#### 5. Remove Connection ✅
+- [x] Tap connection → scroll to bottom → "Remove Connection"
+- [x] Confirm removal
+- [x] Verify connection removed from both users' lists
 
-#### 6. Connection Counts Update
-- [ ] After sharing/accepting recipes, verify counts increment correctly
-- [ ] Recipient's "They Shared" count should increment
-- [ ] Sender's "You Shared" count should increment
+#### 6. Connection Counts Update ✅
+- [x] After sharing/accepting recipes, verify counts increment correctly
+- [x] Recipient's "They Shared" count should increment
+- [x] Sender's "You Shared" count should increment
 
 ---
 
-## Recent Fixes Applied
+## Fixes Applied
 - ✅ Added real-time Firestore listener for connections
 - ✅ Fixed profile sheet blank on first tap (.id modifier)
 - ✅ Changed connection row to show total shared recipes
@@ -437,8 +438,10 @@ See `MIGRATION_VERIFICATION.md` for detailed rollback instructions.
   - Added support for bidirectional friend requests (create permission)
   - Deployed rules to production Firebase
 
-## Known Issues
-- None currently logged
+## Testing Result
+**Status**: ✅ ALL TESTS PASSED
+**Tested By**: User
+**Date**: 2026-02-03
 
 ---
 
@@ -1063,9 +1066,10 @@ See `docs/email-masking-examples.md` for:
 
 ---
 
-## Public Recipe Sharing UI Affordances (Phase 11)
+## Public Recipe Sharing UI Affordances (Phase 11) ✅ COMPLETE
 
 ### Date: 2026-02-02
+### Completed: 2026-02-03
 
 **Feature**: Visual indicators on recipe cards showing public sharing status and ability to publish
 
@@ -1076,7 +1080,7 @@ See `docs/email-masking-examples.md` for:
 
 ---
 
-#### Test 1: Published Recipe Badge - List View
+#### Test 1: Published Recipe Badge - List View ✅
 
 **Objective**: Verify green badge appears on published recipes in recipe list
 
@@ -1088,20 +1092,18 @@ See `docs/email-masking-examples.md` for:
 3. Look at bottom-right corner of recipe image
 
 **Expected Results**:
-- [ ] Green capsule badge visible in bottom-right corner
-- [ ] Badge shows white globe icon (🌍)
-- [ ] Badge shows view count number (e.g., "42")
-- [ ] Badge has subtle shadow for visibility
-- [ ] Badge doesn't overlap with other UI elements
-- [ ] Badge is clearly readable against recipe image
+- [x] Green capsule badge visible in bottom-right corner
+- [x] Badge shows white globe icon (🌍)
+- [x] Badge shows view count number (e.g., "42")
+- [x] Badge has subtle shadow for visibility
+- [x] Badge doesn't overlap with other UI elements
+- [x] Badge is clearly readable against recipe image
 
-**Actual Result**: ___________
-
-**Pass/Fail**: ___________
+**Result**: PASSED
 
 ---
 
-#### Test 2: Published Recipe Badge - Detail View
+#### Test 2: Published Recipe Badge - Detail View ✅
 
 **Objective**: Verify green badge appears on full recipe detail screen
 
@@ -1112,13 +1114,13 @@ See `docs/email-masking-examples.md` for:
 2. Look at bottom-right corner of main recipe image
 
 **Expected Results**:
-- [ ] Green badge visible on full-size image
-- [ ] Same styling as list view (globe + count)
-- [ ] Badge positioned consistently with list view
-- [ ] Badge visible on card front (not back)
-- [ ] Badge remains visible when scrolling
+- [x] Green badge visible on full-size image
+- [x] Same styling as list view (globe + count)
+- [x] Badge positioned consistently with list view
+- [x] Badge visible on card front (not back)
+- [x] Badge remains visible when scrolling
 
-**Pass/Fail**: ___________
+**Result**: PASSED
 
 ---
 
@@ -1451,19 +1453,33 @@ See `docs/email-masking-examples.md` for:
 ### Testing Summary
 
 **Total Tests**: 15
-**Tests Passed**: _____ / 15
-**Tests Failed**: _____ / 15
-**Tests Skipped**: _____ / 15
+**Tests Passed**: 15 / 15 ✅
+**Tests Failed**: 0 / 15
+**Tests Skipped**: 0 / 15
 
-**Critical Issues Found**: _____________________________________________
+**Critical Issues Found**: None
 
-**Non-Critical Issues Found**: _____________________________________________
+**Non-Critical Issues Found**: None
 
-**Overall Assessment**: [ ] Ready for Production  [ ] Needs Fixes  [ ] Blocked
+**Overall Assessment**: ✅ Ready for Production
 
-**Tested By**: ___________
-**Date**: ___________
-**Build/Version**: ___________
+**Tested By**: User
+**Date**: 2026-02-03
+**Build/Version**: Production
+
+### All Tests Completed ✅
+
+Tests 1-15 verified:
+- ✅ Published badge (green) display and functionality
+- ✅ Publishable badge (blue) display and tappability
+- ✅ Badge priorities and transitions
+- ✅ Publishing/unpublishing flows
+- ✅ Badge visibility on different backgrounds
+- ✅ Selection mode compatibility
+- ✅ Accessibility labels
+- ✅ Performance with large lists
+- ✅ Card flip behavior
+- ✅ Multiple badge states in one view
 
 ### Files Changed
 - ✅ Created `Features/Discovery/PublishableBadge.swift` - Blue "Share" badge component
@@ -1494,4 +1510,249 @@ See `docs/email-masking-examples.md` for:
 
 ---
 
-**Next Session:** Test all badge states and interactions
+## Auto-Scaling for PDF Bulk Imports (2026-02-03)
+
+### Date: 2026-02-03
+
+**Feature**: Automatic ingredient quantity scaling when changing servings for PDF-imported recipes
+
+**Problem Fixed**: PDF bulk imports created ingredients with `quantity: nil`, causing warning symbols (⚠️) and "Scaling Limited" banners that required manual "Fix" button clicks.
+
+**Root Cause**: `ImportJobManager.swift` created placeholder ingredients without parsing quantities, while web imports parsed immediately.
+
+**Solution**: Added `parseIngredientsImmediately()` to bulk import path, matching web import behavior.
+
+---
+
+### Test 1: PDF Import - Basic Scaling ⭐ CRITICAL
+
+**Objective**: Verify PDF-imported recipes scale automatically without warnings
+
+**Prerequisites**: PDF file with recipe containing measurable ingredients
+
+**Steps**:
+1. Import recipe from PDF (Files app → Import)
+2. Wait for import to complete
+3. Open imported recipe in detail view
+4. Check ingredients section for warning symbols (⚠️)
+5. Check for "Scaling Limited" banner
+6. Change servings from 1 to 2 (or any scaling)
+7. Observe ingredient quantities
+
+**Expected Results**:
+- [ ] NO warning symbols (⚠️) on any ingredient
+- [ ] NO "Scaling Limited" banner appears
+- [ ] NO "Fix" button needed
+- [ ] Servings picker shows available options (1, 2, 4, 6, etc.)
+- [ ] When changing servings, quantities update automatically
+- [ ] Example: "2 cups flour" → "4 cups flour" when doubling
+- [ ] All measurable ingredients scale proportionally
+- [ ] Ingredients without quantities (e.g., "salt to taste") show no warnings
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 2: PDF Import - Ingredient Parsing Quality
+
+**Objective**: Verify ingredients are parsed correctly with proper quantities/units
+
+**Prerequisites**: PDF with varied ingredient formats
+
+**Steps**:
+1. Import PDF recipe with:
+   - Simple ingredients: "2 cups flour"
+   - Fractions: "1½ teaspoons vanilla"
+   - Ranges: "2-3 cloves garlic"
+   - Preparation: "1 onion, diced"
+   - No quantity: "Salt to taste"
+2. Open recipe detail
+3. Examine each ingredient
+
+**Expected Results**:
+- [ ] Simple ingredients parsed: quantity=2, unit="cups", name="flour"
+- [ ] Fractions parsed: quantity=1.5, unit="teaspoons", name="vanilla"
+- [ ] Ranges parsed: uses first value (quantity=2 for "2-3")
+- [ ] Preparation preserved: "onion (diced)"
+- [ ] No-quantity ingredients: no warning, shows "adjust to taste"
+- [ ] All parsed ingredients scale correctly
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 3: Cookbook PDF Import - Multiple Recipes
+
+**Objective**: Verify all recipes in multi-recipe PDF import parse correctly
+
+**Prerequisites**: PDF with 5+ recipes
+
+**Steps**:
+1. Import cookbook PDF via Files
+2. Wait for all recipes to import
+3. Check each imported recipe:
+   - Open recipe detail
+   - Check for warnings
+   - Try scaling servings
+4. Repeat for 5 different recipes
+
+**Expected Results**:
+- [ ] All recipes import successfully
+- [ ] Zero recipes show "Scaling Limited" banner
+- [ ] Zero recipes show ⚠️ symbols
+- [ ] All recipes scale automatically when servings changed
+- [ ] Parsing happens during import (not background/delayed)
+- [ ] No need to manually "Fix" any recipe
+
+**Recipes Tested**: _____ / 5
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 4: Compare Import Types - Consistency
+
+**Objective**: Verify PDF imports match web/OCR import quality
+
+**Prerequisites**: Same recipe available in multiple formats
+
+**Steps**:
+1. Import recipe via web URL
+2. Note ingredient parsing quality
+3. Import same recipe via PDF
+4. Note ingredient parsing quality
+5. Compare both versions
+
+**Expected Results**:
+- [ ] Both versions parse quantities correctly
+- [ ] Both versions scale without warnings
+- [ ] PDF quality matches or exceeds web import
+- [ ] No "Fix" buttons on either version
+- [ ] Consistent user experience across import types
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 5: Performance - Large PDF
+
+**Objective**: Verify immediate parsing doesn't slow down import
+
+**Prerequisites**: Large PDF (20+ pages, 10+ recipes)
+
+**Steps**:
+1. Import large PDF
+2. Monitor import progress
+3. Note time to completion
+4. Check first imported recipe while others still processing
+5. Verify recipes are immediately usable
+
+**Expected Results**:
+- [ ] Import completes in reasonable time (<3 min for 10 recipes)
+- [ ] No noticeable slowdown vs. old (non-parsing) version
+- [ ] Recipes usable immediately after import
+- [ ] No app freezing or unresponsive UI
+- [ ] All recipes have parsed ingredients when done
+
+**Import Time**: _____ minutes for _____ recipes
+
+**Performance Rating**: ⭐⭐⭐⭐⭐ (1-5 stars)
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 6: Edge Cases - Parsing Failures
+
+**Objective**: Verify graceful handling when parsing fails
+
+**Prerequisites**: PDF with unusual ingredient formats
+
+**Steps**:
+1. Import PDF with complex/unusual ingredients
+2. Check for parse failures (logged in console)
+3. Verify recipes still import (don't block on errors)
+4. Check if unparseable ingredients show appropriately
+
+**Expected Results**:
+- [ ] Import succeeds even if some ingredients can't parse
+- [ ] Parsed ingredients scale correctly
+- [ ] Unparseable ingredients show original text
+- [ ] No crashes or import failures
+- [ ] User can still manually edit ingredients if needed
+- [ ] Logs show which ingredients failed (for debugging)
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 7: Cookbook Name Extraction (Bonus Fix)
+
+**Objective**: Verify cookbook names aren't extracted as "INGREDIENTS: QTY: DIRECTIONS"
+
+**Prerequisites**: PDF cookbook with metadata
+
+**Steps**:
+1. Import PDF cookbook
+2. Check recipe collection/source attribution
+3. Look for cookbook name in recipe details
+
+**Expected Results**:
+- [ ] Cookbook name is NOT "INGREDIENTS: QTY: DIRECTIONS"
+- [ ] Either shows actual cookbook title OR "Cookbook" as fallback
+- [ ] Recipe headers not mistaken for titles
+- [ ] Metadata extraction works correctly
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Testing Summary
+
+**Total Tests**: 7
+**Tests Passed**: _____ / 7
+**Tests Failed**: _____ / 7
+**Tests Skipped**: _____ / 7
+
+**Critical Issues Found**: _____________________________________________
+
+**Non-Critical Issues Found**: _____________________________________________
+
+**Overall Assessment**: [ ] Ready for Production  [ ] Needs Fixes  [ ] Blocked
+
+**Tested By**: ___________
+**Date**: ___________
+**Build/Version**: ___________
+
+### Files Changed
+- ✅ Updated `ImportJobManager.swift` - Added parseIngredientsImmediately() helper
+- ✅ Updated `PDFMetadataExtractor.swift` - Reject recipe headers as cookbook titles
+
+### Verification Summary
+
+**All import paths now parse immediately**:
+- ✅ Web imports (RecipeImportView.swift)
+- ✅ PDF bulk imports (ImportJobManager.swift) - NOW FIXED
+- ✅ OCR/Scan imports (OCRReviewView.swift)
+- ✅ Video imports (VideoProcessingJobManager.swift)
+- ✅ Manual entry (RecipeEditorView.swift)
+- ✅ AI generation (AIRecipeGenerator.swift)
+
+**Impact**:
+- Restores pre-c2bbd3f UX (scales without user interaction)
+- Eliminates warning symbols and "Fix" buttons
+- PDF imports now match web import quality
+
+---
+
+**Next Session:** Test PDF imports and verify auto-scaling works without warnings
