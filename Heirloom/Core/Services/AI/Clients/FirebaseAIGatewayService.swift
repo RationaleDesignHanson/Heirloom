@@ -214,9 +214,19 @@ class FirebaseAIGatewayService: AIServiceProtocol {
         case .unauthenticated:
             return .unauthorized
         case .resourceExhausted:
+            // Parse limit from error message: "Rate limit exceeded. You can make 200 ai_vision requests per day. Try again in X hours."
+            let errorMessage = error.localizedDescription
+            var limit = 100 // default
+
+            if let range = errorMessage.range(of: #"make (\d+)"#, options: .regularExpression),
+               let limitStr = errorMessage[range].components(separatedBy: " ").last,
+               let parsedLimit = Int(limitStr) {
+                limit = parsedLimit
+            }
+
             return .quotaExceeded(
                 provider: providerName,
-                limit: 100,
+                limit: limit,
                 resetDate: Calendar.current.startOfDay(for: Date().addingTimeInterval(86400))
             )
         case .invalidArgument:

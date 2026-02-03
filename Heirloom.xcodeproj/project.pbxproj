@@ -272,6 +272,9 @@
 		C583FFE72F0CC1740096478E /* BatchTagCollectionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583FFE62F0CC1740096478E /* BatchTagCollectionPickerView.swift */; };
 		C59AD0122F2D7F280021F52B /* PrivacySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C59AD0112F2D7F280021F52B /* PrivacySettingsView.swift */; };
 		C59AD31C2F2D7FDC0021F52B /* ProfilePrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C59AD31B2F2D7FDC0021F52B /* ProfilePrivacyView.swift */; };
+		C5A2502D2F317D170091E198 /* GoogleVisionTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2502C2F317D170091E198 /* GoogleVisionTypes.swift */; };
+		C5A2502F2F317D960091E198 /* FirebaseAIGatewayService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2502E2F317D960091E198 /* FirebaseAIGatewayService.swift */; };
+		C5A250312F31E0310091E198 /* FirebaseImageGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A250302F31E0310091E198 /* FirebaseImageGenerationService.swift */; };
 		C5A7BDAF2F1713FA00D99B07 /* PDFProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDAD2F1713FA00D99B07 /* PDFProcessor.swift */; };
 		C5A7BDB02F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDAC2F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift */; };
 		C5A7BDB42F1714B100D99B07 /* PDFDocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDB12F1714B100D99B07 /* PDFDocumentPicker.swift */; };
@@ -408,6 +411,12 @@
 		C5EF77842F312ED40097779E /* RecipeGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77832F312ED40097779E /* RecipeGenerationService.swift */; };
 		C5EF77862F312EE70097779E /* RecipeGenerationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77852F312EE70097779E /* RecipeGenerationBanner.swift */; };
 		C5EF77882F31384C0097779E /* RecipeImportDiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77872F31384C0097779E /* RecipeImportDiffView.swift */; };
+		C5EF778A2F3148950097779E /* SeasoningDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77892F3148950097779E /* SeasoningDefaults.swift */; };
+		C5EF77902F315FCD0097779E /* EmailMasker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF778F2F315FCD0097779E /* EmailMasker.swift */; };
+		C5EF77942F3164DA0097779E /* PublishableBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77932F3164DA0097779E /* PublishableBadge.swift */; };
+		C5EF77962F316D610097779E /* FirebaseGoogleVisionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77952F316D610097779E /* FirebaseGoogleVisionService.swift */; };
+		C5EF77982F316D7E0097779E /* FirebaseBraveSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77972F316D7E0097779E /* FirebaseBraveSearchService.swift */; };
+		C5EF779A2F3178A30097779E /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = C5EF77992F3178A30097779E /* FirebaseFunctions */; };
 		CEA3D844ADC4318B6260E26C /* CommentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AFC154590CE51056017C5D6 /* CommentService.swift */; };
 		CEB1D563C859FDF9EFD1F9A1 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD518726BAFEC566E22D0315 /* Tag.swift */; };
 		CF51D7B57801C80C626858EF /* ImportItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBB366ABEF58AF23B4D64FE /* ImportItem.swift */; };
@@ -715,6 +724,9 @@
 		C583FFE62F0CC1740096478E /* BatchTagCollectionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchTagCollectionPickerView.swift; sourceTree = "<group>"; };
 		C59AD0112F2D7F280021F52B /* PrivacySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySettingsView.swift; sourceTree = "<group>"; };
 		C59AD31B2F2D7FDC0021F52B /* ProfilePrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePrivacyView.swift; sourceTree = "<group>"; };
+		C5A2502C2F317D170091E198 /* GoogleVisionTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleVisionTypes.swift; sourceTree = "<group>"; };
+		C5A2502E2F317D960091E198 /* FirebaseAIGatewayService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAIGatewayService.swift; sourceTree = "<group>"; };
+		C5A250302F31E0310091E198 /* FirebaseImageGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseImageGenerationService.swift; sourceTree = "<group>"; };
 		C5A7BDAC2F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiPageRecipeAnalyzer.swift; sourceTree = "<group>"; };
 		C5A7BDAD2F1713FA00D99B07 /* PDFProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFProcessor.swift; sourceTree = "<group>"; };
 		C5A7BDB12F1714B100D99B07 /* PDFDocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentPicker.swift; sourceTree = "<group>"; };
@@ -840,6 +852,11 @@
 		C5EF77832F312ED40097779E /* RecipeGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenerationService.swift; sourceTree = "<group>"; };
 		C5EF77852F312EE70097779E /* RecipeGenerationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenerationBanner.swift; sourceTree = "<group>"; };
 		C5EF77872F31384C0097779E /* RecipeImportDiffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeImportDiffView.swift; sourceTree = "<group>"; };
+		C5EF77892F3148950097779E /* SeasoningDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasoningDefaults.swift; sourceTree = "<group>"; };
+		C5EF778F2F315FCD0097779E /* EmailMasker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailMasker.swift; sourceTree = "<group>"; };
+		C5EF77932F3164DA0097779E /* PublishableBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishableBadge.swift; sourceTree = "<group>"; };
+		C5EF77952F316D610097779E /* FirebaseGoogleVisionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseGoogleVisionService.swift; sourceTree = "<group>"; };
+		C5EF77972F316D7E0097779E /* FirebaseBraveSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseBraveSearchService.swift; sourceTree = "<group>"; };
 		C6DCC0C21D884197B1F0F9AA /* ScalingWarningBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalingWarningBanner.swift; sourceTree = "<group>"; };
 		C83CD55E6264416D6C3C5B99 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C9A499F6282CBE6AC6C45E99 /* RecipeStructureParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeStructureParser.swift; sourceTree = "<group>"; };
@@ -906,6 +923,7 @@
 				C56F3E6B2F04A9E000D19743 /* FirebaseAuth in Frameworks */,
 				C502ED0C2F23C94800BF1696 /* FirebaseCrashlytics in Frameworks */,
 				C5E9553E2F056CA2006CD3C2 /* GoogleSignIn in Frameworks */,
+				C5EF779A2F3178A30097779E /* FirebaseFunctions in Frameworks */,
 				C58316532F119F060096478E /* WhisperKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1086,6 +1104,7 @@
 		6817EB985AE8ED7B976F9F8E /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77892F3148950097779E /* SeasoningDefaults.swift */,
 				1545F669D0B3B03A6D19C66D /* CategoryDetectionService.swift */,
 				CD49D01F1A8B7AC03122C471 /* ScalingEngine.swift */,
 			);
@@ -1209,6 +1228,7 @@
 		840FBE617C3A8A6AC34E86DF /* Clients */ = {
 			isa = PBXGroup;
 			children = (
+				C5A2502E2F317D960091E198 /* FirebaseAIGatewayService.swift */,
 				1C0622CE05CED4E9BF659BE8 /* AnthropicAIService.swift */,
 			);
 			path = Clients;
@@ -1504,6 +1524,7 @@
 		C56F3E762F04AC9800D19743 /* Firebase */ = {
 			isa = PBXGroup;
 			children = (
+				C5A250302F31E0310091E198 /* FirebaseImageGenerationService.swift */,
 				C5A7C0482F189BC700D99B07 /* FirebaseUserProfileService.swift */,
 				C583FFA82F0CAA6E0096478E /* Core */,
 				C583FFAB2F0CAA6E0096478E /* Sync */,
@@ -1617,6 +1638,7 @@
 		C583163E2F119E910096478E /* Augmentation */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77972F316D7E0097779E /* FirebaseBraveSearchService.swift */,
 				C583163B2F119E910096478E /* LocalRecipeSimilarityService.swift */,
 				C583163C2F119E910096478E /* RecipeAugmentationService.swift */,
 				C583163D2F119E910096478E /* WebRecipeSearchService.swift */,
@@ -1979,6 +2001,7 @@
 		C5B3177F2F00D70B0087CF6D /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF778F2F315FCD0097779E /* EmailMasker.swift */,
 				C5830E0E2F103A580096478E /* UserDefaultsKeys.swift */,
 				34D9F9336F8C4D64AB4A135C /* TaskTimeout.swift */,
 				C583FFCE2F0CB7480096478E /* BlurHashEncoder.swift */,
@@ -2152,6 +2175,7 @@
 		C5EF75C32F2EF71B0097779E /* Discovery */ = {
 			isa = PBXGroup;
 			children = (
+				C5EF77932F3164DA0097779E /* PublishableBadge.swift */,
 				C5EF75BA2F2EF71B0097779E /* DiscoveryEntryBanner.swift */,
 				C5EF75BB2F2EF71B0097779E /* DiscoveryView.swift */,
 				C5EF75BC2F2EF71B0097779E /* PublicRecipeBadge.swift */,
@@ -2291,6 +2315,8 @@
 		D1410A1826A4F1BF9127D673 /* AI */ = {
 			isa = PBXGroup;
 			children = (
+				C5A2502C2F317D170091E198 /* GoogleVisionTypes.swift */,
+				C5EF77952F316D610097779E /* FirebaseGoogleVisionService.swift */,
 				C5EF77832F312ED40097779E /* RecipeGenerationService.swift */,
 				C5EF775E2F300CC10097779E /* GoogleVisionOCRService.swift */,
 				C5364C9E2F26FD46003D342E /* CollectionImageGenerator.swift */,
@@ -2442,6 +2468,7 @@
 				C502ED0B2F23C94800BF1696 /* FirebaseCrashlytics */,
 				C502FA532F24184D00BF1696 /* FirebaseRemoteConfig */,
 				C5CE3F322F2D2C9200A2E62F /* Search */,
+				C5EF77992F3178A30097779E /* FirebaseFunctions */,
 			);
 			productName = Heirloom;
 			productReference = 7783D80B7B8AD9C0FBDC0EF7 /* Heirloom.app */;
@@ -2691,6 +2718,7 @@
 				A62B701D73D2B470E79D7C9E /* DinnerParty.swift in Sources */,
 				0087BC50A4075B1B3625FCBE /* DinnerPartyActiveView.swift in Sources */,
 				0F393B4431AECE756D5E8044 /* DinnerPartyDetailView.swift in Sources */,
+				C5EF77942F3164DA0097779E /* PublishableBadge.swift in Sources */,
 				1833BE419904DE4CDCCA6AC6 /* DinnerPartyEditorView.swift in Sources */,
 				795C6BC59A1F195E02DABEC4 /* DinnerPartyListView.swift in Sources */,
 				68C41E2CF7813EE976D96D3E /* DinnerPartyShoppingListView.swift in Sources */,
@@ -2756,6 +2784,7 @@
 				C5EF75C42F2EF71B0097779E /* TrendingRecipe.swift in Sources */,
 				C5EF75C52F2EF71B0097779E /* UnpublishConfirmationSheet.swift in Sources */,
 				C5EF75C62F2EF71B0097779E /* DiscoveryEntryBanner.swift in Sources */,
+				C5A2502F2F317D960091E198 /* FirebaseAIGatewayService.swift in Sources */,
 				C5EF75C72F2EF71B0097779E /* PublicRecipeDetailView.swift in Sources */,
 				C5EF75C82F2EF71B0097779E /* DiscoveryView.swift in Sources */,
 				C5EF75C92F2EF71B0097779E /* ReportConfirmationSheet.swift in Sources */,
@@ -2801,6 +2830,7 @@
 				C583070F2F0EC5480096478E /* FilePathValidator.swift in Sources */,
 				C5CE3F442F2D6DC000A2E62F /* ShareAnalyticsService.swift in Sources */,
 				C583162E2F119A030096478E /* VideoProcessingView.swift in Sources */,
+				C5A250312F31E0310091E198 /* FirebaseImageGenerationService.swift in Sources */,
 				C583162F2F119A030096478E /* SimilarRecipesInfoView.swift in Sources */,
 				C502EB7A2F2341FD00BF1696 /* PremiumBadge.swift in Sources */,
 				C502EB7B2F2341FD00BF1696 /* FeaturePill.swift in Sources */,
@@ -2815,6 +2845,7 @@
 				C5CE3EFD2F2CCE8700A2E62F /* PrivacySettings.swift in Sources */,
 				C58316302F119A030096478E /* AugmentedIngredientEditRow.swift in Sources */,
 				C58316312F119A030096478E /* VideoImportView.swift in Sources */,
+				C5EF77962F316D610097779E /* FirebaseGoogleVisionService.swift in Sources */,
 				C5831EBB2F135F060096478E /* TabNavigationCoordinator.swift in Sources */,
 				C58316322F119A030096478E /* VideoRecipeReviewView.swift in Sources */,
 				C58307102F0EC5480096478E /* URLValidator.swift in Sources */,
@@ -2901,6 +2932,7 @@
 				63134BA2842B383B010D8C02 /* RecipeShareSheet.swift in Sources */,
 				595A6356EEFF0154AED1955E /* RecipeStructureParser.swift in Sources */,
 				1E7D0C95CDBDC0560A371AE2 /* RemindersService.swift in Sources */,
+				C5EF778A2F3148950097779E /* SeasoningDefaults.swift in Sources */,
 				C56887782F06B454006EA0B1 /* FirebaseSyncService+CRDT.swift in Sources */,
 				C5EF77642F304BFC0097779E /* OnboardingDiscoverScreen.swift in Sources */,
 				C5EF77652F304BFC0097779E /* OnboardingShareAndAcceptScreen.swift in Sources */,
@@ -2953,6 +2985,7 @@
 				C5CE3F102F2CD87200A2E62F /* SettingsProfileRow.swift in Sources */,
 				C58324E92F147C640096478E /* VideoProcessingJob.swift in Sources */,
 				C58324EA2F147C640096478E /* ProcessingCheckpoint.swift in Sources */,
+				C5A2502D2F317D170091E198 /* GoogleVisionTypes.swift in Sources */,
 				C5B317622F00C7F30087CF6D /* NetworkMonitor.swift in Sources */,
 				C583FF992F0C9C860096478E /* FlipAffordanceBadge.swift in Sources */,
 				C583FF9A2F0C9C860096478E /* CustomizationOverlayView.swift in Sources */,
@@ -2967,6 +3000,7 @@
 				C56F3EF12F05294500D19743 /* RecipeLineage.swift in Sources */,
 				BA6E197B72A044F15CC9D173 /* ToastView.swift in Sources */,
 				C583FFD92F0CB8910096478E /* AsyncBlurhashImage.swift in Sources */,
+				C5EF77982F316D7E0097779E /* FirebaseBraveSearchService.swift in Sources */,
 				C583FFCD2F0CB5EA0096478E /* StickerAsset.swift in Sources */,
 				7F0DA576A2BA5C4746384423 /* Typography.swift in Sources */,
 				C583FFA22F0CA9870096478E /* FirebaseServiceProtocols.swift in Sources */,
@@ -2982,6 +3016,7 @@
 				C583164B2F119E910096478E /* ClaudeRecipeStructurer.swift in Sources */,
 				C583164C2F119E910096478E /* LocalRecipeSimilarityService.swift in Sources */,
 				C583164D2F119E910096478E /* VideoRecipeProcessor.swift in Sources */,
+				C5EF77902F315FCD0097779E /* EmailMasker.swift in Sources */,
 				C5DBE4AD2F1A7EEE00C1B6BA /* PDFImageExtractor.swift in Sources */,
 				C583164E2F119E910096478E /* WebRecipeSearchService.swift in Sources */,
 				C583164F2F119E910096478E /* WhisperKitTranscriptionService.swift in Sources */,
@@ -3489,6 +3524,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C5E9553C2F056A1A006CD3C2 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignIn;
+		};
+		C5EF77992F3178A30097779E /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C56F3E642F04A46600D19743 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
