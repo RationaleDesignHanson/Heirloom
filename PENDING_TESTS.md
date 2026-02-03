@@ -22,6 +22,67 @@
 
 ---
 
+## ✅ **DALL-E IMAGE GENERATION MIGRATION** (2026-02-03)
+
+**Status**: Migration complete and deployed to production!
+
+**Changes Made:**
+1. ✅ Created `firebase/functions/dalle-image.ts` Cloud Function using OpenAI SDK
+2. ✅ Created `FirebaseImageGenerationService.swift` for iOS client
+3. ✅ Migrated `RecipeImageGenerator` to use Firebase Functions
+4. ✅ Migrated `CollectionImageGenerator` to use Firebase Functions
+5. ✅ Removed `DEFAULT_OPENAI_KEY` from Config.xcconfig
+6. ✅ OpenAI API key now secured in Google Secret Manager (version 5)
+
+**Issues Fixed:**
+- ✅ Fixed OpenAI API key with embedded newline characters (created clean version 5)
+- ✅ Firebase Function successfully calls DALL-E 3 API
+- ✅ Recipe image generation working in production
+- ✅ Collection background generation working in production
+
+**Deployment:**
+- ✅ Function deployed to `us-central1`
+- ✅ Secret `OPENAI_API_KEY` properly attached to function
+- ✅ Tested successfully with real recipe generation
+
+**Firebase Function:**
+- Name: `dalleGenerateImage`
+- Region: `us-central1`
+- Model: DALL-E 3
+- Default size: 1792x1024 (landscape)
+- Quality: standard (can be set to 'hd')
+- Rate limit: 50 images per user per day (enforced server-side)
+
+---
+
+## ✅ **UX POLISH - RECIPE GENERATION** (2026-02-03)
+
+**Status**: Improvements implemented and committed!
+
+**Changes Made:**
+
+### 1. Progress Banner Positioning ✅
+- **Before**: Recipe generation banner appeared at bottom of screen
+- **After**: Banner now appears at top using `.safeAreaInset(edge: .top)`
+- **Files Changed**:
+  - `HeirloomApp.swift` - Moved banner from VStack to safeAreaInset
+  - `RecipeGenerationBanner.swift` - Updated transition and shadow for top positioning
+
+### 2. Generated Recipes Collection Button ✅
+- **Before**: Add button opened submenu with import options
+- **After**: Add button now opens recipe generator directly
+- **Rationale**: "Generated Recipes" collection is specifically for AI-generated content
+- **Implementation**: Added special case in `handleAddRecipeToCollection` for "Generated Recipes" collection
+- **Files Changed**:
+  - `CollectionsListView.swift` - Added smart routing logic (line ~1206)
+
+**User Impact:**
+- More intuitive UX - banner visible at top like notifications
+- Faster workflow - one tap to generate in dedicated collection
+- Consistent with user expectations for collection-specific actions
+
+---
+
 ## Date: 2026-02-02
 ## Priority: CRITICAL - MUST TEST BEFORE REMOVING API KEYS
 
@@ -77,9 +138,12 @@
 
 **Known Issues** (non-blocking):
 - Silly recipes not silly enough (looks too good)
-- Image generation may not be working (recipe appears before image)
-- Progress indicator at bottom (correct per design)
 - UI confusion: need separate silly/normal states
+
+**✅ RESOLVED** (2026-02-03):
+- ✅ Image generation now working via Firebase Functions (DALL-E 3)
+- ✅ Progress banner moved from bottom to top using .safeAreaInset
+- ✅ "Generated Recipes" collection add button now opens generator directly
 
 ---
 
