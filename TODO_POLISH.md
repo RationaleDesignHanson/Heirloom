@@ -38,5 +38,35 @@
 
 ---
 
+## Switch Cookbook Imports to Haiku (Cost Optimization)
+**Priority**: P2 (Cost)
+**Description**: Cookbook PDF imports currently use Claude Sonnet 4.5 (~$6.30 per 200 pages), could use Haiku (~$0.60) for 10x cost savings
+- Current: Sonnet 4.5 for all vision tasks including PDFs
+- Proposed: Haiku for PDF cookbook imports (still very accurate for printed recipes)
+- Estimated savings: ~$5.70 per 200-page cookbook (~90% reduction)
+
+**Cost Comparison**:
+- Sonnet 4.5: $3.00 input / $15.00 output per 1M tokens
+- Haiku: $0.25 input / $1.25 output per 1M tokens
+
+**Implementation**:
+- Update AIConfiguration.swift `model(for:)` function
+- Change `.pdfVision` case from Sonnet to Haiku
+- Keep Sonnet for video/handwriting (where quality matters more)
+- Test accuracy on sample cookbooks before deploying
+
+**Testing Criteria**:
+- Test on 20+ cookbook pages of varying quality
+- Verify ingredient extraction accuracy (>95%)
+- Verify instruction extraction accuracy (>95%)
+- Check handling of multi-column layouts
+- Ensure recipe title extraction works
+
+**Location**: AIConfiguration.swift:268
+
+**Status**: Deferred until testing complete with Sonnet baseline
+
+---
+
 *Created: 2026-02-03*
 *Deferred from: API Gateway Migration testing*
