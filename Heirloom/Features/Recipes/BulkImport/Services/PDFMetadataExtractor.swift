@@ -159,6 +159,21 @@ class PDFMetadataExtractor {
                         continue
                     }
 
+                    // Skip obvious recipe section headers
+                    let recipeHeaders = ["ingredients", "directions", "instructions", "preparation",
+                                        "method", "serves", "servings", "yield", "cook time",
+                                        "prep time", "total time", "qty", "quantity", "amount",
+                                        "notes", "tips", "variations"]
+                    let containsOnlyHeaders = recipeHeaders.contains { header in
+                        let headerPattern = "\\b\(header)\\b"
+                        return lowercased.range(of: headerPattern, options: [.regularExpression, .caseInsensitive]) != nil
+                    }
+                    let isHeaderList = lowercased.split(separator: ":").count > 2 // Multiple colons suggests header list
+                    if containsOnlyHeaders || isHeaderList {
+                        Log.debug("Skipping recipe header/list", category: .import, metadata: ["line": line])
+                        continue
+                    }
+
                     // Skip obvious taglines (repetitive patterns like "Cook Together Eat Together")
                     let words = line.split(separator: " ")
                     let uniqueWords = Set(words.map { $0.lowercased() })
@@ -223,6 +238,16 @@ class PDFMetadataExtractor {
         if let cleanAuthor = author?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(.punctuationCharacters)),
            !cleanAuthor.isEmpty {
             author = cleanAuthor
+        }
+
+        // Final validation: Reject title if it looks like a recipe header
+        if let currentTitle = title {
+            let lowercased = currentTitle.lowercased()
+            let suspiciousPatterns = ["ingredients:", "directions:", "qty:", "amount:", "cook time:", "prep time:"]
+            if suspiciousPatterns.contains(where: { lowercased.contains($0) }) {
+                Log.warning("Rejecting suspicious title that looks like recipe header", category: .import, metadata: ["rejected_title": currentTitle])
+                title = nil
+            }
         }
 
         // Return metadata if we found at least one field
