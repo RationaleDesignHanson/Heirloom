@@ -78,6 +78,11 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
     private let db: Firestore
     // private let functions: Functions  // TODO: Re-enable when Firebase Functions package is added
 
+    /// Current user ID for filtering out own recipes
+    private var currentUserId: String? {
+        FirebaseAuthService.shared.currentUserId
+    }
+
     // MARK: - Cache
 
     private var trendingCache: CachedResult?
@@ -94,6 +99,17 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
         var isExpired: Bool {
             Date().timeIntervalSince(timestamp) > 5 * 60
         }
+    }
+
+    // MARK: - Filtering
+
+    /// Filter out current user's own recipes from discovery results
+    /// Users should not discover their own recipes in the feed
+    private func filterOutOwnRecipes(_ recipes: [PublicRecipe]) -> [PublicRecipe] {
+        guard let userId = currentUserId else {
+            return recipes
+        }
+        return recipes.filter { $0.ownerId != userId }
     }
 
     // MARK: - Initialization
@@ -113,7 +129,7 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
         // Check cache for first page only
         if lastDocument == nil, let cached = trendingCache, !cached.isExpired {
             Log.debug("Trending cache hit", category: .social)
-            return (cached.recipes, nil)
+            return (filterOutOwnRecipes(cached.recipes), nil)
         }
 
         var query = db.collection("publicRecipes")
@@ -126,17 +142,21 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
 
         do {
             let snapshot = try await query.getDocuments()
-            let recipes = try snapshot.documents.compactMap { doc -> PublicRecipe? in
+            let allRecipes = try snapshot.documents.compactMap { doc -> PublicRecipe? in
                 try PublicRecipe(from: doc)
             }
 
-            // Cache first page
+            // Cache first page (unfiltered for user-independent cache)
             if lastDocument == nil {
-                trendingCache = CachedResult(recipes: recipes, timestamp: Date())
+                trendingCache = CachedResult(recipes: allRecipes, timestamp: Date())
             }
+
+            // Filter out current user's own recipes
+            let recipes = filterOutOwnRecipes(allRecipes)
 
             Log.info("Fetched trending recipes", category: .social, metadata: [
                 "count": recipes.count,
+                "filtered_out": allRecipes.count - recipes.count,
                 "hasMore": !snapshot.documents.isEmpty
             ])
 
@@ -156,7 +176,7 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
         // Check cache for first page only
         if lastDocument == nil, let cached = newCache, !cached.isExpired {
             Log.debug("New recipes cache hit", category: .social)
-            return (cached.recipes, nil)
+            return (filterOutOwnRecipes(cached.recipes), nil)
         }
 
         var query = db.collection("publicRecipes")
@@ -169,17 +189,21 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
 
         do {
             let snapshot = try await query.getDocuments()
-            let recipes = try snapshot.documents.compactMap { doc -> PublicRecipe? in
+            let allRecipes = try snapshot.documents.compactMap { doc -> PublicRecipe? in
                 try PublicRecipe(from: doc)
             }
 
-            // Cache first page
+            // Cache first page (unfiltered for user-independent cache)
             if lastDocument == nil {
-                newCache = CachedResult(recipes: recipes, timestamp: Date())
+                newCache = CachedResult(recipes: allRecipes, timestamp: Date())
             }
 
+            // Filter out current user's own recipes
+            let recipes = filterOutOwnRecipes(allRecipes)
+
             Log.info("Fetched new recipes", category: .social, metadata: [
-                "count": recipes.count
+                "count": recipes.count,
+                "filtered_out": allRecipes.count - recipes.count
             ])
 
             let lastDoc = snapshot.documents.last
@@ -198,7 +222,7 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
         // Check cache for first page only
         if lastDocument == nil, let cached = popularCache, !cached.isExpired {
             Log.debug("Popular recipes cache hit", category: .social)
-            return (cached.recipes, nil)
+            return (filterOutOwnRecipes(cached.recipes), nil)
         }
 
         var query = db.collection("publicRecipes")
@@ -212,17 +236,21 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
 
         do {
             let snapshot = try await query.getDocuments()
-            let recipes = try snapshot.documents.compactMap { doc -> PublicRecipe? in
+            let allRecipes = try snapshot.documents.compactMap { doc -> PublicRecipe? in
                 try PublicRecipe(from: doc)
             }
 
-            // Cache first page
+            // Cache first page (unfiltered for user-independent cache)
             if lastDocument == nil {
-                popularCache = CachedResult(recipes: recipes, timestamp: Date())
+                popularCache = CachedResult(recipes: allRecipes, timestamp: Date())
             }
 
+            // Filter out current user's own recipes
+            let recipes = filterOutOwnRecipes(allRecipes)
+
             Log.info("Fetched popular recipes", category: .social, metadata: [
-                "count": recipes.count
+                "count": recipes.count,
+                "filtered_out": allRecipes.count - recipes.count
             ])
 
             let lastDoc = snapshot.documents.last
@@ -248,7 +276,7 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
         let cacheKey = normalizedQuery
         if lastDocument == nil, let cached = searchCache[cacheKey], !cached.isExpired {
             Log.debug("Search cache hit", category: .social, metadata: ["query": normalizedQuery])
-            return (cached.recipes, nil)
+            return (filterOutOwnRecipes(cached.recipes), nil)
         }
 
         // Split query into words for multi-term search
@@ -284,10 +312,14 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
                 }
             }
 
+            // Filter out current user's own recipes
+            let filteredCount = recipes.count
+            recipes = filterOutOwnRecipes(recipes)
+
             // Trim to limit
             recipes = Array(recipes.prefix(limit))
 
-            // Cache first page
+            // Cache first page (unfiltered for user-independent cache)
             if lastDocument == nil {
                 searchCache[cacheKey] = CachedResult(recipes: recipes, timestamp: Date())
             }
@@ -295,7 +327,8 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
             Log.info("Search completed", category: .social, metadata: [
                 "query": normalizedQuery,
                 "terms": searchTerms.count,
-                "results": recipes.count
+                "results": recipes.count,
+                "filtered_out": filteredCount - recipes.count
             ])
 
             let lastDoc = snapshot.documents.last

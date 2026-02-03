@@ -1465,12 +1465,13 @@ final class ImportJobManager: ObservableObject {
         }
 
         // Convert ALL detected recipes to Recipe models
+        // PDF imports use .cookbook sourceType to prevent public sharing (copyright protection)
         Log.info("🔄 Converting extracted recipes to Recipe models", category: .import, metadata: [
             "item_id": item.id.uuidString,
             "recipe_count": result.recipes.count
         ])
         let recipes = result.recipes.map { extractedRecipe in
-            createRecipe(from: extractedRecipe, sourceImage: image, sourceType: .scan)
+            createRecipe(from: extractedRecipe, sourceImage: image, sourceType: .cookbook)
         }
 
         Log.info("✅ Recipe models created", category: .import, metadata: [
@@ -1502,10 +1503,11 @@ final class ImportJobManager: ObservableObject {
     }
 
     /// Create a Recipe from pre-extracted text pipeline data (skips Vision API)
+    /// Uses .cookbook sourceType for PDF imports to prevent public sharing (copyright protection)
     private func createRecipeFromPreExtractedData(_ item: ImportItem) -> Recipe {
         let recipe = Recipe(
             title: item.preExtractedTitle ?? "Untitled Recipe",
-            sourceType: .scan,
+            sourceType: .cookbook,
             sourceURL: nil,
             instructions: item.preExtractedInstructions ?? [],
             servings: item.preExtractedServings,
