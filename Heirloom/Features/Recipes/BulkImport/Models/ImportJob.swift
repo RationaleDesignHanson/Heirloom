@@ -61,6 +61,9 @@ final class ImportJob {
     /// Timestamp when interruption occurred
     var interruptedAt: Date?
 
+    /// Number of credits deducted for this import job
+    var creditsDeducted: Int = 0
+
     // MARK: - Computed Properties
     var progress: Double {
         guard totalItems > 0 else { return 0 }

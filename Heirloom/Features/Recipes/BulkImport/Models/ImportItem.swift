@@ -141,6 +141,33 @@ final class ImportItem {
         recipeIDs.first
     }
 
+    // MARK: - Pre-Extracted Data (Text Pipeline)
+    /// Recipe title extracted via text pipeline (skips Vision API)
+    var preExtractedTitle: String?
+
+    /// Ingredients extracted via text pipeline
+    var preExtractedIngredients: [String]?
+
+    /// Instructions extracted via text pipeline
+    var preExtractedInstructions: [String]?
+
+    /// Servings extracted via text pipeline
+    var preExtractedServings: String?
+
+    /// Prep time extracted via text pipeline
+    var preExtractedPrepTime: String?
+
+    /// Cook time extracted via text pipeline
+    var preExtractedCookTime: String?
+
+    /// Notes extracted via text pipeline
+    var preExtractedNotes: String?
+
+    /// Whether this item has pre-extracted data (from text pipeline)
+    var hasPreExtractedData: Bool {
+        preExtractedTitle != nil && preExtractedIngredients != nil
+    }
+
     // MARK: - AI Suggestions (Phase 3)
     /// AI-suggested collections for this recipe
     var suggestedCollections: [String]?

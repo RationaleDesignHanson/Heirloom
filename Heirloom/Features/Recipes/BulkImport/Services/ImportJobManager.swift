@@ -188,14 +188,17 @@ final class ImportJobManager: ObservableObject {
     ///   - pdfURLs: Array of PDF file URLs
     ///   - jobName: Name for the job
     ///   - cookbookName: Optional cookbook name for auto-categorization
+    ///   - collectionType: Optional collection type
     ///   - context: SwiftData ModelContext for persistence
+    ///   - costBreakdown: Optional cost breakdown for credit deduction
     /// - Returns: The created ImportJob (already inserted and saved)
     func createAndAnalyzePDFJob(
         pdfURLs: [URL],
         jobName: String,
         cookbookName: String?,
         collectionType: CollectionType? = nil,
-        context: ModelContext
+        context: ModelContext,
+        costBreakdown: PDFCostCalculator.CostBreakdown? = nil
     ) async throws -> ImportJob {
         // STEP 1: Create job immediately (so banner appears)
         let job = ImportJob(jobName: jobName, continueOnError: true)
@@ -220,6 +223,20 @@ final class ImportJobManager: ObservableObject {
             "pdf_count": pdfURLs.count
         ])
 
+        // STEP 1.5: Deduct credits if cost breakdown provided
+        if let breakdown = costBreakdown, breakdown.totalCredits > 0 {
+            try await deductCreditsForImport(
+                credits: breakdown.totalCredits,
+                context: context
+            )
+            job.creditsDeducted = breakdown.totalCredits
+            try context.save()
+        }
+
+        // STEP 1.6: Copy PDFs to stable location (temp files get cleaned up during long operations)
+        // Returns tuples of (originalURL, stableURL) to maintain classification lookup
+        let pdfURLMapping = try copyPDFsToStableLocation(pdfURLs, jobId: job.id)
+
         // STEP 2: Validate PDFs quickly
         job.phase = .validation
         job.phaseProgress = 1.0
@@ -235,13 +252,13 @@ final class ImportJobManager: ObservableObject {
         var totalPagesAcrossAllPDFs = 0
 
         // Count total pages first for accurate progress
-        for pdfURL in pdfURLs {
-            guard let pdfDocument = PDFDocument(url: pdfURL) else { continue }
+        for (_, stableURL) in pdfURLMapping {
+            guard let pdfDocument = PDFDocument(url: stableURL) else { continue }
             totalPagesAcrossAllPDFs += pdfDocument.pageCount
         }
 
-        // Process each PDF
-        for pdfURL in pdfURLs {
+        // Process each PDF (using stable copies, but original URLs for classification lookup)
+        for (originalURL, pdfURL) in pdfURLMapping {
             // Extract cookbook metadata from front matter
             let metadataExtractor = PDFMetadataExtractor()
             let cookbookMetadata = await metadataExtractor.extractMetadata(from: pdfURL)
@@ -284,102 +301,47 @@ final class ImportJobManager: ObservableObject {
                 }
             }
 
-            // Render PDF pages in batches and analyze incrementally
-            Log.info("Starting batched PDF processing", category: .import, metadata: [
-                "file": pdfURL.lastPathComponent
-            ])
+            // Check if this PDF is text-rich (use text pipeline) or scanned (use Vision pipeline)
+            // Use original URL for classification lookup since that's what PDFCostCalculator used
+            let pdfType = costBreakdown?.classifications[originalURL]
+            let isTextRich = pdfType == .textRich
 
-            let pdfProcessor = ServiceContainer.shared.resolve(PDFProcessor.self)
+            if isTextRich {
+                // TEXT-RICH PATH: Use fast text extraction pipeline
+                Log.info("Using TEXT pipeline for text-rich PDF", category: .import, metadata: [
+                    "file": pdfURL.lastPathComponent
+                ])
 
-            // Process PDF in batches to avoid loading all pages into memory
-            try await pdfProcessor.renderPDFPagesInBatches(
-                from: pdfURL,
-                batchSize: 3
-            ) { [self] batch in
-                // Analyze this batch and maintain state
-                try await self.multiPageAnalyzer.processBatch(
-                    batch,
-                    progressCallback: { currentPage in
-                        Task { @MainActor in
-                            totalPagesProcessed += 1
-                            job.phaseProgress = Double(totalPagesProcessed) / Double(totalPagesAcrossAllPDFs)
-
-                            // Save checkpoint after each page analyzed
-                            job.checkpoint?.addCompletedPage(currentPage)
-                            try? context.save()
-
-                            Log.debug("Checkpointed page", category: .import, metadata: [
-                                "page": currentPage,
-                                "total_analyzed": job.checkpoint?.analyzedPageNumbers.count ?? 0
-                            ])
-                        }
-                    }
+                let items = try await processTextRichPDF(
+                    pdfURL: pdfURL,
+                    cookbookMetadata: cookbookMetadata,
+                    job: job,
+                    context: context,
+                    totalPagesAcrossAllPDFs: totalPagesAcrossAllPDFs,
+                    totalPagesProcessed: &totalPagesProcessed
                 )
-            }
+                allItems.append(contentsOf: items)
 
-            // Finalize groups after all batches are processed
-            let recipeGroups = multiPageAnalyzer.finalizeGroups()
-
-            Log.info("Multi-page analysis complete", category: .import, metadata: [
-                "file": pdfURL.lastPathComponent,
-                "recipe_groups": recipeGroups.count,
-                "multi_page_recipes": recipeGroups.filter { $0.isMultiPage }.count
-            ])
-
-            // Create ImportItems in batches to avoid loading all images into memory
-            // Process 5 recipe groups at a time
-            let groupBatches = recipeGroups.chunked(into: 5)
-
-            for (batchIndex, groupBatch) in groupBatches.enumerated() {
-                Log.info("Creating import items batch", category: .import, metadata: [
+            } else {
+                // SCANNED/MIXED PATH: Use Vision API pipeline
+                Log.info("Using VISION pipeline for scanned/mixed PDF", category: .import, metadata: [
                     "file": pdfURL.lastPathComponent,
-                    "batch": batchIndex + 1,
-                    "total_batches": groupBatches.count,
-                    "recipes_in_batch": groupBatch.count
+                    "type": pdfType?.displayName ?? "unknown"
                 ])
 
-                for group in groupBatch {
-                    let combinedImage = group.pageCount == 1 ? group.pages[0] : group.combinedImage()
-                    guard let imageData = combinedImage.jpegData(compressionQuality: 0.9) else {
-                        Log.warning("Failed to create image data for recipe group", category: .import, metadata: [
-                            "file": pdfURL.lastPathComponent,
-                            "pages": group.pageRange
-                        ])
-                        continue
-                    }
-
-                    let item = ImportItem(
-                        source: .pdf,
-                        imageData: imageData,
-                        pageNumber: group.startPage,
-                        totalPages: group.pageCount,
-                        isMultiPageRecipe: group.isMultiPage
-                    )
-
-                    // Apply cookbook metadata
-                    item.cookbookTitle = cookbookMetadata?.title
-                    item.cookbookAuthor = cookbookMetadata?.author
-
-                    item.job = job
-                    context.insert(item)
-                    allItems.append(item)
-
-                    Log.info("Created import item for recipe group", category: .import, metadata: [
-                        "file": pdfURL.lastPathComponent,
-                        "title": group.title,
-                        "pages": group.pageRange,
-                        "is_multi_page": group.isMultiPage
-                    ])
+                let items = try await processScannedPDF(
+                    pdfURL: pdfURL,
+                    cookbookMetadata: cookbookMetadata,
+                    job: job,
+                    context: context,
+                    totalPagesAcrossAllPDFs: totalPagesAcrossAllPDFs,
+                    pagesAlreadyProcessed: totalPagesProcessed
+                )
+                allItems.append(contentsOf: items)
+                // Update total pages after Vision processing
+                if let document = PDFDocument(url: pdfURL) {
+                    totalPagesProcessed += document.pageCount
                 }
-
-                // Save batch to database and force memory cleanup
-                try context.save()
-                await Task.yield()
-
-                Log.info("Saved import items batch to database", category: .import, metadata: [
-                    "file": pdfURL.lastPathComponent,
-                    "batch": batchIndex + 1
-                ])
             }
         }
 
@@ -395,6 +357,210 @@ final class ImportJobManager: ObservableObject {
         ])
 
         return job
+    }
+
+    // MARK: - Text-Rich PDF Processing (Fast Path)
+
+    /// Process a text-rich PDF using text extraction (much faster than Vision)
+    private func processTextRichPDF(
+        pdfURL: URL,
+        cookbookMetadata: CookbookMetadata?,
+        job: ImportJob,
+        context: ModelContext,
+        totalPagesAcrossAllPDFs: Int,
+        totalPagesProcessed: inout Int
+    ) async throws -> [ImportItem] {
+        var items: [ImportItem] = []
+
+        // Maintain security-scoped access for the entire operation
+        let needsSecurityScope = pdfURL.startAccessingSecurityScopedResource()
+        defer {
+            if needsSecurityScope {
+                pdfURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        // Step 1: Extract text from all pages (pass useOCRFallback but skip internal security scope)
+        let textExtractor = PDFTextExtractor()
+        let extraction = try await textExtractor.extractText(from: pdfURL, useOCRFallback: true)
+
+        Log.info("Text extraction complete", category: .import, metadata: [
+            "file": pdfURL.lastPathComponent,
+            "total_chars": extraction.totalCharCount,
+            "native_pages": extraction.nativeCount,
+            "ocr_pages": extraction.ocrCount
+        ])
+
+        // Update progress
+        totalPagesProcessed += extraction.pages.count
+        job.phaseProgress = Double(totalPagesProcessed) / Double(totalPagesAcrossAllPDFs)
+        try? context.save()
+
+        // Step 2: Analyze text to find recipe boundaries
+        let aiService = ServiceContainer.shared.resolve(AIServiceProtocol.self)
+        let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
+        let configuration = ServiceContainer.shared.resolve(AIConfigurationProtocol.self)
+
+        let batchAnalyzer = CookbookBatchAnalyzer(
+            aiService: aiService,
+            analytics: analytics,
+            configuration: configuration
+        )
+
+        let analysisResult = try await batchAnalyzer.analyzeAndExtract(from: extraction)
+
+        Log.info("Text batch analysis complete", category: .import, metadata: [
+            "file": pdfURL.lastPathComponent,
+            "recipes_found": analysisResult.recipeCount,
+            "multi_page_count": analysisResult.multiPageCount
+        ])
+
+        // Step 3: Extract images for each recipe
+        let imageCropper = RecipeImageCropper()
+        let imageResults = try await imageCropper.extractImagesForRecipes(
+            boundaries: analysisResult.boundaries,
+            pdfURL: pdfURL
+        )
+
+        // Step 4: Create ImportItems for each recipe
+        for (index, boundary) in analysisResult.boundaries.enumerated() {
+            // Get the extracted recipe data
+            let extractedRecipe = index < analysisResult.extractedRecipes.count
+                ? analysisResult.extractedRecipes[index]
+                : nil
+
+            // Get the image result
+            let imageResult = imageResults.first { $0.recipeTitle == boundary.title }
+
+            // Get image data from cropped food image or first page
+            let imageData: Data
+            if let croppedImage = imageResult?.croppedImage,
+               let data = croppedImage.jpegData(compressionQuality: 0.9) {
+                imageData = data
+            } else if let firstPageImage = imageResult?.pageImages.first,
+                      let data = firstPageImage.jpegData(compressionQuality: 0.9) {
+                imageData = data
+            } else {
+                // Fallback: create a placeholder 1x1 transparent image
+                imageData = Data()
+            }
+
+            let item = ImportItem(
+                source: .pdf,
+                imageData: imageData,
+                pageNumber: boundary.startPage,
+                totalPages: boundary.endPage - boundary.startPage + 1,
+                isMultiPageRecipe: boundary.isMultiPage
+            )
+
+            // Store pre-extracted recipe data to skip Vision API extraction later
+            if let recipe = extractedRecipe {
+                item.preExtractedTitle = recipe.title
+                item.preExtractedIngredients = recipe.ingredients
+                item.preExtractedInstructions = recipe.instructions
+                item.preExtractedServings = recipe.servings
+                item.preExtractedPrepTime = recipe.prepTime
+                item.preExtractedCookTime = recipe.cookTime
+                item.preExtractedNotes = recipe.notes
+            }
+
+            // Apply cookbook metadata
+            item.cookbookTitle = cookbookMetadata?.title
+            item.cookbookAuthor = cookbookMetadata?.author
+
+            item.job = job
+            context.insert(item)
+            items.append(item)
+
+            Log.info("Created import item from text extraction", category: .import, metadata: [
+                "file": pdfURL.lastPathComponent,
+                "title": boundary.title,
+                "pages": "\(boundary.startPage)-\(boundary.endPage)",
+                "has_pre_extracted": extractedRecipe != nil
+            ])
+        }
+
+        try context.save()
+        return items
+    }
+
+    // MARK: - Scanned PDF Processing (Vision Path)
+
+    /// Process a scanned/mixed PDF using Vision API (slower but necessary for images)
+    private func processScannedPDF(
+        pdfURL: URL,
+        cookbookMetadata: CookbookMetadata?,
+        job: ImportJob,
+        context: ModelContext,
+        totalPagesAcrossAllPDFs: Int,
+        pagesAlreadyProcessed: Int
+    ) async throws -> [ImportItem] {
+        var items: [ImportItem] = []
+        var localPagesProcessed = pagesAlreadyProcessed
+
+        let pdfProcessor = ServiceContainer.shared.resolve(PDFProcessor.self)
+
+        // Process PDF in batches to avoid loading all pages into memory
+        try await pdfProcessor.renderPDFPagesInBatches(
+            from: pdfURL,
+            batchSize: 3
+        ) { [self] batch in
+            // Analyze this batch and maintain state
+            try await self.multiPageAnalyzer.processBatch(
+                batch,
+                progressCallback: { currentPage in
+                    Task { @MainActor in
+                        localPagesProcessed += 1
+                        job.phaseProgress = Double(localPagesProcessed) / Double(totalPagesAcrossAllPDFs)
+
+                        // Save checkpoint after each page analyzed
+                        job.checkpoint?.addCompletedPage(currentPage)
+                        try? context.save()
+                    }
+                }
+            )
+        }
+
+        // Finalize groups after all batches are processed
+        let recipeGroups = multiPageAnalyzer.finalizeGroups()
+
+        Log.info("Vision analysis complete", category: .import, metadata: [
+            "file": pdfURL.lastPathComponent,
+            "recipe_groups": recipeGroups.count,
+            "multi_page_recipes": recipeGroups.filter { $0.isMultiPage }.count
+        ])
+
+        // Create ImportItems in batches
+        let groupBatches = recipeGroups.chunked(into: 5)
+
+        for groupBatch in groupBatches {
+            for group in groupBatch {
+                let combinedImage = group.pageCount == 1 ? group.pages[0] : group.combinedImage()
+                guard let imageData = combinedImage.jpegData(compressionQuality: 0.9) else {
+                    continue
+                }
+
+                let item = ImportItem(
+                    source: .pdf,
+                    imageData: imageData,
+                    pageNumber: group.startPage,
+                    totalPages: group.pageCount,
+                    isMultiPageRecipe: group.isMultiPage
+                )
+
+                item.cookbookTitle = cookbookMetadata?.title
+                item.cookbookAuthor = cookbookMetadata?.author
+
+                item.job = job
+                context.insert(item)
+                items.append(item)
+            }
+
+            try context.save()
+            await Task.yield()
+        }
+
+        return items
     }
 
     /// Create a new import job from camera captures
@@ -525,52 +691,88 @@ final class ImportJobManager: ObservableObject {
             return
         }
 
-        // PHASE 1: Validation (quick - mostly already done in PDFImportView)
-        job.phase = .validation
-        job.phaseProgress = 1.0 // Complete instantly (validation already done)
-        try context.save()
+        // Create and track the main processing task
+        let processingTask = Task { @MainActor in
+            // PHASE 1: Validation (quick - mostly already done in PDFImportView)
+            job.phase = .validation
+            job.phaseProgress = 1.0 // Complete instantly (validation already done)
+            try? context.save()
 
-        // PHASE 2: Analysis (extract food images from PDF pages)
-        job.phase = .analysis
-        job.phaseProgress = 0.0
-        try context.save()
-
-        await analyzeAndExtractImages(job: job, items: items, context: context)
-
-        job.phaseProgress = 1.0
-        try context.save()
-
-        // PHASE 3: Extraction (AI recipe extraction)
-        job.phase = .extraction
-        job.phaseProgress = 0.0
-        try context.save()
-
-        // Process items with concurrency control
-        await withTaskGroup(of: Void.self) { group in
-            var activeCount = 0
-
-            for item in items {
-                // Wait if at max concurrent imports
-                while activeCount >= maxConcurrentImports {
-                    await group.next()
-                    activeCount -= 1
-                }
-
-                // Wait for rate limit
-                await waitForRateLimit()
-
-                // Start import task
-                activeCount += 1
-                group.addTask { @MainActor in
-                    await self.processItem(item, job: job, context: context)
-                }
+            // Check for cancellation
+            guard !Task.isCancelled else {
+                Log.info("Job cancelled during validation phase", category: .import)
+                return
             }
 
-            // Wait for all tasks to complete
-            await group.waitForAll()
+            // PHASE 2: Analysis (extract food images from PDF pages)
+            job.phase = .analysis
+            job.phaseProgress = 0.0
+            try? context.save()
+
+            await analyzeAndExtractImages(job: job, items: items, context: context)
+
+            // Check for cancellation
+            guard !Task.isCancelled else {
+                Log.info("Job cancelled during analysis phase", category: .import)
+                return
+            }
+
+            job.phaseProgress = 1.0
+            try? context.save()
+
+            // PHASE 3: Extraction (AI recipe extraction)
+            job.phase = .extraction
+            job.phaseProgress = 0.0
+            try? context.save()
+
+            // Check for cancellation
+            guard !Task.isCancelled else {
+                Log.info("Job cancelled before extraction phase", category: .import)
+                return
+            }
+
+            // Process items with concurrency control
+            await withTaskGroup(of: Void.self) { group in
+                var activeCount = 0
+
+                for item in items {
+                    // Check for cancellation before processing next item
+                    guard !Task.isCancelled else {
+                        Log.info("Job cancelled during extraction phase", category: .import)
+                        return
+                    }
+
+                    // Wait if at max concurrent imports
+                    while activeCount >= maxConcurrentImports {
+                        await group.next()
+                        activeCount -= 1
+                    }
+
+                    // Wait for rate limit
+                    await waitForRateLimit()
+
+                    // Start import task
+                    activeCount += 1
+                    group.addTask { @MainActor in
+                        await self.processItem(item, job: job, context: context)
+                    }
+                }
+
+                // Wait for all tasks to complete
+                await group.waitForAll()
+            }
+
+            // Only complete job if not cancelled
+            if !Task.isCancelled {
+                await completeJob(job, context: context)
+            }
         }
 
-        await completeJob(job, context: context)
+        // Store the task so it can be cancelled
+        currentTasks[job.id] = processingTask
+
+        // Wait for the task to complete
+        await processingTask.value
     }
 
     /// Pause the current job
@@ -1198,6 +1400,35 @@ final class ImportJobManager: ObservableObject {
     /// Process PDF page import
     /// - Returns: Array of recipes extracted from the PDF page (may be multiple if page contains multiple recipes)
     private func processPDFPage(_ item: ImportItem) async throws -> [Recipe] {
+        // Check if this item has pre-extracted data from text pipeline (FAST PATH)
+        if item.hasPreExtractedData {
+            Log.info("📄 Using PRE-EXTRACTED data (text pipeline)", category: .import, metadata: [
+                "item_id": item.id.uuidString,
+                "title": item.preExtractedTitle ?? "nil",
+                "page_number": item.pageNumber ?? -1
+            ])
+
+            // Create recipe directly from pre-extracted data
+            let recipe = createRecipeFromPreExtractedData(item)
+
+            // Still need to parse ingredients for scaling
+            await parseIngredientsImmediately(for: recipe)
+
+            // Save image if available
+            if let imageData = item.imageData,
+               let image = UIImage(data: imageData) {
+                await extractFoodImage(from: image, for: recipe)
+            }
+
+            Log.info("✅ Recipe created from pre-extracted data", category: .import, metadata: [
+                "item_id": item.id.uuidString,
+                "title": recipe.title
+            ])
+
+            return [recipe]
+        }
+
+        // SLOW PATH: Use Vision API for scanned/image-based PDFs
         guard let imageData = item.imageData else {
             throw ImportJobError.missingImageData
         }
@@ -1210,7 +1441,7 @@ final class ImportJobManager: ObservableObject {
         let detected = try await aiRecipeExtractor.detectRecipes(from: image)
 
         // Extract recipe(s) from image
-        Log.info("📝 Extracting recipes from image", category: .import, metadata: [
+        Log.info("📝 Extracting recipes via VISION API", category: .import, metadata: [
             "item_id": item.id.uuidString,
             "detected_count": detected.count
         ])
@@ -1268,6 +1499,43 @@ final class ImportJobManager: ObservableObject {
         }
 
         return recipes
+    }
+
+    /// Create a Recipe from pre-extracted text pipeline data (skips Vision API)
+    private func createRecipeFromPreExtractedData(_ item: ImportItem) -> Recipe {
+        let recipe = Recipe(
+            title: item.preExtractedTitle ?? "Untitled Recipe",
+            sourceType: .scan,
+            sourceURL: nil,
+            instructions: item.preExtractedInstructions ?? [],
+            servings: item.preExtractedServings,
+            prepTime: item.preExtractedPrepTime,
+            cookTime: item.preExtractedCookTime
+        )
+
+        // Add ingredients
+        if let ingredients = item.preExtractedIngredients {
+            for ingredientText in ingredients {
+                let ingredient = Ingredient(
+                    originalText: ingredientText,
+                    name: ingredientText,
+                    quantity: nil,
+                    unit: nil
+                )
+                ingredient.recipe = recipe
+                recipe.ingredients?.append(ingredient)
+            }
+        }
+
+        // Add notes if present
+        if let notes = item.preExtractedNotes, !notes.isEmpty {
+            recipe.setNotes(notes)
+        }
+
+        // Generate content hash for duplicate detection
+        DuplicateDetectionService.updateContentHash(for: recipe)
+
+        return recipe
     }
 
     /// Process camera/photo library import
@@ -1590,6 +1858,9 @@ final class ImportJobManager: ObservableObject {
             ])
         }
 
+        // Clean up stable PDF copies now that import is complete
+        cleanupStablePDFCopies(jobId: job.id)
+
         try? context.save()
     }
 
@@ -1714,30 +1985,41 @@ final class ImportJobManager: ObservableObject {
     // MARK: - Collection Name Logic
 
     /// Determine the effective collection name based on import type
-    /// - Single-page imports (camera, photo library, or single-page PDFs) → "Cookbook Pages"
-    /// - Multi-page imports (multi-page PDFs) → use original cookbook name
+    /// - Camera/photo imports without names → "Cookbook Pages"
+    /// - PDFs with custom names → use custom name (even if single-page)
+    /// - PDFs without names → "Cookbook Pages"
     private func determineCollectionName(for job: ImportJob) -> String? {
-        // Check if this is a single-page import
         let isSinglePage = isSinglePageImport(job: job)
+        let hasCustomName = job.cookbookName != nil && !job.cookbookName!.isEmpty
+        let isPDF = job.items?.first?.source == .pdf
 
+        // PDFs with custom names always use their name, even if single-page
+        if isPDF && hasCustomName {
+            Log.info("Routing PDF to named collection", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "cookbookName": job.cookbookName ?? "nil",
+                "isSinglePage": isSinglePage
+            ])
+            return job.cookbookName
+        }
+
+        // Single-page imports without custom names go to "Cookbook Pages"
         if isSinglePage {
-            // Single-page imports always go to "Cookbook Pages" collection
             Log.info("Routing single-page import to Cookbook Pages", category: .import, metadata: [
                 "jobId": job.id.uuidString,
                 "originalCookbookName": job.cookbookName ?? "nil",
                 "source": job.items?.first?.source.rawValue ?? "unknown"
             ])
             return "Cookbook Pages"
-        } else {
-            // Multi-page imports use original cookbook name (or default if not set)
-            let cookbookName = job.cookbookName
-            Log.info("Routing multi-page import to named collection", category: .import, metadata: [
-                "jobId": job.id.uuidString,
-                "cookbookName": cookbookName ?? "nil",
-                "source": job.items?.first?.source.rawValue ?? "unknown"
-            ])
-            return cookbookName
         }
+
+        // Multi-page imports use original cookbook name
+        Log.info("Routing multi-page import to named collection", category: .import, metadata: [
+            "jobId": job.id.uuidString,
+            "cookbookName": job.cookbookName ?? "nil",
+            "source": job.items?.first?.source.rawValue ?? "unknown"
+        ])
+        return job.cookbookName
     }
 
     /// Check if this job represents a single-page import
@@ -1779,6 +2061,94 @@ final class ImportJobManager: ObservableObject {
         case .url:
             // URL imports are treated as single-page
             return true
+        }
+    }
+
+    // MARK: - Credit Management
+
+    /// Deduct credits for PDF import
+    /// - Parameters:
+    ///   - credits: Number of credits to deduct
+    ///   - context: SwiftData ModelContext
+    private func deductCreditsForImport(credits: Int, context: ModelContext) async throws {
+        // Query for user credits
+        let descriptor = FetchDescriptor<UserCredits>()
+        let allCredits = try context.fetch(descriptor)
+
+        guard let userCredits = allCredits.first else {
+            Log.warning("No user credits found - skipping deduction", category: .import)
+            return
+        }
+
+        try userCredits.deductCredits(credits)
+        try context.save()
+
+        Log.info("Credits deducted for import", category: .import, metadata: [
+            "deducted": credits,
+            "remaining_quota": userCredits.quotaRemaining,
+            "remaining_purchased": userCredits.creditsBalance
+        ])
+    }
+
+    // MARK: - PDF File Management
+
+    /// Copy PDFs from temp directory to stable Caches location
+    /// iOS can clean up temp files at any time, so we need a stable location for long operations
+    /// Returns array of (originalURL, stableURL) tuples to maintain classification lookup
+    private func copyPDFsToStableLocation(_ pdfURLs: [URL], jobId: UUID) throws -> [(original: URL, stable: URL)] {
+        let fileManager = FileManager.default
+        let cacheDir = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        let importDir = cacheDir.appendingPathComponent("PDFImports/\(jobId.uuidString)", isDirectory: true)
+
+        // Create import directory
+        try fileManager.createDirectory(at: importDir, withIntermediateDirectories: true)
+
+        var urlMapping: [(original: URL, stable: URL)] = []
+
+        for (index, pdfURL) in pdfURLs.enumerated() {
+            let fileName = pdfURL.lastPathComponent
+            let stableURL = importDir.appendingPathComponent("\(index)_\(fileName)")
+
+            // Copy file to stable location
+            if fileManager.fileExists(atPath: pdfURL.path) {
+                try fileManager.copyItem(at: pdfURL, to: stableURL)
+                urlMapping.append((original: pdfURL, stable: stableURL))
+
+                Log.info("Copied PDF to stable location", category: .import, metadata: [
+                    "original": pdfURL.lastPathComponent,
+                    "stable": stableURL.path
+                ])
+            } else {
+                Log.warning("PDF file already missing from temp location", category: .import, metadata: [
+                    "file": pdfURL.lastPathComponent,
+                    "path": pdfURL.path
+                ])
+                // Try to use original anyway (might work if it's not a temp file)
+                urlMapping.append((original: pdfURL, stable: pdfURL))
+            }
+        }
+
+        return urlMapping
+    }
+
+    /// Clean up stable PDF copies after import completes
+    func cleanupStablePDFCopies(jobId: UUID) {
+        let fileManager = FileManager.default
+        let cacheDir = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        let importDir = cacheDir.appendingPathComponent("PDFImports/\(jobId.uuidString)", isDirectory: true)
+
+        do {
+            if fileManager.fileExists(atPath: importDir.path) {
+                try fileManager.removeItem(at: importDir)
+                Log.info("Cleaned up stable PDF copies", category: .import, metadata: [
+                    "jobId": jobId.uuidString
+                ])
+            }
+        } catch {
+            Log.warning("Failed to clean up stable PDF copies", category: .import, metadata: [
+                "jobId": jobId.uuidString,
+                "error": error.localizedDescription
+            ])
         }
     }
 
