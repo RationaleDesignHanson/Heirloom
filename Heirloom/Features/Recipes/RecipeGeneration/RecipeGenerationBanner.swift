@@ -7,15 +7,15 @@
 
 import SwiftUI
 
-/// Top banner showing recipe generation progress
-/// Follows cookbook scan pattern: simple, non-blocking, auto-dismisses
+/// Bottom banner showing recipe generation progress
+/// Follows ImportProgressBottomBanner pattern: simple, non-blocking, auto-dismisses
 struct RecipeGenerationBanner: View {
     @ObservedObject var service: RecipeGenerationService
 
     var body: some View {
         if let job = service.activeJob {
             VStack(spacing: 0) {
-                // Progress bar at top
+                // Progress bar at top of banner
                 GeometryReader { geometry in
                     Rectangle()
                         .fill(HeirloomColors.tomato)
@@ -49,8 +49,8 @@ struct RecipeGenerationBanner: View {
                 .padding(HeirloomSpacing.md)
             }
             .background(HeirloomColors.cardBackground)
-            .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
-            .transition(.move(edge: .top).combined(with: .opacity))
+            .shadow(color: .black.opacity(0.1), radius: 8, y: -4)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
 

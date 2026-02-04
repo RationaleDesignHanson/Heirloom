@@ -121,6 +121,7 @@ class CollectionRouter {
     func routeCookbookImport(
         _ recipes: [Recipe],
         cookbookName: String,
+        authorName: String? = nil,
         jobID: UUID? = nil,
         coverImagePath: String? = nil
     ) {
@@ -139,6 +140,11 @@ class CollectionRouter {
 
         collection.sourceCookbook = cookbookName
 
+        // Set author if provided (from PDF metadata)
+        if let author = authorName, !author.isEmpty {
+            collection.sourceAuthor = author
+        }
+
         for recipe in recipes {
             recipe.sourceCookbook = cookbookName
             addRecipeToCollection(recipe, collection: collection)
@@ -146,6 +152,7 @@ class CollectionRouter {
 
         Log.info("Routed \(recipes.count) recipes to cookbook collection", category: .collections, metadata: [
             "cookbook": cleanName,
+            "author": authorName ?? "nil",
             "count": String(recipes.count),
             "collection_id": collection.id.uuidString
         ])

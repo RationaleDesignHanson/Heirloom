@@ -34,6 +34,9 @@ final class ImportJob {
     /// Cookbook name for auto-categorization (optional)
     var cookbookName: String?
 
+    /// Cookbook author (extracted from PDF metadata)
+    var cookbookAuthor: String?
+
     /// Cookbook cover image path (from first PDF page)
     var cookbookCoverImagePath: String?
 
@@ -64,6 +67,9 @@ final class ImportJob {
     /// Number of credits deducted for this import job
     var creditsDeducted: Int = 0
 
+    /// Whether to generate AI images for imported recipes
+    var shouldGenerateAIImages: Bool = false
+
     // MARK: - Computed Properties
     var progress: Double {
         guard totalItems > 0 else { return 0 }
@@ -71,14 +77,27 @@ final class ImportJob {
     }
 
     /// Overall progress across all phases (0.0 to 1.0)
-    /// Takes into account validation, analysis, and extraction phases
+    /// Takes into account validation, analysis, extraction, and optional image generation phases
     var overallProgress: Double {
-        let phaseWeights: [ImportPhase: Double] = [
-            .validation: 0.1,   // 10% of total time
-            .analysis: 0.3,     // 30% of total time
-            .extraction: 0.6,   // 60% of total time
-            .completed: 1.0     // 100% complete
-        ]
+        // Weights depend on whether AI image generation is enabled
+        let phaseWeights: [ImportPhase: Double]
+        if shouldGenerateAIImages {
+            phaseWeights = [
+                .validation: 0.10,       // 10% of total time
+                .analysis: 0.25,         // 25% of total time
+                .extraction: 0.50,       // 50% of total time
+                .imageGeneration: 0.15,  // 15% of total time
+                .completed: 1.0          // 100% complete
+            ]
+        } else {
+            phaseWeights = [
+                .validation: 0.1,   // 10% of total time
+                .analysis: 0.3,     // 30% of total time
+                .extraction: 0.6,   // 60% of total time
+                .imageGeneration: 0.0, // Not used
+                .completed: 1.0     // 100% complete
+            ]
+        }
 
         // Calculate weight of completed phases
         let completedPhases = ImportPhase.allCases.filter { $0.sortOrder < phase.sortOrder }

@@ -29,5 +29,8 @@ export { braveSearch } from './brave-search';
 // Export DALL-E image generation
 export { dalleGenerateImage } from './dalle-image';
 
+// Export Replicate Flux image generation (faster, cheaper)
+export { replicateGenerateImage } from './replicate-image';
+
 // Export utility functions
 export { checkUserRateLimit, getUserUsageStats } from './rate-limiter';

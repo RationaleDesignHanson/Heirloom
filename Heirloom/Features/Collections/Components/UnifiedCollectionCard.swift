@@ -14,6 +14,7 @@ struct UnifiedCollectionCard: View {
     let variant: CardVariant
 
     @EnvironmentObject private var syncService: FirebaseSyncService
+    @Environment(\.openURL) private var openURL
 
     enum CardVariant {
         case standard(onAddRecipeTap: (() -> Void)?)
@@ -168,6 +169,13 @@ struct UnifiedCollectionCard: View {
             }
             .frame(height: 180)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(alignment: .topLeading) {
+                // NEW badge (when collection has new recipes)
+                if collection.hasNewRecipes {
+                    newBadge
+                        .padding(HeirloomSpacing.sm)
+                }
+            }
             .overlay(alignment: .topTrailing) {
                 // Status badge (themed only)
                 if case .themed = variant {
@@ -326,20 +334,21 @@ struct UnifiedCollectionCard: View {
         }()
 
         HStack(spacing: 8) {
-            // For themed: inline layout, for standard: stacked layout
+            // For themed: title left, progress right, for standard: stacked layout
             if case .themed = variant {
-                // Inline layout for themed cards
-                HStack(spacing: 8) {
-                    Text(displayName)
-                        .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(textColor)
-                        .lineLimit(1)
+                // Title on left
+                Text(displayName)
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(textColor)
+                    .lineLimit(1)
 
-                    Text(subtitleText)
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(subtitleColor)
-                        .lineLimit(1)
-                }
+                Spacer()
+
+                // Unlock progress right-aligned (before badge)
+                Text(subtitleText)
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(subtitleColor)
+                    .lineLimit(1)
             } else {
                 // Stacked layout for standard cards
                 VStack(alignment: .leading, spacing: 2) {
@@ -348,14 +357,33 @@ struct UnifiedCollectionCard: View {
                         .foregroundStyle(textColor)
                         .lineLimit(1)
 
-                    Text(subtitleText)
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(subtitleColor)
-                        .lineLimit(1)
-                }
-            }
+                    if isSubtitleTappable {
+                        // Tappable subtitle for cookbook collections - opens web search
+                        Button {
+                            openCookbookSearch()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(subtitleText)
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(HeirloomColors.familyGreen)
+                                    .lineLimit(1)
 
-            Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundStyle(HeirloomColors.familyGreen.opacity(0.7))
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Text(subtitleText)
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(subtitleColor)
+                            .lineLimit(1)
+                    }
+                }
+
+                Spacer()
+            }
 
             // Variant-specific badge
             infoBadge
@@ -385,6 +413,37 @@ struct UnifiedCollectionCard: View {
                 return "All \(progress.total) recipes unlocked"
             }
         }
+    }
+
+    /// Whether the subtitle is tappable (for cookbook collections with source info)
+    private var isSubtitleTappable: Bool {
+        guard case .standard = variant,
+              collection.type == .cookbook else { return false }
+        return collection.sourceAuthor != nil || collection.sourceCookbook != nil
+    }
+
+    /// Search URL for the cookbook (opens in browser)
+    private var cookbookSearchURL: URL? {
+        guard collection.type == .cookbook else { return nil }
+
+        var searchQuery = ""
+        if let cookbook = collection.sourceCookbook {
+            searchQuery = cookbook
+            if let author = collection.sourceAuthor {
+                searchQuery += " by \(author)"
+            }
+        }
+
+        guard !searchQuery.isEmpty else { return nil }
+
+        let encoded = searchQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? searchQuery
+        return URL(string: "https://www.google.com/search?q=\(encoded)+cookbook")
+    }
+
+    /// Open cookbook search in browser
+    private func openCookbookSearch() {
+        guard let url = cookbookSearchURL else { return }
+        openURL(url)
     }
 
     @ViewBuilder
@@ -523,26 +582,52 @@ struct UnifiedCollectionCard: View {
     }
 
     @ViewBuilder
+    /// NEW badge for collections with unviewed recipes
+    private var newBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "sparkle")
+                .font(.system(size: 10, weight: .semibold))
+
+            Text("NEW")
+                .font(HeirloomFonts.caption2)
+                .fontWeight(.semibold)
+
+            if collection.newRecipeCount > 1 {
+                Text("(\(collection.newRecipeCount))")
+                    .font(HeirloomFonts.caption2)
+                    .fontWeight(.medium)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(HeirloomColors.tomato)
+        .foregroundStyle(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 1)
+    }
+
     private var statusBadge: some View {
-        if case .themed(let currentDay, _, _, _) = variant {
-            if isComplete {
-                Text("Complete")
-                    .font(HeirloomFonts.caption2)
-                    .fontWeight(.semibold)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(HeirloomColors.familyGreen)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-            } else {
-                Text("Day \(currentDay)")
-                    .font(HeirloomFonts.caption2)
-                    .fontWeight(.semibold)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(HeirloomColors.amber)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+        Group {
+            if case .themed(let currentDay, _, _, _) = variant {
+                if isComplete {
+                    Text("Complete")
+                        .font(HeirloomFonts.caption2)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(HeirloomColors.familyGreen)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                } else {
+                    Text("Day \(currentDay)")
+                        .font(HeirloomFonts.caption2)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(HeirloomColors.amber)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
             }
         }
     }

@@ -191,6 +191,7 @@ final class ImportJobManager: ObservableObject {
     ///   - collectionType: Optional collection type
     ///   - context: SwiftData ModelContext for persistence
     ///   - costBreakdown: Optional cost breakdown for credit deduction
+    ///   - generateAIImages: Whether to generate AI images for imported recipes
     /// - Returns: The created ImportJob (already inserted and saved)
     func createAndAnalyzePDFJob(
         pdfURLs: [URL],
@@ -198,7 +199,8 @@ final class ImportJobManager: ObservableObject {
         cookbookName: String?,
         collectionType: CollectionType? = nil,
         context: ModelContext,
-        costBreakdown: PDFCostCalculator.CostBreakdown? = nil
+        costBreakdown: PDFCostCalculator.CostBreakdown? = nil,
+        generateAIImages: Bool = false
     ) async throws -> ImportJob {
         // STEP 1: Create job immediately (so banner appears)
         let job = ImportJob(jobName: jobName, continueOnError: true)
@@ -209,6 +211,7 @@ final class ImportJobManager: ObservableObject {
         job.cookbookName = cookbookName
         job.collectionType = collectionType
         job.pdfURL = pdfURLs.first?.absoluteString // Store for resume detection
+        job.shouldGenerateAIImages = generateAIImages
         context.insert(job)
 
         // Create checkpoint for resumable imports
@@ -269,35 +272,57 @@ final class ImportJobManager: ObservableObject {
                     "title": metadata.title ?? "nil",
                     "author": metadata.author ?? "nil"
                 ])
+
+                // Store author on job for collection creation (only set once from first PDF)
+                if job.cookbookAuthor == nil, let author = metadata.author, !author.isEmpty {
+                    job.cookbookAuthor = author
+                    try? context.save()
+                }
             }
 
-            // Extract first page as cookbook cover image
+            // Extract first page as cookbook cover image (only if it looks like a cover, not a recipe page)
             if job.cookbookCoverImagePath == nil, // Only extract once for first PDF
                let pdfDocument = PDFDocument(url: pdfURL),
                let firstPage = pdfDocument.page(at: 0) {
 
-                // Render first page to image
-                let pageBounds = firstPage.bounds(for: .mediaBox)
-                let renderer = UIGraphicsImageRenderer(size: pageBounds.size)
-                let coverImage = renderer.image { ctx in
-                    UIColor.white.setFill()
-                    ctx.fill(CGRect(origin: .zero, size: pageBounds.size))
-                    ctx.cgContext.translateBy(x: 0, y: pageBounds.height)
-                    ctx.cgContext.scaleBy(x: 1, y: -1)
-                    firstPage.draw(with: .mediaBox, to: ctx.cgContext)
-                }
+                // Check if first page is a text-heavy recipe page vs a proper cover
+                // Covers typically have minimal text (title, author) while recipe pages have lots of text
+                let pageText = firstPage.string ?? ""
+                let textLength = pageText.count
+                let isTextHeavyPage = textLength > 400 // Recipe pages typically have 400+ characters
 
-                // Save cover image to disk
-                let imageStorage = ServiceContainer.shared.resolve(ImageStorageService.self)
-                let coverFileName = "cookbook-cover-\(UUID().uuidString)"
-                if let coverPath = try? await imageStorage.saveImage(coverImage, fileName: coverFileName) {
-                    job.cookbookCoverImagePath = coverPath
-                    try? context.save()
-
-                    Log.info("Saved cookbook cover image", category: .import, metadata: [
+                if isTextHeavyPage {
+                    // Skip using this as cover - it's likely a recipe page, not a cookbook cover
+                    // The collection will get an AI-generated cover if AI images are enabled
+                    Log.info("First page appears to be a recipe page, skipping as cover", category: .import, metadata: [
                         "file": pdfURL.lastPathComponent,
-                        "coverPath": coverPath
+                        "textLength": textLength
                     ])
+                } else {
+                    // Render first page to image - it looks like a proper cover
+                    let pageBounds = firstPage.bounds(for: .mediaBox)
+                    let renderer = UIGraphicsImageRenderer(size: pageBounds.size)
+                    let coverImage = renderer.image { ctx in
+                        UIColor.white.setFill()
+                        ctx.fill(CGRect(origin: .zero, size: pageBounds.size))
+                        ctx.cgContext.translateBy(x: 0, y: pageBounds.height)
+                        ctx.cgContext.scaleBy(x: 1, y: -1)
+                        firstPage.draw(with: .mediaBox, to: ctx.cgContext)
+                    }
+
+                    // Save cover image to disk
+                    let imageStorage = ServiceContainer.shared.resolve(ImageStorageService.self)
+                    let coverFileName = "cookbook-cover-\(UUID().uuidString)"
+                    if let coverPath = try? await imageStorage.saveImage(coverImage, fileName: coverFileName) {
+                        job.cookbookCoverImagePath = coverPath
+                        try? context.save()
+
+                        Log.info("Saved cookbook cover image", category: .import, metadata: [
+                            "file": pdfURL.lastPathComponent,
+                            "coverPath": coverPath,
+                            "textLength": textLength
+                        ])
+                    }
                 }
             }
 
@@ -407,7 +432,22 @@ final class ImportJobManager: ObservableObject {
             configuration: configuration
         )
 
-        let analysisResult = try await batchAnalyzer.analyzeAndExtract(from: extraction)
+        let analysisResult = try await batchAnalyzer.analyzeAndExtract(
+            from: extraction,
+            detailedProgressCallback: { [weak job] progress in
+                guard let job = job else { return }
+                // Update phaseProgress based on detection/extraction phase
+                // Detection = first 30% of analysis, Extraction = remaining 70%
+                if progress.phase == "detecting" {
+                    let detectionProgress = Double(progress.current) / Double(max(progress.total, 1))
+                    job.phaseProgress = detectionProgress * 0.3
+                } else {
+                    let extractionProgress = Double(progress.current) / Double(max(progress.total, 1))
+                    job.phaseProgress = 0.3 + (extractionProgress * 0.7)
+                }
+                try? context.save()
+            }
+        )
 
         Log.info("Text batch analysis complete", category: .import, metadata: [
             "file": pdfURL.lastPathComponent,
@@ -760,6 +800,27 @@ final class ImportJobManager: ObservableObject {
 
                 // Wait for all tasks to complete
                 await group.waitForAll()
+            }
+
+            // Check for cancellation
+            guard !Task.isCancelled else {
+                Log.info("Job cancelled after extraction phase", category: .import)
+                return
+            }
+
+            // PHASE 4: AI Image Generation (if enabled)
+            if job.shouldGenerateAIImages {
+                job.phase = .imageGeneration
+                job.phaseProgress = 0.0
+                try? context.save()
+
+                await self.generateAIImagesForJob(job: job, context: context)
+
+                // Check for cancellation
+                guard !Task.isCancelled else {
+                    Log.info("Job cancelled during image generation phase", category: .import)
+                    return
+                }
             }
 
             // Only complete job if not cancelled
@@ -1753,6 +1814,217 @@ final class ImportJobManager: ObservableObject {
         }
     }
 
+    // MARK: - AI Image Generation
+
+    /// Delay between image generation requests (in seconds)
+    /// Using sequential processing with delay to avoid Replicate rate limits
+    private static let imageGenerationDelaySeconds: Double = 3.0
+
+    /// Maximum retry passes for failed images
+    /// After first pass, retry failed recipes up to this many additional times
+    private static let maxRetryPasses = 2
+
+    /// Delay between retry passes (in seconds)
+    private static let retryPassDelaySeconds: Double = 10.0
+
+    /// Generate AI images for all successfully imported recipes in a job
+    /// Uses sequential processing with retry passes to handle rate limits
+    private func generateAIImagesForJob(job: ImportJob, context: ModelContext) async {
+        let imageGenerator = ServiceContainer.shared.resolve((any RecipeImageGeneratorProtocol).self)
+        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+
+        // Get all successfully imported recipe IDs from this job
+        guard let items = job.items else {
+            Log.warning("No items found for AI image generation", category: .import)
+            return
+        }
+
+        let recipeIDs = items.flatMap { $0.recipeIDs }
+
+        guard !recipeIDs.isEmpty else {
+            Log.warning("No recipes found for AI image generation", category: .import)
+            return
+        }
+
+        Log.info("Starting sequential AI image generation for import job", category: .import, metadata: [
+            "jobId": job.id.uuidString,
+            "recipeCount": recipeIDs.count,
+            "delayBetweenImages": Self.imageGenerationDelaySeconds
+        ])
+
+        // Fetch recipes from SwiftData
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { recipe in
+                recipeIDs.contains(recipe.id)
+            }
+        )
+
+        var recipes: [Recipe] = []
+        do {
+            recipes = try context.fetch(descriptor)
+        } catch {
+            Log.error("Failed to fetch recipes for AI image generation", category: .import, error: error)
+            return
+        }
+
+        let totalCount = recipes.count
+        let startTime = Date()
+
+        var successCount = 0
+        var failedRecipes: [Recipe] = []
+
+        // PASS 1: Process all recipes sequentially
+        for (index, recipe) in recipes.enumerated() {
+            // Check for cancellation
+            guard !Task.isCancelled else {
+                Log.info("AI image generation cancelled", category: .import)
+                return
+            }
+
+            // Delay between requests (except first)
+            if index > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(Self.imageGenerationDelaySeconds * 1_000_000_000))
+            }
+
+            do {
+                try await imageGenerator.generateAndSaveImage(for: recipe)
+                successCount += 1
+                Log.info("Generated AI image for recipe", category: .import, metadata: [
+                    "title": recipe.title,
+                    "progress": "\(index + 1)/\(totalCount)"
+                ])
+            } catch {
+                failedRecipes.append(recipe)
+                Log.error("Failed to generate AI image for recipe", category: .import, error: error, metadata: [
+                    "title": recipe.title,
+                    "progress": "\(index + 1)/\(totalCount)"
+                ])
+            }
+
+            // Update progress
+            job.phaseProgress = Double(index + 1) / Double(totalCount)
+            try? context.save()
+        }
+
+        // RETRY PASSES: Retry failed recipes
+        var retryPass = 0
+        while !failedRecipes.isEmpty && retryPass < Self.maxRetryPasses {
+            retryPass += 1
+
+            Log.info("Starting retry pass for failed images", category: .import, metadata: [
+                "pass": retryPass,
+                "failedCount": failedRecipes.count
+            ])
+
+            // Wait before retry pass
+            try? await Task.sleep(nanoseconds: UInt64(Self.retryPassDelaySeconds * 1_000_000_000))
+
+            var stillFailed: [Recipe] = []
+
+            for (index, recipe) in failedRecipes.enumerated() {
+                // Check for cancellation
+                guard !Task.isCancelled else {
+                    Log.info("AI image generation cancelled during retry", category: .import)
+                    return
+                }
+
+                // Delay between requests (except first)
+                if index > 0 {
+                    try? await Task.sleep(nanoseconds: UInt64(Self.imageGenerationDelaySeconds * 1_000_000_000))
+                }
+
+                do {
+                    try await imageGenerator.generateAndSaveImage(for: recipe)
+                    successCount += 1
+                    Log.info("Retry succeeded for recipe image", category: .import, metadata: [
+                        "title": recipe.title,
+                        "retryPass": retryPass
+                    ])
+                } catch {
+                    stillFailed.append(recipe)
+                    Log.warning("Retry failed for recipe image", category: .import, metadata: [
+                        "title": recipe.title,
+                        "retryPass": retryPass
+                    ])
+                }
+            }
+
+            failedRecipes = stillFailed
+        }
+
+        let failureCount = failedRecipes.count
+        let duration = Date().timeIntervalSince(startTime)
+
+        Log.info("AI image generation completed", category: .import, metadata: [
+            "jobId": job.id.uuidString,
+            "successCount": successCount,
+            "failureCount": failureCount,
+            "durationSeconds": Int(duration),
+            "avgSecondsPerImage": totalCount > 0 ? duration / Double(totalCount) : 0
+        ])
+
+        // Show toast if some images failed
+        if failureCount > 0 && successCount > 0 {
+            await MainActor.run {
+                toastManager.warning(
+                    title: "Some images couldn't be generated",
+                    message: "\(successCount) of \(totalCount) images created"
+                )
+            }
+        } else if failureCount > 0 && successCount == 0 {
+            await MainActor.run {
+                toastManager.error(
+                    title: "Image generation failed",
+                    message: "Recipes imported but images couldn't be generated"
+                )
+            }
+        }
+
+        // Note: AI collection cover generation happens in createOrAddToCollection
+        // after recipes are routed to their collection
+    }
+
+    /// Generate an AI cover image for the collection when no suitable PDF cover was found
+    private func generateAICollectionCover(for recipes: [Recipe], job: ImportJob, context: ModelContext) async {
+        // Find the collection that contains these recipes
+        guard let firstRecipe = recipes.first,
+              let collection = firstRecipe.collections?.first else {
+            Log.warning("No collection found for AI cover generation", category: .import)
+            return
+        }
+
+        // Skip if collection already has a cover
+        if collection.cookbookCoverImagePath != nil || collection.generatedBackgroundImagePath != nil {
+            Log.info("Collection already has cover image, skipping AI generation", category: .import)
+            return
+        }
+
+        Log.info("Generating AI cover for collection (first page was text-heavy)", category: .import, metadata: [
+            "collectionName": collection.name,
+            "recipeCount": recipes.count
+        ])
+
+        do {
+            let collectionImageGenerator = ServiceContainer.shared.resolve(CollectionImageGenerator.self)
+            let coverPath = try await collectionImageGenerator.generateBackground(for: collection)
+
+            // Update collection with generated cover
+            collection.generatedBackgroundImagePath = coverPath
+            collection.useCustomBackground = true
+            collection.lastImageGenerationDate = Date()
+            try? context.save()
+
+            Log.info("Generated AI collection cover", category: .import, metadata: [
+                "collectionName": collection.name,
+                "coverPath": coverPath
+            ])
+        } catch {
+            Log.error("Failed to generate AI collection cover", category: .import, error: error, metadata: [
+                "collectionName": collection.name
+            ])
+        }
+    }
+
     // MARK: - Job Completion
 
     private func completeJob(_ job: ImportJob, context: ModelContext) async {
@@ -1911,6 +2183,7 @@ final class ImportJobManager: ObservableObject {
         router.routeCookbookImport(
             recipes,
             cookbookName: cookbookName,
+            authorName: job.cookbookAuthor,
             jobID: job.id,
             coverImagePath: job.cookbookCoverImagePath
         )
@@ -1943,6 +2216,14 @@ final class ImportJobManager: ObservableObject {
             "successful_recipes": recipes.count,
             "failed_recipes": job.failedItems
         ])
+
+        // Generate AI cover for collection if:
+        // 1. AI images were enabled for this job
+        // 2. No cookbook cover was extracted (first page was text-heavy)
+        // 3. Recipes exist and are now linked to the collection
+        if job.shouldGenerateAIImages && job.cookbookCoverImagePath == nil && !recipes.isEmpty {
+            await generateAICollectionCover(for: recipes, job: job, context: context)
+        }
     }
 
     /// Clear the active job (called from UI when user dismisses)
@@ -2227,5 +2508,60 @@ enum ImportJobError: LocalizedError {
         case .pdfFileNotFound:
             return "PDF file was moved or deleted - cannot resume import"
         }
+    }
+}
+
+// MARK: - Async Semaphore
+
+/// A simple async semaphore for rate limiting concurrent operations
+actor AsyncSemaphore {
+    private var value: Int
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    init(value: Int) {
+        self.value = value
+    }
+
+    func wait() async {
+        if value > 0 {
+            value -= 1
+            return
+        }
+
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
+        }
+    }
+
+    func signal() {
+        if let waiter = waiters.first {
+            waiters.removeFirst()
+            waiter.resume()
+        } else {
+            value += 1
+        }
+    }
+}
+
+// MARK: - Image Generation Progress Tracker
+
+/// Thread-safe progress tracking for parallel image generation
+actor ImageGenerationProgressTracker {
+    private let total: Int
+    private(set) var successCount: Int = 0
+    private(set) var failureCount: Int = 0
+
+    var completedCount: Int { successCount + failureCount }
+
+    init(total: Int) {
+        self.total = total
+    }
+
+    func recordSuccess() {
+        successCount += 1
+    }
+
+    func recordFailure() {
+        failureCount += 1
     }
 }

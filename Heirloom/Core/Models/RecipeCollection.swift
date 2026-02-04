@@ -10,6 +10,7 @@ final class RecipeCollection {
     var iconName: String = "folder.fill"
     var color: String = "#FF6B6B" // Hex color code
     var createdDate: Date = Date()
+    var lastViewedDate: Date? // Last time user opened this collection (for "NEW" badge detection)
     var isSystemCollection: Bool = false // For built-in collections like "Favorites"
     var isAllRecipes: Bool = false // Special "All Recipes" collection that shows all recipes
 
@@ -22,6 +23,7 @@ final class RecipeCollection {
     var sourceThemeId: String? // Firebase ID of the theme (avoids accessing relationship)
 
     var sourceCookbook: String?
+    var sourceAuthor: String?
     var sourceURL: String?
 
     // Custom Backgrounds
@@ -63,6 +65,43 @@ final class RecipeCollection {
 
     var recipeCount: Int {
         recipes?.count ?? 0
+    }
+
+    /// Whether this collection has recipes that were added since the last time user viewed it
+    /// Used to show "NEW" badge on collection cards
+    /// Badge clears when user taps into the collection (calls markAsViewed)
+    var hasNewRecipes: Bool {
+        guard let allRecipes = recipes, !allRecipes.isEmpty else {
+            return false
+        }
+
+        // If collection has been viewed, only show badge for recipes added AFTER that view
+        if let lastViewed = lastViewedDate {
+            return allRecipes.contains { recipe in
+                return recipe.createdAt > lastViewed
+            }
+        }
+
+        // Collection never viewed - show badge if recipes were added in the last 48 hours
+        let fortyEightHoursAgo = Date().addingTimeInterval(-48 * 60 * 60)
+        return allRecipes.contains { recipe in
+            return recipe.createdAt > fortyEightHoursAgo
+        }
+    }
+
+    /// Count of new recipes added since last viewed
+    var newRecipeCount: Int {
+        guard let lastViewed = lastViewedDate else {
+            return recipeCount
+        }
+
+        guard let allRecipes = recipes else {
+            return 0
+        }
+
+        return allRecipes.filter { recipe in
+            return recipe.createdAt > lastViewed
+        }.count
     }
 
     var displayDescription: String {
@@ -123,7 +162,10 @@ final class RecipeCollection {
         case .photoImports:
             return "\(recipeCount) photo recipe\(recipeCount == 1 ? "" : "s")"
         case .cookbook:
-            if let cookbook = sourceCookbook {
+            // Prefer author name, fallback to cookbook name
+            if let author = sourceAuthor, !author.isEmpty {
+                return "From \(author)"
+            } else if let cookbook = sourceCookbook {
                 return "From \(cookbook)"
             }
             return "\(recipeCount) recipes"
@@ -216,6 +258,13 @@ final class RecipeCollection {
         "carrot.fill",
         "fish.fill"
     ]
+
+    // MARK: - Actions
+
+    /// Mark this collection as viewed (clears "NEW" badge)
+    func markAsViewed() {
+        lastViewedDate = Date()
+    }
 
     // MARK: - System Collections
 

@@ -70,23 +70,20 @@ struct RecipeGeneratorView: View {
                 }
 
                 ToolbarItem(placement: .primaryAction) {
+                    // Easter egg: Button looks inactive when fields are empty, but tapping
+                    // it still works and generates a random "silly" recipe.
+                    // Once text is entered, button becomes visually active.
+                    let hasInput = !dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                                   !ingredients.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
                     Button {
                         startBackgroundGeneration()
                     } label: {
-                        let dishEmpty = dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                        let ingredientsEmpty = ingredients.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-
-                        // Easter egg: Show "Surprise Me!" only when BOTH fields are empty
-                        if dishEmpty && ingredientsEmpty {
-                            Text("Surprise Me! 🎲")
-                                .fontWeight(.semibold)
-                        } else {
-                            Text("Generate")
-                                .fontWeight(.semibold)
-                        }
+                        Text("Done")
+                            .fontWeight(.semibold)
+                            .foregroundStyle(hasInput ? HeirloomColors.familyGreen : HeirloomColors.secondaryText.opacity(0.5))
                     }
-                    .disabled(dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-                             !ingredients.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    // Never actually disabled - easter egg always works
                 }
             }
         }

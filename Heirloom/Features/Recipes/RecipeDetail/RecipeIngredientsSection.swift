@@ -24,6 +24,11 @@ struct RecipeIngredientsSection: View {
     // Observe UnitsConfiguration for reactive updates
     @ObservedObject private var unitsConfig: UnitsConfiguration = ServiceContainer.shared.resolve(UnitsConfiguration.self)
 
+    // Check if any ingredients are missing quantities
+    private var hasIngredientsMissingQuantities: Bool {
+        ingredients.contains { $0.quantity == nil }
+    }
+
     // MARK: - Body
 
     var body: some View {
@@ -38,6 +43,14 @@ struct RecipeIngredientsSection: View {
                 ForEach(ingredients.sorted(by: { $0.orderIndex < $1.orderIndex })) { ingredient in
                     ingredientRow(ingredient)
                         .id("\(ingredient.id)-\(targetServings)") // Force unique ID per serving size
+                }
+
+                // Footnote for ingredients without measurements
+                if hasIngredientsMissingQuantities {
+                    Text("* no measurement provided")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .padding(.top, HeirloomSpacing.xs)
                 }
             }
             .padding(HeirloomSpacing.md)
@@ -100,8 +113,8 @@ struct RecipeIngredientsSection: View {
     private func scaledIngredientText(_ ingredient: Ingredient) -> String {
         // Check if quantity exists
         guard ingredient.quantity != nil else {
-            // Show original text with warning icon when quantity missing
-            return "\(ingredient.originalText) ⚠️"
+            // Show original text with asterisk when quantity missing (footnote explains)
+            return "\(ingredient.originalText)*"
         }
 
         // Calculate scale factor from target servings

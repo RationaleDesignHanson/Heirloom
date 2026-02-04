@@ -50,6 +50,11 @@ struct RecipeDetailView: View {
     // Coach mark for first-time recipe view
     @State private var showRecipeCoachMark = false
 
+    // AI Image generation
+    private var recipeImageGenerator: any RecipeImageGeneratorProtocol {
+        ServiceContainer.shared.resolve((any RecipeImageGeneratorProtocol).self)
+    }
+
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     @State private var isDiffExpanded = false
 
@@ -491,7 +496,8 @@ struct RecipeDetailView: View {
                 handleEditTapped: handleEditTapped,
                 duplicateRecipe: duplicateRecipe,
                 deleteRecipe: deleteRecipe,
-                createUserCopyAndEdit: createUserCopyAndEdit
+                createUserCopyAndEdit: createUserCopyAndEdit,
+                generateAIImage: generateAIImage
             ))
             .navigationDestination(isPresented: Binding(
                 get: { selectedPublicRecipeId != nil },
@@ -565,15 +571,6 @@ struct RecipeDetailView: View {
                         startCookingButton
                     }
 
-                    // Scaling Warning Banner
-                    if let ingredients = displayIngredients, !ingredients.isEmpty {
-                        ScalingWarningBanner(
-                            validation: recipe.scalingValidation,
-                            showRepairSheet: $showScalingRepair
-                        )
-                        .padding(.horizontal)
-                    }
-
                     // Ingredients Section
                     if let ingredients = displayIngredients, !ingredients.isEmpty {
                         RecipeIngredientsSection(
@@ -645,6 +642,7 @@ private struct RecipeDetailModifiers: ViewModifier {
     let duplicateRecipe: () -> Void
     let deleteRecipe: () -> Void
     let createUserCopyAndEdit: () -> Void
+    let generateAIImage: () -> Void
 
     // MARK: - Computed Views
 
@@ -686,6 +684,12 @@ private struct RecipeDetailModifiers: ViewModifier {
                 showTagCollectionPicker = true
             } label: {
                 Label("Organize", systemImage: "tag")
+            }
+
+            Button {
+                generateAIImage()
+            } label: {
+                Label("Generate AI Image", systemImage: "sparkles")
             }
 
             Button {
@@ -2429,6 +2433,23 @@ extension RecipeDetailView {
             Log.error("Failed to create user copy of heritage recipe", category: .database, metadata: [
                 "error": error.localizedDescription
             ])
+        }
+    }
+
+    // MARK: - AI Image Generation
+
+    private func generateAIImage() {
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+
+        Task {
+            do {
+                try await recipeImageGenerator.generateAndSaveImage(for: recipe)
+                toastManager.success(title: "Image Generated", message: recipe.title)
+            } catch {
+                toastManager.error(title: "Generation Failed", message: error.localizedDescription)
+            }
         }
     }
 }

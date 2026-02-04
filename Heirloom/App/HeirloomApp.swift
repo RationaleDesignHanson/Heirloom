@@ -845,8 +845,8 @@ struct RootView: View {
                     .environment(\.firebaseAuth, authService)
             }
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            // Recipe generation banner at top (overlays content)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            // Recipe generation banner at bottom (matches ImportProgressBottomBanner pattern)
             RecipeGenerationBanner(service: generationService)
                 .animation(.spring(), value: generationService.activeJob != nil)
         }

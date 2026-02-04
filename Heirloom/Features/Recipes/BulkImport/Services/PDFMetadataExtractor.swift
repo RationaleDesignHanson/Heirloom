@@ -41,6 +41,21 @@ class PDFMetadataExtractor {
             "total_pages": pageCount
         ])
 
+        // FIRST: Check PDF document attributes (embedded metadata) - most reliable
+        if let attributes = pdfDocument.documentAttributes {
+            let embeddedTitle = attributes[PDFDocumentAttribute.titleAttribute] as? String
+            let embeddedAuthor = attributes[PDFDocumentAttribute.authorAttribute] as? String
+
+            // Use embedded metadata if available and looks valid
+            if let title = embeddedTitle, !title.isEmpty, title.count > 3, title.count < 100 {
+                Log.info("Found embedded PDF metadata", category: .import, metadata: [
+                    "title": title,
+                    "author": embeddedAuthor ?? "nil"
+                ])
+                return CookbookMetadata(title: title, author: embeddedAuthor)
+            }
+        }
+
         var allText = ""
 
         // Extract text from first pages
@@ -119,15 +134,33 @@ class PDFMetadataExtractor {
             }
         }
 
-        // Pattern 2: Look for "Author:" or "Written by:" labels
+        // Pattern 2: Look for "Author:", "Written by:", "Compiled by:", "Edited by:" labels
         if author == nil {
             for line in lines {
-                if line.lowercased().contains("author:") {
-                    author = line.replacingOccurrences(of: "author:", with: "", options: [.caseInsensitive])
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                } else if line.lowercased().contains("written by:") {
-                    author = line.replacingOccurrences(of: "written by:", with: "", options: [.caseInsensitive])
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                let lowercased = line.lowercased()
+
+                // Check for various author attribution patterns
+                let authorPatterns = [
+                    "author:",
+                    "written by:",
+                    "compiled by:",
+                    "edited by:",
+                    "compiled and edited by:",
+                    "original text compiled and edited by:",
+                    "created by:",
+                    "developed by:"
+                ]
+
+                for pattern in authorPatterns {
+                    if lowercased.contains(pattern) {
+                        author = line.replacingOccurrences(of: pattern, with: "", options: [.caseInsensitive])
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                        Log.debug("Found author via pattern", category: .import, metadata: [
+                            "pattern": pattern,
+                            "author": author ?? "nil"
+                        ])
+                        break
+                    }
                 }
 
                 if author != nil { break }
@@ -181,6 +214,33 @@ class PDFMetadataExtractor {
                     if repetitionRatio > 1.5 { // High repetition suggests tagline
                         Log.debug("Skipping potential tagline (repetitive)", category: .import, metadata: ["line": line])
                         continue
+                    }
+
+                    // Check if this looks like an author name (has professional credentials)
+                    // Patterns: "Name, RD, MPA", "Name, PhD", "Name, MD", etc.
+                    let credentialPatterns = [
+                        "\\b(RD|MPA|PhD|MD|MS|MA|MBA|JD|DO|RN|LPN|CPA|LCSW|LPC|CNS|CNP)\\b",  // Common credentials
+                        "\\b(Dr\\.|Prof\\.|Chef)\\s",  // Titles
+                        "\\bby\\s+\\w",  // "by Name"
+                        "compiled.*by",  // "compiled by", "compiled and edited by"
+                        "edited.*by",
+                        "written.*by"
+                    ]
+                    let looksLikeAuthor = credentialPatterns.contains { pattern in
+                        line.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil
+                    }
+                    if looksLikeAuthor {
+                        // This is likely an author, not a title - extract as author if we don't have one
+                        if author == nil {
+                            // Extract name (remove "by", credentials, etc.)
+                            var extractedAuthor = line
+                            if let byRange = extractedAuthor.range(of: "by\\s+", options: [.regularExpression, .caseInsensitive]) {
+                                extractedAuthor = String(extractedAuthor[byRange.upperBound...])
+                            }
+                            author = extractedAuthor.trimmingCharacters(in: .whitespacesAndNewlines)
+                            Log.debug("Extracted author from credential pattern", category: .import, metadata: ["author": author ?? "nil"])
+                        }
+                        continue // Skip this line as a title candidate
                     }
 
                     // Score this candidate

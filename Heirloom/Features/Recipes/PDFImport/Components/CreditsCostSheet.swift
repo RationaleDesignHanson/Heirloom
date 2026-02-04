@@ -17,11 +17,57 @@ struct CreditsCostSheet: View {
 
     let costBreakdown: PDFCostCalculator.CostBreakdown
     let userCredits: UserCredits
-    let onConfirm: () -> Void
+    let onConfirm: (Bool) -> Void  // Now passes generateAIImages flag
     let onBuyCredits: () -> Void
     let onQueueForTomorrow: () -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @State private var generateAIImages: Bool = false
+
+    // MARK: - Computed Properties
+
+    /// Total cost including AI images if enabled
+    private var effectiveTotalCredits: Int {
+        costBreakdown.totalWithAIImages(enabled: generateAIImages)
+    }
+
+    /// Whether user can afford with current AI images toggle state
+    private var canAffordWithCurrentSettings: Bool {
+        costBreakdown.canAfford(withAIImages: generateAIImages, userCredits: userCredits)
+    }
+
+    /// Credits needed with current AI images toggle state
+    private var creditsNeededWithCurrentSettings: Int {
+        costBreakdown.creditsNeeded(withAIImages: generateAIImages, userCredits: userCredits)
+    }
+
+    /// Estimated time for import
+    private var estimatedTime: String {
+        let estimatedRecipes = max(1, costBreakdown.estimatedTotalPages / 2)
+
+        if generateAIImages {
+            // With AI images: parallel generation ~5 seconds per image with 6 concurrency
+            // Plus extraction time
+            let imageTime = (estimatedRecipes * 5) / 6  // Parallel with 6 workers
+            let extractionTime = estimatedRecipes / 10  // ~6 recipes per minute extraction
+            let totalMinutes = max(1, (imageTime + extractionTime) / 60)
+
+            if totalMinutes < 2 {
+                return "~1 minute"
+            } else if totalMinutes < 5 {
+                return "~\(totalMinutes) minutes"
+            } else {
+                return "~\(totalMinutes) minutes"
+            }
+        } else {
+            // Without AI images: just extraction
+            let extractionMinutes = max(1, estimatedRecipes / 10)
+            if extractionMinutes < 2 {
+                return "~1 minute"
+            }
+            return "~\(extractionMinutes) minutes"
+        }
+    }
 
     // MARK: - Body
 
@@ -83,6 +129,32 @@ struct CreditsCostSheet: View {
                             )
                         }
 
+                        // AI Image Generation (shown when enabled)
+                        if generateAIImages {
+                            if costBreakdown.aiImageCredits > 0 {
+                                CostRow(
+                                    icon: "sparkles",
+                                    iconColor: .purple,
+                                    label: "AI image generation",
+                                    credits: costBreakdown.aiImageCredits,
+                                    badge: "Premium"
+                                )
+                            } else {
+                                // Free AI images for small imports
+                                HStack {
+                                    Image(systemName: "sparkles")
+                                        .foregroundColor(.purple)
+                                        .frame(width: 24)
+                                    Text("AI image generation")
+                                    Spacer()
+                                    Text("Free")
+                                        .font(.subheadline)
+                                        .foregroundColor(HeirloomColors.familyGreen)
+                                        .fontWeight(.medium)
+                                }
+                            }
+                        }
+
                         Divider()
 
                         // Total
@@ -90,10 +162,19 @@ struct CreditsCostSheet: View {
                             Text("Total")
                                 .font(.headline)
                             Spacer()
-                            Text("\(costBreakdown.totalCredits) credits")
+                            Text("\(effectiveTotalCredits) credits")
                                 .font(.headline)
                                 .foregroundColor(HeirloomColors.familyGreen)
                         }
+
+                        // Time estimate
+                        HStack(spacing: 6) {
+                            Image(systemName: "clock")
+                                .font(.caption)
+                            Text("Estimated time: \(estimatedTime)")
+                                .font(.caption)
+                        }
+                        .foregroundColor(.secondary)
                     }
                     .padding()
                     .background(Color(.systemGray6))
@@ -102,15 +183,42 @@ struct CreditsCostSheet: View {
                     // Quota Status Card
                     QuotaStatusCard(
                         userCredits: userCredits,
-                        costBreakdown: costBreakdown
+                        costBreakdown: costBreakdown,
+                        effectiveTotalCredits: effectiveTotalCredits,
+                        canAfford: canAffordWithCurrentSettings
                     )
+
+                    // AI Image Generation Option
+                    VStack(alignment: .leading, spacing: 8) {
+                        Toggle(isOn: $generateAIImages) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "sparkles")
+                                    .font(.title2)
+                                    .foregroundColor(.purple)
+                                    .frame(width: 32)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Generate AI images")
+                                        .font(.body)
+
+                                    Text("Replace page images with AI-generated photos")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        .toggleStyle(SwitchToggleStyle(tint: HeirloomColors.familyGreen))
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(16)
 
                     // Action Buttons
                     VStack(spacing: 12) {
-                        if costBreakdown.canAfford {
+                        if canAffordWithCurrentSettings {
                             // Can afford - show import button
                             Button {
-                                onConfirm()
+                                onConfirm(generateAIImages)
                             } label: {
                                 Label("Import Now", systemImage: "arrow.down.doc")
                                     .frame(maxWidth: .infinity)
@@ -127,7 +235,7 @@ struct CreditsCostSheet: View {
                                 HStack(spacing: 8) {
                                     Image(systemName: "exclamationmark.triangle.fill")
                                         .foregroundColor(.orange)
-                                    Text("You need \(costBreakdown.needsCredits) more credits")
+                                    Text("You need \(creditsNeededWithCurrentSettings) more credits")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
@@ -228,6 +336,8 @@ struct CostRow: View {
 struct QuotaStatusCard: View {
     let userCredits: UserCredits
     let costBreakdown: PDFCostCalculator.CostBreakdown
+    let effectiveTotalCredits: Int
+    let canAfford: Bool
 
     var body: some View {
         VStack(spacing: 12) {
@@ -244,7 +354,7 @@ struct QuotaStatusCard: View {
             }
 
             // After import projection
-            if costBreakdown.canAfford {
+            if canAfford {
                 HStack {
                     Image(systemName: "arrow.right")
                         .foregroundColor(.secondary)
@@ -252,7 +362,7 @@ struct QuotaStatusCard: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("\(max(0, userCredits.availableToday - costBreakdown.totalCredits)) credits")
+                    Text("\(max(0, userCredits.availableToday - effectiveTotalCredits)) credits")
                         .font(.headline)
                         .foregroundColor(.green)
                 }
@@ -281,23 +391,19 @@ struct QuotaStatusCard: View {
 // MARK: - Preview
 
 #Preview {
-    let mockCostBreakdown = PDFCostCalculator.CostBreakdown(
-        totalCredits: 7,
-        textRichCount: 2,
-        scannedCount: 1,
-        mixedCount: 0,
-        classifications: [:],
-        canAfford: false,
-        needsCredits: 2
-    )
-
-    let mockUserCredits = UserCredits(userId: "test")
-    mockUserCredits.dailyQuotaUsed = 20
-
-    return CreditsCostSheet(
-        costBreakdown: mockCostBreakdown,
-        userCredits: mockUserCredits,
-        onConfirm: {},
+    CreditsCostSheet(
+        costBreakdown: PDFCostCalculator.CostBreakdown(
+            totalCredits: 7,
+            textRichCount: 2,
+            scannedCount: 1,
+            mixedCount: 0,
+            classifications: [:],
+            canAfford: false,
+            needsCredits: 2,
+            estimatedTotalPages: 100
+        ),
+        userCredits: UserCredits(userId: "test"),
+        onConfirm: { _ in },
         onBuyCredits: {},
         onQueueForTomorrow: {}
     )

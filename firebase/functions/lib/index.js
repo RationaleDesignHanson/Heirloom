@@ -37,7 +37,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserUsageStats = exports.checkUserRateLimit = exports.dalleGenerateImage = exports.braveSearch = exports.googleVisionOCR = exports.aiCompleteWithVision = exports.aiCompleteStructured = exports.aiComplete = void 0;
+exports.getUserUsageStats = exports.checkUserRateLimit = exports.replicateGenerateImage = exports.dalleGenerateImage = exports.braveSearch = exports.googleVisionOCR = exports.aiCompleteWithVision = exports.aiCompleteStructured = exports.aiComplete = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // Export AI gateway functions
@@ -54,6 +54,9 @@ Object.defineProperty(exports, "braveSearch", { enumerable: true, get: function 
 // Export DALL-E image generation
 var dalle_image_1 = require("./dalle-image");
 Object.defineProperty(exports, "dalleGenerateImage", { enumerable: true, get: function () { return dalle_image_1.dalleGenerateImage; } });
+// Export Replicate Flux image generation (faster, cheaper)
+var replicate_image_1 = require("./replicate-image");
+Object.defineProperty(exports, "replicateGenerateImage", { enumerable: true, get: function () { return replicate_image_1.replicateGenerateImage; } });
 // Export utility functions
 var rate_limiter_1 = require("./rate-limiter");
 Object.defineProperty(exports, "checkUserRateLimit", { enumerable: true, get: function () { return rate_limiter_1.checkUserRateLimit; } });
