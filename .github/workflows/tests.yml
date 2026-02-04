@@ -49,15 +49,13 @@ jobs:
 
     - name: Build for testing
       run: |
-        # Find the first available iPhone simulator
-        SIM_UDID=$(xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS-18")) | .value[] | select(.name == "iPhone 16 Pro") | .udid' | head -1)
-        echo "Using simulator: $SIM_UDID"
-
+        # Build using iphonesimulator SDK without destination validation
         xcodebuild build-for-testing \
           -project Heirloom.xcodeproj \
           -scheme Heirloom \
-          -destination "id=$SIM_UDID" \
+          -sdk iphonesimulator \
           -configuration Debug \
+          ONLY_ACTIVE_ARCH=NO \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           IPHONEOS_DEPLOYMENT_TARGET=18.0 \
@@ -89,13 +87,16 @@ jobs:
 
     - name: Run Unit Tests
       run: |
-        # Find the first available iPhone simulator
+        # Find first available iPhone simulator and boot it
         SIM_UDID=$(xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS-18")) | .value[] | select(.name == "iPhone 16 Pro") | .udid' | head -1)
         echo "Using simulator: $SIM_UDID"
+        xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
+        xcrun simctl bootstatus "$SIM_UDID" -b
 
         xcodebuild test \
           -project Heirloom.xcodeproj \
           -scheme Heirloom \
+          -sdk iphonesimulator \
           -destination "id=$SIM_UDID" \
           -only-testing:HeirloomTestsV2 \
           -enableCodeCoverage YES \
