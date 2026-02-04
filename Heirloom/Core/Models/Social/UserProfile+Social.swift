@@ -20,6 +20,9 @@ struct UserProfile: Codable {
     /// Display name (from Firebase Auth or custom)
     var displayName: String
 
+    /// Email address (from Firebase Auth) - used for disambiguation in search
+    var email: String?
+
     /// Profile photo URL (from Firebase Auth or custom upload)
     var photoURL: String?
 
@@ -114,6 +117,7 @@ struct UserProfile: Codable {
     enum CodingKeys: String, CodingKey {
         case userId
         case displayName
+        case email
         case photoURL
         case handle
         case bio
@@ -141,9 +145,10 @@ struct UserProfile: Codable {
 
     // MARK: - Initialization
 
-    init(userId: String, displayName: String) {
+    init(userId: String, displayName: String, email: String? = nil) {
         self.userId = userId
         self.displayName = displayName
+        self.email = email
         self.photoURL = nil
         self.handle = nil
         self.bio = nil
@@ -184,9 +189,9 @@ enum VerificationType: String, Codable {
 
 extension UserProfile {
     /// Create a default profile for a new user
-    static func defaultProfile(userId: String, displayName: String? = nil) -> UserProfile {
+    static func defaultProfile(userId: String, displayName: String? = nil, email: String? = nil) -> UserProfile {
         let name = displayName ?? "User"
-        return UserProfile(userId: userId, displayName: name)
+        return UserProfile(userId: userId, displayName: name, email: email)
     }
 
     /// Full @mention format for display

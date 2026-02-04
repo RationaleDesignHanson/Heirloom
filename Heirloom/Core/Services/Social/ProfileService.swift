@@ -112,7 +112,9 @@ class FirebaseProfileService: ProfileServiceProtocol {
         guard snapshot.exists, let data = snapshot.data() else {
             // Profile doesn't exist yet - create default profile
             Log.info("Creating default profile for new user", category: .social, metadata: ["userId": userId])
-            let newProfile = UserProfile.defaultProfile(userId: userId)
+            let displayName = auth.currentUser?.displayName
+            let email = auth.currentUser?.email
+            let newProfile = UserProfile.defaultProfile(userId: userId, displayName: displayName, email: email)
             try await updateProfile(newProfile)
             return newProfile
         }

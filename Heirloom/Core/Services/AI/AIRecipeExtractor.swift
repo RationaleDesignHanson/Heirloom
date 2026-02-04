@@ -387,8 +387,23 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             cookTime: extracted.cookTime
         )
 
-        // Add ingredients
+        // Add ingredients (filtering out section headers in brackets)
         for ingredientText in extracted.ingredients {
+            // Skip section headers that are entirely in brackets like [Asparagus], [Main], [Vegetables]
+            let trimmed = ingredientText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.hasPrefix("[") && trimmed.hasSuffix("]") {
+                Log.debug("Skipping bracketed section header", category: .import, metadata: ["text": trimmed])
+                continue
+            }
+            // Also skip if it's brackets followed by just an asterisk (e.g., "[Carrots]*")
+            if trimmed.hasPrefix("[") && (trimmed.hasSuffix("]*") || trimmed.hasSuffix("]")) {
+                let withoutAsterisk = trimmed.replacingOccurrences(of: "*", with: "")
+                if withoutAsterisk.hasPrefix("[") && withoutAsterisk.hasSuffix("]") {
+                    Log.debug("Skipping bracketed section header with asterisk", category: .import, metadata: ["text": trimmed])
+                    continue
+                }
+            }
+
             let ingredient = Ingredient(
                 originalText: ingredientText,
                 name: ingredientText
@@ -1791,6 +1806,8 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         - Preserve important details (temperatures, times, techniques)
         - Remove handwritten notes unless they're recipe-critical
         - If title isn't clear, infer from ingredients (e.g., "Chocolate Chip Cookies")
+        - SKIP section headers in [Square Brackets] - these are NOT ingredients (e.g., "[Vegetables]", "[Main]", "[Asparagus]" as a header)
+        - If text in brackets is followed by actual ingredients, use only the actual ingredients
 
         Common OCR errors to fix:
         - "l" (lowercase L) → "1" (number one) in measurements

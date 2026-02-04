@@ -52,6 +52,7 @@ async function backfillUsers() {
     algoliaObjects.push({
       objectID: userDoc.id,
       displayName: data.displayName || '',
+      email: data.email || null,  // Include email for disambiguation in search
       photoURL: data.photoURL || null,
       bio: data.bio || null,
       location: data.location || null,

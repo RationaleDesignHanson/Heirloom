@@ -83,7 +83,9 @@ struct ScaledIngredient: Identifiable {
         }
 
         if let unit = originalIngredient.unit, !unit.isEmpty {
-            parts.append(unit)
+            // Singularize unit when quantity is 1 or less
+            let singularizedUnit = singularizeUnit(unit, quantity: scaledQuantity ?? 1)
+            parts.append(singularizedUnit)
         }
 
         parts.append(originalIngredient.name)
@@ -93,6 +95,44 @@ struct ScaledIngredient: Identifiable {
         }
 
         return parts.joined(separator: " ")
+    }
+
+    /// Singularize a unit if the quantity is 1 or less
+    private func singularizeUnit(_ unit: String, quantity: Double) -> String {
+        guard quantity <= 1.0 else { return unit }
+
+        let lowerUnit = unit.lowercased()
+        let pluralMappings: [String: String] = [
+            "cups": "cup",
+            "teaspoons": "teaspoon",
+            "tablespoons": "tablespoon",
+            "ounces": "ounce",
+            "pounds": "pound",
+            "grams": "gram",
+            "cloves": "clove",
+            "slices": "slice",
+            "pieces": "piece",
+            "sticks": "stick",
+            "bunches": "bunch",
+            "sprigs": "sprig",
+            "leaves": "leaf",
+            "stalks": "stalk",
+            "heads": "head",
+            "cans": "can",
+            "packages": "package",
+            "pinches": "pinch",
+            "dashes": "dash"
+        ]
+
+        if let singular = pluralMappings[lowerUnit] {
+            // Preserve original capitalization
+            if unit.first?.isUppercase == true {
+                return singular.prefix(1).uppercased() + singular.dropFirst()
+            }
+            return singular
+        }
+
+        return unit
     }
 }
 

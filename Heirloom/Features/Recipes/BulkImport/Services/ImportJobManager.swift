@@ -1576,9 +1576,16 @@ final class ImportJobManager: ObservableObject {
             cookTime: item.preExtractedCookTime
         )
 
-        // Add ingredients
+        // Add ingredients (filtering out section headers in brackets)
         if let ingredients = item.preExtractedIngredients {
             for ingredientText in ingredients {
+                // Skip section headers that are entirely in brackets like [Asparagus], [Main], [Vegetables]
+                let trimmed = ingredientText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if isBracketedSectionHeader(trimmed) {
+                    Log.debug("Skipping bracketed section header in PDF import", category: .import, metadata: ["text": trimmed])
+                    continue
+                }
+
                 let ingredient = Ingredient(
                     originalText: ingredientText,
                     name: ingredientText,
@@ -1718,8 +1725,15 @@ final class ImportJobManager: ObservableObject {
             cookTime: extracted.cookTime
         )
 
-        // Add ingredients
+        // Add ingredients (filtering out section headers in brackets)
         for ingredientText in extracted.ingredients {
+            // Skip section headers that are entirely in brackets like [Asparagus], [Main], [Vegetables]
+            let trimmed = ingredientText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if isBracketedSectionHeader(trimmed) {
+                Log.debug("Skipping bracketed section header in image import", category: .import, metadata: ["text": trimmed])
+                continue
+            }
+
             let ingredient = Ingredient(
                 originalText: ingredientText,
                 name: ingredientText,
@@ -1739,6 +1753,19 @@ final class ImportJobManager: ObservableObject {
         DuplicateDetectionService.updateContentHash(for: recipe)
 
         return recipe
+    }
+
+    /// Check if text is a bracketed section header like [Asparagus], [Main], [Vegetables]*
+    private func isBracketedSectionHeader(_ text: String) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Check for [Text] or [Text]*
+        if trimmed.hasPrefix("[") {
+            let withoutAsterisk = trimmed.replacingOccurrences(of: "*", with: "")
+            if withoutAsterisk.hasSuffix("]") {
+                return true
+            }
+        }
+        return false
     }
 
     /// Parse ingredients immediately to enable automatic scaling

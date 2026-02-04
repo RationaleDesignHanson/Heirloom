@@ -50,6 +50,7 @@ exports.syncUserToAlgolia = onDocumentWritten('users/{userId}/profile/data', asy
   const algoliaObject = {
     objectID: userId,
     displayName: data.displayName || '',
+    email: data.email || null,  // Include email for disambiguation in search
     photoURL: data.photoURL || null,
     bio: data.bio || null,
     location: data.location || null,
@@ -584,3 +585,6 @@ exports.getUserUsageStats = require('./lib/rate-limiter').getUserUsageStats;
 
 // Export DALL-E image generation
 exports.dalleGenerateImage = require('./lib/dalle-image').dalleGenerateImage;
+
+// Export Replicate Flux image generation (faster, cheaper)
+exports.replicateGenerateImage = require('./lib/replicate-image').replicateGenerateImage;
