@@ -286,13 +286,17 @@ struct ImportProgressView: View {
     }
 
     private var progressSubtitle: String {
+        let totalPhases = job.shouldGenerateAIImages ? 4 : 3
         switch job.phase {
         case .validation:
-            return "Phase 1 of 3 • Validating files"
+            return "Phase 1 of \(totalPhases) • Validating files"
         case .analysis:
-            return "Phase 2 of 3 • Analyzing pages"
+            return "Phase 2 of \(totalPhases) • Analyzing pages"
         case .extraction:
-            return "Phase 3 of 3 • \(job.completedItems)/\(job.totalItems) recipes"
+            return "Phase 3 of \(totalPhases) • \(job.completedItems)/\(job.totalItems) recipes"
+        case .imageGeneration:
+            let progress = Int(job.phaseProgress * 100)
+            return "Phase 4 of 4 • Generating images (\(progress)%)"
         case .completed:
             return "All done!"
         }
@@ -343,6 +347,8 @@ struct ImportProgressView: View {
             analysisPhaseView()
         case .extraction:
             extractionPhaseView()
+        case .imageGeneration:
+            imageGenerationPhaseView()
         case .completed:
             completionPhaseView()
         }
@@ -422,6 +428,31 @@ struct ImportProgressView: View {
                     .font(HeirloomFonts.body)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
+        }
+        .padding(HeirloomSpacing.lg)
+    }
+
+    private func imageGenerationPhaseView() -> some View {
+        VStack(spacing: HeirloomSpacing.md) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 50))
+                .foregroundStyle(.purple)
+                .symbolEffect(.pulse)
+
+            Text("Generating AI Images")
+                .font(HeirloomFonts.title3)
+                .foregroundStyle(HeirloomColors.primaryText)
+
+            Text("Creating beautiful photos for your recipes using your visual style...")
+                .font(HeirloomFonts.body)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .multilineTextAlignment(.center)
+
+            // Progress indicator
+            let completed = Int(job.phaseProgress * Double(job.successfulItems))
+            Text("\(completed) of \(job.successfulItems) images")
+                .font(HeirloomFonts.caption1Bold)
+                .foregroundStyle(HeirloomColors.tomato)
         }
         .padding(HeirloomSpacing.lg)
     }

@@ -124,7 +124,8 @@ final class CookbookBatchAnalyzer {
     // MARK: - Configuration
 
     /// Maximum characters to send in a single boundary detection call
-    private let maxBoundaryDetectionChars = 50000  // ~12.5k tokens
+    /// Reduced from 50k to 30k to limit recipes per chunk and prevent response truncation
+    private let maxBoundaryDetectionChars = 30000  // ~7.5k tokens
 
     /// Maximum characters per recipe extraction call
     private let maxRecipeExtractionChars = 8000   // ~2k tokens
@@ -143,14 +144,25 @@ final class CookbookBatchAnalyzer {
 
     // MARK: - Public API
 
+    /// Progress update for detailed tracking
+    struct ProgressUpdate {
+        let phase: String           // "detecting" or "extracting"
+        let message: String         // Human-readable message
+        let current: Int            // Current item
+        let total: Int              // Total items
+        let recipesFound: Int       // Recipes discovered so far
+    }
+
     /// Analyze extracted text and return recipe groups with extracted recipes
     /// - Parameters:
     ///   - extraction: Result from PDFTextExtractor
-    ///   - progressCallback: Optional callback for progress updates
+    ///   - progressCallback: Optional callback for progress updates (legacy)
+    ///   - detailedProgressCallback: Optional callback for detailed progress updates
     /// - Returns: BatchAnalysisResult with boundaries and extracted recipes
     func analyzeAndExtract(
         from extraction: PDFTextExtractor.ExtractionResult,
-        progressCallback: ((String, Int, Int) async -> Void)? = nil
+        progressCallback: ((String, Int, Int) async -> Void)? = nil,
+        detailedProgressCallback: ((ProgressUpdate) async -> Void)? = nil
     ) async throws -> BatchAnalysisResult {
         Log.info("Starting batch text analysis", category: .import, metadata: [
             "total_pages": extraction.pages.count,
@@ -160,7 +172,10 @@ final class CookbookBatchAnalyzer {
 
         // Phase 1: Detect recipe boundaries
         await progressCallback?("Detecting recipes", 0, 2)
-        let boundaries = try await detectRecipeBoundaries(from: extraction)
+        let boundaries = try await detectRecipeBoundaries(
+            from: extraction,
+            progressCallback: detailedProgressCallback
+        )
 
         Log.info("Recipe boundaries detected", category: .import, metadata: [
             "recipe_count": boundaries.count,
@@ -173,6 +188,14 @@ final class CookbookBatchAnalyzer {
         var pageGroups: [RecipePageGroup] = []
 
         for (index, boundary) in boundaries.enumerated() {
+            // Report progress
+            await detailedProgressCallback?(ProgressUpdate(
+                phase: "extracting",
+                message: "Extracting \(boundary.title)",
+                current: index + 1,
+                total: boundaries.count,
+                recipesFound: extractedRecipes.count
+            ))
             // Get text for this recipe's page range
             let recipeText = getTextForPageRange(
                 boundary.pageRange,
@@ -231,7 +254,8 @@ final class CookbookBatchAnalyzer {
 
     /// Quick boundary detection only (for cost estimation)
     func detectRecipeBoundaries(
-        from extraction: PDFTextExtractor.ExtractionResult
+        from extraction: PDFTextExtractor.ExtractionResult,
+        progressCallback: ((ProgressUpdate) async -> Void)? = nil
     ) async throws -> [RecipeBoundary] {
         // Build text with page markers for boundary detection
         let markedText = buildMarkedText(from: extraction.pages)
@@ -240,10 +264,18 @@ final class CookbookBatchAnalyzer {
         if markedText.count > maxBoundaryDetectionChars {
             return try await detectBoundariesInChunks(
                 pages: extraction.pages,
-                chunkSize: maxBoundaryDetectionChars
+                chunkSize: maxBoundaryDetectionChars,
+                progressCallback: progressCallback
             )
         }
 
+        await progressCallback?(ProgressUpdate(
+            phase: "detecting",
+            message: "Analyzing pages...",
+            current: 1,
+            total: 1,
+            recipesFound: 0
+        ))
         return try await detectBoundariesInText(markedText)
     }
 
@@ -267,13 +299,35 @@ final class CookbookBatchAnalyzer {
             .joined(separator: "\n\n")
     }
 
-    /// Detect boundaries in text using Claude text API
+    /// Detect boundaries in text using Claude text API with retry
     private func detectBoundariesInText(_ text: String) async throws -> [RecipeBoundary] {
+        // Retry up to 2 times on failure (3 total attempts)
+        var lastError: Error?
+        for attempt in 1...3 {
+            do {
+                return try await performBoundaryDetection(text)
+            } catch {
+                lastError = error
+                Log.warning("Boundary detection attempt \(attempt) failed", category: .import, metadata: [
+                    "error": error.localizedDescription,
+                    "text_length": text.count
+                ])
+                if attempt < 3 {
+                    // Wait a bit before retrying
+                    try? await Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000)
+                }
+            }
+        }
+        throw lastError ?? AIError.invalidResponse(reason: "Boundary detection failed after 3 attempts")
+    }
+
+    /// Perform the actual boundary detection API call
+    private func performBoundaryDetection(_ text: String) async throws -> [RecipeBoundary] {
         let prompt = """
         Analyze this cookbook text and identify each distinct recipe. The text has page markers like "=== PAGE N ===".
 
         For each recipe, provide:
-        - title: The recipe name
+        - title: The recipe name (keep it short)
         - startPage: Page number where recipe begins
         - endPage: Page number where recipe ends (same as start for single-page recipes)
         - confidence: 0.0-1.0 indicating certainty
@@ -286,24 +340,16 @@ final class CookbookBatchAnalyzer {
         - Multi-page recipes are common - look for continuations
         - Skip non-recipe content: table of contents, introductions, indexes, chapter headers
         - If a recipe spans pages 5-7, startPage=5, endPage=7
-        - High confidence (0.9+): Clear title, ingredients, instructions
-        - Medium confidence (0.7-0.9): Partial recipe or unclear boundaries
-        - Low confidence (<0.7): Uncertain if it's a recipe
+        - Only include recipes with confidence >= 0.7
 
-        Return JSON:
-        {
-          "recipes": [
-            {"title": "Chocolate Chip Cookies", "startPage": 12, "endPage": 12, "confidence": 0.95},
-            {"title": "Banana Bread", "startPage": 14, "endPage": 15, "confidence": 0.88}
-          ],
-          "nonRecipePages": [1, 2, 3, 100, 101]
-        }
+        Return ONLY this JSON format (no nonRecipePages needed):
+        {"recipes":[{"title":"Recipe Name","startPage":1,"endPage":1,"confidence":0.9}]}
         """
 
         let options = AICompletionOptions(
             model: configuration.model(for: .pdfEnhancement),  // Use text model (Haiku for cost)
             temperature: 0.3,
-            maxTokens: 2000,
+            maxTokens: 4000,  // Increased for large cookbooks with many recipes
             systemMessage: """
             You are an expert at analyzing cookbook text and identifying recipe boundaries.
             Be thorough but accurate - it's better to miss an ambiguous recipe than to create false positives.
@@ -323,19 +369,25 @@ final class CookbookBatchAnalyzer {
     /// Detect boundaries in chunks for large documents
     private func detectBoundariesInChunks(
         pages: [PDFTextExtractor.ExtractedPage],
-        chunkSize: Int
+        chunkSize: Int,
+        progressCallback: ((ProgressUpdate) async -> Void)? = nil
     ) async throws -> [RecipeBoundary] {
         var allBoundaries: [RecipeBoundary] = []
         var currentChunk = ""
         var pagesInChunk: [PDFTextExtractor.ExtractedPage] = []
+        var chunks: [(text: String, startPage: Int, endPage: Int)] = []
 
+        // First pass: build chunks
         for page in pages {
             let pageText = "=== PAGE \(page.pageNumber) ===\n\(page.text)\n\n"
 
             if currentChunk.count + pageText.count > chunkSize && !pagesInChunk.isEmpty {
-                // Process current chunk
-                let boundaries = try await detectBoundariesInText(currentChunk)
-                allBoundaries.append(contentsOf: boundaries)
+                // Save current chunk
+                chunks.append((
+                    text: currentChunk,
+                    startPage: pagesInChunk.first?.pageNumber ?? 0,
+                    endPage: pagesInChunk.last?.pageNumber ?? 0
+                ))
 
                 // Start new chunk
                 currentChunk = pageText
@@ -346,9 +398,26 @@ final class CookbookBatchAnalyzer {
             }
         }
 
-        // Process final chunk
+        // Add final chunk
         if !pagesInChunk.isEmpty {
-            let boundaries = try await detectBoundariesInText(currentChunk)
+            chunks.append((
+                text: currentChunk,
+                startPage: pagesInChunk.first?.pageNumber ?? 0,
+                endPage: pagesInChunk.last?.pageNumber ?? 0
+            ))
+        }
+
+        // Second pass: process chunks with progress reporting
+        for (index, chunk) in chunks.enumerated() {
+            await progressCallback?(ProgressUpdate(
+                phase: "detecting",
+                message: "Analyzing pages \(chunk.startPage)-\(chunk.endPage)",
+                current: index + 1,
+                total: chunks.count,
+                recipesFound: allBoundaries.count
+            ))
+
+            let boundaries = try await detectBoundariesInText(chunk.text)
             allBoundaries.append(contentsOf: boundaries)
         }
 

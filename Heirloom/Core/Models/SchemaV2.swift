@@ -36,7 +36,9 @@ enum SchemaV2: VersionedSchema {
             PDFImportCheckpoint.self,
             VideoProcessingJob.self,
             ProcessingCheckpoint.self,
-            RecipeGenerationJob.self
+            RecipeGenerationJob.self,
+            UserCredits.self,
+            QueuedPDFImport.self
         ]
     }
 

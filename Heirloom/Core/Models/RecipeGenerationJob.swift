@@ -52,7 +52,7 @@ enum RecipeGenerationPhase: String, Codable {
         case .extracting:
             return "Extracting ingredients..."
         case .enriching:
-            return "Adding finishing touches..."
+            return "Generating recipe image..."
         case .complete:
             return "Recipe generated!"
         }

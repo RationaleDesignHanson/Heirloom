@@ -34,10 +34,10 @@ const admin = __importStar(require("firebase-admin"));
 const db = admin.firestore();
 // Rate limits per operation type
 const RATE_LIMITS = {
-    ai_complete: { limit: 100, windowMs: 24 * 60 * 60 * 1000 },
-    ai_vision: { limit: 50, windowMs: 24 * 60 * 60 * 1000 },
-    google_vision: { limit: 100, windowMs: 24 * 60 * 60 * 1000 },
-    brave_search: { limit: 200, windowMs: 24 * 60 * 60 * 1000 }, // 200 searches per day
+    ai_complete: { limit: 1000, windowMs: 24 * 60 * 60 * 1000 },
+    ai_vision: { limit: 400, windowMs: 24 * 60 * 60 * 1000 },
+    google_vision: { limit: 1000, windowMs: 24 * 60 * 60 * 1000 },
+    brave_search: { limit: 1000, windowMs: 24 * 60 * 60 * 1000 }, // 1000 searches per day (increased for development)
 };
 /**
  * Check if user has exceeded rate limit for an operation

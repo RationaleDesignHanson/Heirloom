@@ -15,7 +15,8 @@ protocol RecipeImageGeneratorProtocol {
     func generateAndSaveImage(for recipe: Recipe) async throws
 }
 
-/// Generates recipe images using OpenAI DALL-E 3 via Firebase Cloud Functions
+/// Generates recipe images using AI image generation (Replicate Flux or DALL-E) via Firebase Cloud Functions
+/// Default: Replicate Flux for speed and cost efficiency
 @MainActor
 class RecipeImageGenerator: RecipeImageGeneratorProtocol {
     private let styleConfig: VisualStyleConfiguration
@@ -32,7 +33,7 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
         let prompt = buildPrompt(for: recipe)
         Log.info("Generating recipe image", category: .general, metadata: ["prompt": prompt, "title": recipe.title])
 
-        // Call DALL-E via Firebase Function
+        // Call image generation API via Firebase Function (Replicate Flux by default)
         let imageURL = try await firebaseService.generateImage(prompt: prompt)
 
         // Download image
@@ -52,26 +53,58 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
 
     // MARK: - Private Methods
 
+    /// Build an optimized prompt for Flux/DALL-E image generation
+    /// Structure: [dish description], [key ingredients], [style modifiers], [quality keywords]
     private func buildPrompt(for recipe: Recipe) -> String {
         let selectedStyle = styleConfig.selectedStyle
 
-        // Build subject from recipe details
-        var subject = "A delicious \(recipe.title)"
+        // Build dish description - be specific about the food
+        let dishDescription = recipe.title
 
-        // Add cuisine if available
+        // Add key visual ingredients (limit to 3 most photogenic)
+        var ingredientHints: [String] = []
+        if let ingredients = recipe.ingredients?.prefix(5) {
+            // Filter for visually interesting ingredients
+            let visualIngredients = ingredients
+                .map { $0.name.lowercased() }
+                .filter { ingredient in
+                    // Prioritize colorful/textural ingredients
+                    let visualKeywords = ["tomato", "pepper", "herb", "cheese", "cream", "sauce",
+                                         "berry", "lemon", "lime", "garlic", "onion", "mushroom",
+                                         "bacon", "chicken", "beef", "salmon", "shrimp", "pasta",
+                                         "rice", "bread", "chocolate", "butter", "egg", "avocado"]
+                    return visualKeywords.contains { ingredient.contains($0) }
+                }
+                .prefix(3)
+            ingredientHints = Array(visualIngredients)
+        }
+
+        // Build the prompt with clear structure for Flux
+        var promptParts: [String] = []
+
+        // Subject: the dish
+        promptParts.append("beautiful \(dishDescription)")
+
+        // Add ingredient visual hints if available
+        if !ingredientHints.isEmpty {
+            promptParts.append("with \(ingredientHints.joined(separator: ", "))")
+        }
+
+        // Add cuisine style from tags if available
         if let tags = recipe.tags, !tags.isEmpty {
-            let tagNames = tags.map { $0.name }.joined(separator: ", ")
-            subject += " with \(tagNames) style"
+            let cuisineTag = tags.first { tag in
+                let cuisineKeywords = ["italian", "mexican", "asian", "indian", "french",
+                                       "mediterranean", "american", "thai", "japanese", "chinese"]
+                return cuisineKeywords.contains { tag.name.lowercased().contains($0) }
+            }
+            if let cuisine = cuisineTag {
+                promptParts.append("\(cuisine.name) cuisine")
+            }
         }
 
-        // Add ingredient hints if available (limit to 3 key ingredients)
-        if let ingredients = recipe.ingredients?.prefix(3), !ingredients.isEmpty {
-            let ingredientNames = ingredients.map { $0.name }.joined(separator: ", ")
-            subject += " featuring \(ingredientNames)"
-        }
-
-        // Combine subject with user's selected visual style
-        let prompt = "\(subject). \(selectedStyle.promptModifier)"
+        // Combine with style modifier
+        let subject = promptParts.joined(separator: ", ")
+        let prompt = "\(subject), \(selectedStyle.promptModifier)"
 
         return prompt
     }

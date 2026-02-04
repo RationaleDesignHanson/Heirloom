@@ -1,7 +1,8 @@
 import Foundation
 import UIKit
 
-/// Generates themed background images for collections using OpenAI DALL-E 3 via Firebase
+/// Generates themed background images for collections using AI image generation via Firebase
+/// Supports Replicate Flux (default, faster) or DALL-E 3
 actor CollectionImageGenerator {
     private let imageStorage: ImageStorageService
     private let styleConfig: VisualStyleConfiguration
@@ -29,59 +30,61 @@ actor CollectionImageGenerator {
         return localPath
     }
 
+    /// Build an optimized prompt for Flux/DALL-E collection image generation
+    /// Structure: [scene description], [food elements], [style modifiers]
     private func buildPrompt(for collection: RecipeCollection) -> String {
         let recipes = collection.recipes ?? []
-        let recipeNames = recipes.prefix(5).map { $0.title }.joined(separator: ", ")
+        let firstRecipe = recipes.first?.title
         let selectedStyle = styleConfig.selectedStyle
 
-        // Base subject varies by collection type
-        var subject: String
+        // Build scene description based on collection type
+        var sceneDescription: String
 
         switch collection.type {
         case .videoImports:
-            subject = "A modern kitchen scene showing a content creator filming a recipe"
-            if !recipeNames.isEmpty {
-                subject += " making \(recipeNames.components(separatedBy: ", ").first ?? "a delicious dish")"
+            sceneDescription = "modern kitchen scene, content creator filming cooking video"
+            if let recipe = firstRecipe {
+                sceneDescription += ", preparing \(recipe)"
             }
 
         case .cookbook:
-            subject = "A vintage cookbook open on a kitchen counter with worn pages and handwritten notes"
-            if !recipeNames.isEmpty {
-                subject += " featuring recipes like \(recipeNames)"
+            sceneDescription = "vintage cookbook open on rustic wooden table, worn pages with handwritten notes, kitchen background"
+            if let recipe = firstRecipe {
+                sceneDescription += ", recipe for \(recipe)"
             }
 
         case .photoImports:
-            subject = "A beautifully styled overhead flat lay of homemade food"
-            if !recipeNames.isEmpty {
-                subject += " showing \(recipeNames.components(separatedBy: ", ").first ?? "delicious dishes")"
+            sceneDescription = "beautiful overhead flat lay food photography, artfully arranged homemade dishes"
+            if let recipe = firstRecipe {
+                sceneDescription += ", featuring \(recipe)"
             }
 
         case .webImports:
-            subject = "A modern kitchen scene with a tablet showing a recipe"
-            if !recipeNames.isEmpty {
-                subject += " for \(recipeNames.components(separatedBy: ", ").first ?? "cooking")"
+            sceneDescription = "modern bright kitchen, tablet displaying recipe, fresh ingredients on counter"
+            if let recipe = firstRecipe {
+                sceneDescription += ", making \(recipe)"
             }
 
         case .communityRecipes:
-            subject = "A warm, inviting community kitchen scene with diverse people sharing recipes and cooking together"
-            if !recipeNames.isEmpty {
-                subject += " featuring dishes like \(recipeNames.components(separatedBy: ", ").first ?? "traditional favorites")"
+            sceneDescription = "warm inviting community kitchen, diverse group cooking together, shared meal preparation"
+            if let recipe = firstRecipe {
+                sceneDescription += ", preparing \(recipe)"
             }
 
         default:
-            subject = "A warm, nostalgic kitchen scene representing a family cookbook collection"
-            if !recipeNames.isEmpty {
-                subject += " featuring dishes like \(recipeNames)"
+            sceneDescription = "cozy family kitchen scene, heirloom cookbook collection, warm nostalgic atmosphere"
+            if let recipe = firstRecipe {
+                sceneDescription += ", featuring \(recipe)"
             }
         }
 
         // Add custom description if provided
         if let description = collection.desc, !description.isEmpty {
-            subject += ". Additional theme: \(description)"
+            sceneDescription += ", \(description)"
         }
 
-        // Combine subject with user's selected visual style
-        let prompt = "\(subject). \(selectedStyle.promptModifier)"
+        // Combine with style modifier (which includes quality keywords)
+        let prompt = "\(sceneDescription), \(selectedStyle.promptModifier)"
 
         return prompt
     }

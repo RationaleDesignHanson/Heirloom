@@ -356,10 +356,34 @@ struct ShareExtensionView: View {
         if itemProvider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
             let url = try await loadURL(from: itemProvider)
 
-            // Only handle http/https URLs (web pages)
-            // Ignore file:// URLs (local files)
+            print("📋 Share Extension: Received URL with scheme: \(url.scheme ?? "nil")")
+            print("📋 Share Extension: Full URL: \(url.absoluteString)")
+
+            // Accept http/https URLs (web pages)
             if url.scheme == "http" || url.scheme == "https" {
                 return .url(url)
+            }
+
+            // For Apple News and other special URL schemes, try to extract the actual web URL
+            // Apple News often wraps URLs like: apple-news://article?id=...&url=<actual-url>
+            if url.scheme == "apple-news" || url.scheme == "applenews" {
+                // Try to extract the actual URL from query parameters
+                if let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                   let queryItems = components.queryItems,
+                   let urlString = queryItems.first(where: { $0.name == "url" })?.value,
+                   let actualURL = URL(string: urlString) {
+                    print("📋 Share Extension: Extracted actual URL from Apple News: \(actualURL.absoluteString)")
+                    return .url(actualURL)
+                }
+
+                // If we can't extract a URL, Apple News articles are still recipe-worthy content
+                // Try to get the article URL from plain text if available
+                print("📋 Share Extension: Apple News URL couldn't be parsed, checking plain text...")
+            }
+
+            // Ignore file:// and other local URLs
+            if url.scheme != "file" {
+                print("📋 Share Extension: Non-standard URL scheme '\(url.scheme ?? "nil")', checking if we can use it anyway")
             }
         }
 
@@ -367,11 +391,14 @@ struct ShareExtensionView: View {
         if itemProvider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) {
             let text = try await loadText(from: itemProvider)
 
+            print("📋 Share Extension: Received plain text: \(text.prefix(200))...")
+
             // Analyze content using NotesContentAnalyzer
             let analysis = NotesContentAnalyzer.analyze(text)
 
             if analysis.shouldUseBulkImport {
                 // Multiple URLs or URLs + recipe text
+                print("📋 Share Extension: Using bulk import (multiple URLs or URLs + recipe)")
                 return .bulkContent(
                     urls: analysis.urls,
                     text: analysis.plainText,
@@ -379,6 +406,7 @@ struct ShareExtensionView: View {
                 )
             } else if analysis.shouldUseTextImport {
                 // Plain text recipe only
+                print("📋 Share Extension: Using text import (recipe detected)")
                 return .bulkContent(
                     urls: [],
                     text: analysis.plainText,
@@ -386,12 +414,23 @@ struct ShareExtensionView: View {
                 )
             } else if analysis.urls.count == 1 {
                 // Single URL - use existing flow
+                print("📋 Share Extension: Found single URL in text: \(analysis.urls[0])")
                 if let url = URL(string: analysis.urls[0]) {
                     return .url(url)
                 }
+            } else if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                // Non-empty text with no clear recipe or URL structure
+                // Still might be useful - treat as potential recipe text
+                print("📋 Share Extension: Plain text with no clear structure, treating as potential recipe")
+                return .bulkContent(
+                    urls: [],
+                    text: text,
+                    hasRecipe: false
+                )
             }
         }
 
+        print("📋 Share Extension: No supported content type found - returning unsupported")
         return .unsupported
     }
 

@@ -49,10 +49,46 @@ final class PDFCostCalculator {
         let classifications: [URL: PDFContentType]
         let canAfford: Bool
         let needsCredits: Int  // How many credits short
+        let estimatedTotalPages: Int  // Total pages across all PDFs
 
         var hasTextRich: Bool { textRichCount > 0 }
         var hasScanned: Bool { scannedCount > 0 }
         var hasMixed: Bool { mixedCount > 0 }
+
+        /// Credits required for AI image generation (if enabled)
+        /// Tiered based on estimated recipe count (roughly 1 recipe per 1-2 pages)
+        var aiImageCredits: Int {
+            let estimatedRecipes = max(1, estimatedTotalPages / 2)
+            if estimatedRecipes <= 10 {
+                return 0  // Free for small imports
+            } else if estimatedRecipes <= 25 {
+                return 5
+            } else if estimatedRecipes <= 50 {
+                return 10
+            } else {
+                return 15
+            }
+        }
+
+        /// Whether AI image generation requires credits
+        var aiImagesRequireCredits: Bool {
+            aiImageCredits > 0
+        }
+
+        /// Calculate total with AI images
+        func totalWithAIImages(enabled: Bool) -> Int {
+            enabled ? totalCredits + aiImageCredits : totalCredits
+        }
+
+        /// Check affordability with AI images
+        func canAfford(withAIImages: Bool, userCredits: UserCredits) -> Bool {
+            totalWithAIImages(enabled: withAIImages) <= userCredits.availableToday
+        }
+
+        /// Calculate credits needed with AI images
+        func creditsNeeded(withAIImages: Bool, userCredits: UserCredits) -> Int {
+            max(0, totalWithAIImages(enabled: withAIImages) - userCredits.availableToday)
+        }
     }
 
     // MARK: - Constants
@@ -79,14 +115,16 @@ final class PDFCostCalculator {
         var textRich = 0
         var scanned = 0
         var mixed = 0
+        var totalPages = 0
         var classifications: [URL: PDFContentType] = [:]
 
         Log.info("Calculating cost for \(pdfURLs.count) PDFs", category: .general)
 
         for url in pdfURLs {
             // Quick classification (samples first N pages)
-            let contentType = try classifyPDF(at: url)
+            let (contentType, pageCount) = try classifyPDFWithPageCount(at: url)
             classifications[url] = contentType
+            totalPages += pageCount
 
             totalCredits += contentType.creditCost
 
@@ -102,7 +140,8 @@ final class PDFCostCalculator {
             Log.debug("PDF classified", category: .general, metadata: [
                 "url": url.lastPathComponent,
                 "type": contentType.displayName,
-                "cost": contentType.creditCost
+                "cost": contentType.creditCost,
+                "pages": pageCount
             ])
         }
 
@@ -115,6 +154,7 @@ final class PDFCostCalculator {
             "textRich": textRich,
             "scanned": scanned,
             "mixed": mixed,
+            "totalPages": totalPages,
             "available": available,
             "canAfford": canAfford
         ])
@@ -126,13 +166,63 @@ final class PDFCostCalculator {
             mixedCount: mixed,
             classifications: classifications,
             canAfford: canAfford,
-            needsCredits: needsCredits
+            needsCredits: needsCredits,
+            estimatedTotalPages: totalPages
         )
     }
 
     // MARK: - Private Methods
 
-    /// Classify a single PDF by sampling pages
+    /// Classify a single PDF by sampling pages and return page count
+    /// - Parameter url: URL of the PDF
+    /// - Returns: Tuple of (classification, pageCount)
+    private func classifyPDFWithPageCount(at url: URL) throws -> (PDFContentType, Int) {
+        guard let document = PDFDocument(url: url) else {
+            throw PDFCostError.cannotOpenPDF(url: url)
+        }
+
+        let totalPages = document.pageCount
+        guard totalPages > 0 else {
+            throw PDFCostError.emptyPDF(url: url)
+        }
+
+        // Sample up to N pages (or all if fewer)
+        let pagesToSample = min(totalPages, Self.sampleSize)
+        var textRichPages = 0
+        var scannedPages = 0
+
+        // Sample evenly distributed pages (first, middle, last, etc.)
+        let sampleIndices = calculateSampleIndices(totalPages: totalPages, sampleSize: pagesToSample)
+
+        for pageIndex in sampleIndices {
+            guard let page = document.page(at: pageIndex) else { continue }
+
+            let text = page.string ?? ""
+            let charCount = text.count
+
+            if charCount >= Self.textRichThreshold {
+                textRichPages += 1
+            } else {
+                scannedPages += 1
+            }
+        }
+
+        // Classify based on ratio
+        let textRichRatio = Double(textRichPages) / Double(pagesToSample)
+
+        let contentType: PDFContentType
+        if textRichRatio >= 0.8 {
+            contentType = .textRich
+        } else if textRichRatio <= 0.2 {
+            contentType = .scanned
+        } else {
+            contentType = .mixed
+        }
+
+        return (contentType, totalPages)
+    }
+
+    /// Classify a single PDF by sampling pages (legacy, no page count)
     /// - Parameter url: URL of the PDF
     /// - Returns: Classification (text-rich, scanned, or mixed)
     private func classifyPDF(at url: URL) throws -> PDFContentType {

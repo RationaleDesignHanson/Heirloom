@@ -26,10 +26,14 @@ struct CollectionDetailView: View {
     // Services
     private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var recipeImageGenerator: any RecipeImageGeneratorProtocol {
+        ServiceContainer.shared.resolve((any RecipeImageGeneratorProtocol).self)
+    }
 
     // Context menu state
     @State private var recipeToDelete: Recipe?
     @State private var recipeForCollectionPicker: Recipe?
+    @State private var recipeGeneratingImage: Recipe?
 
     // Batch selection state (for "All Recipes" collection)
     @State private var isSelectionMode = false
@@ -54,7 +58,23 @@ struct CollectionDetailView: View {
 
     // Should show the "add your own" nudge
     private var shouldShowAddNudge: Bool {
-        collection.type == .theme && userAddedRecipeCount == 0 && !recipes.isEmpty
+        // For theme collections: show when has theme recipes but no user-added recipes
+        if collection.type == .theme {
+            return userAddedRecipeCount == 0 && !recipes.isEmpty
+        }
+
+        // For user-created collections: show when empty or has few recipes (< 3)
+        if collection.type == .userCreated {
+            return recipes.count < 3
+        }
+
+        // For other non-themed collections (cookbook, imports): show when empty
+        if collection.type == .cookbook || collection.type == .webImports ||
+           collection.type == .videoImports || collection.type == .photoImports {
+            return recipes.isEmpty
+        }
+
+        return false
     }
 
     // Recipes in this collection
@@ -354,10 +374,36 @@ struct CollectionDetailView: View {
 
         Divider()
 
+        Button {
+            generateAIImage(for: recipe)
+        } label: {
+            Label("Generate AI Image", systemImage: "sparkles")
+        }
+
+        Divider()
+
         Button(role: .destructive) {
             recipeToDelete = recipe
         } label: {
             Label("Delete", systemImage: "trash")
+        }
+    }
+
+    private func generateAIImage(for recipe: Recipe) {
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+
+        recipeGeneratingImage = recipe
+
+        Task {
+            do {
+                try await recipeImageGenerator.generateAndSaveImage(for: recipe)
+                toastManager.success(title: "Image Generated", message: recipe.title)
+            } catch {
+                toastManager.error(title: "Generation Failed", message: error.localizedDescription)
+            }
+            recipeGeneratingImage = nil
         }
     }
 
@@ -580,6 +626,9 @@ struct CollectionDetailView: View {
             }
         }
         .onAppear {
+            // Mark collection as viewed (clears "NEW" badge)
+            collection.markAsViewed()
+
             // TODO: Re-enable for Phase A3
             // if unlockTracker == nil {
             //     unlockTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
@@ -1171,31 +1220,33 @@ struct CollectionDetailView: View {
 
     private var addRecipeNudge: some View {
         VStack(spacing: 0) {
-            // Divider with text
-            HStack {
-                Rectangle()
-                    .fill(HeirloomColors.warmGray.opacity(0.2))
-                    .frame(height: 1)
+            // Divider with text (only for theme collections)
+            if collection.type == .theme {
+                HStack {
+                    Rectangle()
+                        .fill(HeirloomColors.warmGray.opacity(0.2))
+                        .frame(height: 1)
 
-                Text(UXCopy.Nudges.addYourOwn)
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .padding(.horizontal, HeirloomSpacing.sm)
+                    Text(UXCopy.Nudges.addYourOwn)
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .padding(.horizontal, HeirloomSpacing.sm)
 
-                Rectangle()
-                    .fill(HeirloomColors.warmGray.opacity(0.2))
-                    .frame(height: 1)
+                    Rectangle()
+                        .fill(HeirloomColors.warmGray.opacity(0.2))
+                        .frame(height: 1)
+                }
+                .padding(.vertical, HeirloomSpacing.lg)
             }
-            .padding(.vertical, HeirloomSpacing.lg)
 
             // CTA banner (matches CollectionsListView style)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Add your own recipe")
+                Text(nudgeBannerTitle)
                     .font(HeirloomFonts.body)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
 
-                Text("Press the + button above to import or generate recipes")
+                Text(nudgeBannerMessage)
                     .font(HeirloomFonts.caption1)
                     .foregroundStyle(.white.opacity(0.9))
             }
@@ -1208,6 +1259,36 @@ struct CollectionDetailView: View {
             )
         }
         .padding(.horizontal, HeirloomSpacing.md)
+    }
+
+    private var nudgeBannerTitle: String {
+        switch collection.type {
+        case .theme:
+            return "Add your own recipe"
+        case .userCreated, .cookbook:
+            return "Add recipes to this collection"
+        default:
+            return "Add recipes"
+        }
+    }
+
+    private var nudgeBannerMessage: String {
+        switch collection.type {
+        case .theme:
+            return "Press the + button above to import or generate recipes"
+        case .userCreated:
+            return "Press the + button above to get started"
+        case .cookbook:
+            return "Scan more pages from your cookbook"
+        case .webImports:
+            return "Import recipes from websites"
+        case .videoImports:
+            return "Import recipes from videos"
+        case .photoImports:
+            return "Import recipes from photos"
+        default:
+            return "Press the + button above to add recipes"
+        }
     }
 }
 

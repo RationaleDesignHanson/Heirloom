@@ -564,6 +564,20 @@ struct SettingsView: View {
                 }
             }
 
+            // Credits System Test - TEST PDF IMPORT CREDITS
+            NavigationLink {
+                CreditsTestView()
+            } label: {
+                HStack {
+                    Image(systemName: "giftcard.fill")
+                        .foregroundStyle(HeirloomColors.familyGreen)
+                    Text("Credits System Test")
+                    Spacer()
+                    Text("💳")
+                        .font(HeirloomFonts.caption1)
+                }
+            }
+
             #if DEBUG
             // Test Crashlytics Reporting - VERIFY CRASH REPORTING
             Button(role: .destructive) {

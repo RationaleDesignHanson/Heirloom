@@ -43,10 +43,11 @@ struct ExtractionResult: Codable, Hashable {
 
 /// Phases of the import process for unified progress tracking
 enum ImportPhase: String, Codable, CaseIterable {
-    case validation   // Validating PDF files
-    case analysis     // Detecting page boundaries and extracting images
-    case extraction   // Extracting recipe details via AI
-    case completed    // All done
+    case validation       // Validating PDF files
+    case analysis         // Detecting page boundaries and extracting images
+    case extraction       // Extracting recipe details via AI
+    case imageGeneration  // Generating AI images for recipes
+    case completed        // All done
 
     /// Sort order for phase comparison
     var sortOrder: Int {
@@ -54,7 +55,8 @@ enum ImportPhase: String, Codable, CaseIterable {
         case .validation: return 0
         case .analysis: return 1
         case .extraction: return 2
-        case .completed: return 3
+        case .imageGeneration: return 3
+        case .completed: return 4
         }
     }
 
@@ -64,6 +66,7 @@ enum ImportPhase: String, Codable, CaseIterable {
         case .validation: return "Validating PDFs..."
         case .analysis: return "Analyzing pages..."
         case .extraction: return "Extracting recipes..."
+        case .imageGeneration: return "Generating images..."
         case .completed: return "Import complete"
         }
     }
@@ -74,6 +77,7 @@ enum ImportPhase: String, Codable, CaseIterable {
         case .validation: return "doc.text.magnifyingglass"
         case .analysis: return "doc.text.image"
         case .extraction: return "text.badge.checkmark"
+        case .imageGeneration: return "sparkles"
         case .completed: return "checkmark.circle.fill"
         }
     }

@@ -158,6 +158,7 @@ struct PDFImportView: View {
     @State private var userCredits: UserCredits?
     @State private var showCreditsStore = false
     @State private var isCalculatingCost = false
+    @State private var generateAIImages = false
 
     // SwiftData query for user credits
     @Query private var allUserCredits: [UserCredits]
@@ -266,7 +267,8 @@ struct PDFImportView: View {
             CreditsCostSheet(
                 costBreakdown: breakdown,
                 userCredits: credits,
-                onConfirm: {
+                onConfirm: { shouldGenerateImages in
+                    generateAIImages = shouldGenerateImages
                     showCostSheet = false
                     Task {
                         await proceedWithImport()
@@ -684,6 +686,9 @@ struct PDFImportView: View {
             dismiss()
         }
 
+        // Capture AI image generation flag
+        let shouldGenerateImages = generateAIImages
+
         // Start analysis and extraction in background
         Task {
             do {
@@ -693,7 +698,8 @@ struct PDFImportView: View {
                     cookbookName: cookbookName,
                     collectionType: .cookbook,
                     context: modelContext,
-                    costBreakdown: costBreakdown  // Pass cost breakdown for credit deduction
+                    costBreakdown: costBreakdown,  // Pass cost breakdown for credit deduction
+                    generateAIImages: shouldGenerateImages
                 )
 
                 try await importManager.startJob(job, context: modelContext)

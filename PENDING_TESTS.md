@@ -1756,3 +1756,557 @@ Tests 1-15 verified:
 ---
 
 **Next Session:** Test PDF imports and verify auto-scaling works without warnings
+
+---
+
+## Replicate Flux Image Generation (2026-02-03)
+
+### Date: 2026-02-03
+
+**Feature**: Fast AI image generation using Replicate Flux instead of DALL-E for bulk PDF imports
+
+**Benefits**:
+- ~3-5 seconds per image (vs ~17 seconds with DALL-E)
+- Lower cost (~$0.003 vs ~$0.04 per image)
+- Optimized prompts for Flux model
+- Sequential processing with retry passes to handle rate limits
+
+**Files Changed**:
+- `firebase/functions/replicate-image.ts` - New Firebase Cloud Function
+- `firebase/functions/index.js` - Export new function
+- `FirebaseImageGenerationService.swift` - Dual provider support (Replicate/DALL-E)
+- `ImportJobManager.swift` - Sequential generation with retry passes
+- `VisualStyle.swift` - Optimized prompts for Flux model
+
+---
+
+### Test 1: Replicate Image Generation - Single Recipe ⭐ CRITICAL
+
+**Objective**: Verify Replicate Flux generates images successfully
+
+**Prerequisites**: Logged in user, valid Replicate API key in Firebase secrets
+
+**Steps**:
+1. Import a PDF with 1-2 recipes
+2. Enable "Generate AI images" toggle in cost sheet
+3. Tap "Import Now"
+4. Watch for image generation phase
+5. Check imported recipe for AI-generated image
+
+**Expected Results**:
+- [ ] Image generation phase appears in progress UI
+- [ ] Images generate successfully (no UNAUTHENTICATED errors)
+- [ ] Images appear on recipes (not PDF page screenshots)
+- [ ] Image style matches user's selected visual style
+- [ ] Generation time ~3-5 seconds per image
+- [ ] No rate limit errors with 1-2 images
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 2: Sequential Generation with Rate Limit Handling
+
+**Objective**: Verify sequential processing and retry logic handles rate limits
+
+**Prerequisites**: PDF with 5+ recipes
+
+**Steps**:
+1. Import PDF cookbook with 5+ recipes
+2. Enable "Generate AI images" toggle
+3. Watch progress during image generation phase
+4. Monitor logs for any 429 (rate limit) errors
+5. Verify all images eventually complete
+
+**Expected Results**:
+- [ ] Images generate one at a time (sequential, not parallel)
+- [ ] 3-second delay between requests (visible in logs)
+- [ ] If 429 error occurs, retry with exponential backoff (2s, 4s, 8s)
+- [ ] Failed images get retry passes (up to 2 additional passes)
+- [ ] Most/all images complete successfully
+- [ ] Progress updates smoothly during generation
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 3: Retry Passes for Failed Images
+
+**Objective**: Verify failed images are retried in subsequent passes
+
+**Steps**:
+1. Import PDF with 10+ recipes (more likely to hit rate limits)
+2. Enable AI images
+3. Watch logs for retry behavior
+4. Note how many images succeed on first pass vs retry passes
+
+**Expected Results**:
+- [ ] First pass processes all images sequentially
+- [ ] If any fail, 10-second delay before retry pass
+- [ ] Up to 2 retry passes attempted
+- [ ] Retry passes only include previously failed images
+- [ ] Final success count logged
+- [ ] Toast shows if some images failed
+
+**Logs to Verify**:
+- "Starting sequential AI image generation" with recipeCount
+- "Rate limited, retrying after Xs"
+- "Starting retry pass for failed images"
+- "Retry succeeded for recipe image"
+- "AI image generation completed" with successCount/failureCount
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 4: Visual Style Applied to Generated Images
+
+**Objective**: Verify generated images match user's selected visual style
+
+**Prerequisites**: Change visual style in Settings before import
+
+**Steps**:
+1. Go to Settings → Visual Style
+2. Select "Watercolor" style (or any non-default)
+3. Import PDF with AI images enabled
+4. Check generated image style
+
+**Expected Results**:
+- [ ] Generated images have watercolor aesthetic (soft brushstrokes, etc.)
+- [ ] Style modifiers from VisualStyle.swift applied to prompt
+- [ ] Images don't look like default photography style
+- [ ] Quality keywords present ("high quality", "8k resolution", etc.)
+- [ ] "no text no labels no words" prevents text in images
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+## Text-Heavy Page Detection & AI Collection Covers (2026-02-03)
+
+### Date: 2026-02-03
+
+**Feature**: Detect when PDF first page is a recipe (text-heavy) vs a proper cover, and generate AI cover accordingly
+
+**Problem Fixed**: PDFs that start with a recipe page (not a cover) showed ugly text screenshots as collection hero images
+
+**Solution**:
+1. Check first page text content (>400 characters = text-heavy)
+2. Skip text-heavy pages as collection covers
+3. Generate AI collection cover during image generation phase if no cover found
+
+**Files Changed**:
+- `ImportJobManager.swift` - Text detection and AI cover generation
+
+---
+
+### Test 1: Text-Heavy Page Detection ⭐ CRITICAL
+
+**Objective**: Verify text-heavy first pages are NOT used as collection covers
+
+**Prerequisites**: PDF that starts with a recipe page (lots of text, no cover image)
+
+**Steps**:
+1. Import PDF that starts with a recipe (no title page/cover)
+2. Enable "Generate AI images" toggle
+3. Complete import
+4. Go to Collections tab
+5. Find the new collection
+
+**Expected Results**:
+- [ ] Collection does NOT show recipe page text as hero image
+- [ ] Logs show "First page appears to be a recipe page, skipping as cover"
+- [ ] Text length logged (should be >400 characters)
+- [ ] Collection gets AI-generated cover instead (if AI images enabled)
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 2: Proper Cover Page Detection
+
+**Objective**: Verify PDFs with actual covers use the cover image
+
+**Prerequisites**: PDF with a proper title/cover page (minimal text, nice design)
+
+**Steps**:
+1. Import PDF that has a title/cover page first
+2. Complete import
+3. Check collection hero image
+
+**Expected Results**:
+- [ ] Collection shows the PDF cover page as hero image
+- [ ] Logs show "Saved cookbook cover image" with textLength <400
+- [ ] Cover looks like actual PDF first page (not AI generated)
+- [ ] No AI cover generation needed
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 3: AI Collection Cover Generation
+
+**Objective**: Verify AI cover is generated when first page is text-heavy
+
+**Prerequisites**: PDF starting with recipe page, AI images enabled
+
+**Steps**:
+1. Import text-heavy PDF with AI images ON
+2. Wait for all phases to complete (including image generation)
+3. Check collection hero image
+4. Compare to PDF first page
+
+**Expected Results**:
+- [ ] Collection shows AI-generated hero image (NOT the recipe text page)
+- [ ] Logs show "Generating AI cover for collection (first page was text-heavy)"
+- [ ] Cover matches user's visual style
+- [ ] Collection has `useCustomBackground = true`
+- [ ] Collection has `generatedBackgroundImagePath` set
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 4: AI Images Disabled - Text-Heavy Page
+
+**Objective**: Verify behavior when AI images disabled but first page is text-heavy
+
+**Prerequisites**: PDF starting with recipe page
+
+**Steps**:
+1. Import text-heavy PDF with AI images OFF
+2. Check collection hero image
+
+**Expected Results**:
+- [ ] Collection uses recipe collage (first recipe images) as fallback
+- [ ] OR shows placeholder if no recipe images
+- [ ] Does NOT show the ugly text page screenshot
+- [ ] No AI generation attempted
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+## PDF Author Extraction & Tappable Attribution (2026-02-03)
+
+### Date: 2026-02-03
+
+**Feature**: Extract author name from PDF metadata and display on collection cards with tappable web search
+
+**Benefits**:
+- Collections show "From [Author Name]" instead of "From [Cookbook Name]"
+- Tap attribution to search for cookbook on Google
+- Better provenance tracking for imported recipes
+
+**Files Changed**:
+- `ImportJob.swift` - Added `cookbookAuthor` field
+- `RecipeCollection.swift` - Added `sourceAuthor` field, updated `subtitleText`
+- `CollectionRouter.swift` - Pass author to collection
+- `ImportJobManager.swift` - Extract and store author
+- `UnifiedCollectionCard.swift` - Tappable attribution with web search
+
+---
+
+### Test 1: Author Extraction from PDF Metadata ⭐ CRITICAL
+
+**Objective**: Verify author is extracted from PDF and shown on collection
+
+**Prerequisites**: PDF with author in metadata (check PDF properties)
+
+**Steps**:
+1. Import PDF cookbook that has author metadata
+2. Go to Collections tab
+3. Find the new collection
+4. Check subtitle text below collection name
+
+**Expected Results**:
+- [ ] Collection shows "From [Author Name]" (not cookbook name)
+- [ ] Author name matches PDF metadata
+- [ ] Logs show "Extracted cookbook metadata" with author
+- [ ] Author stored on collection's `sourceAuthor` field
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 2: Fallback to Cookbook Name
+
+**Objective**: Verify fallback when PDF has no author metadata
+
+**Prerequisites**: PDF without author metadata
+
+**Steps**:
+1. Import PDF that has no author in metadata
+2. Check collection subtitle
+
+**Expected Results**:
+- [ ] Collection shows "From [Cookbook Name]" as fallback
+- [ ] Logs show author as "nil"
+- [ ] Cookbook name still displays correctly
+- [ ] No errors or crashes
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 3: Tappable Attribution - Opens Web Search
+
+**Objective**: Verify tapping "From [Author]" opens Google search
+
+**Prerequisites**: Collection with author or cookbook name
+
+**Steps**:
+1. Find collection with "From [X]" subtitle
+2. Observe subtitle styling (should be green with arrow icon)
+3. Tap on the "From [X]" text
+4. Observe browser behavior
+
+**Expected Results**:
+- [ ] Subtitle text is green (HeirloomColors.familyGreen)
+- [ ] Small arrow icon (↗) appears after text
+- [ ] Tapping opens Safari/default browser
+- [ ] URL is Google search: `google.com/search?q=[cookbook]+by+[author]+cookbook`
+- [ ] Search query properly URL-encoded
+
+**Search URL Example**: `https://www.google.com/search?q=One-Pot+Meals+Cookbook+by+Nutrition+Services+cookbook`
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 4: Non-Tappable Collections
+
+**Objective**: Verify non-cookbook collections don't show tappable attribution
+
+**Prerequisites**: Various collection types
+
+**Steps**:
+1. Check "Video Imports" collection subtitle
+2. Check "Web Imports" collection subtitle
+3. Check user-created collection subtitle
+4. Check theme collection subtitle
+
+**Expected Results**:
+- [ ] Video Imports: Shows "X video recipes" (gray, not tappable)
+- [ ] Web Imports: Shows "X web recipes" (gray, not tappable)
+- [ ] User collections: Shows "X recipes" (gray, not tappable)
+- [ ] Only cookbook collections have tappable green attribution
+- [ ] No arrow icon on non-tappable subtitles
+
+**Pass/Fail**: ___________
+
+---
+
+## Recipe Generator Easter Egg - Hidden Random Recipe (2026-02-03)
+
+### Date: 2026-02-03
+
+**Feature**: "Done" button in recipe generator looks inactive when fields are empty, but tapping it generates a random "silly" recipe (easter egg)
+
+**Files Changed**:
+- `RecipeGeneratorView.swift` - Updated button styling and behavior
+
+---
+
+### Test 1: Done Button Appearance - Empty Fields
+
+**Objective**: Verify button looks inactive when no input
+
+**Steps**:
+1. Open recipe generator (Generate Recipe)
+2. Leave both fields empty (dish name and ingredients)
+3. Observe "Done" button in toolbar
+
+**Expected Results**:
+- [ ] Button shows "Done" text (NOT "Surprise Me!")
+- [ ] Button appears faded/inactive (gray color)
+- [ ] Button does NOT show emoji or indicate easter egg
+- [ ] Looks like it wouldn't do anything
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 2: Done Button Appearance - With Input
+
+**Objective**: Verify button becomes active when user types
+
+**Steps**:
+1. Open recipe generator
+2. Type a dish name (e.g., "Pasta")
+3. Observe "Done" button
+
+**Expected Results**:
+- [ ] Button shows "Done" text
+- [ ] Button is now green (HeirloomColors.familyGreen)
+- [ ] Button looks active and tappable
+- [ ] Same for typing only in ingredients field
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 3: Easter Egg - Tap When Empty
+
+**Objective**: Verify tapping inactive-looking button triggers random recipe
+
+**Steps**:
+1. Open recipe generator
+2. Leave both fields empty
+3. Tap the faded "Done" button
+4. Watch for generation to start
+
+**Expected Results**:
+- [ ] Generation starts immediately (view dismisses)
+- [ ] Progress banner appears at top
+- [ ] Silly/random recipe is generated
+- [ ] Recipe has whimsical name and ingredients
+- [ ] User discovers the easter egg!
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 4: Normal Generation - With Input
+
+**Objective**: Verify normal generation when fields have input
+
+**Steps**:
+1. Open recipe generator
+2. Type "Chicken Parmesan" in dish name
+3. Optionally add ingredients
+4. Tap green "Done" button
+
+**Expected Results**:
+- [ ] Normal recipe generation starts
+- [ ] Recipe matches requested dish name
+- [ ] Uses provided ingredients if specified
+- [ ] Not a silly/random recipe
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+## Credits System for AI Images (2026-02-03)
+
+### Date: 2026-02-03
+
+**Feature**: Tiered credit cost for AI image generation based on recipe count
+
+**Pricing Tiers** (in `PDFCostCalculator.swift`):
+- 1-10 recipes: 0 credits (free)
+- 11-25 recipes: 5 credits
+- 26-50 recipes: 10 credits
+- 51+ recipes: 15 credits
+
+---
+
+### Test 1: Small Import - Free AI Images
+
+**Objective**: Verify AI images are free for small imports
+
+**Prerequisites**: PDF with ~5 recipes
+
+**Steps**:
+1. Import small PDF
+2. Check cost sheet breakdown
+3. Enable AI images toggle
+4. Verify total cost
+
+**Expected Results**:
+- [ ] AI image credits shows "0" for small import
+- [ ] Total cost unchanged when toggling AI images
+- [ ] Can import with AI images at no extra cost
+- [ ] Estimated recipes shown in breakdown
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 2: Medium Import - 5 Credits
+
+**Objective**: Verify AI images cost 5 credits for medium imports
+
+**Prerequisites**: PDF with ~20 recipes
+
+**Steps**:
+1. Import medium PDF cookbook
+2. Check cost sheet with AI images OFF
+3. Enable AI images toggle
+4. Check updated total cost
+
+**Expected Results**:
+- [ ] AI images adds 5 credits to total
+- [ ] "AI image generation" row appears in breakdown
+- [ ] Shows "Premium" badge on AI row
+- [ ] Time estimate updates with AI images enabled
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 3: Large Import - 10-15 Credits
+
+**Objective**: Verify higher tiers for large imports
+
+**Prerequisites**: PDF with 50+ recipes
+
+**Steps**:
+1. Import large PDF cookbook
+2. Check AI image credit cost
+
+**Expected Results**:
+- [ ] 26-50 recipes: 10 credits for AI images
+- [ ] 51+ recipes: 15 credits for AI images
+- [ ] Appropriate tier applied based on estimated recipe count
+
+**Pass/Fail**: ___________
+
+---
+
+### Testing Summary - All New Features
+
+**Features to Test**:
+1. [ ] Replicate Flux Image Generation (4 tests)
+2. [ ] Text-Heavy Page Detection & AI Covers (4 tests)
+3. [ ] PDF Author Extraction & Attribution (4 tests)
+4. [ ] Recipe Generator Easter Egg (4 tests)
+5. [ ] Credits System for AI Images (3 tests)
+
+**Total New Tests**: 19
+
+**Tested By**: ___________
+**Date**: ___________
+**Build/Version**: ___________

@@ -67,18 +67,19 @@ enum VisualStyle: String, CaseIterable, Identifiable {
     }
 
     /// AI prompt modifier for this style
+    /// Optimized for Flux model while maintaining DALL-E compatibility
     var promptModifier: String {
         switch self {
         case .classicCookbook:
-            return "Style: vintage cookbook photography, warm sepia tones, soft natural lighting, nostalgic atmosphere, heirloom quality, traditional culinary aesthetic, no text or words"
+            return "vintage cookbook food photography, warm golden hour lighting, rustic wooden table, soft focus background, nostalgic cozy atmosphere, high quality, detailed, 8k resolution, no text no labels no words"
         case .studioPhotography:
-            return "Style: professional food photography, overhead shot, studio lighting, clean white background, sharp focus, commercial quality, minimalist composition, no text or words"
+            return "professional food photography, overhead flat lay, studio lighting, clean white marble background, sharp focus, commercial advertising quality, minimalist composition, high quality, detailed, 8k resolution, no text no labels no words"
         case .watercolorArt:
-            return "Style: watercolor illustration, soft brushstrokes, gentle color washes, artistic interpretation, painted aesthetic, warm muted tones, hand-painted quality, no text or words"
+            return "beautiful watercolor food illustration, soft artistic brushstrokes, gentle pastel color palette, hand-painted aesthetic, warm muted tones, artistic interpretation, high quality detailed artwork, no text no labels no words"
         case .modernMinimal:
-            return "Style: modern minimalist aesthetic, clean lines, bright natural lighting, contemporary design, sleek presentation, airy composition, Scandinavian influence, no text or words"
+            return "modern minimalist food photography, bright natural daylight, clean contemporary styling, negative space, Scandinavian aesthetic, sleek presentation, high quality, sharp detail, 8k resolution, no text no labels no words"
         case .vintageIllustration:
-            return "Style: vintage hand-drawn illustration, retro cookbook style, pen and ink with color, classic culinary artwork, 1950s-1970s aesthetic, nostalgic charm, no text or words"
+            return "vintage hand-drawn food illustration, 1960s cookbook style, pen and ink with watercolor, retro culinary artwork, nostalgic charm, warm colors, high quality detailed illustration, no text no labels no words"
         }
     }
 

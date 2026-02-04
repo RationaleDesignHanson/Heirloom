@@ -144,6 +144,9 @@ struct RecipeListView: View {
     // Using concrete type for toast notifications
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
     private var milestoneManager: MilestoneManager { ServiceContainer.shared.resolve(MilestoneManager.self) }
+    private var recipeImageGenerator: any RecipeImageGeneratorProtocol {
+        ServiceContainer.shared.resolve((any RecipeImageGeneratorProtocol).self)
+    }
 
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
     private var crdtMergeEngine: CRDTMergeEngine { ServiceContainer.shared.resolve(CRDTMergeEngine.self) }
@@ -496,6 +499,14 @@ struct RecipeListView: View {
                         Label("Add to Collection", systemImage: "folder.badge.plus")
                     }
                     .accessibilityLabel("Add \(recipe.title) to collection")
+
+                    Divider()
+
+                    Button {
+                        generateAIImage(for: recipe)
+                    } label: {
+                        Label("Generate AI Image", systemImage: "sparkles")
+                    }
 
                     Divider()
 
@@ -931,6 +942,21 @@ struct RecipeListView: View {
                 title: "Failed to update favorite",
                 message: error.localizedDescription
             )
+        }
+    }
+
+    private func generateAIImage(for recipe: Recipe) {
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+
+        Task {
+            do {
+                try await recipeImageGenerator.generateAndSaveImage(for: recipe)
+                toastManager.success(title: "Image Generated", message: recipe.title)
+            } catch {
+                toastManager.error(title: "Generation Failed", message: error.localizedDescription)
+            }
         }
     }
 

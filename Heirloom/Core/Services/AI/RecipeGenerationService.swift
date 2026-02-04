@@ -79,7 +79,9 @@ final class RecipeGenerationService: ObservableObject {
         self.context = context
 
         // Random silly recipe combos (name + absurd ingredients)
+        // Expanded to 100 recipes for maximum variety and minimal duplicates
         let sillyRecipes: [(name: String, ingredients: String)] = [
+            // Original classics
             ("Jellied Rainbow Surprise", "lime jello, canned tuna, miniature marshmallows, cream cheese, maraschino cherries"),
             ("Spam & Banana Casserole", "canned spam, overripe bananas, mayonnaise, bread crumbs, brown sugar"),
             ("Pickle Juice Smoothie", "dill pickle juice, vanilla ice cream, cucumber, mint leaves, cottage cheese"),
@@ -89,7 +91,121 @@ final class RecipeGenerationService: ObservableObject {
             ("Cheese & Grape Aspic", "unflavored gelatin, cheddar cheese cubes, whole grapes, chicken broth"),
             ("Candied Olive Medley", "black olives, marshmallows, brown sugar, butter, cream cheese"),
             ("Liver Sausage Pineapple", "liver sausage, canned pineapple rings, cream cheese, pecans"),
-            ("Tomato Aspic Tower", "tomato juice, unflavored gelatin, cottage cheese, canned shrimp, celery")
+            ("Tomato Aspic Tower", "tomato juice, unflavored gelatin, cottage cheese, canned shrimp, celery"),
+
+            // Jello/Gelatin disasters
+            ("Orange Jello Frankfurter Mold", "orange jello, vienna sausages, celery seed, vinegar, stuffed olives"),
+            ("Perfection Salad Supreme", "lemon jello, shredded cabbage, canned peas, pimentos, celery"),
+            ("Shrimp & Lime Aspic", "lime jello, canned shrimp, onion, worcestershire sauce, hard-boiled eggs"),
+            ("Strawberry Bologna Ring", "strawberry jello, bologna slices, cream cheese, green olives, walnuts"),
+            ("Cherry Cola Aspic", "cherry jello, cola, canned fruit cocktail, mini marshmallows, pecans"),
+            ("Salmon Mousse Ring", "lemon jello, canned salmon, sour cream, dill pickles, capers"),
+            ("Avocado Lime Mold", "lime jello, canned tuna, avocado, mayonnaise, lemon juice"),
+            ("Cottage Cheese Crown", "lemon jello, cottage cheese, canned pears, mayonnaise, crushed pineapple"),
+            ("Triple Decker Aspic", "three layers: tomato, lemon, lime jello with spam, eggs, and tuna"),
+            ("Beet & Horseradish Mold", "raspberry jello, canned beets, horseradish, vinegar, celery"),
+
+            // Canned meat abominations
+            ("Deviled Ham Cloud", "deviled ham, cool whip, cream cheese, pimentos, crackers"),
+            ("Vienna Sausage Surprise", "vienna sausages, grape jelly, yellow mustard, sauerkraut, rye bread"),
+            ("Spam Upside-Down Cake", "spam, brown sugar, pineapple rings, maraschino cherries, cake batter"),
+            ("Corned Beef Candy", "canned corned beef, brown sugar, cloves, pineapple juice, ginger ale"),
+            ("Potted Meat Frosting", "potted meat, cream cheese, green food coloring, onion powder, crackers"),
+            ("Sardine Surprise Pie", "canned sardines, graham cracker crust, mayonnaise, dill pickles, lemon"),
+            ("Treet & Marshmallow Bake", "treet luncheon meat, marshmallow fluff, bread crumbs, brown sugar"),
+            ("Canned Chicken Candy Canes", "canned chicken, peppermint extract, red food coloring, cream cheese"),
+            ("Anchovy Fudge Squares", "anchovies, chocolate chips, condensed milk, walnuts, vanilla"),
+            ("Deviled Ham Donuts", "deviled ham, donut batter, sugar glaze, pickle relish, mustard powder"),
+
+            // Unexpected mayonnaise usage
+            ("Mayo-Banana Cream Pie", "mayonnaise, bananas, vanilla pudding, graham cracker crust, whipped cream"),
+            ("Mayonnaise Fudge", "mayonnaise, cocoa powder, powdered sugar, vanilla extract, walnuts"),
+            ("Mayo Ice Cream Float", "mayonnaise, root beer, vanilla ice cream, whipped cream, cherry"),
+            ("Miracle Whip Meringue", "miracle whip, egg whites, sugar, vanilla, lemon zest"),
+            ("Mayo Peanut Butter Cups", "mayonnaise, peanut butter, chocolate chips, powdered sugar, butter"),
+            ("Salad Dressing Cookies", "mayonnaise, chocolate cake mix, chocolate chips, powdered sugar glaze"),
+            ("Mayo & Jelly Parfait", "mayonnaise, strawberry jelly, graham crackers, whipped cream, nuts"),
+            ("Thousand Island Trifle", "thousand island dressing, angel food cake, canned fruit, cool whip"),
+            ("Ranch Cheesecake", "ranch dressing, cream cheese, bacon bits, graham cracker crust, chives"),
+            ("Caesar Custard", "caesar dressing, eggs, milk, parmesan, anchovy paste"),
+
+            // Aspic/savory jello
+            ("Beef Consommé Mold", "beef consommé gelatin, hard-boiled eggs, peas, carrots, worcestershire"),
+            ("Chicken Bouillon Ring", "chicken bouillon gelatin, celery, pimentos, mayonnaise, walnuts"),
+            ("Clam Juice Aspic", "clam juice, unflavored gelatin, tabasco, lemon, canned clams"),
+            ("V8 Vegetable Tower", "v8 juice, unflavored gelatin, celery, olives, cottage cheese"),
+            ("Bloody Mary Aspic", "tomato juice, vodka, unflavored gelatin, celery, hot sauce"),
+            ("French Onion Soup Mold", "french onion soup, unflavored gelatin, swiss cheese cubes, croutons"),
+            ("Cream of Mushroom Ring", "cream of mushroom soup, gelatin, canned mushrooms, sour cream"),
+            ("Beef Tongue Aspic", "beef tongue, beef broth, gelatin, pickled onions, mustard"),
+            ("Pork & Beans Mold", "pork and beans, tomato juice, gelatin, bacon bits, brown sugar"),
+            ("Minestrone Gelatin Loaf", "minestrone soup, unflavored gelatin, pasta, parmesan cheese"),
+
+            // Sweet & savory combos
+            ("Peanut Butter Sardine Surprise", "peanut butter, canned sardines, honey, crackers, pickles"),
+            ("Chocolate-Covered Spam", "spam, chocolate chips, coconut flakes, crushed peanuts, butter"),
+            ("Maple Bacon Jello", "maple syrup, bacon bits, unflavored gelatin, cinnamon, brown sugar"),
+            ("Butterscotch Liver Pâté", "chicken livers, butterscotch chips, cream cheese, brandy, crackers"),
+            ("Caramel Onion Rings", "caramel sauce, fried onion rings, powdered sugar, vanilla ice cream"),
+            ("Marshmallow Tuna Casserole", "marshmallows, canned tuna, cream of celery soup, potato chips"),
+            ("Honey Glazed Anchovies", "anchovies, honey, soy sauce, garlic, sesame seeds"),
+            ("Cotton Candy Meatloaf", "ground beef, cotton candy, ketchup, bread crumbs, eggs"),
+            ("Fudge & Fish Sticks", "fish sticks, chocolate fudge sauce, tartar sauce, cornflakes"),
+            ("Gumdrops & Ground Beef", "ground beef, gumdrops, worcestershire sauce, onion, bread crumbs"),
+
+            // Loaf/ring molds
+            ("Rainbow Sandwich Loaf", "white bread, tuna salad, egg salad, ham salad, cream cheese frosting"),
+            ("Potato Chip Casserole", "potato chips, canned tuna, cream of mushroom soup, cheese sauce"),
+            ("Prune Whip Surprise Mold", "prunes, whipped cream, gelatin, walnuts, shredded carrots"),
+            ("Braunschweiger Crown", "braunschweiger, unflavored gelatin, pickle relish, onion, crackers"),
+            ("Seven Layer Salad Ring", "lettuce, peas, bacon, cheese, mayo, eggs, onions in jello mold"),
+            ("Meat & Fruit Tower", "ground ham, crushed pineapple, brown sugar, cloves, gelatin"),
+            ("Frosted Ribbon Loaf", "alternating bread, ham salad, cheese spread, cream cheese frosting"),
+            ("Crown Roast of Frankfurters", "hot dogs, mashed potatoes, ketchup, mustard, pineapple rings"),
+            ("Savory Cheesecake Ring", "cream cheese, blue cheese, gelatin, walnuts, crackers"),
+            ("Stuffed Pickle Loaf", "whole dill pickles, ground meat, cream cheese, gelatin, breadcrumbs"),
+
+            // Vintage casseroles
+            ("Baked Bean & Banana Bake", "baked beans, bananas, bacon, brown sugar, mustard powder"),
+            ("Pea & Peanut Butter Casserole", "frozen peas, peanut butter, cream of mushroom soup, french fried onions"),
+            ("Kidney Bean Cake", "kidney beans, chocolate cake mix, eggs, oil, frosting"),
+            ("Sauerkraut Dessert", "sauerkraut, cocoa powder, sugar, flour, eggs"),
+            ("Grape-Nuts Ice Cream Loaf", "grape-nuts cereal, vanilla ice cream, marshmallow sauce, cherries"),
+            ("Ketchup & Cornflakes Surprise", "ketchup, cornflakes, ground beef, brown sugar, vinegar"),
+            ("Ritz Cracker Pie", "ritz crackers, egg whites, sugar, cream of tartar, cool whip"),
+            ("Cream Cheese & Olive Bake", "cream cheese, green olives, ham, crescent rolls, paprika"),
+            ("Tater Tot Hot Dish Jello", "tater tots, cream of mushroom soup, ground beef, jello topping"),
+            ("Noodle Ring with Mystery Center", "egg noodles, cheese sauce, canned fruit cocktail, whipped cream"),
+
+            // Bizarre desserts
+            ("Tomato Soup Cake", "tomato soup, cake flour, raisins, cloves, cream cheese frosting"),
+            ("Spaghetti Ice Cream", "spaghetti, strawberry sauce, coconut flakes, whipped cream, parmesan"),
+            ("Bacon Brittle", "bacon, sugar, corn syrup, baking soda, vanilla extract"),
+            ("Pickle Pie", "dill pickles, sugar, cinnamon, pie crust, whipped cream"),
+            ("Ramen Candy Bark", "ramen noodles, white chocolate, sprinkles, crushed candy canes"),
+            ("Vienna Sausage Truffles", "vienna sausages, cream cheese, chocolate coating, coconut"),
+            ("Salmon Gelato", "canned salmon, heavy cream, sugar, vanilla, dill"),
+            ("Beet & Chocolate Brownies", "canned beets, brownie mix, cream cheese swirl, powdered sugar"),
+            ("Onion Ring Donuts", "onion rings, cinnamon sugar, chocolate glaze, sprinkles"),
+            ("Cheese Whiz Fudge", "cheese whiz, powdered sugar, vanilla, cocoa powder, butter"),
+
+            // Processed cheese creations
+            ("Velveeta Fudge Fantasy", "velveeta cheese, powdered sugar, cocoa powder, vanilla, pecans"),
+            ("Cheese Slice Candy", "american cheese slices, fruit roll-ups, peanut butter, chocolate chips"),
+            ("Spray Cheese Soufflé", "spray cheese, eggs, milk, bread cubes, worcestershire sauce"),
+            ("Cheese Ball Ice Cream", "cream cheese, powdered sugar, vanilla, pecans, chocolate sauce"),
+            ("String Cheese Taffy", "string cheese, marshmallow fluff, butter, vanilla, food coloring"),
+            ("Cottage Cheese Candy Salad", "cottage cheese, cool whip, mandarin oranges, candy bars, coconut"),
+            ("Nacho Cheese Flan", "nacho cheese sauce, eggs, condensed milk, vanilla, caramel"),
+            ("Laughing Cow Lava Cake", "laughing cow cheese, chocolate cake mix, eggs, powdered sugar"),
+            ("Babybel Bonbons", "babybel cheese, white chocolate, graham cracker crumbs, sprinkles"),
+            ("Government Cheese Pudding", "government cheese, cornstarch, milk, sugar, vanilla"),
+
+            // Fruit + meat combos
+            ("Watermelon Ham Steak", "watermelon, ham steak, cloves, brown sugar, pineapple juice"),
+            ("Cantaloupe Meat Cups", "cantaloupe halves, tuna salad, cottage cheese, maraschino cherries"),
+            ("Prune & Bacon Delight", "prunes, bacon, cream cheese, powdered sugar, toothpicks"),
+            ("Peach & Braunschweiger Melts", "canned peaches, braunschweiger, white bread, butter, cinnamon sugar")
         ]
 
         let silly = sillyRecipes.randomElement() ?? (name: "Mystery Recipe", ingredients: "mystery ingredients")
