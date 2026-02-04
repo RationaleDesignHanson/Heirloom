@@ -10,7 +10,7 @@ on:
 env:
   XCODE_VERSION: '16.2'
   IOS_SIMULATOR: 'iPhone 16 Pro'
-  IOS_VERSION: '18.3'
+  IOS_VERSION: '18.5'
 
 jobs:
   # Job 1: Build Validation (Fast - runs first)
@@ -39,42 +39,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-spm-
 
-    - name: List available SDKs and simulators
+    - name: List available destinations
       run: |
         echo "=== Available SDKs ==="
-        xcodebuild -showsdks
+        xcodebuild -showsdks | grep iOS
         echo ""
-        echo "=== Available iOS Simulators ==="
-        xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS")) | select(.value | length > 0) | "\(.key): \(.value | map(.name) | join(", "))"' | head -10
-
-    - name: Install iOS 18.3 Simulator Runtime
-      run: |
-        # Check if iOS 18.3 runtime is already installed
-        if ! xcrun simctl list runtimes | grep -q "iOS 18.3"; then
-          echo "Installing iOS 18.3 simulator runtime..."
-          xcodebuild -downloadPlatform iOS
-        else
-          echo "iOS 18.3 runtime already installed"
-        fi
-
-    - name: Create iOS 18.3 Simulator if needed
-      run: |
-        # List runtimes to verify
-        xcrun simctl list runtimes | grep iOS || true
-
-        # Create iPhone 16 Pro simulator for iOS 18.3 if it doesn't exist
-        RUNTIME=$(xcrun simctl list runtimes | grep "iOS 18.3" | head -1 | awk -F'[()]' '{print $2}')
-        if [ -n "$RUNTIME" ]; then
-          echo "Found iOS 18.3 runtime: $RUNTIME"
-          DEVICE_TYPE=$(xcrun simctl list devicetypes | grep "iPhone 16 Pro," | head -1 | awk -F'[()]' '{print $2}')
-          if [ -n "$DEVICE_TYPE" ]; then
-            echo "Creating simulator with device type: $DEVICE_TYPE"
-            xcrun simctl create "iPhone 16 Pro" "$DEVICE_TYPE" "$RUNTIME" 2>/dev/null || echo "Simulator may already exist"
-          fi
-        fi
-
-        # List available devices
-        xcrun simctl list devices available | grep "iPhone 16 Pro" || echo "No iPhone 16 Pro found"
+        echo "=== Available iPhone Simulators ==="
+        xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS-18")) | "\(.key): \(.value | map(.name) | first)"' || true
 
     - name: Build for testing
       run: |
@@ -110,16 +81,6 @@ jobs:
         key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
         restore-keys: |
           ${{ runner.os }}-spm-
-
-    - name: Install iOS 18.3 Simulator Runtime
-      run: |
-        # Check if iOS 18.3 runtime is already installed
-        if ! xcrun simctl list runtimes | grep -q "iOS 18.3"; then
-          echo "Installing iOS 18.3 simulator runtime..."
-          xcodebuild -downloadPlatform iOS
-        else
-          echo "iOS 18.3 runtime already installed"
-        fi
 
     - name: Run Unit Tests
       run: |
