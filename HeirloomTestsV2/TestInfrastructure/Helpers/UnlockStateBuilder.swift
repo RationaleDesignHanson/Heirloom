@@ -2,14 +2,14 @@
 //  UnlockStateBuilder.swift
 //  HeirloomTestsV2
 //
-//  Fluent builder for creating HeritageUnlockTracker instances in specific states
+//  Fluent builder for creating ThemeUnlockTracker instances in specific states
 //  Created: 2026-01-13
 //
 
 import Foundation
 @testable import Heirloom
 
-/// Builder for creating HeritageUnlockTracker instances with specific unlock states
+/// Builder for creating ThemeUnlockTracker instances with specific unlock states
 ///
 /// Usage:
 /// ```swift
@@ -85,8 +85,8 @@ final class UnlockStateBuilder {
 
     // MARK: - Build
 
-    /// Build HeritageUnlockTracker with configured state
-    func build() -> HeritageUnlockTracker {
+    /// Build ThemeUnlockTracker with configured state
+    func build() -> ThemeUnlockTracker {
         // Clear any existing state
         clearUserDefaults()
 
@@ -111,8 +111,8 @@ final class UnlockStateBuilder {
             UserDefaults.standard.set(date, forKey: "heritageTrialStartDate")
         }
 
-        // Create HeritageUnlockTracker (will load from UserDefaults)
-        let tracker = HeritageUnlockTracker()
+        // Create ThemeUnlockTracker (will load from UserDefaults)
+        let tracker = ThemeUnlockTracker()
 
         return tracker
     }
@@ -138,19 +138,19 @@ final class UnlockStateBuilder {
 extension UnlockStateBuilder {
 
     /// Fresh state (no unlocks, no trial)
-    static func fresh() -> HeritageUnlockTracker {
+    static func fresh() -> ThemeUnlockTracker {
         return UnlockStateBuilder().build()
     }
 
     /// Trial started today, no unlocks yet
-    static func trialStarted() -> HeritageUnlockTracker {
+    static func trialStarted() -> ThemeUnlockTracker {
         return UnlockStateBuilder()
             .withTrialDay(0)
             .build()
     }
 
     /// Day 1: 7 recipes unlocked
-    static func day1Complete() -> HeritageUnlockTracker {
+    static func day1Complete() -> ThemeUnlockTracker {
         return UnlockStateBuilder()
             .withTrialDay(1)
             .withUnlockedCount(7)
@@ -159,7 +159,7 @@ extension UnlockStateBuilder {
     }
 
     /// Day 7: 49 recipes unlocked (7 per day)
-    static func day7Complete() -> HeritageUnlockTracker {
+    static func day7Complete() -> ThemeUnlockTracker {
         return UnlockStateBuilder()
             .withTrialDay(7)
             .withUnlockedCount(49)
@@ -168,7 +168,7 @@ extension UnlockStateBuilder {
     }
 
     /// Day 14: 98 recipes unlocked (near quota)
-    static func day14Complete() -> HeritageUnlockTracker {
+    static func day14Complete() -> ThemeUnlockTracker {
         return UnlockStateBuilder()
             .withTrialDay(14)
             .withUnlockedCount(98)
@@ -177,7 +177,7 @@ extension UnlockStateBuilder {
     }
 
     /// Quota met: 100 recipes unlocked
-    static func quotaMet() -> HeritageUnlockTracker {
+    static func quotaMet() -> ThemeUnlockTracker {
         return UnlockStateBuilder()
             .withTrialDay(14)
             .withUnlockedCount(100)
@@ -186,7 +186,7 @@ extension UnlockStateBuilder {
     }
 
     /// Day 7 but hasn't unlocked yesterday (catch-up available)
-    static func day7WithCatchup() -> HeritageUnlockTracker {
+    static func day7WithCatchup() -> ThemeUnlockTracker {
         return UnlockStateBuilder()
             .withTrialDay(7)
             .withUnlockedCount(35) // Only 5 days worth
@@ -195,7 +195,7 @@ extension UnlockStateBuilder {
     }
 
     /// Boundary: 0 unlocked
-    static func zeroUnlocked() -> HeritageUnlockTracker {
+    static func zeroUnlocked() -> ThemeUnlockTracker {
         return UnlockStateBuilder()
             .withTrialDay(0)
             .withUnlockedCount(0)
@@ -203,7 +203,7 @@ extension UnlockStateBuilder {
     }
 
     /// Boundary: 50 unlocked (halfway)
-    static func fiftyUnlocked() -> HeritageUnlockTracker {
+    static func fiftyUnlocked() -> ThemeUnlockTracker {
         return UnlockStateBuilder()
             .withTrialDay(7)
             .withUnlockedCount(50)

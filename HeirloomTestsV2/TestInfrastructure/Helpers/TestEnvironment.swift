@@ -2,105 +2,152 @@
 //  TestEnvironment.swift
 //  HeirloomTestsV2
 //
-//  Created: 2026-01-06
+//  Minimal test environment for creating in-memory SwiftData containers
+//  Following the DailyUnlockIntegrationTest pattern
 //
 
-import Foundation
 import XCTest
+import SwiftData
 @testable import Heirloom
 
-/// Standardized test environment setup for all tests
-/// Provides consistent mock configuration and test isolation
+/// Minimal test environment providing in-memory SwiftData context
 @MainActor
-class TestEnvironment {
+struct TestEnvironment {
 
-    // MARK: - Shared Mocks
-    var mockAuth: MockFirebaseAuth!
-    var mockFirestore: MockFirestore!
-    var mockClaudeAPI: MockClaudeAPI!
+    // MARK: - Properties
 
-    // MARK: - Configuration
-    var isAuthenticated: Bool
-    var defaultLanguage: String
+    let modelContainer: ModelContainer
+    let modelContext: ModelContext
 
     // MARK: - Initialization
 
-    init(authenticated: Bool = false, language: String = "en") {
-        self.isAuthenticated = authenticated
-        self.defaultLanguage = language
-        setupMocks()
+    /// Create a test environment with optional authentication and credits
+    static func create(
+        authenticated: Bool = false,
+        credits: Int = 25
+    ) async throws -> TestEnvironment {
+        // Minimal schema - add models as needed
+        let schema = Schema([
+            Recipe.self,
+            RecipeCollection.self,
+            Ingredient.self,
+            RecipeLineage.self,
+            UserCredits.self
+        ])
+
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+
+        return TestEnvironment(
+            modelContainer: container,
+            modelContext: context
+        )
     }
 
-    // MARK: - Setup
+    // MARK: - Cleanup
 
-    private func setupMocks() {
-        mockAuth = MockFirebaseAuth(authenticated: isAuthenticated)
-        mockFirestore = MockFirestore()
-        mockClaudeAPI = MockClaudeAPI()
-
-        if defaultLanguage != "en" {
-            configureLanguage(defaultLanguage)
+    func tearDown() {
+        // Reset any test state
+        let keys = [
+            "heritageUnlockedRecipeIds",
+            "heritageLastUnlockDate",
+            "heritageTrialStartDate",
+            "trialStartDate",
+            "lastUnlockDate"
+        ]
+        for key in keys {
+            UserDefaults.standard.removeObject(forKey: key)
         }
     }
 
-    // MARK: - Language Configuration
+    // MARK: - Save Helper
 
-    func configureLanguage(_ language: String) {
-        switch language {
-        case "fr":
-            mockClaudeAPI.configureFrenchDetection()
-        case "ja":
-            mockClaudeAPI.configureJapaneseDetection()
-        case "ko":
-            mockClaudeAPI.configureKoreanDetection()
-        default:
-            mockClaudeAPI.configureEnglishDetection()
+    func save() throws {
+        try modelContext.save()
+    }
+
+    // MARK: - Recipe Helpers
+
+    /// Create a basic test recipe
+    @discardableResult
+    func createTestRecipe(
+        title: String = "Test Recipe",
+        servings: String? = "4 servings"
+    ) -> Recipe {
+        let recipe = Recipe(
+            title: title,
+            instructions: ["Step 1", "Step 2"],
+            servings: servings
+        )
+        modelContext.insert(recipe)
+        return recipe
+    }
+
+    /// Create a test ingredient attached to a recipe
+    @discardableResult
+    func createTestIngredient(
+        name: String = "Test Ingredient",
+        quantity: Double? = 1.0,
+        unit: String? = "cup",
+        recipe: Recipe
+    ) -> Ingredient {
+        let ingredient = Ingredient(
+            originalText: "\(quantity ?? 0) \(unit ?? "") \(name)",
+            name: name,
+            quantity: quantity,
+            unit: unit
+        )
+        ingredient.recipe = recipe
+        modelContext.insert(ingredient)
+
+        if recipe.ingredients == nil {
+            recipe.ingredients = []
         }
+        recipe.ingredients?.append(ingredient)
+
+        return ingredient
     }
 
-    // MARK: - Authentication Helpers
-
-    func signIn() async throws {
-        try await mockAuth.signInWithGoogle()
+    /// Create a test collection
+    @discardableResult
+    func createTestCollection(
+        name: String = "Test Collection",
+        type: CollectionType = .userCreated
+    ) -> RecipeCollection {
+        let collection = RecipeCollection(name: name, collectionType: type)
+        modelContext.insert(collection)
+        return collection
     }
 
-    func signOut() throws {
-        try mockAuth.signOut()
+    /// Create test user credits
+    @discardableResult
+    func createUserCredits(
+        userId: String = "test-user-123",
+        purchasedCredits: Int = 0,
+        dailyQuotaUsed: Int = 0
+    ) -> UserCredits {
+        let credits = UserCredits(userId: userId)
+        credits.creditsBalance = purchasedCredits
+        credits.dailyQuotaUsed = dailyQuotaUsed
+        modelContext.insert(credits)
+        return credits
     }
 
-    func authenticateUser(id: String, email: String) {
-        mockAuth.simulateAuthenticatedUser(id: id, email: email)
+    // MARK: - Fetch Helpers
+
+    func fetchAllRecipes() throws -> [Recipe] {
+        let descriptor = FetchDescriptor<Recipe>()
+        return try modelContext.fetch(descriptor)
     }
 
-    // MARK: - Firestore Helpers
-
-    func seedRecipes(_ recipes: [Recipe]) {
-        var documents: [String: [String: Any]] = [:]
-        for recipe in recipes {
-            documents[recipe.id.uuidString] = [
-                "id": recipe.id.uuidString,
-                "title": recipe.title,
-                "servings": recipe.servings
-            ]
-        }
-        mockFirestore.seed(collection: "recipes", documents: documents)
+    func fetchAllCollections() throws -> [RecipeCollection] {
+        let descriptor = FetchDescriptor<RecipeCollection>()
+        return try modelContext.fetch(descriptor)
     }
 
-    // MARK: - Reset
-
-    func reset() {
-        mockAuth.reset()
-        mockFirestore.reset()
-        mockClaudeAPI.reset()
-    }
-}
-
-// MARK: - XCTestCase Extension
-
-extension XCTestCase {
-    /// Create a test environment with default configuration
-    @MainActor
-    func createTestEnvironment(authenticated: Bool = false, language: String = "en") -> TestEnvironment {
-        return TestEnvironment(authenticated: authenticated, language: language)
+    func fetchUserCredits() throws -> UserCredits? {
+        let descriptor = FetchDescriptor<UserCredits>()
+        return try modelContext.fetch(descriptor).first
     }
 }

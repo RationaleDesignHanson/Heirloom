@@ -2,7 +2,8 @@
 //  MockServiceContainer.swift
 //  HeirloomTestsV2
 //
-//  Test-specific service container with mock implementations
+//  DEPRECATED: Use TestServiceContainer instead
+//  This file is maintained for backward compatibility
 //  Created: 2026-01-13
 //
 
@@ -10,48 +11,33 @@ import Foundation
 import XCTest
 @testable import Heirloom
 
-/// Mock service container for testing
-/// Provides clean ServiceContainer instance with test mocks registered
+/// DEPRECATED: Use TestServiceContainer instead
+/// This class is maintained for backward compatibility only
+@available(*, deprecated, renamed: "TestServiceContainer", message: "Use TestServiceContainer for full mock registration")
 @MainActor
 final class MockServiceContainer {
 
-    // MARK: - Factory Method
+    // MARK: - Factory Method (Deprecated)
 
-    /// Create a new ServiceContainer configured for testing
-    /// - Returns: ServiceContainer with all test mocks registered
+    /// DEPRECATED: Use TestServiceContainer.create() instead
+    @available(*, deprecated, renamed: "TestServiceContainer.create()", message: "Use TestServiceContainer for full mock registration")
     static func create() -> ServiceContainer {
-        let container = ServiceContainer(forTesting: true)
-        registerTestMocks(in: container)
-        return container
+        return TestServiceContainer.create()
     }
 
-    // MARK: - Mock Registration
+    // MARK: - Reset (Deprecated)
 
-    /// Register all test mocks in the container
-    private static func registerTestMocks(in container: ServiceContainer) {
-        // Core Services (mocked for testing)
-        container.register(LoggingService.self) { _ in
-            MockLoggingService()
-        }
-
-        // Note: AnalyticsService not registered - tests use real AnalyticsService (console logging)
-        // Note: StoreManager, SubscriptionManager, PaywallManager, and Firebase services
-        // are NOT registered here. Tests create real instances directly when needed.
-        // State builders (TrialStateBuilder, PaywallStateBuilder) handle test setup.
-    }
-
-    // MARK: - Reset
-
-    /// Reset all singletons in container for test isolation
-    /// - Parameter container: Container to reset
+    /// DEPRECATED: Use TestServiceContainer.reset(_:) instead
+    @available(*, deprecated, renamed: "TestServiceContainer.reset(_:)", message: "Use TestServiceContainer for full mock registration")
     static func resetForTest(_ container: ServiceContainer) {
-        container.resetSingletons()
+        TestServiceContainer.reset(container)
     }
 }
 
 // MARK: - Mock Implementations
 
 /// Mock LoggingService for testing
+/// Captures log messages for test assertions
 @MainActor
 final class MockLoggingService: LoggingService {
     var loggedMessages: [(message: String, category: LogCategory, level: LogLevel)] = []
@@ -92,5 +78,32 @@ final class MockLoggingService: LoggingService {
 
     func reset() {
         loggedMessages.removeAll()
+    }
+
+    // MARK: - Test Helpers
+
+    /// Check if a message with specific content was logged
+    func hasLoggedMessage(containing text: String) -> Bool {
+        loggedMessages.contains { $0.message.contains(text) }
+    }
+
+    /// Check if a message was logged at a specific level
+    func hasLoggedMessage(atLevel level: LogLevel) -> Bool {
+        loggedMessages.contains { $0.level == level }
+    }
+
+    /// Check if a message was logged in a specific category
+    func hasLoggedMessage(inCategory category: LogCategory) -> Bool {
+        loggedMessages.contains { $0.category == category }
+    }
+
+    /// Get all messages at a specific level
+    func messages(atLevel level: LogLevel) -> [String] {
+        loggedMessages.filter { $0.level == level }.map { $0.message }
+    }
+
+    /// Get all messages in a specific category
+    func messages(inCategory category: LogCategory) -> [String] {
+        loggedMessages.filter { $0.category == category }.map { $0.message }
     }
 }

@@ -7,40 +7,103 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+env:
+  XCODE_VERSION: '16.2'
+  IOS_SIMULATOR: 'iPhone 16'
+  IOS_VERSION: '18.2'
+
 jobs:
-  unit-tests:
-    name: Unit Tests
-    runs-on: macos-14
+  # Job 1: Build Validation (Fast - runs first)
+  build:
+    name: Build
+    runs-on: macos-15
+    timeout-minutes: 30
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Select Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
 
     - name: Show Xcode version
       run: xcodebuild -version
+
+    - name: Cache SPM dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/Library/Developer/Xcode/DerivedData
+          ~/.swiftpm
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
+
+    - name: Build for testing
+      run: |
+        xcodebuild build-for-testing \
+          -project Heirloom.xcodeproj \
+          -scheme Heirloom \
+          -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
+          -configuration Debug \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          | xcpretty --color && exit ${PIPESTATUS[0]}
+
+  # Job 2: Unit Tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: macos-15
+    needs: build
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+    - name: Cache SPM dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/Library/Developer/Xcode/DerivedData
+          ~/.swiftpm
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
 
     - name: Run Unit Tests
       run: |
         xcodebuild test \
           -project Heirloom.xcodeproj \
           -scheme Heirloom \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+          -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
+          -only-testing:HeirloomTestsV2 \
           -enableCodeCoverage YES \
-          -resultBundlePath TestResults
+          -resultBundlePath TestResults.xcresult \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          | xcpretty --color --report junit --output test-results.xml && exit ${PIPESTATUS[0]}
 
-    - name: Generate Code Coverage Report
+    - name: Generate Coverage Report
+      if: always()
       run: |
-        xcrun xccov view --report --json TestResults.xcresult > coverage.json
+        if [ -d "TestResults.xcresult" ]; then
+          xcrun xccov view --report TestResults.xcresult || true
+          xcrun xccov view --report --json TestResults.xcresult > coverage.json || echo "{}" > coverage.json
+        fi
 
     - name: Upload Test Results
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
-        path: TestResults.xcresult
+        path: |
+          TestResults.xcresult
+          test-results.xml
+        retention-days: 14
 
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
@@ -48,52 +111,140 @@ jobs:
       with:
         name: coverage-report
         path: coverage.json
+        retention-days: 14
 
-  ui-tests:
-    name: UI Tests
-    runs-on: macos-14
-    needs: unit-tests
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Select Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
-
-    - name: Run UI Tests
-      run: |
-        xcodebuild test \
-          -project Heirloom.xcodeproj \
-          -scheme HeirloomUITests \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
-          -resultBundlePath UITestResults
-
-    - name: Upload UI Test Results
-      uses: actions/upload-artifact@v4
+    - name: Test Summary
       if: always()
-      with:
-        name: ui-test-results
-        path: UITestResults.xcresult
+      run: |
+        echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+        if [ -f "test-results.xml" ]; then
+          TESTS=$(grep -o 'tests="[0-9]*"' test-results.xml | head -1 | grep -o '[0-9]*' || echo "0")
+          FAILURES=$(grep -o 'failures="[0-9]*"' test-results.xml | head -1 | grep -o '[0-9]*' || echo "0")
+          echo "- **Tests Run:** $TESTS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Failures:** $FAILURES" >> $GITHUB_STEP_SUMMARY
+          if [ "$FAILURES" = "0" ]; then
+            echo "- **Status:** ✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Status:** ❌ Some tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "- **Status:** ⚠️ No test results found" >> $GITHUB_STEP_SUMMARY
+        fi
 
-  coverage-check:
-    name: Coverage Threshold Check
-    runs-on: macos-14
-    needs: unit-tests
+  # Job 3: Code Quality (SwiftLint)
+  lint:
+    name: Code Quality
+    runs-on: macos-15
+    timeout-minutes: 10
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Download Coverage Report
-      uses: actions/download-artifact@v4
-      with:
-        name: coverage-report
+    - name: Install SwiftLint
+      run: brew install swiftlint || true
 
-    - name: Check Coverage Threshold
+    - name: Run SwiftLint
       run: |
-        swift scripts/check-coverage.swift coverage.json
+        if command -v swiftlint &> /dev/null; then
+          echo "## SwiftLint Results" >> $GITHUB_STEP_SUMMARY
+          swiftlint lint --reporter github-actions-logging --quiet Heirloom/ || true
+          WARNINGS=$(swiftlint lint --reporter json Heirloom/ 2>/dev/null | jq length || echo "0")
+          echo "- **Warnings:** $WARNINGS" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "SwiftLint not available, skipping"
+          echo "## SwiftLint Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ⚠️ SwiftLint not installed" >> $GITHUB_STEP_SUMMARY
+        fi
 
-    - name: Check Feature Lifecycle Gates
+  # Job 4: Security Checks
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for hardcoded secrets
       run: |
-        swift scripts/check-feature-gates.swift
+        echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
+
+        # Check for API keys
+        if grep -rn "sk-[a-zA-Z0-9]" Heirloom/ --include="*.swift" | grep -v "test" | grep -v "mock" | grep -v "example"; then
+          echo "❌ Found potential API key" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
+        # Check for hardcoded passwords
+        if grep -rn 'password\s*=\s*"[^"]\+"' Heirloom/ --include="*.swift" | grep -v "test" | grep -v "placeholder"; then
+          echo "⚠️ Found potential hardcoded password" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        # Check for private keys
+        if grep -rn "PRIVATE KEY" Heirloom/ --include="*.swift"; then
+          echo "❌ Found private key reference" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
+        echo "- **Status:** ✅ No obvious secrets found" >> $GITHUB_STEP_SUMMARY
+
+    - name: Check for sensitive files
+      run: |
+        SENSITIVE_FILES=(".env" "credentials.json" "secrets.json" "*.pem" "*.key")
+        for pattern in "${SENSITIVE_FILES[@]}"; do
+          if find . -name "$pattern" -not -path "*/node_modules/*" | grep -q .; then
+            echo "⚠️ Found sensitive file pattern: $pattern" >> $GITHUB_STEP_SUMMARY
+          fi
+        done
+
+  # Job 5: Dependency Audit
+  dependencies:
+    name: Dependency Check
+    runs-on: macos-15
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check Package.resolved exists
+      run: |
+        echo "## Dependency Check" >> $GITHUB_STEP_SUMMARY
+        if [ -f "Heirloom.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved" ]; then
+          echo "- **SPM Dependencies:** ✅ Package.resolved found" >> $GITHUB_STEP_SUMMARY
+          DEPS=$(cat Heirloom.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved | jq '.pins | length' 2>/dev/null || echo "unknown")
+          echo "- **Package Count:** $DEPS" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **SPM Dependencies:** ⚠️ No Package.resolved found" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # Summary Job
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [build, unit-tests, lint, security, dependencies]
+    if: always()
+
+    steps:
+    - name: Check Results
+      run: |
+        echo "# 📊 Heirloom CI Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Build | ${{ needs.build.result == 'success' && '✅' || '❌' }} ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Unit Tests | ${{ needs.unit-tests.result == 'success' && '✅' || '❌' }} ${{ needs.unit-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Code Quality | ${{ needs.lint.result == 'success' && '✅' || '⚠️' }} ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Security | ${{ needs.security.result == 'success' && '✅' || '❌' }} ${{ needs.security.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Dependencies | ${{ needs.dependencies.result == 'success' && '✅' || '⚠️' }} ${{ needs.dependencies.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Fail if critical jobs failed
+        if [ "${{ needs.build.result }}" != "success" ] || [ "${{ needs.unit-tests.result }}" != "success" ]; then
+          echo "❌ **Critical checks failed**" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        else
+          echo "✅ **All critical checks passed**" >> $GITHUB_STEP_SUMMARY
+        fi

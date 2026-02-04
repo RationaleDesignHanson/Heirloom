@@ -10,6 +10,7 @@ import Foundation
 
 /// Mock implementation of Firestore for testing
 /// Simulates document and collection operations with in-memory storage
+@MainActor
 class MockFirestore: MockTracking, MockErrorInjection, MockStateSimulation {
 
     // MARK: - MockTracking
@@ -199,6 +200,7 @@ class MockFirestore: MockTracking, MockErrorInjection, MockStateSimulation {
 
 // MARK: - MockCollectionReference
 
+@MainActor
 class MockCollectionReference {
     let path: String
     weak var firestore: MockFirestore?
@@ -225,6 +227,7 @@ class MockCollectionReference {
 
 // MARK: - MockDocumentReference
 
+@MainActor
 class MockDocumentReference {
     let collection: String
     let id: String

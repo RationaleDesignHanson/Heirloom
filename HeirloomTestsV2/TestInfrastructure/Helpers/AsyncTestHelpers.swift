@@ -109,16 +109,16 @@ enum AsyncTestHelpers {
 
         let timeoutTask = Task {
             try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-            throw AsyncTestError.timeout
+            task.cancel()
         }
 
-        let result = try await Task {
-            try await task.value
+        do {
+            let result = try await task.value
             timeoutTask.cancel()
-            return try await task.value
-        }.value
-
-        return result
+            return result
+        } catch is CancellationError {
+            throw AsyncTestError.timeout
+        }
     }
 
     /// Assert that an async operation does NOT complete within a time limit

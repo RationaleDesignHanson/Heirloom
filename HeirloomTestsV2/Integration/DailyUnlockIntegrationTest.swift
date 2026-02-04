@@ -173,7 +173,9 @@ final class DailyUnlockIntegrationTest: XCTestCase {
 
         XCTAssertEqual(finalUnlockedCount, totalRecipes.count,
                       "All recipes should be unlocked by Day 14")
-        XCTAssertTrue(tracker.isTrialComplete, "Trial should be marked complete")
+        // Note: isTrialComplete is true only when currentTrialDay > 14 (i.e., day 15+)
+        // On day 14, all recipes are unlocked but trial is not yet marked complete
+        XCTAssertFalse(tracker.isTrialComplete, "Trial should not be complete on Day 14 (complete on Day 15)")
 
         Log.info("Full unlock cycle test passed", category: .trial, metadata: [
             "totalRecipes": totalRecipes.count,
@@ -273,7 +275,9 @@ final class DailyUnlockIntegrationTest: XCTestCase {
 
     /// Test 7: Invalid unlock day is handled gracefully
     func testInvalidUnlockDayHandling() throws {
-        // Given: A recipe with invalid unlock day (outside 1-14 range)
+        // Given: Trial started and a recipe with invalid unlock day (outside 1-14 range)
+        tracker.startTrial(withThemeIds: testThemeIds)
+
         let invalidRecipe = Recipe()
         invalidRecipe.title = "Invalid Unlock Day Recipe"
         invalidRecipe.isThemeRecipe = true
@@ -355,10 +359,12 @@ final class DailyUnlockIntegrationTest: XCTestCase {
 
                 // Add some ingredients
                 let ingredient = Ingredient(
+                    originalText: "1 cup Test Ingredient",
                     name: "Test Ingredient",
-                    quantity: "1 cup",
-                    recipe: recipe
+                    quantity: 1.0,
+                    unit: "cup"
                 )
+                ingredient.recipe = recipe
                 recipe.ingredients = [ingredient]
                 modelContext.insert(ingredient)
 
