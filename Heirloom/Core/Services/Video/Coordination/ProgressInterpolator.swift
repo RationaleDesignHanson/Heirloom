@@ -65,14 +65,9 @@ class ProgressInterpolator: ObservableObject {
         interpolatedProgress = min(interpolatedProgress, targetProgress * 0.95)
     }
 
-    nonisolated deinit {
-        // Timer invalidation must happen on main thread, but deinit can be called from any thread
-        // Use detached task to safely invalidate on MainActor if needed
-        let timerToInvalidate = timer
-        if let timer = timerToInvalidate {
-            Task { @MainActor in
-                timer.invalidate()
-            }
-        }
+    deinit {
+        // Timer invalidation must happen on main thread
+        // Since this is a @MainActor class, deinit runs on main thread
+        timer?.invalidate()
     }
 }
