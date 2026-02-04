@@ -9,8 +9,8 @@ on:
 
 env:
   XCODE_VERSION: '16.2'
-  IOS_SIMULATOR: 'iPhone 16'
-  IOS_VERSION: '18.2'
+  IOS_SIMULATOR: 'iPhone 15 Pro'
+  IOS_VERSION: '18.1'
 
 jobs:
   # Job 1: Build Validation (Fast - runs first)
