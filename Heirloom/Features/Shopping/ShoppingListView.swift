@@ -30,6 +30,7 @@ struct ShoppingListView: View {
     @State private var selectedRecipeIds: Set<UUID> = []
     @State private var selectedIngredientData: IngredientRecipeData?
     @State private var showSettings = false
+    @State private var navigateToRecipe: Recipe?
 
     var body: some View {
         NavigationStack {
@@ -129,6 +130,9 @@ struct ShoppingListView: View {
                         .environmentObject(tabCoordinator)
                 }
             }
+            .navigationDestination(item: $navigateToRecipe) { recipe in
+                RecipeDetailView(recipe: recipe)
+            }
         }
     }
 
@@ -169,33 +173,32 @@ struct ShoppingListView: View {
 
             VStack(spacing: HeirloomSpacing.xs) {
                 ForEach(cartRecipes) { cartRecipe in
-                    Button {
-                        toggleRecipeSelection(cartRecipe)
-                    } label: {
-                        recipeRow(cartRecipe)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("\(cartRecipe.recipe?.title ?? "Recipe"), \(selectedRecipeIds.contains(cartRecipe.recipe?.id ?? UUID()) ? "Selected" : "Not selected")")
-                    .accessibilityHint("Toggle recipe inclusion in shopping list")
-                    .contextMenu {
-                        if let recipe = cartRecipe.recipe {
-                            Button {
-                                removeRecipeFromList(cartRecipe)
-                            } label: {
-                                Label("Remove from List", systemImage: "cart.badge.minus")
-                            }
+                    recipeRow(cartRecipe)
+                        .contextMenu {
+                            if let recipe = cartRecipe.recipe {
+                                Button {
+                                    navigateToRecipe = recipe
+                                } label: {
+                                    Label("View Recipe", systemImage: "book.pages")
+                                }
 
-                            Button {
-                                toggleRecipeSelection(cartRecipe)
-                            } label: {
-                                let isSelected = selectedRecipeIds.contains(recipe.id)
-                                Label(
-                                    isSelected ? "Hide Items" : "Show Items",
-                                    systemImage: isSelected ? "eye.slash" : "eye"
-                                )
+                                Button {
+                                    removeRecipeFromList(cartRecipe)
+                                } label: {
+                                    Label("Remove from List", systemImage: "cart.badge.minus")
+                                }
+
+                                Button {
+                                    toggleRecipeSelection(cartRecipe)
+                                } label: {
+                                    let isSelected = selectedRecipeIds.contains(recipe.id)
+                                    Label(
+                                        isSelected ? "Hide Items" : "Show Items",
+                                        systemImage: isSelected ? "eye.slash" : "eye"
+                                    )
+                                }
                             }
                         }
-                    }
                 }
             }
         }
@@ -222,29 +225,51 @@ struct ShoppingListView: View {
 
         let isSelected = selectedRecipeIds.contains(recipe.id)
 
-        return AnyView(HStack {
-            // Checkbox
-            Image(systemName: isSelected ? "checkmark.square.fill" : "square")
-                .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.warmGray)
-                .font(HeirloomFonts.title2)
+        return AnyView(HStack(spacing: HeirloomSpacing.sm) {
+            // Checkbox - tappable to toggle selection
+            Button {
+                toggleRecipeSelection(cartRecipe)
+            } label: {
+                Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.warmGray)
+                    .font(HeirloomFonts.title2)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(isSelected ? "Selected" : "Not selected")
+            .accessibilityHint("Toggle recipe inclusion in shopping list")
 
-            // Recipe icon
-            Image(systemName: recipe.sourceType?.iconName ?? "fork.knife")
-                .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.warmGray)
-                .font(HeirloomFonts.caption1)
+            // Recipe info - tappable to navigate to recipe
+            Button {
+                navigateToRecipe = recipe
+            } label: {
+                HStack {
+                    // Recipe icon
+                    Image(systemName: recipe.sourceType?.iconName ?? "fork.knife")
+                        .foregroundStyle(isSelected ? HeirloomColors.tomato : HeirloomColors.warmGray)
+                        .font(HeirloomFonts.caption1)
 
-            // Recipe title (with serving info)
-            Text(cartRecipe.displayTitle)
-                .font(HeirloomFonts.callout)
-                .foregroundStyle(isSelected ? HeirloomColors.primaryText : HeirloomColors.secondaryText)
+                    // Recipe title (with serving info)
+                    Text(cartRecipe.displayTitle)
+                        .font(HeirloomFonts.callout)
+                        .foregroundStyle(isSelected ? HeirloomColors.primaryText : HeirloomColors.secondaryText)
 
-            Spacer()
+                    Spacer()
 
-            // Ingredient count
-            let ingredientCount = cartRecipe.scaledIngredients.count
-            Text("\(ingredientCount) items")
-                .font(HeirloomFonts.caption1)
-                .foregroundStyle(HeirloomColors.secondaryText)
+                    // Ingredient count
+                    let ingredientCount = cartRecipe.scaledIngredients.count
+                    Text("\(ingredientCount) items")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+
+                    // Chevron to indicate navigation
+                    Image(systemName: "chevron.right")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(cartRecipe.displayTitle), \(cartRecipe.scaledIngredients.count) items")
+            .accessibilityHint("View recipe details")
         }
         .padding(HeirloomSpacing.sm)
         .background(

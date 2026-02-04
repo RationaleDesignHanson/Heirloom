@@ -2310,3 +2310,212 @@ Tests 1-15 verified:
 **Tested By**: ___________
 **Date**: ___________
 **Build/Version**: ___________
+
+---
+
+## Shopping List Recipe Navigation (2026-02-03)
+
+### Date: 2026-02-03
+
+**Feature**: Separate tap areas for recipe rows in shopping list - checkbox toggles selection, recipe title navigates to recipe detail
+
+**Problem Fixed**: Entire recipe row was one tap target, making it impossible to navigate to recipe without toggling selection
+
+**Solution**: Split recipe row into two separate Button views:
+1. Checkbox button - toggles recipe selection (show/hide ingredients)
+2. Recipe info button - navigates to RecipeDetailView
+
+**Files Changed**:
+- `ShoppingListView.swift` - Added separate tap areas, navigation state, chevron indicator
+
+---
+
+### Test 1: Checkbox Toggle - Does NOT Navigate ⭐ CRITICAL
+
+**Objective**: Verify tapping checkbox only toggles selection, doesn't navigate
+
+**Prerequisites**: Shopping list with 2+ recipes added
+
+**Steps**:
+1. Open Shopping tab
+2. Find a recipe row with checkbox
+3. Note if checkbox is checked or unchecked
+4. Tap DIRECTLY on the checkbox square (left side)
+5. Observe behavior
+
+**Expected Results**:
+- [ ] Checkbox toggles state (checked ↔ unchecked)
+- [ ] NO navigation to recipe detail view
+- [ ] Recipe ingredients show/hide based on selection
+- [ ] Stay on Shopping List view
+- [ ] Haptic feedback on toggle
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 2: Recipe Title Tap - Navigates to Recipe
+
+**Objective**: Verify tapping recipe title navigates to recipe detail
+
+**Prerequisites**: Shopping list with recipes
+
+**Steps**:
+1. Open Shopping tab
+2. Find a recipe row
+3. Tap on the recipe NAME/TITLE (NOT the checkbox)
+4. Observe behavior
+
+**Expected Results**:
+- [ ] Navigates to RecipeDetailView
+- [ ] Recipe detail shows full recipe info
+- [ ] Back button returns to Shopping List
+- [ ] Checkbox state did NOT change
+- [ ] Can view ingredients, instructions, etc.
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 3: Chevron Indicator Visible
+
+**Objective**: Verify visual indicator shows recipe row is tappable for navigation
+
+**Prerequisites**: Shopping list with recipes
+
+**Steps**:
+1. Open Shopping tab
+2. Look at recipe rows
+3. Check right side of each recipe row
+
+**Expected Results**:
+- [ ] Small chevron (>) icon visible on right side
+- [ ] Chevron is gray/secondary color
+- [ ] Indicates navigation is available
+- [ ] Appears after ingredient count ("X items")
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 4: Context Menu - View Recipe Option
+
+**Objective**: Verify long-press context menu has "View Recipe" option
+
+**Prerequisites**: Shopping list with recipes
+
+**Steps**:
+1. Open Shopping tab
+2. Long-press on a recipe row
+3. Check context menu options
+4. Tap "View Recipe"
+
+**Expected Results**:
+- [ ] Context menu appears on long-press
+- [ ] "View Recipe" option with book icon visible
+- [ ] "Remove from List" option still present
+- [ ] "Show/Hide Items" option still present
+- [ ] Tapping "View Recipe" navigates to recipe detail
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 5: Navigation from Multiple Recipe States
+
+**Objective**: Verify navigation works regardless of selection state
+
+**Prerequisites**: Shopping list with 3+ recipes (some selected, some not)
+
+**Steps**:
+1. Have mix of selected/unselected recipes
+2. Tap title of a SELECTED recipe (checkbox checked)
+3. Navigate back
+4. Tap title of an UNSELECTED recipe (checkbox unchecked)
+5. Navigate back
+
+**Expected Results**:
+- [ ] Both navigations work correctly
+- [ ] Selected recipe: Can view full detail
+- [ ] Unselected recipe: Can view full detail
+- [ ] Selection states preserved after navigation
+- [ ] No crashes or errors
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Test 6: Tap Target Separation
+
+**Objective**: Verify tap targets don't overlap or interfere
+
+**Prerequisites**: Shopping list with recipes
+
+**Steps**:
+1. Tap very close to checkbox edge (but on recipe title side)
+2. Tap very close to title edge (but on checkbox side)
+3. Tap in middle of recipe row
+4. Try rapid tapping on both areas
+
+**Expected Results**:
+- [ ] Clear separation between checkbox and title tap areas
+- [ ] No accidental toggles when trying to navigate
+- [ ] No accidental navigations when trying to toggle
+- [ ] Middle of row triggers navigation (not toggle)
+- [ ] Rapid tapping works correctly
+
+**Actual Result**: ___________
+
+**Pass/Fail**: ___________
+
+---
+
+### Testing Summary
+
+**Total Tests**: 6
+**Tests Passed**: _____ / 6
+**Tests Failed**: _____ / 6
+**Tests Skipped**: _____ / 6
+
+**Critical Issues Found**: _____________________________________________
+
+**Non-Critical Issues Found**: _____________________________________________
+
+**Overall Assessment**: [ ] Ready for Production  [ ] Needs Fixes  [ ] Blocked
+
+**Tested By**: ___________
+**Date**: ___________
+**Build/Version**: ___________
+
+### Implementation Details
+
+**State Variable**:
+```swift
+@State private var navigateToRecipe: Recipe?
+```
+
+**Navigation Destination** (after sheets):
+```swift
+.navigationDestination(item: $navigateToRecipe) { recipe in
+    RecipeDetailView(recipe: recipe)
+}
+```
+
+**Recipe Row Structure**:
+```
+[Checkbox Button] [Recipe Info Button → (icon + title + count + chevron)]
+```
+
+**Tap Areas**:
+- Left: Checkbox (~44pt) - toggles selection
+- Right: Everything else - navigates to recipe
