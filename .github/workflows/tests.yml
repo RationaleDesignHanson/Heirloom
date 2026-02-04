@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  XCODE_VERSION: '16.2'
+  XCODE_VERSION: '16.4'
   IOS_SIMULATOR: 'iPhone 16 Pro'
   IOS_VERSION: '18.5'
 
@@ -60,22 +60,14 @@ jobs:
 
     - name: Build for testing
       run: |
-        # Find first available iPhone simulator
-        SIM_UDID=$(xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS-18")) | .value[] | select(.name == "iPhone 16 Pro") | .udid' | head -1)
-        echo "Using simulator: $SIM_UDID"
-
-        # Build using SDK with destination, overriding deployment target
         xcodebuild build-for-testing \
           -project Heirloom.xcodeproj \
           -scheme Heirloom \
-          -sdk iphonesimulator \
-          -destination "id=$SIM_UDID" \
+          -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          IPHONEOS_DEPLOYMENT_TARGET=18.0 \
-          SUPPORTS_MACCATALYST=NO \
-          2>&1 | xcpretty --color && exit ${PIPESTATUS[0]}
+          | xcpretty --color && exit ${PIPESTATUS[0]}
 
   # Job 2: Unit Tests
   unit-tests:
@@ -103,23 +95,15 @@ jobs:
 
     - name: Run Unit Tests
       run: |
-        # Find first available iPhone simulator and boot it
-        SIM_UDID=$(xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS-18")) | .value[] | select(.name == "iPhone 16 Pro") | .udid' | head -1)
-        echo "Using simulator: $SIM_UDID"
-        xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
-        xcrun simctl bootstatus "$SIM_UDID" -b
-
         xcodebuild test \
           -project Heirloom.xcodeproj \
           -scheme Heirloom \
-          -sdk iphonesimulator \
-          -destination "id=$SIM_UDID" \
+          -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
           -only-testing:HeirloomTestsV2 \
           -enableCodeCoverage YES \
           -resultBundlePath TestResults.xcresult \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          IPHONEOS_DEPLOYMENT_TARGET=18.0 \
           | xcpretty --color --report junit --output test-results.xml && exit ${PIPESTATUS[0]}
 
     - name: Generate Coverage Report
