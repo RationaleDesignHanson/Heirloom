@@ -39,12 +39,16 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-spm-
 
+    - name: List available simulators
+      run: |
+        xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.value | length > 0) | "\(.key): \(.value | map(.name) | join(", "))"' | head -20
+
     - name: Build for testing
       run: |
         xcodebuild build-for-testing \
           -project Heirloom.xcodeproj \
           -scheme Heirloom \
-          -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
+          -destination "generic/platform=iOS Simulator" \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
@@ -74,12 +78,28 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-spm-
 
+    - name: Find and boot simulator
+      id: simulator
+      run: |
+        # List available iOS simulators and pick the first iPhone
+        SIMULATOR_ID=$(xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | contains("iPhone")) | .udid' | head -1)
+        SIMULATOR_NAME=$(xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | contains("iPhone")) | .name' | head -1)
+        echo "Using simulator: $SIMULATOR_NAME ($SIMULATOR_ID)"
+        echo "simulator_id=$SIMULATOR_ID" >> $GITHUB_OUTPUT
+        echo "simulator_name=$SIMULATOR_NAME" >> $GITHUB_OUTPUT
+
+        # Boot the simulator
+        xcrun simctl boot "$SIMULATOR_ID" 2>/dev/null || true
+
+        # Wait for it to be ready
+        xcrun simctl bootstatus "$SIMULATOR_ID" -b
+
     - name: Run Unit Tests
       run: |
         xcodebuild test \
           -project Heirloom.xcodeproj \
           -scheme Heirloom \
-          -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
+          -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.simulator_id }}" \
           -only-testing:HeirloomTestsV2 \
           -enableCodeCoverage YES \
           -resultBundlePath TestResults.xcresult \
