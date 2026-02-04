@@ -39,27 +39,43 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-spm-
 
+    - name: List available Xcode versions
+      run: |
+        ls -la /Applications | grep Xcode
+        echo ""
+        echo "=== Current Xcode ==="
+        xcode-select -p
+        xcodebuild -version
+
     - name: List available destinations
       run: |
         echo "=== Available SDKs ==="
         xcodebuild -showsdks | grep iOS
         echo ""
-        echo "=== Available iPhone Simulators ==="
+        echo "=== Available iOS Simulators ==="
         xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS-18")) | "\(.key): \(.value | map(.name) | first)"' || true
+        echo ""
+        echo "=== Scheme destinations ==="
+        xcodebuild -project Heirloom.xcodeproj -scheme Heirloom -showdestinations 2>&1 | head -50 || true
 
     - name: Build for testing
       run: |
-        # Build using iphonesimulator SDK without destination validation
+        # Find first available iPhone simulator
+        SIM_UDID=$(xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS-18")) | .value[] | select(.name == "iPhone 16 Pro") | .udid' | head -1)
+        echo "Using simulator: $SIM_UDID"
+
+        # Build using SDK with destination, overriding deployment target
         xcodebuild build-for-testing \
           -project Heirloom.xcodeproj \
           -scheme Heirloom \
           -sdk iphonesimulator \
+          -destination "id=$SIM_UDID" \
           -configuration Debug \
-          ONLY_ACTIVE_ARCH=NO \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           IPHONEOS_DEPLOYMENT_TARGET=18.0 \
-          | xcpretty --color && exit ${PIPESTATUS[0]}
+          SUPPORTS_MACCATALYST=NO \
+          2>&1 | xcpretty --color && exit ${PIPESTATUS[0]}
 
   # Job 2: Unit Tests
   unit-tests:
