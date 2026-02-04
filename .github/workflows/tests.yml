@@ -9,8 +9,8 @@ on:
 
 env:
   XCODE_VERSION: '16.2'
-  IOS_SIMULATOR: 'iPhone 15 Pro'
-  IOS_VERSION: '18.1'
+  IOS_SIMULATOR: 'iPhone 16 Pro'
+  IOS_VERSION: '18.5'
 
 jobs:
   # Job 1: Build Validation (Fast - runs first)
@@ -48,7 +48,7 @@ jobs:
         xcodebuild build-for-testing \
           -project Heirloom.xcodeproj \
           -scheme Heirloom \
-          -destination "generic/platform=iOS Simulator" \
+          -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
           -configuration Debug \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
@@ -78,28 +78,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-spm-
 
-    - name: Find and boot simulator
-      id: simulator
-      run: |
-        # List available iOS simulators and pick the first iPhone
-        SIMULATOR_ID=$(xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | contains("iPhone")) | .udid' | head -1)
-        SIMULATOR_NAME=$(xcrun simctl list devices available --json | jq -r '.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | contains("iPhone")) | .name' | head -1)
-        echo "Using simulator: $SIMULATOR_NAME ($SIMULATOR_ID)"
-        echo "simulator_id=$SIMULATOR_ID" >> $GITHUB_OUTPUT
-        echo "simulator_name=$SIMULATOR_NAME" >> $GITHUB_OUTPUT
-
-        # Boot the simulator
-        xcrun simctl boot "$SIMULATOR_ID" 2>/dev/null || true
-
-        # Wait for it to be ready
-        xcrun simctl bootstatus "$SIMULATOR_ID" -b
-
     - name: Run Unit Tests
       run: |
         xcodebuild test \
           -project Heirloom.xcodeproj \
           -scheme Heirloom \
-          -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.simulator_id }}" \
+          -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
           -only-testing:HeirloomTestsV2 \
           -enableCodeCoverage YES \
           -resultBundlePath TestResults.xcresult \
