@@ -7,6 +7,7 @@ import os.log
 import FirebaseCore
 import FirebaseFirestore
 import FirebaseCrashlytics
+import RevenueCat
 
 // Device-visible logging
 private let logger = Logger(subsystem: "com.rationaledesign.heirloom", category: "App")
@@ -226,6 +227,24 @@ struct HeirloomApp: App {
         DeviceLogger.shared.log("🔧 [Heirloom] Active backend: Firebase")
         logger.info("🔧 [Heirloom] Active backend: Firebase")
         Log.info("Active backend configured", category: .firebase, metadata: ["backend": "Firebase"])
+
+        // REVENUECAT INITIALIZATION
+        if !isRunningTests {
+            if let revenueCatKey = Bundle.main.object(forInfoDictionaryKey: "REVENUECAT_API_KEY") as? String,
+               !revenueCatKey.isEmpty,
+               !revenueCatKey.hasPrefix("$(") {
+                DeviceLogger.shared.log("💰 [Heirloom] Configuring RevenueCat...")
+                Purchases.logLevel = .debug  // Enable debug logging for development
+                Purchases.configure(withAPIKey: revenueCatKey)
+                DeviceLogger.shared.log("✅ [Heirloom] RevenueCat configured successfully")
+                Log.info("RevenueCat configured", category: .store, metadata: [
+                    "keyPrefix": String(revenueCatKey.prefix(5))
+                ])
+            } else {
+                DeviceLogger.shared.log("⚠️ [Heirloom] RevenueCat API key not configured - purchases disabled")
+                Log.warning("RevenueCat API key not configured", category: .store)
+            }
+        }
 
         // REGISTER BACKGROUND TASKS
         if !isRunningTests {
@@ -744,7 +763,12 @@ struct HeirloomApp: App {
             forTaskWithIdentifier: "com.rationaledesign.heirloom.video-processing",
             using: nil
         ) { task in
-            self.handleVideoProcessingBackgroundTask(task: task as! BGProcessingTask)
+            guard let processingTask = task as? BGProcessingTask else {
+                Log.error("Background task type mismatch - expected BGProcessingTask for video processing", category: .video)
+                task.setTaskCompleted(success: false)
+                return
+            }
+            self.handleVideoProcessingBackgroundTask(task: processingTask)
         }
 
         // Register daily cleanup background task
@@ -753,7 +777,12 @@ struct HeirloomApp: App {
             forTaskWithIdentifier: "com.rationaledesign.heirloom.cleanup",
             using: nil
         ) { task in
-            self.handleCleanupBackgroundTask(task: task as! BGProcessingTask)
+            guard let processingTask = task as? BGProcessingTask else {
+                Log.error("Background task type mismatch - expected BGProcessingTask for cleanup", category: .general)
+                task.setTaskCompleted(success: false)
+                return
+            }
+            self.handleCleanupBackgroundTask(task: processingTask)
         }
 
         // Register periodic sync refresh task (BGAppRefreshTask for lightweight sync)
@@ -761,7 +790,12 @@ struct HeirloomApp: App {
             forTaskWithIdentifier: "com.rationaledesign.heirloom.sync-refresh",
             using: nil
         ) { task in
-            self.handleSyncRefreshTask(task: task as! BGAppRefreshTask)
+            guard let refreshTask = task as? BGAppRefreshTask else {
+                Log.error("Background task type mismatch - expected BGAppRefreshTask for sync refresh", category: .sync)
+                task.setTaskCompleted(success: false)
+                return
+            }
+            self.handleSyncRefreshTask(task: refreshTask)
         }
 
         // Register collection image refresh background task

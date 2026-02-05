@@ -24,18 +24,28 @@ private struct AlgoliaHit: Codable {
 
 @MainActor
 class AlgoliaSearchService: SearchServiceProtocol {
-    private let searchClient: SearchClient
+    private let searchClient: SearchClient?
     private let indexName = "users"
 
     init() {
         // Initialize with app credentials
         let appID = "A1DITUD2QN"
         let apiKey = "4e4be19553e7b15c90aeba9bbebb6fe0" // Search-only key (safe for client)
-        self.searchClient = try! SearchClient(appID: appID, apiKey: apiKey)
+        do {
+            self.searchClient = try SearchClient(appID: appID, apiKey: apiKey)
+        } catch {
+            Log.error("Failed to initialize Algolia SearchClient", category: .general, metadata: ["error": error.localizedDescription])
+            self.searchClient = nil
+        }
     }
 
     func searchUsers(query: String, filters: SearchFilters? = nil) async throws -> [UserSearchResult] {
         guard query.count >= 2 else { return [] }
+
+        guard let searchClient = searchClient else {
+            Log.warning("Search unavailable - Algolia client not initialized", category: .general)
+            return []
+        }
 
         // Build filter string
         var filterString: String?

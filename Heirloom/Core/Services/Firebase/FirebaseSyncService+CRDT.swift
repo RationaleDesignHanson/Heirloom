@@ -214,7 +214,11 @@ extension FirebaseSyncService {
         let operations = operationsSnapshot.documents.compactMap { RecipeOperation.from(firestoreData: $0.data()) }
         Log.info("Successfully parsed operations", category: .crdt, metadata: ["count": operations.count])
 
-        let remoteOperationLog = OperationLog(recipeId: UUID(uuidString: recipeId)!, operations: operations)
+        guard let recipeUUID = UUID(uuidString: recipeId) else {
+            Log.error("Invalid recipe ID format for CRDT operation log", category: .crdt, metadata: ["recipeId": recipeId])
+            throw SyncError.recipeNotFound
+        }
+        let remoteOperationLog = OperationLog(recipeId: recipeUUID, operations: operations)
 
         // Create remote CRDT
         let remoteCRDT = RecipeCRDT(recipe: remoteRecipe, deviceId: data["lastModifiedByDevice"] as? String ?? "unknown")

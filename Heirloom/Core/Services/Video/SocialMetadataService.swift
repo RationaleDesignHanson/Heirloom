@@ -60,7 +60,10 @@ actor SocialMetadataService {
 
     private func fetchTikTokMetadata(_ info: DetectedPlatformInfo) async throws -> SocialMetadata {
         let encodedURL = info.originalURL.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let oembedURL = URL(string: "https://www.tiktok.com/oembed?url=\(encodedURL)")!
+        guard let oembedURL = URL(string: "https://www.tiktok.com/oembed?url=\(encodedURL)") else {
+            Log.error("Failed to construct TikTok oembed URL", category: .video, metadata: ["originalURL": info.originalURL.absoluteString])
+            throw URLError(.badURL)
+        }
 
         let (data, _) = try await urlSession.data(from: oembedURL)
         let response = try JSONDecoder().decode(TikTokOembedResponse.self, from: data)
@@ -80,7 +83,17 @@ actor SocialMetadataService {
     private func fetchInstagramMetadata(_ info: DetectedPlatformInfo) async throws -> SocialMetadata {
         // Instagram oembed is limited and often blocked
         let encodedURL = info.originalURL.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let oembedURL = URL(string: "https://api.instagram.com/oembed?url=\(encodedURL)")!
+        guard let oembedURL = URL(string: "https://api.instagram.com/oembed?url=\(encodedURL)") else {
+            // Fallback to URL-extracted info if URL construction fails
+            return SocialMetadata(
+                platform: .instagram,
+                creatorUsername: info.extractedUsername,
+                creatorDisplayName: nil,
+                title: nil,
+                thumbnailURL: nil,
+                fetchedAt: Date()
+            )
+        }
 
         do {
             let (data, _) = try await urlSession.data(from: oembedURL)
@@ -111,7 +124,10 @@ actor SocialMetadataService {
 
     private func fetchYouTubeMetadata(_ info: DetectedPlatformInfo) async throws -> SocialMetadata {
         let encodedURL = info.originalURL.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let oembedURL = URL(string: "https://www.youtube.com/oembed?url=\(encodedURL)&format=json")!
+        guard let oembedURL = URL(string: "https://www.youtube.com/oembed?url=\(encodedURL)&format=json") else {
+            Log.error("Failed to construct YouTube oembed URL", category: .video, metadata: ["originalURL": info.originalURL.absoluteString])
+            throw URLError(.badURL)
+        }
 
         let (data, _) = try await urlSession.data(from: oembedURL)
         let response = try JSONDecoder().decode(YouTubeOembedResponse.self, from: data)

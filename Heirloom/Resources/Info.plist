@@ -58,6 +58,8 @@
 	<string>AIzaSyA2UAepQ0-4kR8rqxQEqFM8mZhOfJBdsnA</string>
 	<key>DEFAULT_OPENAI_KEY</key>
 	<string>$(DEFAULT_OPENAI_KEY)</string>
+	<key>REVENUECAT_API_KEY</key>
+	<string>$(REVENUECAT_API_KEY)</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Heirloom needs camera access to photograph recipe cards from your cookbooks.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

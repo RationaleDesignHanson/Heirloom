@@ -118,6 +118,7 @@
 		C513D85F2F163B0500BFCF7D /* RecipeExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D85D2F163B0500BFCF7D /* RecipeExportView.swift */; };
 		C513D8602F163B0500BFCF7D /* TrialExpiredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513D85E2F163B0500BFCF7D /* TrialExpiredView.swift */; };
 		C513E3B02F168E8C00BFCF7D /* ButtonEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = C513E3AF2F168E8C00BFCF7D /* ButtonEffects.swift */; };
+		C51C01B12F3477E9005C50F0 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = C51C01B02F3477E9005C50F0 /* RevenueCat */; };
 		C5364BCE2F26F038003D342E /* CollectionCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364BCC2F26F038003D342E /* CollectionCardView.swift */; };
 		C5364BD02F26F0C4003D342E /* UniversalURLResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364BCF2F26F0C4003D342E /* UniversalURLResolver.swift */; };
 		C5364BD12F26F0CA003D342E /* UniversalURLResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5364BCF2F26F0C4003D342E /* UniversalURLResolver.swift */; };
@@ -966,6 +967,7 @@
 				C56F3E712F04A9E000D19743 /* FirebaseStorage in Frameworks */,
 				C56F3E6B2F04A9E000D19743 /* FirebaseAuth in Frameworks */,
 				C502ED0C2F23C94800BF1696 /* FirebaseCrashlytics in Frameworks */,
+				C51C01B12F3477E9005C50F0 /* RevenueCat in Frameworks */,
 				C5E9553E2F056CA2006CD3C2 /* GoogleSignIn in Frameworks */,
 				C5EF779A2F3178A30097779E /* FirebaseFunctions in Frameworks */,
 				C58316532F119F060096478E /* WhisperKit in Frameworks */,
@@ -2571,6 +2573,7 @@
 				C502FA532F24184D00BF1696 /* FirebaseRemoteConfig */,
 				C5CE3F322F2D2C9200A2E62F /* Search */,
 				C5EF77992F3178A30097779E /* FirebaseFunctions */,
+				C51C01B02F3477E9005C50F0 /* RevenueCat */,
 			);
 			productName = Heirloom;
 			productReference = 7783D80B7B8AD9C0FBDC0EF7 /* Heirloom.app */;
@@ -2656,6 +2659,7 @@
 				C5E9553C2F056A1A006CD3C2 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				C58316512F119F060096478E /* XCRemoteSwiftPackageReference "WhisperKit" */,
 				C5CE3F312F2D2C9200A2E62F /* XCRemoteSwiftPackageReference "algoliasearch-client-swift" */,
+				C51C01AF2F3477E9005C50F0 /* XCRemoteSwiftPackageReference "purchases-ios" */,
 			);
 			projectDirPath = "";
 			projectRoot = "";
@@ -3568,6 +3572,14 @@
 				minimumVersion = 2.6.0;
 			};
 		};
+		C51C01AF2F3477E9005C50F0 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.57.0;
+			};
+		};
 		C56F3E642F04A46600D19743 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -3617,6 +3629,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C56F3E642F04A46600D19743 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseRemoteConfig;
+		};
+		C51C01B02F3477E9005C50F0 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C51C01AF2F3477E9005C50F0 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
 		};
 		C56F3E6A2F04A9E000D19743 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;

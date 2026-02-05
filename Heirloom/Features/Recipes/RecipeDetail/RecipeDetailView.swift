@@ -305,9 +305,8 @@ struct RecipeDetailView: View {
     /// Whether this video recipe needs attribution
     private var needsAttribution: Bool {
         guard recipe.sourceType == .video else { return false }
-        // Check if attribution is missing or empty
-        let hasAttribution = recipe.provenance?.sourceAttribution != nil &&
-                            !recipe.provenance!.sourceAttribution!.isEmpty
+        // Check if attribution is missing or empty (using safe optional chaining)
+        let hasAttribution = recipe.provenance?.sourceAttribution?.isEmpty == false
         return !hasAttribution
     }
 
