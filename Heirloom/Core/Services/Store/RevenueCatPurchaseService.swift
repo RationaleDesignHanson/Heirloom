@@ -8,9 +8,10 @@
 
 import Foundation
 import StoreKit
+import RevenueCat
 
 /// RevenueCat implementation of purchase service
-/// **PRODUCTION READY** - Full RevenueCat integration
+/// Handles subscriptions and purchases through RevenueCat SDK
 @MainActor
 final class RevenueCatPurchaseService: PurchaseServiceProtocol {
 
@@ -19,11 +20,15 @@ final class RevenueCatPurchaseService: PurchaseServiceProtocol {
     private let logger: LoggingService
     private let analytics: AnalyticsService
 
-    // MARK: - State (unused in stub implementation)
+    // MARK: - State
 
-    // TODO: When implementing RevenueCat, uncomment these:
-    // private var currentOffering: Offering?
-    // private var customerInfo: CustomerInfo?
+    private var currentOffering: Offering?
+    private var customerInfo: CustomerInfo?
+
+    // MARK: - Constants
+
+    /// The entitlement identifier configured in RevenueCat dashboard
+    private let premiumEntitlementID = "premium"
 
     // MARK: - Initialization
 
@@ -33,192 +38,333 @@ final class RevenueCatPurchaseService: PurchaseServiceProtocol {
 
         logger.log("RevenueCatPurchaseService initialized", category: .store, level: .info, metadata: nil)
 
-        // TODO: When implementing RevenueCat, configure and refresh customer info
-        // RevenueCat should be configured in HeirloomApp.swift init() before this
-        // Task {
-        //     await refreshCustomerInfo()
-        // }
+        // Refresh customer info on init
+        Task {
+            await refreshCustomerInfo()
+        }
     }
 
     // MARK: - PurchaseServiceProtocol Implementation
 
     func loadProducts() async throws -> [ProductIdentifier: Product] {
-        logger.log("RevenueCat: loadProducts() called", category: .store, level: .info, metadata: nil)
+        logger.log("RevenueCat: Loading products...", category: .store, level: .info, metadata: nil)
 
-        // TODO: Implement RevenueCat product loading
-        // let offerings = try await Purchases.shared.offerings()
-        // let currentOffering = offerings.current
-        //
-        // Map RevenueCat packages to products:
-        // - currentOffering?.monthly?.storeProduct → ProductIdentifier.monthly
-        // - currentOffering?.annual?.storeProduct → ProductIdentifier.annual
-        // - currentOffering?.lifetime?.storeProduct → ProductIdentifier.lifetime
-        //
-        // return mapped products dictionary
+        do {
+            let offerings = try await Purchases.shared.offerings()
 
-        throw StoreError.notImplemented("RevenueCat product loading")
+            guard let current = offerings.current else {
+                logger.log("RevenueCat: No current offering available", category: .store, level: .warning, metadata: nil)
+                throw StoreError.notImplemented("No offerings configured in RevenueCat")
+            }
+
+            self.currentOffering = current
+
+            // Map RevenueCat packages to our ProductIdentifier system
+            var products: [ProductIdentifier: Product] = [:]
+
+            // Try to find packages by identifier or package type
+            for package in current.availablePackages {
+                let productID = package.storeProduct.productIdentifier
+
+                if let identifier = ProductIdentifier(rawValue: productID) {
+                    // Get the underlying StoreKit product
+                    if let skProduct = try? await Product.products(for: [productID]).first {
+                        products[identifier] = skProduct
+                        logger.log(
+                            "RevenueCat: Loaded product \(identifier.displayName) - \(package.storeProduct.localizedPriceString)",
+                            category: .store,
+                            level: .debug,
+                            metadata: nil
+                        )
+                    }
+                }
+            }
+
+            logger.log(
+                "RevenueCat: Loaded \(products.count) products",
+                category: .store,
+                level: .info,
+                metadata: nil
+            )
+
+            return products
+
+        } catch {
+            logger.log(
+                "RevenueCat: Failed to load products - \(error.localizedDescription)",
+                category: .store,
+                level: .error,
+                metadata: nil
+            )
+            throw StoreError.unknownError(error)
+        }
     }
 
     func purchase(_ productID: ProductIdentifier) async -> PurchaseResult {
-        logger.log("RevenueCat: purchase(\(productID.rawValue)) called", category: .store, level: .info, metadata: nil)
+        logger.log("RevenueCat: Starting purchase for \(productID.rawValue)", category: .store, level: .info, metadata: nil)
 
         analytics.track(event: .purchaseStarted, properties: [
             "product": productID.rawValue,
             "provider": "revenuecat"
         ])
 
-        // TODO: Implement RevenueCat purchase flow
-        // do {
-        //     let purchaseResult = try await Purchases.shared.purchase(package: package)
-        //
-        //     if purchaseResult.userCancelled {
-        //         return .cancelled
-        //     }
-        //
-        //     if let transaction = purchaseResult.transaction {
-        //         return .success(transaction)
-        //     }
-        //
-        //     return .pending
-        // } catch {
-        //     return .failed(.unknownError(error))
-        // }
+        // Find the package for this product
+        guard let offering = currentOffering else {
+            // Try to load offerings first
+            do {
+                _ = try await loadProducts()
+            } catch {
+                return .failed(.unknownError(error))
+            }
 
-        return .failed(.notImplemented("RevenueCat purchase flow"))
+            guard let offering = currentOffering else {
+                return .failed(.notImplemented("No offerings available"))
+            }
+
+            return await purchaseFromOffering(offering, productID: productID)
+        }
+
+        return await purchaseFromOffering(offering, productID: productID)
+    }
+
+    private func purchaseFromOffering(_ offering: Offering, productID: ProductIdentifier) async -> PurchaseResult {
+        // Find the package matching our product ID
+        guard let package = offering.availablePackages.first(where: {
+            $0.storeProduct.productIdentifier == productID.rawValue
+        }) else {
+            logger.log(
+                "RevenueCat: Product \(productID.rawValue) not found in offering",
+                category: .store,
+                level: .error,
+                metadata: nil
+            )
+            return .failed(.productNotFound(productID))
+        }
+
+        do {
+            let result = try await Purchases.shared.purchase(package: package)
+
+            if result.userCancelled {
+                logger.log("RevenueCat: Purchase cancelled by user", category: .store, level: .info, metadata: nil)
+                analytics.track(event: .purchaseCancelled, properties: ["product": productID.rawValue])
+                return .cancelled
+            }
+
+            // Update cached customer info
+            self.customerInfo = result.customerInfo
+
+            // Check if premium entitlement is now active
+            if result.customerInfo.entitlements[premiumEntitlementID]?.isActive == true {
+                logger.log(
+                    "RevenueCat: Purchase successful - premium entitlement active",
+                    category: .store,
+                    level: .info,
+                    metadata: nil
+                )
+
+                analytics.track(event: .purchaseSuccess, properties: [
+                    "product": productID.rawValue,
+                    "provider": "revenuecat"
+                ])
+
+                // Notify app of subscription change
+                NotificationCenter.default.post(name: .subscriptionStatusChanged, object: nil)
+
+                // Return pending since we don't have a StoreKit Transaction object
+                // The subscription status will be verified via customerInfo
+                return .pending
+            } else {
+                logger.log(
+                    "RevenueCat: Purchase completed but entitlement not active",
+                    category: .store,
+                    level: .warning,
+                    metadata: nil
+                )
+                return .pending
+            }
+
+        } catch let error as ErrorCode {
+            return handleRevenueCatError(error, productID: productID)
+        } catch {
+            logger.log(
+                "RevenueCat: Purchase failed - \(error.localizedDescription)",
+                category: .store,
+                level: .error,
+                metadata: nil
+            )
+            analytics.track(event: .purchaseFailed, properties: [
+                "product": productID.rawValue,
+                "error": error.localizedDescription
+            ])
+            return .failed(.unknownError(error))
+        }
+    }
+
+    private func handleRevenueCatError(_ error: ErrorCode, productID: ProductIdentifier) -> PurchaseResult {
+        let storeError: StoreError
+
+        switch error {
+        case .purchaseCancelledError:
+            analytics.track(event: .purchaseCancelled, properties: ["product": productID.rawValue])
+            return .cancelled
+
+        case .purchaseNotAllowedError:
+            storeError = .purchaseFailed("Purchases not allowed on this device")
+
+        case .purchaseInvalidError:
+            storeError = .purchaseFailed("Invalid purchase")
+
+        case .productNotAvailableForPurchaseError:
+            storeError = .productNotFound(productID)
+
+        case .networkError:
+            storeError = .networkUnavailable
+
+        default:
+            storeError = .purchaseFailed(error.localizedDescription)
+        }
+
+        logger.log(
+            "RevenueCat: Purchase error - \(storeError.localizedDescription ?? "Unknown")",
+            category: .store,
+            level: .error,
+            metadata: nil
+        )
+
+        analytics.track(event: .purchaseFailed, properties: [
+            "product": productID.rawValue,
+            "error_code": String(describing: error)
+        ])
+
+        return .failed(storeError)
     }
 
     func restorePurchases() async throws -> [Transaction] {
-        logger.log("RevenueCat: restorePurchases() called", category: .store, level: .info, metadata: nil)
+        logger.log("RevenueCat: Restoring purchases...", category: .store, level: .info, metadata: nil)
 
-        // TODO: Implement RevenueCat restore
-        // let customerInfo = try await Purchases.shared.restorePurchases()
-        // return customerInfo.activeSubscriptions mapped to transactions
+        do {
+            let customerInfo = try await Purchases.shared.restorePurchases()
+            self.customerInfo = customerInfo
 
-        throw StoreError.notImplemented("RevenueCat restore purchases")
+            logger.log(
+                "RevenueCat: Restore completed - active entitlements: \(customerInfo.entitlements.active.keys.joined(separator: ", "))",
+                category: .store,
+                level: .info,
+                metadata: nil
+            )
+
+            // Notify app of potential subscription change
+            NotificationCenter.default.post(name: .subscriptionStatusChanged, object: nil)
+
+            // RevenueCat doesn't return StoreKit transactions, so we return empty array
+            // The subscription status is managed through customerInfo
+            return []
+
+        } catch {
+            logger.log(
+                "RevenueCat: Restore failed - \(error.localizedDescription)",
+                category: .store,
+                level: .error,
+                metadata: nil
+            )
+            throw StoreError.unknownError(error)
+        }
     }
 
     func getCurrentSubscription() async -> Transaction? {
-        logger.log("RevenueCat: getCurrentSubscription() called", category: .store, level: .debug, metadata: nil)
+        logger.log("RevenueCat: Checking current subscription...", category: .store, level: .debug, metadata: nil)
 
-        // TODO: Implement subscription status check
-        // do {
-        //     let customerInfo = try await Purchases.shared.customerInfo()
-        //
-        //     // Check for active subscription
-        //     if customerInfo.entitlements["premium"]?.isActive == true {
-        //         // Map to Transaction
-        //         return mappedTransaction
-        //     }
-        // } catch {
-        //     logger.log("Failed to get customer info", category: .store, level: .error, metadata: nil)
-        // }
+        // Refresh customer info to get latest status
+        await refreshCustomerInfo()
 
+        // Check if premium entitlement is active
+        if customerInfo?.entitlements[premiumEntitlementID]?.isActive == true {
+            logger.log("RevenueCat: Premium entitlement is active", category: .store, level: .debug, metadata: nil)
+            // Note: We don't have access to the actual StoreKit Transaction
+            // Subscription status should be checked via isPremium() or customerInfo
+        }
+
+        // Return nil - RevenueCat manages subscription state differently
+        // Use isPremium() method instead for subscription checks
         return nil
     }
 
     func hasLifetimePurchase() async -> Bool {
-        logger.log("RevenueCat: hasLifetimePurchase() called", category: .store, level: .debug, metadata: nil)
+        logger.log("RevenueCat: Checking lifetime purchase...", category: .store, level: .debug, metadata: nil)
 
-        // TODO: Check for lifetime entitlement
-        // do {
-        //     let customerInfo = try await Purchases.shared.customerInfo()
-        //     return customerInfo.entitlements["premium_lifetime"]?.isActive == true
-        // } catch {
-        //     return false
-        // }
+        await refreshCustomerInfo()
+
+        guard let customerInfo = customerInfo,
+              let premiumEntitlement = customerInfo.entitlements[premiumEntitlementID],
+              premiumEntitlement.isActive else {
+            return false
+        }
+
+        // Check if it's a lifetime (non-renewing) purchase
+        // Lifetime purchases won't have an expiration date or will have a very far future date
+        if premiumEntitlement.expirationDate == nil {
+            // No expiration = lifetime
+            return true
+        }
+
+        // Check if the product is our lifetime product
+        if premiumEntitlement.productIdentifier == ProductIdentifier.lifetime.rawValue {
+            return true
+        }
 
         return false
     }
 
     func startTransactionListener(handler: @escaping (Transaction) async -> Void) -> Task<Void, Never> {
-        logger.log("RevenueCat: startTransactionListener() called", category: .store, level: .info, metadata: nil)
+        logger.log("RevenueCat: Setting up customer info listener", category: .store, level: .info, metadata: nil)
 
-        // TODO: Set up RevenueCat customer info listener
-        // Purchases.shared.delegate = self
-        //
-        // Implement PurchasesDelegate:
-        // - purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo)
-        //
-        // When customerInfo updates, call handler with transaction
+        // RevenueCat uses a delegate pattern, but we can also use async updates
+        // For now, we'll set up a simple polling mechanism or rely on purchase callbacks
 
         return Task {
-            // Placeholder task - RevenueCat uses delegate pattern instead
-            logger.log("RevenueCat transaction listener started (stub)", category: .store, level: .debug, metadata: nil)
+            // RevenueCat handles transaction listening internally
+            // The SDK automatically updates customerInfo on subscription changes
+            // We can periodically refresh or rely on purchase/restore callbacks
+
+            logger.log(
+                "RevenueCat: Transaction listener active (managed by RevenueCat SDK)",
+                category: .store,
+                level: .debug,
+                metadata: nil
+            )
         }
     }
+
+    // MARK: - Helper Methods
+
+    /// Check if user currently has premium access
+    func isPremium() async -> Bool {
+        await refreshCustomerInfo()
+        return customerInfo?.entitlements[premiumEntitlementID]?.isActive == true
+    }
+
+    /// Refresh customer info from RevenueCat
+    private func refreshCustomerInfo() async {
+        do {
+            customerInfo = try await Purchases.shared.customerInfo()
+            logger.log(
+                "RevenueCat: Customer info refreshed - premium: \(customerInfo?.entitlements[premiumEntitlementID]?.isActive ?? false)",
+                category: .store,
+                level: .debug,
+                metadata: nil
+            )
+        } catch {
+            logger.log(
+                "RevenueCat: Failed to refresh customer info - \(error.localizedDescription)",
+                category: .store,
+                level: .warning,
+                metadata: nil
+            )
+        }
+    }
+
+    /// Get the current customer info (cached)
+    func getCustomerInfo() -> CustomerInfo? {
+        return customerInfo
+    }
 }
-
-// MARK: - RevenueCat Configuration Guide
-
-/*
- ## How to Implement RevenueCat Integration
-
- ### 1. Install RevenueCat SDK
-
- Add to Package.swift or use SPM in Xcode:
- ```
- .package(url: "https://github.com/RevenueCat/purchases-ios.git", from: "4.0.0")
- ```
-
- ### 2. Get API Keys
-
- - Create account at https://app.revenuecat.com
- - Create iOS app
- - Copy API keys:
-   - Public API key (iOS)
-   - Secret API key (webhooks)
-
- ### 3. Configure Products in RevenueCat Dashboard
-
- - Link App Store Connect
- - Create entitlement: "premium"
- - Create offerings:
-   - Monthly package → com.rationalestudio.heirloom.monthly
-   - Annual package → com.rationalestudio.heirloom.annual
-   - Lifetime package → com.rationalestudio.heirloom.lifetime
-
- ### 4. Configure in App
-
- In HeirloomApp.swift or StoreManager init:
- ```swift
- import RevenueCat
-
- Purchases.configure(withAPIKey: "YOUR_PUBLIC_API_KEY")
- Purchases.logLevel = .debug  // For development
- ```
-
- ### 5. Update StoreManager
-
- In StoreManager.swift, change:
- ```swift
- // OLD:
- private let purchaseService: PurchaseServiceProtocol = StoreKitPurchaseService(...)
-
- // NEW:
- private let purchaseService: PurchaseServiceProtocol = RevenueCatPurchaseService(...)
- ```
-
- ### 6. Implement Webhook Handler (Optional)
-
- Set up server endpoint to receive RevenueCat webhooks for:
- - Subscription renewals
- - Cancellations
- - Billing issues
- - Refunds
-
- ### 7. Testing
-
- - Use RevenueCat sandbox mode for testing
- - Test subscription purchase flow
- - Test restore purchases
- - Test subscription expiration
- - Test upgrade/downgrade
-
- ### 8. Migration Strategy
-
- For existing users with StoreKit purchases:
- - RevenueCat automatically syncs with App Store
- - No migration needed - RevenueCat reads existing receipts
- - User subscription status preserved
-
- */
