@@ -754,10 +754,33 @@ private struct PublicRecipeCard: View {
                             }
                         }
 
-                        // Creator attribution
-                        Text("by \(recipe.creatorName)")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(HeirloomColors.secondaryText)
+                        // Creator attribution with avatar
+                        HStack(spacing: 6) {
+                            // Creator avatar
+                            if let photoURL = recipe.creatorPhotoURL,
+                               let url = URL(string: photoURL) {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 20, height: 20)
+                                            .clipShape(Circle())
+                                    case .failure, .empty:
+                                        creatorPlaceholder
+                                    @unknown default:
+                                        creatorPlaceholder
+                                    }
+                                }
+                            } else {
+                                creatorPlaceholder
+                            }
+
+                            Text("by \(recipe.creatorName)")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                        }
 
                         // Engagement stats
                         HStack(spacing: HeirloomSpacing.sm) {
@@ -813,6 +836,12 @@ private struct PublicRecipeCard: View {
                 .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
+    }
+
+    private var creatorPlaceholder: some View {
+        Image(systemName: "person.circle.fill")
+            .font(.system(size: 20))
+            .foregroundStyle(HeirloomColors.warmGray)
     }
 }
 
