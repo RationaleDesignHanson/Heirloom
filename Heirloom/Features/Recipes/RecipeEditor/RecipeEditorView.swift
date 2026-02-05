@@ -1209,6 +1209,8 @@ struct RecipeEditorView: View {
                         provenanceSourceType = .imported
                     case .video:
                         provenanceSourceType = .video
+                    case .generated:
+                        provenanceSourceType = .ai
                     }
 
                     recipe.provenance = ProvenanceMetadata(

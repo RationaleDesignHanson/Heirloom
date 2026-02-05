@@ -154,6 +154,10 @@ final class Recipe {
     /// Number of times saved from public discovery (tracked in Firestore)
     var publicSaveCount: Int = 0
 
+    /// When user attested to ownership for public publishing
+    /// Required before a recipe can be published publicly
+    var publisherAttestationAcceptedAt: Date?
+
     // MARK: - Camera Origin Detection (Phase 11 - Path A+)
     /// Confidence level that this recipe's photo came from device camera
     /// Used to enforce camera-only public sharing policy
@@ -315,6 +319,7 @@ final class Recipe {
             case .family: return .userCreated
             case .heritage: return .imported
             case .video: return .video
+            case .generated: return .ai
             }
         }()
 
@@ -384,6 +389,8 @@ extension Recipe {
                 }
             }
             return "Video Recipe"
+        case .generated:
+            return "AI Generated"
         }
     }
 
@@ -832,7 +839,13 @@ extension Recipe {
                 sourceTypeEnum = .scanned
             case .scan:
                 sourceTypeEnum = .scanned
-            default:
+            case .video:
+                sourceTypeEnum = .video
+            case .heritage:
+                sourceTypeEnum = .shared
+            case .generated:
+                sourceTypeEnum = .ai
+            case .none:
                 sourceTypeEnum = .userCreated
             }
 
@@ -918,6 +931,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
     case scan = "scan"
     case heritage = "heritage"
     case video = "video"
+    case generated = "generated"
 
     var iconName: String {
         switch self {
@@ -928,6 +942,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .scan: return "doc.viewfinder"
         case .heritage: return "book.pages.fill"
         case .video: return "video.circle.fill"
+        case .generated: return "sparkles"
         }
     }
 
@@ -940,6 +955,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .scan: return "Scanned"
         case .heritage: return "Theme Collection"
         case .video: return "Video Import"
+        case .generated: return "AI Generated"
         }
     }
 
@@ -958,6 +974,8 @@ enum RecipeSourceType: String, Codable, CaseIterable {
             return "Cookbook recipes can only be shared privately to respect copyright. Photograph your own family recipe cards or handwritten copies to share publicly."
         case .family, .heritage:
             return "Recipes you've received from others can only be shared privately."
+        case .generated:
+            return "AI-generated recipes can only be shared privately with friends and family. Public sharing is reserved for real family recipes."
         }
     }
 
@@ -978,6 +996,8 @@ enum RecipeSourceType: String, Codable, CaseIterable {
             return .shared
         case .video:
             return .video
+        case .generated:
+            return .ai
         }
     }
 }

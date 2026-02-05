@@ -143,14 +143,14 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
         // Create base recipe
         let recipe = Recipe(
             title: response.title,
-            sourceType: .manual,  // AI-generated uses manual source type
+            sourceType: .generated,  // AI-generated recipes use dedicated source type
             instructions: response.instructions,
             servings: response.servings,
             prepTime: response.prepTime,
             cookTime: response.cookTime
         )
 
-        // Mark as AI-generated
+        // Mark as AI-generated (kept for backwards compatibility)
         recipe.aiGenerated = true
 
         // Set summary as notes

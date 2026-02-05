@@ -400,6 +400,7 @@
 		C5EF75C92F2EF71B0097779E /* ReportConfirmationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF75BF2F2EF71B0097779E /* ReportConfirmationSheet.swift */; };
 		C5EF75CA2F2EF71B0097779E /* PublicRecipeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF75BC2F2EF71B0097779E /* PublicRecipeBadge.swift */; };
 		C5EF75CB2F2EF71B0097779E /* PublishRecipeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF75BE2F2EF71B0097779E /* PublishRecipeSheet.swift */; };
+		C5F0A1012F52D8A00097779E /* OwnershipVerificationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F0A1002F52D8A00097779E /* OwnershipVerificationSheet.swift */; };
 		C5EF75CC2F2EF71B0097779E /* ReportPublicRecipeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF75C02F2EF71B0097779E /* ReportPublicRecipeService.swift */; };
 		C5EF775D2F2FC6140097779E /* DuplicateDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF775B2F2FC6140097779E /* DuplicateDetectionService.swift */; };
 		C5EF775F2F300CC10097779E /* GoogleVisionOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF775E2F300CC10097779E /* GoogleVisionOCRService.swift */; };
@@ -850,6 +851,7 @@
 		C5EF75BC2F2EF71B0097779E /* PublicRecipeBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicRecipeBadge.swift; sourceTree = "<group>"; };
 		C5EF75BD2F2EF71B0097779E /* PublicRecipeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicRecipeDetailView.swift; sourceTree = "<group>"; };
 		C5EF75BE2F2EF71B0097779E /* PublishRecipeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishRecipeSheet.swift; sourceTree = "<group>"; };
+		C5F0A1002F52D8A00097779E /* OwnershipVerificationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnershipVerificationSheet.swift; sourceTree = "<group>"; };
 		C5EF75BF2F2EF71B0097779E /* ReportConfirmationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportConfirmationSheet.swift; sourceTree = "<group>"; };
 		C5EF75C02F2EF71B0097779E /* ReportPublicRecipeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportPublicRecipeService.swift; sourceTree = "<group>"; };
 		C5EF75C12F2EF71B0097779E /* TrendingRecipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendingRecipe.swift; sourceTree = "<group>"; };
@@ -2217,6 +2219,7 @@
 				C5EF75BC2F2EF71B0097779E /* PublicRecipeBadge.swift */,
 				C5EF75BD2F2EF71B0097779E /* PublicRecipeDetailView.swift */,
 				C5EF75BE2F2EF71B0097779E /* PublishRecipeSheet.swift */,
+				C5F0A1002F52D8A00097779E /* OwnershipVerificationSheet.swift */,
 				C5EF75BF2F2EF71B0097779E /* ReportConfirmationSheet.swift */,
 				C5EF75C02F2EF71B0097779E /* ReportPublicRecipeService.swift */,
 				C5EF75C12F2EF71B0097779E /* TrendingRecipe.swift */,
@@ -2835,6 +2838,7 @@
 				C5EF75C92F2EF71B0097779E /* ReportConfirmationSheet.swift in Sources */,
 				C5EF75CA2F2EF71B0097779E /* PublicRecipeBadge.swift in Sources */,
 				C5EF75CB2F2EF71B0097779E /* PublishRecipeSheet.swift in Sources */,
+				C5F0A1012F52D8A00097779E /* OwnershipVerificationSheet.swift in Sources */,
 				C5EF75CC2F2EF71B0097779E /* ReportPublicRecipeService.swift in Sources */,
 				8382C45014984CD39A6F2149 /* ImportReviewView.swift in Sources */,
 				C058535CDD02FAABB4A17CAF /* Ingredient.swift in Sources */,
@@ -3300,7 +3304,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rationaledesign.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3338,7 +3342,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rationaledesign.heirloom.HeirloomShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3371,7 +3375,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -3398,7 +3402,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = work.HeirloomTestsV2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;

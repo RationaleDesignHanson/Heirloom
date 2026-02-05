@@ -25,6 +25,18 @@ const MANUAL_OVERRIDES = {
     'New England Fish Chowder': 'boston-cooking-school-fannie-farmer-fish-chowder.webp',
     'New England Clam Fritters': 'boston-cooking-school-fannie-farmer-clam-fritters.webp'
   },
+  'german-american': {
+    'Sauerbraten (German Pot Roast)': 'german-american-sauerbraten.webp',
+    'Wiener Schnitzel': 'german-american-schnitzel.webp',
+    'Spätzle (German Egg Noodles)': 'german-american-spaetzle.webp',
+    'Lebkuchen (German Spice Cookies)': 'german-american-lebkuchen.webp',
+    'Christmas Stollen': 'german-american-stollen.webp',
+    'Kartoffelpuffer (German Potato Pancakes)': 'german-american-kartoffelpuffer.webp',
+    'Rotkohl (German Red Cabbage)': 'german-american-german-red-cabbage.webp',
+    'Rouladen (Beef Rolls)': 'german-american-rouladen.webp',
+    'Beer-Braised Bratwurst': 'german-american-bratwurst.webp',
+    'Jägerschnitzel (Hunter\'s Schnitzel)': 'german-american-german-pork-schnitzel.webp'
+  },
   'railroad-dining': {
     'Harvey House Corned Beef Hash': 'railroad-dining-harvey-house-hash.webp',
     'Harvey House Tossed Green Salad': 'railroad-dining-harvey-house-salad.webp',

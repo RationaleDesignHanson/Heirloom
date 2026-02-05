@@ -223,6 +223,11 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
             return (false, reason)
         }
 
+        // Additional validation: Must have attested to ownership
+        if recipe.publisherAttestationAcceptedAt == nil {
+            return (false, "Please confirm ownership before publishing.")
+        }
+
         // Additional validation: Must have image
         if recipe.imageFileName == nil {
             return (false, "Recipes must have a photo to be shared publicly.")

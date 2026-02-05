@@ -35,6 +35,7 @@ struct RecipeDetailView: View {
     @State private var showVideoAttributionSheet = false
 
     // Public recipe discovery (Phase 11)
+    @State private var showOwnershipVerification = false
     @State private var showPublishSheet = false
     @State private var showUnpublishConfirmation = false
     @State private var selectedPublicRecipeId: String?
@@ -490,6 +491,7 @@ struct RecipeDetailView: View {
                 selectedVersion: $selectedVersion,
                 showLineageView: $showLineageView,
                 targetServings: $targetServings,
+                showOwnershipVerification: $showOwnershipVerification,
                 showPublishSheet: $showPublishSheet,
                 showUnpublishConfirmation: $showUnpublishConfirmation,
                 handleShareTapped: handleShareTapped,
@@ -634,6 +636,7 @@ private struct RecipeDetailModifiers: ViewModifier {
     @Binding var selectedVersion: RecipeLineageVersion?
     @Binding var showLineageView: Bool
     @Binding var targetServings: Int
+    @Binding var showOwnershipVerification: Bool
     @Binding var showPublishSheet: Bool
     @Binding var showUnpublishConfirmation: Bool
 
@@ -665,7 +668,12 @@ private struct RecipeDetailModifiers: ViewModifier {
                 }
             } else {
                 Button {
-                    showPublishSheet = true
+                    // If user already attested, skip verification
+                    if recipe.publisherAttestationAcceptedAt != nil {
+                        showPublishSheet = true
+                    } else {
+                        showOwnershipVerification = true
+                    }
                 } label: {
                     Label("Share Publicly", systemImage: "globe")
                 }
@@ -819,6 +827,12 @@ private struct RecipeDetailModifiers: ViewModifier {
             VideoAttributionSheet(recipe: recipe) {
                 // Refresh UI after attribution is saved
                 // The computed property needsAttribution will automatically update
+            }
+        }
+        .sheet(isPresented: $showOwnershipVerification) {
+            OwnershipVerificationSheet(recipe: recipe) {
+                // After confirmation, show the publish sheet
+                showPublishSheet = true
             }
         }
         .sheet(isPresented: $showPublishSheet) {
@@ -1013,7 +1027,12 @@ extension RecipeDetailView {
                     } else if recipe.canMakePublic {
                         // Publishable badge - tappable to open publish sheet
                         Button(action: {
-                            showPublishSheet = true
+                            // If user already attested, skip verification
+                            if recipe.publisherAttestationAcceptedAt != nil {
+                                showPublishSheet = true
+                            } else {
+                                showOwnershipVerification = true
+                            }
                         }) {
                             PublishableBadge()
                                 .padding(HeirloomSpacing.sm)
