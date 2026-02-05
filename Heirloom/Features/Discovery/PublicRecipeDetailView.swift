@@ -119,6 +119,12 @@ struct PublicRecipeDetailView: View {
                     // Ingredients
                     ingredientsSection(recipe)
 
+                    // Instructions
+                    if !recipe.instructions.isEmpty {
+                        Divider()
+                        instructionsSection(recipe)
+                    }
+
                     // Tags
                     if !recipe.tags.isEmpty {
                         Divider()
@@ -324,6 +330,36 @@ struct PublicRecipeDetailView: View {
                             .foregroundStyle(HeirloomColors.tomato)
 
                         Text(ingredient)
+                            .font(HeirloomFonts.body)
+                            .foregroundStyle(HeirloomColors.primaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Spacer()
+                    }
+                }
+            }
+            .padding(.vertical, HeirloomSpacing.xs)
+        }
+    }
+
+    // MARK: - Instructions
+
+    @ViewBuilder
+    private func instructionsSection(_ recipe: PublicRecipe) -> some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            Text("Instructions")
+                .font(HeirloomFonts.title3)
+                .foregroundStyle(HeirloomColors.primaryText)
+
+            VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+                ForEach(Array(recipe.instructions.enumerated()), id: \.offset) { index, instruction in
+                    HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
+                        Text("\(index + 1).")
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.tomato)
+                            .frame(width: 24, alignment: .trailing)
+
+                        Text(instruction)
                             .font(HeirloomFonts.body)
                             .foregroundStyle(HeirloomColors.primaryText)
                             .fixedSize(horizontal: false, vertical: true)

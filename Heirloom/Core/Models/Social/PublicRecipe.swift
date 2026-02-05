@@ -30,11 +30,15 @@ struct PublicRecipe: Codable, Identifiable {
     /// Ingredient names only (for search and display)
     var ingredients: [String]
 
+    /// Cooking steps/instructions
+    var instructions: [String]
+
     var category: String?
     var tags: [String]
     var servings: String?
     var prepTime: String?
     var cookTime: String?
+    var totalTime: String?
 
     // MARK: - Creator Attribution
 
@@ -76,11 +80,13 @@ struct PublicRecipe: Codable, Identifiable {
         case description
         case imageURL
         case ingredients
+        case instructions
         case category
         case tags
         case servings
         case prepTime
         case cookTime
+        case totalTime
         case creatorName
         case creatorPhotoURL
         case creatorProfileSlug
@@ -161,11 +167,13 @@ extension PublicRecipe {
         self.description = data["description"] as? String
         self.imageURL = data["imageURL"] as? String
         self.ingredients = data["ingredients"] as? [String] ?? []
+        self.instructions = data["instructions"] as? [String] ?? []
         self.category = data["category"] as? String
         self.tags = data["tags"] as? [String] ?? []
         self.servings = data["servings"] as? String
         self.prepTime = data["prepTime"] as? String
         self.cookTime = data["cookTime"] as? String
+        self.totalTime = data["totalTime"] as? String
         self.creatorName = data["creatorName"] as? String ?? ""
         self.creatorPhotoURL = data["creatorPhotoURL"] as? String
         self.creatorProfileSlug = data["creatorProfileSlug"] as? String
@@ -199,6 +207,7 @@ extension PublicRecipe {
             "ownerId": ownerId,
             "title": title,
             "ingredients": ingredients,
+            "instructions": instructions,
             "tags": tags,
             "creatorName": creatorName,
             "viewCount": viewCount,
@@ -232,6 +241,9 @@ extension PublicRecipe {
         }
         if let cookTime = cookTime {
             data["cookTime"] = cookTime
+        }
+        if let totalTime = totalTime {
+            data["totalTime"] = totalTime
         }
         if let creatorPhotoURL = creatorPhotoURL {
             data["creatorPhotoURL"] = creatorPhotoURL

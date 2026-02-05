@@ -439,11 +439,14 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
         let recipe = Recipe(
             title: publicRecipe.title,
             sourceType: .family,  // Saved from community
-            instructions: [],  // Public recipes don't include full instructions
+            instructions: publicRecipe.instructions,
             servings: publicRecipe.servings,
             prepTime: publicRecipe.prepTime,
             cookTime: publicRecipe.cookTime
         )
+
+        // Copy totalTime if present
+        recipe.totalTime = publicRecipe.totalTime
 
         // Set upstream attribution (fork model)
         recipe.sourcePublicRecipeId = publicRecipe.id

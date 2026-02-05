@@ -192,6 +192,83 @@ final class PublicRecipeTests: XCTestCase {
         XCTAssertEqual(keywords, sortedKeywords)
     }
 
+    // MARK: - Instructions Tests
+
+    /// Test 14a: Instructions stored correctly
+    func test_publicRecipe_instructions_stored() {
+        // GIVEN: A public recipe with instructions
+        let instructions = ["Preheat oven to 350°F", "Mix ingredients", "Bake for 30 minutes"]
+        let recipe = createTestPublicRecipe(instructions: instructions)
+
+        // THEN: Instructions should be accessible
+        XCTAssertEqual(recipe.instructions, instructions)
+        XCTAssertEqual(recipe.instructions.count, 3)
+    }
+
+    /// Test 14b: Empty instructions handled gracefully
+    func test_publicRecipe_emptyInstructions_handledGracefully() {
+        // GIVEN: A public recipe with no instructions
+        let recipe = createTestPublicRecipe(instructions: [])
+
+        // THEN: Instructions should be empty array
+        XCTAssertTrue(recipe.instructions.isEmpty)
+    }
+
+    /// Test 14c: toFirestoreData includes instructions
+    func test_toFirestoreData_includesInstructions() {
+        // GIVEN: A recipe with instructions
+        let instructions = ["Step 1", "Step 2", "Step 3"]
+        let recipe = createTestPublicRecipe(instructions: instructions)
+
+        // WHEN: Converting to Firestore data
+        let data = recipe.toFirestoreData()
+
+        // THEN: Instructions should be in data
+        XCTAssertEqual(data["instructions"] as? [String], instructions)
+    }
+
+    /// Test 14d: TotalTime stored correctly
+    func test_publicRecipe_totalTime_stored() {
+        // GIVEN: A public recipe with total time
+        let recipe = createTestPublicRecipe(totalTime: "45")
+
+        // THEN: Total time should be accessible
+        XCTAssertEqual(recipe.totalTime, "45")
+    }
+
+    /// Test 14e: TotalTime nil handled gracefully
+    func test_publicRecipe_totalTime_nil_handledGracefully() {
+        // GIVEN: A public recipe without total time
+        let recipe = createTestPublicRecipe(totalTime: nil)
+
+        // THEN: Total time should be nil
+        XCTAssertNil(recipe.totalTime)
+    }
+
+    /// Test 14f: toFirestoreData includes totalTime when present
+    func test_toFirestoreData_includesTotalTime_whenPresent() {
+        // GIVEN: A recipe with total time
+        let recipe = createTestPublicRecipe(totalTime: "60")
+
+        // WHEN: Converting to Firestore data
+        let data = recipe.toFirestoreData()
+
+        // THEN: Total time should be in data
+        XCTAssertEqual(data["totalTime"] as? String, "60")
+    }
+
+    /// Test 14g: toFirestoreData excludes totalTime when nil
+    func test_toFirestoreData_excludesTotalTime_whenNil() {
+        // GIVEN: A recipe without total time
+        let recipe = createTestPublicRecipe(totalTime: nil)
+
+        // WHEN: Converting to Firestore data
+        let data = recipe.toFirestoreData()
+
+        // THEN: Total time should not be in data
+        XCTAssertNil(data["totalTime"])
+    }
+
     // MARK: - Validation Tests
 
     /// Test 14: Valid recipe passes validation
@@ -416,6 +493,8 @@ final class PublicRecipeTests: XCTestCase {
         title: String = "Test Recipe",
         description: String? = "A delicious test recipe",
         ingredients: [String] = ["ingredient1", "ingredient2"],
+        instructions: [String] = ["Step 1", "Step 2"],
+        totalTime: String? = nil,
         creatorName: String = "Test Creator",
         creatorPhotoURL: String? = nil,
         creatorProfileSlug: String? = nil
@@ -428,11 +507,13 @@ final class PublicRecipeTests: XCTestCase {
             description: description,
             imageURL: nil,
             ingredients: ingredients,
+            instructions: instructions,
             category: nil,
             tags: [],
             servings: nil,
             prepTime: nil,
             cookTime: nil,
+            totalTime: totalTime,
             creatorName: creatorName,
             creatorPhotoURL: creatorPhotoURL,
             creatorProfileSlug: creatorProfileSlug,
