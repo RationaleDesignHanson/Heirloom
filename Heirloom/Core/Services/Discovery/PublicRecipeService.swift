@@ -35,6 +35,7 @@ enum PublishError: LocalizedError {
     case imageUploadFailed
     case firestoreError(Error)
     case recipeNotPublished
+    case premiumRequired
 
     var errorDescription: String? {
         switch self {
@@ -50,6 +51,8 @@ enum PublishError: LocalizedError {
             return "Failed to publish recipe: \(error.localizedDescription)"
         case .recipeNotPublished:
             return "This recipe is not currently published."
+        case .premiumRequired:
+            return "Publishing recipes requires an active subscription."
         }
     }
 }
@@ -95,6 +98,13 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
         guard let userId = auth.currentUser?.uid else {
             Log.error("Publish failed: Not authenticated", category: .social)
             throw PublishError.notAuthenticated
+        }
+
+        // Premium gate: publishing requires active subscription or trial
+        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+        guard subscriptionManager.isPremium else {
+            Log.warning("Publish blocked: Premium required", category: .social)
+            throw PublishError.premiumRequired
         }
 
         // Validate eligibility

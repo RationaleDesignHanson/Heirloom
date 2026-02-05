@@ -64,6 +64,12 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             throw ShareError.notAuthenticated
         }
 
+        // Premium gate: sharing requires active subscription or trial
+        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+        guard subscriptionManager.isPremium else {
+            throw ShareError.premiumRequired
+        }
+
         logger.log("Creating Firebase share for recipe", category: .firebase, level: .info, metadata: nil)
 
         // 0. Copy-on-share for heritage and sample recipes
@@ -789,6 +795,7 @@ extension FirebaseShareService {
         case invalidShareData
         case cannotAcceptOwnShare
         case noRecipients
+        case premiumRequired
 
         var errorDescription: String? {
             switch self {
@@ -808,6 +815,8 @@ extension FirebaseShareService {
                 return "You cannot accept your own share"
             case .noRecipients:
                 return "You must select at least one person to share with"
+            case .premiumRequired:
+                return "Sharing recipes requires an active subscription"
             }
         }
     }

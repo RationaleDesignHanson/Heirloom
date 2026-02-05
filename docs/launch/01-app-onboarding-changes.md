@@ -785,16 +785,20 @@ Files to modify:
 
 ---
 
-## Implementation Order Recommendation
+## Implementation Order (Revised)
 
-1. **TASK 10** (generated sourceType) - Data model change, do first
-2. **TASK 9** (publisherAttestationAcceptedAt) - Data model change
-3. **TASK 7** (Inbox collection) - Foundational for other tasks
-4. **TASKS 1-5** (Onboarding screens) - Can be done in parallel
-5. **TASK 6** (Quick Start) - After onboarding screens
-6. **TASK 8** (Scan attestation) - Independent
-7. **TASK 11** (Share extension toast) - Independent
-8. **TASKS 12-14** (Polish) - Final polish pass
+1. ~~**TASK 10** (generated sourceType)~~ - ✅ DONE
+2. ~~**TASK 9** (publisherAttestationAcceptedAt)~~ - ✅ DONE
+3. ~~**TASKS 1-5** (Onboarding screens)~~ - ✅ DONE
+4. ~~**TASK 14** (Publishing rules copy)~~ - ✅ DONE
+
+### Removed from Scope
+- ~~TASK 6~~ (Quick Start) - Extra friction, not essential
+- ~~TASK 7~~ (Inbox/coach marks) - Over-engineered for launch
+- ~~TASK 8~~ (Scan attestation) - Heavy-handed, ownership verification is enough
+- ~~TASK 11~~ (Share toast) - Nice-to-have polish
+- ~~TASK 12~~ (Video polish) - Not essential
+- ~~TASK 13~~ (Discover redesign) - Scope creep
 
 ---
 
@@ -802,11 +806,9 @@ Files to modify:
 
 After implementation, verify:
 - [ ] Onboarding flow completes without crashes
-- [ ] Quick Start shows only once
-- [ ] Inbox collection exists for new users
-- [ ] Scan attestation shows before first camera use
-- [ ] Generated recipes cannot be published publicly
-- [ ] Generated recipes CAN be shared P2P
+- [x] Generated recipes cannot be published publicly
+- [x] Generated recipes CAN be shared P2P
+- [x] Ownership verification shows before first publish
 - [ ] Ownership verification shows before publishing
 - [ ] Share extension shows collection name in toast
 - [ ] Discover cards show creator attribution

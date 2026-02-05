@@ -38,6 +38,7 @@ struct DiscoveryView: View {
     // Navigation
     @State private var navigationPath = NavigationPath()
     @State private var showSettings = false
+    @State private var showPublishingRules = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -73,6 +74,14 @@ struct DiscoveryView: View {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button {
+                            showPublishingRules = true
+                        } label: {
+                            Label("Publishing Guidelines", systemImage: "info.circle")
+                        }
+                        .accessibilityLabel("Publishing Guidelines")
+                        .accessibilityHint("Learn what recipes can be shared publicly")
+
+                        Button {
                             showSettings = true
                         } label: {
                             Label("Settings", systemImage: "gearshape")
@@ -100,6 +109,9 @@ struct DiscoveryView: View {
                 NavigationStack {
                     SettingsView()
                 }
+            }
+            .sheet(isPresented: $showPublishingRules) {
+                PublishingRulesSheet()
             }
         }
     }
@@ -630,11 +642,11 @@ enum DiscoveryTab: String, CaseIterable {
     var emptyMessage: String {
         switch self {
         case .trending:
-            return "Check back soon to see what recipes are heating up in the community!"
+            return "Share your family recipes with the world! Your own recipes only."
         case .new:
-            return "No new recipes have been shared recently. Be the first to share!"
+            return "Share your family recipes with the world! Your own recipes only."
         case .popular:
-            return "Start cooking and sharing recipes to see popular recipes appear here."
+            return "Share your family recipes with the world! Your own recipes only."
         }
     }
 }

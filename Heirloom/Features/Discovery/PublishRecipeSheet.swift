@@ -58,6 +58,8 @@ struct PublishRecipeSheet: View {
         }
     }
 
+    @State private var showPublishingRules = false
+
     // MARK: - Validation Section
 
     @ViewBuilder
@@ -74,14 +76,56 @@ struct PublishRecipeSheet: View {
             }
 
             if let reason = viewModel.blockedReason {
-                Text(reason)
-                    .font(HeirloomFonts.body)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding()
-                    .background(HeirloomColors.tomato.opacity(0.1))
-                    .cornerRadius(8)
+                VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+                    // Reason text
+                    Text(reason)
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    // What CAN be published hint
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                        Text("What can be shared:")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+
+                        HStack(spacing: HeirloomSpacing.xs) {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 12))
+                            Text("Photographed recipes from cookbooks or cards")
+                                .font(HeirloomFonts.caption1)
+                        }
+                        .foregroundStyle(HeirloomColors.familyGreen)
+
+                        HStack(spacing: HeirloomSpacing.xs) {
+                            Image(systemName: "pencil.line")
+                                .font(.system(size: 12))
+                            Text("Your own original creations")
+                                .font(HeirloomFonts.caption1)
+                        }
+                        .foregroundStyle(HeirloomColors.familyGreen)
+                    }
+
+                    // Learn more link
+                    Button {
+                        showPublishingRules = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 14))
+                            Text("Learn more about publishing guidelines")
+                                .font(HeirloomFonts.caption1)
+                        }
+                        .foregroundStyle(HeirloomColors.tomato)
+                    }
+                }
+                .padding()
+                .background(HeirloomColors.tomato.opacity(0.1))
+                .cornerRadius(8)
             }
+        }
+        .sheet(isPresented: $showPublishingRules) {
+            PublishingRulesSheet()
         }
     }
 

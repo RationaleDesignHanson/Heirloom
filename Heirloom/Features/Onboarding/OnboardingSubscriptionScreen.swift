@@ -4,6 +4,7 @@
 //
 //  Created by Claude Code on 2026-01-23.
 //  Updated for new 5-screen onboarding flow on 2026-02-01
+//  Task 2: Credit system visualization
 //
 
 import SwiftUI
@@ -11,7 +12,7 @@ import UIKit
 import StoreKit
 
 /// Premium trial screen - Screen 2 of 5
-/// Presents early premium upsell with clear "Continue free" option
+/// Shows the credit system with visual meter and example costs
 struct OnboardingSubscriptionScreen: View {
 
     // MARK: - Environment
@@ -57,16 +58,16 @@ struct OnboardingSubscriptionScreen: View {
 
                 // Scrollable content
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 24) {
                         // Header
                         VStack(spacing: 12) {
-                            Text("Unlock faster saving")
+                            Text("Save recipes for free")
                                 .font(HeirloomFonts.title1Elevated)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(2)
                                 .kerning(-0.5)
 
-                            Text("Video Import, Cookbook Scan, and Cloud Sync—ready when you are.")
+                            Text("Most features are free. Credits power video imports and large cookbooks.")
                                 .font(HeirloomFonts.body)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -74,26 +75,47 @@ struct OnboardingSubscriptionScreen: View {
                         .padding(.horizontal, 24)
                         .padding(.top, 8)
 
-                        // Features (3 items)
-                        VStack(spacing: 16) {
-                            SubscriptionFeatureRow(
-                                icon: "video.fill",
-                                title: "Save recipes from videos",
-                                description: "TikTok, Instagram, YouTube—instant recipes"
-                            )
+                        // What's free section
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Always free")
+                                .font(HeirloomFonts.bodyBold)
+                                .foregroundColor(HeirloomColors.primaryText)
 
-                            SubscriptionFeatureRow(
-                                icon: "book.fill",
-                                title: "Scan cookbook pages",
-                                description: "Photograph any recipe, digitize in seconds"
-                            )
-
-                            SubscriptionFeatureRow(
-                                icon: "icloud.fill",
-                                title: "Sync across devices",
-                                description: "iPhone, iPad, Mac—access everywhere"
-                            )
+                            FreeFeatureRow(icon: "link", label: "Save from any link")
+                            FreeFeatureRow(icon: "camera", label: "Scan a recipe card")
+                            FreeFeatureRow(icon: "sparkles", label: "Generate with AI")
+                            FreeFeatureRow(icon: "folder", label: "Organize collections")
                         }
+                        .padding(16)
+                        .background(HeirloomColors.familyGreen.opacity(0.1))
+                        .cornerRadius(12)
+                        .padding(.horizontal, 24)
+
+                        // Premium features
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(HeirloomColors.tomato)
+                                Text("Premium unlocks")
+                                    .font(HeirloomFonts.bodyBold)
+                                    .foregroundColor(HeirloomColors.primaryText)
+                            }
+
+                            VStack(alignment: .leading, spacing: 10) {
+                                PremiumFeatureRow(icon: "person.2.fill", label: "Share with friends & family")
+                                PremiumFeatureRow(icon: "globe", label: "Publish to Discover")
+                                PremiumFeatureRow(icon: "video.fill", label: "Import from videos")
+                                PremiumFeatureRow(icon: "book.fill", label: "Bulk cookbook scans")
+                            }
+
+                            Text("200 monthly credits for video imports and large cookbooks. You'll always see costs before confirming.")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundColor(HeirloomColors.secondaryText)
+                                .padding(.top, 4)
+                        }
+                        .padding(16)
+                        .background(HeirloomColors.tomato.opacity(0.08))
+                        .cornerRadius(12)
                         .padding(.horizontal, 24)
                     }
                     .padding(.bottom, 16)
@@ -352,35 +374,46 @@ struct OnboardingSubscriptionScreen: View {
     }
 }
 
-// MARK: - Feature Row Component
+// MARK: - Free Feature Row
 
-private struct SubscriptionFeatureRow: View {
+private struct FreeFeatureRow: View {
     let icon: String
-    let title: String
-    let description: String
+    let label: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(spacing: 10) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(HeirloomColors.familyGreen)
+
             Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [Color.orange, Color.pink],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 32)
+                .font(.system(size: 14))
+                .foregroundColor(HeirloomColors.primaryText)
+                .frame(width: 20)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
+            Text(label)
+                .font(HeirloomFonts.body)
+                .foregroundColor(HeirloomColors.primaryText)
+        }
+    }
+}
 
-            Spacer()
+// MARK: - Premium Feature Row
+
+private struct PremiumFeatureRow: View {
+    let icon: String
+    let label: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(HeirloomColors.tomato)
+                .frame(width: 20)
+
+            Text(label)
+                .font(HeirloomFonts.body)
+                .foregroundColor(HeirloomColors.primaryText)
         }
     }
 }

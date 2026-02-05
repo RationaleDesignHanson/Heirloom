@@ -561,18 +561,6 @@ struct RecipeDetailView: View {
                         tagsAndCollectionsSection
                     }
 
-                    // Metadata Section (includes serving selector dropdown)
-                    RecipeMetadataSection(
-                        recipe: recipe,
-                        targetServings: $targetServings,
-                        showScalingExplanation: $showScalingExplanation
-                    )
-
-                    // Start Cooking Button
-                    if !displayInstructions.isEmpty {
-                        startCookingButton
-                    }
-
                     // Ingredients Section
                     if let ingredients = displayIngredients, !ingredients.isEmpty {
                         RecipeIngredientsSection(
@@ -582,9 +570,21 @@ struct RecipeDetailView: View {
                         )
                     }
 
+                    // Metadata Section (servings/prep/cook)
+                    RecipeMetadataSection(
+                        recipe: recipe,
+                        targetServings: $targetServings,
+                        showScalingExplanation: $showScalingExplanation
+                    )
+
                     // Instructions Section
                     if !displayInstructions.isEmpty {
                         RecipeInstructionsSection(instructions: displayInstructions)
+                    }
+
+                    // Start Cooking Button
+                    if !displayInstructions.isEmpty {
+                        startCookingButton
                     }
 
                     // Notes Section

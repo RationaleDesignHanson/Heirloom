@@ -3,15 +3,41 @@
 //  Heirloom
 //
 //  Created by Claude Code on 2026-02-01.
+//  Task 5: Privacy controls with visibility pills
 //
 
 import SwiftUI
 
 /// Discover screen - Screen 5 of 5
-/// Introduces optional community browsing with privacy emphasis
+/// Introduces the visibility pills concept and privacy-first approach
 struct OnboardingDiscoverScreen: View {
     let onStartSaving: () -> Void
     let onExploreDiscover: () -> Void
+
+    @State private var selectedVisibility: VisibilityOption = .private
+    @State private var animateSelection = false
+
+    private enum VisibilityOption: String, CaseIterable {
+        case `private` = "Private"
+        case shared = "Shared"
+        case `public` = "Public"
+
+        var icon: String {
+            switch self {
+            case .private: return "lock.fill"
+            case .shared: return "person.2.fill"
+            case .public: return "globe"
+            }
+        }
+
+        var description: String {
+            switch self {
+            case .private: return "Only you can see this"
+            case .shared: return "Visible to people you share with"
+            case .public: return "Visible in Discover feed"
+            }
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -37,16 +63,16 @@ struct OnboardingDiscoverScreen: View {
 
                 // Scrollable content
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 24) {
                         // Header
                         VStack(spacing: 12) {
-                            Text("Discover when you want")
+                            Text("Private by default")
                                 .font(HeirloomFonts.title1Elevated)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(2)
                                 .kerning(-0.5)
 
-                            Text("Browse community recipes—or keep everything private.")
+                            Text("Your recipes are yours. Share only what you choose.")
                                 .font(HeirloomFonts.body)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -54,8 +80,12 @@ struct OnboardingDiscoverScreen: View {
                         .padding(.horizontal, 24)
                         .padding(.top, 8)
 
-                        // Discover feed mockup
-                        discoverFeedMockup
+                        // Recipe card with visibility pills
+                        visibilityDemoCard
+                            .padding(.horizontal, 24)
+
+                        // Trust contract callout
+                        trustContractCallout
                             .padding(.horizontal, 24)
                     }
                     .padding(.bottom, 16)
@@ -87,11 +117,6 @@ struct OnboardingDiscoverScreen: View {
                             .foregroundColor(.secondary)
                     }
                     .padding(.bottom, 4)
-
-                    // Microcopy
-                    Text("Publish only what you choose.")
-                        .font(HeirloomFonts.caption2)
-                        .foregroundColor(.secondary.opacity(0.6))
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 20)
@@ -107,94 +132,139 @@ struct OnboardingDiscoverScreen: View {
                 )
             }
         }
+        .onAppear {
+            startVisibilityAnimation()
+        }
     }
 
-    // MARK: - Discover Feed Mockup
+    // MARK: - Visibility Animation
 
-    private var discoverFeedMockup: some View {
+    private func startVisibilityAnimation() {
+        // Animate through visibility options to demonstrate
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                selectedVisibility = .shared
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    selectedVisibility = .public
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        selectedVisibility = .private
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Visibility Demo Card
+
+    private var visibilityDemoCard: some View {
         VStack(spacing: 16) {
-            // Header with privacy indicator
-            HStack {
-                Text("Discover Feed")
-                    .font(HeirloomFonts.title3)
-                    .foregroundColor(HeirloomColors.primaryText)
+            // Recipe preview
+            HStack(spacing: 12) {
+                // Recipe image
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.orange.opacity(0.3))
+                    .frame(width: 80, height: 80)
+                    .overlay(
+                        Image(systemName: "fork.knife")
+                            .font(.title2)
+                            .foregroundColor(.orange.opacity(0.6))
+                    )
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Grandma's Apple Pie")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundColor(HeirloomColors.primaryText)
+
+                    Text("Family recipe since 1952")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundColor(HeirloomColors.secondaryText)
+                }
 
                 Spacer()
+            }
 
-                // Private by default badge
-                HStack(spacing: 4) {
-                    Image(systemName: "lock.shield.fill")
-                        .font(.caption2)
-                    Text("Private by default")
-                        .font(HeirloomFonts.caption2)
+            // Visibility pills
+            HStack(spacing: 8) {
+                ForEach(VisibilityOption.allCases, id: \.self) { option in
+                    visibilityPill(option: option)
                 }
-                .foregroundColor(HeirloomColors.familyGreen)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(HeirloomColors.familyGreen.opacity(0.1))
-                .cornerRadius(8)
             }
-            .padding(.horizontal)
-            .padding(.top)
 
-            Divider()
-                .padding(.horizontal)
-
-            // Recipe cards
-            VStack(spacing: 12) {
-                discoverRecipeCard(name: "Classic Carbonara", author: "Italian Chef")
-                discoverRecipeCard(name: "Chocolate Cake", author: "Home Baker")
-                discoverRecipeCard(name: "Thai Green Curry", author: "Spice Master")
-            }
-            .padding(.horizontal)
-            .padding(.bottom)
+            // Description text
+            Text(selectedVisibility.description)
+                .font(HeirloomFonts.caption1)
+                .foregroundColor(HeirloomColors.secondaryText)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .animation(.easeInOut(duration: 0.2), value: selectedVisibility)
         }
-        .background(HeirloomColors.cardBackground)
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(0.08), radius: 12, y: 6)
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 12, y: 6)
     }
 
-    private func discoverRecipeCard(name: String, author: String) -> some View {
-        HStack(spacing: 12) {
-            // Recipe image placeholder
-            RoundedRectangle(cornerRadius: 8)
-                .fill(HeirloomColors.warmGray.opacity(0.2))
-                .frame(width: 80, height: 80)
-                .overlay(
-                    Image(systemName: "photo")
-                        .font(.title3)
-                        .foregroundColor(HeirloomColors.warmGray.opacity(0.5))
-                )
+    private func visibilityPill(option: VisibilityOption) -> some View {
+        let isSelected = selectedVisibility == option
 
-            // Recipe info
+        return Button(action: {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedVisibility = option
+            }
+        }) {
+            HStack(spacing: 6) {
+                Image(systemName: option.icon)
+                    .font(.system(size: 12))
+                Text(option.rawValue)
+                    .font(HeirloomFonts.caption1)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(isSelected ? pillColor(for: option) : Color.gray.opacity(0.1))
+            .foregroundColor(isSelected ? .white : HeirloomColors.secondaryText)
+            .cornerRadius(20)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(isSelected ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)
+            )
+        }
+    }
+
+    private func pillColor(for option: VisibilityOption) -> Color {
+        switch option {
+        case .private: return HeirloomColors.familyGreen
+        case .shared: return Color.blue
+        case .public: return HeirloomColors.tomato
+        }
+    }
+
+    // MARK: - Trust Contract Callout
+
+    private var trustContractCallout: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "checkmark.shield.fill")
+                .foregroundColor(HeirloomColors.familyGreen)
+                .font(.title2)
+
             VStack(alignment: .leading, spacing: 4) {
-                Text(name)
+                Text("Your privacy promise")
                     .font(HeirloomFonts.bodyBold)
                     .foregroundColor(HeirloomColors.primaryText)
 
-                Text("by \(author)")
+                Text("Your recipe box is private. We never share your recipes without your explicit action.")
                     .font(HeirloomFonts.caption1)
                     .foregroundColor(HeirloomColors.secondaryText)
-            }
-
-            Spacer()
-
-            // Save button
-            Button(action: {}) {
-                Text("Save")
-                    .font(HeirloomFonts.caption1)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(HeirloomColors.tomato)
-                    .cornerRadius(8)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding()
-        .background(Color.white)
+        .padding(16)
+        .background(HeirloomColors.familyGreen.opacity(0.1))
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
     }
 }
 

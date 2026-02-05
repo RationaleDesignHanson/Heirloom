@@ -4,17 +4,20 @@
 //
 //  Created by Claude Code on 2026-02-01.
 //  Updated for new 5-screen onboarding flow
+//  Task 1: "Turn recipe chaos into a recipe box" visual
 //
 
 import SwiftUI
 
 /// Welcome screen - Screen 1 of 5
-/// Shows the "recipe box" vision to set context
+/// Shows the "3 inputs → 1 recipe" transformation visual
 struct OnboardingWelcomeScreen: View {
     let onContinue: () -> Void
     let onSkip: () -> Void
 
-    @State private var showCards = false
+    @State private var showSources = false
+    @State private var showArrow = false
+    @State private var showResult = false
 
     var body: some View {
         ZStack {
@@ -40,16 +43,16 @@ struct OnboardingWelcomeScreen: View {
 
                 // Scrollable content
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 24) {
                         // Header
                         VStack(spacing: 12) {
-                            Text("Your Recipe Box, finally")
+                            Text("Turn recipe chaos into a recipe box")
                                 .font(HeirloomFonts.title1Elevated)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(2)
                                 .kerning(-0.5)
 
-                            Text("Save recipes from links, PDFs, and videos—in one tap.")
+                            Text("Save from links, videos, cookbooks, and photos—all in one tap.")
                                 .font(HeirloomFonts.body)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -57,8 +60,8 @@ struct OnboardingWelcomeScreen: View {
                         .padding(.horizontal, 24)
                         .padding(.top, 8)
 
-                        // Recipe box mockup
-                        recipeBoxMockup
+                        // "3 inputs → 1 recipe" visual
+                        inputsToRecipeVisual
                             .padding(.horizontal, HeirloomSpacing.md)
                     }
                     .padding(.bottom, 16)
@@ -111,86 +114,155 @@ struct OnboardingWelcomeScreen: View {
             }
         }
         .onAppear {
-            // Trigger card animations
-            withAnimation(.easeOut(duration: 0.4).delay(0.2)) {
-                showCards = true
+            // Staggered entrance animations
+            withAnimation(.easeOut(duration: 0.5).delay(0.2)) {
+                showSources = true
+            }
+            withAnimation(.easeOut(duration: 0.3).delay(0.6)) {
+                showArrow = true
+            }
+            withAnimation(.easeOut(duration: 0.5).delay(0.8)) {
+                showResult = true
             }
         }
     }
 
-    // MARK: - Recipe Box Mockup
+    // MARK: - Inputs to Recipe Visual
 
-    private var recipeBoxMockup: some View {
-        VStack(spacing: 16) {
-            // Search bar mockup
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                Text("Search recipes...")
-                    .foregroundColor(.secondary)
-                Spacer()
-            }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+    private var inputsToRecipeVisual: some View {
+        HStack(spacing: 12) {
+            // Left side: 3 stacked source cards
+            sourceCardsStack
+                .frame(maxWidth: .infinity)
 
-            // Recipe cards grid (2x3)
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ], spacing: 12) {
-                recipeCardMockup(name: "Pasta", time: "20min", index: 0)
-                recipeCardMockup(name: "Bread", time: "2hrs", index: 1)
-                recipeCardMockup(name: "Salad", time: "10min", index: 2)
-                recipeCardMockup(name: "Curry", time: "45min", index: 3)
-                recipeCardMockup(name: "Soup", time: "30min", index: 4)
-                recipeCardMockup(name: "Stir Fry", time: "25min", index: 5)
-            }
+            // Middle: Arrow indicator
+            arrowIndicator
+
+            // Right side: Clean recipe result
+            recipeResultCard
+                .frame(maxWidth: .infinity)
         }
-        .padding()
-        .background(HeirloomColors.cardBackground)
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(0.08), radius: 12, y: 6)
+        .padding(.vertical, 20)
     }
 
-    private func recipeCardMockup(name: String, time: String, index: Int) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Image placeholder
-            RoundedRectangle(cornerRadius: 8)
-                .fill(HeirloomColors.warmGray.opacity(0.2))
-                .frame(height: 80)
-                .overlay(
-                    Image(systemName: "photo")
-                        .font(.title2)
-                        .foregroundColor(HeirloomColors.warmGray.opacity(0.5))
-                )
+    // MARK: - Source Cards Stack
 
-            // Recipe name
-            Text(name)
-                .font(HeirloomFonts.bodyBold)
-                .foregroundColor(HeirloomColors.primaryText)
+    private var sourceCardsStack: some View {
+        ZStack {
+            // Video source (back, tilted left)
+            sourceCard(
+                imageName: "onboarding-source-video",
+                label: "Video",
+                icon: "play.circle.fill"
+            )
+            .rotationEffect(.degrees(-8))
+            .offset(x: -16, y: -20)
+            .opacity(showSources ? 1 : 0)
+            .offset(x: showSources ? 0 : -30)
+            .animation(.easeOut(duration: 0.5).delay(0.2), value: showSources)
 
-            // Time
+            // Cookbook source (middle, slight tilt)
+            sourceCard(
+                imageName: "onboarding-source-cookbook",
+                label: "Cookbook",
+                icon: "book.fill"
+            )
+            .rotationEffect(.degrees(4))
+            .offset(x: 8, y: 0)
+            .opacity(showSources ? 1 : 0)
+            .offset(x: showSources ? 0 : -30)
+            .animation(.easeOut(duration: 0.5).delay(0.35), value: showSources)
+
+            // Website source (front, tilted right)
+            sourceCard(
+                imageName: "onboarding-source-website",
+                label: "Website",
+                icon: "globe"
+            )
+            .rotationEffect(.degrees(-2))
+            .offset(x: -4, y: 24)
+            .opacity(showSources ? 1 : 0)
+            .offset(x: showSources ? 0 : -30)
+            .animation(.easeOut(duration: 0.5).delay(0.5), value: showSources)
+        }
+        .frame(height: 200)
+    }
+
+    private func sourceCard(imageName: String, label: String, icon: String) -> some View {
+        VStack(spacing: 0) {
+            // Image
+            Image(imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 100, height: 100)
+                .clipped()
+                .cornerRadius(8)
+
+            // Label with icon
             HStack(spacing: 4) {
-                Image(systemName: "clock")
-                    .font(.caption2)
-                Text(time)
+                Image(systemName: icon)
+                    .font(.system(size: 10))
+                Text(label)
                     .font(HeirloomFonts.caption2)
             }
             .foregroundColor(HeirloomColors.secondaryText)
+            .padding(.top, 6)
         }
-        .padding(12)
+        .padding(8)
         .background(Color.white)
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-        .opacity(showCards ? 1 : 0)
-        .offset(y: showCards ? 0 : 20)
-        .animation(
-            .easeOut(duration: 0.4)
-                .delay(Double(index) * 0.1),
-            value: showCards
-        )
+        .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+    }
+
+    // MARK: - Arrow Indicator
+
+    private var arrowIndicator: some View {
+        VStack(spacing: 4) {
+            Image(systemName: "arrow.right")
+                .font(.system(size: 24, weight: .medium))
+                .foregroundColor(HeirloomColors.tomato)
+                .opacity(showArrow ? 1 : 0)
+                .scaleEffect(showArrow ? 1 : 0.5)
+        }
+        .frame(width: 40)
+    }
+
+    // MARK: - Recipe Result Card
+
+    private var recipeResultCard: some View {
+        VStack(spacing: 0) {
+            // Recipe image
+            Image("onboarding-source-recipe")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 140, height: 180)
+                .clipped()
+                .cornerRadius(12)
+                .overlay(
+                    // Subtle Heirloom badge
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 12))
+                            Text("Saved")
+                                .font(HeirloomFonts.caption2)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(HeirloomColors.tomato.opacity(0.9))
+                        .cornerRadius(12)
+                        .padding(8)
+                    },
+                    alignment: .bottom
+                )
+        }
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
+        .opacity(showResult ? 1 : 0)
+        .offset(x: showResult ? 0 : 30)
     }
 }
 

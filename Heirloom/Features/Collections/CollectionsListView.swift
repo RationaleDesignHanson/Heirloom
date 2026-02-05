@@ -48,6 +48,7 @@ struct CollectionsListView: View {
     private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
     private var undoService: UndoService { ServiceContainer.shared.resolve(UndoService.self) }
+    @ObservedObject private var importJobManager = ServiceContainer.shared.resolve(ImportJobManager.self)
 
     // MARK: - Filtered Collections
 
@@ -195,7 +196,7 @@ struct CollectionsListView: View {
             VStack(spacing: 0) {
                 // Fixed banners at top (don't scroll)
                 VideoProcessingBottomBanner()
-                ImportProgressBottomBanner()
+                ImportProgressBannerContainer(jobManager: importJobManager)
 
                 // Scrollable content below
                 ScrollView {

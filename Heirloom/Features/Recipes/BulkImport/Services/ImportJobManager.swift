@@ -17,6 +17,10 @@ final class ImportJobManager: ObservableObject {
     @Published private(set) var activeJob: ImportJob?
     @Published private(set) var isProcessing = false
 
+    /// Immediate signal for UI responsiveness - bypasses @Query latency
+    /// Set synchronously when job is created, before SwiftData save completes
+    @Published private(set) var pendingJobId: UUID?
+
     private var currentTasks: [UUID: Task<Void, Never>] = [:]
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
     private var shouldPauseForBackground = false
@@ -147,6 +151,10 @@ final class ImportJobManager: ObservableObject {
         job.status = .processing  // Set to processing immediately so banner shows it
         job.cookbookName = collectionName
         job.collectionType = collectionType
+
+        // Signal UI immediately (bypasses @Query latency)
+        self.pendingJobId = job.id
+
         context.insert(job)
 
         // Create items with duplicate detection
@@ -212,6 +220,10 @@ final class ImportJobManager: ObservableObject {
         job.collectionType = collectionType
         job.pdfURL = pdfURLs.first?.absoluteString // Store for resume detection
         job.shouldGenerateAIImages = generateAIImages
+
+        // Signal UI immediately (bypasses @Query latency)
+        self.pendingJobId = job.id
+
         context.insert(job)
 
         // Create checkpoint for resumable imports
@@ -1394,6 +1406,10 @@ final class ImportJobManager: ObservableObject {
                 isProcessing = false
                 activeJob = nil
                 activeContext = nil // Clear stored context
+                // Clear pending signal
+                if self.pendingJobId == job.id {
+                    self.pendingJobId = nil
+                }
             }
         }
     }
@@ -2064,6 +2080,11 @@ final class ImportJobManager: ObservableObject {
             job.successfulItems = items.filter { $0.status == .success }.count
             job.failedItems = items.filter { $0.status == .failed }.count
             job.completedItems = items.filter { $0.isCompleted }.count
+        }
+
+        // Clear pending signal since job is finishing
+        if self.pendingJobId == job.id {
+            self.pendingJobId = nil
         }
 
         // Set status based on success/failure outcomes
