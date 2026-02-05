@@ -372,8 +372,7 @@ struct RecipeListView: View {
                     tabCoordinator.willCreateCollection(from: .collectionsTab)
                     showCreateCollection = true
                 },
-                onCollectionSettings: nil, // Not applicable in main recipe list
-                onOpenSettings: { showSettings = true }
+                onCollectionSettings: nil // Not applicable in main recipe list
             )
         }
     }

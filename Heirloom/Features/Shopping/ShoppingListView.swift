@@ -44,6 +44,17 @@ struct ShoppingListView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(HeirloomColors.primaryText)
+                    }
+                    .accessibilityLabel("Settings")
+                    .accessibilityHint("Open app settings")
+                }
+
                 ToolbarItem(placement: .principal) {
                     Text("Shopping")
                         .font(HeirloomFonts.title2)
@@ -99,22 +110,12 @@ struct ShoppingListView: View {
                             .accessibilityLabel("Clear Shopping List")
                             .accessibilityHint("Removes all recipes and items from shopping list")
                         }
-
-                        Divider()
-
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Label("Settings", systemImage: "gearshape")
-                        }
-                        .accessibilityLabel("Settings")
-                        .accessibilityHint("Open app settings")
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .foregroundStyle(HeirloomColors.primaryText)
                     }
                     .accessibilityLabel("Shopping List Options")
-                    .accessibilityHint("Opens menu with shopping list and app options")
+                    .accessibilityHint("Opens menu with shopping list options")
                 }
             }
             .sheet(item: $selectedIngredientData) { data in

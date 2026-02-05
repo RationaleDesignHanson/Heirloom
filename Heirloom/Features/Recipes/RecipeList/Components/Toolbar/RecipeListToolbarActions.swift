@@ -22,7 +22,6 @@ struct RecipeListToolbarActions: View {
     let onReadRecipe: () -> Void
     let onAddCollection: () -> Void
     let onCollectionSettings: (() -> Void)? // Optional - only shown in collection detail views
-    let onOpenSettings: () -> Void
 
     // Track menu presentation state for shimmer control
     @State private var isMenuPresented = false
@@ -157,15 +156,6 @@ struct RecipeListToolbarActions: View {
                 .accessibilityLabel("New Collection")
                 .accessibilityHint("Create a new collection")
 
-                Divider()
-
-                Button {
-                    onOpenSettings()
-                } label: {
-                    Label("Settings", systemImage: "gearshape")
-                }
-                .accessibilityLabel("Settings")
-                .accessibilityHint("Open app settings")
             } label: {
                 Image(systemName: "plus")
                     .holographicShimmer(

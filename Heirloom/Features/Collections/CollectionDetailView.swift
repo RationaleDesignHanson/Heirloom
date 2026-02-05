@@ -324,8 +324,7 @@ struct CollectionDetailView: View {
                     onAddCollection: {}, // Not applicable within a collection detail view
                     onCollectionSettings: {
                         showCollectionSettings = true
-                    },
-                    onOpenSettings: { showSettings = true }
+                    }
                 )
             }
         }

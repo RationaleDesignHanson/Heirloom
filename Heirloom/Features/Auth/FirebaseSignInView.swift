@@ -33,15 +33,11 @@ struct FirebaseSignInView: View {
                     .frame(minHeight: 40, maxHeight: 60)
 
                 // App Icon/Logo (smaller on iPad)
-                ZStack {
-                    Circle()
-                        .fill(HeirloomColors.tomato.opacity(0.15))
-                        .frame(width: 100, height: 100)
-
-                    Image(systemName: "book.closed.fill")
-                        .font(.system(size: 50))
-                        .foregroundColor(HeirloomColors.tomato)
-                }
+                Image("ceramic-hero-book")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 240, height: 240)
+                    .shadow(color: Color(red: 0.2, green: 0.15, blue: 0.1).opacity(0.3), radius: 12, x: 0, y: 6)
 
                 // Title
                 VStack(spacing: HeirloomSpacing.sm) {

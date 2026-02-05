@@ -65,6 +65,17 @@ struct DiscoveryView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(HeirloomColors.primaryText)
+                    }
+                    .accessibilityLabel("Settings")
+                    .accessibilityHint("Open app settings")
+                }
+
                 ToolbarItem(placement: .principal) {
                     Text(isSearching ? "Search Results" : "Discover")
                         .font(HeirloomFonts.title2)
@@ -72,27 +83,14 @@ struct DiscoveryView: View {
                 }
 
                 ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button {
-                            showPublishingRules = true
-                        } label: {
-                            Label("Publishing Guidelines", systemImage: "info.circle")
-                        }
-                        .accessibilityLabel("Publishing Guidelines")
-                        .accessibilityHint("Learn what recipes can be shared publicly")
-
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Label("Settings", systemImage: "gearshape")
-                        }
-                        .accessibilityLabel("Settings")
-                        .accessibilityHint("Open app settings")
+                    Button {
+                        showPublishingRules = true
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Image(systemName: "info.circle")
                             .foregroundStyle(HeirloomColors.primaryText)
                     }
-                    .accessibilityLabel("Discover Options")
+                    .accessibilityLabel("Publishing Guidelines")
+                    .accessibilityHint("Learn what recipes can be shared publicly")
                 }
             }
             .navigationDestination(for: String.self) { publicRecipeId in

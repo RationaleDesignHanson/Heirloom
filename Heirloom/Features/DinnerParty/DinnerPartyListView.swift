@@ -65,6 +65,17 @@ struct DinnerPartyListView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(HeirloomColors.primaryText)
+                    }
+                    .accessibilityLabel("Settings")
+                    .accessibilityHint("Open app settings")
+                }
+
                 ToolbarItem(placement: .principal) {
                     Text("Meal Planning")
                         .font(HeirloomFonts.title2)
@@ -72,24 +83,14 @@ struct DinnerPartyListView: View {
                 }
 
                 ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button {
-                            showCreateParty = true
-                        } label: {
-                            Label("New Meal Plan", systemImage: "plus")
-                        }
-
-                        Divider()
-
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Label("Settings", systemImage: "gearshape")
-                        }
+                    Button {
+                        showCreateParty = true
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Image(systemName: "plus")
                             .foregroundStyle(HeirloomColors.primaryText)
                     }
+                    .accessibilityLabel("New Meal Plan")
+                    .accessibilityHint("Create a new meal plan")
                 }
             }
             .sheet(isPresented: $showCreateParty) {
