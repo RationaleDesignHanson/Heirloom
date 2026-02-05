@@ -2265,37 +2265,32 @@ extension RecipeDetailView {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
 
-        // Delete from Firebase if active
-        if backendConfig.isFirebaseActive {
-            Task {
-                do {
-                    try await firebaseSync.deleteRecipe(recipe.id)
-                    Log.info("Recipe deleted from Firebase", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
-                } catch {
-                    Log.error("Failed to delete recipe from Firebase", category: .firebase, error: error, metadata: ["recipeId": recipe.id.uuidString])
-                }
-            }
-        }
+        // NOTE: Do NOT delete from Firebase here!
+        // UndoService handles Firebase deletion after the undo window expires.
+        // This allows the user to undo the delete within 5 seconds.
 
         // Use UndoService for soft delete with undo capability
         let undoService = ServiceContainer.shared.resolve(UndoService.self)
         undoService.deleteRecipe(recipe, context: modelContext)
 
         // Show undo toast with countdown
-        toastManager.showUndoToast(for: undoService.pendingUndos.last!) {
-            // Undo action
-            if let undoItem = undoService.pendingUndos.last {
-                undoService.undoDelete(undoItem)
+        guard let undoItem = undoService.pendingUndos.last else {
+            Log.error("Failed to create undo item for recipe deletion", category: .database)
+            return
+        }
 
-                // Success haptic for undo
-                let successGenerator = UINotificationFeedbackGenerator()
-                successGenerator.notificationOccurred(.success)
+        toastManager.showUndoToast(for: undoItem) { [undoItem] in
+            // Undo action - use the captured undoItem, not pendingUndos.last
+            undoService.undoDelete(undoItem)
 
-                toastManager.success(title: "Recipe restored")
+            // Success haptic for undo
+            let successGenerator = UINotificationFeedbackGenerator()
+            successGenerator.notificationOccurred(.success)
 
-                // Update UI state
-                isDeleting = false
-            }
+            toastManager.success(title: "Recipe restored")
+
+            // Update UI state
+            isDeleting = false
         }
 
         // Track analytics

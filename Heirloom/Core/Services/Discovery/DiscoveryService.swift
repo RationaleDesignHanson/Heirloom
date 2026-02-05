@@ -103,13 +103,20 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
 
     // MARK: - Filtering
 
-    /// Filter out current user's own recipes from discovery results
-    /// Users should not discover their own recipes in the feed
+    /// Filter out current user's own recipes and hidden/moderated recipes from discovery results
+    /// Users should not discover their own recipes or content that has been hidden by moderation
     private func filterOutOwnRecipes(_ recipes: [PublicRecipe]) -> [PublicRecipe] {
-        guard let userId = currentUserId else {
-            return recipes
+        var filtered = recipes
+
+        // Filter out hidden/moderated recipes
+        filtered = filtered.filter { !$0.isHidden }
+
+        // Filter out current user's own recipes
+        if let userId = currentUserId {
+            filtered = filtered.filter { $0.ownerId != userId }
         }
-        return recipes.filter { $0.ownerId != userId }
+
+        return filtered
     }
 
     // MARK: - Initialization
@@ -344,6 +351,7 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
     }
 
     /// Fetch a single public recipe by ID
+    /// Returns nil if recipe is hidden (unless viewer is the owner)
     func fetchPublicRecipe(id: String) async throws -> PublicRecipe? {
         do {
             let doc = try await db.collection("publicRecipes").document(id).getDocument()
@@ -354,6 +362,14 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
             }
 
             let recipe = try PublicRecipe(from: doc)
+
+            // Check if recipe is hidden by moderation
+            // Allow owners to view their own hidden recipes
+            if recipe.isHidden && recipe.ownerId != currentUserId {
+                Log.warning("Public recipe is hidden", category: .social, metadata: ["id": id])
+                return nil
+            }
+
             Log.debug("Fetched public recipe", category: .social, metadata: ["id": id, "title": recipe.title])
             return recipe
 

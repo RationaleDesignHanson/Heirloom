@@ -702,6 +702,18 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
         let documentId = document.documentID
 
+        // Check if this recipe is pending undo (recently deleted, user might restore)
+        // If so, skip downloading to avoid resurrecting a deleted recipe
+        if let recipeUUID = UUID(uuidString: documentId) {
+            let undoService = ServiceContainer.shared.resolve(UndoService.self)
+            if undoService.isRecipePendingUndo(recipeUUID) {
+                Log.info("Skipping download of recipe pending undo", category: .sync, metadata: [
+                    "recipeId": documentId
+                ])
+                return
+            }
+        }
+
         // Check if recipe exists locally
         let descriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { recipe in
@@ -1239,6 +1251,15 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         for doc in snapshot.documents {
             let data = doc.data()
             let collectionId = UUID(uuidString: doc.documentID) ?? UUID()
+
+            // Check if this collection is pending undo (recently deleted, user might restore)
+            let undoService = ServiceContainer.shared.resolve(UndoService.self)
+            if undoService.isCollectionPendingUndo(collectionId) {
+                Log.info("Skipping collection download - pending undo", category: .sync, metadata: [
+                    "collectionId": collectionId.uuidString
+                ])
+                continue
+            }
 
             // Check if this collection was deleted locally (tombstone check)
             let tombstoneDescriptor = FetchDescriptor<DeletedCollectionRecord>(

@@ -147,6 +147,25 @@ extension ImportResponse {
     func toImportedRecipe() -> ImportedRecipe? {
         guard let recipe = self.recipe else { return nil }
 
+        // Filter out comment-like instructions that may have been incorrectly parsed
+        let filteredInstructions = recipe.instructions.filter { instruction in
+            Self.looksLikeInstruction(instruction)
+        }
+
+        // If filtering removed most instructions (>80%), likely comments were mixed in
+        // Fall back to original if we have very few filtered instructions
+        let finalInstructions: [String]
+        if filteredInstructions.count < 3 && recipe.instructions.count > 10 {
+            // Too aggressive filtering - use original
+            // (Likely the cloud parser returned mostly comments)
+            finalInstructions = recipe.instructions
+        } else if filteredInstructions.isEmpty && !recipe.instructions.isEmpty {
+            // No instructions passed filter - use original
+            finalInstructions = recipe.instructions
+        } else {
+            finalInstructions = filteredInstructions
+        }
+
         return ImportedRecipe(
             title: recipe.title,
             description: recipe.description,
@@ -157,7 +176,84 @@ extension ImportResponse {
             prepTime: recipe.prepTime,
             cookTime: recipe.cookTime,
             ingredients: recipe.ingredients,
-            instructions: recipe.instructions
+            instructions: finalInstructions
         )
+    }
+
+    /// Check if text looks like a recipe instruction (not a user comment)
+    private static func looksLikeInstruction(_ text: String) -> Bool {
+        let lowercased = text.lowercased()
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Skip very short text (likely not an instruction)
+        guard trimmed.count > 10 else { return false }
+
+        // Detect comment patterns (first-person narratives, reviews, personal anecdotes)
+        let commentPatterns = [
+            // Personal experiences and reviews
+            "i love", "i loved", "i tried", "i made", "i recommend",
+            "we love", "we loved", "we tried", "my favorite",
+            "this is my go-to", "kaf is", "king arthur",
+            "these are amazing", "these were amazing", "this is delicious",
+            "thank you for", "thank you so much", "thanks for",
+            "can't wait to", "just made this", "turned out great",
+            "so good", "very delicious", "will make again",
+            "my family loved", "my kids loved", "my husband loved",
+            "great recipe", "amazing recipe", "wonderful recipe",
+            // Comment metadata patterns
+            "reply", "says:", "wrote:", "commented:",
+            // Date patterns common in comments (e.g., "May 12, 2016")
+            "january", "february", "march", "april", "may", "june",
+            "july", "august", "september", "october", "november", "december",
+            // Social patterns
+            "i never thought", "i always", "growing up", "when i was",
+            // Names followed by dates (common comment format)
+        ]
+
+        for pattern in commentPatterns {
+            if lowercased.contains(pattern) {
+                return false
+            }
+        }
+
+        // Check for date patterns like "May 12, 2016" which indicate comments
+        let datePattern = #"\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+\d{4}\b"#
+        if let _ = lowercased.range(of: datePattern, options: .regularExpression) {
+            return false
+        }
+
+        // Check for time patterns like "at 12:21 pm" which indicate comments
+        let timePattern = #"\bat\s+\d{1,2}:\d{2}\s*(am|pm)\b"#
+        if let _ = lowercased.range(of: timePattern, options: .regularExpression) {
+            return false
+        }
+
+        // Instruction-like patterns (imperative mood)
+        let instructionPrefixes = [
+            "preheat", "heat", "warm", "cool", "chill",
+            "mix", "combine", "blend", "stir", "whisk", "beat", "fold",
+            "add", "pour", "place", "put", "set", "arrange", "spread",
+            "bake", "cook", "roast", "grill", "fry", "sauté", "boil", "simmer",
+            "refrigerate", "freeze", "rest", "let sit", "let stand", "allow",
+            "remove", "transfer", "drain", "strain", "sift",
+            "cut", "chop", "slice", "dice", "mince", "julienne",
+            "season", "sprinkle", "garnish", "top", "drizzle",
+            "in a bowl", "in a pan", "in a pot", "in a skillet",
+            "using a", "with a", "on a", "over", "into",
+            "meanwhile", "next", "then", "finally", "first",
+            "roll", "shape", "form", "flatten", "press",
+            "cover", "wrap", "line", "grease", "butter"
+        ]
+
+        for prefix in instructionPrefixes {
+            if lowercased.hasPrefix(prefix) || lowercased.contains(" \(prefix) ") {
+                return true
+            }
+        }
+
+        // Check for time/temperature measurements (strong indicator of instruction)
+        let hasTimeOrTemp = lowercased.range(of: #"(\d+\s*(minute|hour|second|degree|°f|°c|fahrenheit|celsius))"#, options: .regularExpression) != nil
+
+        return hasTimeOrTemp
     }
 }

@@ -765,33 +765,28 @@ struct RecipeListView: View {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
 
-        // Delete from Firebase if active
-        if backendConfig.isFirebaseActive {
-            Task {
-                do {
-                    try await firebaseSync.deleteRecipe(recipe.id)
-                    Log.info("Recipe deleted from Firebase", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
-                } catch {
-                    Log.error("Failed to delete recipe from Firebase", category: .firebase, error: error, metadata: ["recipeId": recipe.id.uuidString])
-                }
-            }
-        }
+        // NOTE: Do NOT delete from Firebase here!
+        // UndoService handles Firebase deletion after the undo window expires.
+        // This allows the user to undo the delete within 5 seconds.
 
         // Use UndoService for soft delete with undo capability
         undoService.deleteRecipe(recipe, context: modelContext)
 
         // Show undo toast
-        toastManager.showUndoToast(for: undoService.pendingUndos.last!) {
-            // Undo action
-            if let undoItem = undoService.pendingUndos.last {
-                undoService.undoDelete(undoItem)
+        guard let undoItem = undoService.pendingUndos.last else {
+            Log.error("Failed to create undo item for recipe deletion", category: .database)
+            return
+        }
 
-                // Success haptic for undo
-                let successGenerator = UINotificationFeedbackGenerator()
-                successGenerator.notificationOccurred(.success)
+        toastManager.showUndoToast(for: undoItem) { [undoItem] in
+            // Undo action - use the captured undoItem
+            undoService.undoDelete(undoItem)
 
-                toastManager.success(title: "Recipe restored")
-            }
+            // Success haptic for undo
+            let successGenerator = UINotificationFeedbackGenerator()
+            successGenerator.notificationOccurred(.success)
+
+            toastManager.success(title: "Recipe restored")
         }
     }
 
@@ -864,38 +859,31 @@ struct RecipeListView: View {
         let generator = UIImpactFeedbackGenerator(style: .heavy)
         generator.impactOccurred()
 
-        // Delete from Firebase if active
-        if backendConfig.isFirebaseActive {
-            Task {
-                for recipe in recipesToDelete {
-                    do {
-                        try await firebaseSync.deleteRecipe(recipe.id)
-                        Log.info("Recipe deleted from Firebase", category: .firebase, metadata: ["recipeId": recipe.id.uuidString])
-                    } catch {
-                        Log.error("Failed to delete recipe from Firebase", category: .firebase, error: error, metadata: ["recipeId": recipe.id.uuidString])
-                    }
-                }
+        // NOTE: Do NOT delete from Firebase here!
+        // UndoService handles Firebase deletion after the undo window expires.
+
+        // Delete each recipe using UndoService and track the undo items
+        var undoItems: [UndoService.UndoItem] = []
+        for recipe in recipesToDelete {
+            undoService.deleteRecipe(recipe, context: modelContext)
+            if let undoItem = undoService.pendingUndos.last {
+                undoItems.append(undoItem)
             }
         }
 
-        // Delete each recipe using UndoService
-        for recipe in recipesToDelete {
-            undoService.deleteRecipe(recipe, context: modelContext)
-        }
-
         // Show undo toast for batch delete
-        if let lastUndo = undoService.pendingUndos.last {
-            toastManager.showUndoToast(for: lastUndo) {
-                // Undo all deletions
-                if let undoItem = undoService.pendingUndos.last {
+        if let lastUndo = undoItems.last {
+            toastManager.showUndoToast(for: lastUndo) { [undoItems] in
+                // Undo ALL deletions in the batch
+                for undoItem in undoItems {
                     undoService.undoDelete(undoItem)
-
-                    // Success haptic for undo
-                    let successGenerator = UINotificationFeedbackGenerator()
-                    successGenerator.notificationOccurred(.success)
-
-                    toastManager.success(title: "Recipes restored")
                 }
+
+                // Success haptic for undo
+                let successGenerator = UINotificationFeedbackGenerator()
+                successGenerator.notificationOccurred(.success)
+
+                toastManager.success(title: "\(undoItems.count) recipes restored")
             }
         }
 
@@ -1444,26 +1432,47 @@ struct RecipeCardView: View {
     var isSelected: Bool = false
     @EnvironmentObject private var notificationService: FirebaseNotificationService
 
+    /// Check if recipe is still valid (not deleted from SwiftData)
+    private var isRecipeValid: Bool {
+        recipe.modelContext != nil
+    }
+
     private var unreadCount: Int {
-        notificationService.unreadCount(for: recipe.id)
+        guard isRecipeValid else { return 0 }
+        return notificationService.unreadCount(for: recipe.id)
     }
 
     // Display name with collection context for theme recipes
     private var displayName: String {
+        guard isRecipeValid else { return "" }
         if let collection = collection, collection.type == .theme, recipe.isThemeRecipe {
             return collection.name
         }
         return recipe.sourceDisplayName
     }
 
+    /// Safely get the placeholder icon, handling deleted recipes
+    private var placeholderIcon: String {
+        guard isRecipeValid else { return "fork.knife" }
+        return recipe.sourceType?.iconName ?? "fork.knife"
+    }
+
     var body: some View {
+        if !isRecipeValid {
+            EmptyView()
+        } else {
+            cardContent
+        }
+    }
+
+    private var cardContent: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             // Recipe Image with async loading and favorite badge overlay
             ZStack {
                 AsyncRecipeImage(
                     imageFileName: recipe.imageFileName,
                     firebaseImageURL: recipe.firebaseImageURL,
-                    placeholder: recipe.sourceType?.iconName ?? "fork.knife"
+                    placeholder: placeholderIcon
                 )
                 .frame(maxWidth: .infinity)
                 .aspectRatio(3/2, contentMode: .fill)

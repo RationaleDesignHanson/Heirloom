@@ -68,6 +68,7 @@ class FirebaseUserProfileService {
 
     /// Sync current user's profile to Firestore
     /// Call this after sign-in to ensure display name is persisted
+    /// Writes to users/{userId}/profile/data to trigger Algolia indexing
     func syncCurrentUserProfile() async throws {
         guard let user = auth.currentUser else {
             throw NSError(domain: "FirebaseUserProfileService", code: 401, userInfo: [
@@ -80,21 +81,47 @@ class FirebaseUserProfileService {
             return
         }
 
+        // Profile data for the main profile document (triggers Algolia sync)
         let profileData: [String: Any] = [
+            "userId": user.uid,
+            "displayName": displayName,
+            "email": user.email as Any,
+            "photoURL": user.photoURL?.absoluteString as Any,
+            "updatedAt": Timestamp(date: Date()),
+            // Default privacy settings - allow search indexing by default
+            "privacySettings": [
+                "hideFromSearch": false,
+                "showLocationInSearch": true,
+                "showSpecialtiesInSearch": true
+            ],
+            // Initialize social fields
+            "connectionCount": 0,
+            "followerCount": 0,
+            "isVerified": false
+        ]
+
+        // Write to the correct path that Algolia trigger watches
+        // Path: users/{userId}/profile/data
+        let profileDocRef = db.collection("users").document(user.uid)
+            .collection("profile").document("data")
+        try await profileDocRef.setData(profileData, merge: true)
+
+        // Also write to legacy userProfiles collection for backwards compatibility
+        let legacyData: [String: Any] = [
             "displayName": displayName,
             "email": user.email as Any,
             "lastUpdated": Timestamp(date: Date()),
             "photoURL": user.photoURL?.absoluteString as Any
         ]
-
-        try await db.collection("userProfiles").document(user.uid).setData(profileData, merge: true)
+        try await db.collection("userProfiles").document(user.uid).setData(legacyData, merge: true)
 
         // Update cache
         profileCache[user.uid] = displayName
 
         Log.info("Synced user profile to Firestore", category: .auth, metadata: [
             "userId": user.uid,
-            "displayName": displayName
+            "displayName": displayName,
+            "email": user.email ?? "none"
         ])
     }
 

@@ -533,8 +533,8 @@ exports.monitorPublicRecipeReports = onDocumentWritten('publicRecipeReports/{rep
 
     console.log(`  Current report count: ${reportCount}`);
 
-    // Auto-moderation threshold: 10 reports
-    const AUTO_HIDE_THRESHOLD = 10;
+    // Auto-moderation threshold: 3 reports (stricter for 4+ App Store rating)
+    const AUTO_HIDE_THRESHOLD = 3;
 
     if (reportCount >= AUTO_HIDE_THRESHOLD) {
       console.log(`⚠️ Auto-moderation triggered for recipe: ${publicRecipeId} (${reportCount} reports)`);

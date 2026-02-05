@@ -16,8 +16,14 @@ class BackendConfig {
 
     // MARK: - Backend Checks
 
-    /// Firebase is always active
-    var isFirebaseActive: Bool {
-        return true
+    /// Firebase is always active in production
+    /// Can be overridden in tests via MockBackendConfig
+    private(set) var isFirebaseActive: Bool = true
+
+    /// For testing only - allows overriding isFirebaseActive
+    #if DEBUG
+    func setFirebaseActive(_ active: Bool) {
+        isFirebaseActive = active
     }
+    #endif
 }

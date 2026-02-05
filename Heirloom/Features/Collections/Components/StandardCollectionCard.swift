@@ -152,10 +152,9 @@ struct StandardCollectionCard: View {
                 placeholder: collection.iconName
             )
         }
-        // Show + affordance in appropriate empty slots
-        // - First slot when collection has 1 recipe
-        // - Second slot when collection has 2 recipes
-        else if recipe == nil && ((isFirstSlot && recipeCount == 1) || (!isFirstSlot && recipeCount == 2)) {
+        // Show + affordance in ANY empty slot when there's a tap handler
+        // This allows users to add recipes directly from the collection card
+        else if recipe == nil && onAddRecipeTap != nil {
             addRecipeAffordance
         }
         else {

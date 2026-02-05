@@ -251,6 +251,23 @@ struct AsyncRecipeImage: View {
     }
 
     private func loadImage() async {
+        // Priority 0: Check for bundled preset images (prefix "preset-")
+        if let fileName = imageFileName, fileName.hasPrefix("preset-") {
+            let assetName = String(fileName.dropFirst(7)) // Remove "preset-" prefix
+            Log.debug("AsyncRecipeImage: Loading bundled preset image", category: .storage, metadata: ["assetName": assetName])
+
+            if let image = UIImage(named: assetName) {
+                Log.debug("AsyncRecipeImage: Successfully loaded bundled preset", category: .storage, metadata: ["assetName": assetName])
+                await MainActor.run {
+                    loadedImage = image
+                    isLoading = false
+                }
+                return
+            } else {
+                Log.debug("AsyncRecipeImage: Bundled preset not found", category: .storage, metadata: ["assetName": assetName])
+            }
+        }
+
         // Priority 1: Try loading from local file storage
         if let fileName = imageFileName {
             Log.debug("AsyncRecipeImage: Loading from local file", category: .storage, metadata: ["fileName": fileName])

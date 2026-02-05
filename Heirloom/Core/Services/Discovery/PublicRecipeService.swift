@@ -323,6 +323,9 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
             viewCount: 0,
             saveCount: 0,
             searchKeywords: searchKeywords,
+            isHidden: false,
+            reportCount: 0,
+            moderationStatus: nil,
             publishedAt: Date(),
             updatedAt: Date()
         )

@@ -52,6 +52,15 @@ struct PublicRecipe: Codable, Identifiable {
     /// Lowercase keywords for search (title + ingredients + creator)
     var searchKeywords: [String]
 
+    // MARK: - Moderation
+
+    /// Whether this recipe has been hidden due to reports
+    var isHidden: Bool
+    /// Number of user reports received
+    var reportCount: Int
+    /// Moderation status: nil, "pending_review", "approved", "hidden"
+    var moderationStatus: String?
+
     // MARK: - Timestamps
 
     let publishedAt: Date
@@ -78,6 +87,9 @@ struct PublicRecipe: Codable, Identifiable {
         case viewCount
         case saveCount
         case searchKeywords
+        case isHidden
+        case reportCount
+        case moderationStatus
         case publishedAt
         case updatedAt
     }
@@ -161,6 +173,11 @@ extension PublicRecipe {
         self.saveCount = data["saveCount"] as? Int ?? 0
         self.searchKeywords = data["searchKeywords"] as? [String] ?? []
 
+        // Moderation fields
+        self.isHidden = data["isHidden"] as? Bool ?? false
+        self.reportCount = data["reportCount"] as? Int ?? 0
+        self.moderationStatus = data["moderationStatus"] as? String
+
         // Convert Firestore Timestamps to Date
         if let timestamp = data["publishedAt"] as? Timestamp {
             self.publishedAt = timestamp.dateValue()
@@ -187,9 +204,15 @@ extension PublicRecipe {
             "viewCount": viewCount,
             "saveCount": saveCount,
             "searchKeywords": searchKeywords,
+            "isHidden": isHidden,
+            "reportCount": reportCount,
             "publishedAt": Timestamp(date: publishedAt),
             "updatedAt": Timestamp(date: updatedAt)
         ]
+
+        if let moderationStatus = moderationStatus {
+            data["moderationStatus"] = moderationStatus
+        }
 
         // Add optional fields
         if let description = description {

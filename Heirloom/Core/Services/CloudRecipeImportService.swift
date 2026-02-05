@@ -21,11 +21,29 @@ class CloudRecipeImportService {
         URL(string: "https://submitfeedback-7kk7et3yua-uc.a.run.app")!
     }
 
+    // Domains where cloud parser is known to return comments as instructions
+    // Force local parser for these domains
+    private let problematicDomains = [
+        "smittenkitchen.com"
+    ]
+
+    /// Check if a domain should use local parser instead of cloud
+    private func shouldUseLocalParser(for url: String) -> Bool {
+        guard let host = URL(string: url)?.host?.lowercased() else { return false }
+        return problematicDomains.contains { host.contains($0) }
+    }
+
     /// Import recipe from URL using Cloud Function
     /// - Parameter url: Recipe URL to import
     /// - Returns: ImportResponse with parsed recipe data
     func importRecipe(from url: String, userId: String? = nil) async throws -> ImportResponse {
         Log.info("Starting cloud recipe import", category: .network, metadata: ["url": url])
+
+        // Check if this domain should use local parser
+        if shouldUseLocalParser(for: url) {
+            Log.info("Domain requires local parser, skipping cloud import", category: .network, metadata: ["url": url])
+            throw CloudImportError.serverError(statusCode: 0, message: "Domain requires local parser")
+        }
 
         // Create request
         var request = URLRequest(url: importURL)
