@@ -15,7 +15,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 // Initialize Firebase Admin if not already initialized
 if (!admin.apps.length) {
   const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-    path.resolve(__dirname, '../../../../../service-account-key.json');
+    path.resolve(__dirname, '../../../../service-account-key.json');
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccountPath),
