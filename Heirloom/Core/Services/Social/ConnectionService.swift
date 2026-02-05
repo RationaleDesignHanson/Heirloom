@@ -291,6 +291,14 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             "connectionId": connectionId
         ])
 
+        // Notify demo behavior service if this is to a demo user
+        Task { @MainActor in
+            DemoSocialBehaviorService.shared.onConnectionRequestSent(
+                to: targetUserId,
+                connectionId: connectionId
+            )
+        }
+
         return outgoingConnection
     }
 
@@ -565,6 +573,14 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             "userId": userId,
             "connectionId": connectionId
         ])
+
+        // Notify demo behavior service if this was from a demo user
+        Task { @MainActor in
+            DemoSocialBehaviorService.shared.onDemoConnectionAccepted(
+                demoUserId: connection.connectedUserId,
+                connectionId: connectionId
+            )
+        }
     }
 
     // MARK: - Decline Request

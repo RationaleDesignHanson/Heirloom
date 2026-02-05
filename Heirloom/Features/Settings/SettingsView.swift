@@ -536,6 +536,48 @@ struct SettingsView: View {
 
             Divider()
 
+            // Demo Social Mode Toggle
+            // Only show if Remote Config hasn't globally disabled demo mode
+            if DemoSocialGate.shared.isRemotelyAvailable {
+                Toggle(isOn: Binding(
+                    get: {
+                        !DemoSocialGate.shared.isLocallyDisabled
+                    },
+                    set: { enabled in
+                        DemoSocialGate.shared.setLocallyDisabled(!enabled)
+
+                        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                        if enabled {
+                            toastManager.info(
+                                title: "Demo Mode Enabled",
+                                message: "Demo accounts will appear in search and auto-accept invites"
+                            )
+                        } else {
+                            toastManager.info(
+                                title: "Demo Mode Disabled",
+                                message: "Demo accounts hidden and behaviors stopped"
+                            )
+                        }
+
+                        Log.info("Demo social mode: \(enabled ? "ENABLED" : "DISABLED")", category: .general)
+                    }
+                )) {
+                    HStack {
+                        Image(systemName: "person.2.fill")
+                            .foregroundStyle(HeirloomColors.sage)
+                        VStack(alignment: .leading) {
+                            Text("Demo Social Mode")
+                            Text("Simulated demo accounts will auto-accept invites and share sample recipes")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .tint(HeirloomColors.sage)
+            }
+
+            Divider()
+
             // Debug Log Viewer - FILE-BASED LOGGING FOR DEVICE VISIBILITY
             NavigationLink {
                 DebugLogView()
@@ -631,7 +673,7 @@ struct SettingsView: View {
         } header: {
             Text("Developer Testing")
         } footer: {
-            Text("Debug features for testing subscription flows and app behavior:\n\n• Auto Premium: See paywalls without blocking access (default ON in debug)\n• Fake Payments: Grant premium without real transactions\n• Force Non-Premium: Test progressive heritage unlock (7 recipes/day)\n• Test Heritage Protection: Verify delete protection for heritage recipes\n\nThese tools are for development only and help ensure the app works correctly for both free and premium users.")
+            Text("Debug features for testing subscription flows and app behavior:\n\n• Auto Premium: See paywalls without blocking access (default ON in debug)\n• Fake Payments: Grant premium without real transactions\n• Force Non-Premium: Test progressive heritage unlock (7 recipes/day)\n• Demo Social: \(DemoSocialGate.shared.debugStatus)\n• Build: \(BuildChannel.current.displayName)\n\nThese tools are for development only and help ensure the app works correctly for both free and premium users.")
         }
     }
 

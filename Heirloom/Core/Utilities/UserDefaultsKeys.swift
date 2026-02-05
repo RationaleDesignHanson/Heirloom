@@ -46,6 +46,11 @@ enum UserDefaultsKeys {
     /// Cached product ID for current subscription
     static let cachedProductID = "cached_product_id"
 
+    // MARK: - Demo Social
+
+    /// Whether user has locally disabled demo social mode (defaults to false = demo ON)
+    static let demoSocialModeDisabled = "demo_social_mode_disabled"
+
     // MARK: - Paywall
 
     /// Number of times user has dismissed soft-wall paywalls
@@ -100,10 +105,16 @@ enum UserDefaultsKeys {
         UserDefaults.standard.removeObject(forKey: paywallHasTriggeredDay13)
     }
 
+    /// Reset demo social settings (for testing)
+    static func resetDemoSocial() {
+        UserDefaults.standard.removeObject(forKey: demoSocialModeDisabled)
+    }
+
     /// Reset all keys (for complete app reset in testing)
     static func resetAll() {
         resetOnboarding()
         resetSubscription()
         resetPaywall()
+        resetDemoSocial()
     }
 }

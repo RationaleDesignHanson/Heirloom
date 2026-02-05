@@ -1466,6 +1466,10 @@ struct ContentView: View {
                     selectedTab: $tabCoordinator.selectedTab,
                     onComplete: {
                         hasCompletedOnboarding = true
+
+                        // Start demo social behavior service after onboarding
+                        DemoSocialBehaviorService.shared.start()
+                        DemoSocialBehaviorService.shared.onOnboardingComplete()
                     }
                 )
                 .environmentObject(notificationService)
@@ -1493,6 +1497,9 @@ struct ContentView: View {
                     }
                     await autoRevealBlindBoxesIfNeeded(modelContext: modelContainer.mainContext)
                 }
+
+                // Start demo social behavior service for existing users
+                DemoSocialBehaviorService.shared.start()
             }
         }
         .onChange(of: firebaseAuth.isAuthenticated) { oldValue, newValue in

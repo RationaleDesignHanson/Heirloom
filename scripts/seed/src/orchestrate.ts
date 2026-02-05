@@ -24,6 +24,8 @@ const SCRIPTS = {
   algoliaBackfill: '../../firebase/functions/backfill-public-recipes-algolia.js',
   users: './src/users/seed.ts',
   usersCleanup: './src/users/seed.ts',
+  connections: './src/connections/seed.ts',
+  connectionsCleanup: './src/connections/seed.ts',
 };
 
 // Resolve paths relative to scripts/seed directory
@@ -84,27 +86,32 @@ async function seedAll(): Promise<void> {
   console.log('============================\n');
   console.log('This will seed all demo/test data:\n');
   console.log('  1. Theme recipes (14 themes)');
-  console.log('  2. Demo users (Grandmazing, Phillip Fry)');
+  console.log('  2. Demo users (6 creators)');
   console.log('  3. Public recipes (demo creators)');
-  console.log('  4. Algolia sync\n');
+  console.log('  4. Demo connections');
+  console.log('  5. Algolia sync\n');
 
   const startTime = Date.now();
 
   try {
     // 1. Theme recipes
-    console.log('\n📚 Step 1/4: Seeding theme recipes...');
+    console.log('\n📚 Step 1/5: Seeding theme recipes...');
     await execScript(SCRIPTS.themeRecipes);
 
     // 2. Demo users (creates user profiles for demo creators)
-    console.log('\n👤 Step 2/4: Seeding demo users...');
+    console.log('\n👤 Step 2/5: Seeding demo users...');
     await execScript(SCRIPTS.users);
 
     // 3. Public recipes (demo creators)
-    console.log('\n👨‍🍳 Step 3/4: Seeding public recipes (demo creators)...');
+    console.log('\n👨‍🍳 Step 3/5: Seeding public recipes (demo creators)...');
     await execScript(SCRIPTS.publicRecipes);
 
-    // 4. Algolia sync
-    console.log('\n🔍 Step 4/4: Syncing to Algolia...');
+    // 4. Demo connections
+    console.log('\n🤝 Step 4/5: Seeding demo connections...');
+    await execScript(SCRIPTS.connections);
+
+    // 5. Algolia sync
+    console.log('\n🔍 Step 5/5: Syncing to Algolia...');
     await execScript(SCRIPTS.algoliaBackfill);
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -147,6 +154,15 @@ async function seedUsers(): Promise<void> {
 }
 
 /**
+ * Seed only demo connections
+ */
+async function seedConnections(): Promise<void> {
+  console.log('\n🤝 Seeding demo connections...\n');
+  await execScript(SCRIPTS.connections);
+  console.log('\n✅ Demo connections seeded.');
+}
+
+/**
  * Sync to Algolia
  */
 async function syncAlgolia(): Promise<void> {
@@ -170,9 +186,13 @@ async function cleanupAll(): Promise<void> {
   console.log('\n🧹 CLEANUP ALL SEEDED DATA');
   console.log('==========================\n');
   console.log('This will remove:\n');
-  console.log('  1. Demo users (Grandmazing, Phillip Fry)');
-  console.log('  2. Public recipes (demo creators)');
-  console.log('  3. Theme recipes are NOT cleaned (they are app content)\n');
+  console.log('  1. Demo connections');
+  console.log('  2. Demo users (6 creators)');
+  console.log('  3. Public recipes (demo creators)');
+  console.log('  4. Theme recipes are NOT cleaned (they are app content)\n');
+
+  // Clean demo connections first
+  await execScript(SCRIPTS.connectionsCleanup, ['cleanup']);
 
   // Clean demo users
   await execScript(SCRIPTS.usersCleanup, ['cleanup']);
@@ -199,6 +219,9 @@ switch (command) {
   case 'public':
     seedPublic(process.argv.includes('--skip-images'));
     break;
+  case 'connections':
+    seedConnections();
+    break;
   case 'algolia':
     syncAlgolia();
     break;
@@ -215,13 +238,14 @@ Heirloom Seed Orchestrator
 Usage: npx ts-node src/orchestrate.ts <command>
 
 Commands:
-  all       Seed everything (themes + users + public recipes + Algolia)
-  themes    Seed theme recipes only
-  users     Seed demo users only (Grandmazing, Phillip Fry)
-  public    Seed public recipes (demo creators) only
-  algolia   Sync public recipes to Algolia
-  verify    Verify seeded data
-  cleanup   Remove all demo/test data
+  all          Seed everything (themes + users + recipes + connections + Algolia)
+  themes       Seed theme recipes only
+  users        Seed demo users only (6 creators)
+  public       Seed public recipes (demo creators) only
+  connections  Seed demo connections between users
+  algolia      Sync public recipes to Algolia
+  verify       Verify seeded data
+  cleanup      Remove all demo/test data
 
 Options:
   --skip-images   Skip AI image generation (for 'public' command)
@@ -230,6 +254,7 @@ Examples:
   npx ts-node src/orchestrate.ts all
   npx ts-node src/orchestrate.ts users
   npx ts-node src/orchestrate.ts public --skip-images
+  npx ts-node src/orchestrate.ts connections
   npx ts-node src/orchestrate.ts cleanup
 `);
     process.exit(1);

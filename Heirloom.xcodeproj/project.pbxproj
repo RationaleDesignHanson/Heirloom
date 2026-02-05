@@ -322,6 +322,11 @@
 		C5B317892F00D89A0087CF6D /* RecipeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317882F00D89A0087CF6D /* RecipeSelectionView.swift */; };
 		C5B317BD2F00DC010087CF6D /* RecipeMigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B317BC2F00DC010087CF6D /* RecipeMigrationService.swift */; };
 		C5C6A6482F34FEB10046B06C /* OnboardingProfileSetupScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5C6A6472F34FEB10046B06C /* OnboardingProfileSetupScreen.swift */; };
+		C5C6A6C52F351ACB0046B06C /* BuildChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5C6A6C42F351ACB0046B06C /* BuildChannel.swift */; };
+		C5C6A6CA2F351AD90046B06C /* DemoSocialGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5C6A6C82F351AD90046B06C /* DemoSocialGate.swift */; };
+		C5C6A6CB2F351AD90046B06C /* DemoSocialBehaviorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5C6A6C62F351AD90046B06C /* DemoSocialBehaviorService.swift */; };
+		C5C6A6CC2F351AD90046B06C /* DemoSocialConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5C6A6C72F351AD90046B06C /* DemoSocialConfig.swift */; };
+		C5C6A6CE2F351AE70046B06C /* DemoBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5C6A6CD2F351AE70046B06C /* DemoBadge.swift */; };
 		C5CE3E302F2A92CA00A2E62F /* UnifiedCollectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3E2F2F2A92CA00A2E62F /* UnifiedCollectionCard.swift */; };
 		C5CE3EF92F2CCE8700A2E62F /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EF32F2CCE8700A2E62F /* Connection.swift */; };
 		C5CE3EFA2F2CCE8700A2E62F /* PublicProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5CE3EF62F2CCE8700A2E62F /* PublicProfile.swift */; };
@@ -801,6 +806,11 @@
 		C5B317882F00D89A0087CF6D /* RecipeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeSelectionView.swift; sourceTree = "<group>"; };
 		C5B317BC2F00DC010087CF6D /* RecipeMigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeMigrationService.swift; sourceTree = "<group>"; };
 		C5C6A6472F34FEB10046B06C /* OnboardingProfileSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingProfileSetupScreen.swift; sourceTree = "<group>"; };
+		C5C6A6C42F351ACB0046B06C /* BuildChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildChannel.swift; sourceTree = "<group>"; };
+		C5C6A6C62F351AD90046B06C /* DemoSocialBehaviorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSocialBehaviorService.swift; sourceTree = "<group>"; };
+		C5C6A6C72F351AD90046B06C /* DemoSocialConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSocialConfig.swift; sourceTree = "<group>"; };
+		C5C6A6C82F351AD90046B06C /* DemoSocialGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSocialGate.swift; sourceTree = "<group>"; };
+		C5C6A6CD2F351AE70046B06C /* DemoBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoBadge.swift; sourceTree = "<group>"; };
 		C5CE3E2F2F2A92CA00A2E62F /* UnifiedCollectionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedCollectionCard.swift; sourceTree = "<group>"; };
 		C5CE3EF32F2CCE8700A2E62F /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		C5CE3EF42F2CCE8700A2E62F /* ConnectionNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionNotification.swift; sourceTree = "<group>"; };
@@ -1161,6 +1171,7 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5C6A6C92F351AD90046B06C /* DemoSocial */,
 				C5A2576F2F345FD30091E198 /* ProcessingQueueManager.swift */,
 				C5A257632F3455A40091E198 /* BackgroundTasks */,
 				C5EF775C2F2FC6140097779E /* DuplicateDetection */,
@@ -2102,6 +2113,7 @@
 		C5B3177F2F00D70B0087CF6D /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				C5C6A6C42F351ACB0046B06C /* BuildChannel.swift */,
 				C5EF778F2F315FCD0097779E /* EmailMasker.swift */,
 				C5830E0E2F103A580096478E /* UserDefaultsKeys.swift */,
 				34D9F9336F8C4D64AB4A135C /* TaskTimeout.swift */,
@@ -2111,6 +2123,16 @@
 				C5B3177E2F00D70B0087CF6D /* ErrorMessages.swift */,
 			);
 			path = Utilities;
+			sourceTree = "<group>";
+		};
+		C5C6A6C92F351AD90046B06C /* DemoSocial */ = {
+			isa = PBXGroup;
+			children = (
+				C5C6A6C62F351AD90046B06C /* DemoSocialBehaviorService.swift */,
+				C5C6A6C72F351AD90046B06C /* DemoSocialConfig.swift */,
+				C5C6A6C82F351AD90046B06C /* DemoSocialGate.swift */,
+			);
+			path = DemoSocial;
 			sourceTree = "<group>";
 		};
 		C5CE3EF82F2CCE8700A2E62F /* Social */ = {
@@ -2193,6 +2215,7 @@
 		C5CE3F232F2CFAE000A2E62F /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				C5C6A6CD2F351AE70046B06C /* DemoBadge.swift */,
 				C5EF77602F303B870097779E /* ProfileHeaderView.swift */,
 				C5CE3F2F2F2D1B2800A2E62F /* UserSearchResultRow.swift */,
 				C5CE3F272F2D07FB00A2E62F /* ConnectionInviteAcceptanceView.swift */,
@@ -2772,6 +2795,7 @@
 				C5A250352F32405E0091E198 /* UserCredits.swift in Sources */,
 				C5DBEC732F200EA900C1B6BA /* PlatformDetector.swift in Sources */,
 				C5DBEC742F200EA900C1B6BA /* RecipeKeywords.swift in Sources */,
+				C5C6A6C52F351ACB0046B06C /* BuildChannel.swift in Sources */,
 				C5831EB82F135EE50096478E /* ImportMethodCard.swift in Sources */,
 				C56F3DC92F0187EA00D19743 /* RecipeReceiveSheet.swift in Sources */,
 				ED52F1487AEF53834790D891 /* BulkImportView.swift in Sources */,
@@ -2841,6 +2865,9 @@
 				C583FFAD2F0CAA6E0096478E /* FirebaseCollectionSync.swift in Sources */,
 				C5CE3F1E2F2CFACF00A2E62F /* ConnectionRequestsView.swift in Sources */,
 				C5CE3F1F2F2CFACF00A2E62F /* ContributorProfileSheet.swift in Sources */,
+				C5C6A6CA2F351AD90046B06C /* DemoSocialGate.swift in Sources */,
+				C5C6A6CB2F351AD90046B06C /* DemoSocialBehaviorService.swift in Sources */,
+				C5C6A6CC2F351AD90046B06C /* DemoSocialConfig.swift in Sources */,
 				95FF0ACF26B64113BF9B71BC /* PublicProfileSheet.swift in Sources */,
 				C583FFAE2F0CAA6E0096478E /* FirebaseConfiguration.swift in Sources */,
 				C583FFAF2F0CAA6E0096478E /* FirebaseRecordConverter.swift in Sources */,
@@ -2968,6 +2995,7 @@
 				C5CE3EFD2F2CCE8700A2E62F /* PrivacySettings.swift in Sources */,
 				C58316302F119A030096478E /* AugmentedIngredientEditRow.swift in Sources */,
 				C5A2577A2F34640B0091E198 /* VideoProcessingJob+ProcessingBannerJob.swift in Sources */,
+				C5C6A6CE2F351AE70046B06C /* DemoBadge.swift in Sources */,
 				C58316312F119A030096478E /* VideoImportView.swift in Sources */,
 				C5EF77962F316D610097779E /* FirebaseGoogleVisionService.swift in Sources */,
 				C5831EBB2F135F060096478E /* TabNavigationCoordinator.swift in Sources */,

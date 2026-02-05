@@ -25,4 +25,26 @@ struct UserSearchResult: Codable, Identifiable {
 
     /// Optional user bio
     let bio: String?
+
+    /// Whether this is a demo/seed user (from Algolia isDemoSeed field)
+    let isDemoUser: Bool?
+
+    // MARK: - CodingKeys
+
+    enum CodingKeys: String, CodingKey {
+        case id = "objectID"  // Algolia uses objectID
+        case displayName
+        case email
+        case photoURL
+        case bio
+        case isDemoUser = "isDemoSeed"
+    }
+
+    // MARK: - Convenience
+
+    /// Whether to show demo badge (only if demo mode enabled and user is demo)
+    @MainActor
+    var shouldShowDemoBadge: Bool {
+        (isDemoUser ?? false) && DemoSocialGate.shared.isEnabled
+    }
 }

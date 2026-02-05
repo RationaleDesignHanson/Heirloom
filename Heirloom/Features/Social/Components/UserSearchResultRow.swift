@@ -55,9 +55,16 @@ struct UserSearchResultRow: View {
 
             // User info
             VStack(alignment: .leading, spacing: 4) {
-                Text(user.displayName)
-                    .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(HeirloomColors.primaryText)
+                HStack(spacing: 6) {
+                    Text(user.displayName)
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    // Demo badge when applicable
+                    if user.shouldShowDemoBadge {
+                        DemoBadge()
+                    }
+                }
 
                 // Show masked email for disambiguation (especially important for duplicate names)
                 if let email = user.email {
