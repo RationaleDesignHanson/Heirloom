@@ -16,7 +16,7 @@ import FirebaseAuth
 class MockFirebaseAuth: FirebaseAuthServiceProtocol, MockTracking, MockErrorInjection, MockStateSimulation {
 
     // MARK: - ObservableObject
-    let objectWillChange = ObservableObjectPublisher()
+    nonisolated(unsafe) let objectWillChange = ObservableObjectPublisher()
 
     // MARK: - MockTracking
     var callLog: [String] = []

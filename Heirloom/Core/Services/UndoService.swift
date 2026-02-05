@@ -14,7 +14,7 @@ class UndoService: ObservableObject {
 
     private let analytics: AnalyticsService
     private let backendConfig: BackendConfig
-    private let firebaseSync: FirebaseSyncService
+    private let firebaseSync: any FirebaseSyncServiceProtocol
 
     // MARK: - Recipe Undo Data
     /// Captures all recipe data needed for undo restoration
@@ -395,7 +395,7 @@ class UndoService: ObservableObject {
     // Store model context reference
     private var modelContext: ModelContext?
 
-    init(analytics: AnalyticsService, backendConfig: BackendConfig, firebaseSync: FirebaseSyncService) {
+    init(analytics: AnalyticsService, backendConfig: BackendConfig, firebaseSync: any FirebaseSyncServiceProtocol) {
         self.analytics = analytics
         self.backendConfig = backendConfig
         self.firebaseSync = firebaseSync

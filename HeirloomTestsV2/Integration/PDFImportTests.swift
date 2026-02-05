@@ -223,7 +223,7 @@ final class PDFImportTests: XCTestCase {
     /// Test 16: Credits persist after import
     func test_credits_persistAfterImport() throws {
         // GIVEN: Initial credits
-        let initialBalance = userCredits.creditsBalance
+        _ = userCredits.creditsBalance
 
         // WHEN: Deducting credits (simulating import)
         try userCredits.deductCredits(UserCredits.PDFCreditCost.scanned.rawValue)

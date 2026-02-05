@@ -26,13 +26,19 @@ struct TestEnvironment {
         authenticated: Bool = false,
         credits: Int = 25
     ) async throws -> TestEnvironment {
-        // Minimal schema - add models as needed
+        // Schema includes models needed for testing
+        // Note: RecipeGenerationJob excluded due to @Model macro visibility issues in test target
         let schema = Schema([
             Recipe.self,
             RecipeCollection.self,
             Ingredient.self,
             RecipeLineage.self,
-            UserCredits.self
+            UserCredits.self,
+            VideoProcessingJob.self,
+            ProcessingCheckpoint.self,
+            ImportJob.self,
+            ImportItem.self,
+            PDFImportCheckpoint.self
         ])
 
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -134,6 +140,44 @@ struct TestEnvironment {
         return credits
     }
 
+    // MARK: - Video Processing Job Helpers
+
+    /// Create a test video processing job
+    @discardableResult
+    func createVideoProcessingJob(
+        videoURL: String = "/test/video.mov",
+        status: VideoProcessingStatus = .pending,
+        createdAt: Date = Date(),
+        completedAt: Date? = nil
+    ) -> VideoProcessingJob {
+        let job = VideoProcessingJob(
+            videoURL: videoURL,
+            videoType: .standard
+        )
+        job.status = status
+        job.createdAt = createdAt
+        job.completedAt = completedAt
+        modelContext.insert(job)
+        return job
+    }
+
+    // MARK: - Import Job Helpers
+
+    /// Create a test import job
+    @discardableResult
+    func createImportJob(
+        status: ImportJobStatus = .pending,
+        createdAt: Date = Date(),
+        completedAt: Date? = nil
+    ) -> ImportJob {
+        let job = ImportJob()
+        job.status = status
+        job.createdAt = createdAt
+        job.completedAt = completedAt
+        modelContext.insert(job)
+        return job
+    }
+
     // MARK: - Fetch Helpers
 
     func fetchAllRecipes() throws -> [Recipe] {
@@ -149,5 +193,15 @@ struct TestEnvironment {
     func fetchUserCredits() throws -> UserCredits? {
         let descriptor = FetchDescriptor<UserCredits>()
         return try modelContext.fetch(descriptor).first
+    }
+
+    func fetchAllVideoProcessingJobs() throws -> [VideoProcessingJob] {
+        let descriptor = FetchDescriptor<VideoProcessingJob>()
+        return try modelContext.fetch(descriptor)
+    }
+
+    func fetchAllImportJobs() throws -> [ImportJob] {
+        let descriptor = FetchDescriptor<ImportJob>()
+        return try modelContext.fetch(descriptor)
     }
 }

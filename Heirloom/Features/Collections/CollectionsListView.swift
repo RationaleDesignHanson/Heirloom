@@ -194,9 +194,18 @@ struct CollectionsListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Fixed banners at top (don't scroll)
-                VideoProcessingBottomBanner()
-                ImportProgressBannerContainer(jobManager: importJobManager)
+                // Unified processing banner for all job types (video, import, generation)
+                UnifiedProcessingBanner(
+                    onVideoJobTap: { job in
+                        // Handle video job tap - could navigate to review view
+                    },
+                    onImportJobTap: { job in
+                        // Handle import job tap - could show import details
+                    },
+                    onGenerationJobTap: { job in
+                        // Handle generation job tap
+                    }
+                )
 
                 // Scrollable content below
                 ScrollView {

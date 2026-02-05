@@ -63,7 +63,7 @@ final class ShoppingListTests: XCTestCase {
         try env.save()
 
         // WHEN: Adding to shopping cart
-        let cartRecipe = createShoppingCartRecipe(recipe: recipe, targetServings: 4)
+        _ = createShoppingCartRecipe(recipe: recipe, targetServings: 4)
         recipe.isInShoppingList = true
         try env.save()
 
@@ -99,7 +99,7 @@ final class ShoppingListTests: XCTestCase {
 
         // WHEN: Adding same recipe again with different servings
         env.modelContext.delete(firstCartRecipe)
-        let secondCartRecipe = createShoppingCartRecipe(recipe: recipe, targetServings: 8)
+        _ = createShoppingCartRecipe(recipe: recipe, targetServings: 8)
         try env.save()
 
         // THEN: Should have only one cart entry with new servings

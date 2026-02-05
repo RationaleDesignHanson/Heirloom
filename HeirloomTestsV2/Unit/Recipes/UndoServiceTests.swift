@@ -16,6 +16,7 @@
 
 import XCTest
 import SwiftData
+import Combine
 @testable import Heirloom
 
 @MainActor
@@ -109,7 +110,7 @@ final class UndoServiceTests: XCTestCase {
         undoService.deleteRecipe(recipe, context: env.modelContext)
 
         // THEN: Stored recipe should have the same ID
-        XCTAssertEqual(undoService.pendingUndos.first?.recipe.id, recipeId)
+        XCTAssertEqual(undoService.pendingUndos.first?.recipeData.id, recipeId)
     }
 
     /// Test 4: Delete multiple recipes adds all to pending undos
@@ -308,6 +309,8 @@ final class UndoServiceTests: XCTestCase {
 
 @MainActor
 final class MockFirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
+    nonisolated(unsafe) let objectWillChange = ObservableObjectPublisher()
+
     var uploadedRecipes: [Recipe] = []
     var deletedRecipeIds: [UUID] = []
     var shouldFailUpload: Bool = false
@@ -358,7 +361,7 @@ final class MockFirebaseSyncService: ObservableObject, FirebaseSyncServiceProtoc
     }
 
     func convertCommentFromFirestoreData(_ data: [String: Any], id: String) -> RecipeComment {
-        return RecipeComment(text: "Mock Comment", authorId: "test", authorName: "Test")
+        return RecipeComment(text: "Mock Comment", authorName: "Test")
     }
 
     func convertCardBackFromFirestoreData(_ data: [String: Any]) -> RecipeCardBack {
@@ -388,6 +391,12 @@ final class MockFirebaseSyncService: ObservableObject, FirebaseSyncServiceProtoc
     func deleteCollection(_ collectionId: UUID) async throws {
         deletedCollectionIds.append(collectionId)
     }
+
+    func uploadDinnerParty(_ party: DinnerParty) async throws {}
+
+    func deleteDinnerParty(_ partyId: UUID) async throws {}
+
+    func uploadCardBack(_ cardBack: RecipeCardBack, recipeId: UUID) async throws {}
 }
 
 // MARK: - Collection Undo Tests
@@ -533,7 +542,7 @@ final class CollectionUndoServiceTests: XCTestCase {
         // THEN: Undo item should have deleted recipes
         let undoItem = undoService.pendingCollectionUndos.first!
         XCTAssertTrue(undoItem.recipesWereDeleted)
-        XCTAssertEqual(undoItem.deletedRecipes.count, 1)
+        XCTAssertEqual(undoItem.deletedRecipeData.count, 1)
     }
 
     // MARK: - Undo Collection Deletion Tests

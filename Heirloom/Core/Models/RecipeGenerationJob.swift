@@ -20,6 +20,11 @@ final class RecipeGenerationJob {
     var currentPhase: RecipeGenerationPhase
     var error: String?
 
+    // MARK: - Placeholder Reference (Unified UX)
+    /// ID of the placeholder recipe created for immediate UI feedback
+    /// The placeholder appears in the recipe list while generation is in progress
+    var placeholderRecipeId: UUID?
+
     // MARK: - Initialization
     init(dishName: String, ingredients: String? = nil, transcript: String? = nil, targetCollectionId: UUID? = nil) {
         self.id = UUID()

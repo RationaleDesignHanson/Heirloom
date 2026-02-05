@@ -81,7 +81,7 @@ final class TestServiceContainer {
 
         // Firebase Auth
         let mockAuth = createMockAuth()
-        container.register(FirebaseAuthServiceProtocol.self, instance: mockAuth)
+        container.register((any FirebaseAuthServiceProtocol).self, instance: mockAuth)
         container.register(MockFirebaseAuth.self, instance: mockAuth)
 
         // Firebase Firestore

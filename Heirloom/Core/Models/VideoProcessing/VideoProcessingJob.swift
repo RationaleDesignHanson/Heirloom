@@ -83,6 +83,10 @@ final class VideoProcessingJob {
     /// Reference to saved Recipe (if user completed review)
     var recipeID: UUID?
 
+    /// Reference to placeholder Recipe created at job start (progressive enhancement)
+    /// This placeholder appears in the recipe list immediately while processing
+    var placeholderRecipeID: UUID?
+
     // MARK: - Credit Management (ASMR only)
 
     /// Number of credits charged (0 for standard, 5 for ASMR)

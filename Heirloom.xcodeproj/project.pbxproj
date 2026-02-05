@@ -290,6 +290,14 @@
 		C5A257532F342ECF0091E198 /* ProcessingBottomBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A257502F342ECF0091E198 /* ProcessingBottomBanner.swift */; };
 		C5A257552F342EEA0091E198 /* ImportProgressBannerContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A257542F342EEA0091E198 /* ImportProgressBannerContainer.swift */; };
 		C5A257572F342EF30091E198 /* ImportJob+ProcessingBannerJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A257562F342EF30091E198 /* ImportJob+ProcessingBannerJob.swift */; };
+		C5A257642F3455A40091E198 /* CollectionImageRefreshTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A257612F3455A40091E198 /* CollectionImageRefreshTask.swift */; };
+		C5A257652F3455A40091E198 /* JobCleanupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A257622F3455A40091E198 /* JobCleanupService.swift */; };
+		C5A2576D2F345FC50091E198 /* UnifiedProcessingBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2576B2F345FC50091E198 /* UnifiedProcessingBanner.swift */; };
+		C5A2576E2F345FC50091E198 /* UnifiedProcessingQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2576C2F345FC50091E198 /* UnifiedProcessingQueueView.swift */; };
+		C5A257702F345FD30091E198 /* ProcessingQueueManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A2576F2F345FD30091E198 /* ProcessingQueueManager.swift */; };
+		C5A257722F3460D50091E198 /* ProcessingJobCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A257712F3460D50091E198 /* ProcessingJobCard.swift */; };
+		C5A257782F3463F80091E198 /* RecipeGenerationJob+ProcessingBannerJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A257772F3463F80091E198 /* RecipeGenerationJob+ProcessingBannerJob.swift */; };
+		C5A2577A2F34640B0091E198 /* VideoProcessingJob+ProcessingBannerJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A257792F34640B0091E198 /* VideoProcessingJob+ProcessingBannerJob.swift */; };
 		C5A7BDAF2F1713FA00D99B07 /* PDFProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDAD2F1713FA00D99B07 /* PDFProcessor.swift */; };
 		C5A7BDB02F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDAC2F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift */; };
 		C5A7BDB42F1714B100D99B07 /* PDFDocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A7BDB12F1714B100D99B07 /* PDFDocumentPicker.swift */; };
@@ -760,6 +768,14 @@
 		C5A257502F342ECF0091E198 /* ProcessingBottomBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingBottomBanner.swift; sourceTree = "<group>"; };
 		C5A257542F342EEA0091E198 /* ImportProgressBannerContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProgressBannerContainer.swift; sourceTree = "<group>"; };
 		C5A257562F342EF30091E198 /* ImportJob+ProcessingBannerJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ImportJob+ProcessingBannerJob.swift"; sourceTree = "<group>"; };
+		C5A257612F3455A40091E198 /* CollectionImageRefreshTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionImageRefreshTask.swift; sourceTree = "<group>"; };
+		C5A257622F3455A40091E198 /* JobCleanupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobCleanupService.swift; sourceTree = "<group>"; };
+		C5A2576B2F345FC50091E198 /* UnifiedProcessingBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedProcessingBanner.swift; sourceTree = "<group>"; };
+		C5A2576C2F345FC50091E198 /* UnifiedProcessingQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedProcessingQueueView.swift; sourceTree = "<group>"; };
+		C5A2576F2F345FD30091E198 /* ProcessingQueueManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingQueueManager.swift; sourceTree = "<group>"; };
+		C5A257712F3460D50091E198 /* ProcessingJobCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingJobCard.swift; sourceTree = "<group>"; };
+		C5A257772F3463F80091E198 /* RecipeGenerationJob+ProcessingBannerJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RecipeGenerationJob+ProcessingBannerJob.swift"; sourceTree = "<group>"; };
+		C5A257792F34640B0091E198 /* VideoProcessingJob+ProcessingBannerJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VideoProcessingJob+ProcessingBannerJob.swift"; sourceTree = "<group>"; };
 		C5A7BDAC2F1713FA00D99B07 /* MultiPageRecipeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiPageRecipeAnalyzer.swift; sourceTree = "<group>"; };
 		C5A7BDAD2F1713FA00D99B07 /* PDFProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFProcessor.swift; sourceTree = "<group>"; };
 		C5A7BDB12F1714B100D99B07 /* PDFDocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocumentPicker.swift; sourceTree = "<group>"; };
@@ -1143,6 +1159,8 @@
 		68C591EBBCE068B9053F84AA /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C5A2576F2F345FD30091E198 /* ProcessingQueueManager.swift */,
+				C5A257632F3455A40091E198 /* BackgroundTasks */,
 				C5EF775C2F2FC6140097779E /* DuplicateDetection */,
 				C5EF75B52F2EF4A40097779E /* Discovery */,
 				C75F52ACB0394FFEBF87F1D1 /* Diagnostics */,
@@ -1315,6 +1333,7 @@
 		99534F5D5C4435D669F1B56B /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C5A257772F3463F80091E198 /* RecipeGenerationJob+ProcessingBannerJob.swift */,
 				C5A250322F32405E0091E198 /* QueuedPDFImport.swift */,
 				C5A250332F32405E0091E198 /* UserCredits.swift */,
 				C5EF77812F312EC30097779E /* RecipeGenerationJob.swift */,
@@ -1857,6 +1876,7 @@
 		C58324F22F14803C0096478E /* VideoProcessing */ = {
 			isa = PBXGroup;
 			children = (
+				C5A257672F345FA10091E198 /* Models */,
 				C58324F12F14803C0096478E /* Views */,
 			);
 			path = VideoProcessing;
@@ -1989,10 +2009,30 @@
 		C5A257512F342ECF0091E198 /* Progress */ = {
 			isa = PBXGroup;
 			children = (
+				C5A257712F3460D50091E198 /* ProcessingJobCard.swift */,
+				C5A2576B2F345FC50091E198 /* UnifiedProcessingBanner.swift */,
+				C5A2576C2F345FC50091E198 /* UnifiedProcessingQueueView.swift */,
 				C5A2574F2F342ECF0091E198 /* ProcessingBannerJob.swift */,
 				C5A257502F342ECF0091E198 /* ProcessingBottomBanner.swift */,
 			);
 			path = Progress;
+			sourceTree = "<group>";
+		};
+		C5A257632F3455A40091E198 /* BackgroundTasks */ = {
+			isa = PBXGroup;
+			children = (
+				C5A257612F3455A40091E198 /* CollectionImageRefreshTask.swift */,
+				C5A257622F3455A40091E198 /* JobCleanupService.swift */,
+			);
+			path = BackgroundTasks;
+			sourceTree = "<group>";
+		};
+		C5A257672F345FA10091E198 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				C5A257792F34640B0091E198 /* VideoProcessingJob+ProcessingBannerJob.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 		C5A7BDAE2F1713FA00D99B07 /* PDF */ = {
@@ -2801,6 +2841,8 @@
 				C583FFAE2F0CAA6E0096478E /* FirebaseConfiguration.swift in Sources */,
 				C583FFAF2F0CAA6E0096478E /* FirebaseRecordConverter.swift in Sources */,
 				C5364FE52F27F071003D342E /* UXCopy.swift in Sources */,
+				C5A257642F3455A40091E198 /* CollectionImageRefreshTask.swift in Sources */,
+				C5A257652F3455A40091E198 /* JobCleanupService.swift in Sources */,
 				2F46430BA53D29AE89C05522 /* EmptyStateView.swift in Sources */,
 				C5CE3F2D2F2D1B2000A2E62F /* UserProfilePreviewSheet.swift in Sources */,
 				C5CE3F2E2F2D1B2000A2E62F /* UserSearchView.swift in Sources */,
@@ -2898,7 +2940,10 @@
 				C5E955312F054271006CD3C2 /* RecipeVersionSelector.swift in Sources */,
 				C583FFCF2F0CB7480096478E /* BlurHashEncoder.swift in Sources */,
 				C583070D2F0EC5480096478E /* HTMLSanitizer.swift in Sources */,
+				C5A257702F345FD30091E198 /* ProcessingQueueManager.swift in Sources */,
 				C583070E2F0EC5480096478E /* ValidationService.swift in Sources */,
+				C5A2576D2F345FC50091E198 /* UnifiedProcessingBanner.swift in Sources */,
+				C5A2576E2F345FC50091E198 /* UnifiedProcessingQueueView.swift in Sources */,
 				C58319772F123D140096478E /* ASMRRecipeExtraction.swift in Sources */,
 				C5DBEC612F200E2000C1B6BA /* SharedConstants.swift in Sources */,
 				C583070F2F0EC5480096478E /* FilePathValidator.swift in Sources */,
@@ -2918,6 +2963,7 @@
 				C5CE3EFC2F2CCE8700A2E62F /* ConnectionNotification.swift in Sources */,
 				C5CE3EFD2F2CCE8700A2E62F /* PrivacySettings.swift in Sources */,
 				C58316302F119A030096478E /* AugmentedIngredientEditRow.swift in Sources */,
+				C5A2577A2F34640B0091E198 /* VideoProcessingJob+ProcessingBannerJob.swift in Sources */,
 				C58316312F119A030096478E /* VideoImportView.swift in Sources */,
 				C5EF77962F316D610097779E /* FirebaseGoogleVisionService.swift in Sources */,
 				C5831EBB2F135F060096478E /* TabNavigationCoordinator.swift in Sources */,
@@ -3017,6 +3063,7 @@
 				C583197F2F123D280096478E /* ASMRPassProgressCard.swift in Sources */,
 				C5CE3F2A2F2D1B1000A2E62F /* UserSearchResult.swift in Sources */,
 				C58319802F123D280096478E /* ASMRUsageBadge.swift in Sources */,
+				C5A257722F3460D50091E198 /* ProcessingJobCard.swift in Sources */,
 				C5364FEF2F2876C5003D342E /* MeasurementConversionService.swift in Sources */,
 				C5364FF02F2876C5003D342E /* IngredientFormatter.swift in Sources */,
 				C58319812F123D280096478E /* ASMRProcessingView.swift in Sources */,
@@ -3045,6 +3092,7 @@
 				64CF275134BD2DF05BC42B58 /* SchemaV1.swift in Sources */,
 				1086A03B0F949141C61B5D54 /* ServingSelector.swift in Sources */,
 				218A8EDAF2DFA141EFA33091 /* SettingsView.swift in Sources */,
+				C5A257782F3463F80091E198 /* RecipeGenerationJob+ProcessingBannerJob.swift in Sources */,
 				E22C72C65B878B0F11D713E1 /* TrialDebugView.swift in Sources */,
 				A41FEDF5357B4C3BBA121A88 /* MigrationTestView.swift in Sources */,
 				C5EF77672F304F000097779E /* VisualStyle.swift in Sources */,
