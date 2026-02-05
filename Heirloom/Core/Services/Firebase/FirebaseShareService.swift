@@ -362,6 +362,20 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             "share_type": options.shareType.rawValue
         ])
 
+        // 5. Trigger demo social behavior for demo user recipients
+        Task { @MainActor in
+            for recipientId in recipientUserIds {
+                if DemoSocialBehaviorService.demoUserIds.contains(recipientId) {
+                    DemoSocialBehaviorService.shared.onRecipeSharedWithDemoUser(
+                        shareId: shareId,
+                        recipeId: recipe.id.uuidString,
+                        recipeTitle: recipe.title,
+                        demoUserId: recipientId
+                    )
+                }
+            }
+        }
+
         logger.log("Direct share created successfully", category: .firebase, level: .info, metadata: ["shareId": shareId, "recipientCount": recipientUserIds.count])
 
         return (shareId, shareURL)

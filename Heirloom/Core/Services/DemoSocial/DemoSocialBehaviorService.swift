@@ -705,4 +705,462 @@ final class DemoSocialBehaviorService: ObservableObject {
 
         scheduleRecipeShare(demoUserId: demoUserId, connectionId: connectionId)
     }
+
+    // MARK: - User Shares Recipe With Demo Connection
+
+    /// Delay range for demo user to accept a shared recipe (seconds)
+    private let shareAcceptDelayRange: ClosedRange<Double> = 5...30
+
+    /// Delay range for demo user to modify the recipe after accepting (seconds)
+    private let recipeModifyDelayRange: ClosedRange<Double> = 120...300  // 2-5 minutes
+
+    /// Call this when user shares a recipe with a demo connection
+    /// Schedules auto-accept and subsequent recipe modification
+    func onRecipeSharedWithDemoUser(
+        shareId: String,
+        recipeId: String,
+        recipeTitle: String,
+        demoUserId: String
+    ) {
+        guard gate.isEnabled else { return }
+        guard isDemoUser(demoUserId) else { return }
+
+        scheduleShareAcceptance(
+            shareId: shareId,
+            recipeId: recipeId,
+            recipeTitle: recipeTitle,
+            demoUserId: demoUserId
+        )
+    }
+
+    /// Schedule demo user acceptance of a shared recipe
+    private func scheduleShareAcceptance(
+        shareId: String,
+        recipeId: String,
+        recipeTitle: String,
+        demoUserId: String
+    ) {
+        let delay = Double.random(in: shareAcceptDelayRange)
+
+        Log.info("Scheduling demo share acceptance", category: .social, metadata: [
+            "shareId": shareId,
+            "demoUserId": demoUserId,
+            "delaySeconds": delay
+        ])
+
+        let taskKey = "shareAccept_\(shareId)"
+        scheduledTasks[taskKey]?.cancel()
+
+        scheduledTasks[taskKey] = Task {
+            do {
+                try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+
+                guard !Task.isCancelled else { return }
+                guard gate.isEnabled else { return }
+
+                await performShareAcceptance(
+                    shareId: shareId,
+                    recipeId: recipeId,
+                    recipeTitle: recipeTitle,
+                    demoUserId: demoUserId
+                )
+            } catch {
+                // Task was cancelled
+            }
+        }
+    }
+
+    /// Perform demo user acceptance of the shared recipe
+    private func performShareAcceptance(
+        shareId: String,
+        recipeId: String,
+        recipeTitle: String,
+        demoUserId: String
+    ) async {
+        guard let userId = auth.currentUser?.uid else { return }
+        guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
+
+        let now = Date()
+
+        // Update share document to mark as accepted by demo user
+        do {
+            try await db.collection("shares").document(shareId).updateData([
+                "acceptedBy": FieldValue.arrayUnion([demoUserId]),
+                "acceptCount": FieldValue.increment(Int64(1)),
+                "lastAcceptedAt": Timestamp(date: now)
+            ])
+
+            Log.info("Demo user accepted shared recipe", category: .social, metadata: [
+                "shareId": shareId,
+                "demoUserId": demoUserId
+            ])
+
+            // Create notification for user that demo user accepted
+            let notificationId = UUID().uuidString
+            let notificationData: [String: Any] = [
+                "id": notificationId,
+                "type": "shareAccepted",
+                "actorUserId": demoUserId,
+                "actorDisplayName": demoInfo.displayName,
+                "actorPhotoURL": demoInfo.photoURL,
+                "shareId": shareId,
+                "recipeTitle": recipeTitle,
+                "timestamp": Timestamp(date: now),
+                "read": false,
+                "isDemoNotification": true
+            ]
+
+            try await db.collection("users")
+                .document(userId)
+                .collection("notifications")
+                .document(notificationId)
+                .setData(notificationData)
+
+            // Create lineage record for the demo user's "copy" of the recipe
+            await createDemoLineageRecord(
+                recipeId: recipeId,
+                demoUserId: demoUserId,
+                originalOwnerId: userId
+            )
+
+            // Schedule recipe modification after acceptance
+            scheduleRecipeModification(
+                shareId: shareId,
+                recipeId: recipeId,
+                recipeTitle: recipeTitle,
+                demoUserId: demoUserId
+            )
+
+        } catch {
+            Log.error("Failed to accept share for demo user", category: .social, error: error)
+        }
+
+        scheduledTasks.removeValue(forKey: "shareAccept_\(shareId)")
+    }
+
+    /// Create a lineage record for the demo user's copy of the shared recipe
+    private func createDemoLineageRecord(
+        recipeId: String,
+        demoUserId: String,
+        originalOwnerId: String
+    ) async {
+        guard let recipeUUID = UUID(uuidString: recipeId) else { return }
+
+        let lineageId = UUID().uuidString
+        let now = Date()
+
+        // Create lineage record for demo user (generation 1)
+        let lineageData: [String: Any] = [
+            "id": lineageId,
+            "rootRecipeId": recipeId,
+            "parentRecipeId": recipeId,
+            "currentRecipeId": recipeId,  // Same recipe ID for collaborative editing
+            "ownerId": demoUserId,
+            "rootOwnerId": originalOwnerId,
+            "generation": 1,
+            "createdAt": Timestamp(date: now),
+            "lastModified": Timestamp(date: now),
+            "isHeirloom": true,
+            "hasLocalModifications": false,
+            "modifications": []
+        ]
+
+        do {
+            // Store in global lineages collection (for cross-user queries)
+            try await db.collection("lineages").document(lineageId).setData(lineageData)
+
+            Log.info("Created demo user lineage record", category: .social, metadata: [
+                "lineageId": lineageId,
+                "demoUserId": demoUserId
+            ])
+        } catch {
+            Log.error("Failed to create demo lineage record", category: .social, error: error)
+        }
+    }
+
+    /// Schedule demo user modification of the shared recipe
+    private func scheduleRecipeModification(
+        shareId: String,
+        recipeId: String,
+        recipeTitle: String,
+        demoUserId: String
+    ) {
+        let delay = Double.random(in: recipeModifyDelayRange)
+
+        Log.info("Scheduling demo recipe modification", category: .social, metadata: [
+            "shareId": shareId,
+            "demoUserId": demoUserId,
+            "delaySeconds": delay
+        ])
+
+        let taskKey = "recipeModify_\(shareId)"
+        scheduledTasks[taskKey]?.cancel()
+
+        scheduledTasks[taskKey] = Task {
+            do {
+                try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+
+                guard !Task.isCancelled else { return }
+                guard gate.isEnabled else { return }
+
+                await performRecipeModification(
+                    shareId: shareId,
+                    recipeId: recipeId,
+                    recipeTitle: recipeTitle,
+                    demoUserId: demoUserId
+                )
+            } catch {
+                // Task was cancelled
+            }
+        }
+    }
+
+    /// Perform demo user modification of the shared recipe
+    private func performRecipeModification(
+        shareId: String,
+        recipeId: String,
+        recipeTitle: String,
+        demoUserId: String
+    ) async {
+        guard let userId = auth.currentUser?.uid else { return }
+        guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
+
+        // Pick a random modification theme
+        let modification = Self.recipeModifications.randomElement() ?? Self.recipeModifications[0]
+
+        let newTitle = modification.titlePrefix + recipeTitle
+        let now = Date()
+
+        // Update the recipe in Firestore (user's copy)
+        do {
+            let recipeRef = db.collection("users")
+                .document(userId)
+                .collection("recipes")
+                .document(recipeId)
+
+            // First fetch the current recipe to add ingredient
+            let recipeDoc = try await recipeRef.getDocument()
+
+            guard recipeDoc.exists else {
+                Log.warning("Recipe not found for demo modification", category: .social)
+                return
+            }
+
+            // Update recipe title
+            try await recipeRef.updateData([
+                "title": newTitle,
+                "modifiedAt": Timestamp(date: now)
+            ])
+
+            // Add the new ingredient to the recipe's ingredients subcollection
+            let ingredientId = UUID().uuidString
+            let ingredientData: [String: Any] = [
+                "id": ingredientId,
+                "name": modification.ingredientName,
+                "quantity": modification.ingredientQuantity,
+                "unit": modification.ingredientUnit,
+                "orderIndex": 999,  // Add at end
+                "isOptional": false,
+                "notes": "Added by \(demoInfo.displayName)",
+                "createdAt": Timestamp(date: now),
+                "updatedAt": Timestamp(date: now)
+            ]
+
+            try await db.collection("users")
+                .document(userId)
+                .collection("recipes")
+                .document(recipeId)
+                .collection("ingredients")
+                .document(ingredientId)
+                .setData(ingredientData)
+
+            Log.info("Demo user modified shared recipe", category: .social, metadata: [
+                "recipeId": recipeId,
+                "newTitle": newTitle,
+                "addedIngredient": modification.ingredientName,
+                "demoUserId": demoUserId
+            ])
+
+            // Record the modification in lineage and notify user
+            await recordDemoModification(
+                recipeId: recipeId,
+                demoUserId: demoUserId,
+                modificationDescription: modification.description,
+                userId: userId
+            )
+
+            // Create notification for user about the modification
+            await createModificationNotification(
+                userId: userId,
+                demoUserId: demoUserId,
+                recipeId: recipeId,
+                recipeTitle: recipeTitle,
+                newTitle: newTitle,
+                modificationDescription: modification.description
+            )
+
+        } catch {
+            Log.error("Failed to modify recipe for demo user", category: .social, error: error)
+        }
+
+        scheduledTasks.removeValue(forKey: "recipeModify_\(shareId)")
+    }
+
+    /// Record the demo modification in lineage system
+    private func recordDemoModification(
+        recipeId: String,
+        demoUserId: String,
+        modificationDescription: String,
+        userId: String
+    ) async {
+        guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
+
+        let now = Date()
+        let modificationId = UUID().uuidString
+
+        // Create modification record
+        let modificationData: [String: Any] = [
+            "id": modificationId,
+            "timestamp": Timestamp(date: now),
+            "modifiedBy": demoUserId,
+            "modifiedByName": demoInfo.displayName,
+            "changeType": "ingredient_added",
+            "changeDescription": modificationDescription,
+            "fieldChanged": "ingredients"
+        ]
+
+        // Find and update the demo user's lineage record
+        do {
+            let lineageQuery = db.collection("lineages")
+                .whereField("ownerId", isEqualTo: demoUserId)
+                .whereField("currentRecipeId", isEqualTo: recipeId)
+
+            let snapshot = try await lineageQuery.getDocuments()
+
+            if let lineageDoc = snapshot.documents.first {
+                try await lineageDoc.reference.updateData([
+                    "modifications": FieldValue.arrayUnion([modificationData]),
+                    "lastModified": Timestamp(date: now),
+                    "hasLocalModifications": true
+                ])
+
+                Log.info("Recorded demo modification in lineage", category: .social)
+            }
+        } catch {
+            Log.error("Failed to record demo modification in lineage", category: .social, error: error)
+        }
+    }
+
+    /// Create notification for user about demo user's modification
+    private func createModificationNotification(
+        userId: String,
+        demoUserId: String,
+        recipeId: String,
+        recipeTitle: String,
+        newTitle: String,
+        modificationDescription: String
+    ) async {
+        guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
+
+        let notificationId = UUID().uuidString
+        let now = Date()
+
+        let notificationData: [String: Any] = [
+            "id": notificationId,
+            "type": "lineage_modification",
+            "actorUserId": demoUserId,
+            "actorDisplayName": demoInfo.displayName,
+            "actorPhotoURL": demoInfo.photoURL,
+            "recipeId": recipeId,
+            "recipeTitle": newTitle,
+            "originalTitle": recipeTitle,
+            "changeType": "ingredient_added",
+            "changeDescription": modificationDescription,
+            "timestamp": Timestamp(date: now),
+            "read": false,
+            "isDemoNotification": true
+        ]
+
+        do {
+            try await db.collection("users")
+                .document(userId)
+                .collection("notifications")
+                .document(notificationId)
+                .setData(notificationData)
+
+            Log.info("Created modification notification for user", category: .social)
+        } catch {
+            Log.error("Failed to create modification notification", category: .social, error: error)
+        }
+    }
+
+    // MARK: - Recipe Modification Themes
+
+    /// Predefined recipe modifications for demo users
+    private struct RecipeModification {
+        let titlePrefix: String
+        let ingredientName: String
+        let ingredientQuantity: String
+        let ingredientUnit: String
+        let description: String
+    }
+
+    private static let recipeModifications: [RecipeModification] = [
+        RecipeModification(
+            titlePrefix: "Spicy ",
+            ingredientName: "jalapeño pepper, diced",
+            ingredientQuantity: "1",
+            ingredientUnit: "",
+            description: "Made it spicy by adding jalapeño"
+        ),
+        RecipeModification(
+            titlePrefix: "Garlic Lover's ",
+            ingredientName: "extra garlic cloves, minced",
+            ingredientQuantity: "3",
+            ingredientUnit: "",
+            description: "Added extra garlic for more flavor"
+        ),
+        RecipeModification(
+            titlePrefix: "Cheesy ",
+            ingredientName: "shredded parmesan cheese",
+            ingredientQuantity: "½",
+            ingredientUnit: "cup",
+            description: "Made it cheesier with extra parmesan"
+        ),
+        RecipeModification(
+            titlePrefix: "Herb-Infused ",
+            ingredientName: "fresh rosemary, chopped",
+            ingredientQuantity: "2",
+            ingredientUnit: "tbsp",
+            description: "Added fresh rosemary for an herby twist"
+        ),
+        RecipeModification(
+            titlePrefix: "Smoky ",
+            ingredientName: "smoked paprika",
+            ingredientQuantity: "1",
+            ingredientUnit: "tsp",
+            description: "Added smoked paprika for a smoky flavor"
+        ),
+        RecipeModification(
+            titlePrefix: "Zesty ",
+            ingredientName: "lemon zest",
+            ingredientQuantity: "1",
+            ingredientUnit: "tbsp",
+            description: "Added lemon zest for brightness"
+        ),
+        RecipeModification(
+            titlePrefix: "Honey-Glazed ",
+            ingredientName: "honey",
+            ingredientQuantity: "2",
+            ingredientUnit: "tbsp",
+            description: "Added honey for a sweet glaze"
+        ),
+        RecipeModification(
+            titlePrefix: "Crispy ",
+            ingredientName: "panko breadcrumbs",
+            ingredientQuantity: "¼",
+            ingredientUnit: "cup",
+            description: "Added panko for extra crunch"
+        )
+    ]
 }
