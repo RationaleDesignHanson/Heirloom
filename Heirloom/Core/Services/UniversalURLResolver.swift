@@ -41,6 +41,19 @@ actor UniversalURLResolver {
     // Desktop user agent to trigger redirects instead of app deep links
     private let desktopUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
+    /// Configured URLSession for network requests
+    private let session: URLSession
+
+    // MARK: - Initialization
+
+    init() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 15
+        config.timeoutIntervalForResource = 30
+        config.waitsForConnectivity = true
+        self.session = URLSession(configuration: config)
+    }
+
     // MARK: - Public API
 
     /// Detects if a URL is from a supported aggregation service
@@ -283,7 +296,7 @@ actor UniversalURLResolver {
         request.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
         request.httpMethod = "GET"
 
-        let (_, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await session.data(for: request)
 
         // Get final URL after redirects
         if let httpResponse = response as? HTTPURLResponse,
@@ -303,7 +316,7 @@ actor UniversalURLResolver {
         request.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
         request.httpMethod = "GET"
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NSError(domain: "UniversalURLResolver", code: 5, userInfo: [NSLocalizedDescriptionKey: "Invalid response type"])

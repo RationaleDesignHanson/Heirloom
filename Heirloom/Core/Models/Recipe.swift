@@ -283,6 +283,46 @@ final class Recipe {
     /// Nil for untranslated recipes
     var translatedAt: Date?
 
+    // MARK: - Processing Status (Progressive Enhancement)
+
+    /// Current processing status for placeholder recipes
+    /// .ready = normal recipe, .processing = being imported, .failed = import failed
+    var processingStatusRaw: String = RecipeProcessingStatus.ready.rawValue
+
+    /// ID of the linked processing job (VideoProcessingJob or ImportJob)
+    /// Used to connect placeholder recipe to its source job for progress tracking
+    var linkedProcessingJobId: UUID?
+
+    /// Type of linked job ("video" or "import")
+    var linkedProcessingJobType: String?
+
+    /// Processing progress (0.0 to 1.0) for display in recipe list
+    var processingProgress: Double = 0.0
+
+    /// Error message if processing failed
+    var processingErrorMessage: String?
+
+    /// Computed property for processing status enum
+    var processingStatus: RecipeProcessingStatus {
+        get { RecipeProcessingStatus(rawValue: processingStatusRaw) ?? .ready }
+        set { processingStatusRaw = newValue.rawValue }
+    }
+
+    /// Whether this recipe is currently being processed
+    var isProcessing: Bool {
+        processingStatus == .processing
+    }
+
+    /// Whether this recipe failed to process
+    var didFailProcessing: Bool {
+        processingStatus == .failed
+    }
+
+    /// Alias for didFailProcessing for UI consistency
+    var isProcessingFailed: Bool {
+        didFailProcessing
+    }
+
     // MARK: - Initialization
     init(
         title: String = "",
@@ -922,6 +962,38 @@ extension Recipe {
     }
 }
 
+// MARK: - RecipeProcessingStatus
+
+/// Processing status for placeholder recipes during import
+enum RecipeProcessingStatus: String, Codable, CaseIterable {
+    case ready = "ready"           // Normal recipe, fully imported
+    case processing = "processing" // Currently being imported/processed
+    case failed = "failed"         // Import/processing failed
+
+    /// Display text for the status
+    var displayText: String {
+        switch self {
+        case .ready: return ""
+        case .processing: return "Processing..."
+        case .failed: return "Import Failed"
+        }
+    }
+
+    /// Icon name for the status
+    var iconName: String {
+        switch self {
+        case .ready: return ""
+        case .processing: return "arrow.trianglehead.2.clockwise.rotate.90"
+        case .failed: return "exclamationmark.triangle.fill"
+        }
+    }
+
+    /// Whether the recipe can be viewed/edited
+    var isInteractive: Bool {
+        self == .ready
+    }
+}
+
 // MARK: - RecipeSourceType
 enum RecipeSourceType: String, Codable, CaseIterable {
     case url = "url"
@@ -1070,6 +1142,151 @@ extension Recipe {
         recipe.maximumServings = 96
 
         return recipe
+    }
+}
+
+// MARK: - Processing Placeholder Factory
+
+extension Recipe {
+    /// Create a placeholder recipe for a video processing job
+    /// The placeholder appears in the recipe list immediately while processing continues
+    /// - Parameters:
+    ///   - jobId: The VideoProcessingJob ID
+    ///   - thumbnailData: Optional thumbnail data from the video
+    ///   - sourceURL: Optional source URL for attribution
+    /// - Returns: A placeholder recipe in processing state
+    @MainActor
+    static func createVideoProcessingPlaceholder(
+        jobId: UUID,
+        thumbnailData: Data? = nil,
+        sourceURL: String? = nil
+    ) -> Recipe {
+        let recipe = Recipe(
+            title: "Processing Video...",
+            sourceType: .video,
+            sourceURL: sourceURL
+        )
+        recipe.processingStatus = .processing
+        recipe.linkedProcessingJobId = jobId
+        recipe.linkedProcessingJobType = "video"
+        recipe.processingProgress = 0.0
+
+        // Store thumbnail if available
+        if let thumbnailData = thumbnailData,
+           let image = UIImage(data: thumbnailData) {
+            // Capture recipe ID before Task to avoid Sendable warning
+            let recipeId = recipe.id
+            Task { @MainActor in
+                let imageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+                if let fileName = try? await imageService.saveImage(image, recipeId: recipeId) {
+                    recipe.imageFileName = fileName
+                }
+            }
+        }
+
+        return recipe
+    }
+
+    /// Create a placeholder recipe for a PDF/bulk import job
+    /// - Parameters:
+    ///   - jobId: The ImportJob ID
+    ///   - itemIndex: The index of this recipe within the import job
+    ///   - cookbookName: Optional cookbook name for display
+    /// - Returns: A placeholder recipe in processing state
+    static func createImportPlaceholder(
+        jobId: UUID,
+        itemIndex: Int,
+        cookbookName: String? = nil
+    ) -> Recipe {
+        let displayTitle = cookbookName != nil
+            ? "Importing from \(cookbookName!)..."
+            : "Importing Recipe..."
+
+        let recipe = Recipe(
+            title: displayTitle,
+            sourceType: .cookbook
+        )
+        recipe.processingStatus = .processing
+        recipe.linkedProcessingJobId = jobId
+        recipe.linkedProcessingJobType = "import"
+        recipe.processingProgress = 0.0
+        recipe.sourceCookbook = cookbookName
+
+        return recipe
+    }
+
+    /// Create a placeholder recipe for AI generation (unified UX with imports)
+    /// - Parameters:
+    ///   - jobId: The RecipeGenerationJob ID
+    ///   - dishName: The dish name being generated
+    ///   - isVoiceDictation: Whether this is from voice dictation
+    ///   - isSillyRecipe: Whether this is an Easter egg silly recipe
+    /// - Returns: A placeholder recipe in processing state
+    static func createGenerationPlaceholder(
+        jobId: UUID,
+        dishName: String,
+        isVoiceDictation: Bool = false,
+        isSillyRecipe: Bool = false
+    ) -> Recipe {
+        let displayTitle: String
+        if isVoiceDictation {
+            displayTitle = "Transcribing Recipe..."
+        } else if isSillyRecipe {
+            displayTitle = "Generating Surprise..."
+        } else {
+            displayTitle = "Generating \(dishName)..."
+        }
+
+        let recipe = Recipe(
+            title: displayTitle,
+            sourceType: .generated
+        )
+        recipe.processingStatus = .processing
+        recipe.linkedProcessingJobId = jobId
+        recipe.linkedProcessingJobType = "generation"
+        recipe.processingProgress = 0.0
+        recipe.aiGenerated = true
+        recipe.voiceDictated = isVoiceDictation
+
+        return recipe
+    }
+
+    /// Update placeholder with actual recipe data after processing completes
+    /// - Parameter extractedData: The extracted recipe data
+    func updateFromProcessingResult(
+        title: String,
+        instructions: [String],
+        servings: String? = nil,
+        prepTime: String? = nil,
+        cookTime: String? = nil,
+        notes: String? = nil,
+        imageFileName: String? = nil
+    ) {
+        self.title = title
+        self.instructions = instructions
+        self.servings = servings
+        self.prepTime = prepTime
+        self.cookTime = cookTime
+        self.notes = notes
+        if let imageFileName = imageFileName {
+            self.imageFileName = imageFileName
+        }
+
+        // Mark as ready
+        self.processingStatus = .ready
+        self.processingProgress = 1.0
+        self.linkedProcessingJobId = nil
+        self.linkedProcessingJobType = nil
+        self.processingErrorMessage = nil
+        self.lastModified = Date()
+    }
+
+    /// Mark placeholder as failed
+    /// - Parameter errorMessage: The error message to display
+    func markProcessingFailed(errorMessage: String) {
+        self.processingStatus = .failed
+        self.processingErrorMessage = errorMessage
+        self.title = "Import Failed"
     }
 }
 

@@ -176,6 +176,12 @@ final class ImportJobManager: ObservableObject {
 
             item.job = job
             context.insert(item)
+
+            // Create placeholder recipe for non-skipped items (progressive enhancement)
+            if item.status != .skipped {
+                createPlaceholderRecipe(for: item, job: job, context: context)
+            }
+
             items.append(item)
         }
 
@@ -522,13 +528,18 @@ final class ImportJobManager: ObservableObject {
 
             item.job = job
             context.insert(item)
+
+            // Create placeholder recipe for progressive enhancement (immediate UI feedback)
+            createPlaceholderRecipe(for: item, job: job, context: context)
+
             items.append(item)
 
             Log.info("Created import item from text extraction", category: .import, metadata: [
                 "file": pdfURL.lastPathComponent,
                 "title": boundary.title,
                 "pages": "\(boundary.startPage)-\(boundary.endPage)",
-                "has_pre_extracted": extractedRecipe != nil
+                "has_pre_extracted": extractedRecipe != nil,
+                "placeholder_id": item.placeholderRecipeID?.uuidString ?? "none"
             ])
         }
 
@@ -605,6 +616,10 @@ final class ImportJobManager: ObservableObject {
 
                 item.job = job
                 context.insert(item)
+
+                // Create placeholder recipe for progressive enhancement (immediate UI feedback)
+                createPlaceholderRecipe(for: item, job: job, context: context)
+
                 items.append(item)
             }
 
@@ -652,6 +667,9 @@ final class ImportJobManager: ObservableObject {
             )
             item.job = job
             context.insert(item)
+
+            // Create placeholder recipe for progressive enhancement (immediate UI feedback)
+            createPlaceholderRecipe(for: item, job: job, context: context)
         }
 
         try context.save()
@@ -690,6 +708,9 @@ final class ImportJobManager: ObservableObject {
             )
             item.job = job
             context.insert(item)
+
+            // Create placeholder recipe for progressive enhancement (immediate UI feedback)
+            createPlaceholderRecipe(for: item, job: job, context: context)
         }
 
         try context.save()
@@ -991,6 +1012,9 @@ final class ImportJobManager: ObservableObject {
 
             item.job = job
             context.insert(item)
+
+            // Create placeholder recipe for progressive enhancement (immediate UI feedback)
+            createPlaceholderRecipe(for: item, job: job, context: context)
         }
 
         job.items = job.items ?? []
@@ -1098,6 +1122,110 @@ final class ImportJobManager: ObservableObject {
         try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
     }
 
+    // MARK: - Placeholder Management (Progressive Enhancement)
+
+    /// Create a placeholder recipe for an ImportItem for immediate UI feedback
+    /// The placeholder appears in the recipe list with "Processing..." status while extraction happens
+    private func createPlaceholderRecipe(
+        for item: ImportItem,
+        job: ImportJob,
+        context: ModelContext
+    ) {
+        let placeholder = Recipe.createImportPlaceholder(
+            jobId: job.id,
+            itemIndex: item.pageNumber ?? 0,
+            cookbookName: job.cookbookName
+        )
+
+        // Store thumbnail/source image if available
+        if let imageData = item.imageData,
+           let image = UIImage(data: imageData) {
+            Task {
+                let imageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+                if let fileName = try? await imageService.saveImage(image, recipeId: placeholder.id) {
+                    await MainActor.run {
+                        placeholder.imageFileName = fileName
+                    }
+                }
+            }
+        }
+
+        context.insert(placeholder)
+        item.placeholderRecipeID = placeholder.id
+
+        Log.info("Created placeholder recipe", category: .import, metadata: [
+            "placeholder_id": placeholder.id.uuidString,
+            "item_id": item.id.uuidString,
+            "page_number": item.pageNumber ?? -1
+        ])
+    }
+
+    /// Update a placeholder recipe with extracted data
+    private func updatePlaceholderWithExtraction(
+        _ placeholder: Recipe,
+        from extractedRecipe: Recipe,
+        item: ImportItem
+    ) {
+        // Transfer all data from extracted recipe to placeholder
+        placeholder.title = extractedRecipe.title
+        placeholder.instructions = extractedRecipe.instructions
+        placeholder.servings = extractedRecipe.servings
+        placeholder.prepTime = extractedRecipe.prepTime
+        placeholder.cookTime = extractedRecipe.cookTime
+        placeholder.notes = extractedRecipe.notes
+        placeholder.sourceType = extractedRecipe.sourceType
+        placeholder.sourceURL = extractedRecipe.sourceURL
+        placeholder.sourceBookTitle = extractedRecipe.sourceBookTitle ?? item.cookbookTitle
+        placeholder.sourceBookAuthor = extractedRecipe.sourceBookAuthor ?? item.cookbookAuthor
+
+        // Transfer ingredients
+        if let extractedIngredients = extractedRecipe.ingredients {
+            for ingredient in extractedIngredients {
+                ingredient.recipe = placeholder
+            }
+            placeholder.ingredients = extractedIngredients
+        }
+
+        // Transfer image if extracted recipe has one
+        if let imageFileName = extractedRecipe.imageFileName, placeholder.imageFileName == nil {
+            placeholder.imageFileName = imageFileName
+        }
+
+        // Mark as complete
+        placeholder.processingStatus = .ready
+        placeholder.processingProgress = 1.0
+        placeholder.processingErrorMessage = nil
+
+        Log.info("Updated placeholder with extraction", category: .import, metadata: [
+            "placeholder_id": placeholder.id.uuidString,
+            "title": placeholder.title
+        ])
+    }
+
+    /// Mark a placeholder recipe as failed
+    private func markPlaceholderFailed(
+        _ placeholder: Recipe,
+        errorMessage: String
+    ) {
+        placeholder.processingStatus = .failed
+        placeholder.processingErrorMessage = errorMessage
+
+        Log.info("Marked placeholder as failed", category: .import, metadata: [
+            "placeholder_id": placeholder.id.uuidString,
+            "error": errorMessage
+        ])
+    }
+
+    /// Find placeholder recipe for an ImportItem
+    private func findPlaceholder(for item: ImportItem, context: ModelContext) -> Recipe? {
+        guard let placeholderID = item.placeholderRecipeID else { return nil }
+
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { $0.id == placeholderID }
+        )
+        return try? context.fetch(descriptor).first
+    }
+
     // MARK: - Item Processing
 
     private func processItem(_ item: ImportItem, job: ImportJob, context: ModelContext) async {
@@ -1106,8 +1234,18 @@ final class ImportJobManager: ObservableObject {
             "job_id": job.id.uuidString,
             "source": item.source.rawValue,
             "has_image_data": item.imageData != nil,
-            "image_data_size_kb": (item.imageData?.count ?? 0) / 1024
+            "image_data_size_kb": (item.imageData?.count ?? 0) / 1024,
+            "has_placeholder": item.placeholderRecipeID != nil
         ])
+
+        // Find placeholder recipe if it exists (created during analysis phase)
+        let placeholder = findPlaceholder(for: item, context: context)
+
+        // Update placeholder progress if exists
+        if let placeholder = placeholder {
+            placeholder.processingProgress = 0.1  // Show some progress
+            try? context.save()
+        }
 
         // Mark as processing
         item.startProcessing()
@@ -1210,17 +1348,45 @@ final class ImportJobManager: ObservableObject {
                         }
                     }
 
-                    // No exact duplicates - proceed with insertion
-                    recipesToInsert.append(recipe)
-                    context.insert(recipe)
+                    // No exact duplicates - proceed with insertion or placeholder update
+                    if index == 0, let placeholder = placeholder {
+                        // First recipe uses the placeholder (progressive enhancement)
+                        updatePlaceholderWithExtraction(placeholder, from: recipe, item: item)
+                        recipesToInsert.append(placeholder)
+                        // Transfer ingredients to placeholder's context
+                        if let ingredients = recipe.ingredients {
+                            for ingredient in ingredients {
+                                context.insert(ingredient)
+                            }
+                        }
+                        Log.info("✅ Updated placeholder with first recipe", category: .import, metadata: [
+                            "placeholder_id": placeholder.id.uuidString,
+                            "title": recipe.title
+                        ])
+                    } else {
+                        // Additional recipes get inserted normally
+                        recipesToInsert.append(recipe)
+                        context.insert(recipe)
+                    }
                 } catch {
                     // Duplicate detection failed - insert anyway (don't block import)
                     Log.warning("⚠️ Duplicate detection failed, inserting recipe anyway", category: .import, metadata: [
                         "title": recipe.title,
                         "error": error.localizedDescription
                     ])
-                    recipesToInsert.append(recipe)
-                    context.insert(recipe)
+                    if index == 0, let placeholder = placeholder {
+                        // Use placeholder even if duplicate detection failed
+                        updatePlaceholderWithExtraction(placeholder, from: recipe, item: item)
+                        recipesToInsert.append(placeholder)
+                        if let ingredients = recipe.ingredients {
+                            for ingredient in ingredients {
+                                context.insert(ingredient)
+                            }
+                        }
+                    } else {
+                        recipesToInsert.append(recipe)
+                        context.insert(recipe)
+                    }
                 }
             }
 
@@ -1244,6 +1410,14 @@ final class ImportJobManager: ObservableObject {
                 if !skippedDuplicates.isEmpty {
                     // Get the existing recipe IDs from the duplicates
                     let existingRecipeIDs = skippedDuplicates.compactMap { $0.1.first?.recipe.id }
+
+                    // Delete placeholder since all recipes were duplicates
+                    if let placeholder = placeholder {
+                        context.delete(placeholder)
+                        Log.info("Deleted placeholder - all recipes were duplicates", category: .import, metadata: [
+                            "placeholder_id": placeholder.id.uuidString
+                        ])
+                    }
 
                     // Mark as successful with the existing recipe IDs
                     item.markSuccess(recipeIDs: existingRecipeIDs)
@@ -1274,6 +1448,10 @@ final class ImportJobManager: ObservableObject {
                 }
 
                 // No recipes extracted and no duplicates - genuine failure
+                // Mark placeholder as failed before throwing
+                if let placeholder = placeholder {
+                    markPlaceholderFailed(placeholder, errorMessage: "No recipe could be extracted")
+                }
                 throw ImportJobError.noRecipeFound
             }
 
@@ -1384,6 +1562,11 @@ final class ImportJobManager: ObservableObject {
             item.markFailed(error: error.localizedDescription)
             job.updateProgress(success: false)
 
+            // Mark placeholder as failed (if not already marked in the noRecipeFound case)
+            if let placeholder = placeholder, placeholder.processingStatus != .failed {
+                markPlaceholderFailed(placeholder, errorMessage: error.localizedDescription)
+            }
+
             // Log detailed error information for debugging
             Log.error("❌ RECIPE EXTRACTION FAILED", category: .import, metadata: [
                 "job_id": job.id.uuidString,
@@ -1395,7 +1578,8 @@ final class ImportJobManager: ObservableObject {
                 "error_type": "\(type(of: error))",
                 "is_multi_page": item.isMultiPageRecipe ?? false,
                 "total_pages": item.totalPages ?? 0,
-                "retry_count": item.retryCount
+                "retry_count": item.retryCount,
+                "has_placeholder": placeholder != nil
             ])
 
             try? context.save()
@@ -2295,10 +2479,31 @@ final class ImportJobManager: ObservableObject {
             context.delete(checkpoint)
         }
 
-        // Delete all items
+        // Collect placeholder recipe IDs to delete
+        var placeholderIDsToDelete: [UUID] = []
         if let items = job.items {
             for item in items {
+                // Collect placeholder IDs that are still in processing state
+                if let placeholderID = item.placeholderRecipeID {
+                    placeholderIDsToDelete.append(placeholderID)
+                }
                 context.delete(item)
+            }
+        }
+
+        // Delete placeholder recipes that are still processing (not yet finalized)
+        for placeholderID in placeholderIDsToDelete {
+            let descriptor = FetchDescriptor<Recipe>(
+                predicate: #Predicate<Recipe> { $0.id == placeholderID }
+            )
+            if let placeholder = try? context.fetch(descriptor).first {
+                // Only delete if still in processing state (not finalized)
+                if placeholder.processingStatus == .processing || placeholder.processingStatus == .failed {
+                    context.delete(placeholder)
+                    Log.info("Deleted placeholder recipe with job", category: .import, metadata: [
+                        "placeholder_id": placeholderID.uuidString
+                    ])
+                }
             }
         }
 
@@ -2309,7 +2514,8 @@ final class ImportJobManager: ObservableObject {
 
         Log.info("Deleted import job", category: .import, metadata: [
             "job_id": job.id.uuidString,
-            "status": job.status.rawValue
+            "status": job.status.rawValue,
+            "placeholders_deleted": placeholderIDsToDelete.count
         ])
     }
 

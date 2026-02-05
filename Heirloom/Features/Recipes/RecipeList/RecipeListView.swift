@@ -455,8 +455,17 @@ struct RecipeListView: View {
                             isSelected: selectedRecipeIds.contains(recipe.id)
                         )
                         .onTapGesture {
-                            toggleSelection(for: recipe.id)
+                            // Don't allow selecting processing placeholders
+                            if !recipe.isProcessing && !recipe.isProcessingFailed {
+                                toggleSelection(for: recipe.id)
+                            }
                         }
+                    } else if recipe.isProcessing || recipe.isProcessingFailed {
+                        // Processing placeholders - no navigation, just show card
+                        RecipeCardView(
+                            recipe: recipe
+                        )
+                        // Tap on failed placeholder could show retry options in the future
                     } else {
                         NavigationLink(value: recipe) {
                             RecipeCardView(
@@ -473,50 +482,70 @@ struct RecipeListView: View {
                 .accessibilityLabel("\(recipe.title), \(recipe.sourceDisplayName)")
                 .accessibilityHint(isSelectionMode ? (selectedRecipeIds.contains(recipe.id) ? "Deselect recipe" : "Select recipe") : "Opens recipe details")
                 .contextMenu {
-                    Button {
-                        toggleFavorite(recipe)
-                    } label: {
-                        Label(
-                            recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-                            systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
-                        )
+                    // Processing placeholders have limited context menu
+                    if recipe.isProcessing {
+                        // Can only cancel processing (which deletes the placeholder)
+                        Button(role: .destructive) {
+                            recipeToDelete = recipe
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Cancel Import", systemImage: "xmark.circle")
+                        }
+                    } else if recipe.isProcessingFailed {
+                        // Failed placeholders can be deleted
+                        Button(role: .destructive) {
+                            recipeToDelete = recipe
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Remove", systemImage: "trash")
+                        }
+                    } else {
+                        // Normal recipes have full context menu
+                        Button {
+                            toggleFavorite(recipe)
+                        } label: {
+                            Label(
+                                recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                                systemImage: recipe.isFavorite ? "heart.slash" : "heart.fill"
+                            )
+                        }
+                        .accessibilityLabel(recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites")
+
+                        Button {
+                            toggleShoppingList(recipe)
+                        } label: {
+                            Label(
+                                recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List",
+                                systemImage: recipe.isInShoppingList ? "cart.badge.minus" : "cart.badge.plus"
+                            )
+                        }
+                        .accessibilityLabel(recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List")
+
+                        Button {
+                            recipeForCollectionPicker = recipe
+                        } label: {
+                            Label("Add to Collection", systemImage: "folder.badge.plus")
+                        }
+                        .accessibilityLabel("Add \(recipe.title) to collection")
+
+                        Divider()
+
+                        Button {
+                            generateAIImage(for: recipe)
+                        } label: {
+                            Label("Generate AI Image", systemImage: "sparkles")
+                        }
+
+                        Divider()
+
+                        Button(role: .destructive) {
+                            recipeToDelete = recipe
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                        .accessibilityLabel("Delete \(recipe.title)")
                     }
-                    .accessibilityLabel(recipe.isFavorite ? "Remove from Favorites" : "Add to Favorites")
-
-                    Button {
-                        toggleShoppingList(recipe)
-                    } label: {
-                        Label(
-                            recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List",
-                            systemImage: recipe.isInShoppingList ? "cart.badge.minus" : "cart.badge.plus"
-                        )
-                    }
-                    .accessibilityLabel(recipe.isInShoppingList ? "Remove from Shopping List" : "Add to Shopping List")
-
-                    Button {
-                        recipeForCollectionPicker = recipe
-                    } label: {
-                        Label("Add to Collection", systemImage: "folder.badge.plus")
-                    }
-                    .accessibilityLabel("Add \(recipe.title) to collection")
-
-                    Divider()
-
-                    Button {
-                        generateAIImage(for: recipe)
-                    } label: {
-                        Label("Generate AI Image", systemImage: "sparkles")
-                    }
-
-                    Divider()
-
-                    Button(role: .destructive) {
-                        recipeToDelete = recipe
-                        showDeleteConfirmation = true
-                    } label: {
-                        Label("Delete", systemImage: "trash")
-                    }
-                    .accessibilityLabel("Delete \(recipe.title)")
                 }
             }
         }
@@ -1448,6 +1477,13 @@ struct RecipeCardView: View {
         if let collection = collection, collection.type == .theme, recipe.isThemeRecipe {
             return collection.name
         }
+        // For processing recipes, show processing status
+        if recipe.isProcessing {
+            return "Processing..."
+        }
+        if recipe.isProcessingFailed {
+            return "Import failed"
+        }
         return recipe.sourceDisplayName
     }
 
@@ -1455,6 +1491,11 @@ struct RecipeCardView: View {
     private var placeholderIcon: String {
         guard isRecipeValid else { return "fork.knife" }
         return recipe.sourceType?.iconName ?? "fork.knife"
+    }
+
+    /// Whether this is a processing placeholder that should show special UI
+    private var isProcessingPlaceholder: Bool {
+        recipe.isProcessing || recipe.isProcessingFailed
     }
 
     var body: some View {
@@ -1581,6 +1622,11 @@ struct RecipeCardView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                         .transition(.scale.combined(with: .opacity))
                 }
+
+                // Processing overlay for placeholder recipes
+                if isProcessingPlaceholder {
+                    processingOverlay
+                }
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -1664,6 +1710,75 @@ struct RecipeCardView: View {
                 )
                 .animation(.easeInOut(duration: 0.2), value: isSelected)
         )
+    }
+
+    // MARK: - Processing Overlay
+
+    @ViewBuilder
+    private var processingOverlay: some View {
+        if recipe.isProcessing {
+            // Processing state - show spinner and progress
+            ZStack {
+                // Semi-transparent background
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                    .fill(.black.opacity(0.4))
+
+                VStack(spacing: HeirloomSpacing.sm) {
+                    // Circular progress indicator
+                    ZStack {
+                        Circle()
+                            .stroke(Color.white.opacity(0.3), lineWidth: 3)
+                            .frame(width: 44, height: 44)
+
+                        Circle()
+                            .trim(from: 0, to: recipe.processingProgress)
+                            .stroke(Color.white, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                            .frame(width: 44, height: 44)
+                            .rotationEffect(.degrees(-90))
+                            .animation(.easeInOut(duration: 0.3), value: recipe.processingProgress)
+
+                        // Percentage text
+                        Text("\(Int(recipe.processingProgress * 100))%")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+
+                    Text("Processing...")
+                        .font(HeirloomFonts.caption1.bold())
+                        .foregroundStyle(.white)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityLabel("Processing recipe, \(Int(recipe.processingProgress * 100)) percent complete")
+        } else if recipe.isProcessingFailed {
+            // Failed state - show error indicator
+            ZStack {
+                // Semi-transparent red-tinted background
+                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                    .fill(.black.opacity(0.5))
+
+                VStack(spacing: HeirloomSpacing.sm) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.title)
+                        .foregroundStyle(HeirloomColors.tomato)
+
+                    Text("Failed")
+                        .font(HeirloomFonts.caption1.bold())
+                        .foregroundStyle(.white)
+
+                    if let errorMessage = recipe.processingErrorMessage {
+                        Text(errorMessage)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.white.opacity(0.8))
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, HeirloomSpacing.sm)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityLabel("Recipe import failed: \(recipe.processingErrorMessage ?? "Unknown error")")
+        }
     }
 
     // MARK: - Generation Badge Helpers

@@ -1121,8 +1121,8 @@ struct SettingsView: View {
             // The delay ensures all @Query views have updated before we proceed
             try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
 
-            // Clean up images
-            await imageStorageService.performCleanup()
+            // Clean up images - pass empty set since all recipes are deleted
+            _ = await imageStorageService.cleanupOrphanedImages(validImageFileNames: [])
 
             // CRITICAL: Wait for Firebase deletion to complete BEFORE showing success
             // This prevents recipes and collections from coming back if user closes app too quickly

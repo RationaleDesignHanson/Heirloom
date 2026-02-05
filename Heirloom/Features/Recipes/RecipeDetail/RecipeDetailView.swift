@@ -706,12 +706,6 @@ private struct RecipeDetailModifiers: ViewModifier {
                 Label("Personalize Card", systemImage: "paintbrush.fill")
             }
 
-            Button {
-                duplicateRecipe()
-            } label: {
-                Label("Duplicate", systemImage: "doc.on.doc")
-            }
-
             Divider()
 
             Button {

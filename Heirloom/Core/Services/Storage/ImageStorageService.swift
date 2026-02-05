@@ -7,12 +7,21 @@ actor ImageStorageService {
     private let fileManager = FileManager.default
     private let maxImageSizeBytes: Int = 1_000_000  // 1MB max per image
     private let imageCache: ImageCache
+    private let session: URLSession
 
     /// Directory where recipe images are stored (initialized once to avoid race conditions)
     private let imagesDirectory: URL
 
     init(imageCache: ImageCache) {
         self.imageCache = imageCache
+
+        // Configure URLSession with connectivity handling
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 120  // Longer timeout for large images
+        config.waitsForConnectivity = true  // Wait for network instead of failing immediately
+        self.session = URLSession(configuration: config)
+
         // Initialize images directory once
         let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let imagesPath = documentsPath.appendingPathComponent("RecipeImages", isDirectory: true)
@@ -99,7 +108,7 @@ actor ImageStorageService {
         Log.info("Downloading recipe image", category: .storage, metadata: ["url": urlString])
 
         // Download image data
-        let (data, response) = try await URLSession.shared.data(from: url)
+        let (data, response) = try await session.data(from: url)
 
         guard let httpResponse = response as? HTTPURLResponse,
               (200...299).contains(httpResponse.statusCode) else {
@@ -224,7 +233,65 @@ actor ImageStorageService {
     // MARK: - Cleanup
 
     /// Clean up orphaned images (images without corresponding recipes)
-    /// Call this periodically or on app launch
+    /// Pass the set of valid image filenames from Recipe.imageFileName and imageVariants
+    /// - Parameter validImageFileNames: Set of filenames that are still referenced by recipes
+    /// - Returns: Number of orphaned files deleted
+    func cleanupOrphanedImages(validImageFileNames: Set<String>) async -> Int {
+        var deletedCount = 0
+
+        do {
+            let imageFiles = try fileManager.contentsOfDirectory(
+                at: imagesDirectory,
+                includingPropertiesForKeys: nil
+            )
+
+            Log.info("Starting image cleanup", category: .storage, metadata: [
+                "totalFiles": imageFiles.count,
+                "validReferences": validImageFileNames.count
+            ])
+
+            for fileURL in imageFiles {
+                let fileName = fileURL.lastPathComponent
+
+                // Skip if this file is referenced by a recipe
+                if validImageFileNames.contains(fileName) {
+                    continue
+                }
+
+                // Orphaned file - delete it
+                do {
+                    try fileManager.removeItem(at: fileURL)
+                    imageCache.removeImage(for: fileURL)
+                    deletedCount += 1
+
+                    Log.debug("Deleted orphaned image", category: .storage, metadata: [
+                        "fileName": fileName
+                    ])
+                } catch {
+                    Log.warning("Failed to delete orphaned image", category: .storage, metadata: [
+                        "fileName": fileName,
+                        "error": error.localizedDescription
+                    ])
+                }
+            }
+
+            if deletedCount > 0 {
+                Log.info("Image cleanup completed", category: .storage, metadata: [
+                    "deletedCount": deletedCount
+                ])
+            }
+
+        } catch {
+            Log.error("Failed to enumerate images for cleanup", category: .storage, metadata: [
+                "error": error.localizedDescription
+            ])
+        }
+
+        return deletedCount
+    }
+
+    /// Legacy method - logs image count only (no cleanup)
+    @available(*, deprecated, message: "Use cleanupOrphanedImages(validImageFileNames:) instead")
     func performCleanup() {
         Task {
             let imageFiles = try? fileManager.contentsOfDirectory(
@@ -234,11 +301,7 @@ actor ImageStorageService {
 
             guard let imageFiles = imageFiles else { return }
 
-            Log.info("Starting image cleanup", category: .storage, metadata: ["imageCount": imageFiles.count])
-
-            // TODO: In Day 2, query SwiftData for all Recipe.imageFileName
-            // and delete any files not in that list
-            // For now, just report the count
+            Log.info("Image storage contains files", category: .storage, metadata: ["imageCount": imageFiles.count])
         }
     }
 

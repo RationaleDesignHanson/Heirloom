@@ -168,11 +168,20 @@ struct CollectionDetailView: View {
                     }
                 }
                 .onTapGesture {
-                    if selectedRecipeIDs.contains(recipe.id) {
-                        selectedRecipeIDs.remove(recipe.id)
-                    } else {
-                        selectedRecipeIDs.insert(recipe.id)
+                    // Don't allow selecting processing placeholders
+                    if !recipe.isProcessing && !recipe.isProcessingFailed {
+                        if selectedRecipeIDs.contains(recipe.id) {
+                            selectedRecipeIDs.remove(recipe.id)
+                        } else {
+                            selectedRecipeIDs.insert(recipe.id)
+                        }
                     }
+                }
+        } else if recipe.isProcessing || recipe.isProcessingFailed {
+            // Processing placeholders - no navigation, just show card
+            RecipeCardView(recipe: recipe, collection: collection)
+                .contextMenu {
+                    processingRecipeContextMenu(for: recipe)
                 }
         } else {
             // Normal mode: tap to navigate
@@ -185,6 +194,24 @@ struct CollectionDetailView: View {
             .buttonStyle(.plain)
             .contextMenu {
                 recipeContextMenu(for: recipe)
+            }
+        }
+    }
+
+    /// Context menu for processing placeholder recipes
+    @ViewBuilder
+    private func processingRecipeContextMenu(for recipe: Recipe) -> some View {
+        if recipe.isProcessing {
+            Button(role: .destructive) {
+                recipeToDelete = recipe
+            } label: {
+                Label("Cancel Import", systemImage: "xmark.circle")
+            }
+        } else if recipe.isProcessingFailed {
+            Button(role: .destructive) {
+                recipeToDelete = recipe
+            } label: {
+                Label("Remove", systemImage: "trash")
             }
         }
     }

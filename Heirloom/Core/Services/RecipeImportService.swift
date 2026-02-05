@@ -3,7 +3,16 @@ import SwiftSoup
 
 /// Service for importing recipes from URLs
 class RecipeImportService {
-    init() {}
+    private let session: URLSession
+
+    init() {
+        // Configure URLSession with connectivity handling
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+        config.waitsForConnectivity = true  // Wait for network instead of failing immediately
+        self.session = URLSession(configuration: config)
+    }
 
     /// Import a recipe from a URL
     func importRecipe(from urlString: String) async throws -> ImportedRecipe {
@@ -14,6 +23,8 @@ class RecipeImportService {
             .replacingOccurrences(of: "\u{FEFF}", with: "") // Byte order mark
 
         Log.info("Starting recipe import", category: .network, metadata: ["url": cleanedURL])
+
+        // TODO: Phase B - Add PendingURLImportManager for interrupted import resume
 
         // Validate URL
         guard let url = URL(string: cleanedURL) else {
@@ -98,7 +109,7 @@ class RecipeImportService {
         request.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
         request.timeoutInterval = 30
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             Log.error("Invalid HTTP response type", category: .network)

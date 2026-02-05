@@ -10,11 +10,18 @@ class GoogleVisionOCRService {
 
     private let apiKey: String
     private let endpoint = "https://vision.googleapis.com/v1/images:annotate"
+    private let session: URLSession
 
     // MARK: - Initialization
 
     init(apiKey: String) {
         self.apiKey = apiKey
+
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 60
+        config.timeoutIntervalForResource = 120
+        config.waitsForConnectivity = true
+        self.session = URLSession(configuration: config)
     }
 
     // MARK: - OCR Methods
@@ -70,7 +77,7 @@ class GoogleVisionOCRService {
         urlRequest.setValue(apiKey, forHTTPHeaderField: "X-Goog-Api-Key")
         urlRequest.httpBody = try JSONSerialization.data(withJSONObject: request)
 
-        let (data, response) = try await URLSession.shared.data(for: urlRequest)
+        let (data, response) = try await session.data(for: urlRequest)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw GoogleVisionError.invalidResponse

@@ -76,6 +76,7 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
     // MARK: - Dependencies
 
     private let db: Firestore
+    private let session: URLSession
     // private let functions: Functions  // TODO: Re-enable when Firebase Functions package is added
 
     /// Current user ID for filtering out own recipes
@@ -127,6 +128,12 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
     ) {
         self.db = firestore
         // self.functions = functions  // TODO: Re-enable when Firebase Functions package is added
+
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 120
+        config.waitsForConnectivity = true
+        self.session = URLSession(configuration: config)
     }
 
     // MARK: - Fetch Methods
@@ -496,7 +503,7 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
                     throw DiscoveryError.firestoreError(NSError(domain: "Invalid URL", code: -1))
                 }
 
-                let (data, _) = try await URLSession.shared.data(from: url)
+                let (data, _) = try await session.data(from: url)
 
                 guard let image = UIImage(data: data) else {
                     Log.warning("Failed to create image from data", category: .social)

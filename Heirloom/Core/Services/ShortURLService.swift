@@ -14,9 +14,16 @@ final class ShortURLService {
     // MARK: - Dependencies
 
     private let analytics: AnalyticsService
+    private let session: URLSession
 
     init(analytics: AnalyticsService) {
         self.analytics = analytics
+
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 15
+        config.timeoutIntervalForResource = 30
+        config.waitsForConnectivity = true
+        self.session = URLSession(configuration: config)
     }
 
     // MARK: - Constants
@@ -458,7 +465,7 @@ extension ShortURLService {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         // 3. Make request
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ShortURLError.networkError(NSError(domain: "ShortURL", code: -1, userInfo: [NSLocalizedDescriptionKey: "No HTTP response"]))

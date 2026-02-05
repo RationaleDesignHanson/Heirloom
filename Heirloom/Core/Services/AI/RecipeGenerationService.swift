@@ -9,6 +9,7 @@ import Foundation
 import SwiftData
 
 /// Service managing recipe generation with progress tracking and retry logic
+/// Uses placeholder pattern for unified UX - recipes appear in list immediately
 @MainActor
 final class RecipeGenerationService: ObservableObject {
     // MARK: - Published State
@@ -31,6 +32,7 @@ final class RecipeGenerationService: ObservableObject {
     // MARK: - Public API
 
     /// Generate a recipe from dish name and optional ingredients
+    /// Creates placeholder immediately for unified UX (appears in recipe list)
     func generateRecipe(
         dishName: String,
         ingredients: String?,
@@ -46,18 +48,36 @@ final class RecipeGenerationService: ObservableObject {
             targetCollectionId: targetCollection?.id
         )
         context.insert(job)
+
+        // UNIFIED UX: Create placeholder recipe immediately (appears in recipe list)
+        let placeholder = Recipe.createGenerationPlaceholder(
+            jobId: job.id,
+            dishName: dishName,
+            isVoiceDictation: false,
+            isSillyRecipe: false
+        )
+        context.insert(placeholder)
+        job.placeholderRecipeId = placeholder.id
+
+        // Add placeholder to target collection immediately
+        if let collection = targetCollection {
+            if collection.recipes == nil { collection.recipes = [] }
+            collection.recipes?.append(placeholder)
+        }
+
         try context.save()
 
-        // Set as active (triggers banner display)
+        // Set as active (for any remaining banner display during transition)
         self.activeJob = job
 
         // Process in background
         Task.detached { @MainActor in
-            await self.processJob(job)
+            await self.processJob(job, placeholder: placeholder)
         }
     }
 
     /// Generate a recipe from voice transcript
+    /// Creates placeholder immediately for unified UX
     func generateFromVoice(
         transcript: String,
         context: ModelContext
@@ -70,16 +90,28 @@ final class RecipeGenerationService: ObservableObject {
             transcript: transcript
         )
         context.insert(job)
+
+        // UNIFIED UX: Create placeholder immediately
+        let placeholder = Recipe.createGenerationPlaceholder(
+            jobId: job.id,
+            dishName: "Voice Recipe",
+            isVoiceDictation: true,
+            isSillyRecipe: false
+        )
+        context.insert(placeholder)
+        job.placeholderRecipeId = placeholder.id
+
         try context.save()
 
         self.activeJob = job
 
         Task.detached { @MainActor in
-            await self.processVoiceJob(job)
+            await self.processVoiceJob(job, placeholder: placeholder)
         }
     }
 
     /// 🎲 Easter Egg: Generate a silly/random recipe for fun
+    /// Creates placeholder immediately for unified UX
     func generateSillyRecipe(
         context: ModelContext,
         targetCollection: RecipeCollection? = nil
@@ -226,18 +258,35 @@ final class RecipeGenerationService: ObservableObject {
         )
         job.isSillyRecipe = true  // Mark as silly for sharing restrictions
         context.insert(job)
+
+        // UNIFIED UX: Create placeholder immediately
+        let placeholder = Recipe.createGenerationPlaceholder(
+            jobId: job.id,
+            dishName: silly.name,
+            isVoiceDictation: false,
+            isSillyRecipe: true
+        )
+        context.insert(placeholder)
+        job.placeholderRecipeId = placeholder.id
+
+        // Add placeholder to target collection immediately
+        if let collection = targetCollection {
+            if collection.recipes == nil { collection.recipes = [] }
+            collection.recipes?.append(placeholder)
+        }
+
         try context.save()
 
         self.activeJob = job
 
         Task.detached { @MainActor in
-            await self.processJob(job)  // Process with absurd ingredients
+            await self.processJob(job, placeholder: placeholder)  // Process with absurd ingredients
         }
     }
 
     // MARK: - Job Processing
 
-    private func processJob(_ job: RecipeGenerationJob) async {
+    private func processJob(_ job: RecipeGenerationJob, placeholder: Recipe) async {
         guard let context = context else {
             Log.error("ModelContext not available", category: .general)
             return
@@ -246,6 +295,7 @@ final class RecipeGenerationService: ObservableObject {
         do {
             // Phase 1: Analyzing (20%)
             job.currentPhase = .analyzing
+            placeholder.processingProgress = 0.2
             try context.save()
 
             // Parse ingredients
@@ -253,10 +303,11 @@ final class RecipeGenerationService: ObservableObject {
 
             // Phase 2: Extracting (50%)
             job.currentPhase = .extracting
+            placeholder.processingProgress = 0.5
             try context.save()
 
             // Generate recipe with retry logic
-            let recipe = try await withRetry(maxAttempts: 3) {
+            let generatedRecipe = try await withRetry(maxAttempts: 3) {
                 try await self.aiGenerator.generateRecipe(
                     dishName: job.dishName,
                     ingredients: ingredientList,
@@ -266,17 +317,17 @@ final class RecipeGenerationService: ObservableObject {
 
             // 🎲 Easter Egg: Add silly recipe disclaimers
             if job.isSillyRecipe {
-                addSillyRecipeDisclaimers(to: recipe)
+                addSillyRecipeDisclaimers(to: generatedRecipe)
             }
 
             // Phase 3: Enriching (80%)
             job.currentPhase = .enriching
+            placeholder.processingProgress = 0.8
             try context.save()
 
-            // Generate image (blocking, soft failure)
-            // Wait for image generation to complete before marking recipe as done
+            // Generate image for placeholder (blocking, soft failure)
             do {
-                try await self.imageGenerator.generateAndSaveImage(for: recipe)
+                try await self.imageGenerator.generateAndSaveImage(for: placeholder)
                 Log.info("Recipe image generated successfully", category: .general)
             } catch {
                 Log.error("Failed to generate image for recipe", category: .general, metadata: [
@@ -285,15 +336,47 @@ final class RecipeGenerationService: ObservableObject {
                 // Continue without image
             }
 
-            // Add to target collection (or default "Generated Recipes")
-            await addToCollection(recipe, context: context, targetCollectionId: job.targetCollectionId)
+            // UNIFIED UX: Update placeholder with generated recipe data
+            placeholder.updateFromProcessingResult(
+                title: generatedRecipe.title,
+                instructions: generatedRecipe.instructions,
+                servings: generatedRecipe.servings,
+                prepTime: generatedRecipe.prepTime,
+                cookTime: generatedRecipe.cookTime,
+                notes: generatedRecipe.notes,
+                imageFileName: placeholder.imageFileName  // Keep the generated image
+            )
+
+            // Copy ingredients from generated recipe to placeholder
+            if let generatedIngredients = generatedRecipe.ingredients {
+                placeholder.ingredients = []
+                for ingredient in generatedIngredients {
+                    let newIngredient = Ingredient()
+                    newIngredient.name = ingredient.name
+                    newIngredient.quantity = ingredient.quantity
+                    newIngredient.unit = ingredient.unit
+                    newIngredient.preparation = ingredient.preparation
+                    newIngredient.originalText = ingredient.originalText
+                    newIngredient.recipe = placeholder
+                    placeholder.ingredients?.append(newIngredient)
+                }
+            }
+
+            // Mark as AI generated
+            placeholder.aiGenerated = true
+
+            // Add to target collection if not already added, or default "Generated Recipes"
+            await addToCollection(placeholder, context: context, targetCollectionId: job.targetCollectionId)
+
+            // Delete the temporary generated recipe (we only need the placeholder)
+            context.delete(generatedRecipe)
 
             // Save
             try context.save()
 
-            // Sync to Firebase (soft failure, non-blocking)
+            // Sync placeholder to Firebase (soft failure, non-blocking)
             Task {
-                await syncToFirebase(recipe)
+                await syncToFirebase(placeholder)
             }
 
             // Phase 4: Complete
@@ -302,11 +385,12 @@ final class RecipeGenerationService: ObservableObject {
             job.completedAt = Date()
             try context.save()
 
-            // Auto-dismiss after 2 seconds
-            try await Task.sleep(for: .seconds(2))
+            // Clear active job (no need for auto-dismiss delay with placeholder pattern)
             self.activeJob = nil
 
         } catch {
+            // UNIFIED UX: Mark placeholder as failed
+            placeholder.markProcessingFailed(errorMessage: error.localizedDescription)
             job.status = .failed
             job.error = error.localizedDescription
             try? context.save()
@@ -315,32 +399,36 @@ final class RecipeGenerationService: ObservableObject {
                 "dishName": job.dishName,
                 "error": error.localizedDescription
             ])
+
+            self.activeJob = nil
         }
     }
 
-    private func processVoiceJob(_ job: RecipeGenerationJob) async {
+    private func processVoiceJob(_ job: RecipeGenerationJob, placeholder: Recipe) async {
         guard let context = context,
               let transcript = job.transcript else {
             Log.error("Missing context or transcript for voice job", category: .general)
+            placeholder.markProcessingFailed(errorMessage: "Missing transcript")
             return
         }
 
         do {
             // Phase 1: Analyzing
             job.currentPhase = .analyzing
+            placeholder.processingProgress = 0.2
             try context.save()
 
-            // TODO: Parse transcript to extract dish name and ingredients
-            // For now, use transcript directly
+            // Extract dish name from transcript
             let dishName = extractDishName(from: transcript)
             job.dishName = dishName
 
             // Phase 2: Extracting
             job.currentPhase = .extracting
+            placeholder.processingProgress = 0.5
             try context.save()
 
             // Generate recipe with retry logic
-            let recipe = try await withRetry(maxAttempts: 3) {
+            let generatedRecipe = try await withRetry(maxAttempts: 3) {
                 try await self.aiGenerator.generateRecipe(
                     dishName: dishName,
                     ingredients: nil,
@@ -350,12 +438,12 @@ final class RecipeGenerationService: ObservableObject {
 
             // Phase 3: Enriching
             job.currentPhase = .enriching
+            placeholder.processingProgress = 0.8
             try context.save()
 
-            // Generate image (blocking, soft failure)
-            // Wait for image generation to complete before marking recipe as done
+            // Generate image for placeholder (blocking, soft failure)
             do {
-                try await self.imageGenerator.generateAndSaveImage(for: recipe)
+                try await self.imageGenerator.generateAndSaveImage(for: placeholder)
                 Log.info("Voice recipe image generated successfully", category: .general)
             } catch {
                 Log.error("Failed to generate image", category: .general, metadata: [
@@ -364,15 +452,48 @@ final class RecipeGenerationService: ObservableObject {
                 // Continue without image
             }
 
-            // Add to collection
-            await addToCollection(recipe, context: context)
+            // UNIFIED UX: Update placeholder with generated recipe data
+            placeholder.updateFromProcessingResult(
+                title: generatedRecipe.title,
+                instructions: generatedRecipe.instructions,
+                servings: generatedRecipe.servings,
+                prepTime: generatedRecipe.prepTime,
+                cookTime: generatedRecipe.cookTime,
+                notes: generatedRecipe.notes,
+                imageFileName: placeholder.imageFileName
+            )
+
+            // Copy ingredients
+            if let generatedIngredients = generatedRecipe.ingredients {
+                placeholder.ingredients = []
+                for ingredient in generatedIngredients {
+                    let newIngredient = Ingredient()
+                    newIngredient.name = ingredient.name
+                    newIngredient.quantity = ingredient.quantity
+                    newIngredient.unit = ingredient.unit
+                    newIngredient.preparation = ingredient.preparation
+                    newIngredient.originalText = ingredient.originalText
+                    newIngredient.recipe = placeholder
+                    placeholder.ingredients?.append(newIngredient)
+                }
+            }
+
+            // Mark as voice dictated
+            placeholder.aiGenerated = true
+            placeholder.voiceDictated = true
+
+            // Add to "Generated Recipes" collection
+            await addToCollection(placeholder, context: context)
+
+            // Delete temporary generated recipe
+            context.delete(generatedRecipe)
 
             // Save
             try context.save()
 
             // Sync to Firebase (soft failure, non-blocking)
             Task {
-                await syncToFirebase(recipe)
+                await syncToFirebase(placeholder)
             }
 
             // Phase 4: Complete
@@ -381,11 +502,12 @@ final class RecipeGenerationService: ObservableObject {
             job.completedAt = Date()
             try context.save()
 
-            // Auto-dismiss after 2 seconds
-            try await Task.sleep(for: .seconds(2))
+            // Clear active job
             self.activeJob = nil
 
         } catch {
+            // UNIFIED UX: Mark placeholder as failed
+            placeholder.markProcessingFailed(errorMessage: error.localizedDescription)
             job.status = .failed
             job.error = error.localizedDescription
             try? context.save()
@@ -393,6 +515,8 @@ final class RecipeGenerationService: ObservableObject {
             Log.error("Voice recipe generation failed", category: .general, metadata: [
                 "error": error.localizedDescription
             ])
+
+            self.activeJob = nil
         }
     }
 

@@ -976,6 +976,93 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         Log.info("Automatic sync disabled", category: .sync)
     }
 
+    // MARK: - Background Lifecycle Handling
+
+    /// Tracks whether listeners are currently paused due to backgrounding
+    private var listenersArePaused = false
+
+    /// Set up background/foreground observers to pause real-time listeners
+    /// This prevents battery drain from continuous Firebase connections when app is backgrounded
+    func setupBackgroundHandling() {
+        // Pause listeners when app enters background
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willResignActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.pauseListenersForBackground()
+            }
+        }
+
+        // Resume listeners when app returns to foreground
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.resumeListenersFromBackground()
+            }
+        }
+
+        logger.log("✅ [Firebase] Background handling configured", category: .sync, level: .info, metadata: nil)
+        Log.info("Firebase background handling configured", category: .sync)
+    }
+
+    /// Pause Firebase real-time listeners to save battery when app is backgrounded
+    private func pauseListenersForBackground() {
+        guard !listenersArePaused else { return }
+
+        logger.log("⏸️ [Firebase] Pausing listeners for background", category: .sync, level: .info, metadata: nil)
+        Log.info("Pausing Firebase listeners for background", category: .sync)
+
+        // Save last sync timestamp
+        UserDefaults.standard.set(Date(), forKey: "firebase_lastBackgroundedAt")
+
+        // Pause notification listener
+        let notificationService = ServiceContainer.shared.resolve(FirebaseNotificationService.self)
+        notificationService.stopListening()
+
+        // Pause badge listener
+        let badgeService = ServiceContainer.shared.resolve(BadgeService.self)
+        badgeService.stopListening()
+
+        listenersArePaused = true
+
+        logger.log("✅ [Firebase] Listeners paused for background", category: .sync, level: .info, metadata: nil)
+    }
+
+    /// Resume Firebase real-time listeners when app returns to foreground
+    private func resumeListenersFromBackground() {
+        guard listenersArePaused else { return }
+        guard currentUserId != nil else {
+            // Not authenticated, nothing to resume
+            listenersArePaused = false
+            return
+        }
+
+        logger.log("▶️ [Firebase] Resuming listeners from background", category: .sync, level: .info, metadata: nil)
+        Log.info("Resuming Firebase listeners from background", category: .sync)
+
+        // Resume notification listener
+        let notificationService = ServiceContainer.shared.resolve(FirebaseNotificationService.self)
+        notificationService.startListening()
+
+        // Resume badge listener
+        let badgeService = ServiceContainer.shared.resolve(BadgeService.self)
+        badgeService.startListening()
+
+        listenersArePaused = false
+
+        // Log time spent in background
+        if let backgroundedAt = UserDefaults.standard.object(forKey: "firebase_lastBackgroundedAt") as? Date {
+            let duration = Date().timeIntervalSince(backgroundedAt)
+            logger.log("✅ [Firebase] Listeners resumed after \(Int(duration))s in background", category: .sync, level: .info, metadata: nil)
+            Log.info("Firebase listeners resumed", category: .sync, metadata: ["backgroundDuration": Int(duration)])
+        }
+    }
+
     // MARK: - Firebase Storage (Images)
 
     /// Upload recipe image to Firebase Storage

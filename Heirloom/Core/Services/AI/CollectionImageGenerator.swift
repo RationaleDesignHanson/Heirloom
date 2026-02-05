@@ -7,11 +7,18 @@ actor CollectionImageGenerator {
     private let imageStorage: ImageStorageService
     private let styleConfig: VisualStyleConfiguration
     private let firebaseService: FirebaseImageGenerationService
+    private let session: URLSession
 
     init(imageStorage: ImageStorageService, styleConfig: VisualStyleConfiguration, firebaseService: FirebaseImageGenerationService) {
         self.imageStorage = imageStorage
         self.styleConfig = styleConfig
         self.firebaseService = firebaseService
+
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 60
+        config.timeoutIntervalForResource = 180
+        config.waitsForConnectivity = true
+        self.session = URLSession(configuration: config)
     }
 
     /// Generate background image for collection
@@ -91,7 +98,7 @@ actor CollectionImageGenerator {
 
     private func downloadAndSave(imageURL: URL, collectionId: UUID) async throws -> String {
         // Download image
-        let (data, _) = try await URLSession.shared.data(from: imageURL)
+        let (data, _) = try await session.data(from: imageURL)
         guard let uiImage = UIImage(data: data) else {
             throw ImageGenerationError.invalidImageData
         }

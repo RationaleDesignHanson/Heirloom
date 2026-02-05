@@ -23,6 +23,10 @@ final class VideoProcessingJobManager: ObservableObject {
     @Published private(set) var isProcessing = false
     @Published private(set) var queuedJobs: [VideoProcessingJob] = []
 
+    /// Immediately signals UI when a new job is created (bypasses @Query latency)
+    /// Set synchronously during job creation, cleared after UI has time to observe
+    @Published private(set) var pendingJobId: UUID?
+
     // MARK: - Dependencies
 
     private var standardProcessor: VideoRecipeProcessor?
@@ -193,10 +197,31 @@ final class VideoProcessingJobManager: ObservableObject {
         )
 
         // Generate thumbnail asynchronously (don't block job creation)
+        // Will also update placeholder recipe with the thumbnail
         Task {
             let thumbnailData = await generateThumbnail(from: destinationURL)
             await MainActor.run {
                 job.thumbnailData = thumbnailData
+
+                // Also save thumbnail to placeholder recipe
+                if let thumbnailData = thumbnailData,
+                   let placeholderRecipeId = job.placeholderRecipeID,
+                   let image = UIImage(data: thumbnailData) {
+                    // Find placeholder recipe and update its image
+                    let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == placeholderRecipeId })
+                    if let placeholder = try? context.fetch(descriptor).first {
+                        Task {
+                            let imageService = ServiceContainer.shared.resolve(ImageStorageService.self)
+                            if let fileName = try? await imageService.saveImage(image, recipeId: placeholderRecipeId) {
+                                await MainActor.run {
+                                    placeholder.imageFileName = fileName
+                                    try? context.save()
+                                }
+                            }
+                        }
+                    }
+                }
+
                 try? context.save()
             }
         }
@@ -206,11 +231,38 @@ final class VideoProcessingJobManager: ObservableObject {
         checkpoint.job = job
         job.checkpoint = checkpoint
 
+        // Create placeholder recipe for immediate display in recipe list
+        let placeholderRecipe = Recipe.createVideoProcessingPlaceholder(
+            jobId: job.id,
+            thumbnailData: nil, // Will be set later when thumbnail is generated
+            sourceURL: sourceAttribution?.sourceURL
+        )
+        job.placeholderRecipeID = placeholderRecipe.id
+
         // Insert into context
         context.insert(job)
         context.insert(checkpoint)
+        context.insert(placeholderRecipe)
+
+        Log.info("Created placeholder recipe for video processing", category: .video, metadata: [
+            "jobId": job.id.uuidString,
+            "placeholderRecipeId": placeholderRecipe.id.uuidString
+        ])
+
+        // Signal UI immediately (bypasses @Query latency)
+        self.pendingJobId = job.id
 
         try context.save()
+
+        // Clear pendingJobId after delay to let UI observe it
+        Task {
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            await MainActor.run {
+                if self.pendingJobId == job.id {
+                    self.pendingJobId = nil
+                }
+            }
+        }
 
         // Refresh queue
         refreshQueue(context: context)
@@ -373,6 +425,9 @@ final class VideoProcessingJobManager: ObservableObject {
         job.progress = 1.0
         job.currentPhase = .complete
 
+        // Finalize placeholder recipe with extracted data
+        finalizePlaceholderRecipe(job: job, extraction: enhanced.original, context: context)
+
         try context.save()
 
         // Schedule completion notification
@@ -408,9 +463,10 @@ final class VideoProcessingJobManager: ObservableObject {
         Log.info("Model loaded, starting audio extraction", category: .video, metadata: ["jobId": job.id.uuidString])
 
         // Delegate to existing processor and monitor progress
-        let cancellable = processor.$progress.sink { progress in
+        let cancellable = processor.$progress.sink { [weak self] progress in
             Task { @MainActor in
                 job.progress = progress
+                self?.updatePlaceholderProgress(job: job, progress: progress, context: context)
                 try? context.save()
             }
         }
@@ -495,9 +551,10 @@ final class VideoProcessingJobManager: ObservableObject {
         Log.info("Model loaded, starting audio extraction", category: .video, metadata: ["jobId": job.id.uuidString])
 
         // Monitor progress
-        let cancellable = processor.$progress.sink { progress in
+        let cancellable = processor.$progress.sink { [weak self] progress in
             Task { @MainActor in
                 job.progress = progress
+                self?.updatePlaceholderProgress(job: job, progress: progress, context: context)
                 try? context.save()
             }
         }
@@ -576,6 +633,10 @@ final class VideoProcessingJobManager: ObservableObject {
         job.errorType = errorType
         job.errorMessage = getErrorMessage(for: errorType, baseError: error)
         job.completedAt = Date()
+
+        // Mark placeholder recipe as failed
+        let errorMessage = job.errorMessage ?? "Processing failed"
+        markPlaceholderFailed(job: job, errorMessage: errorMessage, context: context)
 
         Log.error("Job processing failed", category: .video, metadata: [
             "jobId": job.id.uuidString,
@@ -722,22 +783,16 @@ final class VideoProcessingJobManager: ObservableObject {
             ])
 
         case .cancel:
-            // Delete job
-            context.delete(job)
-            try context.save()
-
-            refreshQueue(context: context)
+            // Delete job and its video file
+            try deleteJob(job, context: context)
 
             Log.info("User cancelled failed job", category: .video, metadata: [
                 "jobId": job.id.uuidString
             ])
 
         case .startOver:
-            // Delete failed job so user can re-import video
-            context.delete(job)
-            try context.save()
-
-            refreshQueue(context: context)
+            // Delete failed job and video file so user can re-import
+            try deleteJob(job, context: context)
 
             // Show helpful message
             let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
@@ -843,6 +898,9 @@ final class VideoProcessingJobManager: ObservableObject {
     func cancelJob(_ job: VideoProcessingJob, context: ModelContext) throws {
         guard job.canCancel else { return }
 
+        // Delete the video file to free up storage
+        deleteVideoFile(for: job)
+
         job.status = .cancelled
         job.completedAt = Date()
         try context.save()
@@ -855,6 +913,53 @@ final class VideoProcessingJobManager: ObservableObject {
         refreshQueue(context: context)
 
         Log.info("Job cancelled", category: .video, metadata: ["jobId": job.id.uuidString])
+    }
+
+    /// Delete a job completely (including video file)
+    func deleteJob(_ job: VideoProcessingJob, context: ModelContext) throws {
+        // Delete the video file first
+        deleteVideoFile(for: job)
+
+        // If this is the active job, stop processing
+        if activeJob?.id == job.id {
+            isProcessing = false
+            activeJob = nil
+        }
+
+        // Delete from SwiftData
+        context.delete(job)
+        try context.save()
+
+        refreshQueue(context: context)
+
+        Log.info("Job deleted with video file cleanup", category: .video, metadata: ["jobId": job.id.uuidString])
+    }
+
+    /// Delete the video file associated with a job
+    private func deleteVideoFile(for job: VideoProcessingJob) {
+        let videoURL = URL(fileURLWithPath: job.videoURL)
+
+        guard FileManager.default.fileExists(atPath: videoURL.path) else {
+            Log.debug("Video file already deleted or doesn't exist", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "path": job.videoURL
+            ])
+            return
+        }
+
+        do {
+            try FileManager.default.removeItem(at: videoURL)
+            Log.info("Deleted video file for job", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "path": job.videoURL
+            ])
+        } catch {
+            Log.warning("Failed to delete video file", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "path": job.videoURL,
+                "error": error.localizedDescription
+            ])
+        }
     }
 
     /// Retry a failed job
@@ -896,6 +1001,7 @@ final class VideoProcessingJobManager: ObservableObject {
     }
 
     /// Save recipe from completed job
+    /// Uses the placeholder recipe created at job start (progressive enhancement)
     func saveRecipeFromJob(_ job: VideoProcessingJob, context: ModelContext) throws -> Recipe {
         // STEP 1: Verify job is completed
         guard job.status == .completed else {
@@ -921,15 +1027,42 @@ final class VideoProcessingJobManager: ObservableObject {
             recipeToSave = extraction.structuredRecipe
         }
 
-        // STEP 3: Create Recipe from extraction
-        let recipe = Recipe(
-            title: recipeToSave.title,
-            sourceType: .video,
-            instructions: recipeToSave.steps.map { $0.instruction },
-            servings: recipeToSave.servings
-        )
+        // STEP 3: Find or create recipe
+        // With progressive enhancement, we already have a placeholder recipe
+        let recipe: Recipe
+        if let placeholderRecipeId = job.placeholderRecipeID,
+           let placeholder = try? context.fetch(FetchDescriptor<Recipe>(
+               predicate: #Predicate { $0.id == placeholderRecipeId }
+           )).first {
+            // Use existing placeholder recipe
+            recipe = placeholder
+            Log.info("Using existing placeholder recipe for save", category: .video, metadata: [
+                "placeholderRecipeId": placeholderRecipeId.uuidString
+            ])
+        } else {
+            // Fallback: Create new recipe if no placeholder (shouldn't happen normally)
+            recipe = Recipe(
+                title: recipeToSave.title,
+                sourceType: .video,
+                instructions: recipeToSave.steps.map { $0.instruction },
+                servings: recipeToSave.servings
+            )
+            context.insert(recipe)
+            Log.warning("No placeholder recipe found, created new recipe", category: .video, metadata: [
+                "jobId": job.id.uuidString
+            ])
+        }
 
-        // STEP 4: Set provenance metadata
+        // STEP 4: Update recipe with final data (may include user edits from review screen)
+        recipe.title = recipeToSave.title
+        recipe.instructions = recipeToSave.steps.map { $0.instruction }
+        recipe.servings = recipeToSave.servings
+        recipe.processingStatus = .ready
+        recipe.processingProgress = 1.0
+        recipe.linkedProcessingJobId = nil
+        recipe.linkedProcessingJobType = nil
+
+        // STEP 5: Set provenance metadata
         recipe.provenance = ProvenanceMetadata(
             sourceType: .video,
             sourceURL: job.sourceURL,
@@ -939,9 +1072,17 @@ final class VideoProcessingJobManager: ObservableObject {
             createdAt: Date()
         )
 
-        // STEP 5: Create ingredients (use augmented data if available)
+        // STEP 6: Update ingredients (remove old ones first, then add new)
+        // Clear existing ingredients
+        if let existingIngredients = recipe.ingredients {
+            for ing in existingIngredients {
+                context.delete(ing)
+            }
+        }
+        recipe.ingredients = []
+
+        // Add ingredients from extraction/review
         for (index, ingredient) in recipeToSave.ingredients.enumerated() {
-            // Parse quantity string to Double (handles fractions like "1/4", "1 1/2", "¼")
             let quantityDouble = parseQuantityString(ingredient.quantity)
 
             let ing = Ingredient(
@@ -955,9 +1096,6 @@ final class VideoProcessingJobManager: ObservableObject {
             context.insert(ing)
         }
 
-        // STEP 6: Insert and save recipe
-        context.insert(recipe)
-
         // Create snapshot for edit tracking
         recipe.createSnapshot()
 
@@ -969,19 +1107,22 @@ final class VideoProcessingJobManager: ObservableObject {
             "recipeTitle": recipe.title
         ])
 
-        // STEP 6.5: Route to "From Videos" collection
+        // STEP 7: Route to "From Videos" collection
         let router = CollectionRouter(modelContext: context)
         router.routeVideoImport(recipe)
 
-        // STEP 7: Update job status
+        // STEP 8: Update job status
         job.status = .saved
         job.recipeID = recipe.id
         try context.save()
 
-        // STEP 8: Refresh queue to remove from active list
+        // STEP 9: Delete video file to free up storage (no longer needed after saving)
+        deleteVideoFile(for: job)
+
+        // STEP 10: Refresh queue to remove from active list
         refreshQueue(context: context)
 
-        // STEP 9: Show toast confirmation
+        // STEP 11: Show toast confirmation
         let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
         toastManager.success(
             title: "Recipe Saved",
@@ -1134,6 +1275,108 @@ final class VideoProcessingJobManager: ObservableObject {
                 ])
             }
         }
+    }
+
+    // MARK: - Placeholder Recipe Updates
+
+    /// Update the placeholder recipe's progress during processing
+    private func updatePlaceholderProgress(
+        job: VideoProcessingJob,
+        progress: Double,
+        context: ModelContext
+    ) {
+        guard let placeholderRecipeId = job.placeholderRecipeID else { return }
+
+        let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == placeholderRecipeId })
+        guard let placeholder = try? context.fetch(descriptor).first else { return }
+
+        placeholder.processingProgress = progress
+
+        // Update title based on phase
+        switch job.currentPhase {
+        case .queued:
+            placeholder.title = "Waiting to process..."
+        case .loadingModel:
+            placeholder.title = "Loading AI model..."
+        case .extractingAudio:
+            placeholder.title = "Extracting audio..."
+        case .transcribing:
+            placeholder.title = "Transcribing recipe..."
+        case .analyzingFrames:
+            placeholder.title = "Analyzing video..."
+        case .structuringRecipe:
+            placeholder.title = "Creating recipe..."
+        case .augmenting:
+            placeholder.title = "Enhancing recipe..."
+        case .complete:
+            break // Will be updated with actual title
+        }
+    }
+
+    /// Finalize placeholder recipe with extracted data
+    private func finalizePlaceholderRecipe(
+        job: VideoProcessingJob,
+        extraction: VideoRecipeExtraction,
+        context: ModelContext
+    ) {
+        guard let placeholderRecipeId = job.placeholderRecipeID else { return }
+
+        let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == placeholderRecipeId })
+        guard let placeholder = try? context.fetch(descriptor).first else { return }
+
+        let recipe = extraction.structuredRecipe
+
+        // Convert steps to instructions array
+        let instructions = recipe.steps.map { $0.instruction }
+
+        // Update with extracted data
+        placeholder.updateFromProcessingResult(
+            title: recipe.title,
+            instructions: instructions,
+            servings: recipe.servings,
+            prepTime: recipe.prepTime,
+            cookTime: recipe.cookTime,
+            notes: recipe.description
+        )
+
+        // Add ingredients
+        placeholder.ingredients = recipe.ingredients.map { ingredient in
+            // Parse quantity string to Double if possible
+            let quantityDouble: Double?
+            if let quantityStr = ingredient.quantity {
+                quantityDouble = Double(quantityStr)
+            } else {
+                quantityDouble = nil
+            }
+
+            let parsedIngredient = Ingredient(
+                originalText: ingredient.originalText,
+                name: ingredient.item,
+                quantity: quantityDouble,
+                unit: ingredient.unit
+            )
+            parsedIngredient.recipe = placeholder
+            return parsedIngredient
+        }
+
+        Log.info("Finalized placeholder recipe from video extraction", category: .video, metadata: [
+            "jobId": job.id.uuidString,
+            "title": recipe.title
+        ])
+    }
+
+    /// Mark placeholder recipe as failed
+    private func markPlaceholderFailed(
+        job: VideoProcessingJob,
+        errorMessage: String,
+        context: ModelContext
+    ) {
+        guard let placeholderRecipeId = job.placeholderRecipeID else { return }
+
+        let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == placeholderRecipeId })
+        guard let placeholder = try? context.fetch(descriptor).first else { return }
+
+        placeholder.markProcessingFailed(errorMessage: errorMessage)
     }
 
     // MARK: - Thumbnail Generation

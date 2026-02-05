@@ -102,6 +102,11 @@ final class ImportItem {
     /// Flag indicating this item was checkpointed (for resume)
     var wasCheckpointed: Bool = false
 
+    // MARK: - Progressive Enhancement
+    /// Placeholder recipe ID created at import start for immediate UI feedback
+    /// This recipe appears in the list with "Processing..." status while extraction happens
+    var placeholderRecipeID: UUID?
+
     // MARK: - Source Type
     var source: ImportSource = ImportSource.url
 

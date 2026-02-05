@@ -123,103 +123,51 @@ struct OnboardingSubscriptionScreen: View {
 
                 // Fixed bottom CTAs
                 VStack(spacing: 12) {
-                    if isLoadingProducts {
-                        VStack(spacing: 12) {
-                            ProgressView()
-                                .progressViewStyle(.circular)
-
-                            // Fallback CTA during loading
-                            Button(action: {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                onSkip()
-                            }) {
-                                Text("Continue free")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 48)
-                                    .background(Color.secondary.opacity(0.1))
-                                    .foregroundColor(.primary)
-                                    .cornerRadius(12)
-                            }
-                        }
-                        .frame(height: 120)
-                    } else if let annualProduct = storeManager.products[ProductIdentifier.annual] {
-                        // Start Free Trial Button - PRIMARY
-                        Button(action: {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            startTrial()
-                        }) {
-                            VStack(spacing: 4) {
+                    // Start Free Trial Button - PRIMARY (always show)
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        startTrial()
+                    }) {
+                        VStack(spacing: 4) {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                                    .tint(.white)
+                            } else {
                                 Text("Start free trial")
                                     .font(.headline)
                                     .fontWeight(.bold)
-                                Text("Then \(annualProduct.displayPrice)/year")
-                                    .font(.caption)
-                                    .opacity(0.9)
+                                if let annualProduct = storeManager.products[ProductIdentifier.annual] {
+                                    Text("Then \(annualProduct.displayPrice)/year")
+                                        .font(.caption)
+                                        .opacity(0.9)
+                                } else {
+                                    Text("7 days free")
+                                        .font(.caption)
+                                        .opacity(0.9)
+                                }
                             }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(HeirloomColors.tomato)
-                            .foregroundColor(.white)
-                            .cornerRadius(16)
-                            .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
                         }
-                        .disabled(isLoading)
-
-                        // Subscribe Now Button - SECONDARY (no trial)
-                        Button(action: {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            subscribeNow()
-                        }) {
-                            Text("Subscribe now (\(annualProduct.displayPrice)/year)")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 48)
-                                .background(HeirloomColors.familyGreen)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                        }
-                        .disabled(isLoading)
-                    } else {
-                        // Products unavailable (not set up in App Store Connect yet)
-                        // Show simple continue option without confusing "Try again"
-                        VStack(spacing: 12) {
-                            Button(action: {
-                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                onSkip()
-                            }) {
-                                Text("Continue free")
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 56)
-                                    .background(HeirloomColors.tomato)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(16)
-                                    .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
-                            }
-
-                            Text("Premium features coming soon")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(HeirloomColors.tomato)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                        .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
                     }
+                    .disabled(isLoading)
 
-                    // Continue Free Button (only show if products loaded)
-                    if !isLoadingProducts && storeManager.products[ProductIdentifier.annual] != nil {
-                        Button(action: {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            onSkip()
-                        }) {
-                            Text("Continue free")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        .disabled(isLoading)
-                        .padding(.bottom, 4)
+                    // Continue Free Button
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        onSkip()
+                    }) {
+                        Text("Continue free")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
+                    .disabled(isLoading)
+                    .padding(.bottom, 4)
 
                     // Error Message
                     if let error = errorMessage {

@@ -6,10 +6,18 @@ import Foundation
 class CloudRecipeImportService {
     private let importService: RecipeImportService
     private let languageService: LanguageDetectionService
+    private let session: URLSession
 
     init(importService: RecipeImportService, languageService: LanguageDetectionService) {
         self.importService = importService
         self.languageService = languageService
+
+        // Configure URLSession with connectivity handling
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+        config.waitsForConnectivity = true  // Wait for network instead of failing immediately
+        self.session = URLSession(configuration: config)
     }
 
     // Cloud Function URLs (deployed to Cloud Run)
@@ -58,7 +66,7 @@ class CloudRecipeImportService {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         // Make request
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         // Check response
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -199,7 +207,7 @@ class CloudRecipeImportService {
         encoder.dateEncodingStrategy = .iso8601
         request.httpBody = try encoder.encode(feedback)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw CloudImportError.invalidResponse

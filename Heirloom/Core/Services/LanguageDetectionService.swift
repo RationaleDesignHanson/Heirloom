@@ -9,6 +9,19 @@ class LanguageDetectionService {
 
     // Cloud Function URLs (deployed to Cloud Run - update after deployment)
     private let baseURL = "https://detectlanguage-7kk7et3yua-uc.a.run.app"
+
+    /// Configured URLSession for network requests
+    private let session: URLSession
+
+    // MARK: - Initialization
+
+    init() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+        config.waitsForConnectivity = true
+        self.session = URLSession(configuration: config)
+    }
     private var detectLanguageURL: URL {
         URL(string: "\(baseURL)/detectLanguage")!
     }
@@ -53,7 +66,7 @@ class LanguageDetectionService {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         // Make request
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         // Check response
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -123,7 +136,7 @@ class LanguageDetectionService {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         // Make request
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
 
         // Check response
         guard let httpResponse = response as? HTTPURLResponse else {

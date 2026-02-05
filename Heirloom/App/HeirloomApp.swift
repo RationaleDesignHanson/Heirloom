@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 import UserNotifications
 import BackgroundTasks
 import os.log
@@ -82,8 +83,30 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate, Observab
     }
 }
 
+// MARK: - App Delegate
+
+/// AppDelegate for handling background URL session events
+class HeirloomAppDelegate: NSObject, UIApplicationDelegate {
+
+    /// Handle background URL session events
+    func application(
+        _ application: UIApplication,
+        handleEventsForBackgroundURLSession identifier: String,
+        completionHandler: @escaping () -> Void
+    ) {
+        Log.info("Handling background URL session events", category: .network, metadata: [
+            "identifier": identifier
+        ])
+
+        // TODO: Phase B - Pass completion handler to BackgroundDownloadService
+        // Background downloads service not yet fully integrated
+        completionHandler()
+    }
+}
+
 @main
 struct HeirloomApp: App {
+    @UIApplicationDelegateAdaptor(HeirloomAppDelegate.self) var appDelegate
     @State private var modelContainer: ModelContainer?
     @State private var showDataError = false
 
@@ -356,10 +379,24 @@ struct HeirloomApp: App {
         // Check for pending import from share extension
         checkSharedContainerForPendingImport()
 
-        // Initialize image storage (in background task since it's an actor)
-        Task {
-            let imageStorageService = serviceContainer.resolve(ImageStorageService.self)
-            await imageStorageService.performCleanup()
+        // Check for pending single URL imports that were interrupted
+        checkForPendingURLImport()
+
+        // Clean up stale data on app launch (runs in background to not block UI)
+        // Note: Image cleanup is handled by JobCleanupService during daily background cleanup
+        // which properly checks for orphaned images using recipe references
+        if modelContainer != nil {
+            Task.detached(priority: .utility) {
+                // Clean up old pending imports from Share Extension (older than 30 days)
+                let thirtyDaysInSeconds: TimeInterval = 30 * 24 * 60 * 60
+                await PendingImportManager.shared.cleanupOldImports(olderThan: thirtyDaysInSeconds)
+
+                // TODO: Phase B - Run full job cleanup service (jobs, video files, App Group temp files)
+                // JobCleanupService not yet fully integrated
+
+                Log.info("App launch cleanup completed", category: .general)
+                DeviceLogger.shared.log("✅ [Cleanup] App launch cleanup completed")
+            }
         }
 
         // Initialize analytics
@@ -453,6 +490,14 @@ struct HeirloomApp: App {
 
                 let syncService = serviceContainer.resolve(FirebaseSyncService.self)
                 syncService.configure(modelContext: container.mainContext)
+
+                // Set up background handling to pause/resume Firebase listeners
+                // This prevents battery drain from continuous connections when backgrounded
+                syncService.setupBackgroundHandling()
+
+                // Clean up old tombstones (deleted collection records older than 30 days)
+                syncService.cleanupOldTombstones(context: container.mainContext)
+                Log.info("Cleaned up old tombstones on launch", category: .sync)
 
                 // Configure UndoService with model context (needed for recipe/collection undo to work)
                 let undoService = serviceContainer.resolve(UndoService.self)
@@ -627,6 +672,11 @@ struct HeirloomApp: App {
         }
     }
 
+    private func checkForPendingURLImport() {
+        // TODO: Phase B - Check for single URL imports that were interrupted mid-import
+        // PendingURLImportManager not yet fully integrated
+    }
+
     private func requestNotificationPermission() async {
         let center = UNUserNotificationCenter.current()
         do {
@@ -697,16 +747,39 @@ struct HeirloomApp: App {
             self.handleVideoProcessingBackgroundTask(task: task as! BGProcessingTask)
         }
 
-        // TODO: Register collection image refresh background task when implemented for theme collections
-        // BGTaskScheduler.shared.register(
-        //     forTaskWithIdentifier: CollectionImageRefreshTask.taskIdentifier,
-        //     using: nil
-        // ) { task in
-        //     self.handleCollectionImageRefreshTask(task: task as! BGProcessingTask)
-        // }
+        // Register daily cleanup background task
+        // Cleans up old jobs, orphaned files, and App Group temp files
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: "com.rationaledesign.heirloom.cleanup",
+            using: nil
+        ) { task in
+            self.handleCleanupBackgroundTask(task: task as! BGProcessingTask)
+        }
+
+        // Register periodic sync refresh task (BGAppRefreshTask for lightweight sync)
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: "com.rationaledesign.heirloom.sync-refresh",
+            using: nil
+        ) { task in
+            self.handleSyncRefreshTask(task: task as! BGAppRefreshTask)
+        }
+
+        // Register collection image refresh background task
+        // NOTE: CollectionImageRefreshTask.swift must be added to the Xcode project
+        if let container = modelContainer {
+            let generator = ServiceContainer.shared.resolve(CollectionImageGenerator.self)
+            CollectionImageRefreshTask.register(generator: generator, modelContainer: container)
+            Log.info("Collection image refresh task registered", category: .general)
+        }
 
         Log.info("Background tasks registered", category: .general)
-        DeviceLogger.shared.log("✅ [BackgroundTasks] Video processing task registered")
+        DeviceLogger.shared.log("✅ [BackgroundTasks] All background tasks registered (video, cleanup, sync, collection images)")
+
+        // Schedule cleanup task to run daily
+        scheduleCleanupBackgroundTask()
+
+        // Schedule periodic sync refresh
+        scheduleSyncRefreshTask()
     }
 
     private func handleVideoProcessingBackgroundTask(task: BGProcessingTask) {
@@ -759,6 +832,129 @@ struct HeirloomApp: App {
         try? BGTaskScheduler.shared.submit(request)
         Log.info("Scheduled next background task", category: .video)
         DeviceLogger.shared.log("✅ [BackgroundTasks] Scheduled next task")
+    }
+
+    // MARK: - Cleanup Background Task
+
+    private func handleCleanupBackgroundTask(task: BGProcessingTask) {
+        Log.info("Cleanup background task started", category: .general)
+        DeviceLogger.shared.log("🧹 [BackgroundTasks] Cleanup task started")
+
+        // Schedule expiration handler
+        task.expirationHandler = {
+            Log.warning("Cleanup background task expired", category: .general)
+            DeviceLogger.shared.log("⚠️ [BackgroundTasks] Cleanup task expired")
+        }
+
+        // Perform comprehensive cleanup using JobCleanupService
+        // NOTE: JobCleanupService.swift must be added to the Xcode project
+        Task { @MainActor in
+            guard let container = self.modelContainer else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+
+            let context = container.mainContext
+
+            // Use JobCleanupService for comprehensive cleanup
+            // This cleans: old jobs, orphaned video files, App Group temp files, orphaned images
+            let cleanupService = JobCleanupService()
+            await cleanupService.performDailyCleanup(context: context)
+
+            // Also clean old pending imports from share extension
+            let thirtyDaysInSeconds: TimeInterval = 30 * 24 * 60 * 60
+            await PendingImportManager.shared.cleanupOldImports(olderThan: thirtyDaysInSeconds)
+
+            // Mark task as complete
+            task.setTaskCompleted(success: true)
+            Log.info("Cleanup background task completed", category: .general)
+            DeviceLogger.shared.log("✅ [BackgroundTasks] Cleanup task completed")
+
+            // Schedule next cleanup (runs daily)
+            self.scheduleCleanupBackgroundTask()
+        }
+    }
+
+    // MARK: - Sync Refresh Background Task
+
+    private func handleSyncRefreshTask(task: BGAppRefreshTask) {
+        Log.info("Sync refresh background task started", category: .firebase)
+        DeviceLogger.shared.log("🔄 [BackgroundTasks] Sync refresh task started")
+
+        // Schedule expiration handler
+        task.expirationHandler = {
+            Log.warning("Sync refresh task expired", category: .firebase)
+            DeviceLogger.shared.log("⚠️ [BackgroundTasks] Sync refresh task expired")
+        }
+
+        // Perform lightweight sync
+        Task { @MainActor in
+            guard self.modelContainer != nil else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+
+            // Only sync if user is authenticated
+            let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
+            guard backendConfig.isFirebaseActive else {
+                task.setTaskCompleted(success: true)
+                self.scheduleSyncRefreshTask()
+                return
+            }
+
+            do {
+                // Perform a lightweight sync (fetch latest changes)
+                let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+                try await syncService.syncChanges()
+
+                Log.info("Background sync completed", category: .firebase)
+                DeviceLogger.shared.log("✅ [BackgroundTasks] Sync refresh completed")
+                task.setTaskCompleted(success: true)
+            } catch {
+                Log.error("Background sync failed", category: .firebase, metadata: [
+                    "error": error.localizedDescription
+                ])
+                DeviceLogger.shared.log("❌ [BackgroundTasks] Sync refresh failed: \(error.localizedDescription)")
+                task.setTaskCompleted(success: false)
+            }
+
+            // Schedule next sync
+            self.scheduleSyncRefreshTask()
+        }
+    }
+
+    private func scheduleSyncRefreshTask() {
+        let request = BGAppRefreshTaskRequest(identifier: "com.rationaledesign.heirloom.sync-refresh")
+        // Schedule for ~15 minutes from now (iOS will optimize based on usage patterns)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
+
+        do {
+            try BGTaskScheduler.shared.submit(request)
+            Log.info("Scheduled sync refresh task", category: .firebase)
+        } catch {
+            // BGAppRefreshTask may fail to schedule if user has disabled background refresh
+            Log.debug("Could not schedule sync refresh task", category: .firebase, metadata: [
+                "error": error.localizedDescription
+            ])
+        }
+    }
+
+    private func scheduleCleanupBackgroundTask() {
+        let request = BGProcessingTaskRequest(identifier: "com.rationaledesign.heirloom.cleanup")
+        request.requiresNetworkConnectivity = false
+        request.requiresExternalPower = true // Prefer when charging to minimize battery impact
+        // Schedule for tomorrow (roughly 24 hours from now)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 24 * 60 * 60)
+
+        do {
+            try BGTaskScheduler.shared.submit(request)
+            Log.info("Scheduled cleanup background task", category: .general)
+            DeviceLogger.shared.log("✅ [BackgroundTasks] Cleanup task scheduled for ~24h from now")
+        } catch {
+            Log.warning("Failed to schedule cleanup background task", category: .general, metadata: [
+                "error": error.localizedDescription
+            ])
+        }
     }
 
     private func cleanupOldRecipeData(container: ModelContainer) {

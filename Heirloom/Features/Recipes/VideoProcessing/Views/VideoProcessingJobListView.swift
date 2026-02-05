@@ -350,8 +350,14 @@ struct VideoProcessingJobListView: View {
     }
 
     private func deleteJob(_ job: VideoProcessingJob) {
-        modelContext.delete(job)
-        try? modelContext.save()
+        do {
+            try jobManager.deleteJob(job, context: modelContext)
+        } catch {
+            Log.error("Failed to delete job", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "error": error.localizedDescription
+            ])
+        }
     }
 
     private func openReviewScreen(for job: VideoProcessingJob) {

@@ -21,10 +21,17 @@ protocol RecipeImageGeneratorProtocol {
 class RecipeImageGenerator: RecipeImageGeneratorProtocol {
     private let styleConfig: VisualStyleConfiguration
     private let firebaseService: FirebaseImageGenerationService
+    private let session: URLSession
 
     init(styleConfig: VisualStyleConfiguration, firebaseService: FirebaseImageGenerationService) {
         self.styleConfig = styleConfig
         self.firebaseService = firebaseService
+
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 60
+        config.timeoutIntervalForResource = 180
+        config.waitsForConnectivity = true
+        self.session = URLSession(configuration: config)
     }
 
     /// Generate and save image for recipe
@@ -37,7 +44,7 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
         let imageURL = try await firebaseService.generateImage(prompt: prompt)
 
         // Download image
-        let (data, _) = try await URLSession.shared.data(from: imageURL)
+        let (data, _) = try await session.data(from: imageURL)
         guard let uiImage = UIImage(data: data) else {
             throw ImageGenerationError.invalidImageData
         }

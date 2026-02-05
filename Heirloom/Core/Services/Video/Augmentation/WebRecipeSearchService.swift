@@ -24,10 +24,11 @@ class WebRecipeSearchService {
         self.recipeImportService = recipeImportService
         self.braveSearchService = braveSearchService ?? FirebaseBraveSearchService()
 
-        // Configure URLSession with timeout
+        // Configure URLSession with timeout and connectivity handling
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
         config.timeoutIntervalForResource = 30
+        config.waitsForConnectivity = true  // Wait for network instead of failing immediately
         self.session = URLSession(configuration: config)
     }
 
