@@ -5,6 +5,7 @@
   "scripts": {
     "seed:all": "npx ts-node src/orchestrate.ts all",
     "seed:themes": "npx ts-node src/orchestrate.ts themes",
+    "seed:users": "npx ts-node src/orchestrate.ts users",
     "seed:public": "npx ts-node src/orchestrate.ts public",
     "seed:public:no-images": "npx ts-node src/orchestrate.ts public --skip-images",
     "seed:algolia": "npx ts-node src/orchestrate.ts algolia",
