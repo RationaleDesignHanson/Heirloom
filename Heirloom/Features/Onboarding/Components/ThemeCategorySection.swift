@@ -18,22 +18,23 @@ struct ThemeCategorySection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
             // Section header
-            HStack(spacing: 8) {
+            HStack(spacing: HeirloomSpacing.xs) {
                 Image(systemName: category.iconName)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(HeirloomColors.tomato)
 
                 Text(category.displayName)
-                    .font(HeirloomFonts.title3)
+                    .font(HeirloomFonts.subheadline)
+                    .fontWeight(.semibold)
                     .foregroundStyle(HeirloomColors.primaryText)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, HeirloomSpacing.md)
 
             // Horizontal scroll of theme cards
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
+                HStack(spacing: HeirloomSpacing.sm) {
                     ForEach(themes.sorted(by: { $0.sortOrder < $1.sortOrder })) { theme in
                         ThemeCard(
                             theme: theme,
@@ -43,12 +44,10 @@ struct ThemeCategorySection: View {
                                 toggleSelection(theme)
                             }
                         )
-                        .frame(width: 180, height: 240)
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, HeirloomSpacing.md)
             }
-            .frame(height: 260)
         }
     }
 

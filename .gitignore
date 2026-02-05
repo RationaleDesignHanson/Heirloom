@@ -89,3 +89,7 @@ service-account-key.json
 
 build_output.txt
 PRODUCTION_READINESS_IMPLEMENTATION.md
+
+# Simulator recordings
+recordings/*.mp4
+recordings/*.mov

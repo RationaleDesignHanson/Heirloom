@@ -15,8 +15,8 @@ struct ThemeCard: View {
 
     @State private var isPressed = false
 
-    private let cardWidth: CGFloat = 180
-    private let cardHeight: CGFloat = 240
+    private let cardWidth: CGFloat = 150
+    private let cardHeight: CGFloat = 190
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -36,15 +36,16 @@ struct ThemeCard: View {
 
                     // Category badge
                     Text(theme.category.displayName.uppercased())
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.system(size: 9, weight: .semibold))
                         .tracking(0.5)
                         .foregroundStyle(.white.opacity(0.9))
-                        .padding(.bottom, 4)
+                        .padding(.bottom, 2)
                         .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
 
                     // Theme name
                     Text(theme.name)
-                        .font(HeirloomFonts.bodyBold)
+                        .font(HeirloomFonts.subheadline)
+                        .fontWeight(.semibold)
                         .foregroundStyle(.white)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -52,46 +53,46 @@ struct ThemeCard: View {
 
                     // Tagline
                     Text(theme.tagline)
-                        .font(HeirloomFonts.caption1)
+                        .font(HeirloomFonts.caption2)
                         .foregroundStyle(.white.opacity(0.95))
                         .lineLimit(2)
-                        .padding(.top, 4)
+                        .padding(.top, 2)
                         .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
 
                     // Recipe count
-                    HStack(spacing: 4) {
+                    HStack(spacing: 3) {
                         Image(systemName: "book.closed")
-                            .font(.system(size: 10))
+                            .font(.system(size: 9))
                         Text("\(theme.totalRecipes) recipes")
                             .font(HeirloomFonts.caption2)
                     }
                     .foregroundStyle(.white.opacity(0.85))
-                    .padding(.top, 8)
+                    .padding(.top, 6)
                     .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
                 }
-                .padding(HeirloomSpacing.md)
+                .padding(HeirloomSpacing.sm)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 // Selection checkmark
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 28))
+                        .font(.system(size: 24))
                         .foregroundStyle(HeirloomColors.familyGreen)
                         .background(
                             Circle()
                                 .fill(.white)
-                                .frame(width: 24, height: 24)
+                                .frame(width: 20, height: 20)
                         )
-                        .padding(HeirloomSpacing.sm)
+                        .padding(HeirloomSpacing.xs)
                 }
         }
         .frame(width: cardWidth, height: cardHeight)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(
                     isSelected ? HeirloomColors.familyGreen : .clear,
-                    lineWidth: 3
+                    lineWidth: 2
                 )
         )
         .shadow(

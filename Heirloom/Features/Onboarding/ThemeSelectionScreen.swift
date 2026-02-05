@@ -55,27 +55,27 @@ struct ThemeSelectionScreen: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        VStack(spacing: HeirloomSpacing.sm) {
+        VStack(spacing: HeirloomSpacing.xs) {
             Text("Preserve culinary heritage")
-                .font(HeirloomFonts.largeTitle)
+                .font(HeirloomFonts.title1)
                 .foregroundStyle(HeirloomColors.primaryText)
                 .multilineTextAlignment(.center)
 
-            Text("Choose \(minSelections)-\(maxSelections) heritage themes to explore. Don't let these recipes be lost to history.")
-                .font(HeirloomFonts.body)
+            Text("Choose \(minSelections)-\(maxSelections) heritage themes to explore.")
+                .font(HeirloomFonts.subheadline)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, HeirloomSpacing.xl)
+                .padding(.horizontal, HeirloomSpacing.lg)
         }
-        .padding(.top, HeirloomSpacing.xl)
-        .padding(.bottom, HeirloomSpacing.lg)
+        .padding(.top, HeirloomSpacing.md)
+        .padding(.bottom, HeirloomSpacing.sm)
     }
 
     // MARK: - Themes
 
     private var themesScrollView: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: HeirloomSpacing.md) {
                 ForEach(groupedThemes, id: \.0) { category, categoryThemes in
                     ThemeCategorySection(
                         category: category,
@@ -85,19 +85,19 @@ struct ThemeSelectionScreen: View {
                     )
                 }
             }
-            .padding(.vertical, 16)
+            .padding(.vertical, HeirloomSpacing.sm)
         }
     }
 
     private var loadingOrEmptyState: some View {
-        VStack(spacing: HeirloomSpacing.lg) {
+        VStack(spacing: HeirloomSpacing.md) {
             Spacer()
 
             ProgressView()
-                .scaleEffect(1.5)
+                .scaleEffect(1.2)
 
             Text("Loading themes...")
-                .font(HeirloomFonts.body)
+                .font(HeirloomFonts.subheadline)
                 .foregroundStyle(HeirloomColors.secondaryText)
 
             Spacer()
@@ -107,20 +107,20 @@ struct ThemeSelectionScreen: View {
     // MARK: - Continue Button
 
     private var continueSection: some View {
-        VStack(spacing: HeirloomSpacing.sm) {
+        VStack(spacing: HeirloomSpacing.xs) {
             // Selection counter
             if selectedThemeIds.count > 0 {
                 Text("\(selectedThemeIds.count) of \(maxSelections) themes selected")
-                    .font(HeirloomFonts.caption1)
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(canContinue ? HeirloomColors.tomato : HeirloomColors.secondaryText)
-                    .padding(.top, HeirloomSpacing.sm)
+                    .padding(.top, HeirloomSpacing.xs)
             }
 
             // Continue button
             Button {
                 completeSelection()
             } label: {
-                HStack(spacing: HeirloomSpacing.sm) {
+                HStack(spacing: HeirloomSpacing.xs) {
                     if isLoading {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
@@ -132,12 +132,13 @@ struct ThemeSelectionScreen: View {
                         }
                     }
                 }
-                .font(HeirloomFonts.bodyBold)
+                .font(HeirloomFonts.subheadline)
+                .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, HeirloomSpacing.md)
+                .padding(.vertical, HeirloomSpacing.sm + 4)
                 .background(canContinue ? HeirloomColors.tomato : HeirloomColors.warmGray)
                 .foregroundStyle(.white)
-                .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                .cornerRadius(12)
             }
             .disabled(!canContinue || isLoading)
 
@@ -146,28 +147,28 @@ struct ThemeSelectionScreen: View {
                 skipSelection()
             } label: {
                 Text("Skip for now")
-                    .font(HeirloomFonts.body)
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
             .disabled(isLoading)
-            .padding(.top, HeirloomSpacing.xs)
 
             // Helper text
             if selectedThemeIds.count < minSelections {
-                Text("Select at least \(minSelections - selectedThemeIds.count) more theme\(minSelections - selectedThemeIds.count == 1 ? "" : "s"), or skip")
-                    .font(HeirloomFonts.caption1)
+                Text("Select at least \(minSelections - selectedThemeIds.count) more, or skip")
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(HeirloomColors.secondaryText)
             } else if selectedThemeIds.count == maxSelections {
                 Text("Maximum themes selected")
-                    .font(HeirloomFonts.caption1)
+                    .font(HeirloomFonts.caption2)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
         }
-        .padding(HeirloomSpacing.lg)
+        .padding(.horizontal, HeirloomSpacing.md)
+        .padding(.vertical, HeirloomSpacing.sm)
         .background(
             Rectangle()
                 .fill(HeirloomColors.cardBackground)
-                .shadow(color: .black.opacity(0.05), radius: 10, y: -5)
+                .shadow(color: .black.opacity(0.05), radius: 8, y: -4)
         )
     }
 
