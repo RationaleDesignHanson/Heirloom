@@ -32,7 +32,7 @@ const DEMO_USERS = [
   {
     id: 'demo_grandmazing',
     displayName: 'Grandmazing',
-    email: null,
+    email: 'grandmazing@example.com',
     photoURL: 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_grandmazing-avatar.webp',
     bio: 'Sharing recipes passed down through generations. Every dish tells a story.',
     location: 'Vermont',
@@ -46,7 +46,7 @@ const DEMO_USERS = [
   {
     id: 'demo_phillipfry',
     displayName: 'Phillip Fry',
-    email: null,
+    email: 'phillip.fry@example.com',
     photoURL: 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_phillipfry-avatar.webp',
     bio: 'Home cook exploring quick weeknight meals. Making dinner easy and delicious.',
     location: 'Brooklyn, NY',
