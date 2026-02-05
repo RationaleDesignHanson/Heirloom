@@ -23,6 +23,26 @@ class CollectionRouter {
 
     // MARK: - Public Routing Methods
 
+    /// Route a recipe to a specific collection (used when user explicitly chooses collection)
+    func routeToSpecificCollection(_ recipe: Recipe, collection: RecipeCollection) {
+        addRecipeToCollection(recipe, collection: collection)
+        Log.info("Routed recipe to specific collection", category: .collections, metadata: [
+            "recipe": recipe.title,
+            "collection": collection.name
+        ])
+    }
+
+    /// Route multiple recipes to a specific collection
+    func routeToSpecificCollection(_ recipes: [Recipe], collection: RecipeCollection) {
+        for recipe in recipes {
+            addRecipeToCollection(recipe, collection: collection)
+        }
+        Log.info("Routed recipes to specific collection", category: .collections, metadata: [
+            "count": recipes.count,
+            "collection": collection.name
+        ])
+    }
+
     /// Route a recipe shared by a friend
     func routeSharedRecipe(_ recipe: Recipe, from senderName: String?) {
         let collection = findOrCreateCollection(

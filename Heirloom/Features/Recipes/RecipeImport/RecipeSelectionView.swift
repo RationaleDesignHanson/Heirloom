@@ -15,6 +15,13 @@ struct RecipeSelectionView: View {
 
     let recipes: [AIRecipeExtractor.ExtractedRecipe]
     let sourceImage: UIImage?
+    let targetCollection: RecipeCollection?
+
+    init(recipes: [AIRecipeExtractor.ExtractedRecipe], sourceImage: UIImage?, targetCollection: RecipeCollection? = nil) {
+        self.recipes = recipes
+        self.sourceImage = sourceImage
+        self.targetCollection = targetCollection
+    }
 
     @State private var selectedRecipes: Set<Int> = []
     @State private var expandedRecipes: Set<Int> = []
@@ -271,6 +278,14 @@ struct RecipeSelectionView: View {
 
                 // Save all at once
                 try modelContext.save()
+
+                // Route to target collection if specified, otherwise to "From Photos"
+                let router = CollectionRouter(modelContext: modelContext)
+                if let collection = targetCollection {
+                    router.routeToSpecificCollection(createdRecipes, collection: collection)
+                } else {
+                    router.routePhotoImport(createdRecipes)
+                }
 
                 // Sync to Firebase if active
                 if backendConfig.isFirebaseActive {

@@ -34,12 +34,17 @@ final class RecipeGenerationService: ObservableObject {
     func generateRecipe(
         dishName: String,
         ingredients: String?,
-        context: ModelContext
+        context: ModelContext,
+        targetCollection: RecipeCollection? = nil
     ) async throws {
         self.context = context
 
-        // Create job
-        let job = RecipeGenerationJob(dishName: dishName, ingredients: ingredients)
+        // Create job with target collection ID if provided
+        let job = RecipeGenerationJob(
+            dishName: dishName,
+            ingredients: ingredients,
+            targetCollectionId: targetCollection?.id
+        )
         context.insert(job)
         try context.save()
 
@@ -75,7 +80,10 @@ final class RecipeGenerationService: ObservableObject {
     }
 
     /// 🎲 Easter Egg: Generate a silly/random recipe for fun
-    func generateSillyRecipe(context: ModelContext) async throws {
+    func generateSillyRecipe(
+        context: ModelContext,
+        targetCollection: RecipeCollection? = nil
+    ) async throws {
         self.context = context
 
         // Random silly recipe combos (name + absurd ingredients)
@@ -210,8 +218,12 @@ final class RecipeGenerationService: ObservableObject {
 
         let silly = sillyRecipes.randomElement() ?? (name: "Mystery Recipe", ingredients: "mystery ingredients")
 
-        // Create job with silly flag and absurd ingredients
-        let job = RecipeGenerationJob(dishName: silly.name, ingredients: silly.ingredients)
+        // Create job with silly flag and absurd ingredients, include target collection if specified
+        let job = RecipeGenerationJob(
+            dishName: silly.name,
+            ingredients: silly.ingredients,
+            targetCollectionId: targetCollection?.id
+        )
         job.isSillyRecipe = true  // Mark as silly for sharing restrictions
         context.insert(job)
         try context.save()
@@ -273,8 +285,8 @@ final class RecipeGenerationService: ObservableObject {
                 // Continue without image
             }
 
-            // Add to "Generated Recipes" collection
-            await addToCollection(recipe, context: context)
+            // Add to target collection (or default "Generated Recipes")
+            await addToCollection(recipe, context: context, targetCollectionId: job.targetCollectionId)
 
             // Save
             try context.save()
@@ -497,24 +509,27 @@ final class RecipeGenerationService: ObservableObject {
         return words.prefix(3).joined(separator: " ").capitalized
     }
 
-    private func addToCollection(_ recipe: Recipe, context: ModelContext) async {
+    private func addToCollection(_ recipe: Recipe, context: ModelContext, targetCollectionId: UUID? = nil) async {
         do {
-            // Try to find existing "Generated Recipes" collection
-            let descriptor = FetchDescriptor<RecipeCollection>(
-                predicate: #Predicate { $0.name == "Generated Recipes" }
-            )
-
             let collection: RecipeCollection
-            if let existing = try context.fetch(descriptor).first {
-                collection = existing
-            } else {
-                // Create new collection
-                collection = RecipeCollection(
-                    name: "Generated Recipes",
-                    iconName: "wand.and.stars",
-                    collectionType: .userCreated
+
+            // If target collection specified, use it; otherwise use "Generated Recipes"
+            if let targetId = targetCollectionId {
+                let targetDescriptor = FetchDescriptor<RecipeCollection>(
+                    predicate: #Predicate { $0.id == targetId }
                 )
-                context.insert(collection)
+                if let targetCollection = try context.fetch(targetDescriptor).first {
+                    collection = targetCollection
+                    Log.info("Adding generated recipe to target collection", category: .general, metadata: [
+                        "collection": collection.name
+                    ])
+                } else {
+                    // Fallback to "Generated Recipes" if target not found
+                    collection = try findOrCreateGeneratedRecipesCollection(context: context)
+                }
+            } else {
+                // Default: use "Generated Recipes" collection
+                collection = try findOrCreateGeneratedRecipesCollection(context: context)
             }
 
             // Add recipe to collection
@@ -531,6 +546,25 @@ final class RecipeGenerationService: ObservableObject {
             Log.error("Failed to add recipe to collection", category: .general, metadata: [
                 "error": error.localizedDescription
             ])
+        }
+    }
+
+    private func findOrCreateGeneratedRecipesCollection(context: ModelContext) throws -> RecipeCollection {
+        let descriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate { $0.name == "Generated Recipes" }
+        )
+
+        if let existing = try context.fetch(descriptor).first {
+            return existing
+        } else {
+            // Create new collection
+            let collection = RecipeCollection(
+                name: "Generated Recipes",
+                iconName: "wand.and.stars",
+                collectionType: .userCreated
+            )
+            context.insert(collection)
+            return collection
         }
     }
 

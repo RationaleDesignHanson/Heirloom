@@ -9,6 +9,9 @@ struct UnifiedVideoImportView: View {
     // Optional: Import from Share Extension via deep link
     let pendingImportID: UUID?
 
+    // Optional target collection for adding the recipe to a specific collection
+    let targetCollection: RecipeCollection?
+
     @State private var selectedItem: PhotosPickerItem?
     @State private var importState: ImportState = .selecting
     @State private var currentMode: ExtractionMode?
@@ -33,8 +36,9 @@ struct UnifiedVideoImportView: View {
     // Collection picker
     @State private var showCollectionPicker = false
 
-    init(pendingImportID: UUID? = nil) {
+    init(pendingImportID: UUID? = nil, targetCollection: RecipeCollection? = nil) {
         self.pendingImportID = pendingImportID
+        self.targetCollection = targetCollection
     }
 
     /// Whether the sheet can be dismissed (false during analysis/extraction)
@@ -601,11 +605,15 @@ struct UnifiedVideoImportView: View {
 
             try? modelContext.save()
 
-            // Route to "From Videos" collection
+            // Route to target collection if specified, otherwise to "From Videos"
             let router = CollectionRouter(modelContext: modelContext)
-            router.routeVideoImport(recipe)
+            if let collection = targetCollection {
+                router.routeToSpecificCollection(recipe, collection: collection)
+            } else {
+                router.routeVideoImport(recipe)
+            }
 
-            Log.info("Video recipe saved to SwiftData and routed to From Videos", category: .video, metadata: [
+            Log.info("Video recipe saved to SwiftData and routed", category: .video, metadata: [
                 "recipeId": recipe.id.uuidString,
                 "title": recipe.title
             ])
@@ -698,11 +706,15 @@ struct UnifiedVideoImportView: View {
 
             try? modelContext.save()
 
-            // Route to "From Videos" collection
+            // Route to target collection if specified, otherwise to "From Videos"
             let router = CollectionRouter(modelContext: modelContext)
-            router.routeVideoImport(recipe)
+            if let collection = targetCollection {
+                router.routeToSpecificCollection(recipe, collection: collection)
+            } else {
+                router.routeVideoImport(recipe)
+            }
 
-            Log.info("Video recipe saved to SwiftData and routed to From Videos", category: .video, metadata: [
+            Log.info("Video recipe saved to SwiftData and routed", category: .video, metadata: [
                 "recipeId": recipe.id.uuidString,
                 "title": recipe.title
             ])

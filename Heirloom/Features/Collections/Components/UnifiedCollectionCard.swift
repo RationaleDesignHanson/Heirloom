@@ -12,6 +12,8 @@ import SwiftData
 struct UnifiedCollectionCard: View {
     let collection: RecipeCollection
     let variant: CardVariant
+    var totalRecipeCount: Int? = nil  // For "All Recipes" collection (overrides relationship count)
+    var allRecipesForThumbnails: [Recipe]? = nil  // For "All Recipes" collection thumbnails
 
     @EnvironmentObject private var syncService: FirebaseSyncService
     @Environment(\.openURL) private var openURL
@@ -24,13 +26,21 @@ struct UnifiedCollectionCard: View {
     // MARK: - Computed Properties
 
     private var recipeCount: Int {
-        collection.recipes?.count ?? 0
+        // For "All Recipes" collection, use the passed total count
+        if collection.isAllRecipes, let total = totalRecipeCount {
+            return total
+        }
+        return collection.recipes?.count ?? 0
     }
 
     /// Get recipes for display (themed uses filtered recipes, standard uses all)
     private var displayRecipes: [Recipe] {
         switch variant {
         case .standard:
+            // For "All Recipes", use the passed recipes
+            if collection.isAllRecipes, let allRecipes = allRecipesForThumbnails {
+                return allRecipes
+            }
             return collection.recipes ?? []
         case .themed(_, let unlockTracker, let allRecipes, _):
             guard let themeId = collection.sourceThemeId else { return [] }
@@ -38,14 +48,32 @@ struct UnifiedCollectionCard: View {
         }
     }
 
-    /// Get first 2 recipes for small thumbnail display
+    /// Get 2 random recipes for small thumbnail display (for "All Recipes" we pick randomly)
     private var recipeImages: [Recipe] {
-        Array(displayRecipes.prefix(2))
+        if collection.isAllRecipes {
+            // Pick 2 random recipes that have images for variety
+            let recipesWithImages = displayRecipes.filter {
+                $0.imageFileName != nil || $0.firebaseImageURL != nil
+            }
+            if recipesWithImages.count >= 2 {
+                // Use a seeded shuffle based on date to get consistent "random" picks per day
+                let seed = Calendar.current.component(.day, from: Date())
+                var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
+                return Array(recipesWithImages.shuffled(using: &rng).prefix(2))
+            }
+            return Array(recipesWithImages.prefix(2))
+        }
+        return Array(displayRecipes.prefix(2))
     }
 
     /// Check if large slot is using a recipe image (standard only)
     private var isLargeSlotUsingRecipeImage: Bool {
         guard case .standard = variant else { return false }
+
+        // "All Recipes" uses preset background, not recipe image
+        if collection.isAllRecipes {
+            return false
+        }
 
         // If custom background is enabled AND we have a background image, large slot uses that, not recipe
         if collection.useCustomBackground &&
@@ -60,6 +88,14 @@ struct UnifiedCollectionCard: View {
     private var recipesForSmallSlots: [Recipe?] {
         switch variant {
         case .standard:
+            // "All Recipes" always uses preset background, so small slots get the random picks
+            if collection.isAllRecipes {
+                return [
+                    recipeImages.first,
+                    recipeImages.count > 1 ? recipeImages[1] : nil
+                ]
+            }
+
             if isLargeSlotUsingRecipeImage {
                 // Large slot is using first recipe, so small slots get recipe 2 and 3 (or nil)
                 let remainingRecipes = Array((collection.recipes ?? []).dropFirst())
@@ -152,35 +188,43 @@ struct UnifiedCollectionCard: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Image collage (60/40 split)
-            GeometryReader { geo in
-                HStack(spacing: 2) {
-                    // Large image (60%)
-                    largeImageView
-                        .frame(width: geo.size.width * 0.6)
+            // Image area - full width for "All Recipes", 60/40 split for others
+            if collection.isAllRecipes {
+                // Full-width single image for "All Recipes"
+                allRecipesImageView
+                    .frame(height: 180)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            } else {
+                // Standard 60/40 split collage
+                GeometryReader { geo in
+                    HStack(spacing: 2) {
+                        // Large image (60%)
+                        largeImageView
+                            .frame(width: geo.size.width * 0.6)
 
-                    // Stacked small images (40%)
-                    VStack(spacing: 2) {
-                        recipeImageView(for: recipesForSmallSlots[0], isFirstSlot: true)
-                        recipeImageView(for: recipesForSmallSlots[1], isFirstSlot: false)
+                        // Stacked small images (40%)
+                        VStack(spacing: 2) {
+                            recipeImageView(for: recipesForSmallSlots[0], isFirstSlot: true)
+                            recipeImageView(for: recipesForSmallSlots[1], isFirstSlot: false)
+                        }
+                        .frame(width: geo.size.width * 0.4 - 2)
                     }
-                    .frame(width: geo.size.width * 0.4 - 2)
                 }
-            }
-            .frame(height: 180)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(alignment: .topLeading) {
-                // NEW badge (when collection has new recipes)
-                if collection.hasNewRecipes {
-                    newBadge
-                        .padding(HeirloomSpacing.sm)
+                .frame(height: 180)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(alignment: .topLeading) {
+                    // NEW badge (when collection has new recipes)
+                    if collection.hasNewRecipes {
+                        newBadge
+                            .padding(HeirloomSpacing.sm)
+                    }
                 }
-            }
-            .overlay(alignment: .topTrailing) {
-                // Status badge (themed only)
-                if case .themed = variant {
-                    statusBadge
-                        .padding(HeirloomSpacing.sm)
+                .overlay(alignment: .topTrailing) {
+                    // Status badge (themed only)
+                    if case .themed = variant {
+                        statusBadge
+                            .padding(HeirloomSpacing.sm)
+                    }
                 }
             }
 
@@ -194,6 +238,22 @@ struct UnifiedCollectionCard: View {
                 .stroke(cardBorderColor, lineWidth: cardBorderWidth)
         )
         .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+    }
+
+    // MARK: - All Recipes Full-Width Image
+
+    @ViewBuilder
+    private var allRecipesImageView: some View {
+        // Use preset background image if available, otherwise use placeholder
+        if let presetPath = collection.customBackgroundImagePath {
+            AsyncRecipeImage(
+                imageFileName: presetPath,
+                firebaseImageURL: nil,
+                placeholder: "book.closed.fill"
+            )
+        } else {
+            allRecipesPlaceholderView
+        }
     }
 
     // MARK: - Large Image View
@@ -213,8 +273,22 @@ struct UnifiedCollectionCard: View {
         // Priority 0: Empty collection affordance (if collection is empty and interactive)
         if recipeImages.isEmpty,
            case .standard(let onAddRecipeTap) = variant,
-           onAddRecipeTap != nil {
+           onAddRecipeTap != nil,
+           !collection.isAllRecipes {
             emptyCollectionAffordance
+        }
+        // Priority 0.5: "All Recipes" preset background
+        else if collection.isAllRecipes {
+            // Use preset background image if available, otherwise use icon placeholder
+            if let presetPath = collection.customBackgroundImagePath {
+                AsyncRecipeImage(
+                    imageFileName: presetPath,
+                    firebaseImageURL: nil,
+                    placeholder: "book.closed.fill"
+                )
+            } else {
+                allRecipesPlaceholderView
+            }
         }
         // Priority 1: Cookbook cover image (for cookbook collections)
         else if let coverPath = collection.cookbookCoverImagePath {
@@ -255,6 +329,31 @@ struct UnifiedCollectionCard: View {
         else {
             placeholderView
         }
+    }
+
+    /// Placeholder view specifically for "All Recipes" collection
+    private var allRecipesPlaceholderView: some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [
+                        HeirloomColors.familyGreen.opacity(0.3),
+                        HeirloomColors.familyGreen.opacity(0.5)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .overlay(
+                VStack(spacing: 8) {
+                    Image(systemName: "book.closed.fill")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.white.opacity(0.8))
+                    Text("All Recipes")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+            )
     }
 
     @ViewBuilder
@@ -312,9 +411,11 @@ struct UnifiedCollectionCard: View {
                 placeholder: collection.iconName
             )
         }
-        // Show + affordance in first empty slot when collection has 1-3 recipes (standard only)
+        // Show + affordance in ANY empty slot (standard only)
+        // This allows users to add recipes directly from the collection card
         else if case .standard(let onAddRecipeTap) = variant,
-                recipe == nil && isFirstSlot && recipeCount <= 3 {
+                recipe == nil,
+                onAddRecipeTap != nil {
             addRecipeAffordance(onTap: onAddRecipeTap)
         }
         else {
@@ -404,6 +505,16 @@ struct UnifiedCollectionCard: View {
     private var subtitleText: String {
         switch variant {
         case .standard:
+            // For "All Recipes", use the total count from parameter
+            if collection.isAllRecipes, let total = totalRecipeCount {
+                if total == 0 {
+                    return "No recipes yet"
+                } else if total == 1 {
+                    return "1 recipe"
+                } else {
+                    return "\(total) recipes"
+                }
+            }
             return collection.subtitleText
         case .themed:
             guard let progress = unlockProgress else { return "" }
@@ -649,5 +760,24 @@ struct UnifiedCollectionCard: View {
                     .font(.title2)
                     .foregroundStyle(HeirloomColors.warmGray.opacity(0.5))
             )
+    }
+}
+
+// MARK: - Seeded Random Number Generator
+
+/// Simple seeded RNG for consistent "random" picks per day
+struct SeededRandomNumberGenerator: RandomNumberGenerator {
+    private var state: UInt64
+
+    init(seed: UInt64) {
+        self.state = seed
+    }
+
+    mutating func next() -> UInt64 {
+        // Simple xorshift algorithm
+        state ^= state << 13
+        state ^= state >> 7
+        state ^= state << 17
+        return state
     }
 }

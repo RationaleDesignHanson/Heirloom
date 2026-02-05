@@ -454,6 +454,11 @@ struct HeirloomApp: App {
                 let syncService = serviceContainer.resolve(FirebaseSyncService.self)
                 syncService.configure(modelContext: container.mainContext)
 
+                // Configure UndoService with model context (needed for recipe/collection undo to work)
+                let undoService = serviceContainer.resolve(UndoService.self)
+                undoService.configure(modelContext: container.mainContext)
+                Log.info("UndoService configured with model context", category: .database)
+
                 DeviceLogger.shared.log("✅ [Heirloom] Firebase sync initialized")
                 logger.info("✅ [Heirloom] Firebase sync initialized")
                 Log.info("Firebase sync service configured", category: .firebase)

@@ -22,6 +22,9 @@ struct RecipeImportView: View {
     // Optional URL passed from Share Extension
     let url: URL?
 
+    // Optional target collection for adding the recipe to a specific collection
+    let targetCollection: RecipeCollection?
+
     @State private var urlText = ""
     @State private var isImporting = false
     @State private var importedRecipe: ImportedRecipe?
@@ -32,11 +35,19 @@ struct RecipeImportView: View {
     // Init for manual URL entry
     init() {
         self.url = nil
+        self.targetCollection = nil
     }
 
     // Init for Share Extension (with pre-populated URL)
     init(url: URL) {
         self.url = url
+        self.targetCollection = nil
+    }
+
+    // Init with target collection (for adding to specific collection)
+    init(targetCollection: RecipeCollection?) {
+        self.url = nil
+        self.targetCollection = targetCollection
     }
 
     var body: some View {
@@ -513,9 +524,17 @@ struct RecipeImportView: View {
         // Auto-detect recipe category
         recipe.detectAndApplyCategory()
 
-        // Route to "From Web" collection
-        if let sourceURLString = recipe.sourceURL, let sourceURL = URL(string: sourceURLString) {
-            let router = CollectionRouter(modelContext: modelContext)
+        // Route to collection
+        let router = CollectionRouter(modelContext: modelContext)
+        if let collection = targetCollection {
+            // Route to the specific collection the user selected
+            router.routeToSpecificCollection(recipe, collection: collection)
+            Log.info("Added recipe to target collection", category: .collections, metadata: [
+                "recipe": recipe.title,
+                "collection": collection.name
+            ])
+        } else if let sourceURLString = recipe.sourceURL, let sourceURL = URL(string: sourceURLString) {
+            // Default: route to "From Web" collection
             router.routeURLImport(recipe, sourceURL: sourceURL)
         }
 

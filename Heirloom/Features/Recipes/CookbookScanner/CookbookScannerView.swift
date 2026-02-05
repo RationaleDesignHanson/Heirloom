@@ -19,6 +19,13 @@ struct CookbookScannerView: View {
     private var backendConfig: BackendConfig { ServiceContainer.shared.resolve(BackendConfig.self) }
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
 
+    /// Target collection to add recipes to (overrides default routing when user initiates import from a specific collection)
+    let targetCollection: RecipeCollection?
+
+    init(targetCollection: RecipeCollection? = nil) {
+        self.targetCollection = targetCollection
+    }
+
     @State private var showCamera = false
     @State private var capturedImage: UIImage?
     @State private var isProcessing = false
@@ -127,7 +134,8 @@ struct CookbookScannerView: View {
                     if let result = multiRecipeResult {
                         RecipeSelectionView(
                             recipes: result.recipes,
-                            sourceImage: result.sourceImage
+                            sourceImage: result.sourceImage,
+                            targetCollection: targetCollection
                         )
                     }
                 }

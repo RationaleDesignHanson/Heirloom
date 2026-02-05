@@ -47,13 +47,21 @@ struct CollectionsListView: View {
     private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
     private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
+    private var undoService: UndoService { ServiceContainer.shared.resolve(UndoService.self) }
 
     // MARK: - Filtered Collections
 
     /// Collections visible on the main list (no empty, no system)
     private var visibleCollections: [RecipeCollection] {
         allCollections
-            .filter { $0.isVisibleInMainList }
+            .filter { collection in
+                // Special case: "All Recipes" shows if there are ANY recipes in the system
+                // (its recipeCount is always 0 since recipes aren't linked to it directly)
+                if collection.isAllRecipes {
+                    return !allRecipes.isEmpty
+                }
+                return collection.isVisibleInMainList
+            }
             .sorted { a, b in
                 // Sort by type priority first
                 if a.type.sortPriority != b.type.sortPriority {
@@ -74,16 +82,26 @@ struct CollectionsListView: View {
 
     /// My Collections (shown BEFORE themes) - includes all import types and user-created
     /// Note: Empty collections are already filtered by isVisibleInMainList, no need to check recipe count here
+    /// "All Recipes" appears last in this section, just above theme collections
     private var myCollections: [RecipeCollection] {
-        visibleCollections.filter { collection in
-            collection.type == .communityRecipes ||
-            collection.type == .fromFriends ||
-            collection.type == .videoImports ||
-            collection.type == .webImports ||
-            collection.type == .photoImports ||
-            collection.type == .cookbook ||
-            collection.type == .userCreated
-        }
+        visibleCollections
+            .filter { collection in
+                collection.isAllRecipes || // Shows when it has recipes (isVisibleInMainList controls this)
+                collection.type == .communityRecipes ||
+                collection.type == .fromFriends ||
+                collection.type == .videoImports ||
+                collection.type == .webImports ||
+                collection.type == .photoImports ||
+                collection.type == .cookbook ||
+                collection.type == .userCreated
+            }
+            .sorted { lhs, rhs in
+                // "All Recipes" always goes last
+                if lhs.isAllRecipes { return false }
+                if rhs.isAllRecipes { return true }
+                // Otherwise maintain existing order (by type priority, then creation date)
+                return false
+            }
     }
 
     /// User-added recipes (excludes theme collection recipes)
@@ -215,11 +233,11 @@ struct CollectionsListView: View {
                     .environmentObject(tabCoordinator)
             }
             .sheet(isPresented: $showRecipeGenerator) {
-                RecipeGeneratorView()
+                RecipeGeneratorView(targetCollection: selectedCollection)
                     .environmentObject(tabCoordinator)
             }
             .sheet(isPresented: $showImportRecipe) {
-                RecipeImportView()
+                RecipeImportView(targetCollection: selectedCollection)
                     .environmentObject(tabCoordinator)
             }
             .sheet(isPresented: $showBulkImport) {
@@ -227,11 +245,11 @@ struct CollectionsListView: View {
                     .environmentObject(tabCoordinator)
             }
             .sheet(isPresented: $showCookbookScanner) {
-                CookbookScannerView()
+                CookbookScannerView(targetCollection: selectedCollection)
                     .environmentObject(tabCoordinator)
             }
             .sheet(isPresented: $showVideoImport) {
-                UnifiedVideoImportView()
+                UnifiedVideoImportView(targetCollection: selectedCollection)
                     .environmentObject(notificationService)
                     .environmentObject(tabCoordinator)
             }
@@ -504,9 +522,9 @@ struct CollectionsListView: View {
 
     private var unifiedCollectionsSection: some View {
         LazyVStack(spacing: HeirloomSpacing.lg) {
-            // CTA banner (FIRST - pinned to top until user has 2+ recipes)
+            // CTA banner (FIRST - shown until user adds their first recipe)
             // Only count user-added recipes (exclude theme collection recipes)
-            if userRecipes.count < 2 {
+            if userRecipes.isEmpty {
                 ctaBanner
                     .padding(.bottom, HeirloomSpacing.sm)
             }
@@ -602,10 +620,14 @@ struct CollectionsListView: View {
                     UnifiedCollectionCard(
                         collection: collection,
                         variant: .standard(
-                            onAddRecipeTap: (collection.recipes?.count ?? 0) <= 1
+                            onAddRecipeTap: (collection.recipes?.count ?? 0) <= 1 && !collection.isAllRecipes
                                 ? { handleAddRecipeToCollection(collection) }
                                 : nil
-                        )
+                        ),
+                        // Pass total recipe count for "All Recipes" collection (recipes aren't linked to it directly)
+                        totalRecipeCount: collection.isAllRecipes ? allRecipes.count : nil,
+                        // Pass all recipes for "All Recipes" thumbnails
+                        allRecipesForThumbnails: collection.isAllRecipes ? allRecipes : nil
                     )
                 }
                 .buttonStyle(.plain)
@@ -629,7 +651,7 @@ struct CollectionsListView: View {
                         Label("Collection Settings", systemImage: "gear")
                     }
 
-                    if !collection.isSystemCollection {
+                    if !collection.isSystemCollection && !collection.isAllRecipes {
                         Button(role: .destructive) {
                             collectionToDelete = collection
                             showDeleteConfirmation = true
@@ -1025,7 +1047,6 @@ struct CollectionsListView: View {
     private func deleteCollectionKeepingRecipes(_ collection: RecipeCollection) async {
         // Prevent deletion of system collections
         guard !collection.isSystemCollection else {
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
             await MainActor.run {
                 toastManager.error(title: "Cannot delete", message: "System collections cannot be deleted")
             }
@@ -1033,71 +1054,31 @@ struct CollectionsListView: View {
         }
 
         // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.warning)
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
 
-        // Remove collection-recipe relationships
-        if let recipes = collection.recipes {
-            for recipe in recipes {
-                recipe.collections?.removeAll { $0.id == collection.id }
+        // NOTE: Do NOT delete from Firebase immediately!
+        // UndoService handles Firebase deletion after the undo window expires.
+
+        await MainActor.run {
+            // Delete using UndoService
+            undoService.deleteCollectionKeepingRecipes(collection, context: modelContext)
+
+            // Get the undo item we just created
+            guard let undoItem = undoService.pendingCollectionUndos.last else {
+                Log.error("Failed to create undo item for collection deletion", category: .collections)
+                return
             }
-        }
 
-        // Create tombstone BEFORE deleting (so we remember this was deleted)
-        let collectionId = collection.id
-        await MainActor.run {
-            let tombstone = DeletedCollectionRecord(collectionId: collectionId)
-            modelContext.insert(tombstone)
-            Log.info("Created deletion tombstone", category: .collections, metadata: [
-                "collectionId": collectionId.uuidString
-            ])
-        }
-
-        // Delete collection
-        await MainActor.run {
-            modelContext.delete(collection)
-            try? modelContext.save()
-        }
-
-        // Firebase sync
-        let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
-        if backendConfig.isFirebaseActive {
-            let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
-            do {
-                try await firebaseSync.deleteCollection(collectionId)
-
-                // Mark tombstone as synced to Firebase
-                await MainActor.run {
-                    let descriptor = FetchDescriptor<DeletedCollectionRecord>(
-                        predicate: #Predicate { record in
-                            record.collectionId == collectionId
-                        }
-                    )
-                    if let tombstone = try? modelContext.fetch(descriptor).first {
-                        tombstone.syncedToFirebase = true
-                        try? modelContext.save()
-                        Log.info("Marked tombstone as synced to Firebase", category: .collections, metadata: [
-                            "collectionId": collectionId.uuidString
-                        ])
-                    }
-                }
-            } catch {
-                Log.error("Failed to delete collection from Firebase", category: .firebase, error: error, metadata: [
-                    "collectionId": collectionId.uuidString
-                ])
-                // Don't throw - tombstone still prevents recreation
+            // Show undo toast
+            toastManager.showCollectionUndoToast(for: undoItem) { [undoItem] in
+                undoService.undoCollectionDelete(undoItem)
+                let successGenerator = UINotificationFeedbackGenerator()
+                successGenerator.notificationOccurred(.success)
+                toastManager.success(title: "Collection restored")
             }
-        }
 
-        // Success feedback
-        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-        await MainActor.run {
-            toastManager.success(title: "Collection deleted", message: "Recipes remain in your library")
-            generator.notificationOccurred(.success)
-        }
-
-        // Clear the deleted collection reference
-        await MainActor.run {
+            // Clear the deleted collection reference
             collectionToDelete = nil
         }
     }
@@ -1105,7 +1086,6 @@ struct CollectionsListView: View {
     private func deleteCollectionAndRecipes(_ collection: RecipeCollection) async {
         // Prevent deletion of system collections
         guard !collection.isSystemCollection else {
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
             await MainActor.run {
                 toastManager.error(title: "Cannot delete", message: "System collections cannot be deleted")
             }
@@ -1113,60 +1093,36 @@ struct CollectionsListView: View {
         }
 
         // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.warning)
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.impactOccurred()
 
-        do {
-            let recipesToDelete = collection.recipes ?? []
-            let recipeCount = recipesToDelete.count
+        // NOTE: Do NOT delete from Firebase immediately!
+        // UndoService handles Firebase deletion after the undo window expires.
 
-            // Delete all recipes first
-            for recipe in recipesToDelete {
-                await MainActor.run {
-                    modelContext.delete(recipe)
-                }
+        await MainActor.run {
+            // Delete using UndoService
+            undoService.deleteCollectionAndRecipes(collection, context: modelContext)
+
+            // Get the undo item we just created
+            guard let undoItem = undoService.pendingCollectionUndos.last else {
+                Log.error("Failed to create undo item for collection deletion", category: .collections)
+                return
             }
 
-            // Delete collection
-            await MainActor.run {
-                modelContext.delete(collection)
-                try? modelContext.save()
-            }
-
-            // Firebase sync
-            let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
-            if backendConfig.isFirebaseActive {
-                let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
-
-                // Delete recipes from Firebase
-                for recipe in recipesToDelete {
-                    try await firebaseSync.deleteRecipe(recipe.id)
-                }
-
-                // Delete collection from Firebase
-                try await firebaseSync.deleteCollection(collection.id)
-            }
-
-            // Success feedback
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-            await MainActor.run {
+            // Show undo toast
+            toastManager.showCollectionUndoToast(for: undoItem) { [undoItem] in
+                undoService.undoCollectionDelete(undoItem)
+                let successGenerator = UINotificationFeedbackGenerator()
+                successGenerator.notificationOccurred(.success)
+                let restoredCount = undoItem.deletedRecipeData.count
                 toastManager.success(
-                    title: "Collection and \(recipeCount) recipe\(recipeCount == 1 ? "" : "s") deleted"
+                    title: "Collection restored",
+                    message: "\(restoredCount) recipe\(restoredCount == 1 ? "" : "s") restored"
                 )
-                generator.notificationOccurred(.success)
             }
 
             // Clear the deleted collection reference
-            await MainActor.run {
-                collectionToDelete = nil
-            }
-
-        } catch {
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-            await MainActor.run {
-                toastManager.error(title: "Failed to delete", message: error.localizedDescription)
-                generator.notificationOccurred(.error)
-            }
+            collectionToDelete = nil
         }
     }
 

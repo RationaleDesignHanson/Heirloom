@@ -13,6 +13,13 @@ struct RecipeGeneratorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
+    /// Target collection to add generated recipe to (overrides default routing when user initiates from a specific collection)
+    let targetCollection: RecipeCollection?
+
+    init(targetCollection: RecipeCollection? = nil) {
+        self.targetCollection = targetCollection
+    }
+
     @State private var dishName: String = ""
     @State private var ingredients: String = ""
     @State private var errorMessage: String?
@@ -102,13 +109,17 @@ struct RecipeGeneratorView: View {
             do {
                 // Easter egg: Generate silly recipe if both fields empty
                 if recipeDishName.isEmpty && recipeIngredients.isEmpty {
-                    try await generationService.generateSillyRecipe(context: modelContext)
+                    try await generationService.generateSillyRecipe(
+                        context: modelContext,
+                        targetCollection: targetCollection
+                    )
                 } else {
                     // Normal generation
                     try await generationService.generateRecipe(
                         dishName: recipeDishName,
                         ingredients: recipeIngredients.isEmpty ? nil : recipeIngredients,
-                        context: modelContext
+                        context: modelContext,
+                        targetCollection: targetCollection
                     )
                 }
 

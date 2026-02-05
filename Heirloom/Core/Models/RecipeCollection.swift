@@ -127,12 +127,18 @@ final class RecipeCollection {
     }
 
     var isVisibleInMainList: Bool {
-        // System collections and "All Recipes" are hidden
-        if isSystemCollection || isAllRecipes {
+        // "All Recipes" only visible once it has recipes (appears after first user-added recipe)
+        if isAllRecipes {
+            return recipeCount > 0
+        }
+
+        // Other system collections are hidden (Favorites, Quick Meals, Meal Prep)
+        if isSystemCollection {
             return false
         }
 
         // Empty auto-generated collections are hidden, but user-created and theme collections should show
+        // Exception: "Generated Recipes" collection should always show (it's user-created type)
         if type != .theme && type != CollectionType.userCreated && recipeCount == 0 {
             return false
         }
@@ -269,14 +275,45 @@ final class RecipeCollection {
     // MARK: - System Collections
 
     static func createSystemCollections(context: ModelContext) {
-        // Check if All Recipes already exists
+        // Check if All Recipes already exists (by flag OR by name for legacy collections)
         var allRecipesDescriptor = FetchDescriptor<RecipeCollection>()
         allRecipesDescriptor.predicate = #Predicate<RecipeCollection> { collection in
             collection.isAllRecipes == true
         }
-        let allRecipesExists = (try? context.fetch(allRecipesDescriptor))?.isEmpty == false
+        let existingByFlag = try? context.fetch(allRecipesDescriptor)
 
-        if !allRecipesExists {
+        // Also check by name for legacy collections that might not have the flag
+        var allRecipesByNameDescriptor = FetchDescriptor<RecipeCollection>()
+        allRecipesByNameDescriptor.predicate = #Predicate<RecipeCollection> { collection in
+            collection.name == "All Recipes"
+        }
+        let existingByName = try? context.fetch(allRecipesByNameDescriptor)
+
+        if let allRecipesCollection = existingByFlag?.first {
+            // Ensure existing "All Recipes" has the correct type for visibility
+            if allRecipesCollection.collectionType != CollectionType.userCreated.rawValue {
+                allRecipesCollection.collectionType = CollectionType.userCreated.rawValue
+            }
+            // Ensure preset background is set
+            if allRecipesCollection.customBackgroundImagePath == nil && UIImage(named: "all-recipes-bg") != nil {
+                allRecipesCollection.customBackgroundImagePath = "preset-all-recipes-bg"
+                allRecipesCollection.useCustomBackground = true
+            }
+        } else if let legacyAllRecipes = existingByName?.first {
+            // Found by name but not by flag - migrate it
+            legacyAllRecipes.isAllRecipes = true
+            legacyAllRecipes.isSystemCollection = true
+            if legacyAllRecipes.collectionType != CollectionType.userCreated.rawValue {
+                legacyAllRecipes.collectionType = CollectionType.userCreated.rawValue
+            }
+            // Set preset background
+            if UIImage(named: "all-recipes-bg") != nil {
+                legacyAllRecipes.customBackgroundImagePath = "preset-all-recipes-bg"
+                legacyAllRecipes.useCustomBackground = true
+            }
+            Log.info("Migrated legacy All Recipes collection", category: .general)
+        } else {
+            // Create new All Recipes collection
             let allRecipes = RecipeCollection(
                 name: "All Recipes",
                 description: "All recipes in your library",
@@ -285,10 +322,105 @@ final class RecipeCollection {
                 isSystemCollection: true,
                 isAllRecipes: true
             )
+            // Set preset background image
+            if UIImage(named: "all-recipes-bg") != nil {
+                allRecipes.customBackgroundImagePath = "preset-all-recipes-bg"
+                allRecipes.useCustomBackground = true
+            }
             context.insert(allRecipes)
+            Log.info("Created new All Recipes collection", category: .general)
         }
 
-        // Check if Favorites already exists
+        // Check if "Generated Recipes" collection exists (visible on first launch)
+        // Also handle duplicates - merge them if multiple exist
+        var generatedDescriptor = FetchDescriptor<RecipeCollection>()
+        generatedDescriptor.predicate = #Predicate<RecipeCollection> { collection in
+            collection.name == "Generated Recipes"
+        }
+        let existingGeneratedCollections = (try? context.fetch(generatedDescriptor)) ?? []
+
+        if existingGeneratedCollections.isEmpty {
+            // Create new Generated Recipes collection
+            let generatedRecipes = RecipeCollection(
+                name: "Generated Recipes",
+                description: "AI-created recipes",
+                iconName: "wand.and.stars",
+                color: "#9B59B6", // Purple for AI/magic theme
+                isSystemCollection: false,
+                isAllRecipes: false,
+                collectionType: .userCreated
+            )
+            // Check if bundled preset image exists before enabling custom background
+            // "preset-" prefix tells AsyncRecipeImage to load from bundle assets
+            if UIImage(named: "generated-recipes-bg") != nil {
+                generatedRecipes.customBackgroundImagePath = "preset-generated-recipes-bg"
+                generatedRecipes.useCustomBackground = true
+            }
+            // Otherwise uses icon placeholder (wand.and.stars)
+            context.insert(generatedRecipes)
+            Log.info("Created Generated Recipes collection", category: .general)
+        } else if existingGeneratedCollections.count > 1 {
+            // DEDUPLICATION: Multiple "Generated Recipes" collections found
+            // Keep the one with most recipes, merge others into it, then delete duplicates
+            Log.warning("Found duplicate Generated Recipes collections", category: .collections, metadata: [
+                "count": existingGeneratedCollections.count
+            ])
+
+            // Sort by recipe count (descending) to keep the one with most recipes
+            let sortedCollections = existingGeneratedCollections.sorted {
+                ($0.recipes?.count ?? 0) > ($1.recipes?.count ?? 0)
+            }
+
+            let primaryCollection = sortedCollections[0]
+            let duplicates = Array(sortedCollections.dropFirst())
+
+            // Move recipes from duplicates to primary collection
+            for duplicate in duplicates {
+                // Make a copy of recipes array to avoid mutation during iteration
+                let recipesToMove = Array(duplicate.recipes ?? [])
+                for recipe in recipesToMove {
+                    // Remove from duplicate's collection
+                    recipe.collections?.removeAll { $0.id == duplicate.id }
+                    // Add to primary collection
+                    if recipe.collections == nil {
+                        recipe.collections = []
+                    }
+                    if !recipe.collections!.contains(where: { $0.id == primaryCollection.id }) {
+                        recipe.collections!.append(primaryCollection)
+                    }
+                }
+                if !recipesToMove.isEmpty {
+                    Log.info("Moved recipes from duplicate collection", category: .collections, metadata: [
+                        "movedCount": recipesToMove.count,
+                        "fromId": duplicate.id.uuidString
+                    ])
+                }
+                // Delete the duplicate collection
+                context.delete(duplicate)
+            }
+
+            // Ensure primary has the correct properties
+            if primaryCollection.customBackgroundImagePath == nil && UIImage(named: "generated-recipes-bg") != nil {
+                primaryCollection.customBackgroundImagePath = "preset-generated-recipes-bg"
+                primaryCollection.useCustomBackground = true
+            }
+
+            Log.info("Deduplicated Generated Recipes collections", category: .collections, metadata: [
+                "kept": primaryCollection.id.uuidString,
+                "deleted": duplicates.count
+            ])
+
+            do {
+                try context.save()
+                Log.info("Successfully saved after deduplication", category: .collections)
+            } catch {
+                Log.error("Failed to save after deduplication", category: .collections, metadata: [
+                    "error": error.localizedDescription
+                ])
+            }
+        }
+
+        // Check if Favorites already exists (hidden system collections)
         var descriptor = FetchDescriptor<RecipeCollection>()
         descriptor.predicate = #Predicate<RecipeCollection> { collection in
             collection.name == "Favorites" && collection.isSystemCollection == true

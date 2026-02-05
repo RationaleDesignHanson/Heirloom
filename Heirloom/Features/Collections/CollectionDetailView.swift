@@ -29,6 +29,7 @@ struct CollectionDetailView: View {
     private var recipeImageGenerator: any RecipeImageGeneratorProtocol {
         ServiceContainer.shared.resolve((any RecipeImageGeneratorProtocol).self)
     }
+    private var undoService: UndoService { ServiceContainer.shared.resolve(UndoService.self) }
 
     // Context menu state
     @State private var recipeToDelete: Recipe?
@@ -320,7 +321,7 @@ struct CollectionDetailView: View {
                 }
                 .disabled(isGeneratingBackground)
 
-                if !collection.isSystemCollection {
+                if !collection.isSystemCollection && !collection.isAllRecipes {
                     Divider()
                     Button(role: .destructive) {
                         showDeleteConfirmation = true
@@ -427,11 +428,11 @@ struct CollectionDetailView: View {
             toolbarContent
         }
         .sheet(isPresented: $showRecipeGenerator) {
-            RecipeGeneratorView()
+            RecipeGeneratorView(targetCollection: collection)
             .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showImportRecipe) {
-            RecipeImportView()
+            RecipeImportView(targetCollection: collection)
                 .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showBulkImport) {
@@ -439,11 +440,11 @@ struct CollectionDetailView: View {
                 .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showCookbookScanner) {
-            CookbookScannerView()
+            CookbookScannerView(targetCollection: collection)
                 .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showVideoImport) {
-            UnifiedVideoImportView()
+            UnifiedVideoImportView(targetCollection: collection)
                 .environmentObject(tabCoordinator)
         }
         .sheet(isPresented: $showReadRecipe) {
@@ -507,11 +508,22 @@ struct CollectionDetailView: View {
         ) {
             if let recipe = recipeToDelete {
                 Button("Delete", role: .destructive) {
-                    modelContext.delete(recipe)
-                    try? modelContext.save()
+                    // Use UndoService for soft delete with undo capability
+                    undoService.deleteRecipe(recipe, context: modelContext)
 
-                    let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-                    toastManager.success(title: "Recipe deleted")
+                    // Show undo toast
+                    guard let undoItem = undoService.pendingUndos.last else {
+                        Log.error("Failed to create undo item for recipe deletion", category: .database)
+                        recipeToDelete = nil
+                        return
+                    }
+
+                    toastManager.showUndoToast(for: undoItem) { [undoItem] in
+                        undoService.undoDelete(undoItem)
+                        let successGenerator = UINotificationFeedbackGenerator()
+                        successGenerator.notificationOccurred(.success)
+                        toastManager.success(title: "Recipe restored")
+                    }
 
                     recipeToDelete = nil
                 }
@@ -521,7 +533,7 @@ struct CollectionDetailView: View {
             }
         } message: {
             if let recipe = recipeToDelete {
-                Text("Are you sure you want to delete \"\(recipe.title)\"? This cannot be undone.")
+                Text("Are you sure you want to delete \"\(recipe.title)\"?")
             }
         }
         .sheet(item: $recipeForCollectionPicker) { recipe in
@@ -806,7 +818,6 @@ struct CollectionDetailView: View {
     private func deleteCollectionKeepingRecipes() async {
         // Prevent deletion of system collections
         guard !collection.isSystemCollection else {
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
             await MainActor.run {
                 toastManager.error(title: "Cannot delete", message: "System collections cannot be deleted")
             }
@@ -814,74 +825,35 @@ struct CollectionDetailView: View {
         }
 
         // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.warning)
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
 
-        // Remove collection-recipe relationships
-        if let recipes = collection.recipes {
-            for recipe in recipes {
-                recipe.collections?.removeAll { $0.id == collection.id }
+        // NOTE: Do NOT delete from Firebase immediately!
+        // UndoService handles Firebase deletion after the undo window expires.
+
+        await MainActor.run {
+            // Delete using UndoService
+            undoService.deleteCollectionKeepingRecipes(collection, context: modelContext)
+
+            // Get the undo item we just created
+            guard let undoItem = undoService.pendingCollectionUndos.last else {
+                Log.error("Failed to create undo item for collection deletion", category: .collections)
+                return
             }
-        }
 
-        // Create tombstone BEFORE deleting (so we remember this was deleted)
-        let collectionId = collection.id
-        await MainActor.run {
-            let tombstone = DeletedCollectionRecord(collectionId: collectionId)
-            modelContext.insert(tombstone)
-            Log.info("Created deletion tombstone", category: .collections, metadata: [
-                "collectionId": collectionId.uuidString
-            ])
-        }
-
-        // Delete collection
-        await MainActor.run {
-            modelContext.delete(collection)
-            try? modelContext.save()
-        }
-
-        // Firebase sync
-        let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
-        if backendConfig.isFirebaseActive {
-            let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
-            do {
-                try await firebaseSync.deleteCollection(collectionId)
-
-                // Mark tombstone as synced to Firebase
-                await MainActor.run {
-                    let descriptor = FetchDescriptor<DeletedCollectionRecord>(
-                        predicate: #Predicate { record in
-                            record.collectionId == collectionId
-                        }
-                    )
-                    if let tombstone = try? modelContext.fetch(descriptor).first {
-                        tombstone.syncedToFirebase = true
-                        try? modelContext.save()
-                        Log.info("Marked tombstone as synced to Firebase", category: .collections, metadata: [
-                            "collectionId": collectionId.uuidString
-                        ])
-                    }
-                }
-            } catch {
-                Log.error("Failed to delete collection from Firebase", category: .firebase, error: error, metadata: [
-                    "collectionId": collectionId.uuidString
-                ])
-                // Don't throw - tombstone still prevents recreation
+            // Show undo toast
+            toastManager.showCollectionUndoToast(for: undoItem) { [undoItem] in
+                undoService.undoCollectionDelete(undoItem)
+                let successGenerator = UINotificationFeedbackGenerator()
+                successGenerator.notificationOccurred(.success)
+                toastManager.success(title: "Collection restored")
             }
-        }
-
-        // Success feedback
-        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-        await MainActor.run {
-            toastManager.success(title: "Collection deleted", message: "Recipes remain in your library")
-            generator.notificationOccurred(.success)
         }
     }
 
     private func deleteCollectionAndRecipes() async {
         // Prevent deletion of system collections
         guard !collection.isSystemCollection else {
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
             await MainActor.run {
                 toastManager.error(title: "Cannot delete", message: "System collections cannot be deleted")
             }
@@ -889,87 +861,32 @@ struct CollectionDetailView: View {
         }
 
         // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.warning)
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.impactOccurred()
 
-        do {
-            let recipesToDelete = collection.recipes ?? []
-            let recipeCount = recipesToDelete.count
+        // NOTE: Do NOT delete from Firebase immediately!
+        // UndoService handles Firebase deletion after the undo window expires.
 
-            // Delete all recipes first
-            for recipe in recipesToDelete {
-                await MainActor.run {
-                    modelContext.delete(recipe)
-                }
+        await MainActor.run {
+            // Delete using UndoService
+            undoService.deleteCollectionAndRecipes(collection, context: modelContext)
+
+            // Get the undo item we just created
+            guard let undoItem = undoService.pendingCollectionUndos.last else {
+                Log.error("Failed to create undo item for collection deletion", category: .collections)
+                return
             }
 
-            // Create tombstone BEFORE deleting (so we remember this was deleted)
-            let collectionId = collection.id
-            await MainActor.run {
-                let tombstone = DeletedCollectionRecord(collectionId: collectionId)
-                modelContext.insert(tombstone)
-                Log.info("Created deletion tombstone", category: .collections, metadata: [
-                    "collectionId": collectionId.uuidString
-                ])
-            }
-
-            // Delete collection
-            await MainActor.run {
-                modelContext.delete(collection)
-                try? modelContext.save()
-            }
-
-            // Firebase sync
-            let backendConfig = ServiceContainer.shared.resolve(BackendConfig.self)
-            if backendConfig.isFirebaseActive {
-                let firebaseSync = ServiceContainer.shared.resolve((any FirebaseSyncServiceProtocol).self)
-
-                // Delete recipes from Firebase
-                for recipe in recipesToDelete {
-                    try await firebaseSync.deleteRecipe(recipe.id)
-                }
-
-                // Delete collection from Firebase
-                do {
-                    try await firebaseSync.deleteCollection(collectionId)
-
-                    // Mark tombstone as synced to Firebase
-                    await MainActor.run {
-                        let descriptor = FetchDescriptor<DeletedCollectionRecord>(
-                            predicate: #Predicate { record in
-                                record.collectionId == collectionId
-                            }
-                        )
-                        if let tombstone = try? modelContext.fetch(descriptor).first {
-                            tombstone.syncedToFirebase = true
-                            try? modelContext.save()
-                            Log.info("Marked tombstone as synced to Firebase", category: .collections, metadata: [
-                                "collectionId": collectionId.uuidString
-                            ])
-                        }
-                    }
-                } catch {
-                    Log.error("Failed to delete collection from Firebase", category: .firebase, error: error, metadata: [
-                        "collectionId": collectionId.uuidString
-                    ])
-                    // Don't throw - tombstone still prevents recreation
-                }
-            }
-
-            // Success feedback
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-            await MainActor.run {
+            // Show undo toast
+            toastManager.showCollectionUndoToast(for: undoItem) { [undoItem] in
+                undoService.undoCollectionDelete(undoItem)
+                let successGenerator = UINotificationFeedbackGenerator()
+                successGenerator.notificationOccurred(.success)
+                let restoredCount = undoItem.deletedRecipeData.count
                 toastManager.success(
-                    title: "Collection and \(recipeCount) recipe\(recipeCount == 1 ? "" : "s") deleted"
+                    title: "Collection restored",
+                    message: "\(restoredCount) recipe\(restoredCount == 1 ? "" : "s") restored"
                 )
-                generator.notificationOccurred(.success)
-            }
-
-        } catch {
-            let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
-            await MainActor.run {
-                toastManager.error(title: "Failed to delete", message: error.localizedDescription)
-                generator.notificationOccurred(.error)
             }
         }
     }

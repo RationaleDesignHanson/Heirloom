@@ -13,6 +13,7 @@ final class RecipeGenerationJob {
     var ingredients: String?
     var transcript: String?
     var isSillyRecipe: Bool = false  // Easter egg flag
+    var targetCollectionId: UUID?  // Target collection for routing (nil = use default "Generated Recipes")
 
     // MARK: - Status
     var status: RecipeGenerationStatus
@@ -20,11 +21,12 @@ final class RecipeGenerationJob {
     var error: String?
 
     // MARK: - Initialization
-    init(dishName: String, ingredients: String? = nil, transcript: String? = nil) {
+    init(dishName: String, ingredients: String? = nil, transcript: String? = nil, targetCollectionId: UUID? = nil) {
         self.id = UUID()
         self.dishName = dishName
         self.ingredients = ingredients
         self.transcript = transcript
+        self.targetCollectionId = targetCollectionId
         self.status = .processing
         self.currentPhase = .analyzing
         self.createdAt = Date()

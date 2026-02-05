@@ -48,6 +48,8 @@ class RecipeImportService {
         case bonAppetit = "Bon Appétit"
         case allRecipes = "AllRecipes"
         case seriousEats = "Serious Eats"
+        case smittenKitchen = "Smitten Kitchen"
+        case wpRecipeMaker = "WP Recipe Maker"  // Generic WPRM plugin support
         case unknown = "Unknown"
     }
 
@@ -66,6 +68,8 @@ class RecipeImportService {
             return .allRecipes
         } else if lowercasedHost.contains("seriouseats.com") {
             return .seriousEats
+        } else if lowercasedHost.contains("smittenkitchen.com") {
+            return .smittenKitchen
         }
 
         return .unknown
@@ -119,13 +123,25 @@ class RecipeImportService {
     private func parseRecipe(from html: String, sourceURL: String, site: RecipeSite) throws -> ImportedRecipe {
         let doc = try SwiftSoup.parse(html)
 
+        // First, strip comment sections to improve all parsers
+        stripCommentSections(from: doc)
+
         // Try schema.org JSON-LD first (most reliable)
         Log.debug("Looking for JSON-LD recipe data", category: .network)
-        if let recipe = try? parseJSONLD(from: doc) {
+        if var recipe = try? parseJSONLD(from: doc) {
             Log.info("Found JSON-LD recipe data", category: .network)
-            var result = recipe
-            result.sourceURL = sourceURL
-            return result
+            recipe.sourceURL = sourceURL
+
+            // If JSON-LD has no image, try to supplement from site-specific parser
+            if recipe.imageURL == nil || recipe.imageURL?.isEmpty == true {
+                Log.debug("JSON-LD has no image, trying site-specific image extraction", category: .network)
+                if let supplementalImage = try? extractImageFromSite(doc: doc, site: site) {
+                    recipe.imageURL = supplementalImage
+                    Log.info("Supplemented JSON-LD with site-specific image", category: .network, metadata: ["imageURL": supplementalImage])
+                }
+            }
+
+            return recipe
         }
         Log.debug("No JSON-LD recipe data found", category: .network)
 
@@ -138,6 +154,16 @@ class RecipeImportService {
             return result
         }
         Log.debug("Site-specific parser failed", category: .network)
+
+        // Try WP Recipe Maker plugin (common on WordPress food blogs)
+        Log.debug("Trying WP Recipe Maker parser", category: .network)
+        if let recipe = try? parseWPRecipeMaker(from: doc) {
+            Log.info("WP Recipe Maker parser succeeded", category: .network)
+            var result = recipe
+            result.sourceURL = sourceURL
+            return result
+        }
+        Log.debug("No WP Recipe Maker data found", category: .network)
 
         // Fallback to microdata/HTML parsing
         Log.debug("Trying microdata fallback", category: .network)
@@ -152,6 +178,129 @@ class RecipeImportService {
         throw ImportError.noRecipeFound
     }
 
+    /// Strip comment sections from HTML to prevent them from being parsed as recipe content
+    private func stripCommentSections(from doc: Document) {
+        // Common comment section selectors
+        let commentSelectors = [
+            "#comments",
+            "#respond",
+            ".comments-area",
+            ".comment-section",
+            ".wp-comments",
+            "#jp-relatedposts",
+            ".sharedaddy",
+            ".social-share",
+            ".post-navigation",
+            "footer"
+        ]
+
+        for selector in commentSelectors {
+            do {
+                let elements = try doc.select(selector)
+                for element in elements {
+                    try element.remove()
+                }
+            } catch {
+                // Ignore selector errors
+            }
+        }
+
+        Log.debug("Stripped comment sections from HTML", category: .network)
+    }
+
+    // MARK: - Site-Specific Image Extraction
+
+    /// Extract just the image URL from site-specific selectors (for supplementing JSON-LD)
+    private func extractImageFromSite(doc: Document, site: RecipeSite) throws -> String? {
+        Log.debug("Extracting image for site", category: .network, metadata: ["site": site.rawValue])
+
+        switch site {
+        case .smittenKitchen:
+            // Try WP Recipe Maker image first
+            if let imgElement = try? doc.select(".wprm-recipe-image img").first() {
+                if let src = extractImageSrc(from: imgElement) {
+                    Log.debug("Found WPRM image", category: .network, metadata: ["src": src])
+                    return src
+                }
+            }
+            // IMPORTANT: Only look within .entry-content to avoid sidebar/header promo images
+            // Try WordPress block image within entry-content
+            if let imgElement = try? doc.select(".entry-content .wp-block-image img, .entry-content figure.wp-block-image img").first() {
+                if let src = extractImageSrc(from: imgElement) {
+                    Log.debug("Found wp-block-image in entry-content", category: .network, metadata: ["src": src])
+                    return src
+                }
+            }
+            // Try images with wp-image class within entry-content
+            if let imgElement = try? doc.select(".entry-content img[class*='wp-image-']").first() {
+                if let src = extractImageSrc(from: imgElement) {
+                    Log.debug("Found wp-image class in entry-content", category: .network, metadata: ["src": src])
+                    return src
+                }
+            }
+            // Smitten Kitchen fallback - first large image from entry-content
+            if let imgElement = try? doc.select(".entry-content img[class*='size-full'], .entry-content img[class*='size-large']").first() {
+                if let src = extractImageSrc(from: imgElement) {
+                    Log.debug("Found entry-content large image", category: .network, metadata: ["src": src])
+                    return src
+                }
+            }
+            // Final fallback - first non-icon image in entry-content
+            if let imgElements = try? doc.select(".entry-content img") {
+                for imgElement in imgElements {
+                    if let src = extractImageSrc(from: imgElement) {
+                        let lowercaseSrc = src.lowercased()
+                        if !lowercaseSrc.contains("emoji") &&
+                           !lowercaseSrc.contains("icon") &&
+                           !lowercaseSrc.contains("pixel") &&
+                           !lowercaseSrc.contains("avatar") {
+                            Log.debug("Found entry-content fallback image", category: .network, metadata: ["src": src])
+                            return src
+                        }
+                    }
+                }
+            }
+        default:
+            // For other sites, try common selectors
+            if let imgElement = try? doc.select(".recipe-image img, .hero-image img, .post-image img, article img").first() {
+                if let src = extractImageSrc(from: imgElement) {
+                    return src
+                }
+            }
+        }
+        Log.debug("No image found for site", category: .network, metadata: ["site": site.rawValue])
+        return nil
+    }
+
+    /// Extract image URL from element, checking multiple attributes (src, data-src, data-lazy-src, srcset)
+    private func extractImageSrc(from element: Element) -> String? {
+        // Try standard src first
+        if let src = try? element.attr("src"), !src.isEmpty, !src.contains("data:image") {
+            return src
+        }
+        // Try data-src (lazy loading)
+        if let dataSrc = try? element.attr("data-src"), !dataSrc.isEmpty {
+            return dataSrc
+        }
+        // Try data-lazy-src (another lazy loading pattern)
+        if let lazyDataSrc = try? element.attr("data-lazy-src"), !lazyDataSrc.isEmpty {
+            return lazyDataSrc
+        }
+        // Try srcset and get the first/largest image
+        if let srcset = try? element.attr("srcset"), !srcset.isEmpty {
+            // srcset format: "url1 300w, url2 600w, url3 1200w"
+            // Get the last (usually largest) image
+            let sources = srcset.components(separatedBy: ",")
+            if let lastSource = sources.last?.trimmingCharacters(in: .whitespaces) {
+                let urlPart = lastSource.components(separatedBy: " ").first
+                if let url = urlPart, !url.isEmpty {
+                    return url
+                }
+            }
+        }
+        return nil
+    }
+
     // MARK: - Site-Specific Parsers
 
     private func parseSiteSpecific(from doc: Document, site: RecipeSite) throws -> ImportedRecipe {
@@ -160,6 +309,10 @@ class RecipeImportService {
             return try parseFoodNetwork(from: doc)
         case .bonAppetit:
             return try parseBonAppetit(from: doc)
+        case .smittenKitchen:
+            return try parseSmittenKitchen(from: doc)
+        case .wpRecipeMaker:
+            return try parseWPRecipeMaker(from: doc)
         default:
             throw ImportError.noRecipeFound
         }
@@ -212,6 +365,364 @@ class RecipeImportService {
         guard !recipe.title.isEmpty && !recipe.ingredients.isEmpty else {
             throw ImportError.noRecipeFound
         }
+
+        return recipe
+    }
+
+    private func parseSmittenKitchen(from doc: Document) throws -> ImportedRecipe {
+        // Smitten Kitchen uses WP Recipe Maker on newer posts, but older posts
+        // have recipes embedded in .entry-content prose
+        var recipe = ImportedRecipe()
+
+        // Try WP Recipe Maker first (newer posts)
+        if let wprmRecipe = try? parseWPRecipeMaker(from: doc) {
+            return wprmRecipe
+        }
+
+        // Title from post title
+        if let title = try? doc.select(".entry-title, h1.title, h2.title").first()?.text() {
+            recipe.title = title.decodingHTMLEntities()
+        }
+
+        // Image extraction - IMPORTANT: Only look within .entry-content to avoid sidebar/header images
+        // Try WordPress block image within entry-content
+        if let imgElement = try? doc.select(".entry-content .wp-block-image img, .entry-content figure.wp-block-image img").first() {
+            recipe.imageURL = extractImageSrc(from: imgElement)
+            if recipe.imageURL != nil {
+                Log.debug("Found Smitten Kitchen wp-block-image in entry-content", category: .network, metadata: ["url": recipe.imageURL ?? ""])
+            }
+        }
+        // Try images with wp-image class within entry-content
+        if recipe.imageURL == nil {
+            if let imgElement = try? doc.select(".entry-content img[class*='wp-image-']").first() {
+                recipe.imageURL = extractImageSrc(from: imgElement)
+                if recipe.imageURL != nil {
+                    Log.debug("Found Smitten Kitchen wp-image class in entry-content", category: .network, metadata: ["url": recipe.imageURL ?? ""])
+                }
+            }
+        }
+        // Try large images in entry-content
+        if recipe.imageURL == nil {
+            if let imgElement = try? doc.select(".entry-content img[class*='size-full'], .entry-content img[class*='size-large']").first() {
+                recipe.imageURL = extractImageSrc(from: imgElement)
+                if recipe.imageURL != nil {
+                    Log.debug("Found Smitten Kitchen entry-content large image", category: .network, metadata: ["url": recipe.imageURL ?? ""])
+                }
+            }
+        }
+        // Fallback to first image in entry-content (skip small icons by checking URL doesn't contain emoji/icon patterns)
+        if recipe.imageURL == nil {
+            let imgElements = try? doc.select(".entry-content img")
+            if let elements = imgElements {
+                for imgElement in elements {
+                    if let src = extractImageSrc(from: imgElement) {
+                        // Skip emoji, icons, and tracking pixels
+                        let lowercaseSrc = src.lowercased()
+                        if !lowercaseSrc.contains("emoji") &&
+                           !lowercaseSrc.contains("icon") &&
+                           !lowercaseSrc.contains("pixel") &&
+                           !lowercaseSrc.contains("tracking") &&
+                           !lowercaseSrc.contains("avatar") &&
+                           !lowercaseSrc.contains("gravatar") {
+                            recipe.imageURL = src
+                            Log.debug("Found Smitten Kitchen fallback image in entry-content", category: .network, metadata: ["url": src])
+                            break
+                        }
+                    }
+                }
+            }
+        }
+
+        // Log if no image found after all attempts
+        if recipe.imageURL == nil {
+            Log.warning("No image found for Smitten Kitchen recipe", category: .network)
+        }
+
+        // Fallback: Parse from entry-content for older posts
+        // Smitten Kitchen older posts have recipes at the END of the post,
+        // often preceded by a bold recipe title and followed by print buttons
+        guard let entryContent = try? doc.select(".entry-content").first() else {
+            throw ImportError.noRecipeFound
+        }
+
+        // Strategy: Find the recipe section by looking for:
+        // 1. Bold text that matches the post title (recipe header)
+        // 2. Print/Save buttons (sk-recipe-btn class)
+        // 3. Ingredient lists (ul/li starting with measurements)
+
+        // Track where the recipe section starts
+        var recipeStartIndex = -1
+
+        // Get all child elements of entry-content
+        let allElements = try entryContent.getAllElements()
+
+        // Find where the recipe section starts (look for bold text matching title)
+        for (index, element) in allElements.enumerated() {
+            let tagName = element.tagName()
+            if tagName == "strong" || tagName == "b" {
+                let text = try element.text().lowercased()
+                let titleLower = recipe.title.lowercased()
+                // Check if this bold text contains the recipe title or is a recipe header
+                if text.contains(titleLower.prefix(15)) || text.contains("cookie") ||
+                   text.contains("recipe") || text.contains("yield") {
+                    recipeStartIndex = index
+                    break
+                }
+            }
+        }
+
+        // If no recipe header found, try to find the section by looking for
+        // the first list that has ingredient-like items
+        if recipeStartIndex < 0 {
+            let lists = try entryContent.select("ul")
+            for list in lists {
+                let items = try list.select("li")
+                if items.size() > 3 {
+                    // Check if items look like ingredients
+                    var ingredientCount = 0
+                    for item in items {
+                        let text = try item.text()
+                        if text.range(of: #"^[\d½⅓⅔¼¾⅛⅜⅝⅞]"#, options: .regularExpression) != nil ||
+                           text.lowercased().contains("cup") || text.lowercased().contains("tablespoon") ||
+                           text.lowercased().contains("teaspoon") || text.lowercased().contains("ounce") {
+                            ingredientCount += 1
+                        }
+                    }
+                    if ingredientCount >= 3 {
+                        // This list contains ingredients
+                        for item in items {
+                            let text = try item.text().trimmingCharacters(in: .whitespacesAndNewlines)
+                            if !text.isEmpty {
+                                recipe.ingredients.append(text)
+                            }
+                        }
+                        break
+                    }
+                }
+            }
+        }
+
+        // If we still have no ingredients, scan paragraphs for measurement lines
+        if recipe.ingredients.isEmpty {
+            let paragraphs = try entryContent.select("p")
+            var foundRecipeSection = false
+
+            for paragraph in paragraphs {
+                let text = try paragraph.text().trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !text.isEmpty else { continue }
+
+                // Look for recipe section markers
+                let isBold = (try? paragraph.select("strong, b").first()) != nil
+                if isBold && text.count < 60 {
+                    let lowercased = text.lowercased()
+                    if lowercased.contains(recipe.title.lowercased().prefix(10)) ||
+                       lowercased.contains("cookie") || lowercased.contains("yield") {
+                        foundRecipeSection = true
+                        continue
+                    }
+                }
+
+                // Once in recipe section, collect ingredients
+                if foundRecipeSection {
+                    if text.range(of: #"^[\d½⅓⅔¼¾⅛⅜⅝⅞]"#, options: .regularExpression) != nil {
+                        recipe.ingredients.append(text)
+                    }
+                }
+            }
+        }
+
+        // Now get instructions - they come AFTER the ingredients
+        // Look for numbered steps or paragraphs with cooking verbs
+        let paragraphs = try entryContent.select("p")
+        var instructionStarted = false
+
+        for paragraph in paragraphs {
+            let text = try paragraph.text().trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty && text.count < 1500 else { continue }
+
+            // Skip very short paragraphs
+            guard text.count > 20 else { continue }
+
+            // Check if this looks like an instruction start
+            let lowercased = text.lowercased()
+
+            // Strong indicators of actual cooking instructions
+            let isOvenInstruction = lowercased.contains("heat oven") || lowercased.contains("preheat")
+            let hasTemperature = lowercased.range(of: #"\d{3}\s*degree"#, options: .regularExpression) != nil
+            let hasBakingTime = lowercased.range(of: #"(bake|cook)\s+(for\s+)?\d+"#, options: .regularExpression) != nil
+            let startsWithCookingVerb = lowercased.hasPrefix("heat") || lowercased.hasPrefix("bake") ||
+                                        lowercased.hasPrefix("mix") || lowercased.hasPrefix("combine") ||
+                                        lowercased.hasPrefix("place") || lowercased.hasPrefix("add") ||
+                                        lowercased.hasPrefix("stir") || lowercased.hasPrefix("pour") ||
+                                        lowercased.hasPrefix("line") || lowercased.hasPrefix("in a") ||
+                                        lowercased.hasPrefix("transfer") || lowercased.hasPrefix("scoop") ||
+                                        lowercased.hasPrefix("roll") || lowercased.hasPrefix("drop") ||
+                                        lowercased.hasPrefix("let") || lowercased.hasPrefix("remove") ||
+                                        lowercased.hasPrefix("both methods") || lowercased.hasPrefix("to make")
+
+            // Skip if it's PRIMARILY personal narrative (not mixed with cooking instructions)
+            // Only skip if it has narrative markers AND lacks cooking content
+            let hasNarrativeMarkers = lowercased.contains("ago:") ||
+                                      lowercased.contains("months ago") || lowercased.contains("years ago")
+            let hasCookingTerms = lowercased.contains("dough") || lowercased.contains("bake") ||
+                                  lowercased.contains("oven") || lowercased.contains("sheet") ||
+                                  lowercased.contains("scoop") || lowercased.contains("roll") ||
+                                  lowercased.contains("transfer") || lowercased.contains("cookie") ||
+                                  lowercased.contains("minute") || lowercased.contains("cool")
+            let isPersonalNarrative = hasNarrativeMarkers && !hasCookingTerms
+
+            if isPersonalNarrative {
+                continue
+            }
+
+            if isOvenInstruction || hasTemperature || hasBakingTime {
+                instructionStarted = true
+            }
+
+            // Cooking content check for starting or validating instructions
+            let hasCookingContent = lowercased.contains("minute") || lowercased.contains("oven") ||
+                                   lowercased.contains("bake") || lowercased.contains("cool") ||
+                                   lowercased.contains("dough") || lowercased.contains("cookie") ||
+                                   lowercased.contains("sheet") || lowercased.contains("pan") ||
+                                   lowercased.contains("bowl") || lowercased.contains("mixer") ||
+                                   lowercased.contains("flour") || lowercased.contains("sugar") ||
+                                   lowercased.contains("butter") || lowercased.contains("egg") ||
+                                   lowercased.contains("sprinkle") || lowercased.contains("scoop") ||
+                                   lowercased.contains("transfer") || lowercased.contains("roll") ||
+                                   lowercased.contains("inch") || lowercased.contains("rack") ||
+                                   lowercased.contains("batch") || lowercased.contains("ball") ||
+                                   lowercased.contains("flatten") || lowercased.contains("chill") ||
+                                   lowercased.contains("refrigerat") || lowercased.contains("room temperature") ||
+                                   hasTemperature || hasBakingTime
+
+            if instructionStarted || startsWithCookingVerb || hasBakingTime {
+                // Once we've started collecting instructions, be more permissive
+                // Accept paragraphs that have cooking content OR if we've already started and
+                // the paragraph doesn't look like a comment/footer
+                let looksLikeFooter = lowercased.contains("print this recipe") ||
+                                     lowercased.contains("rate this recipe") ||
+                                     lowercased.contains("filed under") ||
+                                     lowercased.contains("tagged with") ||
+                                     lowercased.contains("comments") ||
+                                     lowercased.contains("leave a reply")
+
+                if hasCookingContent || startsWithCookingVerb {
+                    recipe.instructions.append(text)
+                    instructionStarted = true
+                } else if instructionStarted && !looksLikeFooter && text.count > 30 {
+                    // Continue collecting if we're in instruction mode and it doesn't look like footer
+                    recipe.instructions.append(text)
+                }
+            }
+        }
+
+        // Validate we got something useful
+        guard !recipe.title.isEmpty && (!recipe.ingredients.isEmpty || !recipe.instructions.isEmpty) else {
+            throw ImportError.noRecipeFound
+        }
+
+        Log.info("Parsed Smitten Kitchen recipe (fallback)", category: .network, metadata: [
+            "title": recipe.title,
+            "ingredientCount": recipe.ingredients.count,
+            "instructionCount": recipe.instructions.count
+        ])
+
+        return recipe
+    }
+
+    private func parseWPRecipeMaker(from doc: Document) throws -> ImportedRecipe {
+        // WP Recipe Maker (WPRM) uses consistent class naming
+        var recipe = ImportedRecipe()
+
+        // Find recipe container
+        guard let container = try? doc.select(".wprm-recipe, [class*=wprm-recipe]").first() else {
+            throw ImportError.noRecipeFound
+        }
+
+        // Title
+        if let title = try? container.select(".wprm-recipe-name").first()?.text() {
+            recipe.title = title.decodingHTMLEntities()
+        } else if let title = try? doc.select(".entry-title, h1").first()?.text() {
+            // Fall back to post title
+            recipe.title = title.decodingHTMLEntities()
+        }
+
+        // Image
+        if let imgElement = try? container.select(".wprm-recipe-image img").first() {
+            recipe.imageURL = try? imgElement.attr("src")
+        }
+
+        // Servings
+        if let servings = try? container.select(".wprm-recipe-servings").first()?.text() {
+            recipe.servings = servings
+        }
+
+        // Prep time
+        if let prepTime = try? container.select(".wprm-recipe-prep-time-container").first()?.text() {
+            recipe.prepTime = prepTime
+        }
+
+        // Cook time
+        if let cookTime = try? container.select(".wprm-recipe-cook-time-container").first()?.text() {
+            recipe.cookTime = cookTime
+        }
+
+        // Ingredients - WPRM uses grouped or flat ingredient lists
+        let ingredientElements = try container.select(".wprm-recipe-ingredient")
+        if !ingredientElements.isEmpty() {
+            recipe.ingredients = ingredientElements.compactMap { element -> String? in
+                // Combine amount, unit, and name
+                var parts: [String] = []
+
+                if let amount = try? element.select(".wprm-recipe-ingredient-amount").text(),
+                   !amount.isEmpty {
+                    parts.append(amount)
+                }
+                if let unit = try? element.select(".wprm-recipe-ingredient-unit").text(),
+                   !unit.isEmpty {
+                    parts.append(unit)
+                }
+                if let name = try? element.select(".wprm-recipe-ingredient-name").text(),
+                   !name.isEmpty {
+                    parts.append(name)
+                }
+                if let notes = try? element.select(".wprm-recipe-ingredient-notes").text(),
+                   !notes.isEmpty {
+                    parts.append("(\(notes))")
+                }
+
+                let result = parts.joined(separator: " ").trimmingCharacters(in: .whitespaces)
+                return result.isEmpty ? nil : result
+            }
+        }
+
+        // Instructions
+        let instructionElements = try container.select(".wprm-recipe-instruction")
+        if !instructionElements.isEmpty() {
+            recipe.instructions = instructionElements.compactMap { element -> String? in
+                // Get instruction text, ignoring images
+                if let text = try? element.select(".wprm-recipe-instruction-text").text() {
+                    return text.trimmingCharacters(in: .whitespaces)
+                }
+                return try? element.text().trimmingCharacters(in: .whitespaces)
+            }.filter { !$0.isEmpty }
+        }
+
+        // Description/summary
+        if let summary = try? container.select(".wprm-recipe-summary").first()?.text() {
+            recipe.description = summary
+        }
+
+        // Validate
+        guard !recipe.title.isEmpty && !recipe.ingredients.isEmpty else {
+            throw ImportError.noRecipeFound
+        }
+
+        Log.info("Parsed WP Recipe Maker recipe", category: .network, metadata: [
+            "title": recipe.title,
+            "ingredientCount": recipe.ingredients.count,
+            "instructionCount": recipe.instructions.count
+        ])
 
         return recipe
     }
@@ -391,16 +902,22 @@ class RecipeImportService {
     /// Check if text looks like a recipe instruction (not a user comment)
     private func looksLikeInstruction(_ text: String) -> Bool {
         let lowercased = text.lowercased()
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Skip very short text
+        guard trimmed.count > 15 else { return false }
 
         // Exclude comment patterns (first-person narratives, reviews)
         let commentPatterns = [
             "i love", "i loved", "i tried", "i made", "i recommend",
             "we love", "we loved", "we tried", "my favorite",
             "these are amazing", "these were amazing", "this is delicious",
-            "thank you for", "thank you so much",
+            "thank you for", "thank you so much", "thanks for",
             "can't wait to", "just made this", "turned out great",
             "so good", "very delicious", "will make again",
-            "my family loved", "my kids loved", "my husband loved"
+            "my family loved", "my kids loved", "my husband loved",
+            "this recipe", "great recipe", "wonderful recipe",
+            "i always", "i never", "growing up", "when i was"
         ]
 
         for pattern in commentPatterns {
@@ -409,29 +926,65 @@ class RecipeImportService {
             }
         }
 
-        // Prefer imperative mood (typical recipe instructions)
-        let instructionPrefixes = [
-            "preheat", "heat", "warm", "cool",
-            "mix", "combine", "blend", "stir", "whisk", "beat", "fold",
-            "add", "pour", "place", "put", "set", "arrange",
-            "bake", "cook", "roast", "grill", "fry", "sauté", "boil", "simmer",
-            "chill", "refrigerate", "freeze", "rest", "let sit",
-            "remove", "transfer", "drain", "strain",
-            "cut", "chop", "slice", "dice", "mince",
-            "season", "sprinkle", "garnish", "top",
-            "in a bowl", "in a pan", "in a pot", "in a skillet"
+        // Imperative verbs that indicate cooking instructions
+        let instructionVerbs = [
+            "preheat", "heat", "warm", "cool", "chill",
+            "mix", "combine", "blend", "stir", "whisk", "beat", "fold", "cream",
+            "add", "pour", "place", "put", "set", "arrange", "spread", "layer",
+            "bake", "cook", "roast", "grill", "fry", "sauté", "boil", "simmer", "broil",
+            "refrigerate", "freeze", "rest", "let sit", "let stand", "allow",
+            "remove", "transfer", "drain", "strain", "sift", "pulse",
+            "cut", "chop", "slice", "dice", "mince", "julienne", "grate", "zest",
+            "season", "sprinkle", "garnish", "top", "drizzle", "brush",
+            "roll", "shape", "form", "flatten", "press", "scoop",
+            "cover", "wrap", "line", "grease", "butter", "coat",
+            "bring", "reduce", "thicken", "melt", "dissolve",
+            "toss", "flip", "turn", "rotate"
         ]
 
-        for prefix in instructionPrefixes {
-            if lowercased.hasPrefix(prefix) {
+        // Check if text starts with an instruction verb
+        for verb in instructionVerbs {
+            if lowercased.hasPrefix(verb) {
                 return true
             }
         }
 
-        // Also check for time/temperature measurements
-        let hasTimeOrTemp = lowercased.range(of: #"(\d+\s*(minute|hour|degree|°f|°c))"#, options: .regularExpression) != nil
+        // Check if text contains instruction verbs (more permissive)
+        // This catches sentences like "In a bowl, combine..." or "Using a mixer, beat..."
+        for verb in instructionVerbs {
+            // Check for verb at word boundary
+            if lowercased.contains(" \(verb) ") || lowercased.contains(" \(verb),") ||
+               lowercased.contains(" \(verb).") || lowercased.contains(".\(verb) ") {
+                return true
+            }
+        }
 
-        return hasTimeOrTemp
+        // Check for time/temperature measurements (strong indicator)
+        let hasTimeOrTemp = lowercased.range(of: #"\d+\s*(minute|hour|second|degree|°f|°c|fahrenheit|celsius)"#, options: .regularExpression) != nil
+        if hasTimeOrTemp {
+            return true
+        }
+
+        // Check for oven temperatures
+        let hasOvenTemp = lowercased.range(of: #"\d{3}\s*°"#, options: .regularExpression) != nil
+        if hasOvenTemp {
+            return true
+        }
+
+        // Check for common instruction contexts
+        let instructionContexts = [
+            "in a bowl", "in a pan", "in a pot", "in a skillet", "in a mixer",
+            "on a baking", "on a sheet", "onto a", "into the",
+            "using a", "with a", "until", "for about", "for approximately"
+        ]
+
+        for context in instructionContexts {
+            if lowercased.contains(context) {
+                return true
+            }
+        }
+
+        return false
     }
 
     // MARK: - Microdata Parsing (Fallback)
