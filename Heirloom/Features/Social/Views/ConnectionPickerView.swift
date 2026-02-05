@@ -74,13 +74,15 @@ struct ConnectionPickerView: View {
         ScrollView {
             LazyVStack(spacing: HeirloomSpacing.sm) {
                 ForEach(filteredConnections) { connection in
-                    ConnectionPickerRow(
-                        connection: connection,
-                        isSelected: selectedConnectionIds.contains(connection.connectedUserId)
-                    )
-                    .onTapGesture {
+                    Button {
                         toggleSelection(connection.connectedUserId)
+                    } label: {
+                        ConnectionPickerRow(
+                            connection: connection,
+                            isSelected: selectedConnectionIds.contains(connection.connectedUserId)
+                        )
                     }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, HeirloomSpacing.md)
