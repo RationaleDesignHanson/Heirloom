@@ -8,12 +8,12 @@
  *   npm run seed:no-images # Seed data only, skip image generation
  */
 
-import { initializeFirebase, toTimestamp, daysAgo, getDb } from './utils/firebase.js';
-import { uploadImageFromUrl, fileExistsInStorage, getSeedFileUrl } from './utils/storage.js';
-import { generateFoodImage, generateAvatarImage, delay } from './utils/replicate.js';
-import { generateRecipeKeywords } from './utils/keywords.js';
-import { validateAllRecipes, printValidationResults } from './utils/validator.js';
-import { ALL_RECIPES, DEMO_CREATORS, SeedRecipe, DemoCreator } from './seed_data.js';
+import { initializeFirebase, toTimestamp, daysAgo, getDb } from './utils/firebase';
+import { uploadImageFromUrl, fileExistsInStorage, getSeedFileUrl } from './utils/storage';
+import { generateFoodImage, generateAvatarImage, delay } from './utils/replicate';
+import { generateRecipeKeywords } from './utils/keywords';
+import { validateAllRecipes, printValidationResults } from './utils/validator';
+import { ALL_RECIPES, DEMO_CREATORS, SeedRecipe, DemoCreator } from './seed_data';
 
 // ============================================================================
 // Configuration

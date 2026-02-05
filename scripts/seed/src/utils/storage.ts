@@ -3,10 +3,7 @@
  * Handles uploading images to Firebase Storage for seed data
  */
 
-import { getStorageInstance } from './firebase.js';
-import { createWriteStream } from 'fs';
-import { pipeline } from 'stream/promises';
-import { Readable } from 'stream';
+import { getStorageInstance } from './firebase';
 
 const SEED_STORAGE_PATH = 'seed/demo';
 
@@ -32,12 +29,14 @@ export async function uploadImageToStorage(
     },
   });
 
-  // Make the file publicly accessible
-  await file.makePublic();
+  // Get signed URL (valid for 7 days, but we'll re-seed before then if needed)
+  // Or use Firebase Storage download URL format
+  const [signedUrl] = await file.getSignedUrl({
+    action: 'read',
+    expires: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1 year
+  });
 
-  // Return public URL
-  const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
-  return publicUrl;
+  return signedUrl;
 }
 
 /**

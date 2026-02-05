@@ -3,7 +3,7 @@
  * Validates seed data against PublicRecipe schema requirements
  */
 
-import { SeedRecipe } from '../seed_data.js';
+import { SeedRecipe } from '../seed_data';
 
 export interface ValidationResult {
   isValid: boolean;

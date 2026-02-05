@@ -7,7 +7,7 @@
  *   npm run verify
  */
 
-import { initializeFirebase, getDb } from './utils/firebase.js';
+import { initializeFirebase, getDb } from './utils/firebase';
 
 // ============================================================================
 // Types

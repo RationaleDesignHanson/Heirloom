@@ -7,8 +7,8 @@
  *   npm run cleanup
  */
 
-import { initializeFirebase, getDb } from './utils/firebase.js';
-import { deleteAllSeedImages } from './utils/storage.js';
+import { initializeFirebase, getDb } from './utils/firebase';
+import { deleteAllSeedImages } from './utils/storage';
 
 // ============================================================================
 // Cleanup Logic

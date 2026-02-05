@@ -2,12 +2,11 @@
   "name": "heirloom-seed",
   "version": "1.0.0",
   "description": "Seed demo creators and public recipes for Discovery feature",
-  "type": "module",
   "scripts": {
-    "seed": "npx ts-node --esm src/seed.ts",
-    "seed:no-images": "npx ts-node --esm src/seed.ts --skip-images",
-    "verify": "npx ts-node --esm src/verify.ts",
-    "cleanup": "npx ts-node --esm src/cleanup.ts"
+    "seed": "npx ts-node src/seed.ts",
+    "seed:no-images": "npx ts-node src/seed.ts --skip-images",
+    "verify": "npx ts-node src/verify.ts",
+    "cleanup": "npx ts-node src/cleanup.ts"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",
