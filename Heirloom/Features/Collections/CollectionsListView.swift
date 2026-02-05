@@ -42,6 +42,7 @@ struct CollectionsListView: View {
     @State private var showRestoreFromFile = false
     @State private var isRestoringFromFile = false
     @State private var showSettings = false
+    @State private var pendingRecipeNavigation: Recipe?
 
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
     private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
@@ -293,6 +294,25 @@ struct CollectionsListView: View {
                 CollectionDetailView(collection: collection)
                     .environmentObject(notificationService)
                     .environmentObject(tabCoordinator)
+            }
+            .navigationDestination(for: Recipe.self) { recipe in
+                RecipeDetailView(recipe: recipe)
+                    .environmentObject(notificationService)
+            }
+            .navigationDestination(item: $pendingRecipeNavigation) { recipe in
+                RecipeDetailView(recipe: recipe)
+                    .environmentObject(notificationService)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .navigateToRecipe)) { notification in
+                if let recipeId = notification.userInfo?["recipeId"] as? UUID {
+                    // Find the recipe and navigate to it
+                    if let recipe = allRecipes.first(where: { $0.id == recipeId }) {
+                        // Small delay to allow tab switch to complete
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            pendingRecipeNavigation = recipe
+                        }
+                    }
+                }
             }
             .overlay {
                 coachMarkOverlay
@@ -776,6 +796,17 @@ struct CollectionsListView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showSettings = true
+            } label: {
+                Image(systemName: "gearshape")
+                    .foregroundStyle(HeirloomColors.primaryText)
+            }
+            .accessibilityLabel("Settings")
+            .accessibilityHint("Open app settings")
+        }
+
         // TODO: Re-enable theme unlock icon in Phase A3
         // Theme unlock icon with trial countdown
         // ToolbarItem(placement: .topBarTrailing) {
@@ -811,8 +842,7 @@ struct CollectionsListView: View {
                 onVideoImport: handleVideoImport,
                 onReadRecipe: handleReadRecipe,
                 onAddCollection: handleAddCollection,
-                onCollectionSettings: nil, // Not applicable in collections list view
-                onOpenSettings: { showSettings = true }
+                onCollectionSettings: nil // Not applicable in collections list view
             )
         }
     }

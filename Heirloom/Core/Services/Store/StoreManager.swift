@@ -644,4 +644,6 @@ final class StoreManager {
 extension Notification.Name {
     static let subscriptionStatusChanged = Notification.Name("subscriptionStatusChanged")
     static let userBecamePremium = Notification.Name("userBecamePremium")
+    static let userProfileDidUpdate = Notification.Name("userProfileDidUpdate")
+    static let navigateToRecipe = Notification.Name("navigateToRecipe")
 }

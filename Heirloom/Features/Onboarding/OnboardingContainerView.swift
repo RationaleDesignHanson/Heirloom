@@ -3,13 +3,14 @@
 //  Heirloom
 //
 //  Created by Claude Code on 2026-01-08.
-//  Updated for new 5-screen onboarding flow on 2026-02-01
+//  Updated for new 6-screen onboarding flow on 2026-02-05
 //
 
 import SwiftUI
 import SwiftData
+import UIKit
 
-/// Container view that manages the 5-screen onboarding flow
+/// Container view that manages the 6-screen onboarding flow
 struct OnboardingContainerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.firebaseAuth) private var firebaseAuth
@@ -20,6 +21,7 @@ struct OnboardingContainerView: View {
     @State private var hasSeededHeritage = false
     @State private var selectedThemeIds: [String] = []
     @State private var showThemeSelection = false
+    @State private var pendingProfileData: OnboardingProfileData?
 
     /// Binding to control which tab should be selected after onboarding
     @Binding var selectedTab: Int
@@ -33,6 +35,8 @@ struct OnboardingContainerView: View {
         case shareSheetAha     // Screen 3: One-tap save tutorial
         case shareAndAccept    // Screen 4: Intentional sharing model
         case discover          // Screen 5: Optional community
+        case profileSetup      // Screen 6: Profile setup (display name + optional photo)
+        case completing        // Final: Saving profile and finishing up
     }
 
     var body: some View {
@@ -46,8 +50,13 @@ struct OnboardingContainerView: View {
                         }
                     },
                     onSkip: {
-                        // User chose to skip entire onboarding
-                        completeOnboarding()
+                        // User chose to skip entire onboarding - go to completing state
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentScreen = .completing
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            showThemeSelection = true
+                        }
                     }
                 )
                 .transition(.asymmetric(
@@ -100,19 +109,55 @@ struct OnboardingContainerView: View {
             case .discover:
                 OnboardingDiscoverScreen(
                     onStartSaving: {
-                        // Complete onboarding and navigate to Collections tab
-                        completeOnboarding()
+                        // Navigate to profile setup
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentScreen = .profileSetup
+                        }
                     },
                     onExploreDiscover: {
-                        // Complete onboarding and navigate to Discover tab
+                        // Navigate to Discover tab after profile setup
                         selectedTab = 1 // Discover tab
-                        completeOnboarding()
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentScreen = .profileSetup
+                        }
                     }
                 )
                 .transition(.asymmetric(
                     insertion: .move(edge: .trailing),
                     removal: .move(edge: .leading)
                 ))
+
+            case .profileSetup:
+                OnboardingProfileSetupScreen(
+                    onContinue: { profileData in
+                        pendingProfileData = profileData
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentScreen = .completing
+                        }
+                        // Show theme selection after transitioning to completing screen
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            showThemeSelection = true
+                        }
+                    },
+                    onSkip: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentScreen = .completing
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            showThemeSelection = true
+                        }
+                    }
+                )
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+
+            case .completing:
+                // Clean loading screen shown while theme selection sheet is presented
+                // and while profile is being saved
+                completingView
+                    .transition(.opacity)
             }
         }
         .task {
@@ -141,6 +186,33 @@ struct OnboardingContainerView: View {
         }
     }
 
+    // MARK: - Completing View
+
+    private var completingView: some View {
+        ZStack {
+            // Background gradient (matching other onboarding screens)
+            LinearGradient(
+                colors: [
+                    Color(red: 0.98, green: 0.95, blue: 0.90),
+                    Color(red: 0.95, green: 0.90, blue: 0.85)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.2)
+                    .tint(HeirloomColors.tomato)
+
+                Text("Setting up your recipe box...")
+                    .font(HeirloomFonts.body)
+                    .foregroundColor(HeirloomColors.secondaryText)
+            }
+        }
+    }
+
     // MARK: - Private Methods
 
     // MARK: - Theme Selection Handler
@@ -156,17 +228,79 @@ struct OnboardingContainerView: View {
             // Create collections for selected themes
             createThemeCollections(for: themeIds)
 
-            // Download initial recipes
-            Task {
-                await downloadInitialRecipes(for: themeIds)
+            // Download initial recipes (fire and forget - can complete after onboarding)
+            Task.detached {
+                await self.downloadInitialRecipes(for: themeIds)
             }
         }
 
         // Close theme selection sheet
         showThemeSelection = false
 
-        // Complete onboarding (theme selection was the final step after main flow)
-        finalizeOnboarding()
+        // Save profile and finalize onboarding
+        // Must await profile save before finalizing to prevent task cancellation
+        Task {
+            await saveOnboardingProfile()
+            await MainActor.run {
+                finalizeOnboarding()
+            }
+        }
+    }
+
+    // MARK: - Profile Saving
+
+    private func saveOnboardingProfile() async {
+        guard let profileData = pendingProfileData, !profileData.displayName.isEmpty else { return }
+
+        do {
+            let profileService = ServiceContainer.shared.resolve(ProfileServiceProtocol.self)
+            var profile = try await profileService.fetchCurrentUserProfile()
+
+            // Update profile with collected data (fast - just text fields)
+            profile.displayName = profileData.displayName
+            profile.bio = profileData.bio
+            profile.location = profileData.location
+            profile.specialties = profileData.cuisines.isEmpty ? nil : profileData.cuisines
+
+            // Save profile immediately without waiting for avatar upload
+            try await profileService.updateProfile(profile)
+            Log.info("Saved onboarding profile", category: .onboarding, metadata: [
+                "displayName": profileData.displayName,
+                "hasBio": profileData.bio != nil,
+                "hasLocation": profileData.location != nil,
+                "cuisineCount": profileData.cuisines.count
+            ])
+
+            // Upload avatar in background (don't block onboarding completion)
+            if let image = profileData.avatarImage {
+                Task.detached {
+                    await self.uploadAvatarInBackground(image: image, profileService: profileService)
+                }
+            }
+        } catch {
+            Log.error("Failed to save onboarding profile", category: .onboarding, error: error)
+        }
+    }
+
+    /// Upload avatar in background after onboarding completes
+    private func uploadAvatarInBackground(image: UIImage, profileService: ProfileServiceProtocol) async {
+        do {
+            let photoURL = try await profileService.uploadAvatar(image)
+
+            // Update profile with new photo URL
+            var profile = try await profileService.fetchCurrentUserProfile()
+            profile.photoURL = photoURL
+            try await profileService.updateProfile(profile)
+
+            Log.info("Avatar uploaded in background after onboarding", category: .onboarding)
+
+            // Notify observers that profile was updated (for views that already loaded the profile)
+            await MainActor.run {
+                NotificationCenter.default.post(name: .userProfileDidUpdate, object: nil)
+            }
+        } catch {
+            Log.error("Failed to upload avatar in background", category: .onboarding, error: error)
+        }
     }
 
     // MARK: - Theme Loading
@@ -247,12 +381,6 @@ struct OnboardingContainerView: View {
         } catch {
             Log.error("Failed to download initial recipes", category: .onboarding, error: error)
         }
-    }
-
-    private func completeOnboarding() {
-        // Show theme selection sheet after main onboarding flow
-        // User can select heritage themes or skip
-        showThemeSelection = true
     }
 
     private func finalizeOnboarding() {

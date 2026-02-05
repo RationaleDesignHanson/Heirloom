@@ -7,6 +7,7 @@ struct PublicRecipeDetailView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
 
     @State private var viewModel: PublicRecipeDetailViewModel
     @State private var showReportSheet = false
@@ -54,7 +55,15 @@ struct PublicRecipeDetailView: View {
         }
         .alert("Recipe Saved!", isPresented: $viewModel.showSaveSuccess) {
             Button("View Recipe") {
-                // TODO: Navigate to saved recipe
+                if let recipeId = viewModel.savedRecipeId {
+                    // Switch to Collections tab and navigate to recipe
+                    tabCoordinator.selectedTab = TabNavigationCoordinator.Tab.collections.rawValue
+                    NotificationCenter.default.post(
+                        name: .navigateToRecipe,
+                        object: nil,
+                        userInfo: ["recipeId": recipeId]
+                    )
+                }
                 dismiss()
             }
             Button("OK", role: .cancel) {
@@ -491,6 +500,7 @@ class PublicRecipeDetailViewModel {
     var showSaveSuccess = false
     var showSaveError = false
     var saveErrorMessage: String?
+    var savedRecipeId: UUID?
 
     private var discoveryService: DiscoveryServiceProtocol {
         ServiceContainer.shared.resolve((any DiscoveryServiceProtocol).self)
@@ -552,6 +562,7 @@ class PublicRecipeDetailViewModel {
             )
 
             isSaving = false
+            savedRecipeId = savedRecipe.id
             showSaveSuccess = true
 
             Log.info("Saved public recipe to collection", category: .social, metadata: [

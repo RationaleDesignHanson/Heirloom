@@ -73,6 +73,17 @@ struct KitchenTableView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(HeirloomColors.primaryText)
+                    }
+                    .accessibilityLabel("Settings")
+                    .accessibilityHint("Open app settings")
+                }
+
                 ToolbarItem(placement: .principal) {
                     Text("Table")
                         .font(HeirloomFonts.title2)
@@ -107,18 +118,11 @@ struct KitchenTableView: View {
                         } label: {
                             Label("Analytics", systemImage: "chart.bar")
                         }
-
-                        Divider()
-
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Label("Settings", systemImage: "gearshape")
-                        }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .foregroundStyle(HeirloomColors.primaryText)
                     }
+                    .accessibilityLabel("Table Options")
                 }
             }
             .sheet(isPresented: $showConnectionRequests) {
@@ -158,6 +162,18 @@ struct KitchenTableView: View {
                                 await loadProfile()
                             }
                         }
+                } else {
+                    VStack(spacing: HeirloomSpacing.md) {
+                        ProgressView()
+                        Text("Loading profile...")
+                            .font(HeirloomFonts.body)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(HeirloomColors.appBackground)
+                    .task {
+                        await loadProfile()
+                    }
                 }
             }
             .task {
@@ -168,6 +184,12 @@ struct KitchenTableView: View {
             }
             .onDisappear {
                 cleanupConnectionsListener()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .userProfileDidUpdate)) { _ in
+                // Reload profile when avatar upload completes in background
+                Task {
+                    await loadProfile()
+                }
             }
             .refreshable {
                 await loadConnections(forceRefresh: true)

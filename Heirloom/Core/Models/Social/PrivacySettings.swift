@@ -119,6 +119,61 @@ struct PrivacySettings: Codable {
         self.showLocationInSearch = true
         self.showSpecialtiesInSearch = true
     }
+
+    // MARK: - Custom Decoder (for backward compatibility with missing fields)
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = PrivacySettings()
+
+        self.profileVisibility = try container.decodeIfPresent(ProfileVisibility.self, forKey: .profileVisibility) ?? defaults.profileVisibility
+        self.recipeVisibility = try container.decodeIfPresent(RecipeVisibility.self, forKey: .recipeVisibility) ?? defaults.recipeVisibility
+        self.kitchenTableVisibility = try container.decodeIfPresent(KitchenTableVisibility.self, forKey: .kitchenTableVisibility) ?? defaults.kitchenTableVisibility
+        self.whoCanConnect = try container.decodeIfPresent(WhoCanConnect.self, forKey: .whoCanConnect) ?? defaults.whoCanConnect
+        self.autoAcceptKitchenTableConnections = try container.decodeIfPresent(Bool.self, forKey: .autoAcceptKitchenTableConnections) ?? defaults.autoAcceptKitchenTableConnections
+        self.showConnectionCount = try container.decodeIfPresent(Bool.self, forKey: .showConnectionCount) ?? defaults.showConnectionCount
+        self.sharedRecipeVisibility = try container.decodeIfPresent(SharedRecipeVisibility.self, forKey: .sharedRecipeVisibility) ?? defaults.sharedRecipeVisibility
+        self.allowRecipeResharing = try container.decodeIfPresent(Bool.self, forKey: .allowRecipeResharing) ?? defaults.allowRecipeResharing
+        self.showRecipeAttribution = try container.decodeIfPresent(Bool.self, forKey: .showRecipeAttribution) ?? defaults.showRecipeAttribution
+        self.whoCanMessage = try container.decodeIfPresent(WhoCanMessage.self, forKey: .whoCanMessage) ?? defaults.whoCanMessage
+        self.allowMentions = try container.decodeIfPresent(Bool.self, forKey: .allowMentions) ?? defaults.allowMentions
+        self.notifyConnectionRequests = try container.decodeIfPresent(Bool.self, forKey: .notifyConnectionRequests) ?? defaults.notifyConnectionRequests
+        self.notifyRecipeShares = try container.decodeIfPresent(Bool.self, forKey: .notifyRecipeShares) ?? defaults.notifyRecipeShares
+        self.notifyKitchenTableInvites = try container.decodeIfPresent(Bool.self, forKey: .notifyKitchenTableInvites) ?? defaults.notifyKitchenTableInvites
+        self.allowSearchIndexing = try container.decodeIfPresent(Bool.self, forKey: .allowSearchIndexing) ?? defaults.allowSearchIndexing
+        self.showJoinDate = try container.decodeIfPresent(Bool.self, forKey: .showJoinDate) ?? defaults.showJoinDate
+        self.showHeritageStats = try container.decodeIfPresent(Bool.self, forKey: .showHeritageStats) ?? defaults.showHeritageStats
+        self.allowAnalytics = try container.decodeIfPresent(Bool.self, forKey: .allowAnalytics) ?? defaults.allowAnalytics
+        self.allowConnectionSuggestions = try container.decodeIfPresent(Bool.self, forKey: .allowConnectionSuggestions) ?? defaults.allowConnectionSuggestions
+        self.hideFromSearch = try container.decodeIfPresent(Bool.self, forKey: .hideFromSearch) ?? defaults.hideFromSearch
+        self.showLocationInSearch = try container.decodeIfPresent(Bool.self, forKey: .showLocationInSearch) ?? defaults.showLocationInSearch
+        self.showSpecialtiesInSearch = try container.decodeIfPresent(Bool.self, forKey: .showSpecialtiesInSearch) ?? defaults.showSpecialtiesInSearch
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case profileVisibility
+        case recipeVisibility
+        case kitchenTableVisibility
+        case whoCanConnect
+        case autoAcceptKitchenTableConnections
+        case showConnectionCount
+        case sharedRecipeVisibility
+        case allowRecipeResharing
+        case showRecipeAttribution
+        case whoCanMessage
+        case allowMentions
+        case notifyConnectionRequests
+        case notifyRecipeShares
+        case notifyKitchenTableInvites
+        case allowSearchIndexing
+        case showJoinDate
+        case showHeritageStats
+        case allowAnalytics
+        case allowConnectionSuggestions
+        case hideFromSearch
+        case showLocationInSearch
+        case showSpecialtiesInSearch
+    }
 }
 
 // MARK: - Visibility Enums

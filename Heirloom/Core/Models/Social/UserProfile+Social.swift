@@ -173,6 +173,44 @@ struct UserProfile: Codable {
         self.isVerified = false
         self.verificationType = nil
     }
+
+    // MARK: - Custom Decoder (for backward compatibility with missing fields)
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Required field
+        self.userId = try container.decode(String.self, forKey: .userId)
+        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName) ?? "User"
+
+        // Optional fields
+        self.email = try container.decodeIfPresent(String.self, forKey: .email)
+        self.photoURL = try container.decodeIfPresent(String.self, forKey: .photoURL)
+        self.handle = try container.decodeIfPresent(String.self, forKey: .handle)
+        self.bio = try container.decodeIfPresent(String.self, forKey: .bio)
+        self.location = try container.decodeIfPresent(String.self, forKey: .location)
+        self.specialties = try container.decodeIfPresent([String].self, forKey: .specialties)
+        self.websiteURL = try container.decodeIfPresent(String.self, forKey: .websiteURL)
+        self.currentKitchenTableId = try container.decodeIfPresent(String.self, forKey: .currentKitchenTableId)
+        self.kitchenTableIds = try container.decodeIfPresent([String].self, forKey: .kitchenTableIds)
+
+        // Fields with defaults
+        self.connectionCount = try container.decodeIfPresent(Int.self, forKey: .connectionCount) ?? 0
+        self.followerCount = try container.decodeIfPresent(Int.self, forKey: .followerCount) ?? 0
+        self.followingCount = try container.decodeIfPresent(Int.self, forKey: .followingCount) ?? 0
+        self.sharedRecipeCount = try container.decodeIfPresent(Int.self, forKey: .sharedRecipeCount) ?? 0
+        self.heritageGenerationCount = try container.decodeIfPresent(Int.self, forKey: .heritageGenerationCount) ?? 0
+        self.recipeAcceptanceCount = try container.decodeIfPresent(Int.self, forKey: .recipeAcceptanceCount) ?? 0
+        self.privacySettings = try container.decodeIfPresent(PrivacySettings.self, forKey: .privacySettings) ?? PrivacySettings()
+        self.hasPublicProfile = try container.decodeIfPresent(Bool.self, forKey: .hasPublicProfile) ?? false
+        self.publicProfileSlug = try container.decodeIfPresent(String.self, forKey: .publicProfileSlug)
+        self.joinedAt = try container.decodeIfPresent(Date.self, forKey: .joinedAt) ?? Date()
+        self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
+        self.lastActiveAt = try container.decodeIfPresent(Date.self, forKey: .lastActiveAt)
+        self.locale = try container.decodeIfPresent(String.self, forKey: .locale)
+        self.isVerified = try container.decodeIfPresent(Bool.self, forKey: .isVerified) ?? false
+        self.verificationType = try container.decodeIfPresent(VerificationType.self, forKey: .verificationType)
+    }
 }
 
 // MARK: - Verification Type
