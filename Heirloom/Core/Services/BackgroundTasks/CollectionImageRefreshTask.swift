@@ -22,7 +22,12 @@ class CollectionImageRefreshTask {
             using: nil
         ) { task in
             Task { @MainActor in
-                await handleBackgroundTask(task as! BGProcessingTask, generator: generator, modelContainer: modelContainer)
+                guard let processingTask = task as? BGProcessingTask else {
+                    Log.error("Background task type mismatch - expected BGProcessingTask for collection image refresh", category: .general)
+                    task.setTaskCompleted(success: false)
+                    return
+                }
+                await handleBackgroundTask(processingTask, generator: generator, modelContainer: modelContainer)
             }
         }
     }
@@ -39,8 +44,13 @@ class CollectionImageRefreshTask {
         components.hour = 2
 
         if let targetDate = calendar.date(from: components) {
-            let scheduledDate = targetDate < Date() ?
-                calendar.date(byAdding: .day, value: 1, to: targetDate)! : targetDate
+            let scheduledDate: Date
+            if targetDate < Date() {
+                // Target time already passed today, schedule for tomorrow
+                scheduledDate = calendar.date(byAdding: .day, value: 1, to: targetDate) ?? targetDate.addingTimeInterval(86400)
+            } else {
+                scheduledDate = targetDate
+            }
             request.earliestBeginDate = scheduledDate
         }
 
