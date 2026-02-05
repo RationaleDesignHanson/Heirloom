@@ -11,10 +11,11 @@ import Search
 
 protocol SearchServiceProtocol {
     func searchUsers(query: String, filters: SearchFilters?) async throws -> [UserSearchResult]
+    func searchPublicRecipes(query: String, limit: Int) async throws -> [PublicRecipeSearchResult]
 }
 
-// Decodable wrapper for Algolia search hits
-private struct AlgoliaHit: Codable {
+// Decodable wrapper for Algolia user search hits
+private struct AlgoliaUserHit: Codable {
     let objectID: String
     let displayName: String
     let email: String?
@@ -22,10 +23,53 @@ private struct AlgoliaHit: Codable {
     let bio: String?
 }
 
+// Legacy alias
+private typealias AlgoliaHit = AlgoliaUserHit
+
+// Decodable wrapper for Algolia public recipe search hits
+private struct AlgoliaPublicRecipeHit: Codable {
+    let objectID: String
+    let title: String
+    let description: String?
+    let creatorName: String
+    let creatorId: String?
+    let creatorPhotoURL: String?
+    let imageURL: String?
+    let tags: [String]?
+    let category: String?
+    let viewCount: Int?
+    let saveCount: Int?
+    let servings: String?
+    let prepTime: String?
+    let cookTime: String?
+}
+
+/// Search result for public recipes from Algolia
+struct PublicRecipeSearchResult: Identifiable {
+    let id: String
+    let title: String
+    let description: String?
+    let creatorName: String
+    let creatorId: String?
+    let creatorPhotoURL: String?
+    let imageURL: String?
+    let tags: [String]
+    let category: String?
+    let viewCount: Int
+    let saveCount: Int
+    let servings: String?
+    let prepTime: String?
+    let cookTime: String?
+}
+
 @MainActor
 class AlgoliaSearchService: SearchServiceProtocol {
     private let searchClient: SearchClient
-    private let indexName = "users"
+    private let usersIndexName = "users"
+    private let publicRecipesIndexName = "public_recipes"
+
+    // Legacy alias
+    private var indexName: String { usersIndexName }
 
     init() {
         // Initialize with app credentials
@@ -92,6 +136,59 @@ class AlgoliaSearchService: SearchServiceProtocol {
                 )
             }
         }
+
+        return results
+    }
+
+    /// Search public recipes via Algolia
+    /// Supports typo-tolerant search on title, creator name, ingredients, tags
+    func searchPublicRecipes(query: String, limit: Int = 20) async throws -> [PublicRecipeSearchResult] {
+        guard query.count >= 2 else { return [] }
+
+        // Create search request
+        let searchParams = SearchForHits(
+            query: query,
+            hitsPerPage: limit,
+            indexName: publicRecipesIndexName
+        )
+
+        // Perform search
+        let response: SearchResponses<AlgoliaPublicRecipeHit> = try await searchClient.search(
+            searchMethodParams: SearchMethodParams(requests: [SearchQuery.searchForHits(searchParams)])
+        )
+
+        // Parse results from first response
+        guard let firstResult = response.results.first else {
+            return []
+        }
+
+        var results: [PublicRecipeSearchResult] = []
+
+        if case .searchResponse(let searchResponse) = firstResult {
+            results = searchResponse.hits.map { hit in
+                PublicRecipeSearchResult(
+                    id: hit.objectID,
+                    title: hit.title,
+                    description: hit.description,
+                    creatorName: hit.creatorName,
+                    creatorId: hit.creatorId,
+                    creatorPhotoURL: hit.creatorPhotoURL,
+                    imageURL: hit.imageURL,
+                    tags: hit.tags ?? [],
+                    category: hit.category,
+                    viewCount: hit.viewCount ?? 0,
+                    saveCount: hit.saveCount ?? 0,
+                    servings: hit.servings,
+                    prepTime: hit.prepTime,
+                    cookTime: hit.cookTime
+                )
+            }
+        }
+
+        Log.info("Algolia public recipe search", category: .social, metadata: [
+            "query": query,
+            "results": results.count
+        ])
 
         return results
     }

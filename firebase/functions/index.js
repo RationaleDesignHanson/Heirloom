@@ -20,7 +20,11 @@ const client = algoliasearch(
   'A1DITUD2QN',
   'e07b85696f6d023e0ac63434db054d16' // Admin API key (write access)
 );
-const index = client.initIndex('users');
+const usersIndex = client.initIndex('users');
+const publicRecipesIndex = client.initIndex('public_recipes');
+
+// Legacy alias for backwards compatibility
+const index = usersIndex;
 
 /**
  * Sync user profile to Algolia
@@ -64,6 +68,72 @@ exports.syncUserToAlgolia = onDocumentWritten('users/{userId}/profile/data', asy
   // Save to Algolia
   console.log(`Syncing user ${userId} (${data.displayName}) to Algolia`);
   await index.saveObject(algoliaObject);
+
+  return null;
+});
+
+/**
+ * Sync public recipe to Algolia
+ * Triggered on create/update/delete of publicRecipes/{recipeId}
+ */
+exports.syncPublicRecipeToAlgolia = onDocumentWritten('publicRecipes/{recipeId}', async (event) => {
+  const recipeId = event.params.recipeId;
+  const change = event.data;
+
+  // Delete from Algolia if document was removed
+  if (!change.after.exists) {
+    console.log(`Deleting public recipe ${recipeId} from Algolia`);
+    await publicRecipesIndex.deleteObject(recipeId);
+    return null;
+  }
+
+  const data = change.after.data();
+
+  // Don't index if recipe is hidden
+  if (data.isHidden === true) {
+    console.log(`Recipe ${recipeId} is hidden, removing from Algolia`);
+    await publicRecipesIndex.deleteObject(recipeId);
+    return null;
+  }
+
+  // Prepare Algolia object
+  const algoliaObject = {
+    objectID: recipeId,
+    title: data.title || '',
+    description: data.description || '',
+    ingredients: data.ingredients || [],
+    instructions: data.instructions || [],
+    tags: data.tags || [],
+    category: data.category || null,
+    creatorName: data.creatorName || '',
+    creatorId: data.ownerId || '',
+    creatorPhotoURL: data.creatorPhotoURL || null,
+    imageURL: data.imageURL || null,
+    viewCount: data.viewCount || 0,
+    saveCount: data.saveCount || 0,
+    trendingScore: data.trendingScore || 0,
+    servings: data.servings || null,
+    prepTime: data.prepTime || null,
+    cookTime: data.cookTime || null,
+    totalTime: data.totalTime || null,
+    // Searchable text fields combined for better matching
+    _searchText: [
+      data.title || '',
+      data.description || '',
+      data.creatorName || '',
+      ...(data.ingredients || []),
+      ...(data.tags || [])
+    ].join(' ').toLowerCase(),
+    // Timestamps for sorting
+    publishedAt: data.publishedAt ? data.publishedAt.seconds : Date.now() / 1000,
+    updatedAt: data.updatedAt ? data.updatedAt.seconds : Date.now() / 1000,
+    // Demo seed flag (for filtering in admin)
+    isDemoSeed: data.isDemoSeed || false
+  };
+
+  // Save to Algolia
+  console.log(`Syncing public recipe ${recipeId} (${data.title}) to Algolia`);
+  await publicRecipesIndex.saveObject(algoliaObject);
 
   return null;
 });

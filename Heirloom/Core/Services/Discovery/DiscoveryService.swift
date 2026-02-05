@@ -278,20 +278,68 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
         }
     }
 
-    /// Search recipes by keywords (Firestore array-contains)
+    /// Search recipes by keywords using Algolia (typo-tolerant fuzzy search)
+    /// Falls back to Firestore array-contains if Algolia fails
     func search(query: String, limit: Int = 20, lastDocument: DocumentSnapshot? = nil) async throws -> (recipes: [PublicRecipe], lastDoc: DocumentSnapshot?) {
-        let normalizedQuery = query.lowercased().trimmingCharacters(in: .whitespaces)
+        let normalizedQuery = query.trimmingCharacters(in: .whitespaces)
 
-        guard normalizedQuery.count >= 3 else {
+        guard normalizedQuery.count >= 2 else {
             throw DiscoveryError.invalidQuery
         }
 
         // Check cache for first page only
-        let cacheKey = normalizedQuery
+        let cacheKey = normalizedQuery.lowercased()
         if lastDocument == nil, let cached = searchCache[cacheKey], !cached.isExpired {
             Log.debug("Search cache hit", category: .social, metadata: ["query": normalizedQuery])
             return (filterOutOwnRecipes(cached.recipes), nil)
         }
+
+        // Use Algolia for search (typo-tolerant, fuzzy matching)
+        do {
+            let algoliaService = ServiceContainer.shared.resolve(AlgoliaSearchService.self)
+            let searchResults = try await algoliaService.searchPublicRecipes(query: normalizedQuery, limit: limit)
+
+            // Fetch full PublicRecipe documents from Firestore based on Algolia IDs
+            var recipes: [PublicRecipe] = []
+            for result in searchResults {
+                if let recipe = try await fetchPublicRecipe(id: result.id) {
+                    recipes.append(recipe)
+                }
+            }
+
+            // Filter out current user's own recipes
+            let filteredCount = recipes.count
+            recipes = filterOutOwnRecipes(recipes)
+
+            // Cache first page
+            if lastDocument == nil {
+                searchCache[cacheKey] = CachedResult(recipes: recipes, timestamp: Date())
+            }
+
+            Log.info("Algolia search completed", category: .social, metadata: [
+                "query": normalizedQuery,
+                "algoliaResults": searchResults.count,
+                "finalResults": recipes.count,
+                "filtered_out": filteredCount - recipes.count
+            ])
+
+            // Note: Algolia doesn't support cursor-based pagination like Firestore
+            // For now, return nil for lastDoc (no pagination support with Algolia)
+            return (recipes, nil)
+
+        } catch {
+            // Fall back to Firestore search if Algolia fails
+            Log.warning("Algolia search failed, falling back to Firestore", category: .social, metadata: [
+                "query": normalizedQuery,
+                "error": error.localizedDescription
+            ])
+            return try await searchWithFirestore(query: normalizedQuery, limit: limit, lastDocument: lastDocument)
+        }
+    }
+
+    /// Fallback Firestore-based search using array-contains
+    private func searchWithFirestore(query: String, limit: Int, lastDocument: DocumentSnapshot?) async throws -> (recipes: [PublicRecipe], lastDoc: DocumentSnapshot?) {
+        let normalizedQuery = query.lowercased()
 
         // Split query into words for multi-term search
         let searchTerms = normalizedQuery.components(separatedBy: .whitespaces).filter { $0.count >= 3 }
@@ -300,61 +348,34 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
         }
 
         // Firestore array-contains only works with single value
-        // For MVP, search first term and filter others client-side
         var query = db.collection("publicRecipes")
             .whereField("searchKeywords", arrayContains: firstTerm)
             .order(by: "publishedAt", descending: true)
-            .limit(to: limit * 2)  // Fetch extra for client-side filtering
+            .limit(to: limit * 2)
 
         if let lastDoc = lastDocument {
             query = query.start(afterDocument: lastDoc)
         }
 
-        do {
-            let snapshot = try await query.getDocuments()
-            var recipes = try snapshot.documents.compactMap { doc -> PublicRecipe? in
-                try PublicRecipe(from: doc)
-            }
+        let snapshot = try await query.getDocuments()
+        var recipes = try snapshot.documents.compactMap { doc -> PublicRecipe? in
+            try PublicRecipe(from: doc)
+        }
 
-            // Client-side filter for multi-term queries
-            if searchTerms.count > 1 {
-                recipes = recipes.filter { recipe in
-                    let allKeywords = recipe.searchKeywords.joined(separator: " ")
-                    return searchTerms.allSatisfy { term in
-                        allKeywords.contains(term)
-                    }
+        // Client-side filter for multi-term queries
+        if searchTerms.count > 1 {
+            recipes = recipes.filter { recipe in
+                let allKeywords = recipe.searchKeywords.joined(separator: " ")
+                return searchTerms.allSatisfy { term in
+                    allKeywords.contains(term)
                 }
             }
-
-            // Filter out current user's own recipes
-            let filteredCount = recipes.count
-            recipes = filterOutOwnRecipes(recipes)
-
-            // Trim to limit
-            recipes = Array(recipes.prefix(limit))
-
-            // Cache first page (unfiltered for user-independent cache)
-            if lastDocument == nil {
-                searchCache[cacheKey] = CachedResult(recipes: recipes, timestamp: Date())
-            }
-
-            Log.info("Search completed", category: .social, metadata: [
-                "query": normalizedQuery,
-                "terms": searchTerms.count,
-                "results": recipes.count,
-                "filtered_out": filteredCount - recipes.count
-            ])
-
-            let lastDoc = snapshot.documents.last
-            return (recipes, lastDoc)
-
-        } catch {
-            Log.error("Search failed", category: .social, metadata: [
-                "query": normalizedQuery,
-                "error": error.localizedDescription
-            ])
-            throw DiscoveryError.firestoreError(error)
         }
+
+        recipes = filterOutOwnRecipes(recipes)
+        recipes = Array(recipes.prefix(limit))
+
+        return (recipes, snapshot.documents.last)
     }
 
     /// Fetch a single public recipe by ID
