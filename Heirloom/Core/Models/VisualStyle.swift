@@ -127,12 +127,12 @@ class VisualStyleConfiguration: ObservableObject {
     }
 
     init() {
-        // Load saved preference or default to watercolor
+        // Load saved preference or default to classic cookbook
         if let savedRawValue = UserDefaults.standard.string(forKey: Self.storageKey),
            let savedStyle = VisualStyle(rawValue: savedRawValue) {
             self.selectedStyle = savedStyle
         } else {
-            self.selectedStyle = .watercolorArt // Default
+            self.selectedStyle = .classicCookbook // Default
         }
     }
 }

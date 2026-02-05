@@ -1036,6 +1036,30 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             "recipe_count": adjustedRecipes.count
         ])
 
+        // DIAGNOSTIC: Check if bounding boxes would fail validation (Task #27)
+        // This logs overlap issues WITHOUT changing extraction behavior
+        if adjustedRecipes.count > 1 {
+            let boxes = adjustedRecipes.map { $0.recipe.boundingBox }
+            let wouldPassValidation = validateBoundingBoxes(boxes)
+
+            if !wouldPassValidation {
+                // Log detailed box info for analysis
+                let boxDetails = boxes.enumerated().map { (i, box) in
+                    "[\(i)]: x=\(Int(box.x))% y=\(Int(box.y))% w=\(Int(box.width))% h=\(Int(box.height))%"
+                }.joined(separator: ", ")
+
+                Log.warning("📊 [DIAGNOSTIC] Bounding boxes would FAIL validation (>30% overlap)", category: .import, metadata: [
+                    "recipe_count": adjustedRecipes.count,
+                    "titles": detectedRecipes.map { $0.title }.joined(separator: " | "),
+                    "boxes": boxDetails
+                ])
+            } else {
+                Log.info("📊 [DIAGNOSTIC] Bounding boxes PASS validation", category: .import, metadata: [
+                    "recipe_count": adjustedRecipes.count
+                ])
+            }
+        }
+
         var extractedRecipes: [ExtractedRecipe] = []
         var extractionResults: [ExtractionResult] = []
 
