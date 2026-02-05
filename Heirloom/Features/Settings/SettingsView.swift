@@ -564,7 +564,7 @@ struct SettingsView: View {
                 )) {
                     HStack {
                         Image(systemName: "person.2.fill")
-                            .foregroundStyle(HeirloomColors.sage)
+                            .foregroundStyle(HeirloomColors.familyGreen)
                         VStack(alignment: .leading) {
                             Text("Demo Social Mode")
                             Text("Simulated demo accounts will auto-accept invites and share sample recipes")
@@ -573,7 +573,7 @@ struct SettingsView: View {
                         }
                     }
                 }
-                .tint(HeirloomColors.sage)
+                .tint(HeirloomColors.familyGreen)
             }
 
             Divider()

@@ -3,7 +3,7 @@
 //  Heirloom
 //
 //  Small "DEMO" capsule badge for demo users.
-//  Styled in sage color to match social features.
+//  Styled in familyGreen to match social features.
 //
 
 import SwiftUI
@@ -18,7 +18,7 @@ struct DemoBadge: View {
             .padding(.vertical, 2)
             .background(
                 Capsule()
-                    .fill(HeirloomColors.sage)
+                    .fill(HeirloomColors.familyGreen)
             )
     }
 }
