@@ -327,7 +327,7 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
             description: recipe.notes,
             imageURL: imageURL,
             ingredients: ingredientNames,
-            instructions: recipe.instructions ?? [],
+            instructions: recipe.instructions,
             category: recipe.recipeCategory,
             tags: recipe.tags?.compactMap { $0.name } ?? [],
             servings: recipe.servings,
