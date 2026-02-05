@@ -1,5 +1,33 @@
 import Foundation
 
+/// JSON container for loading help articles from resource files
+struct HelpArticleContainer: Codable {
+    let section: String
+    let articles: [HelpArticleJSON]
+}
+
+/// JSON-decodable version of HelpArticle
+struct HelpArticleJSON: Codable {
+    let id: String
+    let title: String
+    let content: String
+    let keywords: [String]
+    let relatedArticles: [String]
+    let icon: String
+
+    func toHelpArticle(section: HelpSection) -> HelpArticle {
+        HelpArticle(
+            id: id,
+            title: title,
+            content: content,
+            section: section,
+            keywords: keywords,
+            relatedArticles: relatedArticles,
+            icon: icon
+        )
+    }
+}
+
 /// Represents a help article with content and metadata
 struct HelpArticle: Identifiable, Hashable {
     let id: String
@@ -61,7 +89,7 @@ struct HelpArticle: Identifiable, Hashable {
 }
 
 /// Help section categories
-enum HelpSection: String, CaseIterable, Identifiable {
+enum HelpSection: String, CaseIterable, Identifiable, Codable {
     case gettingStarted = "Getting Started"
     case recipes = "Recipes"
     case shoppingLists = "Shopping Lists"
@@ -70,6 +98,19 @@ enum HelpSection: String, CaseIterable, Identifiable {
     case troubleshooting = "Troubleshooting"
 
     var id: String { rawValue }
+
+    /// Initialize from JSON key (camelCase)
+    init(fromKey key: String) {
+        switch key {
+        case "gettingStarted": self = .gettingStarted
+        case "recipes": self = .recipes
+        case "shoppingLists": self = .shoppingLists
+        case "cardPersonalization": self = .cardPersonalization
+        case "advancedFeatures": self = .advancedFeatures
+        case "troubleshooting": self = .troubleshooting
+        default: self = .gettingStarted
+        }
+    }
 
     var icon: String {
         switch self {

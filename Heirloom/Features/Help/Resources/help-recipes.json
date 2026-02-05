@@ -1,0 +1,20 @@
+{
+  "section": "recipes",
+  "articles": [
+    {
+      "id": "importing-recipes",
+      "title": "Importing Recipes",
+      "content": "There are several ways to add recipes to Heirloom:\n\n                **From a Website:**\n                1. Tap the + button in the tab bar\n                2. Select \"Import from URL\"\n                3. Paste the recipe URL\n                4. Review and confirm the import\n\n                **Scan a Cookbook:**\n                1. Tap the + button\n                2. Select \"Scan Cookbook\"\n                3. Take photos of the recipe pages\n                4. Review the extracted text\n\n                **Manual Entry:**\n                1. Tap the + button\n                2. Select \"New Recipe\"\n                3. Enter recipe details manually\n\n                **Tips:**\n                • Most major recipe websites are supported\n                • OCR works best with clear, well-lit photos\n                • You can edit any imported recipe after adding it",
+      "keywords": [
+        "import",
+        "add",
+        "url",
+        "website",
+        "scan",
+        "ocr"
+      ],
+      "relatedArticles": [],
+      "icon": "square.and.arrow.down"
+    }
+  ]
+}

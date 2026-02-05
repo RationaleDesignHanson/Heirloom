@@ -1,0 +1,35 @@
+{
+  "section": "troubleshooting",
+  "articles": [
+    {
+      "id": "sync-issues",
+      "title": "Sync Issues",
+      "content": "If you're experiencing sync issues:\n\n                **Check Network:**\n                • Go to Settings → Network & Sync\n                • Verify you're online\n                • Check pending operations count\n\n                **Check iCloud:**\n                • Ensure you're signed into iCloud\n                • Verify Heirloom has iCloud permission\n                • Check available storage\n\n                **Manual Retry:**\n                • Go to Settings → Network & Sync\n                • Tap \"Retry Sync Now\"\n                • Wait for pending operations to clear\n\n                **View Error Details:**\n                • If there's a sync error, you'll see \"View Sync Issues\"\n                • Tap it for specific error information\n                • Follow the recovery steps provided\n\n                **Still Having Issues?**\n                Contact support from Settings → Help & Support",
+      "keywords": [
+        "sync",
+        "icloud",
+        "network",
+        "error",
+        "offline",
+        "pending"
+      ],
+      "relatedArticles": [],
+      "icon": "icloud.slash"
+    },
+    {
+      "id": "import-failures",
+      "title": "Recipe Import Not Working",
+      "content": "If recipe import fails:\n\n                **URL Import Issues:**\n                • Verify the URL is correct\n                • Some sites block automated access\n                • Try copying the recipe text manually\n\n                **Scan Issues:**\n                • Ensure good lighting\n                • Hold camera steady\n                • Take multiple clear photos\n                • OCR works best with printed text\n\n                **What Gets Imported:**\n                • Recipe title and description\n                • Ingredients list\n                • Instructions\n                • Prep/cook times\n                • Servings\n\n                **After Import:**\n                • Review and edit as needed\n                • Missing info can be added manually\n                • Images can be added from your library",
+      "keywords": [
+        "import",
+        "fail",
+        "error",
+        "url",
+        "scan",
+        "ocr"
+      ],
+      "relatedArticles": [],
+      "icon": "exclamationmark.triangle"
+    }
+  ]
+}

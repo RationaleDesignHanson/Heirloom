@@ -749,7 +749,7 @@ extension ServiceContainer {
         }
 
         register(HelpContent.self, lifecycle: .singleton) { _ in
-            HelpContent()
+            HelpContent.shared
         }
 
         // MARK: - Toast

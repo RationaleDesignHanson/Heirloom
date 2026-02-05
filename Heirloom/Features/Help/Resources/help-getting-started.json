@@ -1,0 +1,137 @@
+{
+  "section": "gettingStarted",
+  "articles": [
+    {
+      "id": "getting-started-overview",
+      "title": "Welcome to Heirloom",
+      "content": "Heirloom helps you collect, organize, and share family recipes in a beautiful, personal way.\n\n                **Key Features:**\n                • Import recipes from websites or scan cookbooks\n                • Style recipe cards with backgrounds, stickers, and notes\n                • Create shopping lists from recipes\n                • Share recipes with family members\n                • Track recipe lineage across generations\n\n                **Getting Started:**\n                1. Tap the + button to add your first recipe\n                2. Choose how you want to add it (URL, scan, or manual)\n                3. Personalize the recipe card\n                4. Start cooking!",
+      "keywords": [
+        "welcome",
+        "introduction",
+        "overview",
+        "start",
+        "begin"
+      ],
+      "relatedArticles": [],
+      "icon": "hand.wave.fill"
+    },
+    {
+      "id": "gestures-guide",
+      "title": "Gestures & Interactions",
+      "content": "Heirloom uses intuitive gestures to make managing your recipes effortless.\n\n                **Recipe List:**\n                • **Pull down** to refresh and sync with CloudKit\n                • **Long press** recipe cards for quick actions (favorite, shopping list, delete)\n                • **Tap** any recipe to view its details\n\n                **Recipe Details:**\n                • **Tap the card** to flip between front (photo) and back (notes/lineage)\n                • **Swipe left** on ingredients to delete them\n                • **Long press & drag** to reorder ingredients and instructions\n\n                **Shopping List:**\n                • **Tap** ingredients to check them off\n                • **Long press** recipes to remove or hide items\n                • **Long press** ingredients to view recipes, check off, or copy\n\n                **Card Personalization:**\n                • **Drag** stickers to position them\n                • **Pinch** stickers to resize them\n                • **Rotate** stickers with two fingers\n                • **Long press** to delete stickers or annotations\n\n                **General:**\n                • **Pull down** on sheets to dismiss them\n                • **Swipe from left edge** to go back\n                • **Tap** text fields to edit\n\n                **Tips:**\n                • Haptic feedback confirms most actions\n                • Sound effects (if enabled) enhance the card flip experience\n                • VoiceOver fully supports all gestures with alternative actions",
+      "keywords": [
+        "gestures",
+        "tap",
+        "swipe",
+        "long press",
+        "drag",
+        "pinch",
+        "rotate",
+        "interactions",
+        "touch"
+      ],
+      "relatedArticles": [
+        "card-flip-guide",
+        "shopping-list-basics"
+      ],
+      "icon": "hand.tap.fill"
+    },
+    {
+      "id": "adding-first-recipe",
+      "title": "Adding Your First Recipe",
+      "content": "There are multiple ways to add recipes to Heirloom, depending on where your recipe comes from.\n\n                **Four Ways to Add Recipes:**\n\n                **1. Import from URL**\n                Perfect for recipes from cooking websites. Heirloom automatically extracts the title, ingredients, instructions, and even images.\n\n                **2. Scan Cookbook**\n                Take photos of cookbook pages and Heirloom uses OCR (Optical Character Recognition) to extract the recipe text.\n\n                **3. Manual Entry**\n                Type in recipes from scratch - ideal for family recipes, handwritten cards, or when you want complete control.\n\n                **4. Import from JSON**\n                Import previously exported recipes or recipes from other sources in JSON format.\n\n                **Quick Start:**\n                1. Tap the **+** button in the tab bar at the bottom\n                2. Choose your preferred import method\n                3. Follow the on-screen prompts\n                4. Review and edit as needed\n                5. Save your recipe\n\n                **After Adding:**\n                • Add a photo from your library or camera\n                • Personalize the card with backgrounds and stickers\n                • Add personal notes on the card back\n                • Mark it as a favorite\n\n                **Tips:**\n                • Start with a recipe from a website to see how automatic import works\n                • Don't worry about perfection - you can always edit later\n                • Photos make recipes easier to find and more appealing",
+      "keywords": [
+        "add",
+        "first",
+        "new",
+        "recipe",
+        "import",
+        "create",
+        "start"
+      ],
+      "relatedArticles": [
+        "importing-from-url",
+        "scanning-cookbooks",
+        "manual-entry"
+      ],
+      "icon": "plus.circle.fill"
+    },
+    {
+      "id": "importing-from-url",
+      "title": "Importing from URL",
+      "content": "Import recipes from cooking websites automatically with just a URL.\n\n                **Step-by-Step:**\n\n                1. **Find the Recipe Online**\n                   • Browse to your favorite recipe website\n                   • Find the recipe you want to save\n\n                2. **Copy the URL**\n                   • Tap the address bar in Safari\n                   • Tap \"Copy\" to copy the URL\n                   • Or use the Share button → Copy\n\n                3. **Open Heirloom**\n                   • Tap the **+** button in the tab bar\n                   • Select **\"Import from URL\"**\n\n                4. **Paste the URL**\n                   • The URL should paste automatically\n                   • If not, long press and select \"Paste\"\n                   • Tap **\"Import\"**\n\n                5. **Review the Import**\n                   • Heirloom extracts the recipe data\n                   • Check that ingredients and instructions look correct\n                   • The recipe photo is usually imported too\n\n                6. **Make Adjustments**\n                   • Edit any text that wasn't imported correctly\n                   • Add missing information\n                   • Adjust ingredient quantities or units if needed\n\n                7. **Save**\n                   • Tap **\"Save\"** to add the recipe to your collection\n\n                **Supported Websites:**\n                Heirloom works with most major recipe websites including:\n                • AllRecipes, Food Network, NYT Cooking\n                • Serious Eats, Bon Appétit, Epicurious\n                • Personal food blogs with recipe markup\n                • Any site using standard recipe schema\n\n                **Troubleshooting:**\n                • **Import fails:** Some sites block automated access - try copying the text manually\n                • **Missing ingredients:** Edit the recipe after import to add them\n                • **Wrong photo:** You can change the photo after import\n                • **Duplicate recipe:** Check if the URL is correct, or delete and reimport\n\n                **Tips:**\n                • Works best with full recipe URLs, not homepage links\n                • Safari's Reader mode can help find the recipe URL on cluttered pages\n                • You can import multiple recipes in a row - no need to wait",
+      "keywords": [
+        "url",
+        "import",
+        "website",
+        "online",
+        "link",
+        "web",
+        "automatic"
+      ],
+      "relatedArticles": [
+        "adding-first-recipe",
+        "import-failures"
+      ],
+      "icon": "link.circle.fill"
+    },
+    {
+      "id": "scanning-cookbooks",
+      "title": "Scanning Cookbooks",
+      "content": "Use your camera to scan recipes from cookbooks, magazines, or printed recipe cards.\n\n                **Step-by-Step:**\n\n                1. **Start Scanning**\n                   • Tap the **+** button in the tab bar\n                   • Select **\"Scan Cookbook\"**\n                   • Grant camera permission if prompted\n\n                2. **Position the Recipe**\n                   • Place cookbook on a flat, well-lit surface\n                   • Ensure the page is flat (use a book weight if needed)\n                   • Avoid shadows falling on the recipe\n\n                3. **Take Photos**\n                   • Frame the recipe in the viewfinder\n                   • Tap the capture button\n                   • Take multiple photos if the recipe spans pages\n                   • Tap **\"Continue\"** when done\n\n                4. **Wait for OCR Processing**\n                   • Heirloom uses OCR to extract text\n                   • This takes 5-15 seconds per page\n                   • A progress indicator shows the extraction status\n\n                5. **Review Extracted Text**\n                   • Check that ingredients were captured correctly\n                   • Review instructions for accuracy\n                   • Look for any OCR errors (common with handwriting)\n\n                6. **Edit as Needed**\n                   • Fix any text recognition errors\n                   • Correct quantities or measurements\n                   • Add missing information\n                   • Enter the recipe title if not detected\n\n                7. **Add a Photo** (Optional)\n                   • The scanned page isn't used as the recipe photo\n                   • Take a photo of the finished dish instead\n                   • Or add one from your library\n\n                8. **Save**\n                   • Tap **\"Save\"** to add the recipe\n\n                **Best Practices:**\n\n                **Lighting:**\n                • Use bright, even lighting\n                • Natural daylight works best\n                • Avoid direct flash (causes glare)\n\n                **Camera Positioning:**\n                • Hold camera parallel to page\n                • Keep page fully in frame\n                • Avoid tilting or angling\n\n                **Page Condition:**\n                • Flatten pages completely\n                • Clean off any stains or marks\n                • Use glass to hold pages flat\n\n                **What Works Well:**\n                • Printed cookbook text\n                • Magazine recipes\n                • Typed recipe cards\n                • Clear, sans-serif fonts\n\n                **What's Challenging:**\n                • Handwritten recipes (especially cursive)\n                • Very small text\n                • Decorative or script fonts\n                • Faded or stained pages\n\n                **Troubleshooting:**\n                • **Poor text recognition:** Retake photos with better lighting\n                • **Missing ingredients:** Add them manually after scanning\n                • **Jumbled text:** OCR may mix columns - edit to fix order\n                • **Multiple recipes on page:** Crop or scan separately\n\n                **Tips:**\n                • Scan multiple pages and they'll be combined into one recipe\n                • You can edit everything after scanning\n                • For handwritten family recipes, manual entry may be faster\n                • Save original cookbook photos to your device as a backup",
+      "keywords": [
+        "scan",
+        "camera",
+        "ocr",
+        "cookbook",
+        "photo",
+        "picture",
+        "book"
+      ],
+      "relatedArticles": [
+        "adding-first-recipe",
+        "manual-entry",
+        "import-failures"
+      ],
+      "icon": "doc.text.viewfinder"
+    },
+    {
+      "id": "manual-entry",
+      "title": "Manual Recipe Entry",
+      "content": "Enter recipes from scratch when you have handwritten cards, family recipes, or want complete control over formatting.\n\n                **Step-by-Step:**\n\n                1. **Start New Recipe**\n                   • Tap the **+** button in the tab bar\n                   • Select **\"New Recipe\"**\n\n                2. **Enter Basic Information**\n                   • **Title:** Give your recipe a name\n                   • **Source Type:** Choose Manual, Family, or Other\n                   • **Servings:** Enter portion size (e.g., \"6 servings\" or \"12 cookies\")\n                   • **Times:** Add prep time and cook time\n\n                3. **Add Ingredients**\n                   • Tap **\"Add Ingredient\"**\n                   • Type the full ingredient line (e.g., \"2 cups flour\")\n                   • Heirloom parses quantity, unit, and item automatically\n                   • Repeat for each ingredient\n                   • Drag to reorder ingredients\n\n                4. **Add Instructions**\n                   • Tap **\"Add Step\"**\n                   • Type the instruction text\n                   • Each step should be one clear action\n                   • Drag to reorder steps\n                   • Keep steps concise but complete\n\n                5. **Add Optional Details**\n                   • **Description:** Brief overview of the dish\n                   • **Notes:** Personal tips or variations\n                   • **Tags:** For searching and organizing\n                   • **URL:** If the recipe has an online source\n\n                6. **Add a Photo** (Optional but Recommended)\n                   • Tap **\"Add Photo\"**\n                   • Choose from library or take a new photo\n                   • Photos help you identify recipes quickly\n\n                7. **Save**\n                   • Tap **\"Save\"** to add the recipe to your collection\n\n                **Ingredient Entry Tips:**\n\n                **Format:** \"quantity unit item, preparation\"\n                • \"2 cups flour\"\n                • \"1 tablespoon butter, melted\"\n                • \"3 eggs, beaten\"\n                • \"Salt and pepper to taste\"\n\n                **Heirloom Parses:**\n                • Quantities (whole numbers, fractions, ranges)\n                • Units (cups, tablespoons, ounces, grams, etc.)\n                • Ingredient names\n                • Preparation notes (chopped, diced, minced)\n\n                **Categories:**\n                • Ingredients are auto-categorized by grocery aisle\n                • Used for shopping list organization\n                • You can adjust categories if needed\n\n                **Instruction Writing Tips:**\n\n                **Be Clear and Specific:**\n                ✅ \"Preheat oven to 350°F\"\n                ❌ \"Heat oven\"\n\n                **One Action Per Step:**\n                ✅ \"Mix flour and salt in a bowl\"\n                ✅ \"In a separate bowl, beat eggs\"\n                ❌ \"Mix dry ingredients while beating eggs\"\n\n                **Include Times and Temperatures:**\n                ✅ \"Bake for 25-30 minutes until golden brown\"\n                ❌ \"Bake until done\"\n\n                **Use Active Voice:**\n                ✅ \"Stir constantly until thickened\"\n                ❌ \"The mixture should be stirred\"\n\n                **Best Practices:**\n\n                **Start Simple:**\n                • Don't worry about perfection\n                • You can always edit later\n                • Focus on capturing the recipe first\n\n                **Use Consistent Units:**\n                • Stick to metric or imperial\n                • Heirloom can convert between units\n\n                **Add Photos Later:**\n                • Cook the recipe first\n                • Take photos of the finished dish\n                • Add them to the recipe afterward\n\n                **Include Personal Notes:**\n                • Family history or memories\n                • Serving suggestions\n                • Variations or substitutions\n\n                **Organize with Tags:**\n                • Cuisine type (Italian, Mexican, etc.)\n                • Meal type (breakfast, dessert, etc.)\n                • Dietary info (vegetarian, gluten-free, etc.)\n\n                **Common Questions:**\n\n                **Can I add recipes without photos?**\n                Yes! Photos are optional but recommended.\n\n                **How do I add ingredient notes?**\n                Add them after a comma: \"2 cups flour, sifted\"\n\n                **Can I use ranges?**\n                Yes: \"2-3 cloves garlic\" or \"1/4-1/2 teaspoon salt\"\n\n                **What if parsing gets it wrong?**\n                You can edit ingredients after they're parsed to correct any errors.\n\n                **Tips:**\n                • Keep your phone nearby when cooking to capture recipe details\n                • Voice dictation can speed up entry\n                • Break complex recipes into clear, numbered steps\n                • Add recipe variations as separate versions",
+      "keywords": [
+        "manual",
+        "entry",
+        "type",
+        "create",
+        "write",
+        "from scratch",
+        "new"
+      ],
+      "relatedArticles": [
+        "adding-first-recipe",
+        "ingredient-parsing"
+      ],
+      "icon": "square.and.pencil"
+    },
+    {
+      "id": "recipe-versions",
+      "title": "Recipe Versions & History",
+      "content": "Track how recipes evolve across generations with Heirloom's version system.\n\n                **What Are Recipe Versions?**\n\n                Recipe versions let you track changes to a recipe over time, perfect for:\n                • Family recipes passed down through generations\n                • Recipes you're perfecting and iterating on\n                • Seasonal variations of the same dish\n                • Adapted recipes with dietary modifications\n\n                **Creating Versions:**\n\n                **From an Existing Recipe:**\n                1. Open the recipe you want to create a version of\n                2. Tap the **•••** menu button\n                3. Select **\"Create Version\"**\n                4. Make your changes to the new version\n                5. Add a version name (e.g., \"Mom's Version\", \"Gluten-Free\")\n                6. Save\n\n                **Version Metadata:**\n                Each version tracks:\n                • Who created it (added by name)\n                • When it was created\n                • What changed from the original\n                • Lineage (parent recipe)\n\n                **Viewing Version History:**\n\n                **On the Recipe Card:**\n                • Flip the card to see the back\n                • The lineage section shows the recipe's history\n                • See who contributed each version\n\n                **In Recipe Details:**\n                • Tap **\"View Versions\"** to see all versions\n                • Compare versions side-by-side\n                • Switch between versions\n                • See what changed\n\n                **Active Version:**\n\n                **What It Means:**\n                • The \"active\" version is the one you cook from\n                • Only one version is active at a time\n                • All other versions are archived\n\n                **Switching Versions:**\n                1. View the recipe\n                2. Tap **\"View Versions\"**\n                3. Select a version\n                4. Tap **\"Make Active\"**\n                5. The new version becomes your cooking version\n\n                **Example Use Cases:**\n\n                **Generational Recipe:**\n                • Original: \"Grandma's Chocolate Cake (1950s)\"\n                • Version 2: \"Mom's Chocolate Cake (1980s)\" - reduced sugar\n                • Version 3: \"My Chocolate Cake (2024)\" - added espresso\n\n                **Dietary Adaptation:**\n                • Original: \"Classic Brownies\"\n                • Version 2: \"Gluten-Free Brownies\" - almond flour\n                • Version 3: \"Vegan Brownies\" - flax eggs\n\n                **Seasonal Variation:**\n                • Original: \"Summer Berry Pie\"\n                • Version 2: \"Fall Apple Pie\" - swapped fruit\n                • Version 3: \"Winter Cranberry Pie\" - added spices\n\n                **Perfecting a Recipe:**\n                • Version 1: \"First Try Bread\" - too dense\n                • Version 2: \"Second Try\" - added more yeast\n                • Version 3: \"Final Version\" - perfect rise\n\n                **Version Lineage:**\n\n                **Parent-Child Relationship:**\n                • Each version knows its parent recipe\n                • You can trace back to the original\n                • View the full family tree\n\n                **On the Card Back:**\n                • \"Based on [Parent Recipe]\"\n                • \"Adapted by [Your Name]\"\n                • \"Created on [Date]\"\n\n                **Version Notes:**\n                • Document what you changed\n                • Explain why you made modifications\n                • Leave notes for future generations\n\n                **Best Practices:**\n\n                **When to Create Versions:**\n                ✅ Making significant ingredient changes\n                ✅ Adapting for dietary needs\n                ✅ Passing down a family recipe\n                ✅ Trying experimental modifications\n\n                **When NOT to Create Versions:**\n                ❌ Small typo fixes (just edit)\n                ❌ Temporary scaling (use scale feature)\n                ❌ Minor quantity adjustments\n                ❌ Adding a forgotten ingredient\n\n                **Naming Versions:**\n                • Be descriptive: \"Gluten-Free Version\"\n                • Include contributor: \"Aunt Mary's Version\"\n                • Add date context: \"2024 Updated Recipe\"\n                • Note changes: \"Reduced Sugar Version\"\n\n                **Version Control Tips:**\n                • Keep the original version unchanged\n                • Document all changes in version notes\n                • Add your name so family knows who adapted it\n                • Include the year for historical context\n\n                **Sharing Versions:**\n                • When you share a recipe, you can choose which version\n                • Recipients get the version history\n                • Family members can contribute their own versions\n                • All versions sync via iCloud\n\n                **Common Questions:**\n\n                **Do all versions count as separate recipes?**\n                No - versions are linked and count as one recipe with variations.\n\n                **Can I delete a version?**\n                Yes, but you can't delete the original recipe without deleting all versions.\n\n                **Can I see what changed between versions?**\n                Yes - use the \"Compare Versions\" feature to see differences.\n\n                **Do versions affect my recipe count?**\n                No - linked versions count as one recipe for milestones and stats.\n\n                **Tips:**\n                • Start a version when you first modify a family recipe\n                • Use versions for dietary adaptations rather than duplicating\n                • Add photos to each version showing the final result\n                • Include stories or memories in version notes\n                • Share all versions when passing down recipes to family",
+      "keywords": [
+        "version",
+        "history",
+        "lineage",
+        "adaptation",
+        "variation",
+        "generation",
+        "family"
+      ],
+      "relatedArticles": [
+        "card-flip-guide",
+        "sharing-recipes"
+      ],
+      "icon": "clock.arrow.circlepath"
+    }
+  ]
+}

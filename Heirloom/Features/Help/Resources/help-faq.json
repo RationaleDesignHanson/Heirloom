@@ -1,0 +1,104 @@
+{
+  "items": [
+    {
+      "question": "How do I add my first recipe?",
+      "answer": "There are four ways to add recipes: 1) Import from a URL (paste a recipe website link), 2) Scan cookbook pages with your camera, 3) Manually type in a recipe, or 4) Import from a JSON file. Tap the '+' button to see all options.",
+      "section": "gettingStarted"
+    },
+    {
+      "question": "How do I sync my recipes across devices?",
+      "answer": "Recipes automatically sync via iCloud when you're signed in with the same Apple ID on all devices. Ensure iCloud Drive is enabled in Settings → [Your Name] → iCloud. Check sync status in Heirloom Settings → Network & Sync.",
+      "section": "gettingStarted"
+    },
+    {
+      "question": "Can I import recipes from any website?",
+      "answer": "Heirloom supports most major recipe websites including AllRecipes, Bon Appétit, Food Network, NYT Cooking, Serious Eats, and hundreds more. If a site doesn't work automatically, you can copy and paste the recipe text into manual entry.",
+      "section": "gettingStarted"
+    },
+    {
+      "question": "What happens if I scan a cookbook page with poor lighting?",
+      "answer": "For best OCR results, use bright, even lighting and hold your device steady. If the scan quality is poor, you can retake the photo or edit the extracted text before saving. The app will highlight low-confidence areas for review.",
+      "section": "gettingStarted"
+    },
+    {
+      "question": "How do I search for recipes?",
+      "answer": "Use the search bar at the top of the Recipes tab to search by recipe name, ingredients, or keywords. You can also use filters to narrow by source type (website, cookbook, manual), favorites, cooking status, and more.",
+      "section": "recipes"
+    },
+    {
+      "question": "What are recipe versions and how do I use them?",
+      "answer": "Recipe versions let you track how recipes evolve over time. When you edit a recipe, you can save it as a new version while keeping the original. Each version can have notes about what changed and why, creating a history of adaptations.",
+      "section": "recipes"
+    },
+    {
+      "question": "How do I track recipe lineage across generations?",
+      "answer": "Recipe lineage connects related versions to show how recipes are passed down and adapted through families. When creating a new version, the app automatically links it to the original, creating a family tree of recipes showing who adapted it and when.",
+      "section": "recipes"
+    },
+    {
+      "question": "Can I edit a recipe after importing it?",
+      "answer": "Yes! Tap any recipe to view it, then tap 'Edit' in the top right corner. You can modify the title, ingredients, instructions, add notes, change the source information, and customize the card design. All edits sync across your devices.",
+      "section": "recipes"
+    },
+    {
+      "question": "How do I mark recipes as favorites?",
+      "answer": "Tap the heart icon when viewing a recipe to mark it as a favorite. Favorites appear at the top of your recipe list and can be filtered in the Filters menu. This helps you quickly access your most-loved recipes.",
+      "section": "recipes"
+    },
+    {
+      "question": "How does ingredient aggregation work?",
+      "answer": "When adding multiple recipes to a shopping list, Heirloom automatically combines identical ingredients. For example, if three recipes need milk, the app adds up the quantities and shows one combined entry like '3 cups milk' instead of three separate items.",
+      "section": "shoppingLists"
+    },
+    {
+      "question": "Can I organize my shopping list by grocery store aisle?",
+      "answer": "Yes! Ingredients are automatically categorized into sections like Produce, Dairy, Meat, Bakery, Pantry, and more. You can customize these categories in Settings to match your preferred grocery store layout.",
+      "section": "shoppingLists"
+    },
+    {
+      "question": "How do I export my shopping list to Apple Reminders?",
+      "answer": "Tap 'Export to Reminders' at the bottom of your shopping list. This creates a new reminder list with each ingredient as a separate item. You can then access it on Apple Watch, ask Siri, or share with family members through shared reminder lists.",
+      "section": "shoppingLists"
+    },
+    {
+      "question": "Can I add non-recipe items to my shopping list?",
+      "answer": "Yes! Tap 'Add Custom Item' at the bottom of your shopping list to add household items, specialty ingredients, or anything else you need. Custom items will be categorized automatically based on common grocery patterns.",
+      "section": "shoppingLists"
+    },
+    {
+      "question": "How do I customize my recipe cards?",
+      "answer": "Tap 'Edit Card' when viewing a recipe to access customization options. You can choose backgrounds (colors, gradients, patterns, textures), add stickers, write annotations, and apply love marks. Each recipe card can have a unique design reflecting its personality.",
+      "section": "cardPersonalization"
+    },
+    {
+      "question": "What are love marks and how do they appear?",
+      "answer": "Love marks are authentic weathering effects like coffee stains, splatter marks, and worn edges that appear automatically as you cook a recipe more often. Cook 5+ times for small stains, 10+ for more marks, 20+ for a well-loved look, and 50+ times for a vintage appearance.",
+      "section": "cardPersonalization"
+    },
+    {
+      "question": "Can I add my own notes to recipe cards?",
+      "answer": "Yes! Use the Annotations feature to add handwritten-style notes anywhere on your recipe card. These are perfect for recording cooking memories, ingredient substitutions, timing notes, or family stories. Notes sync across devices and stay with the recipe.",
+      "section": "cardPersonalization"
+    },
+    {
+      "question": "How do I flip a recipe card to see the back?",
+      "answer": "Swipe left or right on a recipe card, or tap the flip button in the corner. The back of the card can hold additional notes, ingredient substitutions, cooking tips, or family history. Both sides are fully customizable.",
+      "section": "cardPersonalization"
+    },
+    {
+      "question": "How does smart recipe scaling work?",
+      "answer": "When you scale a recipe, Heirloom uses intelligent algorithms to adjust ingredients appropriately. Most ingredients scale linearly, but spices scale at 66%, leavening agents at 75%, and liquids at 90% to maintain proper flavor balance and cooking chemistry.",
+      "section": "advancedFeatures"
+    },
+    {
+      "question": "Why isn't my recipe syncing to my other devices?",
+      "answer": "Check these common issues: 1) Ensure iCloud Drive is enabled on all devices, 2) Verify you're signed in with the same Apple ID, 3) Check your internet connection, 4) Go to Settings → Network & Sync to see sync status and error details, 5) Try toggling iCloud sync off and back on.",
+      "section": "advancedFeatures"
+    },
+    {
+      "question": "What's the best way to share recipes with family?",
+      "answer": "You have multiple sharing options: 1) Share as a beautiful recipe card image (great for social media), 2) Export as PDF for printing, 3) Send as a Heirloom recipe file for other Heirloom users to import, 4) Share just the text via Messages or email. Choose the format that works best for your recipient.",
+      "section": "advancedFeatures"
+    }
+  ]
+}
