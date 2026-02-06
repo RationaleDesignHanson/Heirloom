@@ -12,6 +12,7 @@ import SwiftUI
 struct ProcessingJobCard: View {
     let job: AnyProcessingJob
     let onTap: () -> Void
+    var onDismiss: (() -> Void)?
 
     var body: some View {
         Button(action: onTap) {

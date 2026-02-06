@@ -80,9 +80,9 @@ struct CollectionDetailView: View {
 
     // Recipes in this collection
     var recipes: [Recipe] {
-        // Special handling for "All Recipes" collection - show all recipes
+        // Special handling for "All Recipes" collection - show user-added recipes only (exclude theme recipes)
         if collection.isAllRecipes {
-            return allRecipes
+            return allRecipes.filter { $0.sourceThemeId == nil }
         }
 
         // For theme collections, query by sourceThemeId to avoid accessing collections relationship

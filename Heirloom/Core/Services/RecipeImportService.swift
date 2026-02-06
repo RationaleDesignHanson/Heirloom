@@ -519,6 +519,8 @@ class RecipeImportService {
             var foundRecipeSection = false
 
             for paragraph in paragraphs {
+                // Get raw HTML to detect <br> tags
+                let html = try paragraph.html()
                 let text = try paragraph.text().trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !text.isEmpty else { continue }
 
@@ -527,13 +529,51 @@ class RecipeImportService {
                 if isBold && text.count < 60 {
                     let lowercased = text.lowercased()
                     if lowercased.contains(recipe.title.lowercased().prefix(10)) ||
-                       lowercased.contains("cookie") || lowercased.contains("yield") {
+                       lowercased.contains("cookie") || lowercased.contains("yield") ||
+                       lowercased.contains("dough") || lowercased.contains("crust") ||
+                       lowercased.contains("pie") {
                         foundRecipeSection = true
                         continue
                     }
                 }
 
-                // Once in recipe section, collect ingredients
+                // Check if this paragraph contains multiple ingredient lines (br-separated)
+                // This handles Smitten Kitchen's format where ingredients are one paragraph with <br> between lines
+                let hasBrTags = html.contains("<br>") || html.contains("<br/>") || html.contains("<br />")
+                let hasMeasurements = text.range(of: #"[\d½⅓⅔¼¾⅛⅜⅝⅞].*\s+(cup|tablespoon|teaspoon|tbsp|tsp|ounce|oz|gram|g|lb|pound)"#, options: [.regularExpression, .caseInsensitive]) != nil
+
+                if hasBrTags && hasMeasurements {
+                    // Split by <br> tags and process each line
+                    let lines = html
+                        .replacingOccurrences(of: "<br>", with: "\n")
+                        .replacingOccurrences(of: "<br/>", with: "\n")
+                        .replacingOccurrences(of: "<br />", with: "\n")
+                        .components(separatedBy: "\n")
+
+                    for line in lines {
+                        // Strip HTML tags from each line
+                        let cleanLine = line.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                        if !cleanLine.isEmpty && cleanLine.count > 3 && cleanLine.count < 200 {
+                            // Check if this line looks like an ingredient
+                            if cleanLine.range(of: #"^[\d½⅓⅔¼¾⅛⅜⅝⅞]"#, options: .regularExpression) != nil ||
+                               cleanLine.lowercased().contains("cup") ||
+                               cleanLine.lowercased().contains("tablespoon") ||
+                               cleanLine.lowercased().contains("teaspoon") ||
+                               cleanLine.lowercased().contains("ounce") ||
+                               cleanLine.lowercased().contains("gram") {
+                                recipe.ingredients.append(cleanLine)
+                            }
+                        }
+                    }
+
+                    if !recipe.ingredients.isEmpty {
+                        Log.debug("Found br-separated ingredients", category: .network, metadata: ["count": recipe.ingredients.count])
+                        break
+                    }
+                }
+
+                // Once in recipe section, collect ingredients from separate paragraphs
                 if foundRecipeSection {
                     if text.range(of: #"^[\d½⅓⅔¼¾⅛⅜⅝⅞]"#, options: .regularExpression) != nil {
                         recipe.ingredients.append(text)
@@ -543,33 +583,73 @@ class RecipeImportService {
         }
 
         // Now get instructions - they come AFTER the ingredients
-        // Look for numbered steps or paragraphs with cooking verbs
-        let paragraphs = try entryContent.select("p")
-        var instructionStarted = false
+        // Smitten Kitchen uses bold headers like "Gather your ingredients:", "Make your mix:"
+        // followed by prose paragraphs describing each step
 
-        for paragraph in paragraphs {
+        // First, look for bold-header style instructions (common in Smitten Kitchen)
+        let allParagraphs = try entryContent.select("p")
+        var boldHeaderInstructions: [(header: String, content: String)] = []
+
+        for paragraph in allParagraphs {
             let text = try paragraph.text().trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !text.isEmpty && text.count < 1500 else { continue }
+            guard !text.isEmpty && text.count > 20 else { continue }
 
-            // Skip very short paragraphs
-            guard text.count > 20 else { continue }
+            // Check for bold header at start of paragraph
+            if let boldElement = try? paragraph.select("strong, b").first() {
+                let boldText = try boldElement.text().trimmingCharacters(in: .whitespacesAndNewlines)
+                let lowercaseBold = boldText.lowercased()
 
-            // Check if this looks like an instruction start
-            let lowercased = text.lowercased()
+                // Check if this is a step header (often ends with ":" and contains action word)
+                let isStepHeader = (boldText.hasSuffix(":") || boldText.hasSuffix(".")) &&
+                    (lowercaseBold.contains("gather") || lowercaseBold.contains("make") ||
+                     lowercaseBold.contains("roll") || lowercaseBold.contains("glue") ||
+                     lowercaseBold.contains("pack") || lowercaseBold.contains("chill") ||
+                     lowercaseBold.contains("store") || lowercaseBold.contains("mix") ||
+                     lowercaseBold.contains("bake") || lowercaseBold.contains("prep") ||
+                     lowercaseBold.contains("combine") || lowercaseBold.contains("fold") ||
+                     lowercaseBold.contains("step") || lowercaseBold.contains("assemble") ||
+                     lowercaseBold.contains("finish") || lowercaseBold.contains("serve"))
 
-            // Strong indicators of actual cooking instructions
-            let isOvenInstruction = lowercased.contains("heat oven") || lowercased.contains("preheat")
-            let hasTemperature = lowercased.range(of: #"\d{3}\s*degree"#, options: .regularExpression) != nil
-            let hasBakingTime = lowercased.range(of: #"(bake|cook)\s+(for\s+)?\d+"#, options: .regularExpression) != nil
-            let startsWithCookingVerb = lowercased.hasPrefix("heat") || lowercased.hasPrefix("bake") ||
-                                        lowercased.hasPrefix("mix") || lowercased.hasPrefix("combine") ||
-                                        lowercased.hasPrefix("place") || lowercased.hasPrefix("add") ||
-                                        lowercased.hasPrefix("stir") || lowercased.hasPrefix("pour") ||
-                                        lowercased.hasPrefix("line") || lowercased.hasPrefix("in a") ||
-                                        lowercased.hasPrefix("transfer") || lowercased.hasPrefix("scoop") ||
-                                        lowercased.hasPrefix("roll") || lowercased.hasPrefix("drop") ||
-                                        lowercased.hasPrefix("let") || lowercased.hasPrefix("remove") ||
-                                        lowercased.hasPrefix("both methods") || lowercased.hasPrefix("to make")
+                if isStepHeader {
+                    boldHeaderInstructions.append((header: boldText, content: text))
+                }
+            }
+        }
+
+        // If we found bold-header instructions, use them
+        if boldHeaderInstructions.count >= 2 {
+            recipe.instructions = boldHeaderInstructions.map { $0.content }
+            Log.debug("Found bold-header style instructions", category: .network, metadata: ["count": recipe.instructions.count])
+        }
+
+        // Fallback to paragraph-scanning if no bold-header instructions found
+        if recipe.instructions.isEmpty {
+            let paragraphs = try entryContent.select("p")
+            var instructionStarted = false
+
+            for paragraph in paragraphs {
+                let text = try paragraph.text().trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !text.isEmpty && text.count < 1500 else { continue }
+
+                // Skip very short paragraphs
+                guard text.count > 20 else { continue }
+
+                // Check if this looks like an instruction start
+                let lowercased = text.lowercased()
+
+                // Strong indicators of actual cooking instructions
+                let isOvenInstruction = lowercased.contains("heat oven") || lowercased.contains("preheat")
+                let hasTemperature = lowercased.range(of: #"\d{3}\s*degree"#, options: .regularExpression) != nil
+                let hasBakingTime = lowercased.range(of: #"(bake|cook)\s+(for\s+)?\d+"#, options: .regularExpression) != nil
+                let startsWithCookingVerb = lowercased.hasPrefix("heat") || lowercased.hasPrefix("bake") ||
+                                            lowercased.hasPrefix("mix") || lowercased.hasPrefix("combine") ||
+                                            lowercased.hasPrefix("place") || lowercased.hasPrefix("add") ||
+                                            lowercased.hasPrefix("stir") || lowercased.hasPrefix("pour") ||
+                                            lowercased.hasPrefix("line") || lowercased.hasPrefix("in a") ||
+                                            lowercased.hasPrefix("transfer") || lowercased.hasPrefix("scoop") ||
+                                            lowercased.hasPrefix("roll") || lowercased.hasPrefix("drop") ||
+                                            lowercased.hasPrefix("let") || lowercased.hasPrefix("remove") ||
+                                            lowercased.hasPrefix("both methods") || lowercased.hasPrefix("to make")
 
             // Skip if it's PRIMARILY personal narrative (not mixed with cooking instructions)
             // Only skip if it has narrative markers AND lacks cooking content
@@ -624,6 +704,7 @@ class RecipeImportService {
                     // Continue collecting if we're in instruction mode and it doesn't look like footer
                     recipe.instructions.append(text)
                 }
+            }
             }
         }
 

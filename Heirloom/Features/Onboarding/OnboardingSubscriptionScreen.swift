@@ -86,6 +86,7 @@ struct OnboardingSubscriptionScreen: View {
                             FreeFeatureRow(icon: "sparkles", label: "Generate with AI")
                             FreeFeatureRow(icon: "folder", label: "Organize collections")
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)
                         .background(HeirloomColors.familyGreen.opacity(0.1))
                         .cornerRadius(12)
@@ -113,6 +114,7 @@ struct OnboardingSubscriptionScreen: View {
                                 .foregroundColor(HeirloomColors.secondaryText)
                                 .padding(.top, 4)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)
                         .background(HeirloomColors.tomato.opacity(0.08))
                         .cornerRadius(12)

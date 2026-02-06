@@ -29,6 +29,25 @@ struct UserSearchResult: Codable, Identifiable {
     /// Whether this is a demo/seed user (from Algolia isDemoSeed field)
     let isDemoUser: Bool?
 
+    // MARK: - Initializer
+
+    /// Memberwise initializer with default for isDemoUser
+    init(
+        id: String,
+        displayName: String,
+        email: String? = nil,
+        photoURL: String? = nil,
+        bio: String? = nil,
+        isDemoUser: Bool? = nil
+    ) {
+        self.id = id
+        self.displayName = displayName
+        self.email = email
+        self.photoURL = photoURL
+        self.bio = bio
+        self.isDemoUser = isDemoUser
+    }
+
     // MARK: - CodingKeys
 
     enum CodingKeys: String, CodingKey {

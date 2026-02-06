@@ -222,8 +222,8 @@ const GRANDMAZING_RECIPES: SeedRecipe[] = [
     publishedDaysAgo: 5,
   },
   {
-    id: 'demo_grandmazing_chocolate_chip_cookies',
-    sourceRecipeId: 'seed-uuid-004',
+    id: '5E13B837-1A80-4D22-AF8A-C474A6EA5C35',
+    sourceRecipeId: '5E13B837-1A80-4D22-AF8A-C474A6EA5C35',
     creatorId: 'demo_grandmazing',
     creatorName: 'Grandmazing',
     creatorProfileSlug: 'grandmazing',
@@ -406,8 +406,8 @@ const GRANDMAZING_RECIPES: SeedRecipe[] = [
 
 const PHILLIP_FRY_RECIPES: SeedRecipe[] = [
   {
-    id: 'demo_phillipfry_one_pot_pasta',
-    sourceRecipeId: 'seed-uuid-008',
+    id: '7EE0A981-0DD2-4105-AA26-AB941C23D688',
+    sourceRecipeId: '7EE0A981-0DD2-4105-AA26-AB941C23D688',
     creatorId: 'demo_phillipfry',
     creatorName: 'Phillip Fry',
     creatorProfileSlug: 'phillip-fry',
@@ -679,8 +679,8 @@ const CHEF_MARIA_RECIPES: SeedRecipe[] = [
     publishedDaysAgo: 10,
   },
   {
-    id: 'demo_chef_maria_garlic_shrimp',
-    sourceRecipeId: 'seed-uuid-014',
+    id: '5D5A16D4-4FC2-483B-9737-7D0451F3C236',
+    sourceRecipeId: '5D5A16D4-4FC2-483B-9737-7D0451F3C236',
     creatorId: 'demo_chef_maria',
     creatorName: 'Maria Santos',
     creatorProfileSlug: 'maria-santos',
@@ -909,8 +909,8 @@ const CHEF_MARIA_RECIPES: SeedRecipe[] = [
 
 const FITFOODIE_RECIPES: SeedRecipe[] = [
   {
-    id: 'demo_fitfoodie_protein_bowl',
-    sourceRecipeId: 'seed-uuid-019',
+    id: 'F3890DC5-F51A-455A-8BF2-EB4BB089C5A9',
+    sourceRecipeId: 'F3890DC5-F51A-455A-8BF2-EB4BB089C5A9',
     creatorId: 'demo_fitfoodie',
     creatorName: 'Alex Chen',
     creatorProfileSlug: 'alex-chen',
@@ -1256,8 +1256,8 @@ const BAKINGBELLE_RECIPES: SeedRecipe[] = [
     publishedDaysAgo: 14,
   },
   {
-    id: 'demo_bakingbelle_chocolate_lava_cakes',
-    sourceRecipeId: 'seed-uuid-027',
+    id: 'FCEB840F-6ACB-49F3-A7F0-E1DA3DE286FF',
+    sourceRecipeId: 'FCEB840F-6ACB-49F3-A7F0-E1DA3DE286FF',
     creatorId: 'demo_bakingbelle',
     creatorName: 'Belle Thompson',
     creatorProfileSlug: 'belle-thompson',
@@ -1482,8 +1482,8 @@ const GRILLMASTER_RECIPES: SeedRecipe[] = [
     publishedDaysAgo: 7,
   },
   {
-    id: 'demo_grillmaster_smash_burgers',
-    sourceRecipeId: 'seed-uuid-032',
+    id: '1DE8EC4C-7629-466D-B39B-87D97B48EC9F',
+    sourceRecipeId: '1DE8EC4C-7629-466D-B39B-87D97B48EC9F',
     creatorId: 'demo_grillmaster',
     creatorName: 'Marcus Johnson',
     creatorProfileSlug: 'marcus-johnson',

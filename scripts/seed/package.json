@@ -6,21 +6,29 @@
     "seed:all": "npx ts-node src/orchestrate.ts all",
     "seed:themes": "npx ts-node src/orchestrate.ts themes",
     "seed:users": "npx ts-node src/orchestrate.ts users",
+    "seed:recipes": "npx ts-node src/orchestrate.ts public",
     "seed:public": "npx ts-node src/orchestrate.ts public",
     "seed:public:no-images": "npx ts-node src/orchestrate.ts public --skip-images",
+    "seed:connections": "npx ts-node src/orchestrate.ts connections",
     "seed:algolia": "npx ts-node src/orchestrate.ts algolia",
+    "seed:screenshot": "npx ts-node src/screenshot-demo/seed.ts seed",
+    "cleanup:screenshot": "npx ts-node src/screenshot-demo/seed.ts cleanup",
     "verify": "npx ts-node src/orchestrate.ts verify",
     "cleanup:all": "npx ts-node src/orchestrate.ts cleanup",
-    "cleanup:public": "npx ts-node src/cleanup.ts"
+    "cleanup:social": "npx ts-node src/orchestrate.ts cleanup:social",
+    "cleanup:public": "npx ts-node src/cleanup.ts",
+    "cleanup:connections": "npx ts-node src/connections/seed.ts cleanup"
   },
   "dependencies": {
-    "firebase-admin": "^13.0.0",
+    "@google-cloud/secret-manager": "^6.1.1",
     "dotenv": "^16.4.0",
-    "replicate": "^0.29.0"
+    "firebase-admin": "^13.0.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0",
+    "@types/uuid": "^9.0.0",
     "ts-node": "^10.9.0",
-    "@types/node": "^20.10.0"
+    "typescript": "^5.3.0"
   }
 }

@@ -30,6 +30,9 @@ struct UnifiedVideoImportView: View {
     @State private var analyzedMode: String = ""
     @State private var currentPendingImportID: UUID?  // For Share Extension cleanup
 
+    // ASMR dish name hint (helps AI understand the recipe)
+    @State private var dishNameHint: String = ""
+
     // Initialization state
     @State private var isProcessorReady = false
 
@@ -231,6 +234,37 @@ struct UnifiedVideoImportView: View {
             }
             .padding(.horizontal)
 
+            // ASMR mode: Show dish name hint field and foreground warning
+            if mode == "ASMR" {
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("What dish is this? (optional)", systemImage: "lightbulb")
+                            .font(.subheadline.bold())
+                            .foregroundColor(.primary)
+
+                        TextField("e.g., Chocolate chip cookies, Beef stir fry", text: $dishNameHint, axis: .vertical)
+                            .textFieldStyle(.roundedBorder)
+                            .lineLimit(2...3)
+
+                        Text("Providing the dish name helps our AI better understand and extract the recipe from visual content.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(.horizontal)
+
+                // Foreground warning for ASMR processing
+                HStack(spacing: 8) {
+                    Image(systemName: "iphone.circle")
+                        .foregroundColor(.orange)
+                    Text("Keep the app open during processing. Switching apps may interrupt the AI analysis.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 4)
+            }
+
             // Import button
             Button {
                 proceedWithImport()
@@ -250,6 +284,7 @@ struct UnifiedVideoImportView: View {
                 importState = .selecting
                 selectedItem = nil
                 videoURL = nil
+                dishNameHint = ""  // Clear hint on cancel
             } label: {
                 Text("Cancel")
             }
@@ -855,7 +890,8 @@ struct UnifiedVideoImportView: View {
                     userCaption: nil,
                     videoDuration: nil,
                     sourceAttribution: attribution,
-                    context: modelContext
+                    context: modelContext,
+                    dishNameHint: analyzedMode == "ASMR" && !dishNameHint.isEmpty ? dishNameHint : nil
                 )
 
                 // Get queue position for user feedback

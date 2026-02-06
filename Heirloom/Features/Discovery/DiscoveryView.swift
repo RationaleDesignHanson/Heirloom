@@ -799,9 +799,18 @@ private struct PublicRecipeCard: View {
                         }
 
                         // Time metadata
-                        if let prepTime = recipe.prepTime, let cookTime = recipe.cookTime {
+                        if let totalTimeText = recipe.totalTime, !totalTimeText.isEmpty {
                             HStack(spacing: HeirloomSpacing.xs) {
-                                Text("⏱️ \(prepTime + cookTime)m")
+                                Text("⏱️ \(totalTimeText)")
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundStyle(HeirloomColors.secondaryText)
+                            }
+                        } else if let prepTime = recipe.prepTime,
+                                  let cookTime = recipe.cookTime,
+                                  let prepMinutes = Int(prepTime),
+                                  let cookMinutes = Int(cookTime) {
+                            HStack(spacing: HeirloomSpacing.xs) {
+                                Text("⏱️ \(prepMinutes + cookMinutes)m")
                                     .font(HeirloomFonts.caption1)
                                     .foregroundStyle(HeirloomColors.secondaryText)
                             }

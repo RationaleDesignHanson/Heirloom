@@ -418,6 +418,15 @@ final class RecipeCollection {
                     "error": error.localizedDescription
                 ])
             }
+        } else if existingGeneratedCollections.count == 1 {
+            // Single existing collection - ensure preset background is set
+            // This handles upgrades from before preset was added
+            let existingCollection = existingGeneratedCollections[0]
+            if existingCollection.customBackgroundImagePath == nil && UIImage(named: "generated-recipes-bg") != nil {
+                existingCollection.customBackgroundImagePath = "preset-generated-recipes-bg"
+                existingCollection.useCustomBackground = true
+                Log.info("Updated Generated Recipes collection with preset background", category: .collections)
+            }
         }
 
         // Check if Favorites already exists (hidden system collections)

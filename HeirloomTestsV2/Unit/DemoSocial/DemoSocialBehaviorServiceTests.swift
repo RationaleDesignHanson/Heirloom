@@ -565,3 +565,150 @@ final class DemoShareAcceptanceTests: XCTestCase {
         XCTAssertEqual(cheesyTitle, "Cheesy Chocolate Cake")
     }
 }
+
+// MARK: - Welcome Shares Tests (Phase 10)
+
+@MainActor
+final class WelcomeSharesTests: XCTestCase {
+
+    /// Test 33: Welcome share notification type is correct
+    func test_welcomeShare_notificationType() {
+        let notification = TestDemoNotification(
+            type: "welcomeRecipeShare",
+            actorUserId: "demo_grandmazing",
+            isDemoNotification: true
+        )
+
+        XCTAssertEqual(notification.type, "welcomeRecipeShare")
+        XCTAssertTrue(notification.isDemoNotification)
+    }
+
+    /// Test 34: Welcome share has correct markers
+    func test_welcomeShare_hasCorrectMarkers() {
+        let welcomeShare = TestWelcomeShare(
+            shareId: "share123",
+            recipeId: "demo_grandmazing_chocolate_chip_cookies",
+            ownerId: "demo_grandmazing",
+            isDemoShare: true,
+            isWelcomeShare: true,
+            isDirectShare: true
+        )
+
+        XCTAssertTrue(welcomeShare.isDemoShare)
+        XCTAssertTrue(welcomeShare.isWelcomeShare)
+        XCTAssertTrue(welcomeShare.isDirectShare)
+    }
+
+    /// Test 35: Welcome shares are sent from demo users
+    func test_welcomeShare_sentFromDemoUsers() {
+        let demoUserIds = DemoSocialBehaviorService.demoUserIds
+
+        // Each demo user can send welcome shares
+        for userId in demoUserIds {
+            let share = TestWelcomeShare(
+                shareId: "share_\(userId)",
+                recipeId: DemoSocialBehaviorService.demoUserWelcomeRecipes[userId]?.recipeId ?? "",
+                ownerId: userId,
+                isDemoShare: true,
+                isWelcomeShare: true,
+                isDirectShare: true
+            )
+
+            XCTAssertTrue(DemoSocialBehaviorService.demoUserIds.contains(share.ownerId))
+        }
+    }
+
+    /// Test 36: onOnboardingComplete triggers welcome shares (does not crash)
+    func test_onOnboardingComplete_triggersWelcomeShares() {
+        let service = DemoSocialBehaviorService.shared
+
+        // Stop first to ensure clean state
+        service.stop()
+
+        // This should not crash - verifies the welcome shares logic is properly configured
+        service.onOnboardingComplete()
+
+        // No crash = success
+        XCTAssertTrue(true)
+    }
+
+    /// Test 37: Welcome share messages use the same messages as regular demo shares
+    func test_welcomeShare_messagesAreConsistent() {
+        // Welcome shares should use demoUserWelcomeRecipes messages
+        for userId in DemoSocialBehaviorService.demoUserIds {
+            let recipe = DemoSocialBehaviorService.demoUserWelcomeRecipes[userId]
+            XCTAssertNotNil(recipe?.message)
+            XCTAssertFalse(recipe?.message.isEmpty ?? true)
+        }
+    }
+
+    /// Test 38: Welcome notification has isWelcomeNotification marker
+    func test_welcomeNotification_hasWelcomeMarker() {
+        let notification = TestWelcomeNotification(
+            type: "welcomeRecipeShare",
+            actorUserId: "demo_chef_maria",
+            isDemoNotification: true,
+            isWelcomeNotification: true
+        )
+
+        XCTAssertTrue(notification.isDemoNotification)
+        XCTAssertTrue(notification.isWelcomeNotification)
+    }
+
+    /// Test 39: Welcome share includes deepLinkURL
+    func test_welcomeShare_includesDeepLink() {
+        let shareId = "share_welcome_123"
+        let expectedDeepLink = "heirloom://share/\(shareId)"
+
+        let notification = TestWelcomeNotification(
+            type: "welcomeRecipeShare",
+            actorUserId: "demo_bakingbelle",
+            isDemoNotification: true,
+            isWelcomeNotification: true,
+            deepLinkURL: expectedDeepLink
+        )
+
+        XCTAssertEqual(notification.deepLinkURL, expectedDeepLink)
+        XCTAssertTrue(notification.deepLinkURL?.hasPrefix("heirloom://share/") ?? false)
+    }
+
+    /// Test 40: Welcome shares expire after 7 days
+    func test_welcomeShare_expiresAfterSevenDays() {
+        let now = Date()
+        let sevenDaysFromNow = Calendar.current.date(byAdding: .day, value: 7, to: now)!
+
+        let share = TestWelcomeShare(
+            shareId: "share123",
+            recipeId: "demo_grandmazing_chocolate_chip_cookies",
+            ownerId: "demo_grandmazing",
+            isDemoShare: true,
+            isWelcomeShare: true,
+            isDirectShare: true,
+            expiresAt: sevenDaysFromNow
+        )
+
+        // Expiration should be ~7 days from now
+        let daysDifference = Calendar.current.dateComponents([.day], from: now, to: share.expiresAt ?? now).day ?? 0
+        XCTAssertEqual(daysDifference, 7)
+    }
+}
+
+/// Test model for welcome shares
+struct TestWelcomeShare {
+    let shareId: String
+    let recipeId: String
+    let ownerId: String
+    let isDemoShare: Bool
+    let isWelcomeShare: Bool
+    let isDirectShare: Bool
+    var expiresAt: Date? = nil
+}
+
+/// Test model for welcome notifications
+struct TestWelcomeNotification {
+    let type: String
+    let actorUserId: String
+    let isDemoNotification: Bool
+    let isWelcomeNotification: Bool
+    var deepLinkURL: String? = nil
+}

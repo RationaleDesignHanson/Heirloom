@@ -51,6 +51,9 @@ struct RecipeDetailView: View {
     // Coach mark for first-time recipe view
     @State private var showRecipeCoachMark = false
 
+    // Card flip nudge (first-time hint animation)
+    @State private var shouldShowFlipNudge = false
+
     // AI Image generation
     private var recipeImageGenerator: any RecipeImageGeneratorProtocol {
         ServiceContainer.shared.resolve((any RecipeImageGeneratorProtocol).self)
@@ -1005,6 +1008,7 @@ extension RecipeDetailView {
     private var recipeImage: some View {
         FlipCard(
             isFlipped: $isCardFlipped,
+            showNudgeOnAppear: shouldShowFlipNudge,
             front: {
                 ZStack {
                     AsyncRecipeImage(
@@ -1116,6 +1120,16 @@ extension RecipeDetailView {
             // if !FlipAffordanceBadge.hasSeenFlip {
             //     FlipAffordanceBadge.markAsSeen()
             // }
+        }
+        .onAppear {
+            // Check if user should see flip nudge (first-time hint)
+            if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenCardFlipNudge) {
+                shouldShowFlipNudge = true
+                // Mark as seen after animation plays
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    UserDefaults.standard.set(true, forKey: UserDefaultsKeys.hasSeenCardFlipNudge)
+                }
+            }
         }
     }
 

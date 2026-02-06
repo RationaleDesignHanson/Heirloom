@@ -390,6 +390,9 @@ struct OnboardingContainerView: View {
         // Navigate to Collections tab (now index 0 after removing Recipes tab)
         selectedTab = 0
 
+        // Trigger demo social behaviors (welcome shares, proactive requests)
+        DemoSocialBehaviorService.shared.onOnboardingComplete()
+
         // Notify parent that onboarding is complete
         onComplete()
     }

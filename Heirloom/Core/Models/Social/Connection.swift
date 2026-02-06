@@ -189,6 +189,41 @@ struct Connection: Codable, Identifiable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
+
+    // MARK: - Custom Decoder
+
+    /// Custom decoder that provides defaults for missing fields
+    /// This handles backward compatibility with older connection documents
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Required fields
+        id = try container.decode(String.self, forKey: .id)
+        userId = try container.decode(String.self, forKey: .userId)
+        connectedUserId = try container.decode(String.self, forKey: .connectedUserId)
+        connectedUserDisplayName = try container.decode(String.self, forKey: .connectedUserDisplayName)
+        status = try container.decode(ConnectionStatus.self, forKey: .status)
+        initiatedBy = try container.decode(String.self, forKey: .initiatedBy)
+        requestedAt = try container.decode(Date.self, forKey: .requestedAt)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+
+        // Optional fields
+        connectedUserPhotoURL = try container.decodeIfPresent(String.self, forKey: .connectedUserPhotoURL)
+        connectedUserHandle = try container.decodeIfPresent(String.self, forKey: .connectedUserHandle)
+        acceptedAt = try container.decodeIfPresent(Date.self, forKey: .acceptedAt)
+        rejectedAt = try container.decodeIfPresent(Date.self, forKey: .rejectedAt)
+        sourceKitchenTableId = try container.decodeIfPresent(String.self, forKey: .sourceKitchenTableId)
+        lastRecipeSharedAt = try container.decodeIfPresent(Date.self, forKey: .lastRecipeSharedAt)
+        lastInteractionAt = try container.decodeIfPresent(Date.self, forKey: .lastInteractionAt)
+        privateNote = try container.decodeIfPresent(String.self, forKey: .privateNote)
+
+        // Fields with defaults (for backward compatibility)
+        isKitchenTableConnection = try container.decodeIfPresent(Bool.self, forKey: .isKitchenTableConnection) ?? (sourceKitchenTableId != nil)
+        recipesSharedCount = try container.decodeIfPresent(Int.self, forKey: .recipesSharedCount) ?? 0
+        recipesReceivedCount = try container.decodeIfPresent(Int.self, forKey: .recipesReceivedCount) ?? 0
+        isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+    }
 }
 
 // MARK: - Connection Status

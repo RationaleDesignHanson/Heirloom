@@ -12,6 +12,7 @@
 //
 
 import Foundation
+import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
 import SwiftData
@@ -30,16 +31,19 @@ final class DemoSocialBehaviorService: ObservableObject {
     private let autoAcceptDelayRange: ClosedRange<Double> = 5...30
 
     /// Delay before demo user sends proactive request after onboarding (seconds)
-    private let proactiveRequestDelay: Double = 5 * 60  // 5 minutes
+    private let proactiveRequestDelay: Double = 0  // Immediate - ready in Table tab after onboarding
 
     /// Delay before demo user shares recipe after connection established (seconds)
-    private let recipeShareDelayRange: ClosedRange<Double> = 30 * 60...120 * 60  // 30min - 2hr
+    private let recipeShareDelayRange: ClosedRange<Double> = 5...15  // 5-15 seconds after acceptance
+
+    /// Delay before sending welcome shares after onboarding (seconds)
+    private let welcomeShareDelay: Double = 30  // 30 seconds after onboarding
 
     // MARK: - Dependencies
 
     private let gate: DemoSocialGate
-    private let db: Firestore
-    private let auth: Auth
+    private let db: Firestore?
+    private let auth: Auth?
 
     // MARK: - State
 
@@ -92,44 +96,106 @@ final class DemoSocialBehaviorService: ObservableObject {
         ),
     ]
 
-    /// Recommended recipes to share per demo user (recipe IDs from seed data)
-    static let demoUserWelcomeRecipes: [String: (recipeId: String, message: String)] = [
-        "demo_grandmazing": (
-            recipeId: "demo_grandmazing_chocolate_chip_cookies",
-            message: "Welcome to Heirloom! Here's my most popular recipe to get you started. These cookies are a family favorite!"
+    /// Demo recipe details for sharing (includes preview metadata)
+    struct DemoRecipeDetails {
+        let recipeId: String
+        let title: String
+        let message: String
+        let servings: String
+        let prepTime: String
+        let cookTime: String
+        let ingredientCount: Int
+        let instructionCount: Int
+        let imageURL: String
+    }
+
+    /// Recommended recipes to share per demo user (UUIDs from seed data)
+    static let demoUserWelcomeRecipes: [String: DemoRecipeDetails] = [
+        "demo_grandmazing": DemoRecipeDetails(
+            recipeId: "5E13B837-1A80-4D22-AF8A-C474A6EA5C35",
+            title: "Brown Butter Chocolate Chip Cookies",
+            message: "Welcome to Heirloom! Here's my most popular recipe to get you started. These cookies are a family favorite!",
+            servings: "24 cookies",
+            prepTime: "20 min",
+            cookTime: "12 min",
+            ingredientCount: 11,
+            instructionCount: 8,
+            imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_grandmazing_chocolate_chip_cookies-image.webp"
         ),
-        "demo_phillipfry": (
-            recipeId: "demo_phillipfry_one_pot_pasta",
-            message: "Hey! Thought you might like this one - it's my go-to weeknight dinner. Super easy and delicious!"
+        "demo_phillipfry": DemoRecipeDetails(
+            recipeId: "7EE0A981-0DD2-4105-AA26-AB941C23D688",
+            title: "Creamy One-Pot Pasta",
+            message: "Hey! Thought you might like this one - it's my go-to weeknight dinner. Super easy and delicious!",
+            servings: "4 servings",
+            prepTime: "10 min",
+            cookTime: "20 min",
+            ingredientCount: 9,
+            instructionCount: 6,
+            imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_phillipfry_one_pot_pasta-image.webp"
         ),
-        "demo_chef_maria": (
-            recipeId: "demo_chef_maria_garlic_shrimp",
-            message: "Bienvenido! I'd love to share this classic Latin dish with you. It's always a crowd-pleaser!"
+        "demo_chef_maria": DemoRecipeDetails(
+            recipeId: "5D5A16D4-4FC2-483B-9737-7D0451F3C236",
+            title: "Camarones al Ajillo (Garlic Shrimp)",
+            message: "Bienvenido! I'd love to share this classic Latin dish with you. It's always a crowd-pleaser!",
+            servings: "4 servings",
+            prepTime: "15 min",
+            cookTime: "10 min",
+            ingredientCount: 10,
+            instructionCount: 7,
+            imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_chef_maria_garlic_shrimp-image.webp"
         ),
-        "demo_fitfoodie": (
-            recipeId: "demo_fitfoodie_protein_bowl",
-            message: "Welcome! This is my favorite post-workout meal. 45g of protein and it actually tastes amazing!"
+        "demo_fitfoodie": DemoRecipeDetails(
+            recipeId: "F3890DC5-F51A-455A-8BF2-EB4BB089C5A9",
+            title: "Ultimate Protein Power Bowl",
+            message: "Welcome! This is my favorite post-workout meal. 45g of protein and it actually tastes amazing!",
+            servings: "2 servings",
+            prepTime: "15 min",
+            cookTime: "25 min",
+            ingredientCount: 12,
+            instructionCount: 8,
+            imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_fitfoodie_protein_bowl-image.webp"
         ),
-        "demo_bakingbelle": (
-            recipeId: "demo_bakingbelle_chocolate_lava_cakes",
-            message: "Hi there! I wanted to share my favorite quick dessert. It looks fancy but it's actually super easy!"
+        "demo_bakingbelle": DemoRecipeDetails(
+            recipeId: "FCEB840F-6ACB-49F3-A7F0-E1DA3DE286FF",
+            title: "Molten Chocolate Lava Cakes",
+            message: "Hi there! I wanted to share my favorite quick dessert. It looks fancy but it's actually super easy!",
+            servings: "4 cakes",
+            prepTime: "15 min",
+            cookTime: "14 min",
+            ingredientCount: 7,
+            instructionCount: 9,
+            imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_bakingbelle_chocolate_lava_cakes-image.webp"
         ),
-        "demo_grillmaster": (
-            recipeId: "demo_grillmaster_smash_burgers",
-            message: "Welcome! These burgers are life-changing. Those crispy edges are what it's all about!"
+        "demo_grillmaster": DemoRecipeDetails(
+            recipeId: "1DE8EC4C-7629-466D-B39B-87D97B48EC9F",
+            title: "Ultimate Smash Burgers",
+            message: "Welcome! These burgers are life-changing. Those crispy edges are what it's all about!",
+            servings: "4 burgers",
+            prepTime: "10 min",
+            cookTime: "8 min",
+            ingredientCount: 8,
+            instructionCount: 7,
+            imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_grillmaster_smash_burgers-image.webp"
         ),
     ]
 
     // MARK: - Initialization
 
     init(
-        gate: DemoSocialGate = .shared,
-        db: Firestore = Firestore.firestore(),
-        auth: Auth = Auth.auth()
+        gate: DemoSocialGate? = nil,
+        db: Firestore? = nil,
+        auth: Auth? = nil
     ) {
-        self.gate = gate
-        self.db = db
-        self.auth = auth
+        // Create gate inside init body (MainActor context) if not provided
+        self.gate = gate ?? .shared
+        // Only initialize Firebase if configured (allows tests to run without Firebase)
+        if FirebaseApp.app() != nil {
+            self.db = db ?? Firestore.firestore()
+            self.auth = auth ?? Auth.auth()
+        } else {
+            self.db = db
+            self.auth = auth
+        }
     }
 
     // MARK: - Lifecycle
@@ -184,9 +250,12 @@ final class DemoSocialBehaviorService: ObservableObject {
     // MARK: - Public API
 
     /// Call this when user completes onboarding to trigger proactive demo request
+    /// Flow: Friend request first → User accepts → Then demo user shares a recipe
     func onOnboardingComplete() {
         guard gate.isEnabled else { return }
 
+        // Only schedule the proactive friend request
+        // Recipe sharing happens AFTER user accepts (via onDemoConnectionAccepted)
         scheduleProactiveDemoRequest()
     }
 
@@ -201,7 +270,12 @@ final class DemoSocialBehaviorService: ObservableObject {
 
     /// Check if a user ID belongs to a demo user
     func isDemoUser(_ userId: String) -> Bool {
-        Self.demoUserIds.contains(userId)
+        Self.isDemoUser(userId)
+    }
+
+    /// Static check if a user ID belongs to a demo user (for use without instance)
+    static func isDemoUser(_ userId: String) -> Bool {
+        demoUserIds.contains(userId)
     }
 
     // MARK: - Auto-Accept Logic
@@ -234,38 +308,25 @@ final class DemoSocialBehaviorService: ObservableObject {
     }
 
     /// Perform the auto-accept by updating connection status
+    /// Note: Only updates real user's connection doc (not demo user's)
     private func performAutoAccept(demoUserId: String, connectionId: String) async {
-        guard let userId = auth.currentUser?.uid else { return }
+        guard let db = db, let auth = auth, let userId = auth.currentUser?.uid else { return }
 
         let now = Date()
-        let batch = db.batch()
 
-        // Update user's connection document
+        // Only update real user's connection document
+        // Demo user accounts don't have connection docs
         let userConnectionRef = db.collection("users")
             .document(userId)
             .collection("connections")
             .document(connectionId)
 
-        batch.updateData([
-            "status": ConnectionStatus.connected.rawValue,
-            "acceptedAt": Timestamp(date: now),
-            "updatedAt": Timestamp(date: now)
-        ], forDocument: userConnectionRef)
-
-        // Update demo user's connection document
-        let demoConnectionRef = db.collection("users")
-            .document(demoUserId)
-            .collection("connections")
-            .document(connectionId)
-
-        batch.updateData([
-            "status": ConnectionStatus.connected.rawValue,
-            "acceptedAt": Timestamp(date: now),
-            "updatedAt": Timestamp(date: now)
-        ], forDocument: demoConnectionRef)
-
         do {
-            try await batch.commit()
+            try await userConnectionRef.updateData([
+                "status": ConnectionStatus.connected.rawValue,
+                "acceptedAt": Timestamp(date: now),
+                "updatedAt": Timestamp(date: now)
+            ])
 
             Log.info("Demo user auto-accepted connection request", category: .social, metadata: [
                 "demoUserId": demoUserId,
@@ -292,7 +353,7 @@ final class DemoSocialBehaviorService: ObservableObject {
 
     /// Schedule a demo user to send a connection request to the new user
     private func scheduleProactiveDemoRequest() {
-        guard let userId = auth.currentUser?.uid else { return }
+        guard let auth = auth, let userId = auth.currentUser?.uid else { return }
 
         // Check if user already has a demo connection (don't spam)
         Task {
@@ -326,6 +387,7 @@ final class DemoSocialBehaviorService: ObservableObject {
 
     /// Check if user already has any demo connections
     private func checkIfUserHasDemoConnection(userId: String) async -> Bool {
+        guard let db = db else { return false }
         do {
             let snapshot = try await db.collection("users")
                 .document(userId)
@@ -345,50 +407,20 @@ final class DemoSocialBehaviorService: ObservableObject {
     }
 
     /// Send a proactive connection request from a demo user to the real user
+    /// Note: Only creates connection doc in real user's account (not demo user's)
+    /// to prevent demo accounts from accumulating data from all TestFlight users
     private func sendProactiveDemoRequest(toUserId: String) async {
+        guard let db = db else { return }
+
         // Pick a random demo user
         let demoUserId = Self.demoUserIds.randomElement() ?? "demo_grandmazing"
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
-        // Fetch user's profile info
-        let userDisplayName: String
-        let userPhotoURL: String?
-
-        do {
-            let profileDoc = try await db.collection("users")
-                .document(toUserId)
-                .collection("profile")
-                .document("data")
-                .getDocument()
-
-            userDisplayName = profileDoc.data()?["displayName"] as? String ?? "Friend"
-            userPhotoURL = profileDoc.data()?["photoURL"] as? String
-        } catch {
-            userDisplayName = "Friend"
-            userPhotoURL = nil
-        }
-
         let connectionId = UUID().uuidString
         let now = Date()
 
-        // Create connection documents (demo user is the initiator)
-        let demoConnection: [String: Any] = [
-            "id": connectionId,
-            "userId": demoUserId,
-            "connectedUserId": toUserId,
-            "connectedUserDisplayName": userDisplayName,
-            "connectedUserPhotoURL": userPhotoURL as Any,
-            "status": ConnectionStatus.pending.rawValue,
-            "initiatedBy": demoUserId,
-            "requestedAt": Timestamp(date: now),
-            "recipesSharedCount": 0,
-            "recipesReceivedCount": 0,
-            "isFavorite": false,
-            "createdAt": Timestamp(date: now),
-            "updatedAt": Timestamp(date: now),
-            "isDemoConnection": true
-        ]
-
+        // Only create connection document in real user's collection
+        // Demo user accounts don't need connection docs - they use hardcoded stats
         let userConnection: [String: Any] = [
             "id": connectionId,
             "userId": toUserId,
@@ -401,29 +433,19 @@ final class DemoSocialBehaviorService: ObservableObject {
             "recipesSharedCount": 0,
             "recipesReceivedCount": 0,
             "isFavorite": false,
+            "isKitchenTableConnection": false,
             "createdAt": Timestamp(date: now),
             "updatedAt": Timestamp(date: now),
             "isDemoConnection": true
         ]
 
-        let batch = db.batch()
-
-        // Create in demo user's collection
-        let demoRef = db.collection("users")
-            .document(demoUserId)
-            .collection("connections")
-            .document(connectionId)
-        batch.setData(demoConnection, forDocument: demoRef)
-
-        // Create in user's collection
-        let userRef = db.collection("users")
-            .document(toUserId)
-            .collection("connections")
-            .document(connectionId)
-        batch.setData(userConnection, forDocument: userRef)
-
         do {
-            try await batch.commit()
+            // Create only in real user's collection
+            try await db.collection("users")
+                .document(toUserId)
+                .collection("connections")
+                .document(connectionId)
+                .setData(userConnection)
 
             Log.info("Demo user sent proactive connection request", category: .social, metadata: [
                 "demoUserId": demoUserId,
@@ -444,6 +466,196 @@ final class DemoSocialBehaviorService: ObservableObject {
 
         // Clean up task reference
         scheduledTasks.removeValue(forKey: "proactiveRequest_\(toUserId)")
+    }
+
+    // MARK: - Welcome Shares (Phase 10)
+
+    /// Schedule welcome shares to be sent shortly after onboarding completes
+    private func scheduleWelcomeShares() {
+        guard let auth = auth, let userId = auth.currentUser?.uid else { return }
+
+        let taskKey = "welcomeShares_\(userId)"
+        scheduledTasks[taskKey]?.cancel()
+
+        Log.info("Scheduling welcome shares", category: .social, metadata: [
+            "delaySeconds": welcomeShareDelay
+        ])
+
+        scheduledTasks[taskKey] = Task {
+            do {
+                try await Task.sleep(nanoseconds: UInt64(welcomeShareDelay * 1_000_000_000))
+
+                guard !Task.isCancelled else { return }
+                guard gate.isEnabled else { return }
+
+                await sendWelcomeShares(toUserId: userId)
+            } catch {
+                // Task was cancelled
+            }
+        }
+    }
+
+    /// Send 1-2 welcome shares from demo users to a new user
+    /// These appear immediately in the user's "Shared with Me" inbox
+    private func sendWelcomeShares(toUserId userId: String) async {
+        // Check if user has already received welcome shares (prevent duplicates)
+        let hasReceivedWelcome = await checkIfUserHasWelcomeShares(userId: userId)
+        if hasReceivedWelcome {
+            Log.debug("User already has welcome shares, skipping", category: .social)
+            scheduledTasks.removeValue(forKey: "welcomeShares_\(userId)")
+            return
+        }
+
+        // Pick 2 random demo users to send welcome shares
+        let demoUsers = Array(Self.demoUserIds.shuffled().prefix(2))
+
+        Log.info("Sending welcome shares from demo users", category: .social, metadata: [
+            "demoUsers": demoUsers.joined(separator: ", "),
+            "recipientUserId": userId
+        ])
+
+        for demoUserId in demoUsers {
+            await sendSingleWelcomeShare(
+                fromDemoUserId: demoUserId,
+                toUserId: userId
+            )
+
+            // Small delay between shares
+            try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
+        }
+
+        scheduledTasks.removeValue(forKey: "welcomeShares_\(userId)")
+    }
+
+    /// Check if user has already received welcome shares
+    private func checkIfUserHasWelcomeShares(userId: String) async -> Bool {
+        guard let db = db else { return false }
+        do {
+            let snapshot = try await db.collection("shares")
+                .whereField("recipientUserIds", arrayContains: userId)
+                .whereField("isWelcomeShare", isEqualTo: true)
+                .limit(to: 1)
+                .getDocuments()
+
+            return !snapshot.documents.isEmpty
+        } catch {
+            return false
+        }
+    }
+
+    /// Send a single welcome share from a demo user
+    private func sendSingleWelcomeShare(
+        fromDemoUserId demoUserId: String,
+        toUserId userId: String
+    ) async {
+        guard let db = db else { return }
+        guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
+        guard let welcomeRecipe = Self.demoUserWelcomeRecipes[demoUserId] else { return }
+
+        let shareId = UUID().uuidString
+        let now = Date()
+        let expiresAt = Calendar.current.date(byAdding: .day, value: 7, to: now)!
+
+        // Create the welcome share document with full preview details
+        let shareData: [String: Any] = [
+            "shareId": shareId,
+            "recipeId": welcomeRecipe.recipeId,
+            "ownerId": demoUserId,
+            "ownerName": demoInfo.displayName,
+            "recipeTitle": welcomeRecipe.title,
+            "shareType": "heirloom",
+            "createdAt": Timestamp(date: now),
+            "expiresAt": Timestamp(date: expiresAt),
+            "includeCardBack": true,
+            "includeRating": true,
+            "includeNotes": true,
+            "includePinnedComments": true,
+            "includeAllComments": false,
+            "includeCookingHistory": false,
+            "includeStickers": true,
+            "personalMessage": welcomeRecipe.message,
+            "allowReSharing": true,
+            "generation": 1,
+            "rootRecipeId": welcomeRecipe.recipeId,
+            "rootOwnerId": demoUserId,
+            "recipientUserIds": [userId],
+            "isDirectShare": true,
+            "sharedWithCount": 1,
+            "acceptedBy": [],
+            "acceptCount": 0,
+            "viewCount": 0,
+            "isDemoShare": true,
+            "isWelcomeShare": true,  // Mark as welcome share for deduplication
+            // Recipe preview fields for share sheet display
+            "servings": welcomeRecipe.servings,
+            "prepTime": welcomeRecipe.prepTime,
+            "cookTime": welcomeRecipe.cookTime,
+            "ingredientCount": welcomeRecipe.ingredientCount,
+            "instructionCount": welcomeRecipe.instructionCount,
+            "firebaseImageURL": welcomeRecipe.imageURL
+        ]
+
+        do {
+            try await db.collection("shares").document(shareId).setData(shareData)
+
+            Log.info("Welcome share sent", category: .social, metadata: [
+                "shareId": shareId,
+                "fromDemoUser": demoUserId,
+                "recipeId": welcomeRecipe.recipeId
+            ])
+
+            // Create notification for user about the welcome share
+            await createWelcomeShareNotification(
+                forUserId: userId,
+                fromDemoUserId: demoUserId,
+                shareId: shareId,
+                recipeTitle: welcomeRecipe.title
+            )
+
+        } catch {
+            Log.error("Failed to send welcome share", category: .social, error: error, metadata: [
+                "demoUserId": demoUserId
+            ])
+        }
+    }
+
+    /// Create notification for welcome share
+    private func createWelcomeShareNotification(
+        forUserId userId: String,
+        fromDemoUserId demoUserId: String,
+        shareId: String,
+        recipeTitle: String
+    ) async {
+        guard let db = db else { return }
+        guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
+
+        let notificationId = UUID().uuidString
+        let now = Date()
+
+        let notificationData: [String: Any] = [
+            "id": notificationId,
+            "type": "welcomeRecipeShare",
+            "actorUserId": demoUserId,
+            "actorDisplayName": demoInfo.displayName,
+            "actorPhotoURL": demoInfo.photoURL,
+            "shareId": shareId,
+            "recipeTitle": recipeTitle,
+            "deepLinkURL": "heirloom://share/\(shareId)",
+            "timestamp": Timestamp(date: now),
+            "read": false,
+            "isDemoNotification": true,
+            "isWelcomeNotification": true
+        ]
+
+        do {
+            try await db.collection("users")
+                .document(userId)
+                .collection("notifications")
+                .document(notificationId)
+                .setData(notificationData)
+        } catch {
+            Log.error("Failed to create welcome share notification", category: .social, error: error)
+        }
     }
 
     // MARK: - Recipe Sharing Logic
@@ -480,7 +692,7 @@ final class DemoSocialBehaviorService: ObservableObject {
 
     /// Perform the recipe share from demo user
     private func performRecipeShare(demoUserId: String, connectionId: String) async {
-        guard let userId = auth.currentUser?.uid else { return }
+        guard let db = db, let auth = auth, let userId = auth.currentUser?.uid else { return }
         guard let welcomeRecipe = Self.demoUserWelcomeRecipes[demoUserId] else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
@@ -505,13 +717,13 @@ final class DemoSocialBehaviorService: ObservableObject {
         let now = Date()
         let expiresAt = Calendar.current.date(byAdding: .day, value: 7, to: now)!
 
-        // Create the share document
+        // Create the share document with full recipe preview details
         let shareData: [String: Any] = [
             "shareId": shareId,
             "recipeId": welcomeRecipe.recipeId,
             "ownerId": demoUserId,
             "ownerName": demoInfo.displayName,
-            "recipeTitle": getRecipeTitle(for: welcomeRecipe.recipeId),
+            "recipeTitle": welcomeRecipe.title,
             "shareType": "heirloom",
             "createdAt": Timestamp(date: now),
             "expiresAt": Timestamp(date: expiresAt),
@@ -533,7 +745,14 @@ final class DemoSocialBehaviorService: ObservableObject {
             "acceptedBy": [],
             "acceptCount": 0,
             "viewCount": 0,
-            "isDemoShare": true
+            "isDemoShare": true,
+            // Recipe preview fields for share sheet display
+            "servings": welcomeRecipe.servings,
+            "prepTime": welcomeRecipe.prepTime,
+            "cookTime": welcomeRecipe.cookTime,
+            "ingredientCount": welcomeRecipe.ingredientCount,
+            "instructionCount": welcomeRecipe.instructionCount,
+            "firebaseImageURL": welcomeRecipe.imageURL
         ]
 
         do {
@@ -550,7 +769,7 @@ final class DemoSocialBehaviorService: ObservableObject {
                 forUserId: userId,
                 fromDemoUserId: demoUserId,
                 shareId: shareId,
-                recipeTitle: getRecipeTitle(for: welcomeRecipe.recipeId)
+                recipeTitle: welcomeRecipe.title
             )
 
         } catch {
@@ -565,17 +784,17 @@ final class DemoSocialBehaviorService: ObservableObject {
     /// Get recipe title from recipe ID (simplified lookup)
     private func getRecipeTitle(for recipeId: String) -> String {
         switch recipeId {
-        case "demo_grandmazing_chocolate_chip_cookies":
+        case "5E13B837-1A80-4D22-AF8A-C474A6EA5C35":
             return "Brown Butter Chocolate Chip Cookies"
-        case "demo_phillipfry_one_pot_pasta":
+        case "7EE0A981-0DD2-4105-AA26-AB941C23D688":
             return "Creamy One-Pot Pasta"
-        case "demo_chef_maria_garlic_shrimp":
+        case "5D5A16D4-4FC2-483B-9737-7D0451F3C236":
             return "Camarones al Ajillo (Garlic Shrimp)"
-        case "demo_fitfoodie_protein_bowl":
+        case "F3890DC5-F51A-455A-8BF2-EB4BB089C5A9":
             return "Ultimate Protein Power Bowl"
-        case "demo_bakingbelle_chocolate_lava_cakes":
+        case "FCEB840F-6ACB-49F3-A7F0-E1DA3DE286FF":
             return "Molten Chocolate Lava Cakes"
-        case "demo_grillmaster_smash_burgers":
+        case "1DE8EC4C-7629-466D-B39B-87D97B48EC9F":
             return "Ultimate Smash Burgers"
         default:
             return "Recipe"
@@ -595,7 +814,7 @@ final class DemoSocialBehaviorService: ObservableObject {
 
     /// Create notification for user that demo user accepted their request
     private func createAcceptanceNotification(demoUserId: String, connectionId: String) async {
-        guard let userId = auth.currentUser?.uid else { return }
+        guard let db = db, let auth = auth, let userId = auth.currentUser?.uid else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
         let notificationId = UUID().uuidString
@@ -630,6 +849,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         fromDemoUserId demoUserId: String,
         connectionId: String
     ) async {
+        guard let db = db else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
         let notificationId = UUID().uuidString
@@ -665,6 +885,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         shareId: String,
         recipeTitle: String
     ) async {
+        guard let db = db else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
         let notificationId = UUID().uuidString
@@ -777,13 +998,13 @@ final class DemoSocialBehaviorService: ObservableObject {
         recipeTitle: String,
         demoUserId: String
     ) async {
-        guard let userId = auth.currentUser?.uid else { return }
+        guard let db = db, let auth = auth, let userId = auth.currentUser?.uid else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
         let now = Date()
 
-        // Update share document to mark as accepted by demo user
         do {
+            // 1. Update share document to mark as accepted by demo user
             try await db.collection("shares").document(shareId).updateData([
                 "acceptedBy": FieldValue.arrayUnion([demoUserId]),
                 "acceptCount": FieldValue.increment(Int64(1)),
@@ -795,7 +1016,14 @@ final class DemoSocialBehaviorService: ObservableObject {
                 "demoUserId": demoUserId
             ])
 
-            // Create notification for user that demo user accepted
+            // 2. Copy the recipe to demo user's collection (like real acceptance)
+            await copyRecipeToDemoUser(
+                recipeId: recipeId,
+                fromUserId: userId,
+                toDemoUserId: demoUserId
+            )
+
+            // 3. Create notification for user that demo user accepted
             let notificationId = UUID().uuidString
             let notificationData: [String: Any] = [
                 "id": notificationId,
@@ -816,14 +1044,14 @@ final class DemoSocialBehaviorService: ObservableObject {
                 .document(notificationId)
                 .setData(notificationData)
 
-            // Create lineage record for the demo user's "copy" of the recipe
+            // 4. Create lineage record for the demo user's copy of the recipe
             await createDemoLineageRecord(
                 recipeId: recipeId,
                 demoUserId: demoUserId,
                 originalOwnerId: userId
             )
 
-            // Schedule recipe modification after acceptance
+            // 5. Schedule recipe modification after acceptance
             scheduleRecipeModification(
                 shareId: shareId,
                 recipeId: recipeId,
@@ -838,13 +1066,73 @@ final class DemoSocialBehaviorService: ObservableObject {
         scheduledTasks.removeValue(forKey: "shareAccept_\(shareId)")
     }
 
+    /// Copy recipe from original user to demo user's collection
+    private func copyRecipeToDemoUser(
+        recipeId: String,
+        fromUserId: String,
+        toDemoUserId: String
+    ) async {
+        guard let db = db else { return }
+
+        do {
+            // Fetch original recipe
+            let originalRecipeRef = db.collection("users")
+                .document(fromUserId)
+                .collection("recipes")
+                .document(recipeId)
+
+            let recipeDoc = try await originalRecipeRef.getDocument()
+
+            guard recipeDoc.exists, var recipeData = recipeDoc.data() else {
+                Log.warning("Original recipe not found for demo copy", category: .social)
+                return
+            }
+
+            // Update metadata for demo user's copy
+            let now = Date()
+            recipeData["ownerId"] = toDemoUserId
+            recipeData["sharedDate"] = Timestamp(date: now)
+            recipeData["modifiedAt"] = Timestamp(date: now)
+
+            // Copy recipe to demo user's collection (same ID for lineage tracking)
+            let demoRecipeRef = db.collection("users")
+                .document(toDemoUserId)
+                .collection("recipes")
+                .document(recipeId)
+
+            try await demoRecipeRef.setData(recipeData)
+
+            // Copy ingredients subcollection
+            let ingredientsSnapshot = try await originalRecipeRef
+                .collection("ingredients")
+                .getDocuments()
+
+            for ingredientDoc in ingredientsSnapshot.documents {
+                try await demoRecipeRef
+                    .collection("ingredients")
+                    .document(ingredientDoc.documentID)
+                    .setData(ingredientDoc.data())
+            }
+
+            Log.info("Copied recipe to demo user collection", category: .social, metadata: [
+                "recipeId": recipeId,
+                "demoUserId": toDemoUserId,
+                "ingredientCount": ingredientsSnapshot.documents.count
+            ])
+
+        } catch {
+            Log.error("Failed to copy recipe to demo user", category: .social, error: error)
+        }
+    }
+
     /// Create a lineage record for the demo user's copy of the shared recipe
     private func createDemoLineageRecord(
         recipeId: String,
         demoUserId: String,
         originalOwnerId: String
     ) async {
-        guard let recipeUUID = UUID(uuidString: recipeId) else { return }
+        guard let db = db else { return }
+        guard UUID(uuidString: recipeId) != nil else { return }
 
         let lineageId = UUID().uuidString
         let now = Date()
@@ -922,7 +1210,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         recipeTitle: String,
         demoUserId: String
     ) async {
-        guard let userId = auth.currentUser?.uid else { return }
+        guard let db = db, let auth = auth, let userId = auth.currentUser?.uid else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
         // Pick a random modification theme
@@ -931,34 +1219,38 @@ final class DemoSocialBehaviorService: ObservableObject {
         let newTitle = modification.titlePrefix + recipeTitle
         let now = Date()
 
-        // Update the recipe in Firestore (user's copy)
+        // Update the recipe in the DEMO USER'S collection (not the original user's)
         do {
             let recipeRef = db.collection("users")
-                .document(userId)
+                .document(demoUserId)  // Demo user's copy
                 .collection("recipes")
                 .document(recipeId)
 
-            // First fetch the current recipe to add ingredient
+            // First fetch the demo user's copy of the recipe
             let recipeDoc = try await recipeRef.getDocument()
 
             guard recipeDoc.exists else {
-                Log.warning("Recipe not found for demo modification", category: .social)
+                Log.warning("Demo user's recipe copy not found for modification", category: .social, metadata: [
+                    "recipeId": recipeId,
+                    "demoUserId": demoUserId
+                ])
                 return
             }
 
-            // Update recipe title
+            // Update recipe title on demo user's copy
             try await recipeRef.updateData([
                 "title": newTitle,
                 "modifiedAt": Timestamp(date: now)
             ])
 
-            // Add the new ingredient to the recipe's ingredients subcollection
+            // Add the new ingredient to the demo user's recipe
             let ingredientId = UUID().uuidString
             let ingredientData: [String: Any] = [
                 "id": ingredientId,
                 "name": modification.ingredientName,
                 "quantity": modification.ingredientQuantity,
                 "unit": modification.ingredientUnit,
+                "originalText": modification.originalText,
                 "orderIndex": 999,  // Add at end
                 "isOptional": false,
                 "notes": "Added by \(demoInfo.displayName)",
@@ -967,7 +1259,7 @@ final class DemoSocialBehaviorService: ObservableObject {
             ]
 
             try await db.collection("users")
-                .document(userId)
+                .document(demoUserId)  // Demo user's copy
                 .collection("recipes")
                 .document(recipeId)
                 .collection("ingredients")
@@ -1013,6 +1305,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         modificationDescription: String,
         userId: String
     ) async {
+        guard let db = db else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
         let now = Date()
@@ -1060,6 +1353,7 @@ final class DemoSocialBehaviorService: ObservableObject {
         newTitle: String,
         modificationDescription: String
     ) async {
+        guard let db = db else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
         let notificationId = UUID().uuidString
@@ -1100,8 +1394,9 @@ final class DemoSocialBehaviorService: ObservableObject {
     private struct RecipeModification {
         let titlePrefix: String
         let ingredientName: String
-        let ingredientQuantity: String
+        let ingredientQuantity: Double
         let ingredientUnit: String
+        let originalText: String  // Full text for display
         let description: String
     }
 
@@ -1109,57 +1404,65 @@ final class DemoSocialBehaviorService: ObservableObject {
         RecipeModification(
             titlePrefix: "Spicy ",
             ingredientName: "jalapeño pepper, diced",
-            ingredientQuantity: "1",
+            ingredientQuantity: 1,
             ingredientUnit: "",
+            originalText: "1 jalapeño pepper, diced",
             description: "Made it spicy by adding jalapeño"
         ),
         RecipeModification(
             titlePrefix: "Garlic Lover's ",
             ingredientName: "extra garlic cloves, minced",
-            ingredientQuantity: "3",
+            ingredientQuantity: 3,
             ingredientUnit: "",
+            originalText: "3 extra garlic cloves, minced",
             description: "Added extra garlic for more flavor"
         ),
         RecipeModification(
             titlePrefix: "Cheesy ",
             ingredientName: "shredded parmesan cheese",
-            ingredientQuantity: "½",
+            ingredientQuantity: 0.5,
             ingredientUnit: "cup",
+            originalText: "½ cup shredded parmesan cheese",
             description: "Made it cheesier with extra parmesan"
         ),
         RecipeModification(
             titlePrefix: "Herb-Infused ",
             ingredientName: "fresh rosemary, chopped",
-            ingredientQuantity: "2",
+            ingredientQuantity: 2,
             ingredientUnit: "tbsp",
+            originalText: "2 tbsp fresh rosemary, chopped",
             description: "Added fresh rosemary for an herby twist"
         ),
         RecipeModification(
             titlePrefix: "Smoky ",
             ingredientName: "smoked paprika",
-            ingredientQuantity: "1",
+            ingredientQuantity: 1,
             ingredientUnit: "tsp",
+            originalText: "1 tsp smoked paprika",
             description: "Added smoked paprika for a smoky flavor"
         ),
         RecipeModification(
             titlePrefix: "Zesty ",
             ingredientName: "lemon zest",
-            ingredientQuantity: "1",
+            ingredientQuantity: 1,
             ingredientUnit: "tbsp",
+            originalText: "1 tbsp lemon zest",
             description: "Added lemon zest for brightness"
         ),
         RecipeModification(
             titlePrefix: "Honey-Glazed ",
             ingredientName: "honey",
-            ingredientQuantity: "2",
+            ingredientQuantity: 2,
             ingredientUnit: "tbsp",
+            originalText: "2 tbsp honey",
             description: "Added honey for a sweet glaze"
         ),
         RecipeModification(
             titlePrefix: "Crispy ",
             ingredientName: "panko breadcrumbs",
-            ingredientQuantity: "¼",
+            ingredientQuantity: 0.25,
             ingredientUnit: "cup",
+            originalText: "¼ cup panko breadcrumbs",
             description: "Added panko for extra crunch"
         )
     ]

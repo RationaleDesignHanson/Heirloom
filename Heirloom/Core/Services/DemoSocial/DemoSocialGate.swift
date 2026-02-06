@@ -29,7 +29,7 @@ final class DemoSocialGate: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let config: DemoSocialConfig
+    private let config: any DemoSocialConfigProtocol
     private let userDefaults: UserDefaults
 
     // MARK: - Debug Status
@@ -66,10 +66,11 @@ final class DemoSocialGate: ObservableObject {
     // MARK: - Initialization
 
     init(
-        config: DemoSocialConfig = DemoSocialConfig(),
+        config: (any DemoSocialConfigProtocol)? = nil,
         userDefaults: UserDefaults = .standard
     ) {
-        self.config = config
+        // Create config inside init body (MainActor context) if not provided
+        self.config = config ?? DemoSocialConfig()
         self.userDefaults = userDefaults
         refresh()
     }

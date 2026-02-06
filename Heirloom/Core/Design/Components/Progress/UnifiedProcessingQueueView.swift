@@ -114,22 +114,46 @@ struct UnifiedProcessingQueueView: View {
     // MARK: - Queue Content
 
     private var queueContent: some View {
-        ScrollView {
-            LazyVStack(spacing: 16) {
-                ForEach(QueueSection.allCases) { section in
-                    let jobs = jobsFor(section: section)
-                    if !jobs.isEmpty {
-                        queueSection(section, jobs: jobs)
-                    }
+        List {
+            ForEach(QueueSection.allCases) { section in
+                let jobs = jobsFor(section: section)
+                if !jobs.isEmpty {
+                    queueSectionView(section, jobs: jobs)
                 }
             }
-            .padding(.vertical, 16)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color(.systemGroupedBackground))
     }
 
     @ViewBuilder
-    private func queueSection(_ section: QueueSection, jobs: [AnyProcessingJob]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+    private func queueSectionView(_ section: QueueSection, jobs: [AnyProcessingJob]) -> some View {
+        Section {
+            // Section content (jobs with swipe actions)
+            if section != .recent || !isRecentCollapsed {
+                ForEach(jobs) { job in
+                    ProcessingJobCard(job: job, onTap: {
+                        handleJobTap(job)
+                    }, onDismiss: canDismiss(job) ? {
+                        dismissJob(job)
+                    } : nil)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        if canDismiss(job) {
+                            Button(role: .destructive) {
+                                dismissJob(job)
+                            } label: {
+                                Label("Dismiss", systemImage: "xmark.circle.fill")
+                            }
+                            .tint(HeirloomColors.warmGray)
+                        }
+                    }
+                }
+            }
+        } header: {
             // Section header
             Button {
                 if section == .recent {
@@ -167,19 +191,7 @@ struct UnifiedProcessingQueueView: View {
             }
             .buttonStyle(.plain)
             .disabled(section != .recent)
-            .padding(.horizontal, 16)
-
-            // Section content
-            if section != .recent || !isRecentCollapsed {
-                VStack(spacing: 8) {
-                    ForEach(jobs) { job in
-                        ProcessingJobCard(job: job) {
-                            handleJobTap(job)
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-            }
+            .textCase(nil)
         }
     }
 
@@ -256,6 +268,9 @@ struct UnifiedProcessingQueueView: View {
             for job in importJobs where job.status == .pending {
                 jobs.append(AnyProcessingJob(job, type: .importJob))
             }
+            for job in generationJobs where job.status == .pending {
+                jobs.append(AnyProcessingJob(job, type: .generation))
+            }
 
         case .needsAttention:
             for job in videoJobs where job.status == .failed {
@@ -314,6 +329,39 @@ struct UnifiedProcessingQueueView: View {
         case .generation:
             if let genJob = generationJobs.first(where: { $0.id == job.id }) {
                 onGenerationJobTap?(genJob)
+            }
+        }
+    }
+
+    /// Check if a job can be dismissed (completed or failed jobs)
+    private func canDismiss(_ job: AnyProcessingJob) -> Bool {
+        switch job.bannerStatus {
+        case .completed, .failed:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Dismiss a job from the queue
+    private func dismissJob(_ job: AnyProcessingJob) {
+        withAnimation(.easeOut(duration: 0.25)) {
+            switch job.jobType {
+            case .video:
+                if let videoJob = videoJobs.first(where: { $0.id == job.id }) {
+                    // Mark as saved to remove from banner
+                    videoJob.status = .saved
+                }
+            case .importJob:
+                if let importJob = importJobs.first(where: { $0.id == job.id }) {
+                    // Delete the import job
+                    modelContext.delete(importJob)
+                }
+            case .generation:
+                if let genJob = generationJobs.first(where: { $0.id == job.id }) {
+                    // Mark as dismissed to remove from banner
+                    genJob.status = .dismissed
+                }
             }
         }
     }

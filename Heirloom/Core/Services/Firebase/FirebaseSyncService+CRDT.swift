@@ -486,11 +486,77 @@ extension FirebaseSyncService {
             )
         }
 
+        // Step 5: Re-link recipes to collections (recipes downloaded after collections)
+        // Collections were downloaded first for fast UI, but recipes didn't exist yet
+        Log.info("Re-linking recipes to collections", category: .sync)
+        try await relinkRecipesToCollections(context: context)
+
         lastSyncDate = Date()
         Log.info("CRDT sync complete", category: .crdt)
 
         // Clean up old tombstones after successful sync
         cleanupOldTombstones(context: context)
+    }
+
+    /// Re-link recipes to collections after both have been downloaded
+    /// Collections are downloaded first for fast UI, but recipes don't exist yet at that point
+    private func relinkRecipesToCollections(context: ModelContext) async throws {
+        guard let userId = currentUserId else { return }
+
+        // Fetch all collections from Firebase to get their recipeIds
+        let collectionsRef = db.collection("users/\(userId)/collections")
+        let snapshot = try await collectionsRef.getDocuments()
+
+        var linkedCount = 0
+
+        for doc in snapshot.documents {
+            let data = doc.data()
+            guard let collectionIdString = data["id"] as? String,
+                  let collectionId = UUID(uuidString: collectionIdString),
+                  let recipeIds = data["recipeIds"] as? [String],
+                  !recipeIds.isEmpty else {
+                continue
+            }
+
+            // Find the local collection
+            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate<RecipeCollection> { collection in
+                    collection.id == collectionId
+                }
+            )
+
+            guard let localCollection = try? context.fetch(collectionDescriptor).first else {
+                continue
+            }
+
+            // Link each recipe to the collection
+            for recipeIdString in recipeIds {
+                guard let recipeId = UUID(uuidString: recipeIdString) else { continue }
+
+                let recipeDescriptor = FetchDescriptor<Recipe>(
+                    predicate: #Predicate<Recipe> { recipe in
+                        recipe.id == recipeId
+                    }
+                )
+
+                if let recipe = try? context.fetch(recipeDescriptor).first {
+                    // Check if already linked
+                    let alreadyLinked = recipe.collections?.contains(where: { $0.id == collectionId }) ?? false
+                    if !alreadyLinked {
+                        if recipe.collections == nil {
+                            recipe.collections = []
+                        }
+                        recipe.collections?.append(localCollection)
+                        linkedCount += 1
+                    }
+                }
+            }
+        }
+
+        if linkedCount > 0 {
+            try? context.save()
+            Log.info("Re-linked recipes to collections", category: .sync, metadata: ["linkedCount": linkedCount])
+        }
     }
 }
 

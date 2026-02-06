@@ -1,7 +1,7 @@
 {
   "conversion_date": "2026-01-27T01:01:02.874Z",
   "total_themes": 14,
-  "total_recipes": 186,
+  "total_recipes": 234,
   "dry_run": false,
   "conversions": [
     {
@@ -1491,6 +1491,390 @@
       "new_id": "american-foundation-012",
       "title": "Corn Dodgers",
       "sort_order": 12
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "015",
+      "new_id": "presidential-pantry-015",
+      "title": "Herbert Hoover's Waldorf Salad",
+      "sort_order": 15
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "016",
+      "new_id": "presidential-pantry-016",
+      "title": "Ulysses S. Grant's Rice Pudding",
+      "sort_order": 16
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "017",
+      "new_id": "presidential-pantry-017",
+      "title": "William Howard Taft's Steak",
+      "sort_order": 17
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "018",
+      "new_id": "presidential-pantry-018",
+      "title": "Benjamin Harrison's Corn Relish",
+      "sort_order": 18
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "019",
+      "new_id": "presidential-pantry-019",
+      "title": "Rutherford B. Hayes' Mashed Potatoes",
+      "sort_order": 19
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "020",
+      "new_id": "presidential-pantry-020",
+      "title": "James Buchanan's Sauerkraut",
+      "sort_order": 20
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "021",
+      "new_id": "presidential-pantry-021",
+      "title": "Grover Cleveland's Corned Beef Hash",
+      "sort_order": 21
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "022",
+      "new_id": "presidential-pantry-022",
+      "title": "Chester Arthur's Lobster Newburg",
+      "sort_order": 22
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "023",
+      "new_id": "presidential-pantry-023",
+      "title": "Millard Fillmore's Apple Dumplings",
+      "sort_order": 23
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "024",
+      "new_id": "presidential-pantry-024",
+      "title": "Franklin Pierce's Rum Punch",
+      "sort_order": 24
+    },
+    {
+      "theme_id": "presidential-pantry",
+      "theme_name": "Presidential Pantry",
+      "old_id": "025",
+      "new_id": "presidential-pantry-025",
+      "title": "William McKinley's Gingerbread Cookies",
+      "sort_order": 25
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "015",
+      "new_id": "literary-kitchen-015",
+      "title": "Oliver Twist's Gruel",
+      "sort_order": 15
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "016",
+      "new_id": "literary-kitchen-016",
+      "title": "The Hobbit's Seed-cakes",
+      "sort_order": 16
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "017",
+      "new_id": "literary-kitchen-017",
+      "title": "Proust's Madeleines",
+      "sort_order": 17
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "018",
+      "new_id": "literary-kitchen-018",
+      "title": "James Bond's Vesper Martini",
+      "sort_order": 18
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "019",
+      "new_id": "literary-kitchen-019",
+      "title": "The Bell Jar's Avocado Pear",
+      "sort_order": 19
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "020",
+      "new_id": "literary-kitchen-020",
+      "title": "Don Quixote's Olla Podrida",
+      "sort_order": 20
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "021",
+      "new_id": "literary-kitchen-021",
+      "title": "The Old Man and the Sea's Fried Dolphinfish",
+      "sort_order": 21
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "022",
+      "new_id": "literary-kitchen-022",
+      "title": "Emma's Wedding Cake",
+      "sort_order": 22
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "023",
+      "new_id": "literary-kitchen-023",
+      "title": "The Grapes of Wrath's Biscuits",
+      "sort_order": 23
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "024",
+      "new_id": "literary-kitchen-024",
+      "title": "Babette's Feast Blinis",
+      "sort_order": 24
+    },
+    {
+      "theme_id": "literary-kitchen",
+      "theme_name": "Literary Kitchen",
+      "old_id": "025",
+      "new_id": "literary-kitchen-025",
+      "title": "Catch-22's Chocolate Covered Cotton Candy",
+      "sort_order": 25
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "013",
+      "new_id": "ancient-table-013",
+      "title": "Phoenician Fish Stew",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "014",
+      "new_id": "ancient-table-014",
+      "title": "Carthaginian Couscous",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "015",
+      "new_id": "ancient-table-015",
+      "title": "Etruscan Polenta",
+      "sort_order": 15
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "016",
+      "new_id": "ancient-table-016",
+      "title": "Sumerian Date Cake",
+      "sort_order": 16
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "017",
+      "new_id": "ancient-table-017",
+      "title": "Chinese Jiaozi Dumplings",
+      "sort_order": 17
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "018",
+      "new_id": "ancient-table-018",
+      "title": "Viking Smoked Fish",
+      "sort_order": 18
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "019",
+      "new_id": "ancient-table-019",
+      "title": "Celtic Oat Porridge",
+      "sort_order": 19
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "020",
+      "new_id": "ancient-table-020",
+      "title": "Aztec Chocolate Drink",
+      "sort_order": 20
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "021",
+      "new_id": "ancient-table-021",
+      "title": "Inca Quinoa Soup",
+      "sort_order": 21
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "022",
+      "new_id": "ancient-table-022",
+      "title": "Medieval Pottage",
+      "sort_order": 22
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "023",
+      "new_id": "ancient-table-023",
+      "title": "Roman Puls",
+      "sort_order": 23
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "024",
+      "new_id": "ancient-table-024",
+      "title": "Greek Symposium Wine",
+      "sort_order": 24
+    },
+    {
+      "theme_id": "ancient-table",
+      "theme_name": "Ancient Table",
+      "old_id": "025",
+      "new_id": "ancient-table-025",
+      "title": "Babylonian Beer",
+      "sort_order": 25
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "013",
+      "new_id": "american-foundation-013",
+      "title": "Samp and Beans",
+      "sort_order": 13
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "014",
+      "new_id": "american-foundation-014",
+      "title": "Rye and Injun Bread",
+      "sort_order": 14
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "015",
+      "new_id": "american-foundation-015",
+      "title": "Pone",
+      "sort_order": 15
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "016",
+      "new_id": "american-foundation-016",
+      "title": "Flummery",
+      "sort_order": 16
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "017",
+      "new_id": "american-foundation-017",
+      "title": "Persimmon Pudding",
+      "sort_order": 17
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "018",
+      "new_id": "american-foundation-018",
+      "title": "Hominy Grits",
+      "sort_order": 18
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "019",
+      "new_id": "american-foundation-019",
+      "title": "Shrub (Colonial Fruit Drink)",
+      "sort_order": 19
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "020",
+      "new_id": "american-foundation-020",
+      "title": "Indian Pudding",
+      "sort_order": 20
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "021",
+      "new_id": "american-foundation-021",
+      "title": "Corn Oysters",
+      "sort_order": 21
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "022",
+      "new_id": "american-foundation-022",
+      "title": "Anadama Bread",
+      "sort_order": 22
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "023",
+      "new_id": "american-foundation-023",
+      "title": "Sally Lunn Bread",
+      "sort_order": 23
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "024",
+      "new_id": "american-foundation-024",
+      "title": "Ash Cakes",
+      "sort_order": 24
+    },
+    {
+      "theme_id": "american-foundation",
+      "theme_name": "American Foundation",
+      "old_id": "025",
+      "new_id": "american-foundation-025",
+      "title": "Spider Corn Cake",
+      "sort_order": 25
     }
   ]
 }

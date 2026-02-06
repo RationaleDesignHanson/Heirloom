@@ -469,18 +469,20 @@ struct HeirloomApp: App {
         if let container = modelContainer {
             cleanupOldRecipeData(container: container)
 
-            // Run collections-first migration for existing users
-            Task { @MainActor in
-                let didRunMigration = CollectionsFirstMigration.runIfNeeded(context: container.mainContext)
-                if didRunMigration {
-                    DeviceLogger.shared.log("✅ [Migration] Collections-First migration completed")
-                }
+            // Run collections-first migration for existing users (synchronous to ensure collections exist before UI)
+            let didRunMigration = CollectionsFirstMigration.runIfNeeded(context: container.mainContext)
+            if didRunMigration {
+                DeviceLogger.shared.log("✅ [Migration] Collections-First migration completed")
+            }
 
-                // Create system collections on first launch (handles migration idempotently)
-                RecipeCollection.createSystemCollections(context: container.mainContext)
-
-                // TODO: Theme collections will be created during onboarding theme selection
-                DeviceLogger.shared.log("✅ System collections created")
+            // Create system collections on first launch (synchronous - must complete before UI renders)
+            RecipeCollection.createSystemCollections(context: container.mainContext)
+            // Explicitly save to ensure collections are persisted before UI renders
+            do {
+                try container.mainContext.save()
+                DeviceLogger.shared.log("✅ System collections created and saved")
+            } catch {
+                DeviceLogger.shared.log("⚠️ Failed to save system collections: \(error)")
             }
 
             // Firebase sync configuration
@@ -1046,11 +1048,7 @@ struct RootView: View {
                     .environment(\.firebaseAuth, authService)
             }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            // Recipe generation banner at bottom (matches ImportProgressBottomBanner pattern)
-            RecipeGenerationBanner(service: generationService)
-                .animation(.spring(), value: generationService.activeJob != nil)
-        }
+        // Bottom banner removed - progress now shown in UnifiedProcessingBanner at top
             .onAppear {
                 Log.info("🚀 ROOTVIEW.ONAPPEAR: Starting", category: .video)
                 DeviceLogger.shared.log("🚀 [Video] RootView.onAppear: Starting detection tasks")
@@ -1500,6 +1498,10 @@ struct ContentView: View {
 
                 // Start demo social behavior service for existing users
                 DemoSocialBehaviorService.shared.start()
+
+                // Trigger welcome shares for existing users who haven't received them yet
+                // (The service has duplicate prevention, so this is safe to call)
+                DemoSocialBehaviorService.shared.onOnboardingComplete()
             }
         }
         .onChange(of: firebaseAuth.isAuthenticated) { oldValue, newValue in

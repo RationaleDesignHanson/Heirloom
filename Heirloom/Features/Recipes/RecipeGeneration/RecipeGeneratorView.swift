@@ -23,6 +23,7 @@ struct RecipeGeneratorView: View {
     @State private var dishName: String = ""
     @State private var ingredients: String = ""
     @State private var errorMessage: String?
+    @State private var useManualEntry: Bool = false
 
     private var generationService: RecipeGenerationService {
         ServiceContainer.shared.resolve(RecipeGenerationService.self)
@@ -34,6 +35,20 @@ struct RecipeGeneratorView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // Mode toggle
+                Section {
+                    Toggle(isOn: $useManualEntry) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Manual Entry")
+                                .font(HeirloomFonts.body)
+                            Text(useManualEntry ? "Create a blank recipe to fill in yourself" : "AI will generate a complete recipe")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                        }
+                    }
+                    .tint(HeirloomColors.tomato)
+                }
+
                 Section {
                     TextField("Dish name (e.g., Chicken Parmesan)", text: $dishName)
                         .textContentType(.none)
@@ -41,18 +56,20 @@ struct RecipeGeneratorView: View {
                 } header: {
                     Text("What would you like to make?")
                 } footer: {
-                    Text("Enter the name of a dish you want to create")
+                    Text(useManualEntry ? "This will be the title of your recipe" : "Enter the name of a dish you want to create")
                 }
 
-                Section {
-                    TextEditor(text: $ingredients)
-                        .frame(minHeight: 100)
-                        .autocapitalization(.none)
-                        .textContentType(.none)
-                } header: {
-                    Text("Key Ingredients (Optional)")
-                } footer: {
-                    Text("List any specific ingredients you'd like to use, separated by commas")
+                if !useManualEntry {
+                    Section {
+                        TextEditor(text: $ingredients)
+                            .frame(minHeight: 100)
+                            .autocapitalization(.none)
+                            .textContentType(.none)
+                    } header: {
+                        Text("Key Ingredients (Optional)")
+                    } footer: {
+                        Text("List any specific ingredients you'd like to use, separated by commas")
+                    }
                 }
 
                 if let errorMessage = errorMessage {
@@ -67,7 +84,7 @@ struct RecipeGeneratorView: View {
                     }
                 }
             }
-            .navigationTitle("Generate Recipe")
+            .navigationTitle(useManualEntry ? "New Recipe" : "Generate Recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -77,26 +94,68 @@ struct RecipeGeneratorView: View {
                 }
 
                 ToolbarItem(placement: .primaryAction) {
-                    // Easter egg: Button looks inactive when fields are empty, but tapping
-                    // it still works and generates a random "silly" recipe.
-                    // Once text is entered, button becomes visually active.
+                    // For manual entry: require dish name
+                    // For AI generation: Easter egg - button looks inactive when fields are empty,
+                    // but tapping it still works and generates a random "silly" recipe.
                     let hasInput = !dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
                                    !ingredients.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
                     Button {
-                        startBackgroundGeneration()
+                        if useManualEntry {
+                            createBlankRecipe()
+                        } else {
+                            startBackgroundGeneration()
+                        }
                     } label: {
-                        Text("Done")
+                        Text(useManualEntry ? "Create" : "Done")
                             .fontWeight(.semibold)
-                            .foregroundStyle(hasInput ? HeirloomColors.familyGreen : HeirloomColors.secondaryText.opacity(0.5))
+                            .foregroundStyle(hasInput || !useManualEntry ? HeirloomColors.familyGreen : HeirloomColors.secondaryText.opacity(0.5))
                     }
-                    // Never actually disabled - easter egg always works
+                    // For manual entry, disabled without dish name
+                    // For AI generation, never actually disabled - easter egg always works
+                    .disabled(useManualEntry && dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
     }
 
-    // MARK: - Generation
+    // MARK: - Manual Entry
+
+    private func createBlankRecipe() {
+        let recipeDishName = dishName.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Create a blank recipe with just the title
+        let recipe = Recipe(
+            title: recipeDishName.isEmpty ? "New Recipe" : recipeDishName,
+            sourceType: .manual,
+            instructions: []
+        )
+
+        // Insert into context
+        modelContext.insert(recipe)
+
+        // Route to collection
+        let router = CollectionRouter(modelContext: modelContext)
+        if let collection = targetCollection {
+            router.routeToSpecificCollection(recipe, collection: collection)
+        }
+
+        // Save
+        do {
+            try modelContext.save()
+            toastManager.success(
+                title: "Recipe created",
+                message: "Tap to add ingredients and instructions"
+            )
+        } catch {
+            toastManager.error(title: "Failed to create recipe")
+            Log.error("Failed to create blank recipe", category: .general, error: error)
+        }
+
+        dismiss()
+    }
+
+    // MARK: - AI Generation
 
     private func startBackgroundGeneration() {
         let recipeDishName = dishName.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -23,7 +23,6 @@ struct OnboardingShareAndAcceptScreen: View {
     @State private var showSideBySide = false
     @State private var showCardLabels = false
     @State private var showEditIndicator = false
-    @State private var showUpdatedBadge = false
     @State private var showVersionNotification = false
     @State private var showVersionDropdown = false
     @State private var selectedVersion: VersionOption = .current
@@ -178,17 +177,10 @@ struct OnboardingShareAndAcceptScreen: View {
             }
         }
 
-        // Edit indicator on Mom's card
+        // Edit indicator on Mom's card - animated highlight lines show changes
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation(.easeOut(duration: 0.3)) {
                 showEditIndicator = true
-            }
-        }
-
-        // Updated badge appears
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                showUpdatedBadge = true
             }
         }
 
@@ -298,21 +290,18 @@ struct OnboardingShareAndAcceptScreen: View {
         VStack(alignment: .trailing, spacing: 4) {
             // Recipe card bubble
             VStack(alignment: .leading, spacing: 8) {
-                // Recipe thumbnail
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.orange.opacity(0.3))
+                // Recipe thumbnail - using bundled asset
+                Image("onboarding-pot-roast")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
                     .frame(width: 160, height: 90)
-                    .overlay(
-                        Image(systemName: "fork.knife")
-                            .font(.title)
-                            .foregroundColor(.orange.opacity(0.6))
-                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                Text("Pasta Carbonara")
+                Text("Nana's Pot Roast")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.primary)
 
-                Text("Here's that pasta recipe you wanted!")
+                Text("Here's that pot roast recipe!")
                     .font(.system(size: 13))
                     .foregroundColor(.secondary)
             }
@@ -340,16 +329,14 @@ struct OnboardingShareAndAcceptScreen: View {
             VStack(spacing: 16) {
                 // Recipe preview
                 HStack(spacing: 12) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.orange.opacity(0.3))
+                    Image("onboarding-pot-roast")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
                         .frame(width: 60, height: 60)
-                        .overlay(
-                            Image(systemName: "fork.knife")
-                                .foregroundColor(.orange.opacity(0.6))
-                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Pasta Carbonara")
+                        Text("Nana's Pot Roast")
                             .font(.system(size: 15, weight: .semibold))
                         Text("From Mom")
                             .font(.system(size: 13))
@@ -451,34 +438,14 @@ struct OnboardingShareAndAcceptScreen: View {
 
             // Recipe card
             VStack(alignment: .leading, spacing: 6) {
-                // Recipe thumbnail with edit indicator
-                ZStack(alignment: .topTrailing) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.orange.opacity(0.3))
-                        .frame(height: 70)
-                        .overlay(
-                            Image(systemName: "fork.knife")
-                                .font(.title3)
-                                .foregroundColor(.orange.opacity(0.6))
-                        )
+                // Recipe thumbnail
+                Image("onboarding-pot-roast")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: 70)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                    // Edit indicator
-                    if showEditIndicator {
-                        Circle()
-                            .fill(Color.white)
-                            .frame(width: 24, height: 24)
-                            .overlay(
-                                Image(systemName: "pencil")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundColor(HeirloomColors.tomato)
-                            )
-                            .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
-                            .offset(x: 4, y: -4)
-                            .transition(.scale.combined(with: .opacity))
-                    }
-                }
-
-                Text("Pasta Carbonara")
+                Text("Nana's Pot Roast")
                     .font(.system(size: 12, weight: .semibold))
                     .lineLimit(1)
 
@@ -486,21 +453,15 @@ struct OnboardingShareAndAcceptScreen: View {
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
 
-                // Updated badge
-                if showUpdatedBadge {
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(HeirloomColors.familyGreen)
-                            .frame(width: 6, height: 6)
-                        Text("Updated")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(HeirloomColors.familyGreen)
+                // Animated edit lines showing changes
+                if showEditIndicator {
+                    VStack(alignment: .leading, spacing: 3) {
+                        // Line 1: ingredient change highlight
+                        editHighlightLine(delay: 0, text: "3 lb → 4 lb chuck roast")
+                        // Line 2: another change
+                        editHighlightLine(delay: 0.3, text: "+ 1 cup red wine")
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(HeirloomColors.familyGreen.opacity(0.1))
-                    .cornerRadius(6)
-                    .transition(.scale.combined(with: .opacity))
+                    .transition(.opacity)
                 }
             }
             .padding(10)
@@ -513,6 +474,12 @@ struct OnboardingShareAndAcceptScreen: View {
             )
             .shadow(color: .black.opacity(0.08), radius: 6, y: 3)
         }
+    }
+
+    // MARK: - Edit Highlight Line Animation
+
+    private func editHighlightLine(delay: Double, text: String) -> some View {
+        EditHighlightLineView(text: text, delay: delay, isAnimating: showEditIndicator)
     }
 
     // MARK: - Your Recipe Card
@@ -541,14 +508,11 @@ struct OnboardingShareAndAcceptScreen: View {
             VStack(alignment: .leading, spacing: 6) {
                 // Recipe thumbnail with notification
                 ZStack(alignment: .top) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.orange.opacity(0.3))
+                    Image("onboarding-pot-roast")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
                         .frame(height: 70)
-                        .overlay(
-                            Image(systemName: "fork.knife")
-                                .font(.title3)
-                                .foregroundColor(.orange.opacity(0.6))
-                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
 
                     // New version notification banner
                     if showVersionNotification && selectedVersion == .current {
@@ -568,7 +532,7 @@ struct OnboardingShareAndAcceptScreen: View {
                     }
                 }
 
-                Text("Pasta Carbonara")
+                Text("Nana's Pot Roast")
                     .font(.system(size: 12, weight: .semibold))
                     .lineLimit(1)
 
@@ -666,6 +630,70 @@ struct OnboardingShareAndAcceptScreen: View {
         .padding(.vertical, 14)
         .background(HeirloomColors.familyGreen.opacity(0.1))
         .cornerRadius(12)
+    }
+}
+
+// MARK: - Edit Highlight Line View
+
+/// Animated line that draws in to show text changes
+private struct EditHighlightLineView: View {
+    let text: String
+    let delay: Double
+    let isAnimating: Bool
+
+    @State private var lineProgress: CGFloat = 0
+    @State private var textOpacity: Double = 0
+
+    var body: some View {
+        HStack(spacing: 4) {
+            // Animated highlight bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background track
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Color.gray.opacity(0.1))
+                        .frame(height: 4)
+
+                    // Animated fill
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(HeirloomColors.familyGreen.opacity(0.6))
+                        .frame(width: geometry.size.width * lineProgress, height: 4)
+                }
+            }
+            .frame(width: 12, height: 4)
+
+            // Change text
+            Text(text)
+                .font(.system(size: 8, weight: .medium))
+                .foregroundColor(HeirloomColors.familyGreen)
+                .opacity(textOpacity)
+        }
+        .onChange(of: isAnimating) { _, newValue in
+            if newValue {
+                startAnimation()
+            }
+        }
+        .onAppear {
+            if isAnimating {
+                startAnimation()
+            }
+        }
+    }
+
+    private func startAnimation() {
+        // Reset
+        lineProgress = 0
+        textOpacity = 0
+
+        // Animate line drawing
+        withAnimation(.easeOut(duration: 0.4).delay(delay)) {
+            lineProgress = 1.0
+        }
+
+        // Fade in text after line completes
+        withAnimation(.easeOut(duration: 0.2).delay(delay + 0.3)) {
+            textOpacity = 1.0
+        }
     }
 }
 

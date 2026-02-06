@@ -15,11 +15,11 @@ enum VideoThumbnailGenerator {
     /// Generate a thumbnail from a video URL or PHAsset identifier
     /// - Parameters:
     ///   - videoIdentifier: Either a file URL path or PHAsset local identifier
-    ///   - size: Desired thumbnail size (defaults to 192x192 for 3x display)
+    ///   - size: Desired thumbnail size (defaults to 600x600 for high quality recipe card display)
     /// - Returns: Thumbnail image data in JPEG format, or nil if generation fails
     static func generateThumbnail(
         from videoIdentifier: String,
-        size: CGSize = CGSize(width: 192, height: 192)
+        size: CGSize = CGSize(width: 600, height: 600)
     ) async -> Data? {
         // Check if this is a PHAsset identifier
         if videoIdentifier.contains("/L0/001") || !videoIdentifier.hasPrefix("/") {

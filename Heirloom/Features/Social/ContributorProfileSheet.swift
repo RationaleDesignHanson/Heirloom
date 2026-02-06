@@ -8,6 +8,18 @@
 
 import SwiftUI
 import SwiftData
+import FirebaseFirestore
+import FirebaseAuth
+
+// MARK: - Shared Recipe Info
+
+struct SharedRecipeInfo: Identifiable {
+    let id: String
+    let recipeId: String
+    let recipeTitle: String
+    let sharedAt: Date
+    let message: String?
+}
 
 struct ContributorProfileSheet: View {
     let connection: Connection
@@ -30,6 +42,11 @@ struct ContributorProfileSheet: View {
     @State private var isSavingNote = false
     @State private var showRemoveConfirmation = false
     @State private var isRemoving = false
+
+    // Shared recipes state
+    @State private var sharedByMe: [SharedRecipeInfo] = []
+    @State private var sharedByThem: [SharedRecipeInfo] = []
+    @State private var isLoadingShares = true
 
     var body: some View {
         NavigationStack {
@@ -163,6 +180,9 @@ struct ContributorProfileSheet: View {
                 .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
                 .padding(.horizontal, HeirloomSpacing.md)
 
+                // Shared Recipes Section
+                sharedRecipesSection
+
                 // Remove Connection Button
                 Button(role: .destructive) {
                     showRemoveConfirmation = true
@@ -186,12 +206,9 @@ struct ContributorProfileSheet: View {
                 .disabled(isRemoving)
                 .padding(.horizontal, HeirloomSpacing.md)
                 .padding(.top, HeirloomSpacing.lg)
-
-                // TODO: Fetch full profile data (bio, location, specialties) via ProfileService
-                // This requires implementing fetchProfile(userId:) method
-
-                // TODO: Implement shared recipes list
-                // This requires fetching recipes shared between connections via ConnectionService
+            }
+            .task {
+                await loadSharedRecipes()
             }
             .padding(.bottom, HeirloomSpacing.xl)
         }
@@ -267,6 +284,171 @@ struct ContributorProfileSheet: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, HeirloomSpacing.sm)
+    }
+
+    // MARK: - Shared Recipes Section
+
+    @ViewBuilder
+    private var sharedRecipesSection: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            Text("Shared Recipes")
+                .font(HeirloomFonts.title3)
+                .foregroundStyle(HeirloomColors.primaryText)
+                .padding(.horizontal, HeirloomSpacing.md)
+
+            if isLoadingShares {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                        .padding(.vertical, HeirloomSpacing.lg)
+                    Spacer()
+                }
+            } else if sharedByMe.isEmpty && sharedByThem.isEmpty {
+                Text("No recipes shared yet")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .padding(.horizontal, HeirloomSpacing.md)
+                    .padding(.vertical, HeirloomSpacing.sm)
+            } else {
+                // Recipes you shared with them
+                if !sharedByMe.isEmpty {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                        Text("You Shared")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                            .padding(.horizontal, HeirloomSpacing.md)
+
+                        ForEach(sharedByMe) { share in
+                            sharedRecipeRow(share)
+                        }
+                    }
+                }
+
+                // Recipes they shared with you
+                if !sharedByThem.isEmpty {
+                    VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                        Text("They Shared")
+                            .font(HeirloomFonts.caption1Bold)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                            .padding(.horizontal, HeirloomSpacing.md)
+
+                        ForEach(sharedByThem) { share in
+                            sharedRecipeRow(share)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func sharedRecipeRow(_ share: SharedRecipeInfo) -> some View {
+        HStack(spacing: HeirloomSpacing.sm) {
+            Image(systemName: "doc.text")
+                .font(.body)
+                .foregroundStyle(HeirloomColors.tomato)
+                .frame(width: 32, height: 32)
+                .background(HeirloomColors.tomato.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(share.recipeTitle)
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(HeirloomColors.primaryText)
+                    .lineLimit(1)
+
+                Text(share.sharedAt.formatted(date: .abbreviated, time: .omitted))
+                    .font(HeirloomFonts.caption2)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(HeirloomColors.secondaryText)
+        }
+        .padding(.horizontal, HeirloomSpacing.md)
+        .padding(.vertical, HeirloomSpacing.sm)
+        .background(HeirloomColors.cardBackground)
+    }
+
+    // MARK: - Load Shared Recipes
+
+    private func loadSharedRecipes() async {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            await MainActor.run { isLoadingShares = false }
+            return
+        }
+
+        let db = Firestore.firestore()
+        let connectedUserId = connection.connectedUserId
+
+        do {
+            // Query shares where I shared with them
+            let mySharesSnapshot = try await db.collection("shares")
+                .whereField("ownerId", isEqualTo: currentUserId)
+                .whereField("recipientUserIds", arrayContains: connectedUserId)
+                .order(by: "sharedAt", descending: true)
+                .limit(to: 10)
+                .getDocuments()
+
+            let myShares = mySharesSnapshot.documents.compactMap { doc -> SharedRecipeInfo? in
+                let data = doc.data()
+                guard let recipeId = data["recipeId"] as? String,
+                      let recipeTitle = data["recipeTitle"] as? String,
+                      let sharedAtTimestamp = data["sharedAt"] as? Timestamp else {
+                    return nil
+                }
+                return SharedRecipeInfo(
+                    id: doc.documentID,
+                    recipeId: recipeId,
+                    recipeTitle: recipeTitle,
+                    sharedAt: sharedAtTimestamp.dateValue(),
+                    message: data["message"] as? String
+                )
+            }
+
+            // Query shares where they shared with me
+            let theirSharesSnapshot = try await db.collection("shares")
+                .whereField("ownerId", isEqualTo: connectedUserId)
+                .whereField("recipientUserIds", arrayContains: currentUserId)
+                .order(by: "sharedAt", descending: true)
+                .limit(to: 10)
+                .getDocuments()
+
+            let theirShares = theirSharesSnapshot.documents.compactMap { doc -> SharedRecipeInfo? in
+                let data = doc.data()
+                guard let recipeId = data["recipeId"] as? String,
+                      let recipeTitle = data["recipeTitle"] as? String,
+                      let sharedAtTimestamp = data["sharedAt"] as? Timestamp else {
+                    return nil
+                }
+                return SharedRecipeInfo(
+                    id: doc.documentID,
+                    recipeId: recipeId,
+                    recipeTitle: recipeTitle,
+                    sharedAt: sharedAtTimestamp.dateValue(),
+                    message: data["message"] as? String
+                )
+            }
+
+            await MainActor.run {
+                self.sharedByMe = myShares
+                self.sharedByThem = theirShares
+                self.isLoadingShares = false
+            }
+
+            Log.info("Loaded shared recipes", category: .social, metadata: [
+                "connectionId": connection.id,
+                "sharedByMe": myShares.count,
+                "sharedByThem": theirShares.count
+            ])
+        } catch {
+            await MainActor.run {
+                self.isLoadingShares = false
+            }
+            Log.error("Failed to load shared recipes", category: .social, error: error)
+        }
     }
 
     // MARK: - Edit Note Sheet

@@ -75,7 +75,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         self.crdtMergeEngine = crdtMergeEngine
     }
 
-    private var db: Firestore { configuration.db }
+    internal var db: Firestore { configuration.db }
     private var auth: Auth { configuration.auth }
 
     // MARK: - Configuration
@@ -1114,7 +1114,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
     /// Download recipe image from Firebase Storage and cache locally
     func downloadImage(for recipe: Recipe) async throws {
-        guard let firebaseImageURL = recipe.firebaseImageURL else {
+        guard let firebaseImageURL = recipe.firebaseImageURL, !firebaseImageURL.isEmpty else {
             return
         }
 
@@ -1127,9 +1127,29 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
         Log.info("Downloading image from Firebase Storage", category: .storage, metadata: ["title": recipe.title])
 
-        // Download from Firebase Storage
-        let storageRef = Storage.storage().reference(forURL: firebaseImageURL)
-        let imageData = try await storageRef.data(maxSize: 10 * 1024 * 1024) // Max 10MB
+        let imageData: Data
+
+        // Check URL format and download appropriately
+        if firebaseImageURL.hasPrefix("gs://") {
+            // Use Firebase Storage SDK for gs:// URLs
+            let storageRef = Storage.storage().reference(forURL: firebaseImageURL)
+            imageData = try await storageRef.data(maxSize: 10 * 1024 * 1024) // Max 10MB
+        } else if firebaseImageURL.contains("firebasestorage.googleapis.com") {
+            // Use Firebase Storage SDK for Firebase download URLs
+            let storageRef = Storage.storage().reference(forURL: firebaseImageURL)
+            imageData = try await storageRef.data(maxSize: 10 * 1024 * 1024) // Max 10MB
+        } else if let url = URL(string: firebaseImageURL) {
+            // Use URLSession for direct HTTP/HTTPS URLs (e.g., storage.googleapis.com)
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                Log.error("Failed to download image: HTTP error", category: .storage, metadata: ["url": firebaseImageURL])
+                throw SyncError.downloadFailed(NSError(domain: "FirebaseStorage", code: -1, userInfo: [NSLocalizedDescriptionKey: "HTTP download failed"]))
+            }
+            imageData = data
+        } else {
+            Log.error("Invalid image URL format", category: .storage, metadata: ["url": firebaseImageURL])
+            throw SyncError.downloadFailed(NSError(domain: "FirebaseStorage", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL format"]))
+        }
 
         guard let image = UIImage(data: imageData) else {
             Log.error("Failed to decode image data", category: .storage)

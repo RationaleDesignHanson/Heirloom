@@ -71,6 +71,7 @@ class ASMRRecipeStructurer {
     func structure(
         frames: FrameExtractionResult,
         userCaption: String,
+        dishNameHint: String? = nil,
         progressHandler: @Sendable (ASMRProcessingPass, [String]) -> Void
     ) async throws -> ASMRRecipeExtraction {
 
@@ -82,6 +83,7 @@ class ASMRRecipeStructurer {
         let dishResult = try await identifyDish(
             frames: frames.finalFrames,
             userCaption: userCaption,
+            dishNameHint: dishNameHint,
             progressHandler: progressHandler
         )
         totalTokens += dishResult.tokensUsed
@@ -192,13 +194,26 @@ class ASMRRecipeStructurer {
     private func identifyDish(
         frames: [ExtractedFrame],
         userCaption: String,
+        dishNameHint: String? = nil,
         progressHandler: @Sendable (ASMRProcessingPass, [String]) -> Void
     ) async throws -> (result: DishIdentificationResult, tokensUsed: Int, cost: Double, confidence: Double) {
 
+        // Use dish name hint if provided, otherwise fall back to user caption
+        let effectiveDescription = dishNameHint?.isEmpty == false ? dishNameHint! : userCaption
+        let hasExplicitHint = dishNameHint?.isEmpty == false
+
+        let hintSection = hasExplicitHint ? """
+
+        🎯 USER-PROVIDED DISH NAME: "\(effectiveDescription)"
+        The user has explicitly told us this dish is "\(effectiveDescription)".
+        Use this as the primary reference for identifying and naming the recipe.
+
+        """ : ""
+
         let prompt = """
         You are analyzing the final frames of a silent cooking video to identify the completed dish.
-
-        USER'S DESCRIPTION: "\(userCaption)"
+        \(hintSection)
+        USER'S DESCRIPTION: "\(effectiveDescription)"
 
         ⚠️ CRITICAL - TITLE PRESERVATION RULE ⚠️
         - The user explicitly described this dish as: "\(userCaption)"

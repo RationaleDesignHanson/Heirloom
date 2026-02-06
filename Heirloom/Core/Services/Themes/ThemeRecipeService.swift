@@ -118,12 +118,10 @@ class ThemeRecipeService {
         recipe.sourceStory = data["source"] as? String
         recipe.unlockDay = data["unlockDay"] as? Int ?? recipe.unlockDay ?? 1
 
-        // Get ingredients from document array
-        if let ingredientsArray = data["ingredients"] as? [[String: Any]] {
+        // Try to get ingredients from document array first (legacy format)
+        if let ingredientsArray = data["ingredients"] as? [[String: Any]], !ingredientsArray.isEmpty {
             for (index, ingData) in ingredientsArray.enumerated() {
-                // Format ingredient into readable text (like "1 pound elbow macaroni")
                 let originalText = formatIngredientText(ingData)
-
                 let ingredient = Ingredient(
                     originalText: originalText,
                     name: ingData["name"] as? String ?? "",
@@ -132,15 +130,50 @@ class ThemeRecipeService {
                     category: .other,
                     orderIndex: index
                 )
+                ingredient.recipe = recipe
+                context.insert(ingredient)
+            }
+        } else {
+            // Fetch from subcollection (current format)
+            let ingredientsSnapshot = try await document.reference.collection("ingredients")
+                .order(by: "order")
+                .getDocuments()
 
+            for ingDoc in ingredientsSnapshot.documents {
+                let ingData = ingDoc.data()
+                let originalText = ingData["text"] as? String ?? formatIngredientText(ingData)
+                let ingredient = Ingredient(
+                    originalText: originalText,
+                    name: ingData["name"] as? String ?? "",
+                    quantity: ingData["amount"] as? Double ?? ingData["quantity"] as? Double,
+                    unit: ingData["unit"] as? String,
+                    category: .other,
+                    orderIndex: ingData["order"] as? Int ?? 0
+                )
                 ingredient.recipe = recipe
                 context.insert(ingredient)
             }
         }
 
-        // Get instructions from document array
-        if let instructionsArray = data["instructions"] as? [String] {
+        // Try to get instructions from document array first (legacy format)
+        if let instructionsArray = data["instructions"] as? [String], !instructionsArray.isEmpty {
             recipe.instructions = instructionsArray
+        } else {
+            // Fetch from subcollection (current format)
+            let instructionsSnapshot = try await document.reference.collection("instructions")
+                .order(by: "order")
+                .getDocuments()
+
+            var instructions: [String] = []
+            for instDoc in instructionsSnapshot.documents {
+                let instData = instDoc.data()
+                if let text = instData["text"] as? String {
+                    instructions.append(text)
+                }
+            }
+            if !instructions.isEmpty {
+                recipe.instructions = instructions
+            }
         }
     }
 
@@ -170,13 +203,11 @@ class ThemeRecipeService {
         recipe.historicalText = data["story"] as? String
         recipe.sourceStory = data["source"] as? String
 
-        // Get ingredients from document array
+        // Try to get ingredients from document array first (legacy format)
         var ingredients: [Ingredient] = []
-        if let ingredientsArray = data["ingredients"] as? [[String: Any]] {
+        if let ingredientsArray = data["ingredients"] as? [[String: Any]], !ingredientsArray.isEmpty {
             for (index, ingData) in ingredientsArray.enumerated() {
-                // Format ingredient into readable text (like "1 pound elbow macaroni")
                 let originalText = formatIngredientText(ingData)
-
                 let ingredient = Ingredient(
                     originalText: originalText,
                     name: ingData["name"] as? String ?? "",
@@ -185,17 +216,57 @@ class ThemeRecipeService {
                     category: .other,
                     orderIndex: index
                 )
-
                 ingredient.recipe = recipe
                 ingredients.append(ingredient)
             }
+        } else {
+            // Fetch from subcollection (current format)
+            let ingredientsSnapshot = try await document.reference.collection("ingredients")
+                .order(by: "order")
+                .getDocuments()
+
+            Log.debug("Fetching ingredients from subcollection for '\(title)'", category: .onboarding)
+
+            for ingDoc in ingredientsSnapshot.documents {
+                let ingData = ingDoc.data()
+                let originalText = ingData["text"] as? String ?? formatIngredientText(ingData)
+                let ingredient = Ingredient(
+                    originalText: originalText,
+                    name: ingData["name"] as? String ?? "",
+                    quantity: ingData["amount"] as? Double ?? ingData["quantity"] as? Double,
+                    unit: ingData["unit"] as? String,
+                    category: .other,
+                    orderIndex: ingData["order"] as? Int ?? 0
+                )
+                ingredient.recipe = recipe
+                ingredients.append(ingredient)
+            }
+
+            Log.debug("Found \(ingredients.count) ingredients in subcollection for '\(title)'", category: .onboarding)
         }
 
         recipe.ingredients = ingredients
 
-        // Get instructions from document array
-        if let instructionsArray = data["instructions"] as? [String] {
+        // Try to get instructions from document array first (legacy format)
+        if let instructionsArray = data["instructions"] as? [String], !instructionsArray.isEmpty {
             recipe.instructions = instructionsArray
+        } else {
+            // Fetch from subcollection (current format)
+            let instructionsSnapshot = try await document.reference.collection("instructions")
+                .order(by: "order")
+                .getDocuments()
+
+            var instructions: [String] = []
+            for instDoc in instructionsSnapshot.documents {
+                let instData = instDoc.data()
+                if let text = instData["text"] as? String {
+                    instructions.append(text)
+                }
+            }
+            if !instructions.isEmpty {
+                recipe.instructions = instructions
+                Log.debug("Found \(instructions.count) instructions in subcollection for '\(title)'", category: .onboarding)
+            }
         }
 
         // Create and configure card back for theme recipes

@@ -202,27 +202,16 @@ final class DemoSocialGateTests: XCTestCase {
 // MARK: - Mock DemoSocialConfig
 
 /// Mock config for testing gate logic without Firebase dependency
-class MockDemoSocialConfig: DemoSocialConfig {
-    private let _isRemoteEnabled: Bool
-    private let _isExpired: Bool
-    private let _expirationDate: Date?
+/// Implements DemoSocialConfigProtocol instead of subclassing final class
+@MainActor
+final class MockDemoSocialConfig: DemoSocialConfigProtocol {
+    let isRemoteEnabled: Bool
+    let isExpired: Bool
+    let expirationDate: Date?
 
     init(isRemoteEnabled: Bool, isExpired: Bool, expirationDate: Date? = nil) {
-        self._isRemoteEnabled = isRemoteEnabled
-        self._isExpired = isExpired
-        self._expirationDate = expirationDate
-        super.init()
-    }
-
-    override var isRemoteEnabled: Bool {
-        _isRemoteEnabled
-    }
-
-    override var isExpired: Bool {
-        _isExpired
-    }
-
-    override var expirationDate: Date? {
-        _expirationDate
+        self.isRemoteEnabled = isRemoteEnabled
+        self.isExpired = isExpired
+        self.expirationDate = expirationDate
     }
 }

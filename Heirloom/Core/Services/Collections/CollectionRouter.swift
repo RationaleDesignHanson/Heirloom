@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import UIKit
 
 /// Routes recipes to appropriate collections based on their source
 @MainActor
@@ -221,12 +222,18 @@ class CollectionRouter {
         )
 
         if let existing = try? modelContext.fetch(descriptor).first {
+            // Ensure preset background is set for system collections that support it
+            applyPresetBackgroundIfNeeded(to: existing, type: type)
             return existing
         }
 
         // Create new collection
         let collection = RecipeCollection(name: name, iconName: iconName, collectionType: type)
         collection.createdDate = Date()
+
+        // Apply preset background for system collections
+        applyPresetBackgroundIfNeeded(to: collection, type: type)
+
         modelContext.insert(collection)
 
         Log.info("Created new collection", category: .collections, metadata: [
@@ -235,6 +242,36 @@ class CollectionRouter {
         ])
 
         return collection
+    }
+
+    /// Apply preset background image for specific collection types
+    private func applyPresetBackgroundIfNeeded(to collection: RecipeCollection, type: CollectionType) {
+        // Skip if collection already has a custom background
+        guard collection.customBackgroundImagePath == nil else { return }
+
+        // Map collection types to preset asset names
+        let presetAssetName: String? = switch type {
+        case .fromFriends:
+            "from-friends-bg"
+        case .videoImports:
+            "from-videos-bg"
+        case .webImports:
+            "from-web-bg"
+        case .photoImports:
+            "from-photos-bg"
+        default:
+            nil
+        }
+
+        // Check if bundled preset exists and apply
+        if let assetName = presetAssetName, UIImage(named: assetName) != nil {
+            collection.customBackgroundImagePath = "preset-\(assetName)"
+            collection.useCustomBackground = true
+            Log.info("Applied preset background to collection", category: .collections, metadata: [
+                "collection": collection.name,
+                "preset": assetName
+            ])
+        }
     }
 
     /// Find or create collection with job-level tracking to prevent duplicates within same import session

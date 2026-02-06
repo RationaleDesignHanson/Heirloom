@@ -166,15 +166,12 @@ struct OnboardingDiscoverScreen: View {
         VStack(spacing: 16) {
             // Recipe preview
             HStack(spacing: 12) {
-                // Recipe image
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.orange.opacity(0.3))
+                // Recipe image - using bundled asset
+                Image("onboarding-apple-pie")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
                     .frame(width: 80, height: 80)
-                    .overlay(
-                        Image(systemName: "fork.knife")
-                            .font(.title2)
-                            .foregroundColor(.orange.opacity(0.6))
-                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Grandma's Apple Pie")

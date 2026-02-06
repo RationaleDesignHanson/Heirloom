@@ -254,49 +254,70 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             updatedAt: now
         )
 
-        // Save both connections in a batch
-        let batch = db.batch()
+        // Check if target is a demo user
+        let isTargetDemoUser = DemoSocialBehaviorService.isDemoUser(targetUserId)
 
-        let outgoingData = try Firestore.Encoder().encode(outgoingConnection)
-        let outgoingRef = db.collection("users")
-            .document(userId)
-            .collection("connections")
-            .document(connectionId)
-        batch.setData(outgoingData, forDocument: outgoingRef)
+        // Save connections
+        // For demo users: only create doc in real user's account (demo accounts don't accumulate data)
+        // For real users: create bi-directional docs as normal
+        if isTargetDemoUser {
+            // Only create outgoing connection for real user
+            let outgoingData = try Firestore.Encoder().encode(outgoingConnection)
+            try await db.collection("users")
+                .document(userId)
+                .collection("connections")
+                .document(connectionId)
+                .setData(outgoingData)
+        } else {
+            // Create bi-directional connections for real users
+            let batch = db.batch()
 
-        let incomingData = try Firestore.Encoder().encode(incomingConnection)
-        let incomingRef = db.collection("users")
-            .document(targetUserId)
-            .collection("connections")
-            .document(connectionId)
-        batch.setData(incomingData, forDocument: incomingRef)
+            let outgoingData = try Firestore.Encoder().encode(outgoingConnection)
+            let outgoingRef = db.collection("users")
+                .document(userId)
+                .collection("connections")
+                .document(connectionId)
+            batch.setData(outgoingData, forDocument: outgoingRef)
 
-        try await batch.commit()
+            let incomingData = try Firestore.Encoder().encode(incomingConnection)
+            let incomingRef = db.collection("users")
+                .document(targetUserId)
+                .collection("connections")
+                .document(connectionId)
+            batch.setData(incomingData, forDocument: incomingRef)
+
+            try await batch.commit()
+        }
 
         // Clear cache
         connectionsCache.removeValue(forKey: userId)
 
-        // Create notification for recipient
-        try await createConnectionNotification(
-            for: targetUserId,
-            type: .connectionRequestReceived,
-            actorUserId: userId,
-            actorDisplayName: currentUserDisplayName,
-            connectionId: connectionId
-        )
+        // Create notification for recipient (skip for demo users - they don't need notifications)
+        if !isTargetDemoUser {
+            try await createConnectionNotification(
+                for: targetUserId,
+                type: .connectionRequestReceived,
+                actorUserId: userId,
+                actorDisplayName: currentUserDisplayName,
+                connectionId: connectionId
+            )
+        }
 
         Log.info("Sent connection request", category: .social, metadata: [
             "from": userId,
             "to": targetUserId,
-            "connectionId": connectionId
+            "connectionId": connectionId,
+            "isDemoTarget": isTargetDemoUser
         ])
 
         // Notify demo behavior service if this is to a demo user
-        Task { @MainActor in
-            DemoSocialBehaviorService.shared.onConnectionRequestSent(
-                to: targetUserId,
-                connectionId: connectionId
-            )
+        if isTargetDemoUser {
+            Task { @MainActor in
+                DemoSocialBehaviorService.shared.onConnectionRequestSent(
+                    to: targetUserId,
+                    connectionId: connectionId
+                )
+            }
         }
 
         return outgoingConnection
@@ -395,26 +416,7 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
 
         let connectionId = UUID().uuidString
         let now = Date()
-
-        // Create connection for inviter (who shared the link)
-        let inviterConnection = Connection(
-            id: connectionId,
-            userId: inviterUserId,
-            connectedUserId: userId,
-            connectedUserDisplayName: currentUserProfile?.displayName ?? "User",
-            connectedUserPhotoURL: currentUserProfile?.photoURL,
-            status: .connected, // Immediately connected
-            initiatedBy: inviterUserId,
-            requestedAt: now,
-            acceptedAt: now, // Accepted immediately
-            sourceKitchenTableId: nil,
-            recipesSharedCount: 0,
-            recipesReceivedCount: 0,
-            isFavorite: false,
-            privateNote: nil,
-            createdAt: now,
-            updatedAt: now
-        )
+        let isInviterDemoUser = DemoSocialBehaviorService.isDemoUser(inviterUserId)
 
         // Create connection for accepter (current user)
         let accepterConnection = Connection(
@@ -436,41 +438,77 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             updatedAt: now
         )
 
-        // Write both connections in a batch
-        let batch = db.batch()
+        // Write connection(s)
+        // For demo inviters: only create doc for accepter (demo accounts don't accumulate data)
+        // For real inviters: create bi-directional docs
+        if isInviterDemoUser {
+            // Only create accepter's connection
+            let accepterData = try Firestore.Encoder().encode(accepterConnection)
+            try await db.collection("users")
+                .document(userId)
+                .collection("connections")
+                .document(connectionId)
+                .setData(accepterData)
+        } else {
+            // Create connection for inviter (who shared the link)
+            let inviterConnection = Connection(
+                id: connectionId,
+                userId: inviterUserId,
+                connectedUserId: userId,
+                connectedUserDisplayName: currentUserProfile?.displayName ?? "User",
+                connectedUserPhotoURL: currentUserProfile?.photoURL,
+                status: .connected, // Immediately connected
+                initiatedBy: inviterUserId,
+                requestedAt: now,
+                acceptedAt: now, // Accepted immediately
+                sourceKitchenTableId: nil,
+                recipesSharedCount: 0,
+                recipesReceivedCount: 0,
+                isFavorite: false,
+                privateNote: nil,
+                createdAt: now,
+                updatedAt: now
+            )
 
-        let inviterData = try Firestore.Encoder().encode(inviterConnection)
-        let inviterRef = db.collection("users")
-            .document(inviterUserId)
-            .collection("connections")
-            .document(connectionId)
-        batch.setData(inviterData, forDocument: inviterRef)
+            // Write both connections in a batch
+            let batch = db.batch()
 
-        let accepterData = try Firestore.Encoder().encode(accepterConnection)
-        let accepterRef = db.collection("users")
-            .document(userId)
-            .collection("connections")
-            .document(connectionId)
-        batch.setData(accepterData, forDocument: accepterRef)
+            let inviterData = try Firestore.Encoder().encode(inviterConnection)
+            let inviterRef = db.collection("users")
+                .document(inviterUserId)
+                .collection("connections")
+                .document(connectionId)
+            batch.setData(inviterData, forDocument: inviterRef)
 
-        try await batch.commit()
+            let accepterData = try Firestore.Encoder().encode(accepterConnection)
+            let accepterRef = db.collection("users")
+                .document(userId)
+                .collection("connections")
+                .document(connectionId)
+            batch.setData(accepterData, forDocument: accepterRef)
+
+            try await batch.commit()
+        }
 
         // Clear cache
         connectionsCache.removeValue(forKey: userId)
 
-        // Create notification for inviter (they get notified someone accepted)
-        try await createConnectionNotification(
-            for: inviterUserId,
-            type: .connectionRequestAccepted,
-            actorUserId: userId,
-            actorDisplayName: currentUserProfile?.displayName ?? "User",
-            connectionId: connectionId
-        )
+        // Create notification for inviter (skip for demo users)
+        if !isInviterDemoUser {
+            try await createConnectionNotification(
+                for: inviterUserId,
+                type: .connectionRequestAccepted,
+                actorUserId: userId,
+                actorDisplayName: currentUserProfile?.displayName ?? "User",
+                connectionId: connectionId
+            )
+        }
 
         Log.info("Accepted connection invite from link", category: .social, metadata: [
             "accepter": userId,
             "inviter": inviterUserId,
-            "connectionId": connectionId
+            "connectionId": connectionId,
+            "isInviterDemo": isInviterDemoUser
         ])
 
         return accepterConnection
@@ -508,6 +546,7 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
         }
 
         let now = Date()
+        let isDemoConnection = DemoSocialBehaviorService.isDemoUser(connection.connectedUserId)
 
         // Fetch sender's profile to get their photoURL
         let senderProfileDoc = try await db.collection("users")
@@ -518,68 +557,92 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
 
         let senderPhotoURL = senderProfileDoc.data()?["photoURL"] as? String
 
-        // Fetch current user's profile to get their photoURL
-        let currentUserProfileDoc = try await db.collection("users")
-            .document(userId)
-            .collection("profile")
-            .document("data")
-            .getDocument()
+        // Update user's connection to connected status
+        // For demo connections: only update real user's doc (demo users don't have connection docs)
+        // For real connections: update both sides
+        if isDemoConnection {
+            // Only update real user's connection
+            try await db.collection("users")
+                .document(userId)
+                .collection("connections")
+                .document(connectionId)
+                .updateData([
+                    "status": ConnectionStatus.connected.rawValue,
+                    "acceptedAt": Timestamp(date: now),
+                    "updatedAt": Timestamp(date: now),
+                    "connectedUserPhotoURL": senderPhotoURL as Any
+                ])
+        } else {
+            // Fetch current user's profile to get their photoURL for the other user's doc
+            let currentUserProfileDoc = try await db.collection("users")
+                .document(userId)
+                .collection("profile")
+                .document("data")
+                .getDocument()
 
-        let currentUserPhotoURL = currentUserProfileDoc.data()?["photoURL"] as? String
+            let currentUserPhotoURL = currentUserProfileDoc.data()?["photoURL"] as? String
 
-        // Update both connections to connected status
-        let batch = db.batch()
+            // Update both connections to connected status
+            let batch = db.batch()
 
-        let userRef = db.collection("users")
-            .document(userId)
-            .collection("connections")
-            .document(connectionId)
+            let userRef = db.collection("users")
+                .document(userId)
+                .collection("connections")
+                .document(connectionId)
 
-        batch.updateData([
-            "status": ConnectionStatus.connected.rawValue,
-            "acceptedAt": Timestamp(date: now),
-            "updatedAt": Timestamp(date: now),
-            "connectedUserPhotoURL": senderPhotoURL as Any
-        ], forDocument: userRef)
+            batch.updateData([
+                "status": ConnectionStatus.connected.rawValue,
+                "acceptedAt": Timestamp(date: now),
+                "updatedAt": Timestamp(date: now),
+                "connectedUserPhotoURL": senderPhotoURL as Any
+            ], forDocument: userRef)
 
-        let connectedUserRef = db.collection("users")
-            .document(connection.connectedUserId)
-            .collection("connections")
-            .document(connectionId)
+            let connectedUserRef = db.collection("users")
+                .document(connection.connectedUserId)
+                .collection("connections")
+                .document(connectionId)
 
-        batch.updateData([
-            "status": ConnectionStatus.connected.rawValue,
-            "acceptedAt": Timestamp(date: now),
-            "updatedAt": Timestamp(date: now),
-            "connectedUserPhotoURL": currentUserPhotoURL as Any
-        ], forDocument: connectedUserRef)
+            batch.updateData([
+                "status": ConnectionStatus.connected.rawValue,
+                "acceptedAt": Timestamp(date: now),
+                "updatedAt": Timestamp(date: now),
+                "connectedUserPhotoURL": currentUserPhotoURL as Any
+            ], forDocument: connectedUserRef)
 
-        try await batch.commit()
+            try await batch.commit()
+        }
 
-        // Clear cache for both users
+        // Clear cache
         connectionsCache.removeValue(forKey: userId)
-        connectionsCache.removeValue(forKey: connection.connectedUserId)
+        if !isDemoConnection {
+            connectionsCache.removeValue(forKey: connection.connectedUserId)
+        }
 
-        // Create notification for initiator
-        try await createConnectionNotification(
-            for: connection.connectedUserId,
-            type: .connectionRequestAccepted,
-            actorUserId: userId,
-            actorDisplayName: auth.currentUser?.displayName ?? "User",
-            connectionId: connectionId
-        )
+        // Create notification for initiator (skip for demo users)
+        if !isDemoConnection {
+            try await createConnectionNotification(
+                for: connection.connectedUserId,
+                type: .connectionRequestAccepted,
+                actorUserId: userId,
+                actorDisplayName: auth.currentUser?.displayName ?? "User",
+                connectionId: connectionId
+            )
+        }
 
         Log.info("Accepted connection request", category: .social, metadata: [
             "userId": userId,
-            "connectionId": connectionId
+            "connectionId": connectionId,
+            "isDemoConnection": isDemoConnection
         ])
 
         // Notify demo behavior service if this was from a demo user
-        Task { @MainActor in
-            DemoSocialBehaviorService.shared.onDemoConnectionAccepted(
-                demoUserId: connection.connectedUserId,
-                connectionId: connectionId
-            )
+        if isDemoConnection {
+            Task { @MainActor in
+                DemoSocialBehaviorService.shared.onDemoConnectionAccepted(
+                    demoUserId: connection.connectedUserId,
+                    connectionId: connectionId
+                )
+            }
         }
     }
 
@@ -606,38 +669,53 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
         }
 
         let now = Date()
+        let isDemoConnection = DemoSocialBehaviorService.isDemoUser(connection.connectedUserId)
 
-        // Update both connections to rejected status
-        let batch = db.batch()
+        // Update connection(s) to rejected status
+        // For demo connections: only update real user's doc
+        // For real connections: update both sides
+        if isDemoConnection {
+            try await db.collection("users")
+                .document(userId)
+                .collection("connections")
+                .document(connectionId)
+                .updateData([
+                    "status": ConnectionStatus.rejected.rawValue,
+                    "updatedAt": Timestamp(date: now)
+                ])
+        } else {
+            let batch = db.batch()
 
-        let userRef = db.collection("users")
-            .document(userId)
-            .collection("connections")
-            .document(connectionId)
+            let userRef = db.collection("users")
+                .document(userId)
+                .collection("connections")
+                .document(connectionId)
 
-        batch.updateData([
-            "status": ConnectionStatus.rejected.rawValue,
-            "updatedAt": Timestamp(date: now)
-        ], forDocument: userRef)
+            batch.updateData([
+                "status": ConnectionStatus.rejected.rawValue,
+                "updatedAt": Timestamp(date: now)
+            ], forDocument: userRef)
 
-        let connectedUserRef = db.collection("users")
-            .document(connection.connectedUserId)
-            .collection("connections")
-            .document(connectionId)
+            let connectedUserRef = db.collection("users")
+                .document(connection.connectedUserId)
+                .collection("connections")
+                .document(connectionId)
 
-        batch.updateData([
-            "status": ConnectionStatus.rejected.rawValue,
-            "updatedAt": Timestamp(date: now)
-        ], forDocument: connectedUserRef)
+            batch.updateData([
+                "status": ConnectionStatus.rejected.rawValue,
+                "updatedAt": Timestamp(date: now)
+            ], forDocument: connectedUserRef)
 
-        try await batch.commit()
+            try await batch.commit()
+        }
 
         // Clear cache
         connectionsCache.removeValue(forKey: userId)
 
         Log.info("Declined connection request", category: .social, metadata: [
             "userId": userId,
-            "connectionId": connectionId
+            "connectionId": connectionId,
+            "isDemoConnection": isDemoConnection
         ])
     }
 
@@ -663,39 +741,77 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             )
         }
 
-        // Delete both connections using batch write
-        // Both connections share the same document ID (set during creation)
-        let batch = db.batch()
+        let connectedUserId = connection.connectedUserId
+        let isDemoConnection = DemoSocialBehaviorService.isDemoUser(connectedUserId)
 
-        // Delete user's own connection
-        let userRef = db.collection("users")
-            .document(userId)
-            .collection("connections")
-            .document(connectionId)
-        batch.deleteDocument(userRef)
+        // For demo users, we may not have permission to delete their side of the connection
+        // due to Firestore security rules. Handle this gracefully.
+        if isDemoConnection {
+            // Delete only the user's own connection for demo users
+            let userRef = db.collection("users")
+                .document(userId)
+                .collection("connections")
+                .document(connectionId)
 
-        // Delete reciprocal connection (same document ID in other user's collection)
-        let reciprocalRef = db.collection("users")
-            .document(connection.connectedUserId)
-            .collection("connections")
-            .document(connectionId)  // Same ID!
-        batch.deleteDocument(reciprocalRef)
+            try await userRef.delete()
 
-        Log.debug("Deleting both connection documents", category: .social, metadata: [
-            "connectionId": connectionId,
-            "connectedUserId": connection.connectedUserId
-        ])
+            // Try to delete demo user's side, but don't fail if it errors
+            // (security rules may prevent this)
+            let reciprocalRef = db.collection("users")
+                .document(connectedUserId)
+                .collection("connections")
+                .document(connectionId)
 
-        try await batch.commit()
+            do {
+                try await reciprocalRef.delete()
+                Log.debug("Deleted demo user's connection document", category: .social, metadata: [
+                    "connectionId": connectionId,
+                    "demoUserId": connectedUserId
+                ])
+            } catch {
+                // This is expected if security rules prevent cross-user writes
+                Log.debug("Could not delete demo user's connection (expected)", category: .social, metadata: [
+                    "connectionId": connectionId,
+                    "demoUserId": connectedUserId,
+                    "error": error.localizedDescription
+                ])
+            }
+        } else {
+            // For regular users, delete both connections using batch write
+            // Both connections share the same document ID (set during creation)
+            let batch = db.batch()
+
+            // Delete user's own connection
+            let userRef = db.collection("users")
+                .document(userId)
+                .collection("connections")
+                .document(connectionId)
+            batch.deleteDocument(userRef)
+
+            // Delete reciprocal connection (same document ID in other user's collection)
+            let reciprocalRef = db.collection("users")
+                .document(connectedUserId)
+                .collection("connections")
+                .document(connectionId)  // Same ID!
+            batch.deleteDocument(reciprocalRef)
+
+            Log.debug("Deleting both connection documents", category: .social, metadata: [
+                "connectionId": connectionId,
+                "connectedUserId": connectedUserId
+            ])
+
+            try await batch.commit()
+        }
 
         // Clear cache
         connectionsCache.removeValue(forKey: userId)
-        connectionsCache.removeValue(forKey: connection.connectedUserId)
+        connectionsCache.removeValue(forKey: connectedUserId)
 
         Log.info("Removed connection", category: .social, metadata: [
             "userId": userId,
             "connectionId": connectionId,
-            "connectedUserId": connection.connectedUserId
+            "connectedUserId": connectedUserId,
+            "isDemoConnection": isDemoConnection
         ])
     }
 

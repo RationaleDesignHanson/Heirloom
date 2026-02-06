@@ -81,7 +81,8 @@ protocol ASMRProcessorProtocol: AnyObject {
         videoURL: URL,
         userCaption: String,
         videoHash: String?,
-        skipSoundAnalysis: Bool
+        skipSoundAnalysis: Bool,
+        dishNameHint: String?
     ) async throws -> ASMRRecipeExtraction
 
     func cancel()

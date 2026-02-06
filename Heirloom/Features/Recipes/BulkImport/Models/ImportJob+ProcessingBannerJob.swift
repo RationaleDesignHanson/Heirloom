@@ -102,11 +102,11 @@ extension ImportJob: ProcessingBannerJob {
 
     var shouldShowInBanner: Bool {
         switch status {
-        case .processing, .paused:
+        case .processing, .paused, .completed:
             return true
         case .failed:
             return canResume
-        case .pending, .completed:
+        case .pending:
             return false
         }
     }

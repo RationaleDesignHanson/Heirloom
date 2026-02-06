@@ -7,24 +7,29 @@ struct FlipCard<Front: View, Back: View>: View {
     // MARK: - Properties
 
     @Binding var isFlipped: Bool
+    let showNudgeOnAppear: Bool
     let front: () -> Front
     let back: () -> Back
 
     @State private var rotation: Double = 0
     @State private var backOpacity: Double = 0
+    @State private var nudgeRotation: Double = 0
 
     // Animation config
     private let flipDuration: Double = 0.6
     private let flipAxis: (x: CGFloat, y: CGFloat, z: CGFloat) = (0, 1, 0) // Y-axis rotation
+    private let nudgeAngle: Double = 5.0 // Degrees for nudge hint
 
     // MARK: - Initialization
 
     init(
         isFlipped: Binding<Bool>,
+        showNudgeOnAppear: Bool = false,
         @ViewBuilder front: @escaping () -> Front,
         @ViewBuilder back: @escaping () -> Back
     ) {
         self._isFlipped = isFlipped
+        self.showNudgeOnAppear = showNudgeOnAppear
         self.front = front
         self.back = back
     }
@@ -37,7 +42,7 @@ struct FlipCard<Front: View, Back: View>: View {
             front()
                 .opacity(backOpacity < 0.5 ? 1 : 0)
                 .rotation3DEffect(
-                    .degrees(rotation),
+                    .degrees(rotation + nudgeRotation),
                     axis: flipAxis,
                     perspective: 0.5
                 )
@@ -52,6 +57,9 @@ struct FlipCard<Front: View, Back: View>: View {
                 )
         }
         .onChange(of: isFlipped) { oldValue, newValue in
+            // Cancel any ongoing nudge animation when flipping
+            nudgeRotation = 0
+
             withAnimation(.easeInOut(duration: flipDuration)) {
                 if newValue {
                     // Flip to back
@@ -87,6 +95,31 @@ struct FlipCard<Front: View, Back: View>: View {
             if isFlipped {
                 rotation = 180
                 backOpacity = 1
+            }
+
+            // Perform nudge animation if requested (first-time hint)
+            if showNudgeOnAppear && !isFlipped {
+                performNudgeAnimation()
+            }
+        }
+    }
+
+    // MARK: - Nudge Animation
+
+    /// Performs a subtle 3D rotation nudge to hint at flip functionality
+    private func performNudgeAnimation() {
+        // Wait a moment before nudging to let user settle
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // Animate clockwise
+            withAnimation(.easeOut(duration: 0.25)) {
+                nudgeRotation = nudgeAngle
+            }
+
+            // Animate back to center
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                withAnimation(.easeInOut(duration: 0.35)) {
+                    nudgeRotation = 0
+                }
             }
         }
     }

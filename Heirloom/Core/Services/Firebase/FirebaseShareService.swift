@@ -215,6 +215,12 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             "ingredientCount": recipeToShare.ingredients?.count ?? 0,
             "instructionCount": recipeToShare.instructions.count,
 
+            // Preview data for share preview UI
+            "ingredientsPreview": (recipeToShare.ingredients ?? [])
+                .prefix(6)
+                .compactMap { $0.displayText.isEmpty ? $0.originalText : $0.displayText },
+            "instructionsPreview": Array(recipeToShare.instructions.prefix(3)),
+
             // Image URL (critical for sharing with images)
             "firebaseImageURL": recipeToShare.firebaseImageURL as Any,
 
@@ -521,6 +527,28 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         }
 
         sharedRecipe.ingredients = ingredients.isEmpty ? nil : ingredients
+
+        // 6.5. Download instructions
+        let instructionsSnapshot = try await db.collection("users/\(ownerId)/recipes/\(recipeId)/instructions").getDocuments()
+        var instructionItems: [(order: Int, text: String)] = []
+
+        for instructionDoc in instructionsSnapshot.documents {
+            let instructionData = instructionDoc.data()
+            let order = instructionData["orderIndex"] as? Int ?? instructionData["order"] as? Int ?? 0
+            let text = instructionData["text"] as? String ?? ""
+            if !text.isEmpty {
+                instructionItems.append((order: order, text: text))
+            }
+        }
+
+        // Sort by order and extract text
+        instructionItems.sort { $0.order < $1.order }
+        sharedRecipe.instructions = instructionItems.map { $0.text }
+
+        Log.debug("Downloaded instructions for shared recipe", category: .firebase, metadata: [
+            "count": instructionItems.count,
+            "recipeId": recipeId
+        ])
 
         // 7. Download comments if included
         if shareData["includePinnedComments"] as? Bool == true || shareData["includeAllComments"] as? Bool == true {

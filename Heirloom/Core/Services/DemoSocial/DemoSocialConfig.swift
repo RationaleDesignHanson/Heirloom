@@ -7,11 +7,20 @@
 //
 
 import Foundation
+import FirebaseCore
 import FirebaseRemoteConfig
+
+/// Protocol for demo social configuration (enables testing)
+@MainActor
+protocol DemoSocialConfigProtocol {
+    var isRemoteEnabled: Bool { get }
+    var expirationDate: Date? { get }
+    var isExpired: Bool { get }
+}
 
 /// Configuration for demo social features from Remote Config
 @MainActor
-final class DemoSocialConfig: ObservableObject {
+final class DemoSocialConfig: ObservableObject, DemoSocialConfigProtocol {
 
     // MARK: - Remote Config Keys
 
@@ -20,10 +29,14 @@ final class DemoSocialConfig: ObservableObject {
 
     // MARK: - Properties
 
-    private let remoteConfig: RemoteConfig
+    private let remoteConfig: RemoteConfig?
 
     /// Whether demo social is enabled in Remote Config (defaults to true)
     var isRemoteEnabled: Bool {
+        guard let remoteConfig = remoteConfig else {
+            return true  // Default to enabled when Firebase not configured (tests)
+        }
+
         let configValue = remoteConfig.configValue(forKey: Self.demoSocialEnabledKey)
 
         // If never fetched or static default, return true (demo ON by default)
@@ -36,12 +49,16 @@ final class DemoSocialConfig: ObservableObject {
 
     /// Optional expiration date from Remote Config (ISO8601 format)
     var expirationDate: Date? {
+        guard let remoteConfig = remoteConfig else {
+            return nil  // No expiration when Firebase not configured
+        }
+
         let configValue = remoteConfig.configValue(forKey: Self.demoSocialExpirationKey)
 
         // If no value or empty string, no expiration
         guard configValue.source != .static else { return nil }
 
-        let dateString = configValue.stringValue ?? ""
+        let dateString = configValue.stringValue
         guard !dateString.isEmpty else { return nil }
 
         // Parse ISO8601 date
@@ -59,15 +76,21 @@ final class DemoSocialConfig: ObservableObject {
 
     // MARK: - Initialization
 
-    init(remoteConfig: RemoteConfig = RemoteConfig.remoteConfig()) {
-        self.remoteConfig = remoteConfig
-        setDefaultValues()
+    init(remoteConfig: RemoteConfig? = nil) {
+        // Only initialize RemoteConfig if Firebase is configured
+        if FirebaseApp.app() != nil {
+            self.remoteConfig = remoteConfig ?? RemoteConfig.remoteConfig()
+            setDefaultValues()
+        } else {
+            self.remoteConfig = remoteConfig
+        }
     }
 
     // MARK: - Private Methods
 
     /// Set default values for demo social config (demo ON by default)
     private func setDefaultValues() {
+        guard let remoteConfig = remoteConfig else { return }
         let defaults: [String: NSObject] = [
             Self.demoSocialEnabledKey: NSNumber(value: true),
             Self.demoSocialExpirationKey: "" as NSString  // Empty = no expiry

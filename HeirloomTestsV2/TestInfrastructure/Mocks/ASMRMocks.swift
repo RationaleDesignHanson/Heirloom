@@ -124,8 +124,9 @@ class MockASMRRecipeStructurer: ASMRRecipeStructurer {
     override func structure(
         frames: FrameExtractionResult,
         userCaption: String,
+        dishNameHint: String? = nil,
         progressHandler: @Sendable (ASMRProcessingPass, [String]) -> Void
-    ) async throws -> VideoRecipeExtraction {
+    ) async throws -> ASMRRecipeExtraction {
         structureCallCount += 1
         capturedCaptions.append(userCaption)
 

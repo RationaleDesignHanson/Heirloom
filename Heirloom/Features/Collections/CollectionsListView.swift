@@ -43,6 +43,12 @@ struct CollectionsListView: View {
     @State private var isRestoringFromFile = false
     @State private var showSettings = false
     @State private var pendingRecipeNavigation: Recipe?
+    @State private var selectedImportJobForReview: ImportJob?
+    @State private var selectedVideoJobForReview: VideoProcessingJob?
+    @State private var selectedVideoEnhanced: VideoRecipeExtraction.Enhanced?
+    @State private var showVideoReviewSheet = false
+    @State private var showVideoCollectionPicker = false
+    @State private var savedVideoRecipe: Recipe?
 
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
     private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
@@ -50,6 +56,7 @@ struct CollectionsListView: View {
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
     private var undoService: UndoService { ServiceContainer.shared.resolve(UndoService.self) }
     @ObservedObject private var importJobManager = ServiceContainer.shared.resolve(ImportJobManager.self)
+    private var videoJobManager: VideoProcessingJobManager { ServiceContainer.shared.resolve(VideoProcessingJobManager.self) }
 
     // MARK: - Filtered Collections
 
@@ -198,13 +205,13 @@ struct CollectionsListView: View {
                 // Unified processing banner for all job types (video, import, generation)
                 UnifiedProcessingBanner(
                     onVideoJobTap: { job in
-                        // Handle video job tap - could navigate to review view
+                        openVideoReviewScreen(for: job)
                     },
                     onImportJobTap: { job in
-                        // Handle import job tap - could show import details
+                        selectedImportJobForReview = job
                     },
                     onGenerationJobTap: { job in
-                        // Handle generation job tap
+                        navigateToGeneratedRecipe(for: job)
                     }
                 )
 
@@ -288,6 +295,31 @@ struct CollectionsListView: View {
                 NavigationStack {
                     SettingsView()
                         .environmentObject(tabCoordinator)
+                }
+            }
+            .sheet(item: $selectedImportJobForReview) { job in
+                NavigationStack {
+                    ImportReviewView(manager: importJobManager, job: job)
+                }
+            }
+            .sheet(isPresented: $showVideoReviewSheet) {
+                if let enhanced = selectedVideoEnhanced, let job = selectedVideoJobForReview {
+                    VideoRecipeReviewView(
+                        extraction: enhanced.original,
+                        enhancedExtraction: enhanced,
+                        onSave: { updatedExtraction in
+                            saveVideoRecipe(from: updatedExtraction, job: job)
+                            showVideoReviewSheet = false
+                        },
+                        onCancel: {
+                            showVideoReviewSheet = false
+                        }
+                    )
+                }
+            }
+            .sheet(isPresented: $showVideoCollectionPicker) {
+                if let recipe = savedVideoRecipe {
+                    TagCollectionPickerView(recipe: recipe)
                 }
             }
             .navigationDestination(for: RecipeCollection.self) { collection in
@@ -655,9 +687,10 @@ struct CollectionsListView: View {
                                 : nil
                         ),
                         // Pass total recipe count for "All Recipes" collection (recipes aren't linked to it directly)
-                        totalRecipeCount: collection.isAllRecipes ? allRecipes.count : nil,
-                        // Pass all recipes for "All Recipes" thumbnails
-                        allRecipesForThumbnails: collection.isAllRecipes ? allRecipes : nil
+                        // Uses userRecipes to exclude theme collection recipes from the count
+                        totalRecipeCount: collection.isAllRecipes ? userRecipes.count : nil,
+                        // Pass user recipes (excluding theme) for "All Recipes" thumbnails
+                        allRecipesForThumbnails: collection.isAllRecipes ? userRecipes : nil
                     )
                 }
                 .buttonStyle(.plain)
@@ -1196,6 +1229,105 @@ struct CollectionsListView: View {
     private func handleReadRecipe() {
         tabCoordinator.willCreateRecipe(from: .collectionsTab)
         showReadRecipe = true
+    }
+
+    // MARK: - Video Job Review
+
+    private func openVideoReviewScreen(for job: VideoProcessingJob) {
+        guard job.status == .completed,
+              let extractionData = job.extractionJSON else {
+            Log.error("Cannot open review screen - job not completed or no extraction data", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "status": job.status.rawValue
+            ])
+            return
+        }
+
+        do {
+            // Try to decode enhanced extraction first (new format with augmentation)
+            let enhanced = try JSONDecoder().decode(VideoRecipeExtraction.Enhanced.self, from: extractionData)
+            selectedVideoJobForReview = job
+            selectedVideoEnhanced = enhanced
+            showVideoReviewSheet = true
+        } catch {
+            // Fallback: Try decoding old format (base extraction without augmentation)
+            do {
+                let baseExtraction = try JSONDecoder().decode(VideoRecipeExtraction.self, from: extractionData)
+                // Wrap in Enhanced with empty augmentation
+                let enhanced = VideoRecipeExtraction.Enhanced(
+                    original: baseExtraction,
+                    augmentedRecipe: nil,
+                    similarRecipes: [],
+                    webRecipes: []
+                )
+                selectedVideoJobForReview = job
+                selectedVideoEnhanced = enhanced
+                showVideoReviewSheet = true
+
+                Log.info("Loaded old job format without augmentation", category: .video, metadata: [
+                    "jobId": job.id.uuidString
+                ])
+            } catch {
+                Log.error("Failed to decode extraction from job", category: .video, metadata: [
+                    "jobId": job.id.uuidString,
+                    "error": error.localizedDescription
+                ])
+            }
+        }
+    }
+
+    private func navigateToGeneratedRecipe(for job: RecipeGenerationJob) {
+        // Only handle completed jobs with a recipe
+        guard job.status == .completed,
+              let recipeId = job.placeholderRecipeId else {
+            Log.debug("Cannot navigate - job not completed or no recipe ID", category: .general, metadata: [
+                "jobId": job.id.uuidString,
+                "status": job.status.rawValue
+            ])
+            return
+        }
+
+        // Find the generated recipe by ID
+        if let recipe = allRecipes.first(where: { $0.id == recipeId }) {
+            pendingRecipeNavigation = recipe
+        } else {
+            Log.warning("Generated recipe not found", category: .general, metadata: [
+                "recipeId": recipeId.uuidString,
+                "jobId": job.id.uuidString
+            ])
+            toastManager.error(title: "Recipe not found", message: "The generated recipe could not be located")
+        }
+    }
+
+    private func saveVideoRecipe(from extraction: VideoRecipeExtraction, job: VideoProcessingJob) {
+        guard let job = selectedVideoJobForReview else { return }
+
+        do {
+            // Use centralized save method from job manager
+            let recipe = try videoJobManager.saveRecipeFromJob(job, context: modelContext)
+
+            Log.info("Recipe saved successfully via job manager", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "recipeId": recipe.id.uuidString
+            ])
+
+            // Show collection picker after review sheet dismisses
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 700_000_000) // 0.7 seconds
+                savedVideoRecipe = recipe
+                showVideoCollectionPicker = true
+            }
+        } catch {
+            Log.error("Failed to save recipe from job", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "error": error.localizedDescription
+            ])
+
+            toastManager.error(
+                title: "Failed to Save Recipe",
+                message: error.localizedDescription
+            )
+        }
     }
 
     /// Handle tap on + affordance in collection card - routes to appropriate ingress based on collection type

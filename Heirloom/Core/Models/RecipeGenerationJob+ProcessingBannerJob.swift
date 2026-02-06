@@ -11,12 +11,16 @@ extension RecipeGenerationJob: ProcessingBannerJob {
 
     var bannerTitle: String {
         switch status {
+        case .pending:
+            return "Queued"
         case .processing:
             return currentPhase.displayText
         case .completed:
             return "Recipe Generated"
         case .failed:
             return "Generation Failed"
+        case .dismissed:
+            return "Dismissed"
         }
     }
 
@@ -51,9 +55,11 @@ extension RecipeGenerationJob: ProcessingBannerJob {
 
     var bannerStatus: ProcessingBannerStatus {
         switch status {
+        case .pending:
+            return .pending
         case .processing:
             return .processing
-        case .completed:
+        case .completed, .dismissed:
             return .completed
         case .failed:
             return .failed(canRetry: true)
@@ -61,6 +67,11 @@ extension RecipeGenerationJob: ProcessingBannerJob {
     }
 
     var shouldShowInBanner: Bool {
-        status == .processing || status == .failed
+        switch status {
+        case .pending, .processing, .failed, .completed:
+            return true
+        case .dismissed:
+            return false
+        }
     }
 }

@@ -27,6 +27,9 @@ struct UnifiedProcessingBanner: View {
     // State for showing queue view
     @State private var showQueueView = false
 
+    // Track jobs scheduled for auto-dismiss to prevent duplicate timers
+    @State private var autoDismissScheduled: Set<UUID> = []
+
     // Callbacks for job interactions from queue view
     var onVideoJobTap: ((VideoProcessingJob) -> Void)?
     var onImportJobTap: ((ImportJob) -> Void)?
@@ -38,6 +41,18 @@ struct UnifiedProcessingBanner: View {
                 bannerContent(for: priorityJob)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .animation(.spring(response: 0.3, dampingFraction: 0.8), value: priorityJob.id)
+                    .onAppear {
+                        // Auto-dismiss completed jobs after 3 seconds
+                        if canDismiss(priorityJob) {
+                            scheduleAutoDismiss(for: priorityJob)
+                        }
+                    }
+                    .onChange(of: priorityJob.bannerStatus) { _, newStatus in
+                        // Auto-dismiss when job completes
+                        if case .completed = newStatus {
+                            scheduleAutoDismiss(for: priorityJob)
+                        }
+                    }
             }
         }
         .sheet(isPresented: $showQueueView) {
@@ -272,6 +287,55 @@ struct UnifiedProcessingBanner: View {
 
         guard count > 0 else { return 0 }
         return totalProgress / Double(count)
+    }
+
+    // MARK: - Dismiss Actions
+
+    /// Check if the priority job can be dismissed (completed or failed)
+    private func canDismiss(_ job: AnyProcessingJob) -> Bool {
+        switch job.bannerStatus {
+        case .completed, .failed:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Schedule auto-dismiss for a completed job after 3 seconds
+    private func scheduleAutoDismiss(for job: AnyProcessingJob) {
+        // Don't schedule if already scheduled
+        guard !autoDismissScheduled.contains(job.id) else { return }
+        autoDismissScheduled.insert(job.id)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            // Only dismiss if the job is still the priority job and still completed
+            if let currentPriority = priorityJob,
+               currentPriority.id == job.id,
+               canDismiss(currentPriority) {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    dismissJob(job)
+                }
+            }
+            autoDismissScheduled.remove(job.id)
+        }
+    }
+
+    /// Dismiss a specific job
+    private func dismissJob(_ job: AnyProcessingJob) {
+        switch job.jobType {
+        case .video:
+            if let videoJob = videoJobs.first(where: { $0.id == job.id }) {
+                videoJob.status = .saved
+            }
+        case .importJob:
+            if let importJob = importJobs.first(where: { $0.id == job.id }) {
+                modelContext.delete(importJob)
+            }
+        case .generation:
+            if let genJob = generationJobs.first(where: { $0.id == job.id }) {
+                genJob.status = .dismissed
+            }
+        }
     }
 }
 

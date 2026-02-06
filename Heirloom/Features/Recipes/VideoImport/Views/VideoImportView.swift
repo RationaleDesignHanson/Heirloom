@@ -20,6 +20,7 @@ struct VideoImportView: View {
     @State private var showVideoPicker = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @State private var isLoadingVideo = false
     @StateObject private var jobManager = VideoProcessingJobManager()
 
     private var toastManager: ToastManager { ServiceContainer.shared.resolve(ToastManager.self) }
@@ -107,11 +108,33 @@ struct VideoImportView: View {
             .sheet(isPresented: $showVideoPicker) {
                 VideoPickerView(
                     selectedURL: $selectedVideoURL,
+                    isLoading: $isLoadingVideo,
                     onError: { error in
                         errorMessage = error
                         showErrorAlert = true
                     }
                 )
+            }
+            .overlay {
+                // Loading overlay while video is being copied from Photos library
+                if isLoadingVideo {
+                    ZStack {
+                        Color.black.opacity(0.4)
+                            .ignoresSafeArea()
+
+                        VStack(spacing: HeirloomSpacing.md) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                                .tint(.white)
+                            Text("Loading video...")
+                                .font(HeirloomFonts.bodyBold)
+                                .foregroundStyle(.white)
+                        }
+                        .padding(HeirloomSpacing.xl)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(16)
+                    }
+                }
             }
             .alert("Video Loading Failed", isPresented: $showErrorAlert) {
                 Button("OK", role: .cancel) {}
@@ -229,6 +252,7 @@ struct SourceOptionRow: View {
 
 struct VideoPickerView: UIViewControllerRepresentable {
     @Binding var selectedURL: URL?
+    @Binding var isLoading: Bool
     let onError: (String) -> Void
     @Environment(\.dismiss) private var dismiss
 
@@ -281,9 +305,15 @@ struct VideoPickerView: UIViewControllerRepresentable {
         }
 
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            // Dismiss picker immediately
             parent.dismiss()
 
             guard let result = results.first else { return }
+
+            // Show loading indicator while video is being copied
+            DispatchQueue.main.async {
+                self.parent.isLoading = true
+            }
 
             // Try to load as data (more reliable in simulator and with iCloud videos)
             result.itemProvider.loadDataRepresentation(forTypeIdentifier: "public.movie") { data, error in
@@ -302,6 +332,7 @@ struct VideoPickerView: UIViewControllerRepresentable {
                     }
 
                     DispatchQueue.main.async {
+                        self.parent.isLoading = false
                         self.parent.onError(errorMsg)
                     }
                     return
@@ -311,10 +342,12 @@ struct VideoPickerView: UIViewControllerRepresentable {
                 do {
                     let persistentURL = try self.saveToProcessingStorage(data)
                     DispatchQueue.main.async {
+                        self.parent.isLoading = false
                         self.parent.selectedURL = persistentURL
                     }
                 } catch {
                     DispatchQueue.main.async {
+                        self.parent.isLoading = false
                         self.parent.onError("Failed to save video: \(error.localizedDescription)")
                     }
                 }

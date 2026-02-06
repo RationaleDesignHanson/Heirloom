@@ -103,6 +103,11 @@ final class VideoProcessingJob {
     /// Attribution text for source
     var sourceAttribution: String?
 
+    // MARK: - ASMR Hints
+
+    /// User-provided dish name hint to help AI understand ASMR videos
+    var dishNameHint: String?
+
     // MARK: - Initialization
 
     init(
@@ -112,7 +117,8 @@ final class VideoProcessingJob {
         videoDuration: TimeInterval? = nil,
         videoHash: String? = nil,
         sourceURL: String? = nil,
-        sourceAttribution: String? = nil
+        sourceAttribution: String? = nil,
+        dishNameHint: String? = nil
     ) {
         self.id = UUID()
         self.createdAt = Date()
@@ -123,6 +129,7 @@ final class VideoProcessingJob {
         self.videoHash = videoHash
         self.sourceURL = sourceURL
         self.sourceAttribution = sourceAttribution
+        self.dishNameHint = dishNameHint
 
         // Initial state
         self.status = .pending

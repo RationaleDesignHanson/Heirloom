@@ -45,7 +45,7 @@ struct FirebaseSignInView: View {
                         .font(HeirloomFonts.title1)
                         .foregroundColor(HeirloomColors.primaryText)
 
-                    Text("Sign in to sync your recipes...")
+                    Text("Preserve the recipes you love — save from anywhere, share with people you trust.")
                         .font(HeirloomFonts.body)
                         .foregroundColor(HeirloomColors.secondaryText)
                         .multilineTextAlignment(.center)

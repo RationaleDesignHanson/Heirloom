@@ -144,7 +144,8 @@ final class VideoProcessingJobManager: ObservableObject {
         userCaption: String?,
         videoDuration: TimeInterval?,
         sourceAttribution: VideoSourceAttribution?,
-        context: ModelContext
+        context: ModelContext,
+        dishNameHint: String? = nil
     ) throws -> VideoProcessingJob {
         // STEP 1: Compute video hash for duplicate detection
         let videoData = try Data(contentsOf: videoURL)
@@ -193,7 +194,8 @@ final class VideoProcessingJobManager: ObservableObject {
             videoDuration: videoDuration,
             videoHash: videoHash,
             sourceURL: sourceAttribution?.sourceURL,
-            sourceAttribution: sourceAttribution?.creatorName
+            sourceAttribution: sourceAttribution?.creatorName,
+            dishNameHint: dishNameHint
         )
 
         // Generate thumbnail asynchronously (don't block job creation)
@@ -600,7 +602,8 @@ final class VideoProcessingJobManager: ObservableObject {
         let extraction = try await processor.process(
             videoURL: videoURL,
             userCaption: job.userCaption ?? "",
-            videoHash: nil
+            videoHash: nil,
+            dishNameHint: job.dishNameHint
         )
 
         // Return enhanced extraction with augmentation data
@@ -666,19 +669,15 @@ final class VideoProcessingJobManager: ObservableObject {
     private func classifyError(_ error: Error) -> ProcessingErrorType {
         let description = error.localizedDescription.lowercased()
 
-        // Check for audio/transcription errors
-        if description.contains("missing") ||
-           description.contains("no audio") ||
-           description.contains("transcription failed") ||
-           description.contains("insufficient data") ||
-           description.contains("insufficient content") ||
-           description.contains("silent") ||
-           description.contains("no speech") ||
-           description.contains("confidence") ||
-           description.contains("extraction") ||
-           description.contains("narration") ||
-           description.contains("too short") {
-            return .insufficientAudioData
+        // Check for JSON/AI parsing errors FIRST - these should NOT trigger ASMR recommendation
+        // These are backend failures, not audio issues
+        if description.contains("decode json") ||
+           description.contains("json decoding") ||
+           description.contains("parsing failed") ||
+           description.contains("invalid json") ||
+           description.contains("couldn't be read") ||
+           description.contains("data is missing") {
+            return .other
         }
 
         // Check for file not found errors
@@ -694,6 +693,19 @@ final class VideoProcessingJobManager: ObservableObject {
            description.contains("not authorized") ||
            description.contains("access denied") {
             return .permissionDenied
+        }
+
+        // Check for audio/transcription errors - only after ruling out JSON/parsing errors
+        // These indicate the video lacks clear narration and ASMR might help
+        if description.contains("no audio") ||
+           description.contains("transcription failed") ||
+           description.contains("insufficient audio") ||
+           description.contains("silent") ||
+           description.contains("no speech") ||
+           description.contains("narration") ||
+           description.contains("unclear speech") ||
+           description.contains("too short") {
+            return .insufficientAudioData
         }
 
         // Default to generic error
@@ -1386,7 +1398,7 @@ final class VideoProcessingJobManager: ObservableObject {
         let asset = AVURLAsset(url: url)
         let imageGenerator = AVAssetImageGenerator(asset: asset)
         imageGenerator.appliesPreferredTrackTransform = true
-        imageGenerator.maximumSize = CGSize(width: 192, height: 192)
+        imageGenerator.maximumSize = CGSize(width: 600, height: 600)
 
         do {
             // Generate thumbnail at 1 second into the video

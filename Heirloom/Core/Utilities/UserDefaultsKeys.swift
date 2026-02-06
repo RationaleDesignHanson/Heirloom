@@ -26,6 +26,9 @@ enum UserDefaultsKeys {
     /// Has user seen the share extension coach mark?
     static let hasSeenShareExtensionCoachMark = "has_seen_share_extension_coach_mark"
 
+    /// Has user seen the card flip nudge animation?
+    static let hasSeenCardFlipNudge = "has_seen_card_flip_nudge"
+
     // MARK: - Subscription & Trial
 
     /// Current subscription status (raw value of SubscriptionStatus enum)
@@ -82,6 +85,7 @@ enum UserDefaultsKeys {
         UserDefaults.standard.removeObject(forKey: hasSeenRecipeCoachMark)
         UserDefaults.standard.removeObject(forKey: hasSeenToolbarCoachMark)
         UserDefaults.standard.removeObject(forKey: hasSeenShareExtensionCoachMark)
+        UserDefaults.standard.removeObject(forKey: hasSeenCardFlipNudge)
     }
 
     /// Reset all subscription-related keys (for testing)

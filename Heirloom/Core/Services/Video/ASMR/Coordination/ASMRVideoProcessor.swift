@@ -85,7 +85,8 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         videoURL: URL,
         userCaption: String,
         videoHash: String?,
-        skipSoundAnalysis: Bool = false
+        skipSoundAnalysis: Bool = false,
+        dishNameHint: String? = nil
     ) async throws -> ASMRRecipeExtraction {
 
         // Check credit availability
@@ -104,7 +105,8 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
                 videoURL: videoURL,
                 userCaption: userCaption,
                 videoHash: videoHash,
-                skipSoundAnalysis: skipSoundAnalysis
+                skipSoundAnalysis: skipSoundAnalysis,
+                dishNameHint: dishNameHint
             )
             return result
         } catch {
@@ -131,7 +133,8 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         videoURL: URL,
         userCaption: String,
         videoHash: String?,
-        skipSoundAnalysis: Bool
+        skipSoundAnalysis: Bool,
+        dishNameHint: String? = nil
     ) async throws -> ASMRRecipeExtraction {
 
         // Enable keep-alive to prevent screen sleep during processing
@@ -218,6 +221,7 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         let extraction = try await structurer.structure(
             frames: frames,
             userCaption: userCaption,
+            dishNameHint: dishNameHint,
             progressHandler: { [weak self] pass, findings in
                 Task { @MainActor in
                     guard let self = self else { return }

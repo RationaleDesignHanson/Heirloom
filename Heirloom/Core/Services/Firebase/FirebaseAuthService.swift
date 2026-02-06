@@ -104,8 +104,16 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
                 } else {
                     self.logger.log("User signed out", category: .auth, level: .info, metadata: nil)
 
-                    // Clear user data on sign out as well
-                    await self.clearAllUserData()
+                    // Only clear user data if there WAS a previous user (actual sign out)
+                    // Don't clear on initial app launch when user is nil from the start
+                    if previousUserId != nil {
+                        self.logger.log("Previous user existed, clearing data on sign out", category: .auth, level: .info, metadata: [
+                            "previousUser": previousUserId ?? "unknown"
+                        ])
+                        await self.clearAllUserData()
+                    } else {
+                        self.logger.log("No previous user, skipping data clear (initial app state)", category: .auth, level: .info, metadata: nil)
+                    }
                 }
             }
         }

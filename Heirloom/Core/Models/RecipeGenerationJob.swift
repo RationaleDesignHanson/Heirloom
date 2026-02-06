@@ -32,7 +32,7 @@ final class RecipeGenerationJob {
         self.ingredients = ingredients
         self.transcript = transcript
         self.targetCollectionId = targetCollectionId
-        self.status = .processing
+        self.status = .pending
         self.currentPhase = .analyzing
         self.createdAt = Date()
     }
@@ -40,9 +40,11 @@ final class RecipeGenerationJob {
 
 // MARK: - RecipeGenerationStatus
 enum RecipeGenerationStatus: String, Codable {
+    case pending    // Queued but not yet started
     case processing
     case completed
     case failed
+    case dismissed  // User dismissed the completed notification
 }
 
 // MARK: - RecipeGenerationPhase
