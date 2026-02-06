@@ -333,7 +333,10 @@ struct UnifiedProcessingQueueView: View {
                 onVideoJobTap?(videoJob)
             }
         case .importJob:
-            if let importJob = importJobs.first(where: { $0.id == job.id }) {
+            // Only allow tap-through for completed import jobs
+            // Processing jobs can crash due to SwiftData threading issues
+            if let importJob = importJobs.first(where: { $0.id == job.id }),
+               importJob.status == .completed || importJob.status == .failed {
                 onImportJobTap?(importJob)
             }
         case .generation:
