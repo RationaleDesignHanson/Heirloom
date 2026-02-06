@@ -542,6 +542,7 @@ struct RecipeDetailView: View {
                         recipe: recipe,
                         displayTitle: displayTitle,
                         isInShoppingCart: isInShoppingCart,
+                        selectedVersionCreatorName: selectedVersion?.isCurrent == false ? selectedVersion?.modifiedByName : nil,
                         onToggleFavorite: toggleFavorite,
                         onAddToShoppingList: addToShoppingList,
                         onViewOriginalRecipe: recipe.hasPublicUpstream ? {
@@ -750,6 +751,13 @@ private struct RecipeDetailModifiers: ViewModifier {
             // Track last viewed timestamp and mark as viewed
             recipe.lastViewed = Date()
             recipe.hasBeenViewed = true
+
+            // Clear conflict badge when viewing the recipe
+            if recipe.showConflictBadge || recipe.hasPendingConflicts {
+                recipe.showConflictBadge = false
+                recipe.hasPendingConflicts = false
+            }
+
             try? modelContext.save()
 
             analytics.trackRecipeViewed(recipe: recipe)

@@ -15,6 +15,7 @@ struct RecipeDetailHeader: View {
     let recipe: Recipe
     let displayTitle: String
     let isInShoppingCart: Bool
+    let selectedVersionCreatorName: String?  // Name of creator when viewing another version
     let onToggleFavorite: () -> Void
     let onAddToShoppingList: () -> Void
     let onViewOriginalRecipe: (() -> Void)?
@@ -50,7 +51,8 @@ struct RecipeDetailHeader: View {
                 HStack(spacing: HeirloomSpacing.xs) {
                     Image(systemName: recipe.sourceType?.iconName ?? "square.and.pencil")
                         .font(HeirloomFonts.caption1)
-                    Text(recipe.sourceDisplayName)
+                    // Show selected version's creator name if viewing another version, otherwise show recipe source
+                    Text(selectedVersionCreatorName ?? recipe.sourceDisplayName)
                         .font(HeirloomFonts.caption1)
 
                     // Community attribution (if from public recipe) - tappable to view original
@@ -133,6 +135,7 @@ struct RecipeDetailHeader: View {
         recipe: recipe,
         displayTitle: "Classic Chocolate Chip Cookies",
         isInShoppingCart: false,
+        selectedVersionCreatorName: nil,
         onToggleFavorite: { Log.debug("Preview: Toggle favorite", category: .ui) },
         onAddToShoppingList: { Log.debug("Preview: Add to shopping list", category: .ui) },
         onViewOriginalRecipe: nil

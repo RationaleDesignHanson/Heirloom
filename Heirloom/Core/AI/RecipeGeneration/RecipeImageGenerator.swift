@@ -61,39 +61,40 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
     // MARK: - Private Methods
 
     /// Build an optimized prompt for Flux/DALL-E image generation
-    /// Structure: [dish description], [key ingredients], [style modifiers], [quality keywords]
+    /// Structure: [finished dish emphasis], [dish description], [presentation], [style modifiers]
     private func buildPrompt(for recipe: Recipe) -> String {
         let selectedStyle = styleConfig.selectedStyle
 
         // Build dish description - be specific about the food
         let dishDescription = recipe.title
 
-        // Include actual ingredient names (limit to 4 most interesting)
-        // Less aggressive filtering - include ingredients that describe the dish
+        // Extract key visual ingredients (limit to 3 most visually distinctive)
         var ingredientHints: [String] = []
         if let ingredients = recipe.ingredients, !ingredients.isEmpty {
             // Take first 6 ingredients and extract the key visual parts
             let ingredientNames = ingredients.prefix(6).compactMap { ingredient -> String? in
                 let name = ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                 // Skip generic items that don't add visual info
-                let skipWords = ["salt", "pepper", "water", "oil", "for serving", "to taste", "pinch"]
-                if skipWords.contains(where: { name.contains($0) }) || name.isEmpty {
+                let skipWords = ["salt", "pepper", "water", "oil", "for serving", "to taste", "pinch",
+                                "flour", "sugar", "butter", "egg", "eggs", "cream cheese", "mayonnaise"]
+                if skipWords.contains(where: { name.contains($0) }) || name.isEmpty || name.count < 3 {
                     return nil
                 }
                 return name
             }
-            ingredientHints = Array(ingredientNames.prefix(4))
+            ingredientHints = Array(ingredientNames.prefix(3))
         }
 
-        // Build the prompt with clear structure for Flux
+        // Build the prompt with emphasis on THE FINISHED DISH, plated and ready to serve
         var promptParts: [String] = []
 
-        // Subject: the dish
-        promptParts.append("beautiful \(dishDescription)")
+        // CRITICAL: Emphasize this is a finished, plated dish - not raw ingredients
+        promptParts.append("a beautifully plated finished dish of \(dishDescription)")
+        promptParts.append("ready to serve")
 
-        // Add ingredient visual hints - these help the AI understand what the dish looks like
+        // Add ingredient hints only if they help describe the visual appearance
         if !ingredientHints.isEmpty {
-            promptParts.append("featuring \(ingredientHints.joined(separator: ", "))")
+            promptParts.append("made with \(ingredientHints.joined(separator: " and "))")
         }
 
         // Add cuisine style from tags if available
