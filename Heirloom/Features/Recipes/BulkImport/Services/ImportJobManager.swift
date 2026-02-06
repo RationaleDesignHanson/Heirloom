@@ -1085,6 +1085,19 @@ final class ImportJobManager: ObservableObject {
             await group.waitForAll()
         }
 
+        // PHASE 4: AI Image Generation (if enabled) - same as normal flow
+        if job.shouldGenerateAIImages {
+            job.phase = .imageGeneration
+            job.phaseProgress = 0.0
+            try? context.save()
+
+            Log.info("Running AI image generation after resume", category: .import, metadata: [
+                "job_id": job.id.uuidString
+            ])
+
+            await generateAIImagesForJob(job: job, context: context)
+        }
+
         await completeJob(job, context: context)
     }
 
