@@ -193,7 +193,8 @@ struct UnifiedCollectionCard: View {
                 // Full-width single image for "All Recipes"
                 allRecipesImageView
                     .frame(height: 180)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    // Use top corners matching card radius (20), bottom corners 0 since info bar is below
+                    .clipShape(UnevenRoundedRectangle(topLeadingRadius: 20, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 20, style: .continuous))
             } else {
                 // Standard 60/40 split collage
                 GeometryReader { geo in
@@ -201,6 +202,7 @@ struct UnifiedCollectionCard: View {
                         // Large image (60%)
                         largeImageView
                             .frame(width: geo.size.width * 0.6)
+                            .clipped()
 
                         // Stacked small images (40%)
                         VStack(spacing: 2) {
@@ -211,7 +213,8 @@ struct UnifiedCollectionCard: View {
                     }
                 }
                 .frame(height: 180)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                // Use top corners matching card radius (20), bottom corners 0 since info bar is below
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 20, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 20, style: .continuous))
                 .overlay(alignment: .topLeading) {
                     // NEW badge (when collection has new recipes)
                     if collection.hasNewRecipes {
@@ -271,10 +274,13 @@ struct UnifiedCollectionCard: View {
     @ViewBuilder
     private var standardLargeImageView: some View {
         // Priority 0: Empty collection affordance (if collection is empty and interactive)
+        // Exception: Collections with preset backgrounds should show the preset instead
+        let hasPresetBackground = collection.customBackgroundImagePath?.hasPrefix("preset-") == true
         if recipeImages.isEmpty,
            case .standard(let onAddRecipeTap) = variant,
            onAddRecipeTap != nil,
-           !collection.isAllRecipes {
+           !collection.isAllRecipes,
+           !hasPresetBackground {
             emptyCollectionAffordance
         }
         // Priority 0.5: "All Recipes" preset background
@@ -386,6 +392,7 @@ struct UnifiedCollectionCard: View {
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
+                        .clipped()
                 case .failure, .empty:
                     placeholderView
                 @unknown default:
