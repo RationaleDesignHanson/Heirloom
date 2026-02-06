@@ -159,9 +159,10 @@ final class ImportJob {
     /// This is used by the UI to show resume option for stuck jobs
     var appearsStuck: Bool {
         guard status == .processing else { return false }
-        // If last update was more than 2 minutes ago, likely stuck
+        // If checkpoint's last update was more than 2 minutes ago, likely stuck
         let twoMinutesAgo = Date().addingTimeInterval(-120)
-        return lastUpdated < twoMinutesAgo
+        let lastActivity = checkpoint?.lastUpdated ?? createdAt
+        return lastActivity < twoMinutesAgo
     }
 
     // MARK: - Initialization
