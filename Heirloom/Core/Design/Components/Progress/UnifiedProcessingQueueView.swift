@@ -141,14 +141,24 @@ struct UnifiedProcessingQueueView: View {
                     .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         if canDismiss(job) {
                             Button(role: .destructive) {
                                 dismissJob(job)
                             } label: {
-                                Label("Dismiss", systemImage: "xmark.circle.fill")
+                                Label("Remove", systemImage: "trash.fill")
                             }
-                            .tint(HeirloomColors.warmGray)
+                            .tint(.red)
+                        }
+                    }
+                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                        if canResume(job) {
+                            Button {
+                                resumeJob(job)
+                            } label: {
+                                Label("Resume", systemImage: "play.fill")
+                            }
+                            .tint(HeirloomColors.familyGreen)
                         }
                     }
                 }
@@ -333,13 +343,39 @@ struct UnifiedProcessingQueueView: View {
         }
     }
 
-    /// Check if a job can be dismissed (completed or failed jobs)
+    /// Check if a job can be dismissed (processing, completed, or failed jobs)
+    /// Processing jobs can be cancelled/removed if stuck
     private func canDismiss(_ job: AnyProcessingJob) -> Bool {
         switch job.bannerStatus {
-        case .completed, .failed:
+        case .processing, .pending, .paused, .completed, .failed:
             return true
-        default:
-            return false
+        }
+    }
+
+    /// Check if a job can be resumed (stuck or interrupted import jobs)
+    private func canResume(_ job: AnyProcessingJob) -> Bool {
+        guard job.jobType == .importJob else { return false }
+        guard let importJob = importJobs.first(where: { $0.id == job.id }) else { return false }
+        return importJob.canResume || importJob.appearsStuck
+    }
+
+    /// Resume a stuck or interrupted job
+    private func resumeJob(_ job: AnyProcessingJob) {
+        guard job.jobType == .importJob else { return }
+        guard let importJob = importJobs.first(where: { $0.id == job.id }) else { return }
+
+        Task {
+            do {
+                let jobManager = ServiceContainer.shared.resolve(ImportJobManager.self)
+                try await jobManager.resumeInterruptedJob(importJob, context: modelContext)
+                Log.info("Resumed import job from queue", category: .import, metadata: [
+                    "job_id": importJob.id.uuidString
+                ])
+            } catch {
+                Log.error("Failed to resume import job", category: .import, metadata: [
+                    "error": error.localizedDescription
+                ])
+            }
         }
     }
 
