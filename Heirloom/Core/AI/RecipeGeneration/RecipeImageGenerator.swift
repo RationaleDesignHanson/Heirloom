@@ -68,22 +68,21 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
         // Build dish description - be specific about the food
         let dishDescription = recipe.title
 
-        // Add key visual ingredients (limit to 3 most photogenic)
+        // Include actual ingredient names (limit to 4 most interesting)
+        // Less aggressive filtering - include ingredients that describe the dish
         var ingredientHints: [String] = []
-        if let ingredients = recipe.ingredients?.prefix(5) {
-            // Filter for visually interesting ingredients
-            let visualIngredients = ingredients
-                .map { $0.name.lowercased() }
-                .filter { ingredient in
-                    // Prioritize colorful/textural ingredients
-                    let visualKeywords = ["tomato", "pepper", "herb", "cheese", "cream", "sauce",
-                                         "berry", "lemon", "lime", "garlic", "onion", "mushroom",
-                                         "bacon", "chicken", "beef", "salmon", "shrimp", "pasta",
-                                         "rice", "bread", "chocolate", "butter", "egg", "avocado"]
-                    return visualKeywords.contains { ingredient.contains($0) }
+        if let ingredients = recipe.ingredients, !ingredients.isEmpty {
+            // Take first 6 ingredients and extract the key visual parts
+            let ingredientNames = ingredients.prefix(6).compactMap { ingredient -> String? in
+                let name = ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                // Skip generic items that don't add visual info
+                let skipWords = ["salt", "pepper", "water", "oil", "for serving", "to taste", "pinch"]
+                if skipWords.contains(where: { name.contains($0) }) || name.isEmpty {
+                    return nil
                 }
-                .prefix(3)
-            ingredientHints = Array(visualIngredients)
+                return name
+            }
+            ingredientHints = Array(ingredientNames.prefix(4))
         }
 
         // Build the prompt with clear structure for Flux
@@ -92,9 +91,9 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
         // Subject: the dish
         promptParts.append("beautiful \(dishDescription)")
 
-        // Add ingredient visual hints if available
+        // Add ingredient visual hints - these help the AI understand what the dish looks like
         if !ingredientHints.isEmpty {
-            promptParts.append("with \(ingredientHints.joined(separator: ", "))")
+            promptParts.append("featuring \(ingredientHints.joined(separator: ", "))")
         }
 
         // Add cuisine style from tags if available
