@@ -590,6 +590,10 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         // 10. Update provenance
         let generation = (shareData["generation"] as? Int ?? 0) + 1
         let ownerName = shareData["ownerName"] as? String
+        Log.info("Setting sharedBy for accepted recipe", category: .firebase, metadata: [
+            "ownerName": ownerName ?? "nil",
+            "recipeId": recipeId
+        ])
 
         sharedRecipe.provenance = ProvenanceMetadata(
             sourceType: .shared,

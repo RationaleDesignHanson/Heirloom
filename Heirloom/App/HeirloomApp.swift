@@ -475,6 +475,16 @@ struct HeirloomApp: App {
                 DeviceLogger.shared.log("✅ [Migration] Collections-First migration completed")
             }
 
+            // Run community recipe ingredient migration (fixes scaling for recipes saved from discover)
+            do {
+                let fixedCount = try CommunityRecipeIngredientMigration.run(context: container.mainContext)
+                if fixedCount > 0 {
+                    DeviceLogger.shared.log("✅ [Migration] Fixed ingredients for \(fixedCount) community recipes")
+                }
+            } catch {
+                DeviceLogger.shared.log("⚠️ [Migration] Community recipe migration failed: \(error)")
+            }
+
             // Create system collections on first launch (synchronous - must complete before UI renders)
             RecipeCollection.createSystemCollections(context: container.mainContext)
             // Explicitly save to ensure collections are persisted before UI renders

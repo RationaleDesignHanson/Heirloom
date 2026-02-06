@@ -501,7 +501,12 @@ struct RecipeLineageVersion: Identifiable, Hashable {
 
     var displayName: String {
         if generation == 0 {
-            return "Original"
+            if isCurrent {
+                return "Original"
+            } else {
+                let name = modifiedByName ?? "Someone"
+                return "\(name)'s Version"
+            }
         } else if isCurrent {
             return "Your Version (Gen \(generation))"
         } else {

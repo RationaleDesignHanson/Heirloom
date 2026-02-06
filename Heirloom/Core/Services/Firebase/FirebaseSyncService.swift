@@ -941,9 +941,9 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             }
         }
 
-        // Sync periodically (every 5 minutes)
+        // Sync periodically (every 5 minutes) - use background priority to not block UI
         Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
-            Task { @MainActor in
+            Task.detached(priority: .utility) {
                 do {
                     try await self?.syncChangesWithCRDT()
                 } catch {
@@ -952,15 +952,15 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             }
         }
 
-        // Sync when app enters foreground
+        // Sync when app enters foreground - use background priority to not block UI
         NotificationCenter.default.addObserver(
             forName: UIApplication.willEnterForegroundNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in
+            Task.detached(priority: .utility) {
                 do {
-                    self?.logger.log("🔄 [Firebase] App entered foreground, syncing...", category: .sync, level: .info, metadata: nil)
+                    await self?.logger.log("🔄 [Firebase] App entered foreground, syncing...", category: .sync, level: .info, metadata: nil)
                     try await self?.syncChangesWithCRDT()
                 } catch {
                     DeviceLogger.shared.log("❌ [Firebase] Foreground sync failed: \(error.localizedDescription)", level: .error)
@@ -1490,6 +1490,48 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             }
 
             collections.append(collection)
+        }
+
+        // Deduplicate "Generated Recipes" collections that may have different UUIDs
+        // (local createSystemCollections checks by name, but download checks by UUID)
+        let generatedRecipesCollections = collections.filter { $0.name == "Generated Recipes" }
+        if generatedRecipesCollections.count > 1 {
+            Log.warning("Found duplicate Generated Recipes collections after download", category: .sync, metadata: [
+                "count": generatedRecipesCollections.count
+            ])
+
+            // Keep the one with the most recipes
+            let sorted = generatedRecipesCollections.sorted { ($0.recipes?.count ?? 0) > ($1.recipes?.count ?? 0) }
+            let primary = sorted[0]
+            let duplicates = sorted.dropFirst()
+
+            for duplicate in duplicates {
+                // Merge recipes from duplicate into primary
+                if let dupeRecipes = duplicate.recipes {
+                    for recipe in dupeRecipes {
+                        let alreadyLinked = primary.recipes?.contains(where: { $0.id == recipe.id }) ?? false
+                        if !alreadyLinked {
+                            if primary.recipes == nil { primary.recipes = [] }
+                            primary.recipes?.append(recipe)
+                        }
+                    }
+                }
+
+                // Delete duplicate from SwiftData
+                context.delete(duplicate)
+                collections.removeAll { $0.id == duplicate.id }
+
+                // Delete duplicate from Firestore
+                if let userId = currentUserId {
+                    let dupeRef = db.collection("users/\(userId)/collections").document(duplicate.id.uuidString)
+                    try? await dupeRef.delete()
+                }
+            }
+
+            Log.info("Deduplicated Generated Recipes collections after download", category: .sync, metadata: [
+                "kept": primary.id.uuidString,
+                "deleted": duplicates.count
+            ])
         }
 
         try context.save()

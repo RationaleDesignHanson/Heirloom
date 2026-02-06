@@ -374,6 +374,7 @@
 		C5DBE4AD2F1A7EEE00C1B6BA /* PDFImageExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */; };
 		C5DBE4AF2F1A879F00C1B6BA /* PDFMetadataExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */; };
 		C5DBE8842F1EE59C00C1B6BA /* CollectionsFirstMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBE8822F1EE59C00C1B6BA /* CollectionsFirstMigration.swift */; };
+		C5COMM1012F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5COMM1002F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift */; };
 		C5DBEC602F200E2000C1B6BA /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC5F2F200E2000C1B6BA /* SharedConstants.swift */; };
 		C5DBEC612F200E2000C1B6BA /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC5F2F200E2000C1B6BA /* SharedConstants.swift */; };
 		C5DBEC672F200E6600C1B6BA /* ExtractionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5DBEC632F200E6600C1B6BA /* ExtractionMode.swift */; };
@@ -857,6 +858,7 @@
 		C5DBE4AC2F1A7EEE00C1B6BA /* PDFImageExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFImageExtractor.swift; sourceTree = "<group>"; };
 		C5DBE4AE2F1A879F00C1B6BA /* PDFMetadataExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFMetadataExtractor.swift; sourceTree = "<group>"; };
 		C5DBE8822F1EE59C00C1B6BA /* CollectionsFirstMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionsFirstMigration.swift; sourceTree = "<group>"; };
+		C5COMM1002F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityRecipeIngredientMigration.swift; sourceTree = "<group>"; };
 		C5DBEC5F2F200E2000C1B6BA /* SharedConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedConstants.swift; sourceTree = "<group>"; };
 		C5DBEC622F200E6600C1B6BA /* AudioAnalysisResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioAnalysisResult.swift; sourceTree = "<group>"; };
 		C5DBEC632F200E6600C1B6BA /* ExtractionMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractionMode.swift; sourceTree = "<group>"; };
@@ -2277,6 +2279,7 @@
 			isa = PBXGroup;
 			children = (
 				C5DBE8822F1EE59C00C1B6BA /* CollectionsFirstMigration.swift */,
+				C5COMM1002F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift */,
 			);
 			path = Migration;
 			sourceTree = "<group>";
@@ -3191,6 +3194,7 @@
 				C56F3EEF2F0528F200D19743 /* FirebaseLineageService.swift in Sources */,
 				D0F80C3F0014086C6080ABEE /* URLNormalizer.swift in Sources */,
 				C5DBE8842F1EE59C00C1B6BA /* CollectionsFirstMigration.swift in Sources */,
+				C5COMM1012F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift in Sources */,
 				C5DBE4AB2F1A7C4A00C1B6BA /* ImportProgressBottomBanner.swift in Sources */,
 				A892587ADBCD4FCA80189C9E /* UIKitAppearance.swift in Sources */,
 			);

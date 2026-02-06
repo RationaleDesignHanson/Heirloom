@@ -81,9 +81,12 @@ struct CollectionDetailView: View {
 
     // Recipes in this collection
     var recipes: [Recipe] {
-        // "All Recipes" collection shows all recipes including theme recipes
+        // "All Recipes" collection shows all recipes, but filters out locked theme recipes
         if collection.isAllRecipes {
-            return allRecipes
+            return allRecipes.filter { recipe in
+                guard recipe.isThemeRecipe else { return true }
+                return unlockTracker.isUnlocked(recipe)
+            }
         }
 
         // For theme collections, query by sourceThemeId to avoid accessing collections relationship

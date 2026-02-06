@@ -193,6 +193,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         let instructions: [String]
         let notes: String?
         let confidence: Double? // Added for multi-recipe detection
+        let source: String? // Source attribution (website, blog name, cookbook, author)
 
         /// Convenience accessor for flattened ingredients (backward compat)
         var ingredients: [String] {
@@ -208,6 +209,7 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             case instructions
             case notes
             case confidence
+            case source
         }
     }
 
@@ -746,7 +748,8 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             ingredientStructure: fullRecipe.ingredientStructure,
             instructions: normalizedInstructions,
             notes: fullRecipe.notes,
-            confidence: 0.8  // Medium confidence for fallback extraction
+            confidence: 0.8,  // Medium confidence for fallback extraction
+            source: fullRecipe.source
         )
 
         // Try to split merged recipe into separate recipes
@@ -912,7 +915,8 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                 ingredientStructure: ingredients,
                 instructions: section.instructions.filter { !$0.isEmpty },
                 notes: nil,
-                confidence: 0.7  // Lower confidence for split recipes
+                confidence: 0.7,  // Lower confidence for split recipes
+                source: nil
             )
 
             splitRecipes.append(splitRecipe)
@@ -1152,7 +1156,8 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                     ingredientStructure: recipe.ingredientStructure,
                     instructions: normalizedInstructions,
                     notes: recipe.notes,
-                    confidence: detected.confidence.score
+                    confidence: detected.confidence.score,
+                    source: recipe.source
                 )
 
                 extractedRecipes.append(recipeWithConfidence)
@@ -1299,7 +1304,8 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
           "ingredients": <array OR object with sections/variants>,
           "instructions": ["Step 1: Mix ingredients", "Step 2: Bake", ...],
           "notes": "Optional notes or tips",
-          "confidence": 0.95
+          "confidence": 0.95,
+          "source": "Website or Blog Name"
         }
 
         Instructions:
@@ -1311,6 +1317,12 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
         - Number instructions in logical order
         - Include all preparation steps
         - Set confidence based on text clarity (0.0-1.0)
+        - IMPORTANT: Look for the recipe SOURCE - check for:
+          * Header logos or branding (e.g., "The Flavor Labs", "AllRecipes")
+          * Website URLs or domains
+          * Blog names or author attributions
+          * Copyright notices with names
+          * If found, set "source" to the name/brand (not the full URL)
         """
 
         return prompt
@@ -1713,7 +1725,8 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                         ingredientStructure: extracted.ingredientStructure,
                         instructions: extracted.instructions,
                         notes: extracted.notes,
-                        confidence: combinedConfidence
+                        confidence: combinedConfidence,
+                        source: extracted.source
                     )
 
                     // Track success
@@ -2366,7 +2379,8 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
             ingredientStructure: .flat(ingredients.isEmpty ? ["No ingredients found"] : ingredients),
             instructions: instructions.isEmpty ? ["No instructions found"] : instructions,
             notes: nil,
-            confidence: nil
+            confidence: nil,
+            source: nil
         )
     }
 

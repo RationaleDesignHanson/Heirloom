@@ -150,6 +150,10 @@ struct CollectionsListView: View {
     /// Used for "All Recipes" count and thumbnails
     private var userRecipes: [Recipe] {
         allRecipes.filter { recipe in
+            // Exclude locked theme recipes
+            if recipe.isThemeRecipe && !themeUnlockTracker.isUnlocked(recipe) {
+                return false
+            }
             // When toggle is on, exclude recipes in demo seed collections
             if screenRecordingService.hideDemoSeedCollections {
                 let isInDemoSeed = recipe.collections?.contains { demoSeedCollectionIds.contains($0.id) } ?? false

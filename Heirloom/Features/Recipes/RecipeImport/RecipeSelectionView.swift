@@ -549,7 +549,8 @@ struct RecipeSelectionCard: View {
                     "Bake in hot oven at 450°F for ten minutes"
                 ],
                 notes: nil,
-                confidence: 0.95
+                confidence: 0.95,
+                source: nil
             ),
             AIRecipeExtractor.ExtractedRecipe(
                 title: "Peanut Butter Bread",
@@ -569,7 +570,8 @@ struct RecipeSelectionCard: View {
                     "Bake in moderate oven at 350°F"
                 ],
                 notes: nil,
-                confidence: 0.85
+                confidence: 0.85,
+                source: nil
             ),
             AIRecipeExtractor.ExtractedRecipe(
                 title: "Orange Fritters",
@@ -587,7 +589,8 @@ struct RecipeSelectionCard: View {
                     "Drop into deep hot fat"
                 ],
                 notes: nil,
-                confidence: 0.65
+                confidence: 0.65,
+                source: nil
             )
         ],
         sourceImage: nil

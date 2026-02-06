@@ -374,6 +374,11 @@ final class Recipe {
 // MARK: - Computed Properties
 extension Recipe {
     var sourceDisplayName: String {
+        // For shared recipes, show who shared it (matches card preview behavior)
+        if let sharedBy = sharedBy, !sharedBy.isEmpty {
+            return sharedBy
+        }
+
         switch sourceType ?? .manual {
         case .url:
             if let urlString = sourceURL,

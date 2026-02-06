@@ -507,39 +507,37 @@ extension FirebaseSyncService {
         let collectionsRef = db.collection("users/\(userId)/collections")
         let snapshot = try await collectionsRef.getDocuments()
 
+        // Batch fetch ALL local recipes and collections once, build lookup dictionaries
+        let allLocalRecipes = try context.fetch(FetchDescriptor<Recipe>())
+        let recipeLookup = Dictionary(uniqueKeysWithValues: allLocalRecipes.map {
+            ($0.id.uuidString.lowercased(), $0)
+        })
+
+        let allLocalCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
+        let collectionLookup = Dictionary(uniqueKeysWithValues: allLocalCollections.map {
+            ($0.id.uuidString.lowercased(), $0)
+        })
+
         var linkedCount = 0
 
         for doc in snapshot.documents {
             let data = doc.data()
             guard let collectionIdString = data["id"] as? String,
-                  let collectionId = UUID(uuidString: collectionIdString),
                   let recipeIds = data["recipeIds"] as? [String],
                   !recipeIds.isEmpty else {
                 continue
             }
 
-            // Find the local collection
-            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
-                predicate: #Predicate<RecipeCollection> { collection in
-                    collection.id == collectionId
-                }
-            )
-
-            guard let localCollection = try? context.fetch(collectionDescriptor).first else {
+            // Find the local collection via O(1) lookup
+            guard let localCollection = collectionLookup[collectionIdString.lowercased()] else {
                 continue
             }
 
-            // Link each recipe to the collection
+            let collectionId = localCollection.id
+
+            // Link each recipe to the collection via O(1) lookup
             for recipeIdString in recipeIds {
-                guard let recipeId = UUID(uuidString: recipeIdString) else { continue }
-
-                let recipeDescriptor = FetchDescriptor<Recipe>(
-                    predicate: #Predicate<Recipe> { recipe in
-                        recipe.id == recipeId
-                    }
-                )
-
-                if let recipe = try? context.fetch(recipeDescriptor).first {
+                if let recipe = recipeLookup[recipeIdString.lowercased()] {
                     // Check if already linked
                     let alreadyLinked = recipe.collections?.contains(where: { $0.id == collectionId }) ?? false
                     if !alreadyLinked {

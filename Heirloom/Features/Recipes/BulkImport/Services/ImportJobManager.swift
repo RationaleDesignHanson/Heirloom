@@ -2007,6 +2007,15 @@ final class ImportJobManager: ObservableObject {
             cookTime: extracted.cookTime
         )
 
+        // Set source attribution if extracted (e.g., "The Flavor Labs" from PDF header)
+        if let source = extracted.source, !source.isEmpty {
+            recipe.sourceBookAuthor = source
+            Log.debug("Set source attribution from extraction", category: .import, metadata: [
+                "title": extracted.title,
+                "source": source
+            ])
+        }
+
         // Add ingredients (filtering out section headers in brackets)
         for ingredientText in extracted.ingredients {
             // Skip section headers that are entirely in brackets like [Asparagus], [Main], [Vegetables]
