@@ -368,6 +368,8 @@ class CollectionRouter {
         let collection: RecipeCollection
         if let existing = existingCollection {
             collection = existing
+            // Ensure preset background is applied if missing (for upgrades)
+            applyPDFImportsPresetIfNeeded(to: collection, name: name)
         } else {
             // Create new collection
             collection = RecipeCollection(
@@ -386,6 +388,9 @@ class CollectionRouter {
                     "coverPath": coverPath
                 ])
             }
+
+            // Apply preset background for "PDF Imports" collection
+            applyPDFImportsPresetIfNeeded(to: collection, name: name)
 
             collection.createdDate = Date()
             modelContext.insert(collection)
@@ -419,6 +424,24 @@ class CollectionRouter {
         }
 
         try? modelContext.save()
+    }
+
+    /// Apply preset background for "PDF Imports" collection
+    private func applyPDFImportsPresetIfNeeded(to collection: RecipeCollection, name: String) {
+        // Only apply to "PDF Imports" collection
+        guard name == "PDF Imports" else { return }
+
+        // Skip if collection already has a custom or generated background
+        guard collection.customBackgroundImagePath == nil,
+              collection.generatedBackgroundImagePath == nil,
+              collection.cookbookCoverImagePath == nil else { return }
+
+        // Check if bundled preset exists and apply
+        if UIImage(named: "pdf-imports-bg") != nil {
+            collection.customBackgroundImagePath = "preset-pdf-imports-bg"
+            collection.useCustomBackground = true
+            Log.info("Applied preset background to PDF Imports collection", category: .collections)
+        }
     }
 
     /// Clean up cookbook name for display
