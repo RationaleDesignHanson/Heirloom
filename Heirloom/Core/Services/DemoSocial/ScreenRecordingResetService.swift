@@ -236,7 +236,7 @@ final class ScreenRecordingResetService: ObservableObject {
     }
 
     private func deleteSubcollections(parentRef: DocumentReference) async throws {
-        guard let db = db else { return }
+        guard db != nil else { return }
 
         let subcollectionNames = ["ingredients", "comments", "cardBack"]
 
