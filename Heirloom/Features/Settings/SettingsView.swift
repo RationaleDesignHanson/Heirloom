@@ -690,6 +690,23 @@ struct SettingsView: View {
 
     private var screenRecordingSection: some View {
         Group {
+            // Hide Theme Collections Toggle
+            Toggle(isOn: $resetService.hideThemeCollections) {
+                HStack {
+                    Image(systemName: "eye.slash.fill")
+                        .foregroundStyle(.purple)
+                        .font(.title2)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Hide Theme Collections")
+                            .font(HeirloomFonts.bodyBold)
+                        Text("Hides heritage/discovery collections for recording")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.purple)
+
             // First Time User Reset
             Button(role: .destructive) {
                 showFirstTimeUserReset = true

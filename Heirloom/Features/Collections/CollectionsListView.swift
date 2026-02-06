@@ -10,6 +10,7 @@ struct CollectionsListView: View {
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
     @EnvironmentObject private var syncService: FirebaseSyncService
+    @ObservedObject private var screenRecordingService = ScreenRecordingResetService.shared
     @Query(sort: \RecipeCollection.createdDate) private var allCollections: [RecipeCollection]
     @Query(sort: \Recipe.dateAdded, order: .reverse) private var allRecipes: [Recipe]
     @Query(sort: \RecipeTheme.sortOrder) private var allThemes: [RecipeTheme]
@@ -87,8 +88,12 @@ struct CollectionsListView: View {
     }
 
     /// Theme collections (shown in "Your Discoveries" section - AFTER My Collections)
+    /// Hidden when screenRecordingService.hideThemeCollections is true (for clean screen recordings)
     var themeCollections: [RecipeCollection] {
-        visibleCollections.filter { collection in
+        // Hide theme collections for screen recording mode
+        guard !screenRecordingService.hideThemeCollections else { return [] }
+
+        return visibleCollections.filter { collection in
             collection.type == .theme &&
             themeUnlockTracker.selectedThemeIds.contains(collection.sourceTheme?.firebaseId ?? "")
         }
@@ -180,7 +185,12 @@ struct CollectionsListView: View {
     var searchResults: [Recipe] {
         guard !searchText.isEmpty else { return [] }
 
-        return allRecipes.filter { recipe in
+        // Filter out theme recipes when hideThemeCollections is enabled (screen recording mode)
+        let searchableRecipes = screenRecordingService.hideThemeCollections
+            ? allRecipes.filter { !$0.isThemeRecipe }
+            : allRecipes
+
+        return searchableRecipes.filter { recipe in
             // Search in title
             if recipe.title.localizedCaseInsensitiveContains(searchText) {
                 return true

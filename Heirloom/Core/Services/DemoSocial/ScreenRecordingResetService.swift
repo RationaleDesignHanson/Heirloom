@@ -26,6 +26,14 @@ final class ScreenRecordingResetService: ObservableObject {
     @Published var resetProgress: String = ""
     @Published var lastResetVerification: ResetVerification?
 
+    /// Toggle to hide theme/heritage collections for screen recordings
+    /// When true, CollectionsListView will not show theme collections
+    @Published var hideThemeCollections: Bool {
+        didSet {
+            UserDefaults.standard.set(hideThemeCollections, forKey: UserDefaultsKeys.hideThemeCollections)
+        }
+    }
+
     // MARK: - Dependencies
 
     private let db: Firestore?
@@ -38,6 +46,7 @@ final class ScreenRecordingResetService: ObservableObject {
         self.db = Firestore.firestore()
         self.auth = Auth.auth()
         self.storage = Storage.storage()
+        self.hideThemeCollections = UserDefaults.standard.bool(forKey: UserDefaultsKeys.hideThemeCollections)
     }
 
     // MARK: - Reset Verification

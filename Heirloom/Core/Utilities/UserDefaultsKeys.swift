@@ -54,6 +54,11 @@ enum UserDefaultsKeys {
     /// Whether user has locally disabled demo social mode (defaults to false = demo ON)
     static let demoSocialModeDisabled = "demo_social_mode_disabled"
 
+    // MARK: - Screen Recording
+
+    /// Whether to hide theme collections for screen recordings (defaults to false = show)
+    static let hideThemeCollections = "hide_theme_collections_for_recording"
+
     // MARK: - Paywall
 
     /// Number of times user has dismissed soft-wall paywalls
