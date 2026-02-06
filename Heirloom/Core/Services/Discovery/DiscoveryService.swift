@@ -484,16 +484,20 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
             recipe.notes = description
         }
 
-        // Create ingredients from names
-        for (index, ingredientName) in publicRecipe.ingredients.enumerated() {
+        // Create ingredients by parsing the text to extract quantity, unit, and name
+        // This enables scaling to work properly for saved community recipes
+        for (index, ingredientText) in publicRecipe.ingredients.enumerated() {
+            let parsed = IngredientParser.parse(ingredientText)
             let ingredient = Ingredient(
-                originalText: ingredientName,
-                name: ingredientName,
-                quantity: nil,
-                unit: nil,
+                originalText: ingredientText,
+                name: parsed.name.isEmpty ? ingredientText : parsed.name,
+                quantity: parsed.quantity,
+                unit: parsed.unit,
                 category: .other,
                 orderIndex: index
             )
+            // Set quantityMax for ranges like "1-2 cups"
+            ingredient.quantityMax = parsed.quantityMax
             ingredient.recipe = recipe
             context.insert(ingredient)
         }
