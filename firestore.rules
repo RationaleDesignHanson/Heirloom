@@ -14,6 +14,11 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Check if a user ID is a demo user (for TestFlight demo social features)
+    function isDemoUser(userId) {
+      return userId.matches('demo_.*');
+    }
+
     // ========================================
     // HELPER FUNCTIONS FOR RECIPE ACCESS
     // ========================================
@@ -37,36 +42,45 @@ service cloud.firestore {
       allow read: if isAuthenticated();
 
       // Users can create their own recipes
-      allow create: if isOwner(userId);
+      // Exception: Any authenticated user can create recipes for demo users (TestFlight demo experience)
+      allow create: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
 
       // Users can update their own recipes
-      allow update: if isOwner(userId);
+      // Exception: Any authenticated user can update demo user recipes (TestFlight demo experience)
+      allow update: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
 
       // Users can delete their own recipes
-      allow delete: if isOwner(userId);
+      // Exception: Any authenticated user can delete demo user recipes (TestFlight demo experience)
+      allow delete: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
 
       // Ingredients subcollection
       match /ingredients/{ingredientId} {
         allow read: if isAuthenticated();
-        allow write: if isOwner(userId);
+        allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
+      }
+
+      // Instructions subcollection
+      match /instructions/{instructionId} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
       }
 
       // Comments subcollection
       match /comments/{commentId} {
         allow read: if isAuthenticated();
-        allow write: if isOwner(userId);
+        allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
       }
 
       // Card back subcollection
       match /cardBack/{document=**} {
         allow read: if isAuthenticated();
-        allow write: if isOwner(userId);
+        allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
       }
 
       // Operations subcollection (for CRDT)
       match /operations/{operationId} {
         allow read: if isAuthenticated();
-        allow write: if isOwner(userId);
+        allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
       }
     }
 
@@ -88,9 +102,15 @@ service cloud.firestore {
       allow read: if true;
 
       // Only owner can create shares, with proper validation
+      // Exception: Demo shares can be created by any authenticated user (for TestFlight demo experience)
       allow create: if isAuthenticated() &&
-                       request.auth.uid == request.resource.data.ownerId &&
-                       request.resource.data.keys().hasAll(['shareId', 'recipeId', 'ownerId', 'ownerName']);
+                       request.resource.data.keys().hasAll(['shareId', 'recipeId', 'ownerId', 'ownerName']) &&
+                       (
+                         // Normal shares: user must be the owner
+                         request.auth.uid == request.resource.data.ownerId ||
+                         // Demo shares: allow if marked as demo share (for TestFlight experience)
+                         request.resource.data.isDemoShare == true
+                       );
 
       // Restricted update: Owner can update all fields OR recipient can add themselves to acceptedBy OR anyone can increment viewCount
       allow update: if isAuthenticated() && (
@@ -129,7 +149,8 @@ service cloud.firestore {
       allow read: if isOwner(userId);
 
       // Users can write their own lineages
-      allow write: if isOwner(userId);
+      // Exception: Any authenticated user can write demo user lineages (TestFlight demo experience)
+      allow write: if isOwner(userId) || (isAuthenticated() && isDemoUser(userId));
     }
 
     // ========================================
@@ -140,16 +161,22 @@ service cloud.firestore {
       allow read: if isAuthenticated();
 
       // Only owner can create lineages
+      // Exception: Any authenticated user can create lineages for demo users (TestFlight demo experience)
       allow create: if isAuthenticated() &&
-                       request.auth.uid == request.resource.data.ownerId;
+                       (request.auth.uid == request.resource.data.ownerId ||
+                        isDemoUser(request.resource.data.ownerId));
 
       // Only owner can update lineages
+      // Exception: Any authenticated user can update demo user lineages (TestFlight demo experience)
       allow update: if isAuthenticated() &&
-                       request.auth.uid == resource.data.ownerId;
+                       (request.auth.uid == resource.data.ownerId ||
+                        isDemoUser(resource.data.ownerId));
 
       // Only owner can delete lineages
+      // Exception: Any authenticated user can delete demo user lineages (TestFlight demo experience)
       allow delete: if isAuthenticated() &&
-                       request.auth.uid == resource.data.ownerId;
+                       (request.auth.uid == resource.data.ownerId ||
+                        isDemoUser(resource.data.ownerId));
     }
 
     // ========================================
@@ -331,15 +358,19 @@ service cloud.firestore {
       // This allows User A to create connection docs in both:
       // - users/A/connections/{id} (where connectedUserId = B)
       // - users/B/connections/{id} (where connectedUserId = A)
+      // Exception: Demo connections can be created for TestFlight experience
       allow create: if isAuthenticated() &&
                        (request.auth.uid == userId ||
-                        request.auth.uid == request.resource.data.connectedUserId);
+                        request.auth.uid == request.resource.data.connectedUserId ||
+                        request.resource.data.isDemoConnection == true);
 
       // Users can update their own connections or connections where they are the connected user
       // (for accepting requests, updating status, adding notes)
+      // Exception: Demo connections can be updated for TestFlight experience
       allow update: if isAuthenticated() &&
                        (request.auth.uid == userId ||
-                        request.auth.uid == resource.data.connectedUserId);
+                        request.auth.uid == resource.data.connectedUserId ||
+                        resource.data.isDemoConnection == true);
 
       // Users can delete their own connections OR connections where they are the connectedUserId
       // This allows User A to delete reciprocal connection from User B's collection
