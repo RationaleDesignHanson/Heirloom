@@ -60,6 +60,7 @@ enum HeirloomColors {
     static let scrim = Color.black.opacity(0.4)
 
     // MARK: - Effects
+    static let cardStroke = Color(light: Color.black.opacity(0.08), dark: Color.white.opacity(0.08))
     static let cardShadow = Color.black.opacity(0.08)
     static let coffeeStain = Color(hex: "8B7355")
     static let flourDust = Color.white.opacity(0.6)

@@ -153,7 +153,7 @@ struct UnifiedCollectionCard: View {
     private var cardBorderColor: Color {
         switch variant {
         case .standard:
-            return .clear
+            return HeirloomColors.cardStroke
         case .themed:
             return HeirloomColors.familyGreen.opacity(0.2)
         }
@@ -162,7 +162,7 @@ struct UnifiedCollectionCard: View {
     private var cardBorderWidth: CGFloat {
         switch variant {
         case .standard:
-            return 0
+            return 1
         case .themed:
             return 1
         }
@@ -326,7 +326,7 @@ struct UnifiedCollectionCard: View {
         }
         // Priority 4: First recipe's image (as fallback)
         else if let firstRecipe = recipeImages.first,
-                firstRecipe.imageFileName != nil {
+                (firstRecipe.imageFileName != nil || firstRecipe.firebaseImageURL != nil) {
             AsyncRecipeImage(
                 imageFileName: firstRecipe.imageFileName,
                 firebaseImageURL: firstRecipe.firebaseImageURL,
@@ -454,10 +454,7 @@ struct UnifiedCollectionCard: View {
             // For themed: title left, progress right, for standard: stacked layout
             if case .themed = variant {
                 // Title on left
-                Text(displayName)
-                    .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(textColor)
-                    .lineLimit(1)
+                MarqueeText(text: displayName, font: HeirloomFonts.bodyBold, foregroundColor: textColor)
 
                 Spacer()
 
@@ -469,10 +466,7 @@ struct UnifiedCollectionCard: View {
             } else {
                 // Stacked layout for standard cards
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(displayName)
-                        .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(textColor)
-                        .lineLimit(1)
+                    MarqueeText(text: displayName, font: HeirloomFonts.bodyBold, foregroundColor: textColor)
 
                     if isSubtitleTappable {
                         // Tappable subtitle for cookbook collections - opens web search
@@ -819,6 +813,111 @@ struct UnifiedCollectionCard: View {
                     .font(.title2)
                     .foregroundStyle(HeirloomColors.warmGray.opacity(0.5))
             )
+    }
+}
+
+// MARK: - Marquee Text
+
+/// A text view that auto-scrolls horizontally when the text is wider than the container.
+/// Starts scrolling after a delay when visible in the middle third of the screen.
+struct MarqueeText: View {
+    let text: String
+    let font: Font
+    let foregroundColor: Color
+
+    @State private var textWidth: CGFloat = 0
+    @State private var containerWidth: CGFloat = 0
+    @State private var offset: CGFloat = 0
+    @State private var isAnimating = false
+    @State private var isInMiddleThird = false
+    @State private var delayTask: Task<Void, Never>?
+
+    private var overflow: CGFloat {
+        max(0, textWidth - containerWidth)
+    }
+
+    private var shouldAnimate: Bool {
+        overflow > 0
+    }
+
+    var body: some View {
+        GeometryReader { outerGeo in
+            let midY = outerGeo.frame(in: .global).midY
+            let screenHeight = UIScreen.main.bounds.height
+            let topThreshold = screenHeight / 3
+            let bottomThreshold = screenHeight * 2 / 3
+
+            Text(text)
+                .font(font)
+                .foregroundStyle(foregroundColor)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+                .background(
+                    GeometryReader { textGeo in
+                        Color.clear
+                            .onAppear {
+                                textWidth = textGeo.size.width
+                            }
+                    }
+                )
+                .offset(x: offset)
+                .onAppear {
+                    containerWidth = outerGeo.size.width
+                }
+                .onChange(of: outerGeo.size.width) { _, newWidth in
+                    containerWidth = newWidth
+                }
+                .onChange(of: midY) { _, newMidY in
+                    let nowInMiddle = newMidY >= topThreshold && newMidY <= bottomThreshold
+                    if nowInMiddle != isInMiddleThird {
+                        isInMiddleThird = nowInMiddle
+                        if nowInMiddle && shouldAnimate {
+                            startDelayedAnimation()
+                        } else {
+                            stopAnimation()
+                        }
+                    }
+                }
+        }
+        .frame(height: UIFont.preferredFont(forTextStyle: .body).lineHeight)
+        .clipped()
+    }
+
+    private func startDelayedAnimation() {
+        delayTask?.cancel()
+        delayTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1))
+            guard !Task.isCancelled, isInMiddleThird, shouldAnimate else { return }
+            isAnimating = true
+            animateCycle()
+        }
+    }
+
+    private func stopAnimation() {
+        delayTask?.cancel()
+        isAnimating = false
+        withAnimation(.easeOut(duration: 0.3)) {
+            offset = 0
+        }
+    }
+
+    private func animateCycle() {
+        guard isAnimating, shouldAnimate else { return }
+        // Scroll left
+        withAnimation(.linear(duration: Double(overflow) / 30.0)) {
+            offset = -overflow
+        }
+        // Wait, then scroll back
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(Double(overflow) / 30.0 + 1.5))
+            guard isAnimating else { return }
+            withAnimation(.linear(duration: Double(overflow) / 30.0)) {
+                offset = 0
+            }
+            try? await Task.sleep(for: .seconds(Double(overflow) / 30.0 + 1.0))
+            guard isAnimating else { return }
+            animateCycle()
+        }
     }
 }
 

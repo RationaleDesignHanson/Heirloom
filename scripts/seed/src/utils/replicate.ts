@@ -68,7 +68,7 @@ async function getReplicateToken(): Promise<string> {
 /**
  * Call Replicate API with the given inputs
  */
-async function callReplicateAPI(input: Record<string, any>): Promise<string> {
+export async function callReplicateAPI(input: Record<string, any>): Promise<string> {
   const apiToken = await getReplicateToken();
 
   // Create prediction

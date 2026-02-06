@@ -1483,6 +1483,10 @@ struct RecipeCardView: View {
         if recipe.isProcessingFailed {
             return "Import failed"
         }
+        // For shared recipes, show who shared it
+        if let sharedBy = recipe.sharedBy, !sharedBy.isEmpty {
+            return sharedBy
+        }
         return recipe.sourceDisplayName
     }
 
@@ -1690,7 +1694,8 @@ struct RecipeCardView: View {
             }
             .accessibilityElement(children: .combine)
         }
-        .padding(HeirloomSpacing.xs)
+        .padding(.horizontal, HeirloomSpacing.sm)
+        .padding(.vertical, HeirloomSpacing.xs)
         .frame(maxWidth: .infinity)
         .background(recipe.isThemeRecipe ? HeirloomColors.themeTan : HeirloomColors.cream)
         .contentShape(RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius))
@@ -1704,7 +1709,7 @@ struct RecipeCardView: View {
         .overlay(
             RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .stroke(
-                    isSelected ? HeirloomColors.tomato : (recipe.isThemeRecipe ? HeirloomColors.familyGreen.opacity(0.2) : .clear),
+                    isSelected ? HeirloomColors.tomato : (recipe.isThemeRecipe ? HeirloomColors.familyGreen.opacity(0.2) : HeirloomColors.cardStroke),
                     lineWidth: isSelected ? 2 : 1
                 )
                 .animation(.easeInOut(duration: 0.2), value: isSelected)

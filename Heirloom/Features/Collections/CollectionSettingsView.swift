@@ -48,6 +48,17 @@ struct CollectionSettingsView: View {
                     // TODO: Add icon picker in future
                 }
 
+                Section("Screen Recording") {
+                    Toggle("Demo Seed Collection", isOn: $collection.isDemoSeed)
+                        .onChange(of: collection.isDemoSeed) { _, _ in
+                            try? modelContext.save()
+                        }
+
+                    Text("Mark this collection as a 'demo seed' to hide it when the \"Hide Demo Collections\" toggle is enabled in Settings. Use this for collections created specifically for screen recordings or demos.")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+
                 Section("Collection Card Image") {
                     Toggle("Use Custom Image", isOn: $collection.useCustomBackground)
                         .onChange(of: collection.useCustomBackground) { _, newValue in

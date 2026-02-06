@@ -247,6 +247,7 @@ struct RecipeDiffView: View {
         }
 
         // Normalize unit abbreviations to full words (case-insensitive since we already lowercased)
+        // Include both dotted (tsp.) and non-dotted (tsp) forms for comprehensive matching
         let unitMappings: [(String, String)] = [
             ("tsp.", "teaspoon"),
             ("tbsp.", "tablespoon"),
@@ -262,7 +263,19 @@ struct RecipeDiffView: View {
             ("l.", "liter"),
             ("g.", "gram"),
             ("kg.", "kilogram"),
-            ("mg.", "milligram")
+            ("mg.", "milligram"),
+            ("tbsp", "tablespoon"),
+            ("tbs", "tablespoon"),
+            ("tsp", "teaspoon"),
+            ("oz", "ounce"),
+            ("lbs", "pound"),
+            ("lb", "pound"),
+            ("pt", "pint"),
+            ("qt", "quart"),
+            ("gal", "gallon"),
+            ("ml", "milliliter"),
+            ("kg", "kilogram"),
+            ("mg", "milligram")
         ]
 
         // Replace unit abbreviations (word boundary aware)
@@ -360,6 +373,15 @@ struct RecipeDiffView: View {
         return diffs
     }
 
+    /// Normalizes an instruction string for comparison
+    private func normalizeInstruction(_ text: String) -> String {
+        var normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        normalized = normalized.lowercased()
+        // Collapse multiple spaces into one
+        normalized = normalized.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        return normalized
+    }
+
     private func calculateInstructionDiffs(
         current: [String],
         compared: RecipeLineageVersion
@@ -377,11 +399,16 @@ struct RecipeDiffView: View {
             comparedInstructions = []
         }
 
-        // Find added or modified instructions
+        // If compared version has no instruction data, skip the section entirely
+        if comparedInstructions.isEmpty {
+            return diffs
+        }
+
+        // Find added or modified instructions (using normalized comparison)
         for (index, instruction) in current.enumerated() {
             if index >= comparedInstructions.count {
                 diffs.append((instruction, .added))
-            } else if instruction != comparedInstructions[index] {
+            } else if normalizeInstruction(instruction) != normalizeInstruction(comparedInstructions[index]) {
                 diffs.append((instruction, .modified))
             }
         }

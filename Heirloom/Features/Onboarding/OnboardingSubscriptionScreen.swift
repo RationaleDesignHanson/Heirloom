@@ -109,7 +109,7 @@ struct OnboardingSubscriptionScreen: View {
                                 PremiumFeatureRow(icon: "book.fill", label: "Bulk cookbook scans")
                             }
 
-                            Text("200 monthly credits for video imports and large cookbooks. You'll always see costs before confirming.")
+                            Text("Your free trial includes 50 credits. Premium subscribers get 100 credits each month. You'll always see costs before confirming.")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundColor(HeirloomColors.secondaryText)
                                 .padding(.top, 4)

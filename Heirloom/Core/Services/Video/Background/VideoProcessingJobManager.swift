@@ -432,8 +432,8 @@ final class VideoProcessingJobManager: ObservableObject {
 
         try context.save()
 
-        // Schedule completion notification
-        scheduleCompletionNotification(job, context: context)
+        // Schedule completion notification (awaited to ensure delivery before BG task ends)
+        await scheduleCompletionNotification(job, context: context)
 
         Log.info("Job completed successfully", category: .video, metadata: ["jobId": job.id.uuidString])
     }
@@ -661,8 +661,8 @@ final class VideoProcessingJobManager: ObservableObject {
 
         try? context.save()
 
-        // Schedule failure notification
-        scheduleFailureNotification(job, context: context)
+        // Schedule failure notification (awaited to ensure delivery before BG task ends)
+        await scheduleFailureNotification(job, context: context)
     }
 
     /// Classify error type for contextual recovery options
@@ -1235,7 +1235,7 @@ final class VideoProcessingJobManager: ObservableObject {
 
     // MARK: - Notifications
 
-    private func scheduleCompletionNotification(_ job: VideoProcessingJob, context: ModelContext) {
+    private func scheduleCompletionNotification(_ job: VideoProcessingJob, context: ModelContext) async {
         let content = UNMutableNotificationContent()
         content.title = "Your recipe is ready!"
         content.body = "Tap to review and save your extracted recipe."
@@ -1246,23 +1246,23 @@ final class VideoProcessingJobManager: ObservableObject {
         // Update app badge with count of jobs ready to review
         content.badge = NSNumber(value: getJobsNeedingAttentionCount(context: context))
 
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         let request = UNNotificationRequest(
             identifier: "video_job_\(job.id.uuidString)_complete",
             content: content,
             trigger: trigger
         )
 
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                Log.error("Failed to schedule notification", category: .video, metadata: [
-                    "error": error.localizedDescription
-                ])
-            }
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+        } catch {
+            Log.error("Failed to schedule notification", category: .video, metadata: [
+                "error": error.localizedDescription
+            ])
         }
     }
 
-    private func scheduleFailureNotification(_ job: VideoProcessingJob, context: ModelContext) {
+    private func scheduleFailureNotification(_ job: VideoProcessingJob, context: ModelContext) async {
         let content = UNMutableNotificationContent()
         content.title = "Video processing failed"
         content.body = job.canRetry ? "Tap to retry or view error details." : "Tap to view error details."
@@ -1273,19 +1273,19 @@ final class VideoProcessingJobManager: ObservableObject {
         // Update app badge with count of jobs needing attention
         content.badge = NSNumber(value: getJobsNeedingAttentionCount(context: context))
 
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         let request = UNNotificationRequest(
             identifier: "video_job_\(job.id.uuidString)_failed",
             content: content,
             trigger: trigger
         )
 
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                Log.error("Failed to schedule notification", category: .video, metadata: [
-                    "error": error.localizedDescription
-                ])
-            }
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+        } catch {
+            Log.error("Failed to schedule notification", category: .video, metadata: [
+                "error": error.localizedDescription
+            ])
         }
     }
 

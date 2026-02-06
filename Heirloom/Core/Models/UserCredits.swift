@@ -8,92 +8,145 @@
 import Foundation
 import SwiftData
 
-/// Tracks user's PDF import credit balance and daily quota
-/// - Daily quota: 25 free credits per day (resets at midnight)
+/// Tracks user's credit balance based on subscription tier
+/// - Trial users: 50 credits for the entire trial period (no reset)
+/// - Premium users: 100 credits per month (resets monthly)
 /// - Purchased credits: Never expire, rollover indefinitely
-/// - Deduction order: Uses daily quota first, then purchased credits
+/// - Deduction order: Uses tier credits first, then purchased credits
 @Model
 final class UserCredits {
 
     // MARK: - Properties
 
     var userId: String
-    var creditsBalance: Int = 0          // Purchased credits (never expire)
-    var dailyQuotaUsed: Int = 0          // How many free credits used today
-    var dailyQuotaResetDate: Date = Date()
+    var creditsBalance: Int = 0              // Purchased credits (never expire)
+    var tierCreditsUsed: Int = 0             // Credits used in current tier period
+    var tierCreditResetDate: Date = Date()   // When tier credits were last reset
+    var tierType: String = "trial"           // "trial", "premium", "expired", "none"
     var lastPurchaseDate: Date?
-    var lifetimePurchasedCredits: Int = 0 // Analytics: total credits ever purchased
+    var lifetimePurchasedCredits: Int = 0    // Analytics: total credits ever purchased
 
     // MARK: - Constants
 
-    /// Daily free quota (25 credits = 5 scanned PDFs OR 25 text PDFs)
-    static let dailyFreeQuota = 25
+    /// Trial credits (50 for entire trial period)
+    static let trialCredits = 50
+
+    /// Premium monthly credits (100 per month)
+    static let premiumMonthlyCredits = 100
+
+    // MARK: - Tier Types
+
+    enum TierType: String {
+        case trial = "trial"
+        case premium = "premium"
+        case expired = "expired"
+        case none = "none"
+
+        var creditAllocation: Int {
+            switch self {
+            case .trial: return UserCredits.trialCredits
+            case .premium: return UserCredits.premiumMonthlyCredits
+            case .expired, .none: return 0
+            }
+        }
+    }
+
+    /// Current tier type as enum
+    var currentTierType: TierType {
+        TierType(rawValue: tierType) ?? .none
+    }
 
     // MARK: - Initialization
 
     init(userId: String) {
         self.userId = userId
         self.creditsBalance = 0
-        self.dailyQuotaUsed = 0
-        self.dailyQuotaResetDate = Date()
+        self.tierCreditsUsed = 0
+        self.tierCreditResetDate = Date()
+        self.tierType = TierType.trial.rawValue
     }
 
     // MARK: - Computed Properties
 
-    /// Total credits available today (quota + purchased)
-    var availableToday: Int {
-        resetDailyQuotaIfNeeded()
-        let quotaRemaining = max(0, Self.dailyFreeQuota - dailyQuotaUsed)
-        return quotaRemaining + creditsBalance
+    /// Total credits available (tier credits + purchased)
+    var availableCredits: Int {
+        resetTierCreditsIfNeeded()
+        let tierRemaining = max(0, currentTierType.creditAllocation - tierCreditsUsed)
+        return tierRemaining + creditsBalance
     }
 
-    /// Remaining free quota for today
-    var quotaRemaining: Int {
-        resetDailyQuotaIfNeeded()
-        return max(0, Self.dailyFreeQuota - dailyQuotaUsed)
+    /// Remaining tier credits for current period
+    var tierCreditsRemaining: Int {
+        resetTierCreditsIfNeeded()
+        return max(0, currentTierType.creditAllocation - tierCreditsUsed)
     }
 
-    /// When the daily quota will reset (next midnight)
+    /// When the tier credits will reset (for premium: next month; for trial: never)
+    var tierResetTime: Date? {
+        guard currentTierType == .premium else { return nil }
+        // Next month from the reset date
+        return Calendar.current.date(byAdding: .month, value: 1, to: tierCreditResetDate)
+    }
+
+    /// Whether credits reset periodically (only premium resets monthly)
+    var hasPeriodicReset: Bool {
+        currentTierType == .premium
+    }
+
+    // MARK: - Legacy Compatibility
+
+    /// Alias for availableCredits (backwards compatibility)
+    var availableToday: Int { availableCredits }
+
+    /// Alias for tierCreditsRemaining (backwards compatibility)
+    var quotaRemaining: Int { tierCreditsRemaining }
+
+    /// Alias for tierResetTime (backwards compatibility)
     var quotaResetTime: Date {
-        Calendar.current.startOfDay(for: Date().addingTimeInterval(24 * 60 * 60))
+        tierResetTime ?? Calendar.current.startOfDay(for: Date().addingTimeInterval(24 * 60 * 60))
     }
+
+    /// Legacy constant for backwards compatibility
+    static var dailyFreeQuota: Int { trialCredits }
 
     // MARK: - Credit Operations
 
     /// Check if user can afford a given credit cost
     func canAfford(credits: Int) -> Bool {
-        return availableToday >= credits
+        return availableCredits >= credits
     }
 
     /// Deduct credits from user's balance
-    /// - Deducts from daily quota first, then from purchased credits
+    /// - Deducts from tier credits first, then from purchased credits
     /// - Throws error if insufficient credits
     func deductCredits(_ amount: Int) throws {
-        resetDailyQuotaIfNeeded()
+        resetTierCreditsIfNeeded()
 
         guard canAfford(credits: amount) else {
             throw CreditError.insufficientCredits(
                 needed: amount,
-                available: availableToday
+                available: availableCredits
             )
         }
 
-        // Deduct from daily quota first
-        let fromQuota = min(amount, Self.dailyFreeQuota - dailyQuotaUsed)
-        dailyQuotaUsed += fromQuota
+        // Deduct from tier credits first
+        let tierAllocation = currentTierType.creditAllocation
+        let fromTier = min(amount, tierAllocation - tierCreditsUsed)
+        tierCreditsUsed += fromTier
 
         // Deduct remainder from purchased credits
-        let remaining = amount - fromQuota
+        let remaining = amount - fromTier
         if remaining > 0 {
             creditsBalance -= remaining
         }
 
         Log.info("Credits deducted", category: .general, metadata: [
             "amount": amount,
-            "fromQuota": fromQuota,
+            "fromTier": fromTier,
             "fromPurchased": remaining,
             "remainingBalance": creditsBalance,
-            "remainingQuota": quotaRemaining
+            "remainingTierCredits": tierCreditsRemaining,
+            "tierType": tierType
         ])
     }
 
@@ -110,21 +163,79 @@ final class UserCredits {
         ])
     }
 
-    /// Reset daily quota if a new day has started
+    // MARK: - Tier Management
+
+    /// Update tier type and optionally reset credits
+    /// - Parameters:
+    ///   - newTier: The new tier type
+    ///   - resetCredits: Whether to reset tier credits (true for new subscription period)
+    ///   - carryOverCredits: Credits to carry over from previous tier (e.g., trial → premium)
+    func updateTier(_ newTier: TierType, resetCredits: Bool = true, carryOverCredits: Int = 0) {
+        let oldTier = tierType
+        tierType = newTier.rawValue
+
+        if resetCredits {
+            tierCreditsUsed = 0
+            tierCreditResetDate = Date()
+        }
+
+        // Add carry-over credits to purchased balance (they become "bonus" credits)
+        if carryOverCredits > 0 {
+            creditsBalance += carryOverCredits
+            Log.info("Credits carried over from previous tier", category: .general, metadata: [
+                "carryOver": carryOverCredits,
+                "newBalance": creditsBalance
+            ])
+        }
+
+        Log.info("Tier updated", category: .general, metadata: [
+            "oldTier": oldTier,
+            "newTier": newTier.rawValue,
+            "resetCredits": resetCredits,
+            "carryOverCredits": carryOverCredits
+        ])
+    }
+
+    /// Reset to trial state (for first-time user reset)
+    func resetToTrial() {
+        tierCreditsUsed = 0
+        tierCreditResetDate = Date()
+        tierType = TierType.trial.rawValue
+        creditsBalance = 0  // Wipe purchased credits on full reset
+
+        Log.info("Credits reset to trial state", category: .general, metadata: [
+            "tierCredits": Self.trialCredits
+        ])
+    }
+
+    /// Reset tier credits if a new period has started (premium only - monthly reset)
     @discardableResult
-    func resetDailyQuotaIfNeeded() -> Bool {
+    func resetTierCreditsIfNeeded() -> Bool {
+        // Only premium tier resets monthly
+        guard currentTierType == .premium else { return false }
+
         let calendar = Calendar.current
-        if !calendar.isDateInToday(dailyQuotaResetDate) {
-            Log.info("Daily quota reset", category: .general, metadata: [
-                "previousUsed": dailyQuotaUsed,
-                "newQuota": Self.dailyFreeQuota
+        let monthsSinceReset = calendar.dateComponents([.month], from: tierCreditResetDate, to: Date()).month ?? 0
+
+        if monthsSinceReset >= 1 {
+            Log.info("Monthly tier credits reset", category: .general, metadata: [
+                "previousUsed": tierCreditsUsed,
+                "newAllocation": Self.premiumMonthlyCredits
             ])
 
-            dailyQuotaUsed = 0
-            dailyQuotaResetDate = Date()
+            tierCreditsUsed = 0
+            tierCreditResetDate = Date()
             return true
         }
         return false
+    }
+
+    // MARK: - Legacy Method
+
+    /// Legacy method for backwards compatibility
+    @discardableResult
+    func resetDailyQuotaIfNeeded() -> Bool {
+        return resetTierCreditsIfNeeded()
     }
 }
 

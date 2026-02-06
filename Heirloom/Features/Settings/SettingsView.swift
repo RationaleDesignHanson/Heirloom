@@ -707,6 +707,23 @@ struct SettingsView: View {
             }
             .tint(.purple)
 
+            // Hide Demo Seed Collections Toggle
+            Toggle(isOn: $resetService.hideDemoSeedCollections) {
+                HStack {
+                    Image(systemName: "theatermask.and.paintbrush.fill")
+                        .foregroundStyle(.orange)
+                        .font(.title2)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Hide Demo Collections")
+                            .font(HeirloomFonts.bodyBold)
+                        Text("Hides your collections marked as demo seed")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.orange)
+
             // First Time User Reset
             Button(role: .destructive) {
                 showFirstTimeUserReset = true

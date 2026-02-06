@@ -358,6 +358,17 @@ final class SubscriptionManager {
 
             NotificationCenter.default.post(name: .userBecamePremium, object: nil)
         }
+
+        // Post notification for credit tier updates
+        // Include old/new status so listener can handle credit carry-over
+        NotificationCenter.default.post(
+            name: .creditTierShouldUpdate,
+            object: nil,
+            userInfo: [
+                "oldStatus": oldStatus.rawValue,
+                "newStatus": newStatus.rawValue
+            ]
+        )
     }
 
     // MARK: - Trial Management

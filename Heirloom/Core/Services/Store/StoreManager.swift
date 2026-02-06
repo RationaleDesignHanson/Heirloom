@@ -646,4 +646,5 @@ extension Notification.Name {
     static let userBecamePremium = Notification.Name("userBecamePremium")
     static let userProfileDidUpdate = Notification.Name("userProfileDidUpdate")
     static let navigateToRecipe = Notification.Name("navigateToRecipe")
+    static let creditTierShouldUpdate = Notification.Name("creditTierShouldUpdate")
 }

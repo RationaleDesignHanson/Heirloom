@@ -13,6 +13,7 @@ final class RecipeCollection {
     var lastViewedDate: Date? // Last time user opened this collection (for "NEW" badge detection)
     var isSystemCollection: Bool = false // For built-in collections like "Favorites"
     var isAllRecipes: Bool = false // Special "All Recipes" collection that shows all recipes
+    var isDemoSeed: Bool = false // Mark collections created for demo/screen recording purposes
 
     // MARK: - Theme System (Collections 2.1)
     var collectionType: String = "userCreated" // CollectionType rawValue

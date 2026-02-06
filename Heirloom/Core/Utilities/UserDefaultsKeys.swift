@@ -59,6 +59,9 @@ enum UserDefaultsKeys {
     /// Whether to hide theme collections for screen recordings (defaults to false = show)
     static let hideThemeCollections = "hide_theme_collections_for_recording"
 
+    /// Whether to hide user-created demo seed collections for screen recordings (defaults to false = show)
+    static let hideDemoSeedCollections = "hide_demo_seed_collections_for_recording"
+
     // MARK: - Paywall
 
     /// Number of times user has dismissed soft-wall paywalls

@@ -788,10 +788,23 @@ struct HeirloomApp: App {
         Log.info("Background video processing task started", category: .video)
         DeviceLogger.shared.log("🔄 [BackgroundTasks] Video processing task started")
 
-        // Schedule expiration handler
+        // Schedule expiration handler with fallback notification
         task.expirationHandler = {
             Log.warning("Background task expired", category: .video)
-            DeviceLogger.shared.log("⚠️ [BackgroundTasks] Task expired, will resume on foreground")
+            DeviceLogger.shared.log("⚠️ [BackgroundTasks] Task expired, scheduling fallback notification")
+
+            let content = UNMutableNotificationContent()
+            content.title = "Processing paused"
+            content.body = "Open Heirloom to continue processing your recipe."
+            content.sound = .default
+            let request = UNNotificationRequest(
+                identifier: "video_task_expired",
+                content: content,
+                trigger: UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+            )
+            UNUserNotificationCenter.current().add(request)
+
+            task.setTaskCompleted(success: false)
         }
 
         // Get job manager and process pending jobs
@@ -1056,6 +1069,9 @@ struct RootView: View {
                 // CRITICAL: Set up listener for user data clearing (user switch scenario)
                 setupUserDataClearListener()
 
+                // Set up listener for credit tier updates (subscription changes)
+                setupCreditTierUpdateListener()
+
                 // Mark interrupted imports on app launch
                 Task {
                     await markInterruptedImportsOnLaunch(modelContainer: modelContainer)
@@ -1070,6 +1086,11 @@ struct RootView: View {
 
                     Log.info("🎬 ROOTVIEW.ONAPPEAR: Video detection task completed", category: .video)
                     DeviceLogger.shared.log("🎬 [Video] RootView.onAppear: Video detection task completed")
+                }
+
+                // Recover missed notifications for completed/failed video jobs
+                Task {
+                    await checkForUnnotifiedCompletedJobs(modelContainer: modelContainer)
                 }
 
                 // Start automatic sync if already authenticated on app launch
@@ -1192,6 +1213,83 @@ struct RootView: View {
 
         Log.info("User data clear listener registered", category: .auth)
         DeviceLogger.shared.log("✅ [Auth] User data clear listener registered")
+    }
+
+    // MARK: - Credit Tier Update Listener
+
+    /// Set up notification listener for credit tier updates when subscription status changes
+    /// Handles trial → premium transitions with credit carry-over
+    private func setupCreditTierUpdateListener() {
+        let container = self.modelContainer
+
+        NotificationCenter.default.addObserver(
+            forName: .creditTierShouldUpdate,
+            object: nil,
+            queue: .main
+        ) { notification in
+            guard let userInfo = notification.userInfo,
+                  let oldStatusRaw = userInfo["oldStatus"] as? String,
+                  let newStatusRaw = userInfo["newStatus"] as? String else {
+                Log.warning("Credit tier update notification missing status info", category: .store)
+                return
+            }
+
+            Task { @MainActor in
+                do {
+                    let modelContext = container.mainContext
+
+                    // Fetch user credits
+                    let descriptor = FetchDescriptor<UserCredits>()
+                    guard let userCredits = try modelContext.fetch(descriptor).first else {
+                        Log.warning("No UserCredits found for tier update", category: .store)
+                        return
+                    }
+
+                    // Determine new tier type based on subscription status
+                    let newTierType: UserCredits.TierType
+                    switch newStatusRaw {
+                    case "trial":
+                        newTierType = .trial
+                    case "monthly", "annual", "lifetime", "grace":
+                        newTierType = .premium
+                    case "expired", "none":
+                        newTierType = .expired
+                    default:
+                        newTierType = .none
+                    }
+
+                    // Calculate carry-over credits if upgrading from trial to premium
+                    var carryOverCredits = 0
+                    if oldStatusRaw == "trial" && newTierType == .premium {
+                        // Carry over remaining trial credits
+                        carryOverCredits = userCredits.tierCreditsRemaining
+                        Log.info("Carrying over trial credits to premium", category: .store, metadata: [
+                            "carryOver": carryOverCredits
+                        ])
+                    }
+
+                    // Update tier (only if it actually changed)
+                    if userCredits.currentTierType != newTierType {
+                        userCredits.updateTier(newTierType, resetCredits: true, carryOverCredits: carryOverCredits)
+                        try modelContext.save()
+
+                        Log.info("Credit tier updated", category: .store, metadata: [
+                            "oldTier": userCredits.tierType,
+                            "newTier": newTierType.rawValue,
+                            "carryOver": carryOverCredits,
+                            "newAvailable": userCredits.availableCredits
+                        ])
+                    }
+
+                } catch {
+                    Log.error("Failed to update credit tier", category: .store, metadata: [
+                        "error": error.localizedDescription
+                    ])
+                }
+            }
+        }
+
+        Log.info("Credit tier update listener registered", category: .store)
     }
 
     // MARK: - Interrupted Import Detection
@@ -1419,11 +1517,85 @@ struct RootView: View {
             ])
         }
     }
+
+    /// Check for completed/failed video jobs that never received a notification
+    /// This catches cases where the notification scheduling failed or the app was killed before delivery
+    private func checkForUnnotifiedCompletedJobs(modelContainer: ModelContainer) async {
+        let modelContext = modelContainer.mainContext
+
+        let descriptor = FetchDescriptor<VideoProcessingJob>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+
+        do {
+            let allJobs = try modelContext.fetch(descriptor)
+
+            // Find completed or failed jobs that haven't been saved/reviewed yet
+            let unreviewed = allJobs.filter { job in
+                (job.status == .completed || job.status == .failed) && job.status != .saved
+            }
+
+            guard !unreviewed.isEmpty else { return }
+
+            // Check pending and delivered notifications for these job IDs
+            let center = UNUserNotificationCenter.current()
+            let pending = await center.pendingNotificationRequests()
+            let delivered = await center.deliveredNotifications()
+
+            let notifiedIds = Set(
+                pending.map(\.identifier) + delivered.map(\.request.identifier)
+            )
+
+            for job in unreviewed {
+                let completeId = "video_job_\(job.id.uuidString)_complete"
+                let failedId = "video_job_\(job.id.uuidString)_failed"
+
+                if !notifiedIds.contains(completeId) && !notifiedIds.contains(failedId) {
+                    // This job has no pending or delivered notification — schedule a recovery one
+                    let content = UNMutableNotificationContent()
+                    if job.status == .completed {
+                        content.title = "Your recipe is ready!"
+                        content.body = "Tap to review and save your extracted recipe."
+                        content.categoryIdentifier = "VIDEO_PROCESSING_COMPLETE"
+                    } else {
+                        content.title = "Video processing failed"
+                        content.body = "Tap to view error details."
+                        content.categoryIdentifier = "VIDEO_PROCESSING_FAILED"
+                    }
+                    content.sound = .default
+                    content.userInfo = ["jobId": job.id.uuidString]
+
+                    let request = UNNotificationRequest(
+                        identifier: "video_job_\(job.id.uuidString)_recovery",
+                        content: content,
+                        trigger: UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+                    )
+
+                    do {
+                        try await center.add(request)
+                        Log.info("Scheduled recovery notification for video job", category: .video, metadata: [
+                            "jobId": job.id.uuidString,
+                            "status": job.status.rawValue
+                        ])
+                    } catch {
+                        Log.error("Failed to schedule recovery notification", category: .video, metadata: [
+                            "jobId": job.id.uuidString,
+                            "error": error.localizedDescription
+                        ])
+                    }
+                }
+            }
+        } catch {
+            Log.error("Failed to check for unnotified completed jobs", category: .video, metadata: [
+                "error": error.localizedDescription
+            ])
+        }
+    }
 }
 
 struct ContentView: View {
     @State private var showAddRecipe = false
-    @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var hasViewedRecipesList = false
     @State private var showSignInSheet = false
     @State private var needsHeritageSeeding = false

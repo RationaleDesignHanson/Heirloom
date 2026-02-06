@@ -15,7 +15,6 @@ struct CreditsBalanceIndicator: View {
     // MARK: - Properties
 
     let balance: Int
-    let dailyQuota: Int
     let onTap: (() -> Void)?
 
     // MARK: - Computed
@@ -77,15 +76,15 @@ extension CreditsBalanceIndicator {
 
 #Preview("Normal") {
     VStack(spacing: 20) {
-        CreditsBalanceIndicator(balance: 15, dailyQuota: 25, onTap: {
+        CreditsBalanceIndicator(balance: 15, onTap: {
             print("Tapped")
         })
 
-        CreditsBalanceIndicator(balance: 3, dailyQuota: 25, onTap: {
+        CreditsBalanceIndicator(balance: 3, onTap: {
             print("Tapped")
         })
 
-        CreditsBalanceIndicator(balance: 0, dailyQuota: 25, onTap: nil)
+        CreditsBalanceIndicator(balance: 0, onTap: nil)
     }
     .padding()
 }

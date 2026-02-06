@@ -36,12 +36,13 @@ struct CollectionDetailView: View {
     @State private var recipeForCollectionPicker: Recipe?
     @State private var recipeGeneratingImage: Recipe?
 
-    // Batch selection state (for "All Recipes" collection)
+    // Batch selection state (for non-theme collections)
     @State private var isSelectionMode = false
     @State private var selectedRecipeIDs: Set<UUID> = []
     @State private var showCollectionPicker = false
     @State private var showCollectionEditor = false
     @State private var existingCollectionIDs: Set<UUID> = []
+    @State private var showBatchDeleteConfirmation = false
 
     @Query private var allRecipes: [Recipe]
     @Query private var allCollections: [RecipeCollection]
@@ -80,9 +81,9 @@ struct CollectionDetailView: View {
 
     // Recipes in this collection
     var recipes: [Recipe] {
-        // Special handling for "All Recipes" collection - show user-added recipes only (exclude theme recipes)
+        // "All Recipes" collection shows all recipes including theme recipes
         if collection.isAllRecipes {
-            return allRecipes.filter { $0.sourceThemeId == nil }
+            return allRecipes
         }
 
         // For theme collections, query by sourceThemeId to avoid accessing collections relationship
@@ -155,7 +156,7 @@ struct CollectionDetailView: View {
 
     @ViewBuilder
     private func recipeCard(for recipe: Recipe) -> some View {
-        if isSelectionMode && collection.isAllRecipes {
+        if isSelectionMode && collection.type != .theme {
             // Selection mode: tap to select/deselect
             RecipeCardView(recipe: recipe, collection: collection)
                 .overlay(alignment: .topTrailing) {
@@ -279,8 +280,8 @@ struct CollectionDetailView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        // For "All Recipes": Show Select/Done button for batch operations
-        if collection.isAllRecipes {
+        // Show Select/Done button for all non-theme collections
+        if collection.type != .theme {
             ToolbarItem(placement: .primaryAction) {
                 Button(isSelectionMode ? "Done" : "Select") {
                     isSelectionMode.toggle()
@@ -289,8 +290,10 @@ struct CollectionDetailView: View {
                     }
                 }
             }
-        } else {
-            // For other collections: Show add/import actions
+        }
+
+        // Show add/import actions for non-allRecipes collections when not in selection mode
+        if !collection.isAllRecipes && !isSelectionMode {
             ToolbarItem(placement: .primaryAction) {
                 RecipeListToolbarActions(
                     isSelectionMode: false,
@@ -589,20 +592,12 @@ struct CollectionDetailView: View {
             Text("Choose what to delete:\n• Collection Only: Recipes remain in your library\n• Collection & Recipes: Removes everything")
         }
         .safeAreaInset(edge: .bottom) {
-            // Selection action bar (only for "All Recipes" when recipes are selected)
-            if isSelectionMode && collection.isAllRecipes && !selectedRecipeIDs.isEmpty {
-                HStack {
-                    Text("\(selectedRecipeIDs.count) selected")
-                        .font(HeirloomFonts.bodyBold)
-                    Spacer()
-                    Button("Add to Collection") {
-                        showCollectionPicker = true
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .shadow(radius: 8)
+            if isSelectionMode && collection.type != .theme && !selectedRecipeIDs.isEmpty {
+                SelectionActionBar(
+                    selectedCount: selectedRecipeIDs.count,
+                    onDelete: { showBatchDeleteConfirmation = true },
+                    onAddToCollection: { showCollectionPicker = true }
+                )
             }
         }
         .sheet(isPresented: $showCollectionPicker) {
@@ -662,6 +657,16 @@ struct CollectionDetailView: View {
                     }
                 }
             }
+        }
+        .confirmationDialog(
+            "Delete \(selectedRecipeIDs.count) Recipes?",
+            isPresented: $showBatchDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) { batchDeleteRecipes() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will delete \(selectedRecipeIDs.count) recipe\(selectedRecipeIDs.count == 1 ? "" : "s"). You can undo within 5 seconds.")
         }
         .onAppear {
             // Mark collection as viewed (clears "NEW" badge)
@@ -915,6 +920,48 @@ struct CollectionDetailView: View {
                 )
             }
         }
+    }
+
+    // MARK: - Batch Delete
+
+    private func batchDeleteRecipes() {
+        let recipesToDelete = getSelectedRecipes()
+        let count = recipesToDelete.count
+
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.impactOccurred()
+
+        // Delete each recipe using UndoService and track the undo items
+        var undoItems: [UndoService.UndoItem] = []
+        for recipe in recipesToDelete {
+            undoService.deleteRecipe(recipe, context: modelContext)
+            if let undoItem = undoService.pendingUndos.last {
+                undoItems.append(undoItem)
+            }
+        }
+
+        // Show undo toast for batch delete
+        if let lastUndo = undoItems.last {
+            toastManager.showUndoToast(for: lastUndo) { [undoItems] in
+                // Undo ALL deletions in the batch
+                for undoItem in undoItems {
+                    undoService.undoDelete(undoItem)
+                }
+
+                // Success haptic for undo
+                let successGenerator = UINotificationFeedbackGenerator()
+                successGenerator.notificationOccurred(.success)
+
+                toastManager.success(title: "\(undoItems.count) recipes restored")
+            }
+        }
+
+        // Exit selection mode
+        selectedRecipeIDs.removeAll()
+        isSelectionMode = false
+
+        Log.info("Batch deleted \(count) recipes from collection", category: .ui)
     }
 
     // MARK: - Recipe Context Menu Actions

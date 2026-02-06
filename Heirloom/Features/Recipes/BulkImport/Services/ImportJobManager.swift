@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 import UIKit
 import PDFKit
+import UserNotifications
 
 /// Actor-based manager for processing bulk import jobs
 /// Handles rate limiting, concurrency control, and state persistence
@@ -109,14 +110,46 @@ final class ImportJobManager: ObservableObject {
     private func handleBackgroundTaskExpiration() {
         Log.warning("Background time limit reached - import will pause", category: .import)
 
+        // Notify user that import was paused
+        let content = UNMutableNotificationContent()
+        content.title = "Import paused"
+        content.body = "Open Heirloom to continue importing your recipes."
+        content.sound = .default
+        let request = UNNotificationRequest(
+            identifier: "import_task_expired",
+            content: content,
+            trigger: UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        )
+        UNUserNotificationCenter.current().add(request)
+
         // End the background task
         if backgroundTask != .invalid {
             UIApplication.shared.endBackgroundTask(backgroundTask)
             backgroundTask = .invalid
         }
+    }
 
-        // Note: Import will be killed by iOS, but state is persisted in SwiftData
-        // User can resume by reopening the app
+    private func scheduleImportCompletionNotification(job: ImportJob) {
+        let content = UNMutableNotificationContent()
+        if job.status == .failed {
+            content.title = "Import failed"
+            content.body = "All \(job.totalItems) recipes failed to import."
+        } else if job.failedItems > 0 {
+            content.title = "\(job.successfulItems) recipes imported"
+            content.body = "\(job.failedItems) failed \u{2022} Saved to \(job.cookbookName ?? "your library")"
+        } else {
+            content.title = "\(job.successfulItems) recipes imported"
+            content.body = "Saved to \(job.cookbookName ?? "your library")"
+        }
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "import_job_\(job.id.uuidString)_complete",
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request)
     }
 
     deinit {
@@ -2377,6 +2410,9 @@ final class ImportJobManager: ObservableObject {
         job.completedAt = Date()
         isProcessing = false
         activeContext = nil // Clear stored context
+
+        // Schedule system notification for backgrounded/closed app
+        scheduleImportCompletionNotification(job: job)
 
         // End background task if active
         if backgroundTask != .invalid {

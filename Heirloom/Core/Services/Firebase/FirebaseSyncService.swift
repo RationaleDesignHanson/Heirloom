@@ -603,6 +603,12 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             return
         }
 
+        // Check if reset is in progress - skip sync to prevent race condition
+        if ScreenRecordingResetService.shared.isResetInProgress {
+            Log.info("Sync skipped - reset in progress", category: .sync)
+            return
+        }
+
         // DIAGNOSTIC: Count Heritage recipes BEFORE sync
         let heritageCountBefore = (try? context.fetch(FetchDescriptor<Recipe>()))?.filter { $0.isThemeRecipe }.count ?? 0
         Log.info("🔍 SYNC START - Heritage recipes BEFORE sync", category: .sync, metadata: ["count": heritageCountBefore])
@@ -976,6 +982,15 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         Log.info("Automatic sync disabled", category: .sync)
     }
 
+    /// Cancel any currently running sync operation
+    /// Called during reset to prevent race conditions
+    func cancelSync() async {
+        if isSyncing {
+            isSyncing = false
+            Log.info("Sync cancelled by reset operation", category: .sync)
+        }
+    }
+
     // MARK: - Background Lifecycle Handling
 
     /// Tracks whether listeners are currently paused due to backgrounding
@@ -1337,6 +1352,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         data["color"] = collection.color
         data["isSystemCollection"] = collection.isSystemCollection
         data["isAllRecipes"] = collection.isAllRecipes
+        data["isDemoSeed"] = collection.isDemoSeed
 
         try await collectionRef.setData(data)
         logger.log("Collection uploaded", category: .sync, level: .info, metadata: nil)
@@ -1406,6 +1422,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 existing.color = data["color"] as? String ?? existing.color
                 existing.isSystemCollection = data["isSystemCollection"] as? Bool ?? existing.isSystemCollection
                 existing.isAllRecipes = data["isAllRecipes"] as? Bool ?? existing.isAllRecipes
+                existing.isDemoSeed = data["isDemoSeed"] as? Bool ?? existing.isDemoSeed
 
                 collection = existing
             } else {
@@ -1428,6 +1445,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 }
                 collection.isSystemCollection = data["isSystemCollection"] as? Bool ?? false
                 collection.isAllRecipes = data["isAllRecipes"] as? Bool ?? false
+                collection.isDemoSeed = data["isDemoSeed"] as? Bool ?? false
 
                 context.insert(collection)
             }

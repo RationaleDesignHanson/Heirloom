@@ -33,10 +33,29 @@ const RECIPE_NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'; // Standard DNS
  * Generate a deterministic UUID from a string (recipe title + collection name)
  * This prevents duplicates when re-running the seed script
  */
-function generateDeterministicId(title: string, collectionName: string): string {
+export function generateDeterministicId(title: string, collectionName: string): string {
   const input = `${collectionName}:${title}`.toLowerCase();
   return uuidv5(input, RECIPE_NAMESPACE);
 }
+
+/**
+ * Convert a recipe title to a URL-safe slug
+ * e.g. "One-Pan Lemon Herb Chicken" → "one_pan_lemon_herb_chicken"
+ */
+export function toSlug(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+/**
+ * Get the global seed image URL for a recipe
+ * Images live at seed/demo/ in Firebase Storage and are shared across all users
+ */
+export function seedImageUrl(title: string): string {
+  return `${SEED_IMAGE_BASE}/seed_${toSlug(title)}-image.webp`;
+}
+
+// Firebase Storage base URL for seed recipe images (global, not user-specific)
+const SEED_IMAGE_BASE = 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo';
 
 // ============================================================================
 // Ingredient Parsing
@@ -151,7 +170,7 @@ interface ScreenshotCollection {
   recipeCount: number;
 }
 
-interface ScreenshotRecipe {
+export interface ScreenshotRecipe {
   id: string;
   title: string;
   description: string;
@@ -170,7 +189,7 @@ interface ScreenshotRecipe {
 // Screenshot Collections
 // ============================================================================
 
-const SCREENSHOT_COLLECTIONS: ScreenshotCollection[] = [
+export const SCREENSHOT_COLLECTIONS: ScreenshotCollection[] = [
   {
     id: uuidv4(),
     name: 'Weeknight Dinners',
@@ -875,7 +894,7 @@ const DESSERT_RECIPES: ScreenshotRecipe[] = [
 ];
 
 // Map collections to their recipes
-const COLLECTION_RECIPES: { [key: string]: ScreenshotRecipe[] } = {
+export const COLLECTION_RECIPES: { [key: string]: ScreenshotRecipe[] } = {
   'Weeknight Dinners': WEEKNIGHT_DINNER_RECIPES,
   'Holiday Baking': HOLIDAY_BAKING_RECIPES,
   'Quick Lunches': QUICK_LUNCH_RECIPES,
@@ -883,51 +902,9 @@ const COLLECTION_RECIPES: { [key: string]: ScreenshotRecipe[] } = {
   'Desserts': DESSERT_RECIPES,
 };
 
-// Firebase Storage base URL for demo images
-const DEMO_IMAGE_BASE = 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo';
-
-// Map collection names to demo images (cycle through available images)
-const COLLECTION_IMAGE_POOLS: { [key: string]: string[] } = {
-  'Weeknight Dinners': [
-    `${DEMO_IMAGE_BASE}/demo_grandmazing_lemon_garlic_chicken-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_chef_maria_garlic_shrimp-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_phillipfry_one_pot_pasta-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_fitfoodie_salmon_sheet_pan-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_grandmazing_steak_bites-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_grandmazing_peanut_noodles-image.webp`,
-  ],
-  'Holiday Baking': [
-    `${DEMO_IMAGE_BASE}/demo_grandmazing_chocolate_chip_cookies-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_bakingbelle_sourdough_cinnamon_rolls-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_bakingbelle_macarons-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_bakingbelle_croissants-image.webp`,
-  ],
-  'Quick Lunches': [
-    `${DEMO_IMAGE_BASE}/demo_fitfoodie_protein_bowl-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_phillipfry_chickpea_salad-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_fitfoodie_greek_yogurt_parfait-image.webp`,
-  ],
-  'Family Favorites': [
-    `${DEMO_IMAGE_BASE}/demo_grandmazing_tomato_basil_soup-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_grillmaster_brisket-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_grandmazing_lemon_garlic_chicken-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_phillipfry_one_pot_pasta-image.webp`,
-  ],
-  'Desserts': [
-    `${DEMO_IMAGE_BASE}/demo_bakingbelle_apple_galette-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_bakingbelle_chocolate_lava_cakes-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_bakingbelle_lemon_tart-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_bakingbelle_macarons-image.webp`,
-    `${DEMO_IMAGE_BASE}/demo_chef_maria_tres_leches-image.webp`,
-  ],
-};
-
-// Helper to get image URL for a recipe in a collection
-function getImageUrlForRecipe(collectionName: string, recipeIndex: number): string | null {
-  const imagePool = COLLECTION_IMAGE_POOLS[collectionName];
-  if (!imagePool || imagePool.length === 0) return null;
-  return imagePool[recipeIndex % imagePool.length];
-}
+// Note: DEMO_IMAGE_BASE and COLLECTION_IMAGE_POOLS removed.
+// Seed recipe images now use deterministic URLs via seedImageUrl().
+// Run `npx ts-node src/generate-seed-images.ts` once to populate them.
 
 // ============================================================================
 // Main Seeding Functions
@@ -961,21 +938,9 @@ async function seedScreenshotDemoForUser(userId: string): Promise<void> {
 
       const now = new Date();
 
-      // Check if recipe already exists with a regenerated image URL
-      // Preserve existing firebaseImageURL if it's a Replicate-generated image (not a seed/demo image)
-      let imageUrl: string | null = getImageUrlForRecipe(collection.name, recipeIndex);
-      const existingDoc = await recipeRef.get();
-      if (existingDoc.exists) {
-        const existingData = existingDoc.data();
-        const existingImageUrl = existingData?.firebaseImageURL as string | undefined;
-        // Preserve if it's a user-generated image (stored in users/{userId}/recipes path)
-        // or a Replicate-delivered image, NOT the seed/demo placeholder images
-        if (existingImageUrl &&
-            (existingImageUrl.includes(`users/${userId}/recipes/`) ||
-             !existingImageUrl.includes('/seed/demo/'))) {
-          imageUrl = existingImageUrl;
-        }
-      }
+      // Use the deterministic global seed image URL for this recipe
+      // These images are generated once via generate-seed-images.ts and stored at seed/demo/
+      const imageUrl: string = seedImageUrl(recipe.title);
 
       const recipeData = {
         id: recipeId,
@@ -995,6 +960,7 @@ async function seedScreenshotDemoForUser(userId: string): Promise<void> {
         sourceType: 'userEntered',
         visibility: 'private',
         isArchived: false,
+        isDemoSeed: true, // Mark for preservation during reset
       };
 
       await recipeRef.set(recipeData);
@@ -1082,6 +1048,7 @@ async function seedScreenshotDemoForUser(userId: string): Promise<void> {
       createdDate: toTimestamp(daysAgo(60)), // Created 2 months ago
       modifiedAt: toTimestamp(now), // Required for sync service to pick up changes
       recipeIds: collectionRecipeIds[collectionId] || [],
+      isDemoSeed: true, // Mark as demo seed so it can be hidden via toggle
     };
 
     await collectionRef.set(collectionData);
@@ -1205,4 +1172,7 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+// Only run CLI when this file is the entry point (not when imported as a module)
+if (require.main === module) {
+  main().catch(console.error);
+}

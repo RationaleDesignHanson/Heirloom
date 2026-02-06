@@ -62,6 +62,13 @@ class FirebaseUserProfileService {
             return authName
         }
 
+        // Check demo user static data
+        if let demoInfo = DemoSocialBehaviorService.demoUserInfo[userId] {
+            let name = demoInfo.displayName
+            profileCache[userId] = name
+            return name
+        }
+
         Log.warning("No display name found for user", category: .auth, metadata: ["userId": userId])
         return nil
     }

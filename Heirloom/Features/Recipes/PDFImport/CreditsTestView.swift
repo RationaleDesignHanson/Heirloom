@@ -54,7 +54,7 @@ struct CreditsTestView: View {
                     // User Credits Info
                     if let userCredits = userCredits {
                         UserCreditsCard(userCredits: userCredits)
-                            .id("\(userCredits.creditsBalance)-\(userCredits.dailyQuotaUsed)")
+                            .id("\(userCredits.creditsBalance)-\(userCredits.tierCreditsUsed)")
                     } else {
                         Text("Initializing user credits...")
                             .foregroundColor(.secondary)
@@ -123,14 +123,14 @@ struct CreditsTestView: View {
                             )
                         }
 
-                        // Test 6: Reset Daily Quota
+                        // Test 6: Reset Tier Credits
                         Button {
-                            resetDailyQuota()
+                            resetTierCredits()
                         } label: {
                             TestActionButton(
                                 icon: "arrow.clockwise",
-                                title: "Reset Daily Quota",
-                                description: "Simulate midnight quota refresh"
+                                title: "Reset Tier Credits",
+                                description: "Reset tier credits to full allocation"
                             )
                         }
 
@@ -243,16 +243,16 @@ struct CreditsTestView: View {
             if let existing = existing {
                 userCredits = existing
                 log("✅ Found existing user credits")
-                log("   Balance: \(existing.creditsBalance)")
-                log("   Daily quota: \(existing.quotaRemaining)/\(UserCredits.dailyFreeQuota)")
+                log("   Purchased: \(existing.creditsBalance)")
+                log("   Tier (\(existing.tierType)): \(existing.tierCreditsRemaining)/\(existing.currentTierType.creditAllocation)")
             } else {
                 let newCredits = UserCredits(userId: userId)
                 modelContext.insert(newCredits)
                 try modelContext.save()
                 userCredits = newCredits
                 log("✅ Created new user credits")
-                log("   Balance: 0")
-                log("   Daily quota: \(UserCredits.dailyFreeQuota)/\(UserCredits.dailyFreeQuota)")
+                log("   Purchased: 0")
+                log("   Tier (trial): \(UserCredits.trialCredits)/\(UserCredits.trialCredits)")
             }
 
             // Initialize store manager
@@ -378,23 +378,24 @@ struct CreditsTestView: View {
         }
     }
 
-    private func resetDailyQuota() {
+    private func resetTierCredits() {
         guard let userCredits = userCredits else {
             log("❌ No user credits available")
             return
         }
 
-        log("🔄 Resetting daily quota...")
+        log("🔄 Resetting tier credits...")
 
-        // Force reset by setting date to yesterday
-        userCredits.dailyQuotaResetDate = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
-        userCredits.resetDailyQuotaIfNeeded()
+        // Reset tier credits to full allocation
+        userCredits.tierCreditsUsed = 0
+        userCredits.tierCreditResetDate = Date()
 
         do {
             try modelContext.save()
             refreshTrigger += 1
-            log("✅ Daily quota reset")
-            log("   New quota: \(userCredits.quotaRemaining)/\(UserCredits.dailyFreeQuota)")
+            log("✅ Tier credits reset")
+            log("   Tier: \(userCredits.tierType)")
+            log("   Available: \(userCredits.tierCreditsRemaining)/\(userCredits.currentTierType.creditAllocation)")
         } catch {
             log("❌ Failed to save: \(error.localizedDescription)")
         }
@@ -461,10 +462,10 @@ struct UserCreditsCard: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("Daily Quota")
+                    Text("Tier Credits (\(userCredits.tierType))")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text("\(userCredits.quotaRemaining)/\(UserCredits.dailyFreeQuota)")
+                    Text("\(userCredits.tierCreditsRemaining)/\(userCredits.currentTierType.creditAllocation)")
                         .font(.title.bold())
                         .foregroundColor(.green)
                 }
@@ -474,21 +475,21 @@ struct UserCreditsCard: View {
 
             // Total available
             HStack {
-                Text("Total Available Today")
+                Text("Total Available")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 Spacer()
-                Text("\(userCredits.availableToday) credits")
+                Text("\(userCredits.availableCredits) credits")
                     .font(.headline)
                     .foregroundColor(.primary)
             }
 
-            // Quota reset time
-            if userCredits.quotaRemaining < UserCredits.dailyFreeQuota {
+            // Reset time (only for premium with monthly reset)
+            if userCredits.hasPeriodicReset, let resetTime = userCredits.tierResetTime {
                 HStack(spacing: 4) {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.caption)
-                    Text("Resets \(userCredits.quotaResetTime, style: .relative)")
+                    Text("Resets \(resetTime, style: .relative)")
                         .font(.caption)
                 }
                 .foregroundColor(.secondary)

@@ -388,7 +388,6 @@ struct ContributorProfileSheet: View {
             let mySharesSnapshot = try await db.collection("shares")
                 .whereField("ownerId", isEqualTo: currentUserId)
                 .whereField("recipientUserIds", arrayContains: connectedUserId)
-                .order(by: "sharedAt", descending: true)
                 .limit(to: 10)
                 .getDocuments()
 
@@ -396,7 +395,7 @@ struct ContributorProfileSheet: View {
                 let data = doc.data()
                 guard let recipeId = data["recipeId"] as? String,
                       let recipeTitle = data["recipeTitle"] as? String,
-                      let sharedAtTimestamp = data["sharedAt"] as? Timestamp else {
+                      let sharedAtTimestamp = (data["sharedAt"] ?? data["createdAt"]) as? Timestamp else {
                     return nil
                 }
                 return SharedRecipeInfo(
@@ -406,13 +405,12 @@ struct ContributorProfileSheet: View {
                     sharedAt: sharedAtTimestamp.dateValue(),
                     message: data["message"] as? String
                 )
-            }
+            }.sorted(by: { $0.sharedAt > $1.sharedAt })
 
             // Query shares where they shared with me
             let theirSharesSnapshot = try await db.collection("shares")
                 .whereField("ownerId", isEqualTo: connectedUserId)
                 .whereField("recipientUserIds", arrayContains: currentUserId)
-                .order(by: "sharedAt", descending: true)
                 .limit(to: 10)
                 .getDocuments()
 
@@ -420,7 +418,7 @@ struct ContributorProfileSheet: View {
                 let data = doc.data()
                 guard let recipeId = data["recipeId"] as? String,
                       let recipeTitle = data["recipeTitle"] as? String,
-                      let sharedAtTimestamp = data["sharedAt"] as? Timestamp else {
+                      let sharedAtTimestamp = (data["sharedAt"] ?? data["createdAt"]) as? Timestamp else {
                     return nil
                 }
                 return SharedRecipeInfo(
@@ -430,7 +428,7 @@ struct ContributorProfileSheet: View {
                     sharedAt: sharedAtTimestamp.dateValue(),
                     message: data["message"] as? String
                 )
-            }
+            }.sorted(by: { $0.sharedAt > $1.sharedAt })
 
             await MainActor.run {
                 self.sharedByMe = myShares

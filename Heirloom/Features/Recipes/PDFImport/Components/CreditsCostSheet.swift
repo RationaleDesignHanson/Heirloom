@@ -257,21 +257,23 @@ struct CreditsCostSheet: View {
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.large)
 
-                                // Queue for tomorrow button (secondary)
-                                Button {
-                                    onQueueForTomorrow()
-                                } label: {
-                                    VStack(spacing: 4) {
-                                        Text("Queue for Tomorrow")
-                                            .font(.headline)
-                                        Text("Free - Your quota resets at midnight")
-                                            .font(.caption)
-                                            .opacity(0.8)
+                                // Queue for later button (secondary) - only show for premium users with monthly reset
+                                if userCredits.hasPeriodicReset {
+                                    Button {
+                                        onQueueForTomorrow()
+                                    } label: {
+                                        VStack(spacing: 4) {
+                                            Text("Queue for Later")
+                                                .font(.headline)
+                                            Text("Free - Credits reset next month")
+                                                .font(.caption)
+                                                .opacity(0.8)
+                                        }
+                                        .frame(maxWidth: .infinity)
                                     }
-                                    .frame(maxWidth: .infinity)
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.large)
                                 }
-                                .buttonStyle(.bordered)
-                                .controlSize(.large)
                             }
                         }
 
@@ -331,7 +333,7 @@ struct CostRow: View {
     }
 }
 
-// MARK: - Quota Status Card
+// MARK: - Credits Status Card
 
 struct QuotaStatusCard: View {
     let userCredits: UserCredits
@@ -341,15 +343,15 @@ struct QuotaStatusCard: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            // Current quota
+            // Current credits
             HStack {
                 Image(systemName: "giftcard")
                     .foregroundColor(HeirloomColors.familyGreen)
-                Text("Your quota today:")
+                Text("Available credits:")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 Spacer()
-                Text("\(userCredits.availableToday) credits")
+                Text("\(userCredits.availableCredits) credits")
                     .font(.headline)
             }
 
@@ -362,21 +364,21 @@ struct QuotaStatusCard: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("\(max(0, userCredits.availableToday - effectiveTotalCredits)) credits")
+                    Text("\(max(0, userCredits.availableCredits - effectiveTotalCredits)) credits")
                         .font(.headline)
                         .foregroundColor(.green)
                 }
             }
 
-            // Quota reset time
-            if userCredits.quotaRemaining < UserCredits.dailyFreeQuota {
+            // Credit reset time (only for premium users with monthly reset)
+            if userCredits.hasPeriodicReset, let resetTime = userCredits.tierResetTime {
                 Divider()
 
                 HStack(spacing: 8) {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text("Quota resets \(userCredits.quotaResetTime, style: .relative)")
+                    Text("Credits reset \(resetTime, style: .relative)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

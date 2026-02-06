@@ -102,10 +102,16 @@ struct CollectionsListView: View {
     /// My Collections (shown BEFORE themes) - includes all import types and user-created
     /// Note: Empty collections are already filtered by isVisibleInMainList, no need to check recipe count here
     /// "All Recipes" appears last in this section, just above theme collections
+    /// Hidden when screenRecordingService.hideDemoSeedCollections is true and collection.isDemoSeed is true
     private var myCollections: [RecipeCollection] {
         visibleCollections
             .filter { collection in
-                collection.isAllRecipes || // Shows when it has recipes (isVisibleInMainList controls this)
+                // Hide demo seed collections when toggle is enabled
+                if screenRecordingService.hideDemoSeedCollections && collection.isDemoSeed {
+                    return false
+                }
+
+                return collection.isAllRecipes || // Shows when it has recipes (isVisibleInMainList controls this)
                 collection.type == .communityRecipes ||
                 collection.type == .fromFriends ||
                 collection.type == .videoImports ||
@@ -123,10 +129,34 @@ struct CollectionsListView: View {
             }
     }
 
-    /// User-added recipes (excludes theme collection recipes)
-    /// Used for determining when to show the "Add your own recipe" CTA banner
+    /// Get the set of demo seed collection IDs for filtering recipes
+    private var demoSeedCollectionIds: Set<UUID> {
+        Set(allCollections.filter { $0.isDemoSeed }.map { $0.id })
+    }
+
+    /// User-added recipes for first-time banner (excludes theme AND demo seed recipes)
+    /// The banner should show when user has no personal recipes they've added themselves
+    private var userAddedRecipes: [Recipe] {
+        allRecipes.filter { recipe in
+            // Exclude theme recipes
+            guard recipe.sourceThemeId == nil else { return false }
+            // Exclude recipes in demo seed collections
+            let isInDemoSeed = recipe.collections?.contains { demoSeedCollectionIds.contains($0.id) } ?? false
+            return !isInDemoSeed
+        }
+    }
+
+    /// User recipes for display (includes theme recipes, excludes demo seed when toggle is on)
+    /// Used for "All Recipes" count and thumbnails
     private var userRecipes: [Recipe] {
-        allRecipes.filter { $0.sourceThemeId == nil }
+        allRecipes.filter { recipe in
+            // When toggle is on, exclude recipes in demo seed collections
+            if screenRecordingService.hideDemoSeedCollections {
+                let isInDemoSeed = recipe.collections?.contains { demoSeedCollectionIds.contains($0.id) } ?? false
+                if isInDemoSeed { return false }
+            }
+            return true
+        }
     }
 
     // MARK: - Task #6: Grouped Collections by Category
@@ -186,9 +216,18 @@ struct CollectionsListView: View {
         guard !searchText.isEmpty else { return [] }
 
         // Filter out theme recipes when hideThemeCollections is enabled (screen recording mode)
-        let searchableRecipes = screenRecordingService.hideThemeCollections
+        var searchableRecipes = screenRecordingService.hideThemeCollections
             ? allRecipes.filter { !$0.isThemeRecipe }
             : allRecipes
+
+        // Also filter out recipes in demo seed collections when that toggle is enabled
+        if screenRecordingService.hideDemoSeedCollections {
+            searchableRecipes = searchableRecipes.filter { recipe in
+                // Keep recipe if it's not in any demo seed collection
+                guard let collections = recipe.collections else { return true }
+                return !collections.contains { $0.isDemoSeed }
+            }
+        }
 
         return searchableRecipes.filter { recipe in
             // Search in title
@@ -609,8 +648,8 @@ struct CollectionsListView: View {
     private var unifiedCollectionsSection: some View {
         LazyVStack(spacing: HeirloomSpacing.lg) {
             // CTA banner (FIRST - shown until user adds their first recipe)
-            // Only count user-added recipes (exclude theme collection recipes)
-            if userRecipes.isEmpty {
+            // Only count user-added recipes (exclude theme AND demo seed collection recipes)
+            if userAddedRecipes.isEmpty {
                 ctaBanner
                     .padding(.bottom, HeirloomSpacing.sm)
             }
