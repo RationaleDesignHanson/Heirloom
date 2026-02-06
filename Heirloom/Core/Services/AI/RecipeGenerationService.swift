@@ -340,7 +340,24 @@ final class RecipeGenerationService: ObservableObject {
             placeholder.processingProgress = 0.8
             try context.save()
 
+            // Copy ingredients from generated recipe to placeholder BEFORE image generation
+            // This ensures the image prompt has access to ingredients (important for silly recipes!)
+            if let generatedIngredients = generatedRecipe.ingredients {
+                placeholder.ingredients = []
+                for ingredient in generatedIngredients {
+                    let newIngredient = Ingredient()
+                    newIngredient.name = ingredient.name
+                    newIngredient.quantity = ingredient.quantity
+                    newIngredient.unit = ingredient.unit
+                    newIngredient.preparation = ingredient.preparation
+                    newIngredient.originalText = ingredient.originalText
+                    newIngredient.recipe = placeholder
+                    placeholder.ingredients?.append(newIngredient)
+                }
+            }
+
             // Generate image for placeholder (blocking, soft failure)
+            // Now has access to ingredients for better image prompts
             do {
                 try await self.imageGenerator.generateAndSaveImage(for: placeholder)
                 Log.info("Recipe image generated successfully", category: .general)
@@ -361,21 +378,6 @@ final class RecipeGenerationService: ObservableObject {
                 notes: generatedRecipe.notes,
                 imageFileName: placeholder.imageFileName  // Keep the generated image
             )
-
-            // Copy ingredients from generated recipe to placeholder
-            if let generatedIngredients = generatedRecipe.ingredients {
-                placeholder.ingredients = []
-                for ingredient in generatedIngredients {
-                    let newIngredient = Ingredient()
-                    newIngredient.name = ingredient.name
-                    newIngredient.quantity = ingredient.quantity
-                    newIngredient.unit = ingredient.unit
-                    newIngredient.preparation = ingredient.preparation
-                    newIngredient.originalText = ingredient.originalText
-                    newIngredient.recipe = placeholder
-                    placeholder.ingredients?.append(newIngredient)
-                }
-            }
 
             // Mark as AI generated
             placeholder.aiGenerated = true
@@ -486,7 +488,23 @@ final class RecipeGenerationService: ObservableObject {
             placeholder.processingProgress = 0.8
             try context.save()
 
+            // Copy ingredients BEFORE image generation for better prompts
+            if let generatedIngredients = generatedRecipe.ingredients {
+                placeholder.ingredients = []
+                for ingredient in generatedIngredients {
+                    let newIngredient = Ingredient()
+                    newIngredient.name = ingredient.name
+                    newIngredient.quantity = ingredient.quantity
+                    newIngredient.unit = ingredient.unit
+                    newIngredient.preparation = ingredient.preparation
+                    newIngredient.originalText = ingredient.originalText
+                    newIngredient.recipe = placeholder
+                    placeholder.ingredients?.append(newIngredient)
+                }
+            }
+
             // Generate image for placeholder (blocking, soft failure)
+            // Now has access to ingredients for better image prompts
             do {
                 try await self.imageGenerator.generateAndSaveImage(for: placeholder)
                 Log.info("Voice recipe image generated successfully", category: .general)
@@ -507,21 +525,6 @@ final class RecipeGenerationService: ObservableObject {
                 notes: generatedRecipe.notes,
                 imageFileName: placeholder.imageFileName
             )
-
-            // Copy ingredients
-            if let generatedIngredients = generatedRecipe.ingredients {
-                placeholder.ingredients = []
-                for ingredient in generatedIngredients {
-                    let newIngredient = Ingredient()
-                    newIngredient.name = ingredient.name
-                    newIngredient.quantity = ingredient.quantity
-                    newIngredient.unit = ingredient.unit
-                    newIngredient.preparation = ingredient.preparation
-                    newIngredient.originalText = ingredient.originalText
-                    newIngredient.recipe = placeholder
-                    placeholder.ingredients?.append(newIngredient)
-                }
-            }
 
             // Mark as voice dictated
             placeholder.aiGenerated = true
