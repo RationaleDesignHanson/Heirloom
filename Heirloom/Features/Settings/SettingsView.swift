@@ -44,6 +44,10 @@ struct SettingsView: View {
     @State private var showDowngradeAlert = false
     @State private var showClearCollectionsConfirmation = false
 
+    // Screen Recording Reset
+    @State private var showFirstTimeUserReset = false
+    @StateObject private var resetService = ScreenRecordingResetService.shared
+
     var body: some View {
         NavigationStack {
             List {
@@ -578,6 +582,11 @@ struct SettingsView: View {
 
             Divider()
 
+            // Screen Recording Tools
+            screenRecordingSection
+
+            Divider()
+
             // Debug Log Viewer - FILE-BASED LOGGING FOR DEVICE VISIBILITY
             NavigationLink {
                 DebugLogView()
@@ -674,6 +683,98 @@ struct SettingsView: View {
             Text("Developer Testing")
         } footer: {
             Text("Debug features for testing subscription flows and app behavior:\n\n• Auto Premium: See paywalls without blocking access (default ON in debug)\n• Fake Payments: Grant premium without real transactions\n• Force Non-Premium: Test progressive heritage unlock (7 recipes/day)\n• Demo Social: \(DemoSocialGate.shared.debugStatus)\n• Build: \(BuildChannel.current.displayName)\n\nThese tools are for development only and help ensure the app works correctly for both free and premium users.")
+        }
+    }
+
+    // MARK: - Screen Recording Section
+
+    private var screenRecordingSection: some View {
+        Group {
+            // First Time User Reset
+            Button(role: .destructive) {
+                showFirstTimeUserReset = true
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.counterclockwise.circle.fill")
+                        .foregroundStyle(.orange)
+                        .font(.title2)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("First Time User Reset")
+                            .font(HeirloomFonts.bodyBold)
+                        Text("Clear all data, reset to fresh start")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if resetService.isResetting {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    }
+                }
+            }
+            .disabled(resetService.isResetting)
+            .confirmationDialog(
+                "Reset to First Time User",
+                isPresented: $showFirstTimeUserReset,
+                titleVisibility: .visible
+            ) {
+                Button("Reset Everything", role: .destructive) {
+                    performFirstTimeUserReset()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will:\n• Delete all your recipes and collections\n• Clear cloud data and connections\n• Reset to first-time user experience\n\nTheme recipes will be preserved.")
+            }
+
+            // Show reset progress
+            if resetService.isResetting {
+                HStack {
+                    Text(resetService.resetProgress)
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+            }
+
+            // Show last verification result
+            if let verification = resetService.lastResetVerification {
+                HStack {
+                    Image(systemName: verification.success ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .foregroundStyle(verification.success ? .green : .orange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verification.success ? "Reset Verified" : "Reset Issues")
+                            .font(HeirloomFonts.caption1Bold)
+                        Text(verification.summary)
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+            }
+        }
+    }
+
+    private func performFirstTimeUserReset() {
+        Task {
+            do {
+                let verification = try await resetService.resetToFirstTimeUser(context: modelContext)
+                if verification.success {
+                    toastManager.success(
+                        title: "Reset Complete",
+                        message: "App reset to first-time user state"
+                    )
+                } else {
+                    toastManager.warning(
+                        title: "Reset Completed with Issues",
+                        message: verification.errors.first ?? "Check verification details"
+                    )
+                }
+            } catch {
+                toastManager.error(
+                    title: "Reset Failed",
+                    message: error.localizedDescription
+                )
+            }
         }
     }
 
