@@ -941,6 +941,17 @@ private struct RecipeDetailModifiers: ViewModifier {
             // Load versions when view appears
             await versionViewModel.loadVersions(for: recipe, context: modelContext)
 
+            // Sync selected version from view model to local state
+            // This ensures the view displays the correct version's data
+            if selectedVersion == nil, let vmSelected = versionViewModel.selectedVersion {
+                selectedVersion = vmSelected
+                Log.debug("Synced selectedVersion from view model", category: .ui, metadata: [
+                    "displayName": vmSelected.displayName,
+                    "generation": vmSelected.generation,
+                    "isCurrent": vmSelected.isCurrent
+                ])
+            }
+
             // DEBUG: Log version loading results
             Log.info("Version loading complete", category: .ui, metadata: [
                 "recipeId": recipe.id.uuidString,
@@ -967,6 +978,19 @@ private struct RecipeDetailModifiers: ViewModifier {
                 ])
                 Task {
                     await versionViewModel.loadVersions(for: recipe, context: modelContext)
+
+                    // Re-sync selected version after reload to get fresh data
+                    // This ensures modifications from other users are visible
+                    if let currentSelection = selectedVersion,
+                       let refreshed = versionViewModel.versions.first(where: {
+                           $0.modifiedBy == currentSelection.modifiedBy &&
+                           $0.generation == currentSelection.generation
+                       }) {
+                        selectedVersion = refreshed
+                        Log.debug("Refreshed selectedVersion after notification", category: .ui, metadata: [
+                            "displayName": refreshed.displayName
+                        ])
+                    }
 
                     // Mark new notifications as read
                     try? await notificationService.markAllAsRead(for: recipe.id)
