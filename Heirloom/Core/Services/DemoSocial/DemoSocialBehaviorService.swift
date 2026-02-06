@@ -1361,15 +1361,24 @@ final class DemoSocialBehaviorService: ObservableObject {
         let notificationId = UUID().uuidString
         let now = Date()
 
+        // Note: FirebaseNotificationService.parseNotification() requires these exact fields:
+        // - recipeId (UUID string)
+        // - rootRecipeId (UUID string)
+        // - generation (Int)
+        // - modifiedBy (String)
+        // - modifiedByName (String, optional)
+        // - changeType (String)
+        // - changeDescription (String)
+        // - timestamp (Timestamp)
+        // - read (Bool)
         let notificationData: [String: Any] = [
             "id": notificationId,
             "type": "lineage_modification",
-            "actorUserId": demoUserId,
-            "actorDisplayName": demoInfo.displayName,
-            "actorPhotoURL": demoInfo.photoURL,
             "recipeId": recipeId,
-            "recipeTitle": newTitle,
-            "originalTitle": recipeTitle,
+            "rootRecipeId": recipeId,  // Same as recipeId for shared recipes
+            "generation": 1,  // Demo user is first generation recipient
+            "modifiedBy": demoUserId,
+            "modifiedByName": demoInfo.displayName,
             "changeType": "ingredient_added",
             "changeDescription": modificationDescription,
             "timestamp": Timestamp(date: now),
