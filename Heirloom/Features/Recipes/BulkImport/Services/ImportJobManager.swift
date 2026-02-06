@@ -2282,7 +2282,8 @@ final class ImportJobManager: ObservableObject {
 
         do {
             let collectionImageGenerator = ServiceContainer.shared.resolve(CollectionImageGenerator.self)
-            let coverPath = try await collectionImageGenerator.generateBackground(for: collection)
+            // Pass recipes directly since collection.recipes relationship may not be populated yet
+            let coverPath = try await collectionImageGenerator.generateBackground(for: collection, recipes: recipes)
 
             // Update collection with generated cover
             collection.generatedBackgroundImagePath = coverPath

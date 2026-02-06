@@ -23,9 +23,19 @@ actor CollectionImageGenerator {
 
     /// Generate background image for collection
     func generateBackground(for collection: RecipeCollection) async throws -> String {
-        // Build prompt
-        let prompt = buildPrompt(for: collection)
-        Log.info("Generating collection image", category: .general, metadata: ["prompt": prompt])
+        try await generateBackground(for: collection, recipes: nil)
+    }
+
+    /// Generate background image for collection with explicit recipes
+    /// Use this overload when recipes might not be linked to the collection yet (e.g., during import)
+    func generateBackground(for collection: RecipeCollection, recipes: [Recipe]?) async throws -> String {
+        // Build prompt - prefer passed recipes, fall back to collection relationship
+        let recipesToUse = recipes ?? collection.recipes ?? []
+        let prompt = buildPrompt(for: collection, recipes: recipesToUse)
+        Log.info("Generating collection image", category: .general, metadata: [
+            "prompt": prompt,
+            "recipeCount": recipesToUse.count
+        ])
 
         // Call DALL-E via Firebase Function
         let imageURL = try await firebaseService.generateImage(prompt: prompt)
@@ -39,8 +49,7 @@ actor CollectionImageGenerator {
 
     /// Build an optimized prompt for Flux/DALL-E collection image generation
     /// Structure: [scene description], [food elements], [style modifiers]
-    private func buildPrompt(for collection: RecipeCollection) -> String {
-        let recipes = collection.recipes ?? []
+    private func buildPrompt(for collection: RecipeCollection, recipes: [Recipe]) -> String {
         let selectedStyle = styleConfig.selectedStyle
 
         // Build scene description based on collection type
