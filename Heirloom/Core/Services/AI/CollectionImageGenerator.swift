@@ -41,7 +41,6 @@ actor CollectionImageGenerator {
     /// Structure: [scene description], [food elements], [style modifiers]
     private func buildPrompt(for collection: RecipeCollection) -> String {
         let recipes = collection.recipes ?? []
-        let firstRecipe = recipes.first?.title
         let selectedStyle = styleConfig.selectedStyle
 
         // Build scene description based on collection type
@@ -50,48 +49,126 @@ actor CollectionImageGenerator {
         switch collection.type {
         case .videoImports:
             sceneDescription = "modern kitchen scene, content creator filming cooking video"
-            if let recipe = firstRecipe {
+            if let recipe = recipes.first?.title {
                 sceneDescription += ", preparing \(recipe)"
             }
 
         case .cookbook:
-            sceneDescription = "vintage cookbook open on rustic wooden table, worn pages with handwritten notes, kitchen background"
-            if let recipe = firstRecipe {
-                sceneDescription += ", recipe for \(recipe)"
-            }
+            // Synthesize recipe content for contextually relevant image
+            sceneDescription = buildCookbookPrompt(recipes: recipes, collectionName: collection.name)
 
         case .photoImports:
             sceneDescription = "beautiful overhead flat lay food photography, artfully arranged homemade dishes"
-            if let recipe = firstRecipe {
+            if let recipe = recipes.first?.title {
                 sceneDescription += ", featuring \(recipe)"
             }
 
         case .webImports:
             sceneDescription = "modern bright kitchen, tablet displaying recipe, fresh ingredients on counter"
-            if let recipe = firstRecipe {
+            if let recipe = recipes.first?.title {
                 sceneDescription += ", making \(recipe)"
             }
 
         case .communityRecipes:
             sceneDescription = "warm inviting community kitchen, diverse group cooking together, shared meal preparation"
-            if let recipe = firstRecipe {
+            if let recipe = recipes.first?.title {
                 sceneDescription += ", preparing \(recipe)"
             }
 
         default:
             sceneDescription = "cozy family kitchen scene, heirloom cookbook collection, warm nostalgic atmosphere"
-            if let recipe = firstRecipe {
+            if let recipe = recipes.first?.title {
                 sceneDescription += ", featuring \(recipe)"
             }
         }
 
-        // Add custom description if provided
-        if let description = collection.desc, !description.isEmpty {
+        // Add custom description if provided (skip for cookbook since we already synthesize)
+        if collection.type != .cookbook, let description = collection.desc, !description.isEmpty {
             sceneDescription += ", \(description)"
         }
 
         // Combine with style modifier (which includes quality keywords)
         let prompt = "\(sceneDescription), \(selectedStyle.promptModifier)"
+
+        return prompt
+    }
+
+    /// Build a contextually relevant prompt for cookbook collections by analyzing recipe content
+    private func buildCookbookPrompt(recipes: [Recipe], collectionName: String) -> String {
+        guard !recipes.isEmpty else {
+            return "beautiful food photography, artfully arranged dishes, warm kitchen lighting"
+        }
+
+        // Analyze recipe titles for common themes
+        let titles = recipes.map { $0.title.lowercased() }
+
+        // Detect cuisine type
+        let cuisineKeywords: [(keywords: [String], cuisine: String, scene: String)] = [
+            (["italian", "pasta", "risotto", "pizza", "lasagna", "gnocchi", "tiramisu", "pesto"], "Italian", "rustic Italian trattoria, fresh pasta, olive oil, tomatoes, basil"),
+            (["mexican", "taco", "burrito", "enchilada", "salsa", "guacamole", "tamale", "chile"], "Mexican", "vibrant Mexican kitchen, colorful peppers, cilantro, lime, tortillas"),
+            (["asian", "chinese", "japanese", "thai", "vietnamese", "korean", "sushi", "ramen", "curry", "stir fry", "wok"], "Asian", "elegant Asian cuisine, steaming bowls, fresh vegetables, delicate plating"),
+            (["indian", "masala", "tikka", "biryani", "naan", "samosa", "dal", "paneer"], "Indian", "warm Indian kitchen, aromatic spices, colorful dishes, brass cookware"),
+            (["french", "croissant", "baguette", "soufflé", "crêpe", "quiche", "ratatouille"], "French", "elegant French cuisine, refined plating, copper pans, herbs de provence"),
+            (["mediterranean", "greek", "hummus", "falafel", "kebab", "pita"], "Mediterranean", "sunny Mediterranean spread, olive oil, feta, fresh herbs, grilled vegetables"),
+            (["southern", "bbq", "fried chicken", "biscuit", "cornbread", "gumbo", "jambalaya", "cajun", "creole"], "Southern", "warm Southern kitchen, cast iron skillet, comfort food, family gathering"),
+            (["baking", "cake", "cookie", "pie", "bread", "muffin", "pastry", "dessert", "cupcake", "brownie"], "Baking", "charming bakery scene, fresh baked goods, flour dusted counter, golden pastries"),
+            (["breakfast", "pancake", "waffle", "egg", "bacon", "omelette", "brunch"], "Breakfast", "sunny breakfast scene, golden pancakes, fresh coffee, morning light through window"),
+            (["soup", "stew", "chowder", "bisque", "broth"], "Soups", "cozy kitchen scene, steaming bowls, crusty bread, hearty comfort food"),
+            (["salad", "fresh", "healthy", "green", "quinoa", "bowl"], "Healthy", "bright fresh food photography, colorful vegetables, clean eating, natural light"),
+            (["seafood", "fish", "shrimp", "salmon", "lobster", "crab", "scallop"], "Seafood", "coastal kitchen, fresh catch, lemon wedges, seaside atmosphere"),
+            (["grilling", "grill", "bbq", "steak", "burger", "ribs", "smoke"], "Grilling", "outdoor grilling scene, sizzling meat, charcoal glow, summer cookout"),
+        ]
+
+        // Find matching cuisine
+        var bestMatch: (cuisine: String, scene: String)?
+        var bestScore = 0
+
+        for (keywords, cuisine, scene) in cuisineKeywords {
+            let score = titles.reduce(0) { count, title in
+                count + keywords.filter { title.contains($0) }.count
+            }
+            if score > bestScore {
+                bestScore = score
+                bestMatch = (cuisine, scene)
+            }
+        }
+
+        // Build the prompt
+        var prompt: String
+
+        if let match = bestMatch, bestScore >= 2 {
+            // Strong cuisine match - use themed scene
+            prompt = match.scene
+        } else {
+            // No strong match - use collection name and sample recipes for context
+            let sampleRecipes = Array(recipes.prefix(3)).map { $0.title }
+            let recipeList = sampleRecipes.joined(separator: ", ")
+
+            // Check collection name for cuisine hints
+            let collectionNameLower = collectionName.lowercased()
+            for (keywords, _, scene) in cuisineKeywords {
+                if keywords.contains(where: { collectionNameLower.contains($0) }) {
+                    prompt = scene
+                    if !recipeList.isEmpty {
+                        prompt += ", featuring \(recipeList)"
+                    }
+                    return prompt
+                }
+            }
+
+            // Generic but contextual prompt based on actual recipes
+            prompt = "beautiful artfully arranged food photography"
+            if !recipeList.isEmpty {
+                prompt += ", featuring \(recipeList)"
+            }
+            prompt += ", warm inviting kitchen atmosphere"
+        }
+
+        // Add a sample of recipe names for additional context (up to 2)
+        let sampleTitles = Array(recipes.prefix(2)).map { $0.title }
+        if !sampleTitles.isEmpty && bestScore < 4 {
+            prompt += ", dishes like \(sampleTitles.joined(separator: " and "))"
+        }
 
         return prompt
     }
