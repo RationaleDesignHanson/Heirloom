@@ -59,11 +59,16 @@ struct RecipeGenerationBanner: View {
     @ViewBuilder
     private func statusIndicator(for job: RecipeGenerationJob) -> some View {
         switch job.status {
+        case .pending:
+            Image(systemName: "clock")
+                .font(.title2)
+                .foregroundStyle(HeirloomColors.warmGray)
+
         case .processing:
             ProgressView()
                 .tint(HeirloomColors.tomato)
 
-        case .completed:
+        case .completed, .dismissed:
             Image(systemName: "checkmark.circle.fill")
                 .font(.title2)
                 .foregroundStyle(.green)
@@ -100,9 +105,11 @@ struct RecipeGenerationBanner: View {
 
     private func statusText(for job: RecipeGenerationJob) -> String {
         switch job.status {
+        case .pending:
+            return "Queued..."
         case .processing:
             return job.currentPhase.displayText
-        case .completed:
+        case .completed, .dismissed:
             return "Recipe generated!"
         case .failed:
             return job.error ?? "Generation failed"
@@ -111,9 +118,11 @@ struct RecipeGenerationBanner: View {
 
     private func iconColor(for job: RecipeGenerationJob) -> Color {
         switch job.status {
+        case .pending:
+            return HeirloomColors.warmGray
         case .processing:
             return HeirloomColors.tomato
-        case .completed:
+        case .completed, .dismissed:
             return .green
         case .failed:
             return .red
@@ -148,9 +157,13 @@ struct RecipeGenerationBanner: View {
     @Previewable @State var service: RecipeGenerationService = {
         let aiGenerator = ServiceContainer.shared.resolve(AIRecipeGeneratorProtocol.self)
         let imageGenerator = ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
+        let aiService = ServiceContainer.shared.resolve(AIServiceProtocol.self)
+        let aiConfiguration = ServiceContainer.shared.resolve(AIConfigurationProtocol.self)
         let service = RecipeGenerationService(
             aiGenerator: aiGenerator,
-            imageGenerator: imageGenerator
+            imageGenerator: imageGenerator,
+            aiService: aiService,
+            aiConfiguration: aiConfiguration
         )
         return service
     }()

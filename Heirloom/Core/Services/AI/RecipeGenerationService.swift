@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import UIKit
 
 /// Service managing recipe generation with progress tracking and retry logic
 /// Uses placeholder pattern for unified UX - recipes appear in list immediately
@@ -20,13 +21,22 @@ final class RecipeGenerationService: ObservableObject {
 
     private let aiGenerator: AIRecipeGeneratorProtocol
     private let imageGenerator: RecipeImageGeneratorProtocol
+    private let aiService: AIServiceProtocol
+    private let aiConfiguration: AIConfigurationProtocol
     internal var context: ModelContext?
 
     // MARK: - Initialization
 
-    init(aiGenerator: AIRecipeGeneratorProtocol, imageGenerator: RecipeImageGeneratorProtocol) {
+    init(
+        aiGenerator: AIRecipeGeneratorProtocol,
+        imageGenerator: RecipeImageGeneratorProtocol,
+        aiService: AIServiceProtocol,
+        aiConfiguration: AIConfigurationProtocol
+    ) {
         self.aiGenerator = aiGenerator
         self.imageGenerator = imageGenerator
+        self.aiService = aiService
+        self.aiConfiguration = aiConfiguration
     }
 
     // MARK: - Public API
@@ -289,10 +299,15 @@ final class RecipeGenerationService: ObservableObject {
     private func processJob(_ job: RecipeGenerationJob, placeholder: Recipe) async {
         guard let context = context else {
             Log.error("ModelContext not available", category: .general)
+            placeholder.markProcessingFailed(errorMessage: "ModelContext not available")
+            self.activeJob = nil
             return
         }
 
         do {
+            // Transition from pending to processing
+            job.status = .processing
+
             // Phase 1: Analyzing (20%)
             job.currentPhase = .analyzing
             placeholder.processingProgress = 0.2
@@ -409,30 +424,60 @@ final class RecipeGenerationService: ObservableObject {
               let transcript = job.transcript else {
             Log.error("Missing context or transcript for voice job", category: .general)
             placeholder.markProcessingFailed(errorMessage: "Missing transcript")
+            self.activeJob = nil
             return
         }
 
         do {
-            // Phase 1: Analyzing
+            // Transition from pending to processing
+            job.status = .processing
+
+            // Phase 1: Analyzing — AI-powered transcript analysis with naive fallback
             job.currentPhase = .analyzing
             placeholder.processingProgress = 0.2
             try context.save()
 
-            // Extract dish name from transcript
-            let dishName = extractDishName(from: transcript)
+            let transcriptCtx = await analyzeTranscript(transcript)
+
+            let dishName: String
+            let ingredientList: [String]?
+            let usableContext: VoiceTranscriptContext?
+
+            if let ctx = transcriptCtx, ctx.confidence >= 0.3 {
+                dishName = ctx.dishName
+                ingredientList = ctx.ingredients
+                usableContext = ctx
+                Log.info("Using AI transcript analysis", category: .general, metadata: [
+                    "dishName": dishName,
+                    "confidence": ctx.confidence
+                ])
+            } else {
+                // Fallback to naive extraction
+                dishName = extractDishName(from: transcript)
+                ingredientList = nil
+                usableContext = nil
+                Log.info("Falling back to naive dish name extraction", category: .general, metadata: [
+                    "dishName": dishName
+                ])
+            }
+
             job.dishName = dishName
+
+            // Update placeholder title from generic "Voice Recipe" to actual dish name
+            placeholder.title = dishName
 
             // Phase 2: Extracting
             job.currentPhase = .extracting
             placeholder.processingProgress = 0.5
             try context.save()
 
-            // Generate recipe with retry logic
+            // Generate recipe with retry logic, passing transcript context
             let generatedRecipe = try await withRetry(maxAttempts: 3) {
                 try await self.aiGenerator.generateRecipe(
                     dishName: dishName,
-                    ingredients: nil,
-                    context: context
+                    ingredients: ingredientList,
+                    context: context,
+                    transcriptContext: usableContext
                 )
             }
 
@@ -598,6 +643,58 @@ final class RecipeGenerationService: ObservableObject {
             .filter { !$0.isEmpty }
     }
 
+    /// Analyze a voice transcript using AI to extract structured recipe context.
+    /// Returns nil on failure so callers can fall back to naive extraction.
+    private func analyzeTranscript(_ transcript: String) async -> VoiceTranscriptContext? {
+        let prompt = """
+        Analyze this voice transcript from someone describing a recipe they want to make.
+        Extract structured information about the dish they're describing.
+
+        Transcript: "\(transcript)"
+
+        Return JSON with:
+        - dishName (string): The primary dish name
+        - ingredients (array of strings, optional): Specific ingredients mentioned
+        - cuisineHints (array of strings, optional): Cuisine or regional style hints (e.g., "Southern", "Italian")
+        - descriptions (array of strings, optional): Descriptive qualities (e.g., "creamy", "crispy", "light")
+        - techniquePreferences (array of strings, optional): Cooking techniques mentioned (e.g., "slow-cooked", "grilled")
+        - servingSize (string, optional): Serving size if mentioned (e.g., "6 people")
+        - additionalContext (string, optional): Any other relevant context
+        - confidence (number 0.0-1.0): How confident you are in the extraction
+        """
+
+        let options = AICompletionOptions(
+            model: aiConfiguration.model(for: .parsing),
+            temperature: 0.3,
+            maxTokens: 512,
+            systemMessage: """
+            You are a precise transcript parser. Extract structured recipe information from voice transcripts.
+            Return ONLY valid JSON matching the exact schema. Do not wrap in markdown code blocks.
+            If the transcript is unclear or garbled, set confidence low and extract what you can.
+            """
+        )
+
+        do {
+            let result: VoiceTranscriptContext = try await aiService.completeStructured(
+                prompt: prompt,
+                schema: VoiceTranscriptContext.self,
+                options: options
+            )
+            Log.info("Transcript analysis complete", category: .general, metadata: [
+                "dishName": result.dishName,
+                "confidence": result.confidence,
+                "hasIngredients": result.ingredients != nil,
+                "hasCuisineHints": result.cuisineHints != nil
+            ])
+            return result
+        } catch {
+            Log.warning("Transcript analysis failed, will fall back to naive extraction", category: .general, metadata: [
+                "error": error.localizedDescription
+            ])
+            return nil
+        }
+    }
+
     private func extractDishName(from transcript: String) -> String {
         // Simple extraction - look for patterns like "make me a [dish]"
         // TODO: Could use AI to extract more intelligently
@@ -679,15 +776,31 @@ final class RecipeGenerationService: ObservableObject {
         )
 
         if let existing = try context.fetch(descriptor).first {
+            // Ensure preset background is set (migration for existing collections)
+            if existing.customBackgroundImagePath == nil && UIImage(named: "generated-recipes-bg") != nil {
+                existing.customBackgroundImagePath = "preset-generated-recipes-bg"
+                existing.useCustomBackground = true
+                Log.info("Updated Generated Recipes collection with preset background", category: .general)
+            }
             return existing
         } else {
-            // Create new collection
+            // Create new collection with preset background
             let collection = RecipeCollection(
                 name: "Generated Recipes",
+                description: "AI-created recipes",
                 iconName: "wand.and.stars",
+                color: "#9B59B6", // Purple for AI/magic theme
+                isSystemCollection: false,
+                isAllRecipes: false,
                 collectionType: .userCreated
             )
+            // Set preset background if available
+            if UIImage(named: "generated-recipes-bg") != nil {
+                collection.customBackgroundImagePath = "preset-generated-recipes-bg"
+                collection.useCustomBackground = true
+            }
             context.insert(collection)
+            Log.info("Created Generated Recipes collection", category: .general)
             return collection
         }
     }

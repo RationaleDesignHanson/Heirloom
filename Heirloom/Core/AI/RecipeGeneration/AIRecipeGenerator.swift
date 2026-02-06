@@ -15,8 +15,25 @@ protocol AIRecipeGeneratorProtocol {
     func generateRecipe(
         dishName: String,
         ingredients: [String]?,
-        context: ModelContext
+        context: ModelContext,
+        transcriptContext: VoiceTranscriptContext?
     ) async throws -> Recipe
+}
+
+extension AIRecipeGeneratorProtocol {
+    /// Default: no transcript context (used by text generation and silly recipes)
+    func generateRecipe(
+        dishName: String,
+        ingredients: [String]?,
+        context: ModelContext
+    ) async throws -> Recipe {
+        try await generateRecipe(
+            dishName: dishName,
+            ingredients: ingredients,
+            context: context,
+            transcriptContext: nil
+        )
+    }
 }
 
 /// Service that generates complete recipes using AI from minimal input
@@ -39,15 +56,17 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
     func generateRecipe(
         dishName: String,
         ingredients: [String]?,
-        context: ModelContext
+        context: ModelContext,
+        transcriptContext: VoiceTranscriptContext? = nil
     ) async throws -> Recipe {
         Log.info("Generating recipe from AI", category: .general, metadata: [
             "dishName": dishName,
-            "hasIngredients": ingredients != nil
+            "hasIngredients": ingredients != nil,
+            "hasTranscriptContext": transcriptContext != nil
         ])
 
         // Build prompt
-        let prompt = buildPrompt(dishName: dishName, ingredients: ingredients)
+        let prompt = buildPrompt(dishName: dishName, ingredients: ingredients, transcriptContext: transcriptContext)
 
         // Call AI service with structured response
         let options = AICompletionOptions(
@@ -108,11 +127,30 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
         """
     }
 
-    private func buildPrompt(dishName: String, ingredients: [String]?) -> String {
+    private func buildPrompt(dishName: String, ingredients: [String]?, transcriptContext: VoiceTranscriptContext? = nil) -> String {
         var prompt = "Generate a complete recipe for: \(dishName)\n"
 
         if let ingredients = ingredients, !ingredients.isEmpty {
             prompt += "Using these key ingredients: \(ingredients.joined(separator: ", "))\n"
+        }
+
+        // Append voice transcript context when available
+        if let ctx = transcriptContext {
+            if let hints = ctx.cuisineHints, !hints.isEmpty {
+                prompt += "Cuisine/regional style: \(hints.joined(separator: ", "))\n"
+            }
+            if let descriptions = ctx.descriptions, !descriptions.isEmpty {
+                prompt += "The dish should be: \(descriptions.joined(separator: ", "))\n"
+            }
+            if let techniques = ctx.techniquePreferences, !techniques.isEmpty {
+                prompt += "Preferred techniques: \(techniques.joined(separator: ", "))\n"
+            }
+            if let servingSize = ctx.servingSize {
+                prompt += "Serving size: \(servingSize)\n"
+            }
+            if let additional = ctx.additionalContext, !additional.isEmpty {
+                prompt += "Additional notes: \(additional)\n"
+            }
         }
 
         prompt += """
