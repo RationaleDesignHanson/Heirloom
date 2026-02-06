@@ -27,6 +27,11 @@ class DeepLinkHandler: ObservableObject {
     @Published var pendingPDFURL: URL?
     @Published var showPDFImportSheet = false
 
+    // PDF approval state (for share extension PDFs requiring user confirmation)
+    @Published var pendingApprovalPDFURL: URL?
+    @Published var pendingApprovalPDFImportID: UUID?
+    @Published var showPDFApprovalSheet = false
+
     // Image import state (for share extension)
     @Published var pendingImageURL: URL?
     @Published var showImageImportSheet = false
@@ -614,56 +619,19 @@ class DeepLinkHandler: ObservableObject {
                     }
 
                 case .shareExtensionPDF:
-                    // PDF file import - process directly using ImportJobManager
-                    Log.info("PDF import detected - processing directly", category: .general, metadata: ["url": fileURL.absoluteString])
-                    DeviceLogger.shared.log("📄 [DeepLink] PDF import detected - processing: \(fileURL.absoluteString)")
+                    // PDF file import - show approval sheet for user confirmation
+                    Log.info("PDF import detected - showing approval sheet", category: .general, metadata: ["url": fileURL.absoluteString])
+                    DeviceLogger.shared.log("📄 [DeepLink] PDF import detected - showing approval: \(fileURL.absoluteString)")
 
-                    guard let context = modelContext else {
-                        Log.error("ModelContext not available", category: .general)
-                        DeviceLogger.shared.log("❌ [DeepLink] ModelContext not available - cannot process PDF")
-                        return
+                    // Show approval sheet instead of immediately processing
+                    await MainActor.run {
+                        pendingApprovalPDFURL = fileURL
+                        pendingApprovalPDFImportID = importID
+                        showPDFApprovalSheet = true
                     }
 
-                    do {
-                        let importManager = ServiceContainer.shared.resolve(ImportJobManager.self)
-
-                        // Create PDF import job (analysis phase)
-                        // PDFs shared from other apps go to "PDF Imports" collection
-                        let job = try await importManager.createAndAnalyzePDFJob(
-                            pdfURLs: [fileURL],
-                            jobName: "PDF Import",
-                            cookbookName: "PDF Imports",
-                            collectionType: .cookbook,  // PDFs are treated as cookbook pages
-                            context: context
-                        )
-
-                        // Clean up the pending import
-                        await PendingImportManager.shared.delete(id: importID)
-
-                        Log.info("PDF import job created", category: .general, metadata: ["jobId": job.id.uuidString])
-                        DeviceLogger.shared.log("✅ [DeepLink] PDF import job created: \(job.id.uuidString)")
-
-                        // Show import progress sheet
-                        await MainActor.run {
-                            pendingImportJobID = job.id
-                            showImportProgressSheet = true
-                        }
-
-                        // Start extraction phase (background task)
-                        Task {
-                            do {
-                                try await importManager.startJob(job, context: context)
-                                Log.info("PDF import job completed", category: .general, metadata: ["jobId": job.id.uuidString])
-                                DeviceLogger.shared.log("✅ [DeepLink] PDF import job completed: \(job.id.uuidString)")
-                            } catch {
-                                Log.error("Failed to process PDF import job", category: .general, metadata: ["error": error.localizedDescription])
-                                DeviceLogger.shared.log("❌ [DeepLink] Failed to process PDF import job: \(error.localizedDescription)")
-                            }
-                        }
-                    } catch {
-                        Log.error("Failed to create PDF import job", category: .general, metadata: ["error": error.localizedDescription])
-                        DeviceLogger.shared.log("❌ [DeepLink] Failed to create PDF import job: \(error.localizedDescription)")
-                    }
+                    Log.info("PDF approval sheet triggered", category: .ui)
+                    DeviceLogger.shared.log("✅ [DeepLink] PDF approval sheet triggered")
 
                 case .shareExtensionImage:
                     // Image file import - detect recipes and show selection UI (like camera scanner)
@@ -984,6 +952,107 @@ class DeepLinkHandler: ObservableObject {
         DeviceLogger.shared.log("🧹 [DeepLink] Clearing pending PDF import")
         pendingPDFURL = nil
         showPDFImportSheet = false
+    }
+
+    /// Clear pending PDF approval (called after approval/cancellation)
+    func clearPendingPDFApproval() {
+        Log.debug("Clearing pending PDF approval", category: .general)
+        DeviceLogger.shared.log("🧹 [DeepLink] Clearing pending PDF approval")
+        pendingApprovalPDFURL = nil
+        pendingApprovalPDFImportID = nil
+        showPDFApprovalSheet = false
+    }
+
+    /// Process approved PDF import (called from approval sheet)
+    func processApprovedPDF(generateImages: Bool) async {
+        guard let pdfURL = pendingApprovalPDFURL,
+              let importID = pendingApprovalPDFImportID,
+              let context = modelContext else {
+            Log.error("Missing PDF approval data or context", category: .general)
+            DeviceLogger.shared.log("❌ [DeepLink] Missing PDF approval data or context")
+            clearPendingPDFApproval()
+            return
+        }
+
+        Log.info("Processing approved PDF import", category: .general, metadata: [
+            "url": pdfURL.absoluteString,
+            "generateImages": generateImages
+        ])
+        DeviceLogger.shared.log("📄 [DeepLink] Processing approved PDF: \(pdfURL.lastPathComponent), generateImages: \(generateImages)")
+
+        // Clear approval state (sheet will dismiss)
+        await MainActor.run {
+            showPDFApprovalSheet = false
+        }
+
+        do {
+            let importManager = ServiceContainer.shared.resolve(ImportJobManager.self)
+
+            // Create PDF import job (analysis phase)
+            // PDFs shared from other apps go to "PDF Imports" collection
+            let job = try await importManager.createAndAnalyzePDFJob(
+                pdfURLs: [pdfURL],
+                jobName: "PDF Import",
+                cookbookName: "PDF Imports",
+                collectionType: .cookbook,
+                context: context,
+                generateAIImages: generateImages
+            )
+
+            // Clean up the pending import
+            await PendingImportManager.shared.delete(id: importID)
+
+            Log.info("PDF import job created", category: .general, metadata: ["jobId": job.id.uuidString])
+            DeviceLogger.shared.log("✅ [DeepLink] PDF import job created: \(job.id.uuidString)")
+
+            // Show import progress sheet
+            await MainActor.run {
+                pendingApprovalPDFURL = nil
+                pendingApprovalPDFImportID = nil
+                pendingImportJobID = job.id
+                showImportProgressSheet = true
+            }
+
+            // Start extraction phase (background task)
+            Task {
+                do {
+                    try await importManager.startJob(job, context: context)
+                    Log.info("PDF import job completed", category: .general, metadata: ["jobId": job.id.uuidString])
+                    DeviceLogger.shared.log("✅ [DeepLink] PDF import job completed: \(job.id.uuidString)")
+                } catch {
+                    Log.error("Failed to process PDF import job", category: .general, metadata: ["error": error.localizedDescription])
+                    DeviceLogger.shared.log("❌ [DeepLink] Failed to process PDF import job: \(error.localizedDescription)")
+                }
+            }
+        } catch {
+            Log.error("Failed to create PDF import job", category: .general, metadata: ["error": error.localizedDescription])
+            DeviceLogger.shared.log("❌ [DeepLink] Failed to create PDF import job: \(error.localizedDescription)")
+
+            // Clear state on error
+            await MainActor.run {
+                pendingApprovalPDFURL = nil
+                pendingApprovalPDFImportID = nil
+            }
+        }
+    }
+
+    /// Cancel PDF approval and clean up
+    func cancelPDFApproval() async {
+        guard let importID = pendingApprovalPDFImportID else {
+            clearPendingPDFApproval()
+            return
+        }
+
+        Log.info("Cancelling PDF approval", category: .general)
+        DeviceLogger.shared.log("🚫 [DeepLink] Cancelling PDF approval")
+
+        // Delete the pending import file
+        await PendingImportManager.shared.delete(id: importID)
+
+        // Clear state
+        await MainActor.run {
+            clearPendingPDFApproval()
+        }
     }
 
     /// Clear pending image import (called after processing)

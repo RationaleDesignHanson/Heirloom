@@ -1621,6 +1621,24 @@ struct ContentView: View {
                     }
             }
         }
+        // PDF approval sheet for share extension imports
+        .sheet(isPresented: $deepLinkCoordinator.showPDFApprovalSheet) {
+            if let pdfURL = deepLinkCoordinator.pendingApprovalPDFURL {
+                PDFApprovalSheet(
+                    pdfURL: pdfURL,
+                    onApprove: { generateImages in
+                        Task {
+                            await deepLinkCoordinator.processApprovedPDF(generateImages: generateImages)
+                        }
+                    },
+                    onCancel: {
+                        Task {
+                            await deepLinkCoordinator.cancelPDFApproval()
+                        }
+                    }
+                )
+            }
+        }
         .sheet(isPresented: $deepLinkCoordinator.showImageRecipeSelectionSheet) {
             if let result = deepLinkCoordinator.pendingImageRecipeResult {
                 RecipeSelectionView(

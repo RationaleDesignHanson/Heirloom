@@ -320,7 +320,7 @@ struct ShareExtensionView: View {
             return .video(videoURL)
         }
 
-        // PRIORITY 2: Check for PDF files (from Files app, email, etc.)
+        // PRIORITY 2: Check for PDF files (from Files app, email, Safari, etc.)
         if attachments[0].hasItemConformingToTypeIdentifier(UTType.pdf.identifier) {
             let pdfURL = try await loadPDF(from: attachments[0])
             return .pdf(pdfURL)

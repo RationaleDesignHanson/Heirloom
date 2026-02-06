@@ -303,18 +303,41 @@ final class ImportJobManager: ObservableObject {
                let pdfDocument = PDFDocument(url: pdfURL),
                let firstPage = pdfDocument.page(at: 0) {
 
-                // Check if first page is a text-heavy recipe page vs a proper cover
-                // Covers typically have minimal text (title, author) while recipe pages have lots of text
+                // Check if first page is a recipe page vs a proper cover
+                // Use multiple heuristics:
+                // 1. Character count - recipe pages have detailed instructions (1500+ chars)
+                // 2. Recipe patterns - look for "ingredients", "instructions", measurements
                 let pageText = firstPage.string ?? ""
                 let textLength = pageText.count
-                let isTextHeavyPage = textLength > 400 // Recipe pages typically have 400+ characters
+                let lowercased = pageText.lowercased()
 
-                if isTextHeavyPage {
+                // Recipe-specific patterns that indicate this is a recipe page, not a cover
+                let recipePatterns = [
+                    "ingredients",
+                    "instructions",
+                    "directions",
+                    "tablespoon",
+                    "teaspoon",
+                    "cup ",
+                    " oz",
+                    "preheat",
+                    "minutes",
+                    "serves ",
+                    "servings"
+                ]
+                let hasRecipePatterns = recipePatterns.contains { lowercased.contains($0) }
+
+                // A page is a recipe page if it has both high text count AND recipe patterns
+                // Covers can have moderate text (title, subtitle, intro, copyright) but won't have recipe patterns
+                let isRecipePage = textLength > 1500 || (textLength > 800 && hasRecipePatterns)
+
+                if isRecipePage {
                     // Skip using this as cover - it's likely a recipe page, not a cookbook cover
                     // The collection will get an AI-generated cover if AI images are enabled
                     Log.info("First page appears to be a recipe page, skipping as cover", category: .import, metadata: [
                         "file": pdfURL.lastPathComponent,
-                        "textLength": textLength
+                        "textLength": textLength,
+                        "hasRecipePatterns": hasRecipePatterns
                     ])
                 } else {
                     // Render first page to image - it looks like a proper cover
@@ -894,6 +917,15 @@ final class ImportJobManager: ObservableObject {
 
     /// Resume an interrupted job from checkpoint
     func resumeInterruptedJob(_ job: ImportJob, context: ModelContext) async throws {
+        // Prevent duplicate execution if already processing
+        guard !isProcessing else {
+            Log.warning("Cannot resume - already processing a job", category: .import, metadata: [
+                "requested_job_id": job.id.uuidString,
+                "active_job_id": activeJob?.id.uuidString ?? "none"
+            ])
+            throw ImportJobError.alreadyProcessing
+        }
+
         guard job.canResume else {
             throw ImportJobError.cannotResume
         }
@@ -906,6 +938,10 @@ final class ImportJobManager: ObservableObject {
         ])
 
         let resumePhase = job.checkpoint?.resumePhase ?? .extraction
+
+        // Recalculate progress counters from actual item statuses before resuming
+        // This prevents over-counting when items were partially processed
+        job.recalculateCounts()
 
         // Clear interrupted flags
         job.wasInterrupted = false

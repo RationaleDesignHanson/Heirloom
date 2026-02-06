@@ -186,18 +186,25 @@ enum ImportJobStatus: String, Codable {
 
 extension ImportJob {
     /// Updates progress counters when an item completes
+    /// Safe to call multiple times - recalculates from actual item statuses
     func updateProgress(success: Bool) {
-        completedItems += 1
-        if success {
-            successfulItems += 1
-        } else {
-            failedItems += 1
-        }
+        // Instead of incrementing, recalculate from actual item statuses
+        // This prevents over-counting during resume scenarios
+        recalculateCounts()
 
         // Update phase progress based on completion ratio
         if totalItems > 0 {
             phaseProgress = Double(completedItems) / Double(totalItems)
         }
+    }
+
+    /// Recalculates progress counters from actual item statuses
+    /// Call this after resume to ensure counters are accurate
+    func recalculateCounts() {
+        guard let items = items else { return }
+        completedItems = items.filter { $0.isCompleted }.count
+        successfulItems = items.filter { $0.status == .success }.count
+        failedItems = items.filter { $0.status == .failed }.count
     }
 
     /// Checks if job should continue processing based on status
