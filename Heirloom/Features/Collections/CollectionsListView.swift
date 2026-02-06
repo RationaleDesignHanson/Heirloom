@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import FirebaseAuth
 import FirebaseFirestore
 
 /// Main Collections tab view showing heritage and user collections
@@ -49,6 +50,10 @@ struct CollectionsListView: View {
     @State private var showVideoReviewSheet = false
     @State private var showVideoCollectionPicker = false
     @State private var savedVideoRecipe: Recipe?
+
+    // Recipe invites (for "From Friends" collection)
+    @State private var showSharedWithMe = false
+    @State private var pendingInvitesCount: Int = 0
 
     private var subscriptionManager: SubscriptionManager { ServiceContainer.shared.resolve(SubscriptionManager.self) }
     private var collectionImageGenerator: CollectionImageGenerator { ServiceContainer.shared.resolve(CollectionImageGenerator.self) }
@@ -321,6 +326,15 @@ struct CollectionsListView: View {
                 if let recipe = savedVideoRecipe {
                     TagCollectionPickerView(recipe: recipe)
                 }
+            }
+            .sheet(isPresented: $showSharedWithMe) {
+                SharedWithMeView()
+                    .onDisappear {
+                        // Refresh pending invites count after dismissing
+                        Task {
+                            await loadPendingInvitesCount()
+                        }
+                    }
             }
             .navigationDestination(for: RecipeCollection.self) { collection in
                 CollectionDetailView(collection: collection)
@@ -690,7 +704,12 @@ struct CollectionsListView: View {
                         // Uses userRecipes to exclude theme collection recipes from the count
                         totalRecipeCount: collection.isAllRecipes ? userRecipes.count : nil,
                         // Pass user recipes (excluding theme) for "All Recipes" thumbnails
-                        allRecipesForThumbnails: collection.isAllRecipes ? userRecipes : nil
+                        allRecipesForThumbnails: collection.isAllRecipes ? userRecipes : nil,
+                        // For "From Friends" collection: show invite affordance when few recipes
+                        onViewInvitesTap: collection.type == .fromFriends && (collection.recipes?.count ?? 0) <= 1
+                            ? { showSharedWithMe = true }
+                            : nil,
+                        pendingInvitesCount: collection.type == .fromFriends ? pendingInvitesCount : 0
                     )
                 }
                 .buttonStyle(.plain)
@@ -979,6 +998,31 @@ struct CollectionsListView: View {
         //         }
         //     }
         // }
+
+        // Load pending recipe invites count
+        Task {
+            await loadPendingInvitesCount()
+        }
+    }
+
+    /// Load count of pending recipe invites for "From Friends" collection
+    private func loadPendingInvitesCount() async {
+        guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else {
+            return
+        }
+
+        do {
+            let firebaseShare = ServiceContainer.shared.resolve(FirebaseShareService.self)
+            let shares = try await firebaseShare.fetchDirectSharesForUser(userId: userId)
+
+            await MainActor.run {
+                self.pendingInvitesCount = shares.count
+            }
+
+            Log.info("Loaded pending recipe invites count", category: .social, metadata: ["count": shares.count])
+        } catch {
+            Log.error("Failed to load pending recipe invites count", category: .social, error: error)
+        }
     }
 
     /// Verify Heritage recipes exist in database, promote from cache if missing

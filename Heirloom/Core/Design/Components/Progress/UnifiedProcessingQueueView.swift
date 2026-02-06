@@ -355,30 +355,55 @@ struct UnifiedProcessingQueueView: View {
         }
     }
 
-    /// Check if a job can be resumed (stuck or interrupted import jobs)
+    /// Check if a job can be resumed (stuck or interrupted import/video jobs)
     private func canResume(_ job: AnyProcessingJob) -> Bool {
-        guard job.jobType == .importJob else { return false }
-        guard let importJob = importJobs.first(where: { $0.id == job.id }) else { return false }
-        return importJob.canResume || importJob.appearsStuck
+        switch job.jobType {
+        case .importJob:
+            guard let importJob = importJobs.first(where: { $0.id == job.id }) else { return false }
+            return importJob.canResume || importJob.appearsStuck
+        case .video:
+            guard let videoJob = videoJobs.first(where: { $0.id == job.id }) else { return false }
+            return videoJob.canResume || videoJob.appearsStuck
+        case .generation:
+            return false
+        }
     }
 
     /// Resume a stuck or interrupted job
     private func resumeJob(_ job: AnyProcessingJob) {
-        guard job.jobType == .importJob else { return }
-        guard let importJob = importJobs.first(where: { $0.id == job.id }) else { return }
-
-        Task {
-            do {
-                let jobManager = ServiceContainer.shared.resolve(ImportJobManager.self)
-                try await jobManager.resumeInterruptedJob(importJob, context: modelContext)
-                Log.info("Resumed import job from queue", category: .import, metadata: [
-                    "job_id": importJob.id.uuidString
-                ])
-            } catch {
-                Log.error("Failed to resume import job", category: .import, metadata: [
-                    "error": error.localizedDescription
-                ])
+        switch job.jobType {
+        case .importJob:
+            guard let importJob = importJobs.first(where: { $0.id == job.id }) else { return }
+            Task {
+                do {
+                    let jobManager = ServiceContainer.shared.resolve(ImportJobManager.self)
+                    try await jobManager.resumeInterruptedJob(importJob, context: modelContext)
+                    Log.info("Resumed import job from queue", category: .import, metadata: [
+                        "job_id": importJob.id.uuidString
+                    ])
+                } catch {
+                    Log.error("Failed to resume import job", category: .import, metadata: [
+                        "error": error.localizedDescription
+                    ])
+                }
             }
+        case .video:
+            guard let videoJob = videoJobs.first(where: { $0.id == job.id }) else { return }
+            Task {
+                do {
+                    let jobManager = ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
+                    try await jobManager.resumeJob(videoJob, context: modelContext)
+                    Log.info("Resumed video job from queue", category: .video, metadata: [
+                        "job_id": videoJob.id.uuidString
+                    ])
+                } catch {
+                    Log.error("Failed to resume video job", category: .video, metadata: [
+                        "error": error.localizedDescription
+                    ])
+                }
+            }
+        case .generation:
+            break // Generation jobs don't support resume
         }
     }
 

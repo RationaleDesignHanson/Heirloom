@@ -224,14 +224,11 @@ extension VideoProcessingJob {
     }
 
     /// Whether this job can be resumed from checkpoint after force-quit
-    /// Note: wasInterrupted is set during app launch detection for force-quit scenarios
+    /// Note: wasInterrupted is set during app launch detection for force-quit scenarios,
+    /// but we also allow resuming stuck jobs that have progress even if wasInterrupted wasn't set
     var canResume: Bool {
-        // Must be marked as interrupted (set during detection or background)
-        guard wasInterrupted else { return false }
-
-        // Must be in processing or pending status (interrupted mid-processing)
-        // Note: resumePendingJobs() changes crashed jobs to .pending, so we accept both
-        guard status == .processing || status == .pending else { return false }
+        // Must be in processing status (stuck mid-processing)
+        guard status == .processing else { return false }
 
         guard let checkpoint = checkpoint else { return false }
 
@@ -243,15 +240,24 @@ extension VideoProcessingJob {
 
         guard hasProgress else { return false }
 
-        // Check if not expired (7 days)
-        if let interruptedAt = interruptedAt {
-            let sevenDaysAgo = Date().addingTimeInterval(-7 * 24 * 60 * 60)
-            if interruptedAt <= sevenDaysAgo {
-                return false
-            }
+        // Check if not expired (7 days from creation or interruption)
+        let referenceDate = interruptedAt ?? createdAt
+        let sevenDaysAgo = Date().addingTimeInterval(-7 * 24 * 60 * 60)
+        if referenceDate <= sevenDaysAgo {
+            return false
         }
 
         return true
+    }
+
+    /// Whether this job appears stuck (in processing but not actively running)
+    /// This is used by the UI to show resume option for stuck jobs
+    var appearsStuck: Bool {
+        guard status == .processing else { return false }
+        // If checkpoint's last update was more than 2 minutes ago, likely stuck
+        let twoMinutesAgo = Date().addingTimeInterval(-120)
+        let lastActivity = checkpoint?.lastUpdated ?? startedAt ?? createdAt
+        return lastActivity < twoMinutesAgo
     }
 
     /// Whether credits should be refunded for this job

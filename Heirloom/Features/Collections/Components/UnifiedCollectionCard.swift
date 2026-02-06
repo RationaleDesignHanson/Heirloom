@@ -14,6 +14,8 @@ struct UnifiedCollectionCard: View {
     let variant: CardVariant
     var totalRecipeCount: Int? = nil  // For "All Recipes" collection (overrides relationship count)
     var allRecipesForThumbnails: [Recipe]? = nil  // For "All Recipes" collection thumbnails
+    var onViewInvitesTap: (() -> Void)? = nil  // For "From Friends" collection with few recipes
+    var pendingInvitesCount: Int = 0  // Count of pending recipe invites
 
     @EnvironmentObject private var syncService: FirebaseSyncService
     @Environment(\.openURL) private var openURL
@@ -418,6 +420,13 @@ struct UnifiedCollectionCard: View {
                 placeholder: collection.iconName
             )
         }
+        // For "From Friends" collection with few recipes: show "View Invites" affordance
+        else if collection.type == .fromFriends,
+                !isFirstSlot,
+                onViewInvitesTap != nil,
+                case .standard = variant {
+            viewInvitesAffordance
+        }
         // Show + affordance in ANY empty slot (standard only)
         // This allows users to add recipes directly from the collection card
         else if case .standard(let onAddRecipeTap) = variant,
@@ -639,6 +648,49 @@ struct UnifiedCollectionCard: View {
             )
 
         if let onTap = onTap {
+            Button(action: onTap) {
+                affordanceContent
+            }
+            .buttonStyle(.plain)
+        } else {
+            affordanceContent
+        }
+    }
+
+    /// Affordance for "From Friends" collection to view recipe invites
+    @ViewBuilder
+    private var viewInvitesAffordance: some View {
+        let hasInvites = pendingInvitesCount > 0
+
+        let affordanceContent = Rectangle()
+            .fill(hasInvites ? HeirloomColors.familyGreen.opacity(0.1) : HeirloomColors.warmGray.opacity(0.1))
+            .overlay(
+                VStack(spacing: 4) {
+                    ZStack {
+                        Image(systemName: "tray.full")
+                            .font(.title3)
+                            .foregroundStyle(hasInvites ? HeirloomColors.familyGreen : HeirloomColors.warmGray)
+
+                        // Badge for pending invites
+                        if pendingInvitesCount > 0 {
+                            Text("\(pendingInvitesCount)")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(HeirloomColors.tomato)
+                                .clipShape(Capsule())
+                                .offset(x: 12, y: -10)
+                        }
+                    }
+
+                    Text(hasInvites ? "Invites" : "Inbox")
+                        .font(HeirloomFonts.caption2)
+                        .foregroundStyle(hasInvites ? HeirloomColors.familyGreen : HeirloomColors.secondaryText)
+                }
+            )
+
+        if let onTap = onViewInvitesTap {
             Button(action: onTap) {
                 affordanceContent
             }

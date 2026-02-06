@@ -121,19 +121,37 @@ struct SharedWithMeView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: HeirloomSpacing.lg) {
+            Spacer()
+
             Image(systemName: "tray")
                 .font(.system(size: 64))
                 .foregroundStyle(HeirloomColors.warmGray.opacity(0.5))
 
-            Text("No Pending Shares")
+            Text("No Recipe Invites Yet")
                 .font(HeirloomFonts.title2)
                 .foregroundStyle(HeirloomColors.primaryText)
 
-            Text("When friends share recipes with you, they'll appear here")
-                .font(HeirloomFonts.body)
-                .foregroundStyle(HeirloomColors.secondaryText)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, HeirloomSpacing.xl)
+            // Green banner with helpful message
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Check back when you see the badge")
+                    .font(HeirloomFonts.body)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+
+                Text("When friends share recipes with you, they'll appear here and you'll see a notification badge on Tables.")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(HeirloomColors.familyGreen)
+                    .shadow(color: HeirloomColors.familyGreen.opacity(0.3), radius: 8, y: 4)
+            )
+            .padding(.horizontal, HeirloomSpacing.lg)
+
+            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()

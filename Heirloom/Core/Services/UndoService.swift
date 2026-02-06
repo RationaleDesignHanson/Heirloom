@@ -816,9 +816,26 @@ class UndoService: ObservableObject {
         // IMPORTANT: Capture all collection and recipe data BEFORE delete!
         // After context.delete(), the SwiftData objects become invalid
         let collectionData = CollectionUndoData.from(collection)
+        let collectionId = collection.id
 
-        // Capture recipes before deleting (for full restoration on undo)
-        let recipesToDelete = Array(collection.recipes ?? [])
+        // Query recipes that belong to this collection directly
+        // NOTE: Using context.fetch instead of collection.recipes because SwiftData
+        // inverse relationships can be unreliable when recipes are added via recipe.collections
+        var recipesToDelete: [Recipe] = []
+        do {
+            let descriptor = FetchDescriptor<Recipe>()
+            let allRecipes = try context.fetch(descriptor)
+            recipesToDelete = allRecipes.filter { recipe in
+                recipe.collections?.contains(where: { $0.id == collectionId }) ?? false
+            }
+            Log.debug("Found \(recipesToDelete.count) recipes to delete with collection", category: .collections)
+        } catch {
+            // Fallback to inverse relationship if query fails
+            recipesToDelete = Array(collection.recipes ?? [])
+            Log.warning("Failed to query recipes, using inverse relationship", category: .collections, metadata: [
+                "error": error.localizedDescription
+            ])
+        }
         let recipeIds = recipesToDelete.map { $0.id }
         let recipeDataList = recipesToDelete.map { RecipeUndoData.from($0) }
 
