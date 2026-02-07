@@ -1005,12 +1005,10 @@ class DeepLinkHandler: ObservableObject {
             Log.info("PDF import job created", category: .general, metadata: ["jobId": job.id.uuidString])
             DeviceLogger.shared.log("✅ [DeepLink] PDF import job created: \(job.id.uuidString)")
 
-            // Show import progress sheet
+            // Clear approval state — the bottom banner will show progress automatically
             await MainActor.run {
                 pendingApprovalPDFURL = nil
                 pendingApprovalPDFImportID = nil
-                pendingImportJobID = job.id
-                showImportProgressSheet = true
             }
 
             // Start extraction phase (background task)

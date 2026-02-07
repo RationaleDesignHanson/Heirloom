@@ -1393,26 +1393,15 @@ final class ImportJobManager: ObservableObject {
                 // Cookbook metadata (only set if not already populated by AI extraction,
                 // which may have found better values from visual content like logos/headers)
                 if recipe.sourceBookTitle == nil, let cookbookTitle = item.cookbookTitle {
-                    // Skip if metadata "title" just duplicates the recipe title
-                    // (common for single-recipe PDFs where filename = recipe name)
-                    // Normalize: replace URL-encoded `+` with spaces, collapse whitespace
-                    let normalizedTitle = cookbookTitle
+                    // Skip if metadata "title" overlaps significantly with the recipe title
+                    // (common for single-recipe PDFs where filename/doc title ≈ recipe name)
+                    let cleanedCookbookTitle = cookbookTitle
                         .replacingOccurrences(of: "+", with: " ")
                         .replacingOccurrences(of: "%20", with: " ")
-                        .lowercased()
                         .trimmingCharacters(in: .whitespacesAndNewlines)
-                    let normalizedRecipeTitle = recipe.title
-                        .lowercased()
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                    let isDuplicate = normalizedTitle == normalizedRecipeTitle ||
-                        normalizedTitle.contains(normalizedRecipeTitle) ||
-                        normalizedRecipeTitle.contains(normalizedTitle)
+                    let isDuplicate = titlesOverlap(cleanedCookbookTitle, recipe.title)
                     if !isDuplicate {
-                        // Store the cleaned version (decode + characters)
-                        recipe.sourceBookTitle = cookbookTitle
-                            .replacingOccurrences(of: "+", with: " ")
-                            .replacingOccurrences(of: "%20", with: " ")
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                        recipe.sourceBookTitle = cleanedCookbookTitle
                     }
                 }
                 if recipe.sourceBookAuthor == nil, let cookbookAuthor = item.cookbookAuthor {
@@ -2142,6 +2131,28 @@ final class ImportJobManager: ObservableObject {
     }
 
     /// Check if text is a bracketed section header like [Asparagus], [Main], [Vegetables]*
+    /// Check if a metadata title significantly overlaps with a recipe title
+    /// e.g., "Online Class - Chocolate Chip Cookies" vs "Chewy Chocolate Chip Cookies"
+    private func titlesOverlap(_ metadataTitle: String, _ recipeTitle: String) -> Bool {
+        let a = metadataTitle.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        let b = recipeTitle.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Exact or substring match
+        if a == b || a.contains(b) || b.contains(a) { return true }
+
+        // Word overlap: if most words from the recipe title appear in the metadata title
+        let stopWords: Set<String> = ["the", "a", "an", "and", "or", "of", "with", "for", "in", "on", "-"]
+        let metadataWords = Set(a.split(separator: " ").map(String.init)).subtracting(stopWords)
+        let recipeWords = Set(b.split(separator: " ").map(String.init)).subtracting(stopWords)
+
+        guard !recipeWords.isEmpty else { return false }
+
+        let overlap = metadataWords.intersection(recipeWords).count
+        let overlapRatio = Double(overlap) / Double(recipeWords.count)
+        // If 60%+ of recipe title words appear in metadata title, it's a duplicate
+        return overlapRatio >= 0.6
+    }
+
     private func isBracketedSectionHeader(_ text: String) -> Bool {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         // Check for [Text] or [Text]*
