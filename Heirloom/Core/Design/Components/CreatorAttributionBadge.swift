@@ -31,6 +31,7 @@ struct CreatorAttributionBadge: View {
         case .instagram: return .purple
         case .youtube: return .red
         case .facebook: return .blue
+        case .pinterest: return .orange
         case .unknown: return .gray
         }
     }

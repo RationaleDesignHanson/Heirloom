@@ -23,18 +23,6 @@ enum SourceKind: String, Codable, CaseIterable {
     case unknown
 }
 
-// MARK: - SocialPlatform
-
-/// Social media platform for creator sources
-enum SocialPlatform: String, Codable, CaseIterable {
-    case tiktok
-    case instagram
-    case youtube
-    case facebook
-    case pinterest
-    case unknown
-}
-
 // MARK: - KnownSource Model
 
 @Model

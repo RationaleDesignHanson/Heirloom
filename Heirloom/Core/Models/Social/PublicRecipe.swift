@@ -46,6 +46,15 @@ struct PublicRecipe: Codable, Identifiable {
     var creatorPhotoURL: String?
     var creatorProfileSlug: String?
 
+    // MARK: - Source Attribution (Recipe Graph)
+
+    /// Source kind from KnownSource registry ("website", "socialCreator", "cookbook", etc.)
+    var sourceKind: String?
+    /// Source confidence from attribution registry (0.0-1.0)
+    var sourceConfidence: Double?
+    /// Catalog ID linking to shared source_catalog entry
+    var sourceCatalogId: String?
+
     // MARK: - Engagement Metrics
 
     var viewCount: Int
@@ -90,6 +99,9 @@ struct PublicRecipe: Codable, Identifiable {
         case creatorName
         case creatorPhotoURL
         case creatorProfileSlug
+        case sourceKind
+        case sourceConfidence
+        case sourceCatalogId
         case viewCount
         case saveCount
         case searchKeywords
@@ -177,6 +189,9 @@ extension PublicRecipe {
         self.creatorName = data["creatorName"] as? String ?? ""
         self.creatorPhotoURL = data["creatorPhotoURL"] as? String
         self.creatorProfileSlug = data["creatorProfileSlug"] as? String
+        self.sourceKind = data["sourceKind"] as? String
+        self.sourceConfidence = data["sourceConfidence"] as? Double
+        self.sourceCatalogId = data["sourceCatalogId"] as? String
         self.viewCount = data["viewCount"] as? Int ?? 0
         self.saveCount = data["saveCount"] as? Int ?? 0
         self.searchKeywords = data["searchKeywords"] as? [String] ?? []
@@ -250,6 +265,15 @@ extension PublicRecipe {
         }
         if let creatorProfileSlug = creatorProfileSlug {
             data["creatorProfileSlug"] = creatorProfileSlug
+        }
+        if let sourceKind = sourceKind {
+            data["sourceKind"] = sourceKind
+        }
+        if let sourceConfidence = sourceConfidence {
+            data["sourceConfidence"] = sourceConfidence
+        }
+        if let sourceCatalogId = sourceCatalogId {
+            data["sourceCatalogId"] = sourceCatalogId
         }
 
         return data

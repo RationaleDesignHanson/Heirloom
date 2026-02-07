@@ -48,7 +48,7 @@ actor SocialMetadataService {
             metadata = try await fetchYouTubeMetadata(platformInfo)
         case .facebook:
             metadata = try await fetchFacebookMetadata(platformInfo)
-        case .unknown:
+        case .pinterest, .unknown:
             metadata = try await fetchGenericMetadata(platformInfo)
         }
 

@@ -167,6 +167,10 @@
 		C56F3EF12F05294500D19743 /* RecipeLineage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56F3EF02F05294500D19743 /* RecipeLineage.swift */; };
 		C58300732F0CC6F40096478E /* heritage-recipes.json in Resources */ = {isa = PBXBuildFile; fileRef = C583004C2F0CC6F40096478E /* heritage-recipes.json */; };
 		C58302542F0CDC140096478E /* SchemaV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58302532F0CDC140096478E /* SchemaV2.swift */; };
+		73CF6F43B85526BD9225B661 /* KnownSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29393787F06E6ADB72D311F5 /* KnownSource.swift */; };
+		350A13EBD59A218ACA30E8CE /* SchemaV3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C48DF0E033EC198236887BB /* SchemaV3.swift */; };
+		786CF84F1650D054D765C7C7 /* SourceAttributionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81471CD837FF6ADBE65F4CB9 /* SourceAttributionService.swift */; };
+		5BDD2A2EFE7B56B299783FD0 /* SourceAttributionMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E19AE75D166B73C7ABF073F /* SourceAttributionMigration.swift */; };
 		C583070D2F0EC5480096478E /* HTMLSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583070A2F0EC5480096478E /* HTMLSanitizer.swift */; };
 		C583070E2F0EC5480096478E /* ValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C583070C2F0EC5480096478E /* ValidationService.swift */; };
 		C583070F2F0EC5480096478E /* FilePathValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58307092F0EC5480096478E /* FilePathValidator.swift */; };
@@ -659,6 +663,10 @@
 		C56F3EF02F05294500D19743 /* RecipeLineage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeLineage.swift; sourceTree = "<group>"; };
 		C583004C2F0CC6F40096478E /* heritage-recipes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "heritage-recipes.json"; sourceTree = "<group>"; };
 		C58302532F0CDC140096478E /* SchemaV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaV2.swift; sourceTree = "<group>"; };
+		29393787F06E6ADB72D311F5 /* KnownSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnownSource.swift; sourceTree = "<group>"; };
+		0C48DF0E033EC198236887BB /* SchemaV3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaV3.swift; sourceTree = "<group>"; };
+		81471CD837FF6ADBE65F4CB9 /* SourceAttributionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceAttributionService.swift; sourceTree = "<group>"; };
+		4E19AE75D166B73C7ABF073F /* SourceAttributionMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceAttributionMigration.swift; sourceTree = "<group>"; };
 		C583051F2F0E06D30096478E /* HeirloomTestsV2.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HeirloomTestsV2.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C58307092F0EC5480096478E /* FilePathValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePathValidator.swift; sourceTree = "<group>"; };
 		C583070A2F0EC5480096478E /* HTMLSanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLSanitizer.swift; sourceTree = "<group>"; };
@@ -1220,6 +1228,7 @@
 				C568877A2F06B4AE006EA0B1 /* CRDT */,
 				C56F3E762F04AC9800D19743 /* Firebase */,
 				C56F3DC62F0187C900D19743 /* DeepLink */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* Attribution */,
 				C5B317BC2F00DC010087CF6D /* RecipeMigrationService.swift */,
 				C5B317862F00D8330087CF6D /* RecipeVersionService.swift */,
 				C5B3177B2F00D6570087CF6D /* ShortURLService.swift */,
@@ -1379,6 +1388,8 @@
 				C58316332F119E7C0096478E /* SimilarRecipeModels.swift */,
 				C58316342F119E7C0096478E /* VideoRecipeModels.swift */,
 				C58302532F0CDC140096478E /* SchemaV2.swift */,
+				0C48DF0E033EC198236887BB /* SchemaV3.swift */,
+				29393787F06E6ADB72D311F5 /* KnownSource.swift */,
 				C583FFCC2F0CB5EA0096478E /* StickerAsset.swift */,
 				C583FFCA2F0CB5E00096478E /* LineageTree.swift */,
 				C583FFB12F0CAB830096478E /* Customization.swift */,
@@ -2286,11 +2297,20 @@
 			path = Privacy;
 			sourceTree = "<group>";
 		};
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* Attribution */ = {
+			isa = PBXGroup;
+			children = (
+				81471CD837FF6ADBE65F4CB9 /* SourceAttributionService.swift */,
+			);
+			path = Attribution;
+			sourceTree = "<group>";
+		};
 		C5DBE8832F1EE59C00C1B6BA /* Migration */ = {
 			isa = PBXGroup;
 			children = (
 				C5DBE8822F1EE59C00C1B6BA /* CollectionsFirstMigration.swift */,
 				C5COMM1002F5432100C1B6BA /* CommunityRecipeIngredientMigration.swift */,
+				4E19AE75D166B73C7ABF073F /* SourceAttributionMigration.swift */,
 			);
 			path = Migration;
 			sourceTree = "<group>";
@@ -3065,6 +3085,10 @@
 				C56887832F06B4C8006EA0B1 /* OperationLog.swift in Sources */,
 				C56887842F06B4C8006EA0B1 /* RecipeOperation.swift in Sources */,
 				C58302542F0CDC140096478E /* SchemaV2.swift in Sources */,
+				350A13EBD59A218ACA30E8CE /* SchemaV3.swift in Sources */,
+				73CF6F43B85526BD9225B661 /* KnownSource.swift in Sources */,
+				786CF84F1650D054D765C7C7 /* SourceAttributionService.swift in Sources */,
+				5BDD2A2EFE7B56B299783FD0 /* SourceAttributionMigration.swift in Sources */,
 				C583FFB22F0CAB830096478E /* Customization.swift in Sources */,
 				C583FF9F2F0CA51D0096478E /* UndoService.swift in Sources */,
 				C5CE3E302F2A92CA00A2E62F /* UnifiedCollectionCard.swift in Sources */,

@@ -165,6 +165,16 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
 
         // Add to lineage
         lineage.addModification(modification)
+
+        // Connect to source attribution: record that this source has derivative activity
+        let recipeDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { $0.id == recipeId }
+        )
+        if let recipe = try? context.fetch(recipeDescriptor).first,
+           let knownSource = recipe.knownSource {
+            knownSource.recordSeen()
+        }
+
         try context.save()
 
         // Sync to Firebase

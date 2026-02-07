@@ -1583,6 +1583,12 @@ struct CollectionsListView: View {
 
     /// Check if collection should have AI background auto-generated (Task #2)
     private func shouldAutoGenerateBackground(for collection: RecipeCollection) -> Bool {
+        // Skip collections that have preset backgrounds - use the hardcoded assets instead
+        let typesWithPresetBackgrounds: [CollectionType] = [.cookbook, .videoImports, .fromFriends, .webImports, .photoImports]
+        if typesWithPresetBackgrounds.contains(collection.type) {
+            return false
+        }
+
         let recipeCount = collection.recipes?.count ?? 0
 
         // Must have exactly 1 recipe

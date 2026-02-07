@@ -7,6 +7,7 @@ public enum SocialPlatform: String, Codable, CaseIterable {
     case instagram
     case youtube
     case facebook
+    case pinterest
     case unknown
 
     var displayName: String {
@@ -15,6 +16,7 @@ public enum SocialPlatform: String, Codable, CaseIterable {
         case .instagram: return "Instagram"
         case .youtube: return "YouTube"
         case .facebook: return "Facebook"
+        case .pinterest: return "Pinterest"
         case .unknown: return "Unknown"
         }
     }
@@ -26,6 +28,7 @@ public enum SocialPlatform: String, Codable, CaseIterable {
         case .instagram: return "camera"
         case .youtube: return "play.rectangle"
         case .facebook: return "person.2"
+        case .pinterest: return "pin.fill"
         case .unknown: return "questionmark.circle"
         }
     }

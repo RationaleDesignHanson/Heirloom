@@ -428,6 +428,61 @@ class SourceAttributionService {
         return nil
     }
 
+    // MARK: - Cross-Recipe Source Queries
+
+    /// Find all recipes from the same KnownSource
+    func recipesFromSameSource(as recipe: Recipe) -> [Recipe] {
+        guard let source = recipe.knownSource else { return [] }
+        return (source.recipes ?? []).filter { $0.id != recipe.id }
+    }
+
+    /// Find common substitutions across recipes from the same source
+    /// Returns (originalIngredient, substituteIngredient, count) tuples
+    func commonSubstitutions(for source: KnownSource) -> [(original: String, substitute: String, count: Int)] {
+        let recipes = source.recipes ?? []
+        var substitutionCounts: [String: Int] = [:]
+
+        for recipe in recipes {
+            guard let ingredients = recipe.ingredients else { continue }
+            for ingredient in ingredients {
+                guard let subs = ingredient.substitutions else { continue }
+                for sub in subs {
+                    let key = "\(sub.originalIngredient.lowercased())→\(sub.substituteIngredient.lowercased())"
+                    substitutionCounts[key, default: 0] += 1
+                }
+            }
+        }
+
+        return substitutionCounts.compactMap { key, count in
+            let parts = key.split(separator: "→", maxSplits: 1)
+            guard parts.count == 2 else { return nil }
+            return (original: String(parts[0]), substitute: String(parts[1]), count: count)
+        }
+        .sorted { $0.count > $1.count }
+    }
+
+    /// Find sources with the most recipes (top contributors to the recipe box)
+    func topSources(limit: Int = 10) -> [(source: KnownSource, recipeCount: Int)] {
+        let allSources = (try? modelContext.fetch(FetchDescriptor<KnownSource>())) ?? []
+        return allSources
+            .map { ($0, $0.recipes?.count ?? 0) }
+            .filter { $0.1 > 0 }
+            .sorted { $0.1 > $1.1 }
+            .prefix(limit)
+            .map { $0 }
+    }
+
+    /// Find recipes that share a source catalog entry (cross-user linkage potential)
+    func recipesByCatalogId(_ catalogId: String) -> [Recipe] {
+        let descriptor = FetchDescriptor<KnownSource>(
+            predicate: #Predicate<KnownSource> { source in
+                source.firebaseCatalogId == catalogId
+            }
+        )
+        guard let sources = try? modelContext.fetch(descriptor) else { return [] }
+        return sources.flatMap { $0.recipes ?? [] }
+    }
+
     // MARK: - SwiftData Queries
 
     private func fetchByNormalizedName(_ normalized: String) -> KnownSource? {

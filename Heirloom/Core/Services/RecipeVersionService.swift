@@ -169,6 +169,19 @@ final class RecipeVersionService {
                 let oldValue = oldIngredients.indices.contains(index) ? oldIngredients[index] : ""
                 if oldValue != newValue {
                     version.recordChange(field: "ingredient-\(index)", from: oldValue, to: newValue)
+
+                    // Auto-create Substitution when an ingredient is modified (not added/removed)
+                    if !oldValue.isEmpty && !newValue.isEmpty,
+                       let recipe = version.recipe,
+                       let ingredients = recipe.ingredients,
+                       index < ingredients.count {
+                        let ingredient = ingredients[index]
+                        let substitution = Substitution(original: oldValue, substitute: newValue)
+                        if ingredient.substitutions == nil {
+                            ingredient.substitutions = []
+                        }
+                        ingredient.substitutions?.append(substitution)
+                    }
                 }
             }
             version.ingredients = newIngredients

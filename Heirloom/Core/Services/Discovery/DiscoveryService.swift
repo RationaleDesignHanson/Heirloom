@@ -502,6 +502,17 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
             context.insert(ingredient)
         }
 
+        // Register source attribution for the creator
+        if !publicRecipe.creatorName.isEmpty {
+            let attributionService = ServiceContainer.shared.resolve(SourceAttributionService.self)
+            attributionService.registerSource(
+                name: publicRecipe.creatorName,
+                kind: .person,
+                discoveryMethod: "public_discovery",
+                recipe: recipe
+            )
+        }
+
         // Insert recipe
         context.insert(recipe)
 

@@ -246,9 +246,6 @@ class CollectionRouter {
 
     /// Apply preset background image for specific collection types
     private func applyPresetBackgroundIfNeeded(to collection: RecipeCollection, type: CollectionType) {
-        // Skip if collection already has a custom background
-        guard collection.customBackgroundImagePath == nil else { return }
-
         // Map collection types to preset asset names
         let presetAssetName: String? = switch type {
         case .fromFriends:
@@ -265,9 +262,25 @@ class CollectionRouter {
             nil
         }
 
-        // Check if bundled preset exists and apply
+        // If this collection type has a preset, always use it (overrides AI-generated)
         if let assetName = presetAssetName, UIImage(named: assetName) != nil {
-            collection.customBackgroundImagePath = "preset-\(assetName)"
+            let presetPath = "preset-\(assetName)"
+
+            // Skip if already using this preset
+            if collection.customBackgroundImagePath == presetPath {
+                return
+            }
+
+            // Clear any AI-generated background in favor of preset
+            if collection.generatedBackgroundImagePath != nil {
+                collection.generatedBackgroundImagePath = nil
+                Log.info("Cleared AI background in favor of preset", category: .collections, metadata: [
+                    "collection": collection.name,
+                    "preset": assetName
+                ])
+            }
+
+            collection.customBackgroundImagePath = presetPath
             collection.useCustomBackground = true
             Log.info("Applied preset background to collection", category: .collections, metadata: [
                 "collection": collection.name,
