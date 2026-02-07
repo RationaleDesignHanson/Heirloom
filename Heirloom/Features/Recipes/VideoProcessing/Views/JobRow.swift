@@ -152,6 +152,10 @@ struct JobRow: View {
         switch job.status {
         case .pending:
             return "clock.fill"
+        case .analyzing:
+            return "magnifyingglass"
+        case .awaitingConfirmation:
+            return "questionmark.circle.fill"
         case .processing:
             return "video.fill"
         case .paused:
@@ -171,6 +175,10 @@ struct JobRow: View {
         switch job.status {
         case .pending:
             return Color.orange
+        case .analyzing:
+            return HeirloomColors.tomato
+        case .awaitingConfirmation:
+            return Color.blue
         case .processing:
             return HeirloomColors.tomato
         case .paused:
@@ -223,6 +231,24 @@ struct JobRow: View {
                     }
                 }
             }
+
+        case .analyzing:
+            // Show cancel button during analysis
+            if job.canCancel, let onCancel = onCancel {
+                Button {
+                    onCancel()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(HeirloomFonts.title2)
+                        .foregroundStyle(Color.gray)
+                }
+            }
+
+        case .awaitingConfirmation:
+            // Show "Confirm" button for jobs awaiting user confirmation
+            Image(systemName: "chevron.right")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
 
         case .processing, .pending:
             // Resume button for interrupted jobs (force-quit)

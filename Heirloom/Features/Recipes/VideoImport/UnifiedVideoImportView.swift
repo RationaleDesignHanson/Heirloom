@@ -14,7 +14,6 @@ struct UnifiedVideoImportView: View {
 
     @State private var selectedItem: PhotosPickerItem?
     @State private var importState: ImportState = .selecting
-    @State private var currentMode: ExtractionMode?
     @State private var importedRecipe: Recipe?
     @State private var analysisResult: VideoImportAnalysisResult?
     @State private var videoURL: URL?
@@ -44,10 +43,10 @@ struct UnifiedVideoImportView: View {
         self.targetCollection = targetCollection
     }
 
-    /// Whether the sheet can be dismissed (false during analysis/extraction)
+    /// Whether the sheet can be dismissed (false during analysis)
     private var canDismiss: Bool {
         switch importState {
-        case .analyzing, .extracting:
+        case .analyzing:
             return false
         default:
             return true
@@ -60,7 +59,6 @@ struct UnifiedVideoImportView: View {
         case costConfirmation(credits: Int, mode: String, reasoning: String)
         case insufficientCredits(needed: Int, available: Int)
         case premiumRequired(audioReasoning: String, ocrReasoning: String)
-        case extracting(mode: ExtractionMode, progress: Float)
         case success
         case error(String)
     }
@@ -79,8 +77,6 @@ struct UnifiedVideoImportView: View {
                     insufficientCreditsView(needed: needed, available: available)
                 case .premiumRequired(let audioReasoning, let ocrReasoning):
                     premiumRequiredView(audioReasoning: audioReasoning, ocrReasoning: ocrReasoning)
-                case .extracting(let mode, let progress):
-                    extractionView(mode: mode, progress: progress)
                 case .success:
                     successView
                 case .error(let message):
@@ -468,38 +464,6 @@ struct UnifiedVideoImportView: View {
         }
     }
 
-    // MARK: - Extraction View
-
-    private func extractionView(mode: ExtractionMode, progress: Float) -> some View {
-        VStack(spacing: 20) {
-            Spacer()
-
-            // Mode indicator
-            HStack {
-                Image(systemName: mode.iconSystemName)
-                Text(mode.displayName)
-            }
-            .font(.caption)
-            .foregroundColor(.secondary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(Color.secondary.opacity(0.1))
-            .cornerRadius(8)
-
-            ProgressView(value: progress)
-                .frame(width: 200)
-
-            Text("Extracting recipe...")
-                .font(.headline)
-
-            Text("\(Int(progress * 100))%")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-            Spacer()
-        }
-    }
-
     // MARK: - Success View
 
     private var successView: some View {
@@ -776,76 +740,41 @@ struct UnifiedVideoImportView: View {
                     return
                 }
 
-                // Store video URL for later processing
-                self.videoURL = videoData.url
+                // Queue job immediately with .analyzing status - analysis happens in background
+                let jobManager = ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
 
-                // STEP 1: Analyze video to determine mode and cost
-                importState = .analyzing(stage: "Analyzing video...")
-
-                // Initialize cost analyzer if needed
-                if videoCostAnalyzer == nil {
-                    videoCostAnalyzer = await VideoCostAnalyzer.makeDefault()
-                }
-
-                guard let analyzer = videoCostAnalyzer else {
-                    importState = .error("Failed to initialize analyzer")
-                    return
-                }
-
-                let costResult = await analyzer.analyze(videoAt: videoData.url)
-
-                Log.info("Video cost analysis completed", category: .video, metadata: [
-                    "canProceed": costResult.canProceed,
-                    "creditCost": costResult.creditCost,
-                    "modeName": costResult.modeName,
-                    "reasoning": costResult.reasoning
-                ])
-
-                guard costResult.canProceed else {
-                    if case .failed(let error) = costResult {
-                        importState = .error(error.localizedDescription)
-                    } else {
-                        importState = .error("Analysis failed")
-                    }
-                    return
-                }
-
-                // Store analysis results
-                analyzedCreditCost = costResult.creditCost
-                analyzedMode = costResult.modeName
-
-                // STEP 2: Check credit balance
-                Log.info("Checking credit balance...", category: .video)
-                let userCredits = try fetchOrCreateUserCredits()
-                let availableCredits = userCredits.availableToday
-
-                Log.info("Credit check complete", category: .video, metadata: [
-                    "available": availableCredits,
-                    "needed": costResult.creditCost
-                ])
-
-                if availableCredits < costResult.creditCost {
-                    // Not enough credits
-                    importState = .insufficientCredits(
-                        needed: costResult.creditCost,
-                        available: availableCredits
-                    )
-                    return
-                }
-
-                // STEP 3: Show cost confirmation
-                Log.info("Setting cost confirmation state", category: .video, metadata: [
-                    "credits": costResult.creditCost,
-                    "mode": costResult.modeName
-                ])
-
-                importState = .costConfirmation(
-                    credits: costResult.creditCost,
-                    mode: costResult.modeName,
-                    reasoning: costResult.reasoning
+                let attribution = VideoSourceAttribution(
+                    sourceURL: nil,
+                    captionText: nil
                 )
 
-                Log.info("Import state set to costConfirmation", category: .video)
+                // Create job with .analyzing status (videoType will be determined during analysis)
+                let job = try jobManager.createJobForAnalysis(
+                    videoURL: videoData.url,
+                    userCaption: nil,
+                    videoDuration: nil,
+                    sourceAttribution: attribution,
+                    context: modelContext
+                )
+
+                Log.info("Video job queued for background analysis", category: .video, metadata: [
+                    "jobId": job.id.uuidString
+                ])
+
+                // Clean up pending import if this came from Share Extension
+                if let pendingID = currentPendingImportID {
+                    await PendingImportManager.shared.delete(id: pendingID)
+                    currentPendingImportID = nil
+                }
+
+                // Toast notification and dismiss
+                let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+                toastManager.success(
+                    title: "Video queued for analysis",
+                    message: "You'll be notified when it's ready"
+                )
+
+                dismiss()
 
             } catch {
                 Log.error("Video import error", category: .video, metadata: [
@@ -903,9 +832,6 @@ struct UnifiedVideoImportView: View {
                 let queuePosition = activeJobs.firstIndex(where: { $0.id == job.id }) ?? 0
                 let totalInQueue = activeJobs.count
 
-                // Show success
-                importState = .success
-
                 // Clean up pending import if this came from Share Extension
                 if let pendingID = currentPendingImportID {
                     await PendingImportManager.shared.delete(id: pendingID)
@@ -919,8 +845,7 @@ struct UnifiedVideoImportView: View {
                     message: "\(analyzedCreditCost) credit\(analyzedCreditCost == 1 ? "" : "s") used"
                 )
 
-                // Dismiss after a moment
-                try await Task.sleep(nanoseconds: 1_500_000_000)
+                // Dismiss immediately - user can review later via Video Processing list
                 dismiss()
 
             } catch {
@@ -1024,33 +949,10 @@ struct UnifiedVideoImportView: View {
     }
 
     private func proceedWithVisualExtraction(videoURL: URL) {
-        importState = .extracting(mode: .visualFrames, progress: 0)
-
-        Task {
-            do {
-                guard let processor = self.processor else {
-                    throw VideoImportError.extractionFailed("Processor not initialized")
-                }
-
-                let pendingImport = PendingVideoImport(
-                    sourceType: .photoLibrary,
-                    localVideoURL: videoURL
-                )
-
-                let recipe = try await processor.processImport(
-                    pendingImport,
-                    mode: .visualFrames,
-                    transcript: nil,
-                    onScreenText: nil
-                )
-
-                importedRecipe = recipe
-                importState = .success
-
-            } catch {
-                importState = .error(error.localizedDescription)
-            }
-        }
+        // User upgraded to premium, set mode to ASMR and proceed with import
+        analyzedMode = "ASMR"
+        analyzedCreditCost = 5  // ASMR costs 5 credits
+        proceedWithImport()
     }
 }
 

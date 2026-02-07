@@ -46,11 +46,15 @@ struct CollectionsListView: View {
     @State private var showSettings = false
     @State private var pendingRecipeNavigation: Recipe?
     @State private var selectedImportJobForReview: ImportJob?
-    @State private var selectedVideoJobForReview: VideoProcessingJob?
-    @State private var selectedVideoEnhanced: VideoRecipeExtraction.Enhanced?
-    @State private var showVideoReviewSheet = false
-    @State private var showVideoCollectionPicker = false
-    @State private var savedVideoRecipe: Recipe?
+    @State private var videoReviewData: VideoReviewData?
+    @State private var jobForConfirmation: VideoProcessingJob?
+
+    /// Combined state for video review sheet to avoid timing issues
+    struct VideoReviewData: Identifiable {
+        let id = UUID()
+        let job: VideoProcessingJob
+        let enhanced: VideoRecipeExtraction.Enhanced
+    }
 
     // Recipe invites (for "From Friends" collection)
     @State private var showSharedWithMe = false
@@ -360,25 +364,43 @@ struct CollectionsListView: View {
                     ImportReviewView(manager: importJobManager, job: job)
                 }
             }
-            .sheet(isPresented: $showVideoReviewSheet) {
-                if let enhanced = selectedVideoEnhanced, let job = selectedVideoJobForReview {
-                    VideoRecipeReviewView(
-                        extraction: enhanced.original,
-                        enhancedExtraction: enhanced,
-                        onSave: { updatedExtraction in
-                            saveVideoRecipe(from: updatedExtraction, job: job)
-                            showVideoReviewSheet = false
-                        },
-                        onCancel: {
-                            showVideoReviewSheet = false
+            .sheet(item: $videoReviewData) { reviewData in
+                VideoRecipeReviewView(
+                    extraction: reviewData.enhanced.original,
+                    enhancedExtraction: reviewData.enhanced,
+                    onSave: { updatedExtraction in
+                        Task { @MainActor in
+                            await saveVideoRecipeAfterReview(extraction: updatedExtraction, enhanced: reviewData.enhanced, job: reviewData.job)
+                            videoReviewData = nil
+                            // Video recipes auto-route to "From Videos" collection - no picker needed
                         }
-                    )
-                }
+                    },
+                    onCancel: {
+                        videoReviewData = nil
+                    }
+                )
             }
-            .sheet(isPresented: $showVideoCollectionPicker) {
-                if let recipe = savedVideoRecipe {
-                    TagCollectionPickerView(recipe: recipe)
-                }
+            .sheet(item: $jobForConfirmation) { job in
+                VideoConfirmationSheet(
+                    job: job,
+                    onConfirm: { dishNameHint in
+                        try await videoJobManager.confirmAndStartProcessing(
+                            job: job,
+                            dishNameHint: dishNameHint,
+                            context: modelContext
+                        )
+                        await MainActor.run {
+                            jobForConfirmation = nil
+                            toastManager.success(
+                                title: "Video queued",
+                                message: "Processing will begin shortly"
+                            )
+                        }
+                    },
+                    onCancel: {
+                        jobForConfirmation = nil
+                    }
+                )
             }
             .sheet(isPresented: $showSharedWithMe) {
                 SharedWithMeView()
@@ -1331,11 +1353,20 @@ struct CollectionsListView: View {
     // MARK: - Video Job Review
 
     private func openVideoReviewScreen(for job: VideoProcessingJob) {
-        guard job.status == .completed,
+        // Handle jobs awaiting confirmation (analysis complete, needs user approval)
+        if job.status == .awaitingConfirmation {
+            jobForConfirmation = job
+            return
+        }
+
+        // Allow .completed jobs OR orphaned .saved jobs (auto-dismissed but never reviewed)
+        let needsReview = job.status == .completed || (job.status == .saved && job.recipeID == nil)
+        guard needsReview,
               let extractionData = job.extractionJSON else {
-            Log.error("Cannot open review screen - job not completed or no extraction data", category: .video, metadata: [
+            Log.error("Cannot open review screen - job not ready for review or no extraction data", category: .video, metadata: [
                 "jobId": job.id.uuidString,
-                "status": job.status.rawValue
+                "status": job.status.rawValue,
+                "hasRecipeID": String(job.recipeID != nil)
             ])
             return
         }
@@ -1343,9 +1374,7 @@ struct CollectionsListView: View {
         do {
             // Try to decode enhanced extraction first (new format with augmentation)
             let enhanced = try JSONDecoder().decode(VideoRecipeExtraction.Enhanced.self, from: extractionData)
-            selectedVideoJobForReview = job
-            selectedVideoEnhanced = enhanced
-            showVideoReviewSheet = true
+            videoReviewData = VideoReviewData(job: job, enhanced: enhanced)
         } catch {
             // Fallback: Try decoding old format (base extraction without augmentation)
             do {
@@ -1357,9 +1386,7 @@ struct CollectionsListView: View {
                     similarRecipes: [],
                     webRecipes: []
                 )
-                selectedVideoJobForReview = job
-                selectedVideoEnhanced = enhanced
-                showVideoReviewSheet = true
+                videoReviewData = VideoReviewData(job: job, enhanced: enhanced)
 
                 Log.info("Loaded old job format without augmentation", category: .video, metadata: [
                     "jobId": job.id.uuidString
@@ -1396,24 +1423,25 @@ struct CollectionsListView: View {
         }
     }
 
-    private func saveVideoRecipe(from extraction: VideoRecipeExtraction, job: VideoProcessingJob) {
-        guard let job = selectedVideoJobForReview else { return }
-
+    private func saveVideoRecipeAfterReview(
+        extraction: VideoRecipeExtraction,
+        enhanced: VideoRecipeExtraction.Enhanced,
+        job: VideoProcessingJob
+    ) async {
         do {
-            // Use centralized save method from job manager
-            let recipe = try videoJobManager.saveRecipeFromJob(job, context: modelContext)
+            // Use finalizeAfterReview which handles augmented ingredients
+            try await videoJobManager.finalizeAfterReview(
+                job: job,
+                reviewedExtraction: extraction,
+                enhanced: enhanced,
+                context: modelContext
+            )
 
-            Log.info("Recipe saved successfully via job manager", category: .video, metadata: [
+            Log.info("Recipe saved successfully via finalizeAfterReview", category: .video, metadata: [
                 "jobId": job.id.uuidString,
-                "recipeId": recipe.id.uuidString
+                "recipeId": job.recipeID?.uuidString ?? "nil"
             ])
-
-            // Show collection picker after review sheet dismisses
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 700_000_000) // 0.7 seconds
-                savedVideoRecipe = recipe
-                showVideoCollectionPicker = true
-            }
+            // Video recipes auto-route to "From Videos" collection - no picker needed
         } catch {
             Log.error("Failed to save recipe from job", category: .video, metadata: [
                 "jobId": job.id.uuidString,

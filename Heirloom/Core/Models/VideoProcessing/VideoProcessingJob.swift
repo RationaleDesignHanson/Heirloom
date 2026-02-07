@@ -108,6 +108,17 @@ final class VideoProcessingJob {
     /// User-provided dish name hint to help AI understand ASMR videos
     var dishNameHint: String?
 
+    // MARK: - Analysis Results (for background analysis flow)
+
+    /// Credit cost determined by video analysis (before user confirmation)
+    var analyzedCreditCost: Int?
+
+    /// Mode name determined by analysis ("Standard" or "ASMR")
+    var analyzedModeName: String?
+
+    /// Reasoning for the chosen mode
+    var analysisReasoning: String?
+
     // MARK: - Initialization
 
     init(
@@ -146,6 +157,8 @@ final class VideoProcessingJob {
 
 enum VideoProcessingStatus: String, Codable {
     case pending        // Job created, not started
+    case analyzing      // Running video analysis to determine mode/cost
+    case awaitingConfirmation  // Analysis done, waiting for user to confirm credits
     case processing     // Currently being processed
     case paused         // User paused processing
     case completed      // Processing finished, ready for review
@@ -185,6 +198,10 @@ extension VideoProcessingJob {
         switch status {
         case .pending:
             return "Waiting to start"
+        case .analyzing:
+            return "Analyzing video"
+        case .awaitingConfirmation:
+            return "Ready to confirm"
         case .processing:
             return currentPhase.displayName
         case .paused:

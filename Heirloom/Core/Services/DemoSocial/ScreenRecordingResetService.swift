@@ -219,7 +219,11 @@ final class ScreenRecordingResetService: ObservableObject {
         resetProgress = "Resetting app state..."
         resetOnboardingState()
 
-        // Step 5.5: Reset user credits to trial state
+        // Step 5.5: Clear all processing job queues (video, import, generation)
+        resetProgress = "Clearing job queues..."
+        try clearAllJobQueues(context: context)
+
+        // Step 5.6: Reset user credits to trial state
         resetProgress = "Resetting credits..."
         try resetUserCredits(context: context)
 
@@ -228,7 +232,7 @@ final class ScreenRecordingResetService: ObservableObject {
         ServiceContainer.shared.resolveOptional(ConnectionServiceProtocol.self)?.clearCache()
         Log.info("Reset: Cleared connection service cache", category: .general)
 
-        // Step 6b: Reset profile social counters and clear cache
+        // Step 6b: Reset profile social counters, clear avatar, and clear cache
         let profileService = ServiceContainer.shared.resolve((any ProfileServiceProtocol).self)
         do {
             var profile = try await profileService.fetchCurrentUserProfile()
@@ -238,14 +242,27 @@ final class ScreenRecordingResetService: ObservableObject {
             profile.followingCount = 0
             profile.heritageGenerationCount = 0
             profile.recipeAcceptanceCount = 0
+            profile.photoURL = nil  // Clear profile picture
             try await profileService.updateProfile(profile)
-            Log.info("Reset: Reset profile social counters", category: .general)
+            Log.info("Reset: Reset profile social counters and cleared avatar", category: .general)
         } catch {
             errors.append("Profile reset failed: \(error.localizedDescription)")
             Log.error("Failed to reset profile counters", category: .general, metadata: ["error": error.localizedDescription])
         }
         profileService.clearCache()
         Log.info("Reset: Cleared profile service cache", category: .general)
+
+        // Step 6c: Delete avatar image from Firebase Storage
+        if let storage = storage {
+            let avatarRef = storage.reference().child("users/\(userId)/profile/avatar.jpg")
+            do {
+                try await avatarRef.delete()
+                Log.info("Reset: Deleted avatar image from storage", category: .general)
+            } catch {
+                // Avatar may not exist - that's OK
+                Log.debug("Avatar deletion note (may not exist)", category: .general, metadata: ["note": error.localizedDescription])
+            }
+        }
 
         // Small delay to let Firebase propagate deletions
         try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
@@ -650,6 +667,38 @@ final class ScreenRecordingResetService: ObservableObject {
 
         Log.info("Removed user from demo connections", category: .general, metadata: [
             "deleted_count": deletedCount
+        ])
+    }
+
+    // MARK: - Clear Job Queues
+
+    private func clearAllJobQueues(context: ModelContext) throws {
+        // Clear video processing jobs
+        let videoJobDescriptor = FetchDescriptor<VideoProcessingJob>()
+        let videoJobs = try context.fetch(videoJobDescriptor)
+        for job in videoJobs {
+            context.delete(job)
+        }
+
+        // Clear import jobs
+        let importJobDescriptor = FetchDescriptor<ImportJob>()
+        let importJobs = try context.fetch(importJobDescriptor)
+        for job in importJobs {
+            context.delete(job)
+        }
+
+        // Clear recipe generation jobs
+        let genJobDescriptor = FetchDescriptor<RecipeGenerationJob>()
+        let genJobs = try context.fetch(genJobDescriptor)
+        for job in genJobs {
+            context.delete(job)
+        }
+
+        try context.save()
+        Log.info("Job queues cleared", category: .general, metadata: [
+            "video_jobs": videoJobs.count,
+            "import_jobs": importJobs.count,
+            "generation_jobs": genJobs.count
         ])
     }
 

@@ -258,8 +258,8 @@ struct UnifiedProcessingQueueView: View {
 
         switch section {
         case .processing:
-            // Video jobs
-            for job in videoJobs where job.status == .processing {
+            // Video jobs (including analyzing)
+            for job in videoJobs where job.status == .processing || job.status == .analyzing {
                 jobs.append(AnyProcessingJob(job, type: .video))
             }
             // Import jobs
@@ -283,6 +283,10 @@ struct UnifiedProcessingQueueView: View {
             }
 
         case .needsAttention:
+            // Jobs awaiting confirmation (analysis complete, needs user approval)
+            for job in videoJobs where job.status == .awaitingConfirmation {
+                jobs.append(AnyProcessingJob(job, type: .video))
+            }
             for job in videoJobs where job.status == .failed {
                 jobs.append(AnyProcessingJob(job, type: .video))
             }
@@ -304,6 +308,10 @@ struct UnifiedProcessingQueueView: View {
             for job in videoJobs where job.status == .completed {
                 jobs.append(AnyProcessingJob(job, type: .video))
             }
+            // Also include "saved" video jobs that were never actually reviewed (recipeID is nil)
+            for job in videoJobs where job.status == .saved && job.recipeID == nil {
+                jobs.append(AnyProcessingJob(job, type: .video))
+            }
             for job in importJobs where job.status == .completed {
                 jobs.append(AnyProcessingJob(job, type: .importJob))
             }
@@ -313,7 +321,10 @@ struct UnifiedProcessingQueueView: View {
 
         case .recent:
             // Saved/cancelled video jobs (last 10)
-            let recentVideoJobs = videoJobs.filter { $0.status == .saved || $0.status == .cancelled }
+            // Exclude "saved" jobs that were never reviewed (recipeID is nil) - those belong in readyToReview
+            let recentVideoJobs = videoJobs.filter {
+                ($0.status == .saved && $0.recipeID != nil) || $0.status == .cancelled
+            }
             for job in recentVideoJobs.prefix(10) {
                 jobs.append(AnyProcessingJob(job, type: .video))
             }
@@ -330,7 +341,19 @@ struct UnifiedProcessingQueueView: View {
         switch job.jobType {
         case .video:
             if let videoJob = videoJobs.first(where: { $0.id == job.id }) {
-                onVideoJobTap?(videoJob)
+                // For jobs needing user action (review or confirmation), dismiss queue first
+                let needsUserAction = videoJob.status == .completed ||
+                    videoJob.status == .awaitingConfirmation ||
+                    (videoJob.status == .saved && videoJob.recipeID == nil)
+                if needsUserAction {
+                    dismiss()
+                    // Small delay to let dismiss complete before callback triggers sheet
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        onVideoJobTap?(videoJob)
+                    }
+                } else {
+                    onVideoJobTap?(videoJob)
+                }
             }
         case .importJob:
             // Only allow tap-through for completed import jobs
@@ -413,8 +436,13 @@ struct UnifiedProcessingQueueView: View {
             switch job.jobType {
             case .video:
                 if let videoJob = videoJobs.first(where: { $0.id == job.id }) {
-                    // Mark as saved to remove from banner
-                    videoJob.status = .saved
+                    // For completed jobs without a recipe, or orphaned saved jobs, delete them
+                    // For other jobs, mark as saved/cancelled to remove from banner
+                    if videoJob.status == .completed || (videoJob.status == .saved && videoJob.recipeID == nil) {
+                        modelContext.delete(videoJob)
+                    } else {
+                        videoJob.status = .saved
+                    }
                 }
             case .importJob:
                 if let importJob = importJobs.first(where: { $0.id == job.id }) {

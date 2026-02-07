@@ -282,6 +282,191 @@ final class VideoProcessingJobManager: ObservableObject {
         return job
     }
 
+    /// Create a new video processing job that needs analysis first (background analysis flow)
+    /// The job will be created with .analyzing status and video type will be determined during processing
+    func createJobForAnalysis(
+        videoURL: URL,
+        userCaption: String?,
+        videoDuration: TimeInterval?,
+        sourceAttribution: VideoSourceAttribution?,
+        context: ModelContext
+    ) throws -> VideoProcessingJob {
+        // STEP 1: Compute video hash for duplicate detection
+        let videoData = try Data(contentsOf: videoURL)
+        let videoHashData = SHA256.hash(data: videoData)
+        let videoHash = videoHashData.compactMap { String(format: "%02x", $0) }.joined()
+
+        // STEP 2: Check for existing jobs with same hash
+        let descriptor = FetchDescriptor<VideoProcessingJob>()
+        let allJobs = try context.fetch(descriptor)
+
+        // Filter for matching hash and active statuses (including analyzing/awaitingConfirmation)
+        if let existingJob = allJobs.first(where: { job in
+            job.videoHash == videoHash &&
+            (job.status == .pending || job.status == .processing || job.status == .completed ||
+             job.status == .analyzing || job.status == .awaitingConfirmation)
+        }) {
+            Log.info("Duplicate video detected, returning existing job", category: .video, metadata: [
+                "existingJobId": existingJob.id.uuidString,
+                "status": existingJob.status.rawValue
+            ])
+            return existingJob  // Don't create duplicate
+        }
+
+        // STEP 3: Copy video to persistent location
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let videosDir = documentsURL.appendingPathComponent("Videos", isDirectory: true)
+        try? FileManager.default.createDirectory(at: videosDir, withIntermediateDirectories: true)
+
+        let destinationURL = videosDir.appendingPathComponent("\(UUID().uuidString).mov")
+        try FileManager.default.copyItem(at: videoURL, to: destinationURL)
+
+        Log.info("Video copied for analysis", category: .video, metadata: [
+            "from": videoURL.path,
+            "to": destinationURL.path,
+            "hash": videoHash
+        ])
+
+        // STEP 4: Create job with .analyzing status (videoType will be determined during analysis)
+        let job = VideoProcessingJob(
+            videoURL: destinationURL.path,
+            videoType: .standard, // Default, will be updated after analysis
+            userCaption: userCaption,
+            videoDuration: videoDuration,
+            videoHash: videoHash,
+            sourceURL: sourceAttribution?.sourceURL,
+            sourceAttribution: sourceAttribution?.creatorName
+        )
+        job.status = .analyzing  // Start in analyzing state
+
+        // Generate thumbnail asynchronously
+        Task {
+            let thumbnailData = await generateThumbnail(from: destinationURL)
+            await MainActor.run {
+                job.thumbnailData = thumbnailData
+                try? context.save()
+            }
+        }
+
+        // Create checkpoint
+        let checkpoint = ProcessingCheckpoint()
+        checkpoint.job = job
+        job.checkpoint = checkpoint
+
+        // Insert into context (no placeholder recipe yet - will create after confirmation)
+        context.insert(job)
+        context.insert(checkpoint)
+
+        // Signal UI
+        self.pendingJobId = job.id
+
+        try context.save()
+
+        // Clear pendingJobId after delay
+        Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            await MainActor.run {
+                if self.pendingJobId == job.id {
+                    self.pendingJobId = nil
+                }
+            }
+        }
+
+        // Auto-start analysis
+        Task {
+            await runAnalysis(for: job, context: context)
+        }
+
+        return job
+    }
+
+    /// Run video analysis in background and update job with results
+    private func runAnalysis(for job: VideoProcessingJob, context: ModelContext) async {
+        guard job.status == .analyzing else { return }
+
+        let videoURL = URL(fileURLWithPath: job.videoURL)
+
+        // Start quasi-deterministic progress updates while analysis runs
+        // Progress advances smoothly but slows as it approaches completion
+        let progressTask = Task { @MainActor in
+            var progress: Double = 0.05
+            while !Task.isCancelled && job.status == .analyzing {
+                job.progress = progress
+                try? context.save()
+
+                // Slow exponential approach to ~90%
+                let remaining = 0.9 - progress
+                progress += remaining * 0.15
+                progress = min(progress, 0.9)
+
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+            }
+        }
+
+        // Initialize cost analyzer and run analysis
+        let analyzer = await VideoCostAnalyzer.makeDefault()
+        let costResult = await analyzer.analyze(videoAt: videoURL)
+
+        // Cancel progress task now that analysis is complete
+        progressTask.cancel()
+
+        await MainActor.run {
+            guard costResult.canProceed else {
+                if case .failed(let error) = costResult {
+                    job.status = .failed
+                    job.errorMessage = error.localizedDescription
+                } else {
+                    job.status = .failed
+                    job.errorMessage = "Video analysis failed"
+                }
+                try? context.save()
+                return
+            }
+
+            // Store analysis results
+            job.analyzedCreditCost = costResult.creditCost
+            job.analyzedModeName = costResult.modeName
+            job.analysisReasoning = costResult.reasoning
+            job.videoType = costResult.modeName == "ASMR" ? .asmr : .standard
+
+            Log.info("Video analysis complete", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "mode": costResult.modeName,
+                "credits": costResult.creditCost
+            ])
+
+            // Check if we need user confirmation (ASMR needs dish name, or always confirm for clarity)
+            // For now, always require confirmation to match original UX
+            job.status = .awaitingConfirmation
+            try? context.save()
+
+            // Schedule notification
+            scheduleAnalysisCompleteNotification(job)
+        }
+    }
+
+    /// Schedule local notification when analysis is complete
+    private func scheduleAnalysisCompleteNotification(_ job: VideoProcessingJob) {
+        let content = UNMutableNotificationContent()
+        content.title = "Video Ready for Import"
+        content.body = "Tap to confirm and start processing your video recipe"
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: "analysis-complete-\(job.id.uuidString)",
+            content: content,
+            trigger: nil  // Deliver immediately
+        )
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                Log.warning("Failed to schedule analysis complete notification", category: .video, metadata: [
+                    "error": error.localizedDescription
+                ])
+            }
+        }
+    }
+
     // MARK: - Background Task Scheduling
 
     private func scheduleBackgroundProcessingTask() {
@@ -422,20 +607,48 @@ final class VideoProcessingJobManager: ObservableObject {
         // Save enhanced extraction result (includes augmentation data)
         let extractionData = try JSONEncoder().encode(enhanced)
         job.extractionJSON = extractionData
+
+        // Validate extraction has required content
+        // Check augmented recipe first (if augmentation filled in missing content), then fall back to original
+        let recipe = enhanced.augmentedRecipe?.original ?? enhanced.original.structuredRecipe
+        guard recipe.isComplete else {
+            // Build descriptive error message
+            var missingParts: [String] = []
+            if recipe.ingredients.isEmpty { missingParts.append("ingredients") }
+            if recipe.steps.isEmpty { missingParts.append("instructions") }
+            let errorMessage = "Could not extract \(missingParts.joined(separator: " or ")) from this video"
+
+            // Mark placeholder recipe as failed
+            markPlaceholderFailed(job: job, errorMessage: errorMessage, context: context)
+
+            // Extraction was incomplete - mark job as failed
+            job.status = .failed
+            job.errorType = .other
+            job.errorMessage = errorMessage
+            job.completedAt = Date()
+
+            try context.save()
+
+            // Schedule failure notification
+            await scheduleFailureNotification(job, context: context)
+
+            Log.warning("Job failed - incomplete extraction", category: .video, metadata: ["jobId": job.id.uuidString])
+            return
+        }
+
+        // DON'T finalize placeholder recipe here - wait for user review
+        // Just mark job as completed with extraction data saved
         job.status = .completed
         job.completedAt = Date()
         job.progress = 1.0
         job.currentPhase = .complete
-
-        // Finalize placeholder recipe with extracted data
-        finalizePlaceholderRecipe(job: job, extraction: enhanced.original, context: context)
 
         try context.save()
 
         // Schedule completion notification (awaited to ensure delivery before BG task ends)
         await scheduleCompletionNotification(job, context: context)
 
-        Log.info("Job completed successfully", category: .video, metadata: ["jobId": job.id.uuidString])
+        Log.info("Job completed - awaiting user review", category: .video, metadata: ["jobId": job.id.uuidString])
     }
 
     // MARK: - Standard Video Processing
@@ -906,6 +1119,70 @@ final class VideoProcessingJobManager: ObservableObject {
         ])
     }
 
+    /// Confirm a job that's awaiting confirmation and start processing
+    /// Called after user reviews the analysis results and confirms credit cost
+    func confirmAndStartProcessing(
+        job: VideoProcessingJob,
+        dishNameHint: String?,
+        context: ModelContext
+    ) async throws {
+        guard job.status == .awaitingConfirmation else {
+            throw VideoProcessingError.invalidState("Job is not awaiting confirmation")
+        }
+
+        guard let creditCost = job.analyzedCreditCost else {
+            throw VideoProcessingError.invalidState("Job has no analyzed credit cost")
+        }
+
+        // Deduct credits
+        let userCreditsDescriptor = FetchDescriptor<UserCredits>()
+        let allCredits = try context.fetch(userCreditsDescriptor)
+        guard let userCredits = allCredits.first else {
+            throw VideoProcessingError.insufficientCredits(needed: creditCost, available: 0)
+        }
+
+        let availableCredits = userCredits.availableToday
+        guard availableCredits >= creditCost else {
+            throw VideoProcessingError.insufficientCredits(needed: creditCost, available: availableCredits)
+        }
+
+        try userCredits.deductCredits(creditCost)
+        job.creditsCharged = creditCost
+
+        // Store dish name hint if provided (for ASMR)
+        if let hint = dishNameHint, !hint.isEmpty {
+            job.dishNameHint = hint
+        }
+
+        // Create placeholder recipe now that we're confirmed
+        let placeholderRecipe = Recipe.createVideoProcessingPlaceholder(
+            jobId: job.id,
+            thumbnailData: job.thumbnailData,
+            sourceURL: job.sourceURL
+        )
+        job.placeholderRecipeID = placeholderRecipe.id
+        context.insert(placeholderRecipe)
+
+        // Set to pending to enter the normal processing queue
+        job.status = .pending
+        try context.save()
+
+        Log.info("Job confirmed and queued for processing", category: .video, metadata: [
+            "jobId": job.id.uuidString,
+            "creditsCharged": creditCost,
+            "videoType": job.videoType.rawValue
+        ])
+
+        // Trigger queue processing in background (don't block the caller)
+        refreshQueue(context: context)
+        Task.detached { [weak self] in
+            guard let self = self else { return }
+            if await !self.isProcessing {
+                try? await self.startNextJob(context: context)
+            }
+        }
+    }
+
     /// Cancel a job
     func cancelJob(_ job: VideoProcessingJob, context: ModelContext) throws {
         guard job.canCancel else { return }
@@ -1029,17 +1306,39 @@ final class VideoProcessingJobManager: ObservableObject {
         let recipeToSave: StructuredRecipe
         let extraction: VideoRecipeExtraction
 
-        if let enhanced = try? JSONDecoder().decode(VideoRecipeExtraction.Enhanced.self, from: jsonData) {
-            // Use finalRecipe which merges augmented quantities/units into the recipe
-            recipeToSave = enhanced.finalRecipe
-            extraction = enhanced.original
-        } else {
-            // Fall back to base extraction
-            extraction = try JSONDecoder().decode(VideoRecipeExtraction.self, from: jsonData)
-            recipeToSave = extraction.structuredRecipe
+        do {
+            if let enhanced = try? JSONDecoder().decode(VideoRecipeExtraction.Enhanced.self, from: jsonData) {
+                // Use finalRecipe which merges augmented quantities/units into the recipe
+                recipeToSave = enhanced.finalRecipe
+                extraction = enhanced.original
+            } else {
+                // Fall back to base extraction
+                extraction = try JSONDecoder().decode(VideoRecipeExtraction.self, from: jsonData)
+                recipeToSave = extraction.structuredRecipe
+            }
+        } catch {
+            Log.error("Failed to decode extraction JSON", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "error": error.localizedDescription
+            ])
+            throw error
         }
 
-        // STEP 3: Find or create recipe
+        // STEP 3: Validate recipe has required content before saving
+        guard recipeToSave.isComplete else {
+            Log.error("Recipe extraction incomplete - cannot save", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "title": recipeToSave.title,
+                "hasIngredients": !recipeToSave.ingredients.isEmpty,
+                "hasSteps": !recipeToSave.steps.isEmpty
+            ])
+            throw VideoProcessingError.incompleteExtraction(
+                hasIngredients: !recipeToSave.ingredients.isEmpty,
+                hasSteps: !recipeToSave.steps.isEmpty
+            )
+        }
+
+        // STEP 4: Find or create recipe
         // With progressive enhancement, we already have a placeholder recipe
         let recipe: Recipe
         if let placeholderRecipeId = job.placeholderRecipeID,
@@ -1065,7 +1364,7 @@ final class VideoProcessingJobManager: ObservableObject {
             ])
         }
 
-        // STEP 4: Update recipe with final data (may include user edits from review screen)
+        // STEP 5: Update recipe with final data (may include user edits from review screen)
         recipe.title = recipeToSave.title
         recipe.instructions = recipeToSave.steps.map { $0.instruction }
         recipe.servings = recipeToSave.servings
@@ -1074,7 +1373,7 @@ final class VideoProcessingJobManager: ObservableObject {
         recipe.linkedProcessingJobId = nil
         recipe.linkedProcessingJobType = nil
 
-        // STEP 5: Set provenance metadata
+        // STEP 6: Set provenance metadata
         recipe.provenance = ProvenanceMetadata(
             sourceType: .video,
             sourceURL: job.sourceURL,
@@ -1084,7 +1383,7 @@ final class VideoProcessingJobManager: ObservableObject {
             createdAt: Date()
         )
 
-        // STEP 6: Update ingredients (remove old ones first, then add new)
+        // STEP 7: Update ingredients (remove old ones first, then add new)
         // Clear existing ingredients
         if let existingIngredients = recipe.ingredients {
             for ing in existingIngredients {
@@ -1119,22 +1418,22 @@ final class VideoProcessingJobManager: ObservableObject {
             "recipeTitle": recipe.title
         ])
 
-        // STEP 7: Route to "From Videos" collection
+        // STEP 8: Route to "From Videos" collection
         let router = CollectionRouter(modelContext: context)
         router.routeVideoImport(recipe)
 
-        // STEP 8: Update job status
+        // STEP 9: Update job status
         job.status = .saved
         job.recipeID = recipe.id
         try context.save()
 
-        // STEP 9: Delete video file to free up storage (no longer needed after saving)
+        // STEP 10: Delete video file to free up storage (no longer needed after saving)
         deleteVideoFile(for: job)
 
-        // STEP 10: Refresh queue to remove from active list
+        // STEP 11: Refresh queue to remove from active list
         refreshQueue(context: context)
 
-        // STEP 11: Show toast confirmation
+        // STEP 12: Show toast confirmation
         let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
         toastManager.success(
             title: "Recipe Saved",
@@ -1156,6 +1455,112 @@ final class VideoProcessingJobManager: ObservableObject {
         let fakeIngredient = "\(quantityString) item"
         let parsed = IngredientParser.parse(fakeIngredient)
         return parsed.quantity
+    }
+
+    // MARK: - Review Flow
+
+    /// Finalize a completed job's placeholder recipe after user review
+    /// This applies the user-reviewed extraction data and augmented quantities to the placeholder recipe
+    func finalizeAfterReview(
+        job: VideoProcessingJob,
+        reviewedExtraction: VideoRecipeExtraction,
+        enhanced: VideoRecipeExtraction.Enhanced?,
+        context: ModelContext
+    ) async throws {
+        guard job.status == .completed else {
+            throw VideoProcessingError.invalidJobState
+        }
+
+        guard let placeholderRecipeId = job.placeholderRecipeID else {
+            throw VideoProcessingError.noExtractionData
+        }
+
+        let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == placeholderRecipeId })
+        guard let placeholder = try context.fetch(descriptor).first else {
+            throw VideoProcessingError.jobNotFound
+        }
+
+        let recipe = reviewedExtraction.structuredRecipe
+
+        // Convert steps to instructions array
+        let instructions = recipe.steps.map { $0.instruction }
+
+        // Update with reviewed data
+        placeholder.updateFromProcessingResult(
+            title: recipe.title,
+            instructions: instructions,
+            servings: recipe.servings,
+            prepTime: recipe.prepTime,
+            cookTime: recipe.cookTime,
+            notes: recipe.description
+        )
+
+        // Clear existing ingredients and add reviewed ones
+        if let existingIngredients = placeholder.ingredients {
+            for ing in existingIngredients {
+                context.delete(ing)
+            }
+        }
+        placeholder.ingredients = []
+
+        // Add ingredients from reviewed extraction
+        for (index, ingredient) in recipe.ingredients.enumerated() {
+            let extractedQuantity = parseQuantityString(ingredient.quantity)
+
+            let ing = Ingredient(
+                originalText: ingredient.originalText,
+                name: ingredient.item,
+                quantity: extractedQuantity,
+                unit: ingredient.unit,
+                orderIndex: index
+            )
+            ing.recipe = placeholder
+            context.insert(ing)
+        }
+
+        // Parse ingredients with AI parser for proper quantity extraction
+        await parseIngredientsForScaling(placeholder)
+
+        // Set provenance metadata
+        let creatorName = job.sourceAttribution ?? reviewedExtraction.metadata.attribution.creatorName
+        placeholder.provenance = ProvenanceMetadata(
+            sourceType: .video,
+            sourceURL: job.sourceURL,
+            sourceAttribution: creatorName,
+            generation: 0,
+            sharedByName: nil,
+            createdAt: Date()
+        )
+
+        // Route to "From Videos" collection
+        let router = CollectionRouter(modelContext: context)
+        router.routeVideoImport(placeholder)
+
+        // Update job status
+        job.status = .saved
+        job.recipeID = placeholder.id
+
+        try context.save()
+
+        // Delete video file to free up storage
+        deleteVideoFile(for: job)
+
+        // Refresh queue
+        refreshQueue(context: context)
+
+        Log.info("Finalized recipe after user review", category: .video, metadata: [
+            "jobId": job.id.uuidString,
+            "title": recipe.title,
+            "ingredientCount": recipe.ingredients.count,
+            "stepCount": recipe.steps.count
+        ])
+
+        // Show toast
+        let toastManager = ServiceContainer.shared.resolve(ToastManager.self)
+        toastManager.success(
+            title: "Recipe Saved",
+            message: placeholder.title
+        )
     }
 
     // MARK: - Auto-Resume
@@ -1326,17 +1731,38 @@ final class VideoProcessingJobManager: ObservableObject {
     }
 
     /// Finalize placeholder recipe with extracted data
+    /// - Returns: true if extraction was complete and recipe was finalized, false if extraction was incomplete
+    @discardableResult
     private func finalizePlaceholderRecipe(
         job: VideoProcessingJob,
         extraction: VideoRecipeExtraction,
         context: ModelContext
-    ) {
-        guard let placeholderRecipeId = job.placeholderRecipeID else { return }
+    ) async -> Bool {
+        guard let placeholderRecipeId = job.placeholderRecipeID else { return false }
 
         let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == placeholderRecipeId })
-        guard let placeholder = try? context.fetch(descriptor).first else { return }
+        guard let placeholder = try? context.fetch(descriptor).first else { return false }
 
         let recipe = extraction.structuredRecipe
+
+        // Validate extraction has required content
+        guard recipe.isComplete else {
+            Log.error("Recipe extraction incomplete - marking as failed", category: .video, metadata: [
+                "jobId": job.id.uuidString,
+                "title": recipe.title,
+                "hasIngredients": !recipe.ingredients.isEmpty,
+                "hasSteps": !recipe.steps.isEmpty
+            ])
+
+            // Build descriptive error message
+            var missingParts: [String] = []
+            if recipe.ingredients.isEmpty { missingParts.append("ingredients") }
+            if recipe.steps.isEmpty { missingParts.append("instructions") }
+            let errorMessage = "Could not extract \(missingParts.joined(separator: " or ")) from this video"
+
+            placeholder.markProcessingFailed(errorMessage: errorMessage)
+            return false
+        }
 
         // Convert steps to instructions array
         let instructions = recipe.steps.map { $0.instruction }
@@ -1351,30 +1777,104 @@ final class VideoProcessingJobManager: ObservableObject {
             notes: recipe.description
         )
 
-        // Add ingredients
+        // Add ingredients with extracted quantities as fallback (AI parser will enhance)
         placeholder.ingredients = recipe.ingredients.map { ingredient in
-            // Parse quantity string to Double if possible
-            let quantityDouble: Double?
-            if let quantityStr = ingredient.quantity {
-                quantityDouble = Double(quantityStr)
-            } else {
-                quantityDouble = nil
-            }
+            // Parse extracted quantity string to Double as fallback
+            // AI parser will re-parse later, but this ensures quantities exist even if AI fails
+            let extractedQuantity = parseQuantityString(ingredient.quantity)
 
             let parsedIngredient = Ingredient(
                 originalText: ingredient.originalText,
                 name: ingredient.item,
-                quantity: quantityDouble,
+                quantity: extractedQuantity,
                 unit: ingredient.unit
             )
             parsedIngredient.recipe = placeholder
             return parsedIngredient
         }
 
+        // Parse ingredients with AI parser for proper quantity extraction (fractions, ranges, etc.)
+        await parseIngredientsForScaling(placeholder)
+
+        // Set provenance metadata for attribution
+        let creatorName = job.sourceAttribution ?? extraction.metadata.attribution.creatorName
+        placeholder.provenance = ProvenanceMetadata(
+            sourceType: .video,
+            sourceURL: job.sourceURL,
+            sourceAttribution: creatorName,
+            generation: 0,
+            sharedByName: nil,
+            createdAt: Date()
+        )
+
+        // Route to "From Videos" collection
+        let router = CollectionRouter(modelContext: context)
+        router.routeVideoImport(placeholder)
+
         Log.info("Finalized placeholder recipe from video extraction", category: .video, metadata: [
             "jobId": job.id.uuidString,
-            "title": recipe.title
+            "title": recipe.title,
+            "ingredientCount": recipe.ingredients.count,
+            "stepCount": recipe.steps.count,
+            "creatorAttribution": creatorName ?? "unknown"
         ])
+
+        return true
+    }
+
+    /// Parse ingredients using AI parser for proper quantity extraction
+    /// This enables scaling to work correctly with fractions, ranges, etc.
+    private func parseIngredientsForScaling(_ recipe: Recipe) async {
+        guard let ingredients = recipe.ingredients, !ingredients.isEmpty else {
+            Log.debug("No ingredients to parse for video recipe", category: .video, metadata: ["recipeId": recipe.id.uuidString])
+            return
+        }
+
+        let ingredientTexts = ingredients.map { $0.originalText }
+
+        Log.info("Parsing video recipe ingredients for scaling", category: .video, metadata: [
+            "recipeId": recipe.id.uuidString,
+            "count": ingredientTexts.count
+        ])
+
+        do {
+            let aiIngredientParser: AIIngredientParser = ServiceContainer.shared.resolve(AIIngredientParser.self)
+            let parsed = try await aiIngredientParser.parseBatch(ingredientTexts)
+
+            for (index, ingredient) in ingredients.enumerated() {
+                guard index < parsed.count else { continue }
+                let parsedData = parsed[index]
+
+                // Only update fields if parsed data has values (don't overwrite with nil)
+                if let quantity = parsedData.quantity {
+                    ingredient.quantity = quantity
+                }
+                if let quantityMax = parsedData.quantityMax {
+                    ingredient.quantityMax = quantityMax
+                }
+                if let unit = parsedData.unit {
+                    ingredient.unit = unit
+                }
+                if let normalizedUnit = parsedData.normalizedUnit {
+                    ingredient.normalizedUnit = normalizedUnit
+                }
+                if !parsedData.name.isEmpty {
+                    ingredient.name = parsedData.name
+                }
+                if let preparation = parsedData.preparation {
+                    ingredient.preparation = preparation
+                }
+            }
+
+            Log.info("Parsed video recipe ingredients successfully", category: .video, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "parsedCount": parsed.count
+            ])
+        } catch {
+            Log.error("Failed to parse video recipe ingredients", category: .video, error: error, metadata: [
+                "recipeId": recipe.id.uuidString
+            ])
+        }
     }
 
     /// Mark placeholder recipe as failed
@@ -1420,7 +1920,7 @@ final class VideoProcessingJobManager: ObservableObject {
 
 // MARK: - Errors
 
-enum VideoProcessingError: LocalizedError {
+enum VideoProcessingError: LocalizedError, Equatable {
     case invalidVideoURL
     case videoFileNotFound
     case maxRetriesExceeded
@@ -1428,6 +1928,9 @@ enum VideoProcessingError: LocalizedError {
     case processingInProgress
     case invalidJobState
     case noExtractionData
+    case incompleteExtraction(hasIngredients: Bool, hasSteps: Bool)
+    case invalidState(String)
+    case insufficientCredits(needed: Int, available: Int)
 
     var errorDescription: String? {
         switch self {
@@ -1445,6 +1948,18 @@ enum VideoProcessingError: LocalizedError {
             return "Job is not in completed state"
         case .noExtractionData:
             return "No extraction data available for this job"
+        case .incompleteExtraction(let hasIngredients, let hasSteps):
+            if !hasIngredients && !hasSteps {
+                return "Could not extract ingredients or instructions from this video"
+            } else if !hasIngredients {
+                return "Could not extract ingredients from this video"
+            } else {
+                return "Could not extract instructions from this video"
+            }
+        case .invalidState(let message):
+            return message
+        case .insufficientCredits(let needed, let available):
+            return "Not enough credits. Need \(needed), have \(available)"
         }
     }
 }

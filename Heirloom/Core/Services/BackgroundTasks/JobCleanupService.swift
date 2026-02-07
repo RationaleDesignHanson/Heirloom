@@ -94,8 +94,8 @@ class JobCleanupService {
                     // Delete completed/saved jobs older than 90 days
                     shouldDelete = completedAt < completedCutoff
 
-                case .pending, .processing, .paused:
-                    // Don't delete active jobs
+                case .pending, .analyzing, .awaitingConfirmation, .processing, .paused:
+                    // Don't delete active jobs or jobs waiting for user action
                     shouldDelete = false
                 }
 

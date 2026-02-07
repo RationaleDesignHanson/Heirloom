@@ -25,8 +25,6 @@ struct VideoProcessingJobListView: View {
     @State private var selectedEnhanced: VideoRecipeExtraction.Enhanced?
     @State private var showReviewSheet = false
     @State private var showRecoverySheet = false
-    @State private var showCollectionPicker = false
-    @State private var savedRecipe: Recipe?
 
     private var processingJobs: [VideoProcessingJob] {
         allJobs.filter { $0.status == .processing }
@@ -37,7 +35,8 @@ struct VideoProcessingJobListView: View {
     }
 
     private var completedJobs: [VideoProcessingJob] {
-        allJobs.filter { $0.status == .completed }
+        // Include .completed AND orphaned .saved jobs (auto-dismissed but never reviewed)
+        allJobs.filter { $0.status == .completed || ($0.status == .saved && $0.recipeID == nil) }
     }
 
     private var failedJobs: [VideoProcessingJob] {
@@ -45,7 +44,8 @@ struct VideoProcessingJobListView: View {
     }
 
     private var savedJobs: [VideoProcessingJob] {
-        allJobs.filter { $0.status == .saved }
+        // Only truly saved jobs (with a recipeID), not orphaned ones
+        allJobs.filter { $0.status == .saved && $0.recipeID != nil }
     }
 
     var body: some View {
@@ -137,21 +137,25 @@ struct VideoProcessingJobListView: View {
                         extraction: enhanced.original,
                         enhancedExtraction: enhanced,
                         onSave: { updatedExtraction in
-                            let recipe = saveRecipe(from: updatedExtraction, job: job)
-                            showReviewSheet = false
-
-                            // Show collection picker after review sheet dismisses
-                            // Need delay to avoid SwiftUI presentation timing conflict
                             Task { @MainActor in
-                                try? await Task.sleep(nanoseconds: 700_000_000) // 0.7 seconds
-                                savedRecipe = recipe
-                                showCollectionPicker = true
+                                _ = await saveRecipe(from: updatedExtraction, enhanced: enhanced, job: job)
+                                showReviewSheet = false
+                                // Video recipes auto-route to "From Videos" collection - no picker needed
                             }
                         },
                         onCancel: {
                             showReviewSheet = false
                         }
                     )
+                } else {
+                    // Fallback loading view during brief state transition
+                    VStack(spacing: 16) {
+                        ProgressView()
+                        Text("Loading recipe review...")
+                            .font(HeirloomFonts.body)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .sheet(isPresented: $showRecoverySheet) {
@@ -159,11 +163,6 @@ struct VideoProcessingJobListView: View {
                     JobRecoverySheet(job: job) { action in
                         try await jobManager.handleRecoveryAction(for: job, action: action, context: modelContext)
                     }
-                }
-            }
-            .sheet(isPresented: $showCollectionPicker) {
-                if let recipe = savedRecipe {
-                    TagCollectionPickerView(recipe: recipe)
                 }
             }
         }
@@ -208,9 +207,14 @@ struct VideoProcessingJobListView: View {
 
     // MARK: - Job Row
 
+    /// Check if a job needs user review (completed or orphaned saved)
+    private func jobNeedsReview(_ job: VideoProcessingJob) -> Bool {
+        job.status == .completed || (job.status == .saved && job.recipeID == nil)
+    }
+
     private func jobRow(for job: VideoProcessingJob) -> some View {
         Button {
-            if job.status == .completed {
+            if jobNeedsReview(job) {
                 openReviewScreen(for: job)
             } else if job.status == .failed {
                 openRecoverySheet(for: job)
@@ -234,7 +238,7 @@ struct VideoProcessingJobListView: View {
         }
         .buttonStyle(.plain)
         .contextMenu {
-            if job.status == .completed {
+            if jobNeedsReview(job) {
                 Button {
                     openReviewScreen(for: job)
                 } label: {
@@ -361,11 +365,14 @@ struct VideoProcessingJobListView: View {
     }
 
     private func openReviewScreen(for job: VideoProcessingJob) {
-        guard job.status == .completed,
+        // Allow .completed jobs OR orphaned .saved jobs (auto-dismissed but never reviewed)
+        let needsReview = job.status == .completed || (job.status == .saved && job.recipeID == nil)
+        guard needsReview,
               let extractionData = job.extractionJSON else {
-            Log.error("Cannot open review screen - job not completed or no extraction data", category: .video, metadata: [
+            Log.error("Cannot open review screen - job not ready for review or no extraction data", category: .video, metadata: [
                 "jobId": job.id.uuidString,
-                "status": job.status.rawValue
+                "status": job.status.rawValue,
+                "hasRecipeID": String(job.recipeID != nil)
             ])
             return
         }
@@ -416,18 +423,29 @@ struct VideoProcessingJobListView: View {
         showRecoverySheet = true
     }
 
-    private func saveRecipe(from extraction: VideoRecipeExtraction, job: VideoProcessingJob) -> Recipe? {
+    private func saveRecipe(from extraction: VideoRecipeExtraction, enhanced: VideoRecipeExtraction.Enhanced?, job: VideoProcessingJob) async -> Recipe? {
         do {
-            // Use centralized save method from job manager
-            let recipe = try jobManager.saveRecipeFromJob(job, context: modelContext)
+            // Use finalizeAfterReview to save the user-edited extraction
+            try await jobManager.finalizeAfterReview(
+                job: job,
+                reviewedExtraction: extraction,
+                enhanced: enhanced,
+                context: modelContext
+            )
 
-            // Extract and save video thumbnail asynchronously after recipe is saved
-            let videoURL = URL(fileURLWithPath: job.videoURL)
-            Task {
-                await saveVideoThumbnail(from: videoURL, to: recipe, context: modelContext)
+            // Find the saved recipe
+            guard let recipeId = job.recipeID else {
+                Log.error("Job has no recipe ID after finalize", category: .video)
+                return nil
             }
 
-            Log.info("Recipe saved successfully via job manager", category: .video, metadata: [
+            let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == recipeId })
+            guard let recipe = try? modelContext.fetch(descriptor).first else {
+                Log.error("Could not find saved recipe", category: .video)
+                return nil
+            }
+
+            Log.info("Recipe saved successfully via finalizeAfterReview", category: .video, metadata: [
                 "jobId": job.id.uuidString,
                 "recipeId": recipe.id.uuidString
             ])

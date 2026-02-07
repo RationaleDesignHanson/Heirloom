@@ -6,6 +6,11 @@
 //
 //  Post-save transparency view showing AI extraction rationale
 //  Part of Phase 3.2: Progressive disclosure for AI transparency
+//
+//  NOTE: This file is disabled - model APIs have changed significantly.
+//  TODO: Update to use current model signatures when this feature is needed.
+
+#if false
 
 import SwiftUI
 import SwiftData
@@ -259,13 +264,6 @@ struct VideoExtractionDetailsView: View {
 
                         confidenceBadge(ingredient.confidence)
                     }
-
-                    if ingredient.wasAugmented, let source = ingredient.augmentationSource {
-                        Text("Quantity inferred from: \(source)")
-                            .font(HeirloomFonts.caption2)
-                            .foregroundStyle(.orange)
-                            .padding(.leading, 20)
-                    }
                 }
                 .padding(.vertical, 4)
 
@@ -328,41 +326,10 @@ struct VideoExtractionDetailsView: View {
 
     private var augmentationContent: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            if extraction.structuredRecipe.usedAugmentation {
-                Text("These similar recipes were used to fill in missing quantities")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-
-                Divider()
-
-                if let sources = extraction.structuredRecipe.augmentationSources, !sources.isEmpty {
-                    ForEach(Array(sources.enumerated()), id: \.offset) { index, source in
-                        HStack {
-                            Image(systemName: "doc.text")
-                                .foregroundStyle(HeirloomColors.tomato)
-
-                            Text(source)
-                                .font(HeirloomFonts.callout)
-                                .foregroundStyle(HeirloomColors.primaryText)
-                        }
-                        .padding(.vertical, 4)
-
-                        if index < sources.count - 1 {
-                            Divider()
-                        }
-                    }
-                } else {
-                    Text("Augmentation was used but source information not available")
-                        .font(HeirloomFonts.callout)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .italic()
-                }
-            } else {
-                Text("No augmentation needed - all ingredient quantities were directly detected from the video")
-                    .font(HeirloomFonts.callout)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-                    .italic()
-            }
+            Text("No augmentation data available in current model")
+                .font(HeirloomFonts.callout)
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .italic()
         }
     }
 
@@ -383,10 +350,12 @@ struct VideoExtractionDetailsView: View {
 
     private func confidenceInfo(_ confidence: ExtractionConfidence) -> (String, Color) {
         switch confidence {
-        case .high:
-            return ("High", .green)
-        case .medium:
-            return ("Medium", .orange)
+        case .explicit:
+            return ("Explicit", .green)
+        case .visual:
+            return ("Visual", .blue)
+        case .inferred:
+            return ("Inferred", .orange)
         case .approximate:
             return ("Approx", .yellow)
         case .unknown:
@@ -423,82 +392,4 @@ struct VideoExtractionDetailsView: View {
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    let extraction = VideoRecipeExtraction(
-        structuredRecipe: StructuredRecipe(
-            title: "Chocolate Chip Cookies",
-            description: "Classic homemade cookies",
-            servings: 24,
-            prepTime: "15 minutes",
-            cookTime: "12 minutes",
-            ingredients: [
-                ExtractedIngredient(
-                    item: "flour",
-                    quantity: "2",
-                    unit: "cups",
-                    preparation: nil,
-                    confidence: .high,
-                    originalText: "2 cups flour",
-                    wasAugmented: false,
-                    augmentationSource: nil
-                ),
-                ExtractedIngredient(
-                    item: "chocolate chips",
-                    quantity: "1",
-                    unit: "cup",
-                    preparation: nil,
-                    confidence: .medium,
-                    originalText: "chocolate chips",
-                    wasAugmented: true,
-                    augmentationSource: "Classic Chocolate Chip Cookies"
-                )
-            ],
-            steps: [
-                ExtractedStep(
-                    instruction: "Mix flour and sugar together",
-                    duration: "2 minutes",
-                    temperature: nil,
-                    confidence: .high
-                ),
-                ExtractedStep(
-                    instruction: "Add chocolate chips and mix",
-                    duration: nil,
-                    temperature: nil,
-                    confidence: .high
-                )
-            ],
-            overallConfidence: 0.92,
-            warnings: [],
-            usedAugmentation: true,
-            augmentationSources: ["Classic Chocolate Chip Cookies", "Nestle Toll House Recipe"]
-        ),
-        transcript: TranscriptionResult(
-            text: "Today we're making chocolate chip cookies. Start by mixing two cups of flour with sugar. Then add your chocolate chips and mix everything together.",
-            language: "en",
-            confidence: 0.92,
-            duration: 180
-        ),
-        visualElements: ["measuring cup", "mixing bowl"],
-        metadata: VideoImportMetadata(
-            attribution: VideoSourceAttribution(),
-            videoDuration: 180,
-            transcriptionProvider: "WhisperKit",
-            transcriptionConfidence: 0.92,
-            processingCost: 0.15,
-            processingTime: 120,
-            transcriptText: "Today we're making chocolate chip cookies...",
-            processedAt: Date()
-        ),
-        processingTime: 120,
-        estimatedCost: 0.15
-    )
-
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Recipe.self, configurations: config)
-    let recipe = Recipe(title: "Chocolate Chip Cookies", sourceType: .video, instructions: ["Step 1", "Step 2"])
-
-    return VideoExtractionDetailsView(extraction: extraction, recipe: recipe)
-        .modelContainer(container)
-}
+#endif

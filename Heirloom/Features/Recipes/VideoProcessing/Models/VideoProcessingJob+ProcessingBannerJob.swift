@@ -11,6 +11,10 @@ extension VideoProcessingJob: ProcessingBannerJob {
 
     var bannerTitle: String {
         switch status {
+        case .analyzing:
+            return "Analyzing Video"
+        case .awaitingConfirmation:
+            return "Confirm Import"
         case .processing:
             return processingPhase.displayName
         case .completed:
@@ -22,6 +26,11 @@ extension VideoProcessingJob: ProcessingBannerJob {
         case .pending:
             return "Queued"
         case .saved:
+            // If recipeID is nil, this was auto-dismissed but not actually saved
+            // Show "Ready to Review" instead of "Saved"
+            if recipeID == nil {
+                return "Ready to Review"
+            }
             return "Saved"
         case .cancelled:
             return "Cancelled"
@@ -74,11 +83,22 @@ extension VideoProcessingJob: ProcessingBannerJob {
         switch status {
         case .pending:
             return .pending
+        case .analyzing:
+            return .processing  // Show as processing during analysis
+        case .awaitingConfirmation:
+            return .paused  // Treat as paused (needs user action)
         case .processing:
             return .processing
         case .paused:
             return .paused
-        case .completed, .saved:
+        case .completed:
+            return .completed
+        case .saved:
+            // If recipeID is nil, this was auto-dismissed but not actually reviewed/saved
+            // Treat it as needing review (completed status)
+            if recipeID == nil {
+                return .completed
+            }
             return .completed
         case .failed:
             return .failed(canRetry: canRetry)
@@ -88,8 +108,21 @@ extension VideoProcessingJob: ProcessingBannerJob {
     }
 
     var shouldShowInBanner: Bool {
-        status == .processing || status == .paused ||
-        (status == .failed && canRetry) ||
-        status == .completed
+        // Show analyzing, awaiting confirmation, processing, paused, completed (needs review), or failed (can retry)
+        if status == .analyzing || status == .awaitingConfirmation {
+            return true
+        }
+        if status == .processing || status == .paused || status == .completed {
+            return true
+        }
+        if status == .failed && canRetry {
+            return true
+        }
+        // Also show "saved" jobs that were auto-dismissed but not actually finalized
+        // (recipeID is nil means no recipe was saved yet - needs review)
+        if status == .saved && recipeID == nil {
+            return true
+        }
+        return false
     }
 }

@@ -264,7 +264,8 @@ struct UnifiedProcessingBanner: View {
         var totalProgress: Double = 0
         var count = 0
 
-        for job in videoJobs where job.status == .processing {
+        // Include both .analyzing and .processing video jobs
+        for job in videoJobs where job.status == .processing || job.status == .analyzing {
             totalProgress += job.progress
             count += 1
         }
@@ -292,7 +293,15 @@ struct UnifiedProcessingBanner: View {
     // MARK: - Dismiss Actions
 
     /// Check if the priority job can be dismissed (completed or failed)
+    /// Note: Video jobs with .completed status need user review, so don't auto-dismiss them
     private func canDismiss(_ job: AnyProcessingJob) -> Bool {
+        // Video jobs need review when completed - don't auto-dismiss
+        if job.jobType == .video {
+            if case .completed = job.bannerStatus {
+                return false  // Needs user review
+            }
+        }
+
         switch job.bannerStatus {
         case .completed, .failed:
             return true

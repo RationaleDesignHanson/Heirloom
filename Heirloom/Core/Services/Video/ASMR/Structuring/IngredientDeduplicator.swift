@@ -235,8 +235,8 @@ struct IngredientDeduplicator {
             ? ing1.confidence
             : ing2.confidence
 
-        // 6. Combine original text for reference
-        let finalOriginalText = "\(ing1.originalText) [merged with: \(ing2.originalText)]"
+        // 6. Use the primary ingredient's original text (no debug notation for users)
+        let finalOriginalText = ing1.originalText
 
         return ExtractedIngredient(
             originalText: finalOriginalText,
