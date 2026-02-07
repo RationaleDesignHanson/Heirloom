@@ -393,6 +393,8 @@ extension Recipe {
                     return "\(title), p. \(page)"
                 }
                 return title
+            } else if let author = sourceBookAuthor, !author.isEmpty {
+                return author
             }
             return "Cookbook"
         case .family:
@@ -410,6 +412,8 @@ extension Recipe {
                     return "\(title), p. \(page)"
                 }
                 return title
+            } else if let author = sourceBookAuthor, !author.isEmpty {
+                return author
             }
             return "Scanned Recipe"
         case .manual:

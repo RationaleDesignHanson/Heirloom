@@ -111,7 +111,7 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
 
         // Combine with style modifier
         let subject = promptParts.joined(separator: ", ")
-        let prompt = "\(subject), \(selectedStyle.promptModifier)"
+        let prompt = "\(subject), \(selectedStyle.promptModifier), no people no hands no humans no fingers"
 
         return prompt
     }

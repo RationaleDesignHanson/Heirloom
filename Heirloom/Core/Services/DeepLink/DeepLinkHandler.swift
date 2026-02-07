@@ -989,11 +989,11 @@ class DeepLinkHandler: ObservableObject {
             let importManager = ServiceContainer.shared.resolve(ImportJobManager.self)
 
             // Create PDF import job (analysis phase)
-            // PDFs shared from other apps go to "PDF Imports" collection
+            // PDFs shared from other apps go to "Cookbook Pages" collection
             let job = try await importManager.createAndAnalyzePDFJob(
                 pdfURLs: [pdfURL],
                 jobName: "PDF Import",
-                cookbookName: "PDF Imports",
+                cookbookName: "Cookbook Pages",
                 collectionType: .cookbook,
                 context: context,
                 generateAIImages: generateImages

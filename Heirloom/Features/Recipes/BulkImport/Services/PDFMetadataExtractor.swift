@@ -145,7 +145,8 @@ class PDFMetadataExtractor {
         guard let attributes = pdfDocument.documentAttributes else { return nil }
 
         let title = attributes[PDFDocumentAttribute.titleAttribute] as? String
-        let author = attributes[PDFDocumentAttribute.authorAttribute] as? String
+        let rawAuthor = attributes[PDFDocumentAttribute.authorAttribute] as? String
+        let author = rawAuthor.flatMap { isToolGeneratedAuthor($0) ? nil : $0 }
 
         // Validate: must have title with reasonable length
         guard let validTitle = title, !validTitle.isEmpty, validTitle.count > 3, validTitle.count < 150 else {
@@ -158,13 +159,24 @@ class PDFMetadataExtractor {
             return nil
         }
 
+        // Strip tool-generated prefixes (e.g., "Microsoft Word - Online Class - Chocolate Chip Cookies")
+        var cleanedTitle = validTitle
+        let toolPrefixes = ["Microsoft Word - ", "Microsoft Word -", "Pages - ", "LibreOffice - "]
+        for prefix in toolPrefixes {
+            if cleanedTitle.hasPrefix(prefix) {
+                cleanedTitle = String(cleanedTitle.dropFirst(prefix.count))
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                break
+            }
+        }
+
         Log.debug("Found embedded PDF metadata", category: .import, metadata: [
-            "title": validTitle,
+            "title": cleanedTitle,
             "author": author ?? "nil"
         ])
 
         return MetadataCandidate(
-            title: validTitle,
+            title: cleanedTitle,
             author: author?.isEmpty == false ? author : nil,
             source: .embedded,
             confidence: 0.9 // Embedded metadata is highly reliable
@@ -266,6 +278,18 @@ class PDFMetadataExtractor {
             source: .filename,
             confidence: confidence
         )
+    }
+
+    /// Check if an author string looks like a PDF creation tool rather than a person/brand
+    private func isToolGeneratedAuthor(_ author: String) -> Bool {
+        let lowercased = author.lowercased()
+        let toolPatterns = [
+            "acrobat", "pdfmaker", "microsoft word", "microsoft office",
+            "libreoffice", "openoffice", "google docs", "pages",
+            "latex", "tex", "ghostscript", "prince", "wkhtmltopdf",
+            "chrome", "firefox", "safari", "webkit"
+        ]
+        return toolPatterns.contains { lowercased.contains($0) }
     }
 
     private func cleanFilenameComponent(_ component: String) -> String {
