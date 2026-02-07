@@ -227,6 +227,54 @@ struct FirebaseRecordConverter: FirebaseRecordConverterProtocol {
         return comment
     }
 
+    // MARK: - Source Catalog Conversion
+
+    /// Convert a KnownSource to Firestore data for the source_catalog collection.
+    /// Privacy: No user IDs are included — only source metadata.
+    static func convertSourceCatalogToFirestoreData(_ source: KnownSource) -> [String: Any] {
+        var data: [String: Any] = [:]
+
+        data["name"] = source.name
+        data["normalizedName"] = source.normalizedName
+        data["sourceKind"] = source.sourceKind
+        data["domain"] = source.domain as Any
+        data["aliases"] = source.aliases ?? []
+        data["platformUsername"] = source.platformUsername as Any
+        data["platform"] = source.platform as Any
+        data["globalImportCount"] = 1
+        data["confidence"] = source.confidence
+        data["discoveryMethods"] = [source.discoveryMethod]
+        data["createdAt"] = Timestamp(date: Date())
+        data["lastSeenAt"] = Timestamp(date: Date())
+        data["contributorCount"] = 1
+        data["verified"] = false
+
+        return data
+    }
+
+    /// Create a local KnownSource from Firestore catalog data.
+    static func convertSourceCatalogFromFirestoreData(_ data: [String: Any], id: String) -> KnownSource {
+        let name = data["name"] as? String ?? ""
+        let kindString = data["sourceKind"] as? String ?? "unknown"
+        let kind = SourceKind(rawValue: kindString) ?? .unknown
+
+        let source = KnownSource(
+            name: name,
+            kind: kind,
+            domain: data["domain"] as? String,
+            platform: (data["platform"] as? String).flatMap { SocialPlatform(rawValue: $0) },
+            platformUsername: data["platformUsername"] as? String,
+            discoveryMethod: "catalog_sync",
+            confidence: data["confidence"] as? Double ?? 0.5
+        )
+
+        source.aliases = data["aliases"] as? [String]
+        source.firebaseCatalogId = id
+        source.isSyncedToFirebase = true
+
+        return source
+    }
+
     // MARK: - Card Back Conversion
 
     /// Convert RecipeCardBack to Firestore document data

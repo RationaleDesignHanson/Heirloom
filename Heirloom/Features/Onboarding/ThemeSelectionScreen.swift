@@ -55,20 +55,20 @@ struct ThemeSelectionScreen: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        VStack(spacing: HeirloomSpacing.xs) {
+        VStack(spacing: HeirloomSpacing.sm) {
             Text("Preserve culinary heritage")
                 .font(HeirloomFonts.title1)
                 .foregroundStyle(HeirloomColors.primaryText)
                 .multilineTextAlignment(.center)
 
             Text("Choose \(minSelections)-\(maxSelections) heritage themes to explore.")
-                .font(HeirloomFonts.subheadline)
+                .font(HeirloomFonts.body)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, HeirloomSpacing.lg)
         }
-        .padding(.top, HeirloomSpacing.md)
-        .padding(.bottom, HeirloomSpacing.sm)
+        .padding(.top, HeirloomSpacing.lg)
+        .padding(.bottom, HeirloomSpacing.md)
     }
 
     // MARK: - Themes

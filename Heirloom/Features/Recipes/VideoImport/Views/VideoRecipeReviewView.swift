@@ -386,13 +386,59 @@ struct VideoRecipeReviewView: View {
             processedAt: extraction.metadata.processedAt
         )
 
+        // Merge augmented quantities into edited ingredients before saving
+        var finalIngredients = editedIngredients
+        if let augmentedIngredients = enhancedExtraction?.augmentedRecipe?.augmentedIngredients {
+            for (index, ingredient) in finalIngredients.enumerated() {
+                // Find matching augmentation by original text
+                if let augmented = augmentedIngredients.first(where: {
+                    $0.originalIngredient.originalText == ingredient.originalText
+                }) {
+                    // Only apply if confidence is not low and ingredient is missing quantity/unit
+                    if augmented.inferredConfidence != .low {
+                        var updatedIngredient = ingredient
+
+                        // Fill in missing quantity
+                        if ingredient.quantity == nil || ingredient.quantity?.isEmpty == true {
+                            if let inferredQty = augmented.inferredQuantity, !inferredQty.isEmpty {
+                                updatedIngredient = ExtractedIngredient(
+                                    originalText: updatedIngredient.originalText,
+                                    item: updatedIngredient.item,
+                                    quantity: inferredQty,
+                                    unit: updatedIngredient.unit,
+                                    preparation: updatedIngredient.preparation,
+                                    confidence: updatedIngredient.confidence
+                                )
+                            }
+                        }
+
+                        // Fill in missing unit
+                        if updatedIngredient.unit == nil || updatedIngredient.unit?.isEmpty == true {
+                            if let inferredUnit = augmented.inferredUnit, !inferredUnit.isEmpty {
+                                updatedIngredient = ExtractedIngredient(
+                                    originalText: updatedIngredient.originalText,
+                                    item: updatedIngredient.item,
+                                    quantity: updatedIngredient.quantity,
+                                    unit: inferredUnit,
+                                    preparation: updatedIngredient.preparation,
+                                    confidence: updatedIngredient.confidence
+                                )
+                            }
+                        }
+
+                        finalIngredients[index] = updatedIngredient
+                    }
+                }
+            }
+        }
+
         let updatedRecipe = StructuredRecipe(
             title: editedTitle.trimmingCharacters(in: .whitespaces),
             description: extraction.structuredRecipe.description,
             servings: editedServings.isEmpty ? nil : editedServings.trimmingCharacters(in: .whitespaces),
             prepTime: extraction.structuredRecipe.prepTime,
             cookTime: extraction.structuredRecipe.cookTime,
-            ingredients: editedIngredients,
+            ingredients: finalIngredients,
             steps: editedSteps,
             overallConfidence: extraction.structuredRecipe.overallConfidence,
             warnings: extraction.structuredRecipe.warnings

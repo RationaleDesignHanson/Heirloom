@@ -1374,14 +1374,34 @@ final class VideoProcessingJobManager: ObservableObject {
         recipe.linkedProcessingJobType = nil
 
         // STEP 6: Set provenance metadata
+        let creatorAttribution = job.sourceAttribution ?? extraction.metadata.attribution.creatorName
         recipe.provenance = ProvenanceMetadata(
             sourceType: .video,
             sourceURL: job.sourceURL,
-            sourceAttribution: job.sourceAttribution ?? extraction.metadata.attribution.creatorName,
+            sourceAttribution: creatorAttribution,
             generation: 0,
             sharedByName: nil,
             createdAt: Date()
         )
+
+        // Register source attribution
+        if let creator = creatorAttribution, !creator.isEmpty, creator != "Unknown" {
+            var platform: SocialPlatform? = nil
+            if let url = job.sourceURL {
+                let lower = url.lowercased()
+                if lower.contains("tiktok.com") { platform = .tiktok }
+                else if lower.contains("instagram.com") { platform = .instagram }
+                else if lower.contains("youtube.com") || lower.contains("youtu.be") { platform = .youtube }
+            }
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: creator,
+                kind: .socialCreator,
+                platform: platform,
+                platformUsername: creator,
+                discoveryMethod: "video_watermark",
+                recipe: recipe
+            )
+        }
 
         // STEP 7: Update ingredients (remove old ones first, then add new)
         // Clear existing ingredients
@@ -1531,6 +1551,25 @@ final class VideoProcessingJobManager: ObservableObject {
             sharedByName: nil,
             createdAt: Date()
         )
+
+        // Register source attribution
+        if let creator = creatorName, !creator.isEmpty, creator != "Unknown" {
+            var platform: SocialPlatform? = nil
+            if let url = job.sourceURL {
+                let lower = url.lowercased()
+                if lower.contains("tiktok.com") { platform = .tiktok }
+                else if lower.contains("instagram.com") { platform = .instagram }
+                else if lower.contains("youtube.com") || lower.contains("youtu.be") { platform = .youtube }
+            }
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: creator,
+                kind: .socialCreator,
+                platform: platform,
+                platformUsername: creator,
+                discoveryMethod: "video_watermark",
+                recipe: placeholder
+            )
+        }
 
         // Route to "From Videos" collection
         let router = CollectionRouter(modelContext: context)
@@ -1806,6 +1845,25 @@ final class VideoProcessingJobManager: ObservableObject {
             sharedByName: nil,
             createdAt: Date()
         )
+
+        // Register source attribution
+        if let creator = creatorName, !creator.isEmpty, creator != "Unknown" {
+            var platform: SocialPlatform? = nil
+            if let url = job.sourceURL {
+                let lower = url.lowercased()
+                if lower.contains("tiktok.com") { platform = .tiktok }
+                else if lower.contains("instagram.com") { platform = .instagram }
+                else if lower.contains("youtube.com") || lower.contains("youtu.be") { platform = .youtube }
+            }
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: creator,
+                kind: .socialCreator,
+                platform: platform,
+                platformUsername: creator,
+                discoveryMethod: "video_watermark",
+                recipe: placeholder
+            )
+        }
 
         // Route to "From Videos" collection
         let router = CollectionRouter(modelContext: context)

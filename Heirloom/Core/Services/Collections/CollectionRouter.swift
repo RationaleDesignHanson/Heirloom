@@ -259,6 +259,8 @@ class CollectionRouter {
             "from-web-bg"
         case .photoImports:
             "from-photos-bg"
+        case .cookbook:
+            "cookbook-pages-bg"
         default:
             nil
         }

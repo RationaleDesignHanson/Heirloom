@@ -49,14 +49,14 @@ enum SchemaV2: VersionedSchema {
 
 // MARK: - Migration Plan Definition
 
-/// Heirloom's schema migration plan from V1 to V2
+/// Heirloom's schema migration plan from V1 through V3
 enum HeirloomSchemaMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [SchemaV1.self, SchemaV2.self]
+        [SchemaV1.self, SchemaV2.self, SchemaV3.self]
     }
 
     static var stages: [MigrationStage] {
-        [migrateV1toV2]
+        [migrateV1toV2, migrateV2toV3]
     }
 
     /// Migration from SchemaV1 to SchemaV2
@@ -66,6 +66,16 @@ enum HeirloomSchemaMigrationPlan: SchemaMigrationPlan {
         return MigrationStage.lightweight(
             fromVersion: SchemaV1.self,
             toVersion: SchemaV2.self
+        )
+    }
+
+    /// Migration from SchemaV2 to SchemaV3
+    /// Adds KnownSource model and optional Recipe.knownSource relationship
+    /// Lightweight migration — all new fields are optional
+    static var migrateV2toV3: MigrationStage {
+        return MigrationStage.lightweight(
+            fromVersion: SchemaV2.self,
+            toVersion: SchemaV3.self
         )
     }
 }

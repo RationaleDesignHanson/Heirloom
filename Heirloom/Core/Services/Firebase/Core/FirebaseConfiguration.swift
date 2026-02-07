@@ -145,6 +145,14 @@ class FirebaseConfiguration: FirebaseConfigurationProtocol {
         return db.collection("users/\(userId)/dinnerParties")
     }
 
+    // MARK: - Shared Collection References
+
+    /// Get the shared source catalog collection (not user-scoped)
+    /// Contains crowd-sourced source metadata for cross-user recognition
+    func sourceCatalogCollection() -> CollectionReference {
+        db.collection("source_catalog")
+    }
+
     // MARK: - Subcollection References
 
     /// Get ingredients subcollection for a recipe

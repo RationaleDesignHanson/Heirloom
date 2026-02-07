@@ -58,7 +58,8 @@ struct OnboardingProfileSetupScreen: View {
                     .padding(.bottom, 8)
 
                 // Scrollable content
-                ScrollView {
+                GeometryReader { geometry in
+                    ScrollView {
                     VStack(spacing: 24) {
                         // Header
                         VStack(spacing: 12) {
@@ -96,6 +97,8 @@ struct OnboardingProfileSetupScreen: View {
                         .padding(.horizontal, 24)
                     }
                     .padding(.bottom, 140) // Space for fixed bottom CTAs
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+                    }
                 }
 
                 // Fixed bottom CTAs
@@ -348,25 +351,40 @@ struct OnboardingProfileSetupScreen: View {
         isLoadingImage = true
         defer { isLoadingImage = false }
 
-        do {
-            guard let data = try await item.loadTransferable(type: Data.self),
-                  let uiImage = UIImage(data: data) else {
-                return
-            }
+        // Retry logic for transient Photos library errors (e.g., helper process unavailable)
+        var lastError: Error?
+        let maxAttempts = 2
 
-            // Validate image size (max 10MB)
-            if data.count > 10 * 1024 * 1024 {
-                Log.warning("Image too large for avatar", category: .onboarding, metadata: [
-                    "size": "\(data.count / 1024 / 1024)MB"
-                ])
-                return
-            }
+        for attempt in 1...maxAttempts {
+            do {
+                guard let data = try await item.loadTransferable(type: Data.self),
+                      let uiImage = UIImage(data: data) else {
+                    return
+                }
 
-            await MainActor.run {
-                selectedImage = uiImage
+                // Validate image size (max 10MB)
+                if data.count > 10 * 1024 * 1024 {
+                    Log.warning("Image too large for avatar", category: .onboarding, metadata: [
+                        "size": "\(data.count / 1024 / 1024)MB"
+                    ])
+                    return
+                }
+
+                await MainActor.run {
+                    selectedImage = uiImage
+                }
+                return
+            } catch {
+                lastError = error
+                Log.warning("Photo load attempt \(attempt) failed: \(error.localizedDescription)", category: .onboarding)
+                if attempt < maxAttempts {
+                    try? await Task.sleep(for: .milliseconds(500))
+                }
             }
-        } catch {
-            Log.error("Failed to load photo", category: .onboarding, error: error)
+        }
+
+        if let lastError {
+            Log.error("Failed to load photo after \(maxAttempts) attempts", category: .onboarding, error: lastError)
         }
     }
 }

@@ -170,6 +170,7 @@ struct RecipeListView: View {
     @State private var recipeToDelete: Recipe?
     @State private var showDeleteConfirmation = false
     @StateObject private var undoService = ServiceContainer.shared.resolve(UndoService.self)
+    @StateObject private var videoJobManager = ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
     @State private var isSyncing = false
 
     // Multi-select mode
@@ -343,6 +344,7 @@ struct RecipeListView: View {
                 isSelectionMode: isSelectionMode,
                 selectedCount: selectedRecipeIds.count,
                 filteredCount: filteredRecipes.count,
+                isVideoProcessing: videoJobManager.isProcessing,
                 onSelectAllToggle: selectAllToggle,
                 onGenerateRecipe: {
                     tabCoordinator.willCreateRecipe(from: .collectionsTab)

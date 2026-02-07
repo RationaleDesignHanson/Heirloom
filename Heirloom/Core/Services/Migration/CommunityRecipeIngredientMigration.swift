@@ -15,12 +15,24 @@ import SwiftData
 @MainActor
 class CommunityRecipeIngredientMigration {
 
+    /// Current migration version - increment to force re-run on all users
+    static let currentVersion = 2
+
     /// Run the migration to reparse ingredients for all community-sourced recipes
     /// - Parameter context: The model context to use
     /// - Returns: Number of recipes fixed
     @discardableResult
     static func run(context: ModelContext) throws -> Int {
-        Log.info("Starting community recipe ingredient migration", category: .migration)
+        // Check if migration has already run at current version
+        let lastRunVersion = UserDefaults.standard.integer(forKey: UserDefaultsKeys.communityIngredientMigrationVersion)
+        if lastRunVersion >= currentVersion {
+            Log.debug("Community ingredient migration already at version \(currentVersion), skipping", category: .migration)
+            return 0
+        }
+
+        Log.info("Starting community recipe ingredient migration v\(currentVersion)", category: .migration, metadata: [
+            "previousVersion": lastRunVersion
+        ])
 
         // Find all recipes that came from community/discover (have sourcePublicRecipeId)
         let descriptor = FetchDescriptor<Recipe>(
@@ -42,51 +54,52 @@ class CommunityRecipeIngredientMigration {
                 continue
             }
 
-            // Check if any ingredients need fixing (quantity is nil but originalText looks parseable)
-            let needsFixing = ingredients.contains { ingredient in
-                ingredient.quantity == nil && looksLikeParseable(ingredient.originalText)
-            }
+            // Migration v2: Try parsing ALL ingredients that have nil quantity
+            // Remove the restrictive looksLikeParseable filter - the parser handles all formats
+            let ingredientsNeedingFix = ingredients.filter { $0.quantity == nil }
 
-            guard needsFixing else {
+            guard !ingredientsNeedingFix.isEmpty else {
                 continue
             }
 
-            // Reparse all ingredients for this recipe
-            for ingredient in ingredients {
-                reparseIngredient(ingredient)
+            var ingredientsFixed = 0
+
+            // Reparse all nil-quantity ingredients for this recipe
+            for ingredient in ingredientsNeedingFix {
+                if reparseIngredient(ingredient) {
+                    ingredientsFixed += 1
+                }
             }
 
-            fixedCount += 1
+            if ingredientsFixed > 0 {
+                fixedCount += 1
 
-            Log.debug("Fixed ingredients for recipe", category: .migration, metadata: [
-                "title": recipe.title,
-                "ingredient_count": ingredients.count
-            ])
+                Log.debug("Fixed ingredients for recipe", category: .migration, metadata: [
+                    "title": recipe.title,
+                    "ingredients_fixed": ingredientsFixed,
+                    "total_ingredients": ingredients.count
+                ])
+            }
         }
 
         if fixedCount > 0 {
             try context.save()
         }
 
-        Log.info("Community recipe ingredient migration complete", category: .migration, metadata: [
+        // Mark migration as complete at current version
+        UserDefaults.standard.set(currentVersion, forKey: UserDefaultsKeys.communityIngredientMigrationVersion)
+
+        Log.info("Community recipe ingredient migration v\(currentVersion) complete", category: .migration, metadata: [
             "recipes_fixed": fixedCount
         ])
 
         return fixedCount
     }
 
-    /// Check if ingredient text looks like it should have been parsed (has a number at the start)
-    private static func looksLikeParseable(_ text: String) -> Bool {
-        let trimmed = text.trimmingCharacters(in: .whitespaces)
-        guard let firstChar = trimmed.first else { return false }
-
-        // Check if starts with a digit or fraction character
-        let fractionChars: Set<Character> = ["¼", "½", "¾", "⅓", "⅔", "⅕", "⅖", "⅗", "⅘", "⅙", "⅚", "⅛", "⅜", "⅝", "⅞"]
-        return firstChar.isNumber || fractionChars.contains(firstChar)
-    }
-
     /// Reparse an ingredient's originalText to extract quantity, unit, and name
-    private static func reparseIngredient(_ ingredient: Ingredient) {
+    /// - Returns: true if quantity was successfully extracted
+    @discardableResult
+    private static func reparseIngredient(_ ingredient: Ingredient) -> Bool {
         let parsed = IngredientParser.parse(ingredient.originalText)
 
         // Only update if we actually extracted a quantity
@@ -99,6 +112,8 @@ class CommunityRecipeIngredientMigration {
             if !parsed.name.isEmpty {
                 ingredient.name = parsed.name
             }
+            return true
         }
+        return false
     }
 }

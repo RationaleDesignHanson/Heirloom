@@ -694,19 +694,31 @@ final class MultiPageRecipeAnalyzer {
             return response
 
         } catch {
-            Log.warning("Page analysis failed, assuming complete recipe", category: .import, metadata: [
+            Log.warning("Page analysis failed", category: .import, metadata: [
                 "page": pageNumber,
                 "error": error.localizedDescription
             ])
 
-            // Fallback: assume complete recipe
-            return PageAnalysis(
-                type: .completeRecipe,
-                title: "Recipe",
-                titles: nil,
-                confidence: 0.5,
-                reasoning: "Analysis failed, assuming complete recipe as fallback"
-            )
+            // Fallback strategy: For page 1, assume recipe_start so subsequent continuation pages can be grouped.
+            // For other pages, assume continuation to allow grouping with previous pages.
+            // This prevents splitting multi-page recipes when the Vision API has transient failures.
+            if pageNumber == 1 {
+                return PageAnalysis(
+                    type: .recipeStart,
+                    title: "Recipe",
+                    titles: nil,
+                    confidence: 0.5,
+                    reasoning: "Analysis failed on page 1, assuming recipe start to allow multi-page grouping"
+                )
+            } else {
+                return PageAnalysis(
+                    type: .recipeContinuation,
+                    title: nil,
+                    titles: nil,
+                    confidence: 0.5,
+                    reasoning: "Analysis failed, assuming continuation to allow multi-page grouping"
+                )
+            }
         }
     }
 

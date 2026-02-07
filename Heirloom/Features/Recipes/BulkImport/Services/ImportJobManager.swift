@@ -1764,6 +1764,16 @@ final class ImportJobManager: ObservableObject {
             }
         }
 
+        // Register source attribution
+        let domain = KnownSource.extractDomain(from: urlString)
+        ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+            name: domain ?? "Unknown Website",
+            kind: .website,
+            domain: domain,
+            discoveryMethod: "url_metadata",
+            recipe: recipe
+        )
+
         return recipe
     }
 
@@ -1802,6 +1812,13 @@ final class ImportJobManager: ObservableObject {
                             generation: 0,
                             sharedByName: nil,
                             createdAt: Date()
+                        )
+                        // Register the Vision-discovered source
+                        ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                            name: source,
+                            kind: .brand,
+                            discoveryMethod: "pdf_vision",
+                            recipe: recipe
                         )
                     }
                 }
@@ -1895,6 +1912,16 @@ final class ImportJobManager: ObservableObject {
                 sharedByName: nil,
                 createdAt: Date()
             )
+
+            // Register source attribution
+            if let sourceName = recipe.sourceBookAuthor ?? author, !sourceName.isEmpty {
+                ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                    name: sourceName,
+                    kind: .cookbook,
+                    discoveryMethod: "pdf_vision",
+                    recipe: recipe
+                )
+            }
         }
 
         // Log if multiple recipes were detected on PDF page
@@ -1967,6 +1994,16 @@ final class ImportJobManager: ObservableObject {
             sharedByName: nil,
             createdAt: Date()
         )
+
+        // Register source attribution
+        if let sourceName = recipe.sourceBookAuthor ?? author, !sourceName.isEmpty {
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: sourceName,
+                kind: .cookbook,
+                discoveryMethod: "pdf_metadata",
+                recipe: recipe
+            )
+        }
 
         // Generate content hash for duplicate detection
         DuplicateDetectionService.updateContentHash(for: recipe)

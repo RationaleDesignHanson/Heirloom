@@ -56,7 +56,8 @@ struct OnboardingShareAndAcceptScreen: View {
                     .padding(.bottom, 8)
 
                 // Scrollable content
-                ScrollView {
+                GeometryReader { geometry in
+                    ScrollView {
                     VStack(spacing: 20) {
                         // Header
                         VStack(spacing: 12) {
@@ -89,6 +90,8 @@ struct OnboardingShareAndAcceptScreen: View {
                             .padding(.horizontal, 24)
                     }
                     .padding(.bottom, 16)
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+                    }
                 }
 
                 // Fixed bottom CTAs

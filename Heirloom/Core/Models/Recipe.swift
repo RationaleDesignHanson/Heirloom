@@ -184,6 +184,9 @@ final class Recipe {
     /// Replaces legacy fields above (maintained for backward compatibility)
     var provenance: ProvenanceMetadata?
 
+    // MARK: - Source Attribution Registry
+    var knownSource: KnownSource?
+
     // MARK: - Social Features (Comments & Card Back)
     @Relationship(deleteRule: .cascade, inverse: \RecipeComment.recipe)
     var comments: [RecipeComment]?

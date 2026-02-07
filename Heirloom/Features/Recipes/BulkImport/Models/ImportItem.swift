@@ -172,6 +172,9 @@ final class ImportItem {
     /// Notes extracted via text pipeline
     var preExtractedNotes: String?
 
+    /// Source/brand name extracted via text pipeline (e.g., "The Flavor Labs")
+    var preExtractedSource: String?
+
     /// Whether this item has pre-extracted data (from text pipeline)
     var hasPreExtractedData: Bool {
         preExtractedTitle != nil && preExtractedIngredients != nil

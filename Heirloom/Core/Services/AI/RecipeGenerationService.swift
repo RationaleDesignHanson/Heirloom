@@ -382,6 +382,14 @@ final class RecipeGenerationService: ObservableObject {
             // Mark as AI generated
             placeholder.aiGenerated = true
 
+            // Register source attribution
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: "AI Generated",
+                kind: .aiGenerated,
+                discoveryMethod: "ai_generation",
+                recipe: placeholder
+            )
+
             // Add to target collection if not already added, or default "Generated Recipes"
             await addToCollection(placeholder, context: context, targetCollectionId: job.targetCollectionId)
 
@@ -529,6 +537,14 @@ final class RecipeGenerationService: ObservableObject {
             // Mark as voice dictated
             placeholder.aiGenerated = true
             placeholder.voiceDictated = true
+
+            // Register source attribution
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: "AI Generated (Voice)",
+                kind: .aiGenerated,
+                discoveryMethod: "ai_generation",
+                recipe: placeholder
+            )
 
             // Add to "Generated Recipes" collection
             await addToCollection(placeholder, context: context)
