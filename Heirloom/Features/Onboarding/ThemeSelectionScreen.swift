@@ -142,19 +142,9 @@ struct ThemeSelectionScreen: View {
             }
             .disabled(!canContinue || isLoading)
 
-            // Skip button
-            Button {
-                skipSelection()
-            } label: {
-                Text("Skip for now")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-            }
-            .disabled(isLoading)
-
             // Helper text
             if selectedThemeIds.count < minSelections {
-                Text("Select at least \(minSelections - selectedThemeIds.count) more, or skip")
+                Text("Select at least \(minSelections - selectedThemeIds.count) more")
                     .font(HeirloomFonts.caption2)
                     .foregroundStyle(HeirloomColors.secondaryText)
             } else if selectedThemeIds.count == maxSelections {
@@ -196,10 +186,6 @@ struct ThemeSelectionScreen: View {
         }
     }
 
-    private func skipSelection() {
-        // User chose to skip theme selection - complete with empty array
-        onComplete([])
-    }
 }
 
 // MARK: - Preview

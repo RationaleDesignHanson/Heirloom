@@ -60,6 +60,12 @@ class SourceAttributionService {
         if let existing = findMatchingSource(name: trimmedName, domain: domain, platformUsername: platformUsername) {
             existing.recordSeen()
             recipe.knownSource = existing
+            Log.info("♻️ Reused existing KnownSource", category: .general, metadata: [
+                "name": existing.name,
+                "kind": existing.sourceKind,
+                "importCount": "\(existing.importCount)",
+                "recipeTitle": recipe.title
+            ])
             // Merge aliases if name differs from stored name
             if KnownSource.normalize(trimmedName) == existing.normalizedName && trimmedName != existing.name {
                 var currentAliases = existing.aliases ?? []
@@ -87,6 +93,15 @@ class SourceAttributionService {
         )
         modelContext.insert(source)
         recipe.knownSource = source
+        Log.info("✨ Created NEW KnownSource", category: .general, metadata: [
+            "name": trimmedName,
+            "kind": kind.rawValue,
+            "domain": domain ?? "nil",
+            "platform": platform?.rawValue ?? "nil",
+            "confidence": "\(source.confidence)",
+            "discoveryMethod": discoveryMethod,
+            "recipeTitle": recipe.title
+        ])
 
         // 3. Check Firebase catalog in background (enrich local data if found)
         if kind != .person {
@@ -280,6 +295,45 @@ class SourceAttributionService {
             syncedToFirebaseCount: syncedCount,
             averageConfidence: allSources.isEmpty ? 0 : totalConfidence / Double(allSources.count)
         )
+    }
+
+    /// Debug: dump full graph state to console
+    func dumpStats() {
+        let stats = getStats()
+        let orphans = getOrphanRecipes()
+        let top = topSources(limit: 20)
+        let allSources = (try? modelContext.fetch(FetchDescriptor<KnownSource>())) ?? []
+
+        Log.info("📊 ===== SOURCE ATTRIBUTION GRAPH DUMP =====", category: .general)
+        Log.info("📊 Total KnownSources: \(stats.totalSources)", category: .general)
+        Log.info("📊 Orphan recipes (no source): \(stats.orphanRecipeCount)", category: .general)
+        Log.info("📊 Synced to Firebase: \(stats.syncedToFirebaseCount)", category: .general)
+        Log.info("📊 Avg confidence: \(String(format: "%.2f", stats.averageConfidence))", category: .general)
+
+        Log.info("📊 --- Sources by Kind ---", category: .general)
+        for (kind, count) in stats.sourcesByKind.sorted(by: { $0.value > $1.value }) {
+            Log.info("📊   \(kind.rawValue): \(count)", category: .general)
+        }
+
+        Log.info("📊 --- Top Sources ---", category: .general)
+        for (source, count) in top {
+            Log.info("📊   \(source.name) (\(source.sourceKind)) — \(count) recipes, importCount=\(source.importCount), confidence=\(String(format: "%.2f", source.confidence))", category: .general)
+        }
+
+        Log.info("📊 --- All Sources Detail ---", category: .general)
+        for source in allSources {
+            let recipeNames = (source.recipes ?? []).compactMap { $0.title }.joined(separator: ", ")
+            Log.info("📊   [\(source.sourceKind)] \(source.name) | recipes=\(source.recipes?.count ?? 0) [\(recipeNames)] | domain=\(source.domain ?? "nil") | platform=\(source.platform ?? "nil") | username=\(source.platformUsername ?? "nil") | confidence=\(String(format: "%.2f", source.confidence)) | importCount=\(source.importCount)", category: .general)
+        }
+
+        if !orphans.isEmpty {
+            Log.info("📊 --- Orphan Recipes ---", category: .general)
+            for recipe in orphans {
+                Log.info("📊   \(recipe.title) | sourceType=\(recipe.sourceType?.rawValue ?? "nil") | sourceURL=\(recipe.sourceURL ?? "nil")", category: .general)
+            }
+        }
+
+        Log.info("📊 ===== END GRAPH DUMP =====", category: .general)
     }
 
     /// Backfill attribution for orphan recipes using their existing source fields.

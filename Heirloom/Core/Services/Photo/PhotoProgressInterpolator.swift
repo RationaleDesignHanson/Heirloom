@@ -30,11 +30,15 @@ class PhotoProgressInterpolator: ObservableObject {
     func start(from: Double, to: Double, duration: TimeInterval) {
         stop()
 
-        startProgress = from
-        targetProgress = to
+        // Never go backwards — clamp start to at least current progress
+        let safeFrom = max(from, interpolatedProgress)
+        let safeTo = max(to, safeFrom)
+
+        startProgress = safeFrom
+        targetProgress = safeTo
         startTime = Date()
         estimatedDuration = duration
-        interpolatedProgress = from
+        interpolatedProgress = safeFrom
 
         // Update every 0.5 seconds for smooth progress
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in

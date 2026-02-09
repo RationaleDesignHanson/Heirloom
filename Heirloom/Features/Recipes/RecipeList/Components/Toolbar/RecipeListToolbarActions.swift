@@ -23,6 +23,7 @@ struct RecipeListToolbarActions: View {
     let onReadRecipe: () -> Void
     let onAddCollection: () -> Void
     let onCollectionSettings: (() -> Void)? // Optional - only shown in collection detail views
+    var onProcessingQueue: (() -> Void)? = nil // Optional - opens processing queue
 
     // Track menu presentation state for shimmer control
     @State private var isMenuPresented = false
@@ -157,6 +158,18 @@ struct RecipeListToolbarActions: View {
                 }
                 .accessibilityLabel("New Collection")
                 .accessibilityHint("Create a new collection")
+
+                if let onProcessingQueue = onProcessingQueue {
+                    Divider()
+
+                    Button {
+                        onProcessingQueue()
+                    } label: {
+                        Label("Processing Queue", systemImage: "tray.full")
+                    }
+                    .accessibilityLabel("Processing Queue")
+                    .accessibilityHint("View all import and processing jobs")
+                }
 
             } label: {
                 Image(systemName: "plus")

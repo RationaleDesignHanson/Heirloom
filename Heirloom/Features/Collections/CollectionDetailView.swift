@@ -43,6 +43,7 @@ struct CollectionDetailView: View {
     @State private var showCollectionEditor = false
     @State private var existingCollectionIDs: Set<UUID> = []
     @State private var showBatchDeleteConfirmation = false
+    @State private var showProcessingQueue = false
 
     @Query private var allRecipes: [Recipe]
     @Query private var allCollections: [RecipeCollection]
@@ -330,7 +331,8 @@ struct CollectionDetailView: View {
                     onAddCollection: {}, // Not applicable within a collection detail view
                     onCollectionSettings: {
                         showCollectionSettings = true
-                    }
+                    },
+                    onProcessingQueue: { showProcessingQueue = true }
                 )
             }
         }
@@ -496,6 +498,13 @@ struct CollectionDetailView: View {
                 SettingsView()
                     .environmentObject(tabCoordinator)
             }
+        }
+        .sheet(isPresented: $showProcessingQueue) {
+            UnifiedProcessingQueueView(
+                onVideoJobTap: { _ in showProcessingQueue = false },
+                onImportJobTap: { _ in showProcessingQueue = false },
+                onGenerationJobTap: { _ in showProcessingQueue = false }
+            )
         }
         .confirmationDialog(
             "Add Recipe",

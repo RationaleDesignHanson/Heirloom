@@ -56,6 +56,15 @@ final class DemoSocialBehaviorService: ObservableObject {
     /// Connection IDs we're watching for recipe sharing
     private var pendingRecipeShares: Set<String> = []
 
+    /// UserDefaults key for tracking whether proactive demo request was sent
+    private static let proactiveRequestSentKey = "demo_social_proactive_request_sent"
+
+    /// Whether we've already sent a proactive demo request for this user
+    private var hasSentProactiveRequest: Bool {
+        get { UserDefaults.standard.bool(forKey: Self.proactiveRequestSentKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.proactiveRequestSentKey) }
+    }
+
     // MARK: - Demo User Data
 
     /// List of demo user IDs
@@ -355,11 +364,18 @@ final class DemoSocialBehaviorService: ObservableObject {
     private func scheduleProactiveDemoRequest() {
         guard let auth = auth, let userId = auth.currentUser?.uid else { return }
 
+        // Fast local check — prevent duplicate requests across app launches
+        if hasSentProactiveRequest {
+            Log.debug("Proactive demo request already sent (UserDefaults), skipping", category: .social)
+            return
+        }
+
         // Check if user already has a demo connection (don't spam)
         Task {
             let hasExistingDemo = await checkIfUserHasDemoConnection(userId: userId)
             if hasExistingDemo {
                 Log.debug("User already has demo connection, skipping proactive request", category: .social)
+                hasSentProactiveRequest = true  // Mark so we don't re-check next launch
                 return
             }
 
@@ -446,6 +462,9 @@ final class DemoSocialBehaviorService: ObservableObject {
                 .collection("connections")
                 .document(connectionId)
                 .setData(userConnection)
+
+            // Mark as sent so we never duplicate on subsequent launches
+            hasSentProactiveRequest = true
 
             Log.info("Demo user sent proactive connection request", category: .social, metadata: [
                 "demoUserId": demoUserId,

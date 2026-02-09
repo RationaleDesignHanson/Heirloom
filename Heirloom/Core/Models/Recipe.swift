@@ -418,7 +418,7 @@ extension Recipe {
             } else if let author = sourceBookAuthor, !author.isEmpty {
                 return author
             }
-            return "Scanned Recipe"
+            return Recipe.currentUserDisplayName()
         case .manual:
             return Recipe.currentUserDisplayName()
         case .heritage:
@@ -463,26 +463,40 @@ extension Recipe {
             return nil
         }
 
-        // Try to construct platform-specific URL
-        // Check sourceURL for platform hints or construct generic search
+        // Clean username (remove @, trim whitespace)
+        let cleanUsername = creatorName
+            .replacingOccurrences(of: "@", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let encodedUsername = cleanUsername.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              !encodedUsername.isEmpty else {
+            return nil
+        }
+
+        // Try to construct platform-specific HTTPS URL
+        // Use web URLs (not deep links) for reliable navigation
         if let sourceURL = provenance?.sourceURL, !sourceURL.isEmpty {
             if sourceURL.contains("tiktok.com") {
-                // Use TikTok deep link scheme for proper in-app navigation
-                // Format: tiktok://user/profile?username=creatorname (without @)
-                let cleanUsername = creatorName.replacingOccurrences(of: "@", with: "")
-                guard let encodedUsername = cleanUsername.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
-                    return nil
-                }
-                return URL(string: "tiktok://user/profile?username=\(encodedUsername)")
+                return URL(string: "https://www.tiktok.com/@\(encodedUsername)")
             } else if sourceURL.contains("youtube.com") || sourceURL.contains("youtu.be") {
-                return URL(string: "https://www.youtube.com/@\(creatorName)")
+                return URL(string: "https://www.youtube.com/@\(encodedUsername)")
             } else if sourceURL.contains("instagram.com") {
-                return URL(string: "https://www.instagram.com/\(creatorName)")
+                return URL(string: "https://www.instagram.com/\(encodedUsername)")
+            }
+        }
+
+        // Check KnownSource platform for better routing
+        if let platform = knownSource?.socialPlatform {
+            switch platform {
+            case .tiktok: return URL(string: "https://www.tiktok.com/@\(encodedUsername)")
+            case .instagram: return URL(string: "https://www.instagram.com/\(encodedUsername)")
+            case .youtube: return URL(string: "https://www.youtube.com/@\(encodedUsername)")
+            default: break
             }
         }
 
         // Default: TikTok format (most common for cooking videos)
-        return URL(string: "https://www.tiktok.com/@\(creatorName)")
+        return URL(string: "https://www.tiktok.com/@\(encodedUsername)")
     }
 
     /// Get the current user's display name for recipe attribution

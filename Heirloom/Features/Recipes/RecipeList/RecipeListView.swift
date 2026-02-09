@@ -201,6 +201,7 @@ struct RecipeListView: View {
 
     // Settings sheet
     @State private var showSettings = false
+    @State private var showProcessingQueue = false
 
     var body: some View {
         NavigationStack {
@@ -222,6 +223,13 @@ struct RecipeListView: View {
                     NavigationStack {
                         SettingsView()
                     }
+                }
+                .sheet(isPresented: $showProcessingQueue) {
+                    UnifiedProcessingQueueView(
+                        onVideoJobTap: { _ in showProcessingQueue = false },
+                        onImportJobTap: { _ in showProcessingQueue = false },
+                        onGenerationJobTap: { _ in showProcessingQueue = false }
+                    )
                 }
                 // TODO: Re-enable for Phase A3
                 // .sheet(isPresented: $showHeritageUnlock) {
@@ -374,7 +382,8 @@ struct RecipeListView: View {
                     tabCoordinator.willCreateCollection(from: .collectionsTab)
                     showCreateCollection = true
                 },
-                onCollectionSettings: nil // Not applicable in main recipe list
+                onCollectionSettings: nil, // Not applicable in main recipe list
+                onProcessingQueue: { showProcessingQueue = true }
             )
         }
     }

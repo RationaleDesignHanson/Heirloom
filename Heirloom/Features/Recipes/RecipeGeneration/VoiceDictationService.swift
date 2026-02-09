@@ -84,6 +84,9 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
     // MARK: - Authorization
 
     func requestAuthorization() async -> Bool {
+        Log.info("🎙️ requestAuthorization() called", category: .general)
+        Log.info("🎙️ Current speech status: \(SFSpeechRecognizer.authorizationStatus().rawValue)", category: .general)
+
         // Request speech recognition authorization
         let speechStatus = await withCheckedContinuation { continuation in
             SFSpeechRecognizer.requestAuthorization { status in
@@ -91,12 +94,15 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
             }
         }
 
+        Log.info("🎙️ Speech auth result: \(speechStatus.rawValue) (0=notDetermined, 1=denied, 2=restricted, 3=authorized)", category: .general)
+
         guard speechStatus == .authorized else {
             return false
         }
 
         // Request microphone authorization
         let micStatus = await AVAudioApplication.requestRecordPermission()
+        Log.info("🎙️ Mic auth result: \(micStatus)", category: .general)
         return micStatus
     }
 

@@ -170,12 +170,13 @@ final class RecipeCollection {
             return "\(recipeCount) photo recipe\(recipeCount == 1 ? "" : "s")"
         case .cookbook:
             // Prefer author name, fallback to cookbook name
+            // Skip if sourceCookbook matches collection name (catch-all like "Cookbook Pages")
             if let author = sourceAuthor, !author.isEmpty {
                 return "From \(author)"
-            } else if let cookbook = sourceCookbook {
+            } else if let cookbook = sourceCookbook, cookbook != name {
                 return "From \(cookbook)"
             }
-            return "\(recipeCount) recipes"
+            return "\(recipeCount) recipe\(recipeCount == 1 ? "" : "s")"
         default:
             return "\(recipeCount) recipe\(recipeCount == 1 ? "" : "s")"
         }
@@ -360,6 +361,14 @@ final class RecipeCollection {
             // Otherwise uses icon placeholder (wand.and.stars)
             context.insert(generatedRecipes)
             Log.info("Created Generated Recipes collection", category: .general)
+        } else if existingGeneratedCollections.count == 1 {
+            // Ensure preset background is applied (migration for collections created before preset was added)
+            let existing = existingGeneratedCollections[0]
+            if existing.customBackgroundImagePath == nil && UIImage(named: "generated-recipes-bg") != nil {
+                existing.customBackgroundImagePath = "preset-generated-recipes-bg"
+                existing.useCustomBackground = true
+                Log.info("Applied preset background to existing Generated Recipes collection", category: .general)
+            }
         } else if existingGeneratedCollections.count > 1 {
             // DEDUPLICATION: Multiple "Generated Recipes" collections found
             // Keep the one with most recipes, merge others into it, then delete duplicates
@@ -419,14 +428,67 @@ final class RecipeCollection {
                     "error": error.localizedDescription
                 ])
             }
-        } else if existingGeneratedCollections.count == 1 {
-            // Single existing collection - ensure preset background is set
-            // This handles upgrades from before preset was added
-            let existingCollection = existingGeneratedCollections[0]
-            if existingCollection.customBackgroundImagePath == nil && UIImage(named: "generated-recipes-bg") != nil {
-                existingCollection.customBackgroundImagePath = "preset-generated-recipes-bg"
-                existingCollection.useCustomBackground = true
-                Log.info("Updated Generated Recipes collection with preset background", category: .collections)
+        }
+
+        // Deduplicate "Cookbook Pages" collections (race condition during concurrent imports)
+        var cookbookPagesDescriptor = FetchDescriptor<RecipeCollection>()
+        cookbookPagesDescriptor.predicate = #Predicate<RecipeCollection> { collection in
+            collection.name == "Cookbook Pages" && collection.collectionType == "cookbook"
+        }
+        let existingCookbookPages = (try? context.fetch(cookbookPagesDescriptor)) ?? []
+
+        if existingCookbookPages.count > 1 {
+            Log.warning("Found duplicate Cookbook Pages collections — merging", category: .collections, metadata: [
+                "count": existingCookbookPages.count
+            ])
+
+            let sortedCollections = existingCookbookPages.sorted {
+                ($0.recipes?.count ?? 0) > ($1.recipes?.count ?? 0)
+            }
+
+            let primaryCollection = sortedCollections[0]
+            let duplicates = Array(sortedCollections.dropFirst())
+
+            for duplicate in duplicates {
+                let recipesToMove = Array(duplicate.recipes ?? [])
+                for recipe in recipesToMove {
+                    recipe.collections?.removeAll { $0.id == duplicate.id }
+                    if recipe.collections == nil { recipe.collections = [] }
+                    if !recipe.collections!.contains(where: { $0.id == primaryCollection.id }) {
+                        recipe.collections!.append(primaryCollection)
+                    }
+                }
+                if !recipesToMove.isEmpty {
+                    Log.info("Moved recipes from duplicate Cookbook Pages", category: .collections, metadata: [
+                        "movedCount": recipesToMove.count
+                    ])
+                }
+                context.delete(duplicate)
+            }
+
+            // Ensure preset background
+            if primaryCollection.customBackgroundImagePath == nil && UIImage(named: "cookbook-pages-bg") != nil {
+                primaryCollection.customBackgroundImagePath = "preset-cookbook-pages-bg"
+                primaryCollection.useCustomBackground = true
+            }
+
+            do {
+                try context.save()
+                Log.info("Deduplicated Cookbook Pages collections", category: .collections, metadata: [
+                    "kept": primaryCollection.id.uuidString,
+                    "deleted": duplicates.count
+                ])
+            } catch {
+                Log.error("Failed to save after Cookbook Pages dedup", category: .collections, metadata: [
+                    "error": error.localizedDescription
+                ])
+            }
+        } else if existingCookbookPages.count == 1 {
+            // Ensure preset background on existing
+            let existing = existingCookbookPages[0]
+            if existing.customBackgroundImagePath == nil && UIImage(named: "cookbook-pages-bg") != nil {
+                existing.customBackgroundImagePath = "preset-cookbook-pages-bg"
+                existing.useCustomBackground = true
             }
         }
 

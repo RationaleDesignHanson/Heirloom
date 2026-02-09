@@ -501,6 +501,9 @@ struct HeirloomApp: App {
                 if seededCount > 0 {
                     DeviceLogger.shared.log("✅ [Migration] Seeded \(seededCount) known sources from existing recipes")
                 }
+
+                // DEBUG: Dump graph state on every launch for testing
+                attributionService.dumpStats()
             } catch {
                 DeviceLogger.shared.log("⚠️ [Migration] Source attribution migration failed: \(error)")
             }

@@ -159,6 +159,26 @@ class FirebaseProfileService: ProfileServiceProtocol {
         // Update cache
         profileCache[userId] = updatedProfile
 
+        // Sync display name to Firebase Auth so Recipe.currentUserDisplayName() stays current
+        if let user = auth.currentUser,
+           user.displayName != updatedProfile.displayName {
+            let changeRequest = user.createProfileChangeRequest()
+            changeRequest.displayName = updatedProfile.displayName
+            try await changeRequest.commitChanges()
+            Log.info("Synced display name to Firebase Auth", category: .auth, metadata: [
+                "displayName": updatedProfile.displayName
+            ])
+        }
+
+        // Also update legacy userProfiles collection for backwards compatibility
+        let legacyData: [String: Any] = [
+            "displayName": updatedProfile.displayName,
+            "email": auth.currentUser?.email as Any,
+            "lastUpdated": Timestamp(date: Date()),
+            "photoURL": auth.currentUser?.photoURL?.absoluteString as Any
+        ]
+        try? await db.collection("userProfiles").document(userId).setData(legacyData, merge: true)
+
         Log.info("Updated user profile", category: .social, metadata: [
             "userId": userId,
             "displayName": updatedProfile.displayName

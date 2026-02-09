@@ -48,6 +48,7 @@ struct CollectionsListView: View {
     @State private var selectedImportJobForReview: ImportJob?
     @State private var videoReviewData: VideoReviewData?
     @State private var jobForConfirmation: VideoProcessingJob?
+    @State private var showProcessingQueue = false
 
     /// Combined state for video review sheet to avoid timing issues
     struct VideoReviewData: Identifiable {
@@ -340,6 +341,28 @@ struct CollectionsListView: View {
                 .environmentObject(notificationService)
                 .environmentObject(tabCoordinator)
             }
+            .sheet(isPresented: $showProcessingQueue) {
+                UnifiedProcessingQueueView(
+                    onVideoJobTap: { job in
+                        showProcessingQueue = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            openVideoReviewScreen(for: job)
+                        }
+                    },
+                    onImportJobTap: { job in
+                        showProcessingQueue = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            selectedImportJobForReview = job
+                        }
+                    },
+                    onGenerationJobTap: { job in
+                        showProcessingQueue = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            navigateToGeneratedRecipe(for: job)
+                        }
+                    }
+                )
+            }
             .sheet(isPresented: $showCollectionPicker) {
                 if let recipe = generatedRecipe {
                     TagCollectionPickerView(recipe: recipe)
@@ -471,6 +494,10 @@ struct CollectionsListView: View {
 
                 Button("Video Import") {
                     handleVideoImport()
+                }
+
+                Button("Processing Queue") {
+                    showProcessingQueue = true
                 }
 
                 Button("Cancel", role: .cancel) {}
@@ -969,7 +996,8 @@ struct CollectionsListView: View {
                 onVideoImport: handleVideoImport,
                 onReadRecipe: handleReadRecipe,
                 onAddCollection: handleAddCollection,
-                onCollectionSettings: nil // Not applicable in collections list view
+                onCollectionSettings: nil, // Not applicable in collections list view
+                onProcessingQueue: { showProcessingQueue = true }
             )
         }
     }
@@ -1359,6 +1387,31 @@ struct CollectionsListView: View {
             return
         }
 
+        // Handle failed jobs — retry if possible
+        if job.status == .failed {
+            if job.canRetry {
+                Task {
+                    do {
+                        let jobManager = ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
+                        try await jobManager.retryJob(job, context: modelContext)
+                        ServiceContainer.shared.resolve(ToastManager.self).success(title: "Retrying video")
+                    } catch {
+                        Log.error("Failed to retry job", category: .video, error: error)
+                        ServiceContainer.shared.resolve(ToastManager.self).error(
+                            title: "Cannot Retry",
+                            message: error.localizedDescription
+                        )
+                    }
+                }
+            } else {
+                ServiceContainer.shared.resolve(ToastManager.self).error(
+                    title: "Cannot Retry",
+                    message: "Maximum retries exceeded. Please delete and re-import."
+                )
+            }
+            return
+        }
+
         // Allow .completed jobs OR orphaned .saved jobs (auto-dismissed but never reviewed)
         let needsReview = job.status == .completed || (job.status == .saved && job.recipeID == nil)
         guard needsReview,
@@ -1586,6 +1639,11 @@ struct CollectionsListView: View {
         // Skip collections that have preset backgrounds - use the hardcoded assets instead
         let typesWithPresetBackgrounds: [CollectionType] = [.cookbook, .videoImports, .fromFriends, .webImports, .photoImports]
         if typesWithPresetBackgrounds.contains(collection.type) {
+            return false
+        }
+
+        // Skip "Generated Recipes" collection - it has a bundled preset background
+        if collection.name == "Generated Recipes" {
             return false
         }
 

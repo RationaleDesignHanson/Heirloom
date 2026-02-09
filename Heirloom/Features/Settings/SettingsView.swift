@@ -1306,6 +1306,9 @@ struct SettingsView: View {
             if backendConfig.isFirebaseActive {
                 await clearFirebaseData(recipeIds: recipeIds)
                 await clearFirebaseCollections()
+                // Also delete any orphaned Firebase recipes not in the local ID list
+                // (e.g., recipes from another device that were never properly linked locally)
+                await clearAllFirebaseRecipes()
             }
 
             // CRITICAL: Clear sync timestamp at the VERY END, after all Firebase operations
@@ -1388,6 +1391,47 @@ struct SettingsView: View {
             Log.info("Firebase collections cleared successfully", category: .firebase, metadata: ["count": collectionsSnapshot.documents.count, "userId": userId])
         } catch {
             Log.error("Failed to clear Firebase collections", category: .firebase, metadata: ["error": error.localizedDescription, "userId": userId])
+        }
+    }
+
+    /// Delete ALL recipe documents from Firebase, including orphaned ones not in local database
+    private func clearAllFirebaseRecipes() async {
+        guard let userId = firebaseAuth.currentUser?.uid else { return }
+
+        do {
+            let db = Firestore.firestore()
+            let recipesRef = db.collection("users/\(userId)/recipes")
+            let snapshot = try await recipesRef.getDocuments()
+
+            guard !snapshot.documents.isEmpty else { return }
+
+            Log.info("Clearing all Firebase recipes (including orphaned)", category: .firebase, metadata: [
+                "count": snapshot.documents.count
+            ])
+
+            for doc in snapshot.documents {
+                // Delete subcollections first
+                let ingredientsSnapshot = try await doc.reference.collection("ingredients").getDocuments()
+                for ingredient in ingredientsSnapshot.documents {
+                    try await ingredient.reference.delete()
+                }
+
+                let commentsSnapshot = try await doc.reference.collection("comments").getDocuments()
+                for comment in commentsSnapshot.documents {
+                    try await comment.reference.delete()
+                }
+
+                // Delete the recipe document
+                try await doc.reference.delete()
+            }
+
+            Log.info("All Firebase recipes cleared", category: .firebase, metadata: [
+                "count": snapshot.documents.count
+            ])
+        } catch {
+            Log.error("Failed to clear all Firebase recipes", category: .firebase, metadata: [
+                "error": error.localizedDescription
+            ])
         }
     }
 

@@ -47,15 +47,17 @@ class PDFMetadataExtractor {
     /// Extract cookbook metadata from a PDF file
     /// - Parameters:
     ///   - pdfURL: URL to the PDF file
+    ///   - originalURL: Optional original URL before stable copy (avoids index prefix in filename)
     ///   - useVisionFallback: Whether to use AI vision if other methods disagree (default: true)
     /// - Returns: CookbookMetadata if found, nil otherwise
-    func extractMetadata(from pdfURL: URL, useVisionFallback: Bool = true) async -> CookbookMetadata? {
+    func extractMetadata(from pdfURL: URL, originalURL: URL? = nil, useVisionFallback: Bool = true) async -> CookbookMetadata? {
         guard let pdfDocument = PDFDocument(url: pdfURL) else {
             Log.warning("Failed to open PDF for metadata extraction", category: .import)
             return nil
         }
 
-        return await extractMetadata(from: pdfDocument, pdfURL: pdfURL, useVisionFallback: useVisionFallback)
+        // Use originalURL for filename extraction (avoids "0_" prefix from stable copy)
+        return await extractMetadata(from: pdfDocument, pdfURL: originalURL ?? pdfURL, useVisionFallback: useVisionFallback)
     }
 
     /// Extract cookbook metadata from a PDFDocument
@@ -240,13 +242,16 @@ class PDFMetadataExtractor {
                 .replacingOccurrences(of: "_", with: " ")
                 .replacingOccurrences(of: "-", with: " ")
 
-            // Remove common suffixes like "(1)", "copy", "final", etc.
+            // Remove common suffixes like "(1)", "copy", "final", "pdf", etc.
             let suffixPatterns = [
                 "\\s*\\(\\d+\\)$",
                 "\\s*copy\\s*\\d*$",
                 "\\s*final$",
                 "\\s*v\\d+$",
-                "\\s*\\d{4}$" // Year at end
+                "\\s*\\d{4}$", // Year at end
+                "\\s+pdf$",    // File extension leaked into title
+                "\\s+doc$",
+                "\\s+docx$"
             ]
             for pattern in suffixPatterns {
                 if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
@@ -625,7 +630,12 @@ class PDFMetadataExtractor {
             // Group similar titles (fuzzy matching)
             let titleGroups = groupSimilarStrings(titles)
             if let largestGroup = titleGroups.max(by: { $0.count < $1.count }) {
-                bestTitle = largestGroup.first
+                // When multiple sources agree, prefer AI vision's cleaner title
+                let priorityOrder: [MetadataCandidate.MetadataSource] = [.aiVision, .embedded, .textParsing, .filename]
+                let preferredTitle = priorityOrder.lazy
+                    .compactMap { source in candidates.first(where: { $0.source == source && $0.title != nil && largestGroup.contains($0.title!) })?.title }
+                    .first
+                bestTitle = preferredTitle ?? largestGroup.first
                 // Higher confidence if multiple sources agree
                 titleConfidence = largestGroup.count >= 2 ? 0.9 : 0.6
             }

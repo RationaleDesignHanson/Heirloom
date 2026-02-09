@@ -421,17 +421,22 @@ extension FirebaseSyncService {
 
         Log.info("Starting CRDT-aware sync", category: .crdt)
 
+        let isFirstSync = lastSyncDate == nil
+
         // Step 1: Sync collections FIRST (fast - just metadata, shows UI immediately)
-        // Upload local collections
+        // On first sync (fresh device), download BEFORE uploading to avoid overwriting
+        // Firebase recipeIds with empty arrays from freshly-created local collections.
         let localCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
         let userCreatedCollections = localCollections.filter { !$0.isSystemCollection && !$0.isAllRecipes }
 
-        if !userCreatedCollections.isEmpty {
+        if !isFirstSync && !userCreatedCollections.isEmpty {
             Log.info("Uploading collections", category: .sync, metadata: ["count": userCreatedCollections.count])
             for collection in userCreatedCollections {
                 try await uploadCollection(collection)
             }
             Log.info("Collections uploaded", category: .sync)
+        } else if isFirstSync {
+            Log.info("First sync detected - skipping collection upload to preserve Firebase recipeIds", category: .sync)
         }
 
         // Download remote collections (FAST - shows collections in UI immediately)
@@ -491,6 +496,18 @@ extension FirebaseSyncService {
         Log.info("Re-linking recipes to collections", category: .sync)
         try await relinkRecipesToCollections(context: context)
 
+        // Step 6: On first sync, upload collections NOW (after relinking so recipeIds are populated)
+        if isFirstSync && !userCreatedCollections.isEmpty {
+            // Re-fetch collections since relinking may have added recipes
+            let updatedCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
+            let collectionsToUpload = updatedCollections.filter { !$0.isSystemCollection && !$0.isAllRecipes }
+            Log.info("First sync: uploading collections after relink", category: .sync, metadata: ["count": collectionsToUpload.count])
+            for collection in collectionsToUpload {
+                try await uploadCollection(collection)
+            }
+            Log.info("First sync: collections uploaded with correct recipeIds", category: .sync)
+        }
+
         lastSyncDate = Date()
         Log.info("CRDT sync complete", category: .crdt)
 
@@ -499,13 +516,10 @@ extension FirebaseSyncService {
     }
 
     /// Re-link recipes to collections after both have been downloaded
-    /// Collections are downloaded first for fast UI, but recipes don't exist yet at that point
+    /// Uses two passes: (1) collection-centric (recipeIds on collection docs) and
+    /// (2) recipe-centric (collectionIds on recipe docs) as fallback when recipeIds are empty
     private func relinkRecipesToCollections(context: ModelContext) async throws {
         guard let userId = currentUserId else { return }
-
-        // Fetch all collections from Firebase to get their recipeIds
-        let collectionsRef = db.collection("users/\(userId)/collections")
-        let snapshot = try await collectionsRef.getDocuments()
 
         // Batch fetch ALL local recipes and collections once, build lookup dictionaries
         let allLocalRecipes = try context.fetch(FetchDescriptor<Recipe>())
@@ -518,9 +532,46 @@ extension FirebaseSyncService {
             ($0.id.uuidString.lowercased(), $0)
         })
 
+        // Build name+type fallback lookup for collections whose Firebase UUID was remapped
+        var collectionNameLookup: [String: RecipeCollection] = [:]
+        for collection in allLocalCollections {
+            let key = "\(collection.name)|\(collection.collectionType ?? "")"
+            collectionNameLookup[key] = collection
+        }
+
         var linkedCount = 0
 
-        for doc in snapshot.documents {
+        // Helper to find a local collection by Firebase UUID (3-tier lookup)
+        func findLocalCollection(firebaseId: String, name: String? = nil, type: String? = nil) -> RecipeCollection? {
+            if let byUUID = collectionLookup[firebaseId.lowercased()] {
+                return byUUID
+            } else if let remappedUUID = collectionUUIDRemapping[firebaseId.lowercased()],
+                      let byRemapped = collectionLookup[remappedUUID.uuidString.lowercased()] {
+                return byRemapped
+            } else if let name = name, let type = type,
+                      let byName = collectionNameLookup["\(name)|\(type)"] {
+                return byName
+            }
+            return nil
+        }
+
+        // Helper to link a recipe to a collection if not already linked
+        func linkIfNeeded(recipe: Recipe, collection: RecipeCollection) {
+            let alreadyLinked = recipe.collections?.contains(where: { $0.id == collection.id }) ?? false
+            if !alreadyLinked {
+                if recipe.collections == nil {
+                    recipe.collections = []
+                }
+                recipe.collections?.append(collection)
+                linkedCount += 1
+            }
+        }
+
+        // ---- Pass 1: Collection-centric (read recipeIds from collection docs) ----
+        let collectionsRef = db.collection("users/\(userId)/collections")
+        let collSnapshot = try await collectionsRef.getDocuments()
+
+        for doc in collSnapshot.documents {
             let data = doc.data()
             guard let collectionIdString = data["id"] as? String,
                   let recipeIds = data["recipeIds"] as? [String],
@@ -528,32 +579,68 @@ extension FirebaseSyncService {
                 continue
             }
 
-            // Find the local collection via O(1) lookup
-            guard let localCollection = collectionLookup[collectionIdString.lowercased()] else {
-                continue
-            }
+            guard let localCollection = findLocalCollection(
+                firebaseId: collectionIdString,
+                name: data["name"] as? String,
+                type: data["collectionType"] as? String
+            ) else { continue }
 
-            let collectionId = localCollection.id
-
-            // Link each recipe to the collection via O(1) lookup
             for recipeIdString in recipeIds {
                 if let recipe = recipeLookup[recipeIdString.lowercased()] {
-                    // Check if already linked
-                    let alreadyLinked = recipe.collections?.contains(where: { $0.id == collectionId }) ?? false
-                    if !alreadyLinked {
-                        if recipe.collections == nil {
-                            recipe.collections = []
-                        }
-                        recipe.collections?.append(localCollection)
-                        linkedCount += 1
-                    }
+                    linkIfNeeded(recipe: recipe, collection: localCollection)
                 }
             }
         }
 
+        let pass1Count = linkedCount
+        Log.info("Relink pass 1 (collection-centric)", category: .sync, metadata: ["linked": pass1Count])
+
+        // ---- Pass 2: Recipe-centric (read collectionIds from recipe docs) ----
+        // This is the critical fallback: if collection docs had their recipeIds wiped
+        // (e.g., by a prior sync uploading empty local collections), the recipe docs
+        // still carry their original collectionIds.
+        let recipesRef = db.collection("users/\(userId)/recipes")
+        let recipeSnapshot = try await recipesRef.getDocuments()
+
+        var recipesWithCollectionIds = 0
+        var recipesWithEmptyCollectionIds = 0
+
+        for doc in recipeSnapshot.documents {
+            let data = doc.data()
+            let recipeIdString = doc.documentID
+
+            let collectionIds = data["collectionIds"] as? [String] ?? []
+            if collectionIds.isEmpty {
+                recipesWithEmptyCollectionIds += 1
+                continue
+            }
+
+            recipesWithCollectionIds += 1
+
+            guard let recipe = recipeLookup[recipeIdString.lowercased()] else {
+                continue
+            }
+
+            for collIdString in collectionIds {
+                if let localCollection = findLocalCollection(firebaseId: collIdString) {
+                    linkIfNeeded(recipe: recipe, collection: localCollection)
+                }
+            }
+        }
+
+        let pass2Count = linkedCount - pass1Count
+        Log.info("Relink pass 2 (recipe-centric)", category: .sync, metadata: [
+            "linked": pass2Count,
+            "recipesWithCollectionIds": recipesWithCollectionIds,
+            "recipesWithEmptyCollectionIds": recipesWithEmptyCollectionIds,
+            "totalRecipeDocs": recipeSnapshot.documents.count
+        ])
+
         if linkedCount > 0 {
             try? context.save()
             Log.info("Re-linked recipes to collections", category: .sync, metadata: ["linkedCount": linkedCount])
+        } else {
+            Log.warning("Relink completed with 0 links - collections may appear empty", category: .sync)
         }
     }
 }

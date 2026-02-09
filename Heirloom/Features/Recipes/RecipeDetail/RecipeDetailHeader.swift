@@ -12,6 +12,8 @@ import SwiftUI
 struct RecipeDetailHeader: View {
     // MARK: - Properties
 
+    @Environment(\.openURL) private var openURL
+
     let recipe: Recipe
     let displayTitle: String
     let isInShoppingCart: Bool
@@ -46,6 +48,23 @@ struct RecipeDetailHeader: View {
                     }
                     .foregroundStyle(HeirloomColors.tomato)
                 }
+            } else if let searchURL = cookbookSearchURL {
+                // Tappable link for cookbook/scan sources — opens web search for cookbook+author
+                Button {
+                    openURL(searchURL)
+                } label: {
+                    HStack(spacing: HeirloomSpacing.xs) {
+                        Image(systemName: recipe.sourceType?.iconName ?? "book.closed.fill")
+                            .font(HeirloomFonts.caption1)
+                        Text(recipe.sourceDisplayName)
+                            .font(HeirloomFonts.caption1)
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.system(size: 10))
+                            .opacity(0.7)
+                    }
+                    .foregroundStyle(HeirloomColors.tomato)
+                }
+                .buttonStyle(.plain)
             } else {
                 // Non-tappable for manual/family/heritage sources
                 HStack(spacing: HeirloomSpacing.xs) {
@@ -111,6 +130,28 @@ struct RecipeDetailHeader: View {
                 .buttonStyle(SecondaryButtonStyle())
             }
         }
+    }
+
+    // MARK: - Cookbook Search
+
+    /// Search URL for cookbook/scan recipes with book title or author
+    private var cookbookSearchURL: URL? {
+        let sourceType = recipe.sourceType ?? .manual
+        guard sourceType == .cookbook || sourceType == .scan else { return nil }
+
+        var searchQuery = ""
+        if let title = recipe.sourceBookTitle, !title.isEmpty {
+            searchQuery = title
+        }
+        if let author = recipe.sourceBookAuthor, !author.isEmpty {
+            if !searchQuery.isEmpty { searchQuery += " by " }
+            searchQuery += author
+        }
+
+        guard !searchQuery.isEmpty else { return nil }
+
+        let encoded = searchQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? searchQuery
+        return URL(string: "https://www.google.com/search?q=\(encoded)+cookbook")
     }
 }
 

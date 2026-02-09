@@ -1555,10 +1555,10 @@ class AIRecipeExtractor: AIRecipeExtractorProtocol {
                     }
                 }
 
-                // If >60% of observations have handwriting indicators, classify as handwritten
-                // (Raised from 40% to avoid false positives on printed text with low OCR confidence)
+                // If >=50% of observations have handwriting indicators, classify as handwritten
+                // 0.5 threshold catches cursive recipe cards (0.55) while avoiding printed text false positives
                 let handwritingRatio = totalObservations > 0 ? Double(handwritingIndicators) / Double(totalObservations * 2) : 0.0
-                let isHandwritten = handwritingRatio > 0.6
+                let isHandwritten = handwritingRatio >= 0.5
 
                 Log.info("🖊 Handwriting detection complete", category: .ocr, metadata: [
                     "total_observations": totalObservations,

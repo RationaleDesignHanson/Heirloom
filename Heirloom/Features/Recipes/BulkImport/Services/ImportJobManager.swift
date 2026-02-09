@@ -317,11 +317,12 @@ final class ImportJobManager: ObservableObject {
             totalPagesAcrossAllPDFs += pdfDocument.pageCount
         }
 
-        // Process each PDF (using stable copies, but original URLs for classification lookup)
+        // Process each PDF (using stable copies, but original URLs for metadata + classification lookup)
         for (originalURL, pdfURL) in pdfURLMapping {
             // Extract cookbook metadata from front matter
+            // Use originalURL for filename-based metadata (avoids "0_" prefix from stable copy)
             let metadataExtractor = PDFMetadataExtractor()
-            let cookbookMetadata = await metadataExtractor.extractMetadata(from: pdfURL)
+            let cookbookMetadata = await metadataExtractor.extractMetadata(from: pdfURL, originalURL: originalURL)
 
             if let metadata = cookbookMetadata {
                 Log.info("Extracted cookbook metadata", category: .import, metadata: [
@@ -457,7 +458,8 @@ final class ImportJobManager: ObservableObject {
 
         // Update cookbookName to reflect actual collection routing
         // (single/loose recipes go to "Cookbook Pages", not their own collection)
-        if isSinglePageImport(job: job) {
+        // Note: Use allItems.count directly since items haven't been extracted yet (no .success status)
+        if allItems.count <= 2 {
             job.cookbookName = "Cookbook Pages"
         }
 
@@ -1774,6 +1776,12 @@ final class ImportJobManager: ObservableObject {
             recipe: recipe
         )
 
+        // Parse ingredients immediately to enable automatic scaling
+        await parseIngredientsImmediately(for: recipe)
+
+        // Augment ingredients with AI-inferred quantities (for missing quantities)
+        await augmentScannedIngredients(for: recipe)
+
         return recipe
     }
 
@@ -2085,10 +2093,27 @@ final class ImportJobManager: ObservableObject {
             createRecipe(from: extractedRecipe, sourceImage: image, sourceType: sourceType)
         }
 
+        // Register source attribution — camera/scan imports attributed to current user
+        let authService = ServiceContainer.shared.resolve(FirebaseAuthService.self)
+        let userName = authService.currentUser?.displayName ?? "Me"
+        for recipe in recipes {
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: userName,
+                kind: .person,
+                discoveryMethod: "scan_ocr",
+                recipe: recipe
+            )
+        }
+
         // CRITICAL: Parse ingredients immediately to enable automatic scaling
         // This prevents the need for warning symbols and "Fix" buttons
         for recipe in recipes {
             await parseIngredientsImmediately(for: recipe)
+        }
+
+        // Augment ingredients with AI-inferred quantities (for missing quantities from OCR)
+        for recipe in recipes {
+            await augmentScannedIngredients(for: recipe)
         }
 
         // Log if multiple recipes were detected
@@ -2251,6 +2276,150 @@ final class ImportJobManager: ObservableObject {
             ])
             // Continue without parsed ingredients - they will remain as placeholders
         }
+    }
+
+    /// Augment scanned recipe ingredients with AI-inferred quantities
+    /// Uses RecipeAugmentationService to fill in missing quantities from OCR extraction
+    private func augmentScannedIngredients(for recipe: Recipe) async {
+        guard let ingredients = recipe.ingredients, !ingredients.isEmpty else { return }
+
+        // Skip if all ingredients already have quantities
+        let missingQuantities = ingredients.filter { $0.quantity == nil && !$0.isFlexibleQuantity }
+        guard !missingQuantities.isEmpty else {
+            Log.debug("All ingredients have quantities, skipping augmentation", category: .import, metadata: [
+                "recipeId": recipe.id.uuidString
+            ])
+            return
+        }
+
+        Log.info("Augmenting scanned recipe ingredients", category: .import, metadata: [
+            "recipeId": recipe.id.uuidString,
+            "total": ingredients.count,
+            "missingQuantities": missingQuantities.count
+        ])
+
+        guard let aiService = ServiceContainer.shared.resolveOptional((any AIServiceProtocol).self) else {
+            Log.warning("AI service unavailable, skipping ingredient augmentation", category: .import)
+            return
+        }
+
+        do {
+            // Convert Ingredient models to ExtractedIngredient for the augmentation service
+            let extractedIngredients = ingredients.map { ingredient in
+                ExtractedIngredient(
+                    originalText: ingredient.originalText,
+                    item: ingredient.name,
+                    quantity: ingredient.quantity.map { String($0) },
+                    unit: ingredient.unit,
+                    preparation: ingredient.preparation,
+                    confidence: ingredient.quantity == nil ? .unknown : .explicit
+                )
+            }
+
+            // Build StructuredRecipe wrapper
+            let structuredRecipe = StructuredRecipe(
+                title: recipe.title,
+                description: nil,
+                servings: recipe.servings,
+                prepTime: nil,
+                cookTime: nil,
+                ingredients: extractedIngredients,
+                steps: [],
+                overallConfidence: 0.7,
+                warnings: []
+            )
+
+            // Call augmentation service with empty similar/web recipes (rely on Claude's culinary knowledge)
+            let augmentationService = RecipeAugmentationService(aiService: aiService)
+            let augmented = try await augmentationService.augment(
+                structuredRecipe,
+                similarRecipes: [],
+                webRecipes: []
+            )
+
+            // Map augmented results back onto Ingredient models
+            var updatedCount = 0
+            for augmentedIngredient in augmented.augmentedIngredients {
+                // Skip low-confidence and unknown inferences
+                guard augmentedIngredient.inferredConfidence == .high ||
+                      augmentedIngredient.inferredConfidence == .medium else { continue }
+
+                // Find matching ingredient by original text
+                guard let ingredient = ingredients.first(where: {
+                    $0.originalText == augmentedIngredient.originalIngredient.originalText
+                }) else { continue }
+
+                // Only fill nil quantities — never overwrite existing parsed values
+                guard ingredient.quantity == nil else { continue }
+
+                // Parse inferred quantity string to Double
+                if let quantityStr = augmentedIngredient.inferredQuantity,
+                   let quantity = parseFractionString(quantityStr) {
+                    ingredient.quantity = quantity
+                    updatedCount += 1
+                }
+
+                // Fill in unit if missing
+                if ingredient.unit == nil, let inferredUnit = augmentedIngredient.inferredUnit {
+                    ingredient.unit = inferredUnit
+                    ingredient.normalizedUnit = inferredUnit.lowercased()
+                        .replacingOccurrences(of: "s$", with: "", options: .regularExpression)
+                }
+            }
+
+            Log.info("Augmented scanned recipe ingredients", category: .import, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "title": recipe.title,
+                "updatedCount": updatedCount,
+                "totalMissing": missingQuantities.count,
+                "confidence": augmented.metadata.averageConfidence.shortDisplayText
+            ])
+        } catch {
+            Log.warning("Ingredient augmentation failed (non-fatal)", category: .import, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "error": error.localizedDescription
+            ])
+            // Augmentation is optional — import continues without it
+        }
+    }
+
+    /// Parse a fraction or decimal string to Double
+    /// Handles: "2", "1.5", "1/4", "1 1/2", "0.25"
+    private func parseFractionString(_ text: String) -> Double? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        // Try simple Double first (handles "2", "1.5", "0.25")
+        if let value = Double(trimmed) {
+            return value
+        }
+
+        // Handle mixed numbers like "1 1/2"
+        let parts = trimmed.split(separator: " ")
+        if parts.count == 2,
+           let whole = Double(parts[0]),
+           let fraction = parseSingleFraction(String(parts[1])) {
+            return whole + fraction
+        }
+
+        // Handle simple fractions like "1/4"
+        if let fraction = parseSingleFraction(trimmed) {
+            return fraction
+        }
+
+        return nil
+    }
+
+    /// Parse a single fraction like "1/4" or "3/8" to Double
+    private func parseSingleFraction(_ text: String) -> Double? {
+        let parts = text.split(separator: "/")
+        guard parts.count == 2,
+              let numerator = Double(parts[0]),
+              let denominator = Double(parts[1]),
+              denominator != 0 else {
+            return nil
+        }
+        return numerator / denominator
     }
 
     /// Extract source/brand attribution from a page image using Vision API
@@ -2522,8 +2691,8 @@ final class ImportJobManager: ObservableObject {
             return
         }
 
-        // Skip if collection already has a cover
-        if collection.cookbookCoverImagePath != nil || collection.generatedBackgroundImagePath != nil {
+        // Skip if collection already has a cover (including preset backgrounds)
+        if collection.cookbookCoverImagePath != nil || collection.generatedBackgroundImagePath != nil || collection.customBackgroundImagePath != nil {
             Log.info("Collection already has cover image, skipping AI generation", category: .import)
             return
         }

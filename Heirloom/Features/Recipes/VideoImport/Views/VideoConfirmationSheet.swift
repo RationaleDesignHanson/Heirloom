@@ -61,8 +61,20 @@ struct VideoConfirmationSheet: View {
                 }
                 .padding(.horizontal)
 
-                // ASMR mode: Show dish name hint field
+                // ASMR mode: Show thumbnail and dish name hint field
                 if isASMR {
+                    // Show video thumbnail so user can identify the dish
+                    if let thumbnailData = job.thumbnailData,
+                       let uiImage = UIImage(data: thumbnailData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 200)
+                            .frame(maxWidth: .infinity)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding(.horizontal)
+                    }
+
                     GroupBox {
                         VStack(alignment: .leading, spacing: 8) {
                             Label("What dish is this? (optional)", systemImage: "lightbulb")

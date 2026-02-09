@@ -669,12 +669,22 @@ final class RecipeGenerationService: ObservableObject {
         Analyze this voice transcript from someone describing a recipe they want to make.
         Extract structured information about the dish they're describing.
 
+        IMPORTANT — Regional & cultural dish naming:
+        If the user mentions a location, country, region, or cuisine (e.g., "I'm in France",
+        "this Italian place", "Korean street food"), identify the specific regional dish name
+        rather than a generic description. For example:
+        - "sandwich with ham and cheese and béchamel in France" → "Croque Monsieur"
+        - "Korean spicy rice cakes" → "Tteokbokki"
+        - "Japanese pancake with cabbage" → "Okonomiyaki"
+        - "Indian flatbread with potato filling" → "Aloo Paratha"
+        Use the authentic name in dishName and note the cuisine in cuisineHints.
+
         Transcript: "\(transcript)"
 
         Return JSON with:
-        - dishName (string): The primary dish name
+        - dishName (string): The specific dish name — use the authentic regional name when identifiable
         - ingredients (array of strings, optional): Specific ingredients mentioned
-        - cuisineHints (array of strings, optional): Cuisine or regional style hints (e.g., "Southern", "Italian")
+        - cuisineHints (array of strings, optional): Cuisine or regional style hints (e.g., "French", "Korean", "Southern")
         - descriptions (array of strings, optional): Descriptive qualities (e.g., "creamy", "crispy", "light")
         - techniquePreferences (array of strings, optional): Cooking techniques mentioned (e.g., "slow-cooked", "grilled")
         - servingSize (string, optional): Serving size if mentioned (e.g., "6 people")
@@ -687,7 +697,10 @@ final class RecipeGenerationService: ObservableObject {
             temperature: 0.3,
             maxTokens: 512,
             systemMessage: """
-            You are a precise transcript parser. Extract structured recipe information from voice transcripts.
+            You are a precise transcript parser with deep knowledge of world cuisines.
+            Extract structured recipe information from voice transcripts.
+            When the user mentions a region, country, or cuisine, identify the authentic regional dish name
+            rather than a generic description (e.g., "Croque Monsieur" not "French ham and cheese sandwich").
             Return ONLY valid JSON matching the exact schema. Do not wrap in markdown code blocks.
             If the transcript is unclear or garbled, set confidence low and extract what you can.
             """

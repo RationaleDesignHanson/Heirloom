@@ -159,15 +159,19 @@ class CollectionRouter {
             coverImagePath: coverImagePath
         )
 
-        collection.sourceCookbook = cookbookName
+        // Only set sourceCookbook for actual named cookbooks, not the "Cookbook Pages" catch-all
+        let isCatchAll = cleanName == "Cookbook Pages"
+        if !isCatchAll {
+            collection.sourceCookbook = cookbookName
+        }
 
         // Set author if provided (from PDF metadata)
-        if let author = authorName, !author.isEmpty {
+        if let author = authorName, !author.isEmpty, !isCatchAll {
             collection.sourceAuthor = author
         }
 
         for recipe in recipes {
-            recipe.sourceCookbook = cookbookName
+            recipe.sourceCookbook = isCatchAll ? nil : cookbookName
             addRecipeToCollection(recipe, collection: collection)
         }
 
@@ -405,11 +409,17 @@ class CollectionRouter {
             collection.createdDate = Date()
             modelContext.insert(collection)
 
+            // Apply preset background for cookbook collections
+            applyPresetBackgroundIfNeeded(to: collection, type: .cookbook)
+
             Log.info("Created new cookbook collection", category: .collections, metadata: [
                 "name": name,
                 "collection_id": collection.id.uuidString
             ])
         }
+
+        // Ensure existing collections also have the preset background
+        applyPresetBackgroundIfNeeded(to: collection, type: .cookbook)
 
         // Cache for this job
         if let jobID = jobID {

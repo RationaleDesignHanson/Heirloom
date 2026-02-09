@@ -85,6 +85,14 @@ service cloud.firestore {
     }
 
     // ========================================
+    // RECIPE SHARES (User-Scoped)
+    // ========================================
+    match /users/{userId}/recipeShares/{shareId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
     // RECIPE VERSIONS (User-Scoped)
     // ========================================
     match /users/{userId}/recipeVersions/{versionId} {
@@ -136,9 +144,11 @@ service cloud.firestore {
         )
       );
 
-      // Only owner can delete
+      // Owner can delete, OR recipients can delete demo/welcome shares (for reset cleanup)
       allow delete: if isAuthenticated() &&
-                       request.auth.uid == resource.data.ownerId;
+                       (request.auth.uid == resource.data.ownerId ||
+                        (request.auth.uid in resource.data.recipientUserIds &&
+                         resource.data.isDemoShare == true));
     }
 
     // ========================================

@@ -118,6 +118,8 @@ struct CookbookScannerView: View {
                         ToolbarItem(placement: .primaryAction) {
                             Button("Extract Recipe") {
                                 processImageWithQueue()
+                                // Dismiss immediately so user sees ImportProgressBottomBanner
+                                dismiss()
                             }
                         }
                     }
@@ -454,23 +456,20 @@ struct CookbookScannerView: View {
                     context: modelContext
                 )
 
-                // Start processing
-                try await importManager.startJob(job, context: modelContext)
-
-                // Dismiss CookbookScannerView and let user see ImportProgressBottomBanner
+                // Track analytics (dismiss already happened from button action)
                 await MainActor.run {
-                    dismiss()
-
-                    // Track analytics
                     analytics.track(event: .recipeImported, properties: [
                         "source": "cookbook_scan_single_queue",
                         "collection_name": collectionName
                     ])
 
-                    Log.info("Cookbook import job started successfully", category: .import, metadata: [
+                    Log.info("Cookbook import job created, starting processing", category: .import, metadata: [
                         "jobId": job.id.uuidString
                     ])
                 }
+
+                // Start processing in background (after dismiss)
+                try await importManager.startJob(job, context: modelContext)
 
             } catch {
                 await MainActor.run {
