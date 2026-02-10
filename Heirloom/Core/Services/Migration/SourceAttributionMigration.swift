@@ -13,7 +13,7 @@ import SwiftData
 class SourceAttributionMigration {
 
     /// Current migration version — increment to force re-run on all users
-    static let currentVersion = 1
+    static let currentVersion = 2
 
     /// Run the migration to seed KnownSource entries from existing recipes.
     /// - Parameters:
@@ -31,6 +31,20 @@ class SourceAttributionMigration {
         Log.info("Starting source attribution migration v\(currentVersion)", category: .migration, metadata: [
             "previousVersion": lastRunVersion
         ])
+
+        // V2: Clear generic "Theme Collection" source so backfill re-creates per-theme sources
+        if lastRunVersion < 2 {
+            let predicate = #Predicate<KnownSource> { $0.name == "Theme Collection" }
+            let genericSources = (try? context.fetch(FetchDescriptor<KnownSource>(predicate: predicate))) ?? []
+            for source in genericSources {
+                // Unlink recipes so they become orphans for re-backfill
+                for recipe in source.recipes ?? [] {
+                    recipe.knownSource = nil
+                }
+                context.delete(source)
+                Log.info("Removed generic 'Theme Collection' source for re-backfill", category: .migration)
+            }
+        }
 
         // Use the service's backfill which handles all source types
         let seededCount = attributionService.backfillAttribution()

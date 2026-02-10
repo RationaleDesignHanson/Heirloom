@@ -607,6 +607,18 @@ struct RecipeImportView: View {
             return
         }
 
+        // Attribute source
+        if let urlString = recipe.sourceURL {
+            let domain = KnownSource.extractDomain(from: urlString)
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: domain ?? "Unknown Website",
+                kind: .website,
+                domain: domain,
+                discoveryMethod: "url_import",
+                recipe: recipe
+            )
+        }
+
         // Show success and dismiss immediately
         toastManager.success(
             title: "Recipe imported!",

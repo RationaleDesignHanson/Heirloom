@@ -39,6 +39,9 @@ final class Recipe {
     /// Firebase Storage URL for synced images
     var firebaseImageURL: String?
 
+    /// Whether this recipe needs an AI-generated image (pending background generation)
+    var needsAIImage: Bool = false
+
     // MARK: - Theme Collections (Collections 2.1)
     /// Flag indicating this is a theme recipe from curated collections
     var isThemeRecipe: Bool = false
@@ -363,6 +366,7 @@ final class Recipe {
             case .heritage: return .imported
             case .video: return .video
             case .generated: return .ai
+            case .readRecipe: return .userCreated
             }
         }()
 
@@ -443,6 +447,8 @@ extension Recipe {
             return "Video Recipe"
         case .generated:
             return "AI Generated"
+        case .readRecipe:
+            return Recipe.currentUserDisplayName()
         }
     }
 
@@ -911,6 +917,8 @@ extension Recipe {
                 sourceTypeEnum = .shared
             case .generated:
                 sourceTypeEnum = .ai
+            case .readRecipe:
+                sourceTypeEnum = .userCreated
             case .none:
                 sourceTypeEnum = .userCreated
             }
@@ -1030,6 +1038,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
     case heritage = "heritage"
     case video = "video"
     case generated = "generated"
+    case readRecipe = "readRecipe"
 
     var iconName: String {
         switch self {
@@ -1041,6 +1050,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .heritage: return "book.pages.fill"
         case .video: return "video.circle.fill"
         case .generated: return "sparkles"
+        case .readRecipe: return "text.book.closed"
         }
     }
 
@@ -1054,6 +1064,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .heritage: return "Theme Collection"
         case .video: return "Video Import"
         case .generated: return "AI Generated"
+        case .readRecipe: return "Read Recipe"
         }
     }
 
@@ -1074,6 +1085,8 @@ enum RecipeSourceType: String, Codable, CaseIterable {
             return "Recipes you've received from others can only be shared privately."
         case .generated:
             return "AI-generated recipes can only be shared privately with friends and family. Public sharing is reserved for real family recipes."
+        case .readRecipe:
+            return nil  // Read recipes are the user's own — publishable
         }
     }
 
@@ -1096,6 +1109,8 @@ enum RecipeSourceType: String, Codable, CaseIterable {
             return .video
         case .generated:
             return .ai
+        case .readRecipe:
+            return .userCreated
         }
     }
 }
@@ -1649,14 +1664,17 @@ extension Recipe {
             return false
         }
 
-        // Check source type - only camera/scan sources are eligible
-        guard let sourceType = sourceType, sourceType == .scan else {
+        // Check source type - only camera/scan and read recipe sources are eligible
+        guard let sourceType = sourceType,
+              sourceType == .scan || sourceType == .readRecipe else {
             return false
         }
 
-        // Check camera origin confidence - must not be screenshot/download
-        guard cameraOriginConfidence != .definitelyNotCamera else {
-            return false
+        // Check camera origin confidence for scans - must not be screenshot/download
+        if sourceType == .scan {
+            guard cameraOriginConfidence != .definitelyNotCamera else {
+                return false
+            }
         }
 
         return true
@@ -1679,13 +1697,13 @@ extension Recipe {
             return "Sample recipes can't be shared - everyone already has this recipe."
         }
 
-        // Check source type
-        if let sourceType = sourceType, sourceType != .scan {
+        // Check source type — scan and readRecipe are eligible
+        if let sourceType = sourceType, sourceType != .scan && sourceType != .readRecipe {
             return sourceType.publicSharingBlockedReason
         }
 
-        // Check camera origin confidence
-        if cameraOriginConfidence == .definitelyNotCamera {
+        // Check camera origin confidence (only applies to scans, not read recipes)
+        if sourceType == .scan && cameraOriginConfidence == .definitelyNotCamera {
             return cameraOriginConfidence.publicSharingBlockedReason
         }
 

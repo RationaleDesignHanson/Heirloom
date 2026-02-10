@@ -660,17 +660,25 @@ extension ServiceContainer {
             container.resolve(RecipeImageGenerator.self) as any RecipeImageGeneratorProtocol
         }
 
+        // ImageGenerationQueue (Serial background queue for AI image generation)
+        register(ImageGenerationQueue.self, lifecycle: .singleton) { container in
+            let imageGenerator = container.resolve((any RecipeImageGeneratorProtocol).self)
+            return ImageGenerationQueue(imageGenerator: imageGenerator)
+        }
+
         // RecipeGenerationService (Recipe generation with progress tracking and retry logic)
         register(RecipeGenerationService.self, lifecycle: .singleton) { container in
             let aiGenerator = container.resolve((any AIRecipeGeneratorProtocol).self)
             let imageGenerator = container.resolve((any RecipeImageGeneratorProtocol).self)
             let aiService = container.resolve((any AIServiceProtocol).self)
             let aiConfiguration = container.resolve((any AIConfigurationProtocol).self)
+            let imageGenerationQueue = container.resolve(ImageGenerationQueue.self)
             return RecipeGenerationService(
                 aiGenerator: aiGenerator,
                 imageGenerator: imageGenerator,
                 aiService: aiService,
-                aiConfiguration: aiConfiguration
+                aiConfiguration: aiConfiguration,
+                imageGenerationQueue: imageGenerationQueue
             )
         }
 

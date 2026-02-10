@@ -138,6 +138,29 @@ class CollectionRouter {
         ])
     }
 
+    /// Route a recipe read aloud via voice dictation
+    func routeReadRecipe(_ recipe: Recipe) {
+        routeReadRecipe([recipe])
+    }
+
+    /// Route multiple recipes read aloud via voice dictation
+    func routeReadRecipe(_ recipes: [Recipe], jobID: UUID? = nil) {
+        let collection = findOrCreateCollectionWithJobTracking(
+            name: "Read Recipes",
+            type: .readRecipes,
+            iconName: "text.book.closed",
+            jobID: jobID
+        )
+
+        for recipe in recipes {
+            addRecipeToCollection(recipe, collection: collection)
+        }
+
+        Log.info("Routed read recipe(s) to Read Recipes", category: .collections, metadata: [
+            "recipe_count": recipes.count
+        ])
+    }
+
     /// Route recipes imported from a cookbook with enhanced consolidation logic
     func routeCookbookImport(
         _ recipes: [Recipe],
@@ -262,6 +285,8 @@ class CollectionRouter {
             "from-photos-bg"
         case .cookbook:
             "cookbook-pages-bg"
+        case .readRecipes:
+            "read-recipes-bg"
         default:
             nil
         }

@@ -47,11 +47,15 @@ class SourceAttributionService {
         discoveryMethod: String,
         recipe: Recipe
     ) -> KnownSource {
+        // Use the recipe's model context if available to ensure relationship persists
+        // (SwiftUI views may use a different context than the service's)
+        let targetContext = recipe.modelContext ?? modelContext
+
         // Skip empty names
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else {
             let source = KnownSource(name: "Unknown", kind: .unknown, discoveryMethod: discoveryMethod, confidence: 0.1)
-            modelContext.insert(source)
+            targetContext.insert(source)
             recipe.knownSource = source
             return source
         }
@@ -91,7 +95,7 @@ class SourceAttributionService {
             discoveryMethod: discoveryMethod,
             confidence: initialConfidence(for: kind, method: discoveryMethod)
         )
-        modelContext.insert(source)
+        targetContext.insert(source)
         recipe.knownSource = source
         Log.info("✨ Created NEW KnownSource", category: .general, metadata: [
             "name": trimmedName,
@@ -299,6 +303,12 @@ class SourceAttributionService {
 
     /// Debug: dump full graph state to console
     func dumpStats() {
+        // Catch up any orphans that arrived via sync after migration ran
+        let backfilled = backfillAttribution()
+        if backfilled > 0 {
+            Log.info("📊 Backfilled \(backfilled) sources on launch", category: .general)
+        }
+
         let stats = getStats()
         let orphans = getOrphanRecipes()
         let top = topSources(limit: 20)
@@ -431,8 +441,19 @@ class SourceAttributionService {
             return true
         }
 
+        // Voice-dictated read recipes (user read a real recipe aloud)
+        if recipe.voiceDictated {
+            registerSource(
+                name: "Read Recipe",
+                kind: .person,
+                discoveryMethod: "migration",
+                recipe: recipe
+            )
+            return true
+        }
+
         // AI-generated
-        if recipe.sourceType == .generated || recipe.aiGenerated {
+        if (recipe.sourceType == .generated || recipe.aiGenerated) && !recipe.voiceDictated {
             registerSource(
                 name: "AI Generated",
                 kind: .aiGenerated,
@@ -444,9 +465,12 @@ class SourceAttributionService {
 
         // Theme/heritage
         if recipe.sourceType == .heritage, let themeId = recipe.sourceThemeId {
-            let name = recipe.collections?.first(where: { $0.sourceTheme?.firebaseId == themeId })?.name ?? "Theme Collection"
+            // Query collection directly by sourceThemeId (more reliable than traversing relationships)
+            let themePredicate = #Predicate<RecipeCollection> { $0.sourceThemeId == themeId }
+            let descriptor = FetchDescriptor<RecipeCollection>(predicate: themePredicate)
+            let collectionName = (try? modelContext.fetch(descriptor))?.first?.name
             registerSource(
-                name: name,
+                name: collectionName ?? "Theme Collection (\(themeId))",
                 kind: .publication,
                 discoveryMethod: "migration",
                 recipe: recipe

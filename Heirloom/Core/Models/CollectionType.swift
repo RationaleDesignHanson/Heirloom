@@ -27,6 +27,9 @@ enum CollectionType: String, Codable, CaseIterable {
     /// Recipes from single-photo OCR (recipe cards, screenshots, handwritten recipes)
     case photoImports = "photoImports"
 
+    /// Recipes imported from voice dictation (user reads a real recipe aloud)
+    case readRecipes = "readRecipes"
+
     /// Recipes imported from multi-page cookbook scans (CookbookScannerView)
     case cookbook = "cookbook"
 
@@ -46,6 +49,7 @@ enum CollectionType: String, Codable, CaseIterable {
         case .videoImports: return "From Videos"
         case .webImports: return "From Web"
         case .photoImports: return "From Photos"
+        case .readRecipes: return "Read Recipes"
         case .cookbook: return "From Cookbooks"
         case .userCreated: return "My Collection"
         case .communityRecipes: return "Community Recipes"
@@ -60,6 +64,7 @@ enum CollectionType: String, Codable, CaseIterable {
         case .videoImports: return "video.fill"
         case .webImports: return "link"
         case .photoImports: return "photo.fill"
+        case .readRecipes: return "text.book.closed"
         case .cookbook: return "book.closed.fill"
         case .userCreated: return "folder.fill"
         case .communityRecipes: return "globe"
@@ -70,7 +75,7 @@ enum CollectionType: String, Codable, CaseIterable {
     var isVisibleInMainList: Bool {
         switch self {
         case .system: return false
-        case .theme, .fromFriends, .videoImports, .webImports, .photoImports, .cookbook, .userCreated, .communityRecipes: return true
+        case .theme, .fromFriends, .videoImports, .webImports, .photoImports, .readRecipes, .cookbook, .userCreated, .communityRecipes: return true
         }
     }
 
@@ -82,9 +87,10 @@ enum CollectionType: String, Codable, CaseIterable {
         case .fromFriends: return 0
         case .videoImports: return 1
         case .webImports: return 2
-        case .photoImports: return 3
-        case .cookbook: return 4
-        case .userCreated: return 5
+        case .readRecipes: return 3
+        case .photoImports: return 4
+        case .cookbook: return 5
+        case .userCreated: return 6
         case .theme: return 10  // Themes appear AFTER My Collections
         case .system: return 99
         }
@@ -95,7 +101,7 @@ enum CollectionType: String, Codable, CaseIterable {
     /// Collection category for organizational grouping
     var category: CollectionCategory {
         switch self {
-        case .fromFriends, .videoImports, .webImports, .photoImports, .communityRecipes:
+        case .fromFriends, .videoImports, .webImports, .photoImports, .readRecipes, .communityRecipes:
             return .imported
         case .cookbook:
             return .cookbooks
@@ -123,7 +129,7 @@ enum CollectionType: String, Codable, CaseIterable {
         case .communityRecipes:
             // Community recipes can be reshared
             return true
-        case .videoImports, .webImports, .photoImports, .cookbook, .userCreated:
+        case .videoImports, .webImports, .photoImports, .readRecipes, .cookbook, .userCreated:
             // User's own imports and collections can be shared
             return true
         }
@@ -132,7 +138,7 @@ enum CollectionType: String, Codable, CaseIterable {
     /// Whether collections of this type are system-managed (not deletable)
     var isSystemManaged: Bool {
         switch self {
-        case .fromFriends, .videoImports, .webImports, .photoImports, .communityRecipes, .theme, .system:
+        case .fromFriends, .videoImports, .webImports, .photoImports, .readRecipes, .communityRecipes, .theme, .system:
             // Auto-created collections are system-managed
             return true
         case .cookbook, .userCreated:

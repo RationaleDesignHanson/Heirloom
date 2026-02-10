@@ -523,19 +523,19 @@ extension FirebaseSyncService {
 
         // Batch fetch ALL local recipes and collections once, build lookup dictionaries
         let allLocalRecipes = try context.fetch(FetchDescriptor<Recipe>())
-        let recipeLookup = Dictionary(uniqueKeysWithValues: allLocalRecipes.map {
+        let recipeLookup = Dictionary(allLocalRecipes.map {
             ($0.id.uuidString.lowercased(), $0)
-        })
+        }, uniquingKeysWith: { first, _ in first })
 
         let allLocalCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
-        let collectionLookup = Dictionary(uniqueKeysWithValues: allLocalCollections.map {
+        let collectionLookup = Dictionary(allLocalCollections.map {
             ($0.id.uuidString.lowercased(), $0)
-        })
+        }, uniquingKeysWith: { first, _ in first })
 
         // Build name+type fallback lookup for collections whose Firebase UUID was remapped
         var collectionNameLookup: [String: RecipeCollection] = [:]
         for collection in allLocalCollections {
-            let key = "\(collection.name)|\(collection.collectionType ?? "")"
+            let key = "\(collection.name)|\(collection.collectionType)"
             collectionNameLookup[key] = collection
         }
 

@@ -1394,7 +1394,9 @@ final class ImportJobManager: ObservableObject {
             for (index, recipe) in recipes.enumerated() {
                 // Cookbook metadata (only set if not already populated by AI extraction,
                 // which may have found better values from visual content like logos/headers)
-                if recipe.sourceBookTitle == nil, let cookbookTitle = item.cookbookTitle {
+                // Also skip if AI already extracted a recipe-level source (e.g., "The Flavor Labs")
+                // because sourceBookTitle takes display priority over sourceBookAuthor
+                if recipe.sourceBookTitle == nil, recipe.sourceBookAuthor == nil, let cookbookTitle = item.cookbookTitle {
                     // Skip if metadata "title" overlaps significantly with the recipe title
                     // (common for single-recipe PDFs where filename/doc title ≈ recipe name)
                     let cleanedCookbookTitle = cookbookTitle
@@ -1429,22 +1431,28 @@ final class ImportJobManager: ObservableObject {
 
                         if !exactMatches.isEmpty {
                             // Exact duplicate (content hash match) - skip insertion
+                            // But transfer source attribution if the new extraction found one the existing lacks
+                            let existingRecipe = exactMatches[0].recipe
+                            transferAttributionIfMissing(from: recipe, to: existingRecipe)
                             Log.warning("⚠️ Skipping exact duplicate recipe", category: .import, metadata: [
                                 "title": recipe.title,
                                 "content_hash": recipe.contentHash ?? "none",
-                                "duplicate_id": exactMatches[0].recipe.id.uuidString,
-                                "duplicate_title": exactMatches[0].recipe.title
+                                "duplicate_id": existingRecipe.id.uuidString,
+                                "duplicate_title": existingRecipe.title
                             ])
                             skippedDuplicates.append((recipe, duplicates))
                             continue
                         } else if !nearPerfectMatches.isEmpty {
                             // Near-perfect title/content match (>=0.95 similarity) - skip insertion
+                            // But transfer source attribution if the new extraction found one the existing lacks
+                            let existingRecipe = nearPerfectMatches[0].recipe
+                            transferAttributionIfMissing(from: recipe, to: existingRecipe)
                             Log.warning("⚠️ Skipping near-identical duplicate recipe", category: .import, metadata: [
                                 "title": recipe.title,
                                 "similarity_score": nearPerfectMatches[0].similarityScore,
                                 "match_type": "\(nearPerfectMatches[0].matchType)",
-                                "duplicate_id": nearPerfectMatches[0].recipe.id.uuidString,
-                                "duplicate_title": nearPerfectMatches[0].recipe.title
+                                "duplicate_id": existingRecipe.id.uuidString,
+                                "duplicate_title": existingRecipe.title
                             ])
                             skippedDuplicates.append((recipe, duplicates))
                             continue
@@ -2195,6 +2203,30 @@ final class ImportJobManager: ObservableObject {
     /// Check if text is a bracketed section header like [Asparagus], [Main], [Vegetables]*
     /// Check if a metadata title significantly overlaps with a recipe title
     /// e.g., "Online Class - Chocolate Chip Cookies" vs "Chewy Chocolate Chip Cookies"
+    /// Transfer source attribution from a new extraction to an existing duplicate recipe
+    /// when the existing recipe is missing attribution (e.g., imported before attribution system)
+    private func transferAttributionIfMissing(from newRecipe: Recipe, to existingRecipe: Recipe) {
+        // Transfer sourceBookAuthor
+        if existingRecipe.sourceBookAuthor == nil, let source = newRecipe.sourceBookAuthor, !source.isEmpty {
+            existingRecipe.sourceBookAuthor = source
+            Log.info("📋 Transferred source attribution to existing duplicate", category: .import, metadata: [
+                "title": existingRecipe.title,
+                "source": source,
+                "existingId": existingRecipe.id.uuidString
+            ])
+        }
+
+        // Transfer knownSource relationship
+        if existingRecipe.knownSource == nil, let knownSource = newRecipe.knownSource {
+            existingRecipe.knownSource = knownSource
+        }
+
+        // Transfer provenance if missing
+        if existingRecipe.provenance == nil, let provenance = newRecipe.provenance {
+            existingRecipe.provenance = provenance
+        }
+    }
+
     private func titlesOverlap(_ metadataTitle: String, _ recipeTitle: String) -> Bool {
         let a = metadataTitle.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         let b = recipeTitle.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
@@ -2832,6 +2864,9 @@ final class ImportJobManager: ObservableObject {
                 job: job,
                 context: context
             )
+        } else if job.items?.first?.source == .url {
+            // URL imports go to "From Web" via routeURLImport
+            await routeURLImportsToWebCollection(job: job, context: context)
         } else {
             Log.warning("Skipping collection creation - cookbook name is empty or nil", category: .import, metadata: [
                 "jobId": job.id.uuidString,
@@ -2934,6 +2969,44 @@ final class ImportJobManager: ObservableObject {
         }
     }
 
+    /// Route URL import recipes to "From Web" collection
+    private func routeURLImportsToWebCollection(job: ImportJob, context: ModelContext) async {
+        guard let items = job.items else { return }
+
+        let successfulRecipeIDs = items
+            .filter { $0.status == .success }
+            .flatMap { $0.recipeIDs }
+
+        guard !successfulRecipeIDs.isEmpty else { return }
+
+        let recipeDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { recipe in
+                successfulRecipeIDs.contains(recipe.id)
+            }
+        )
+
+        guard let recipes = try? context.fetch(recipeDescriptor) else {
+            Log.error("Failed to fetch recipes for URL collection routing", category: .import)
+            return
+        }
+
+        let router = CollectionRouter(modelContext: context)
+
+        for recipe in recipes {
+            if let urlString = recipe.sourceURL, let url = URL(string: urlString) {
+                router.routeURLImport(recipe, sourceURL: url)
+            } else {
+                // Fallback: route with a placeholder URL
+                router.routeURLImport(recipe, sourceURL: URL(string: "https://unknown")!)
+            }
+        }
+
+        Log.info("Routed bulk URL imports to From Web", category: .import, metadata: [
+            "count": recipes.count,
+            "jobId": job.id.uuidString
+        ])
+    }
+
     /// Clear the active job (called from UI when user dismisses)
     func clearActiveJob() {
         activeJob = nil
@@ -3022,6 +3095,14 @@ final class ImportJobManager: ObservableObject {
                 "cookbookName": job.cookbookName ?? "nil"
             ])
             return job.cookbookName
+        }
+
+        // URL imports are routed separately via routeURLImport — return nil to skip cookbook routing
+        if job.items?.first?.source == .url {
+            Log.info("URL import — skipping cookbook routing (handled separately)", category: .import, metadata: [
+                "jobId": job.id.uuidString
+            ])
+            return nil
         }
 
         // Camera/photo library imports go to "Cookbook Pages"

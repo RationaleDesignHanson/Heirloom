@@ -125,13 +125,15 @@ final class RecipeLineageService {
             ])
             let contributorInfo = await fetchContributorInfo(userId: ownerId)
 
-            // Create version
+            // Create version (stores raw recipeData for diff view)
+            let modifiedAt = (data["lastModified"] as? Timestamp)?.dateValue() ?? Date()
+            let displayName = ownerDisplayName ?? contributorInfo?.displayName ?? "Someone"
             let version = RecipeLineageVersion(
                 recipeData: recipeData,
                 generation: generation,
                 modifiedBy: ownerId,
-                modifiedByName: ownerDisplayName ?? contributorInfo?.displayName ?? "Someone",
-                modifiedAt: (data["lastModified"] as? Timestamp)?.dateValue() ?? Date(),
+                modifiedByName: displayName,
+                modifiedAt: modifiedAt,
                 isCurrent: recipeIdUUID == recipeId
             )
 
@@ -141,20 +143,35 @@ final class RecipeLineageService {
             }
             recipesByGeneration[generation]?.append((version, ownerId))
 
-            // Create node
+            // Build the display Recipe for this node
+            // For the current user's local recipe, use the actual SwiftData object
+            // For remote nodes, create a Recipe from the Firebase data
             let isCurrentUser = ownerId == Auth.auth().currentUser?.uid
+            let displayRecipe: Recipe
+            if isCurrentUser && recipeIdUUID == recipeId {
+                displayRecipe = recipe
+            } else {
+                displayRecipe = Self.createRecipeFromFirebaseData(recipeData, recipeId: recipeIdUUID)
+            }
+
+            // Extract real stats from Firebase data
+            let cookCount = recipeData["timesCooked"] as? Int ?? 0
+            let shareCount = recipeData["publicSaveCount"] as? Int ?? 0
+            let viewCount = recipeData["publicViewCount"] as? Int ?? 0
+
             let node = LineageNode(
-                recipe: version.recipe ?? recipe,
+                recipe: displayRecipe,
                 generation: generation,
-                position: .zero, // Will be calculated by layout engine
+                position: .zero,
                 stats: NodeStats(
-                    cookCount: 0,
-                    shareCount: 0,
-                    viewCount: 0,
+                    cookCount: cookCount,
+                    shareCount: shareCount,
+                    viewCount: viewCount,
                     rating: nil
                 ),
                 isCurrentUser: isCurrentUser,
-                contributor: contributorInfo
+                contributor: contributorInfo,
+                version: version
             )
             nodes.append(node)
 
@@ -216,6 +233,40 @@ final class RecipeLineageService {
         }
 
         return data
+    }
+
+    // MARK: - Recipe Construction from Firebase Data
+
+    /// Create a lightweight Recipe object from Firebase dictionary data for lineage display.
+    /// This Recipe is NOT inserted into any ModelContext — it's display-only for the lineage tree.
+    static func createRecipeFromFirebaseData(_ data: [String: Any], recipeId: UUID) -> Recipe {
+        let title = data["title"] as? String ?? "Unknown"
+        let sourceTypeRaw = data["sourceType"] as? String
+        let sourceType = sourceTypeRaw.flatMap { RecipeSourceType(rawValue: $0) } ?? .manual
+
+        let recipe = Recipe(
+            title: title,
+            sourceType: sourceType,
+            sourceURL: data["sourceURL"] as? String,
+            instructions: data["instructions"] as? [String] ?? [],
+            servings: data["servings"] as? String,
+            prepTime: data["prepTime"] as? String,
+            cookTime: data["cookTime"] as? String
+        )
+        recipe.id = recipeId
+        recipe.imageFileName = data["imageFileName"] as? String
+        recipe.firebaseImageURL = data["firebaseImageURL"] as? String
+        recipe.notes = data["notes"] as? String
+        recipe.timesCooked = data["timesCooked"] as? Int ?? 0
+
+        if let dateTimestamp = data["dateAdded"] as? Timestamp {
+            recipe.dateAdded = dateTimestamp.dateValue()
+        } else if let dateString = data["dateAdded"] as? String,
+                  let date = ISO8601DateFormatter().date(from: dateString) {
+            recipe.dateAdded = date
+        }
+
+        return recipe
     }
 
     // MARK: - Lineage Statistics

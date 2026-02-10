@@ -512,6 +512,25 @@ service cloud.firestore {
     }
 
     // ========================================
+    // SOURCE CATALOG (Crowdsourced Source Registry)
+    // Shared catalog of recipe sources (websites, cookbooks, creators)
+    // Stored at: source_catalog/{sourceId}
+    // ========================================
+    match /source_catalog/{sourceId} {
+      // Any authenticated user can read the catalog
+      allow read: if isAuthenticated();
+
+      // Any authenticated user can contribute to the catalog
+      allow create: if isAuthenticated();
+
+      // Any authenticated user can update (increment counts, add aliases)
+      allow update: if isAuthenticated();
+
+      // No deletion (catalog entries are permanent)
+      allow delete: if false;
+    }
+
+    // ========================================
     // FALLBACK: Deny all other access
     // ========================================
     match /{document=**} {

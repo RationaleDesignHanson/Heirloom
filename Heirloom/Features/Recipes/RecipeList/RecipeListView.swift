@@ -1527,7 +1527,8 @@ struct RecipeCardView: View {
                 AsyncRecipeImage(
                     imageFileName: recipe.imageFileName,
                     firebaseImageURL: recipe.firebaseImageURL,
-                    placeholder: placeholderIcon
+                    placeholder: placeholderIcon,
+                    isGenerating: recipe.needsAIImage
                 )
                 .frame(maxWidth: .infinity)
                 .aspectRatio(3/2, contentMode: .fill)

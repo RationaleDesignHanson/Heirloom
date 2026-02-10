@@ -599,6 +599,9 @@ struct RecipeDetailView: View {
                     // Source Section
                     sourceSection
 
+                    // More from this source
+                    moreFromSourceSection
+
                     // Comments Section
                     commentsSection
                 }
@@ -1046,7 +1049,8 @@ extension RecipeDetailView {
                     AsyncRecipeImage(
                         imageFileName: displayImageFileName,
                         firebaseImageURL: displayFirebaseImageURL,
-                        placeholder: recipe.sourceType?.iconName ?? "fork.knife"
+                        placeholder: recipe.sourceType?.iconName ?? "fork.knife",
+                        isGenerating: recipe.needsAIImage
                     )
 
                     // Public recipe badge (bottom right overlay) - Phase 11
@@ -1921,6 +1925,49 @@ extension RecipeDetailView {
             }
         }
         .padding(.top, HeirloomSpacing.lg)
+    }
+
+    // MARK: - More From Source Section
+    @ViewBuilder
+    private var moreFromSourceSection: some View {
+        if let source = recipe.knownSource {
+            let siblings = (source.recipes ?? []).filter { $0.id != recipe.id }
+            if !siblings.isEmpty {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                    Text("More from \(source.name)")
+                        .font(.headline)
+                        .foregroundStyle(HeirloomColors.charcoal)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: HeirloomSpacing.sm) {
+                            ForEach(siblings.prefix(10), id: \.id) { sibling in
+                                NavigationLink(value: sibling) {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        AsyncRecipeImage(
+                                            imageFileName: sibling.imageFileName,
+                                            firebaseImageURL: sibling.firebaseImageURL,
+                                            placeholder: sibling.sourceType?.iconName ?? "fork.knife",
+                                            isGenerating: sibling.needsAIImage
+                                        )
+                                        .frame(width: 140, height: 100)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                        Text(sibling.title)
+                                            .font(.caption)
+                                            .foregroundStyle(HeirloomColors.charcoal)
+                                            .lineLimit(2)
+                                            .multilineTextAlignment(.leading)
+                                            .frame(width: 140, alignment: .leading)
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                .padding(.top, HeirloomSpacing.lg)
+            }
+        }
     }
 
     // MARK: - Comments Section

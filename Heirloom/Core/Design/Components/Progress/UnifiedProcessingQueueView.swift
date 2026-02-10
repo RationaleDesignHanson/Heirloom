@@ -399,7 +399,8 @@ struct UnifiedProcessingQueueView: View {
             guard let videoJob = videoJobs.first(where: { $0.id == job.id }) else { return false }
             return videoJob.canResume || videoJob.appearsStuck
         case .generation:
-            return false
+            guard let genJob = generationJobs.first(where: { $0.id == job.id }) else { return false }
+            return genJob.status == .failed
         }
     }
 
@@ -437,7 +438,12 @@ struct UnifiedProcessingQueueView: View {
                 }
             }
         case .generation:
-            break // Generation jobs don't support resume
+            guard let genJob = generationJobs.first(where: { $0.id == job.id }) else { return }
+            let service = ServiceContainer.shared.resolve(RecipeGenerationService.self)
+            service.retryJob(genJob, context: modelContext)
+            Log.info("Retried generation job from queue", category: .general, metadata: [
+                "job_id": genJob.id.uuidString
+            ])
         }
     }
 

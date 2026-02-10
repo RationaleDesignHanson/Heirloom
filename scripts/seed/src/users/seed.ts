@@ -113,6 +113,20 @@ const DEMO_USERS = [
     demoSeedVersion: 'v2',
     demoSeedLabel: 'discover-capture',
   },
+  {
+    id: 'demo_bigshare',
+    displayName: 'Big Share',
+    email: 'bigshare@example.com',
+    photoURL: 'https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_bigshare-avatar.webp',
+    bio: 'I believe every great recipe deserves to travel. Share freely, cook boldly.',
+    location: 'Everywhere',
+    specialties: ['Italian', 'Comfort Food', 'Slow Cooking', 'Community'],
+    connectionCount: 5420,
+    isVerified: true,
+    isDemoSeed: true,
+    demoSeedVersion: 'v2',
+    demoSeedLabel: 'bigshare-lineage',
+  },
 ];
 
 /**

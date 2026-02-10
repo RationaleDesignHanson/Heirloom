@@ -42,13 +42,17 @@ struct LineageTimelineView: View {
                             isLast: index == sortedNodes.count - 1,
                             parentNode: tree.parent(of: node.recipe.id),
                             isSelected: selectedNodeID == node.recipe.id,
-                            onTapContributor: onTapContributor
+                            onTapContributor: onTapContributor,
+                            onTapRecipe: { onTapRecipe(node.recipe) }
                         )
                         .onTapGesture {
                             withAnimation(.spring(response: 0.3)) {
-                                selectedNodeID = node.recipe.id
+                                if selectedNodeID == node.recipe.id {
+                                    selectedNodeID = nil // Toggle off
+                                } else {
+                                    selectedNodeID = node.recipe.id
+                                }
                             }
-                            onTapRecipe(node.recipe)
                         }
                     }
                 }
@@ -107,14 +111,28 @@ private struct TimelineItemView: View {
     let parentNode: LineageNode?
     let isSelected: Bool
     var onTapContributor: ((ContributorInfo) -> Void)? = nil // Phase 8
+    var onTapRecipe: (() -> Void)? = nil
+
+    /// Whether this node has changes compared to its parent (for diff display)
+    private var hasDiffData: Bool {
+        node.version != nil && parentNode?.version != nil && node.generation > 0
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: HeirloomSpacing.md) {
             // Timeline line and dot
             timelineIndicator
 
-            // Recipe card
-            recipeCard
+            // Recipe card + expandable diff
+            VStack(alignment: .leading, spacing: 0) {
+                recipeCard
+
+                // Expandable diff section (shown when selected and has parent)
+                if isSelected && hasDiffData {
+                    diffSection
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
         }
     }
 
@@ -163,7 +181,7 @@ private struct TimelineItemView: View {
 
     private var recipeCard: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            // Header with title and generation badge
+            // Header with title and image thumbnail
             HStack {
                 VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
                     Text(node.recipe.title)
@@ -183,15 +201,14 @@ private struct TimelineItemView: View {
 
                 Spacer()
 
-                // Recipe image thumbnail (placeholder for now)
-                // TODO: Add image loading using imageFileName
-                Circle()
-                    .fill(node.generationColor.opacity(0.2))
-                    .frame(width: 60, height: 60)
-                    .overlay(
-                        Image(systemName: "photo")
-                            .foregroundStyle(node.generationColor)
-                    )
+                // Recipe image thumbnail
+                AsyncRecipeImage(
+                    imageFileName: node.recipe.imageFileName,
+                    firebaseImageURL: node.recipe.firebaseImageURL,
+                    placeholder: node.recipe.sourceType?.iconName ?? "fork.knife"
+                )
+                .frame(width: 60, height: 60)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
 
             // Relationship to parent
@@ -212,12 +229,18 @@ private struct TimelineItemView: View {
                 }
             }
 
-            // Stats
+            // Stats + expand hint
             HStack(spacing: HeirloomSpacing.md) {
                 statItem(icon: "flame.fill", value: node.stats.cookCount, label: "cooks")
                 statItem(icon: "square.and.arrow.up", value: node.stats.shareCount, label: "shares")
 
                 Spacer()
+
+                if hasDiffData {
+                    Image(systemName: isSelected ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 12))
+                        .foregroundStyle(HeirloomColors.warmGray)
+                }
 
                 // Date
                 Text(node.recipe.dateAdded.formatted(date: .abbreviated, time: .omitted))
@@ -235,6 +258,59 @@ private struct TimelineItemView: View {
             RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
                 .stroke(isSelected ? HeirloomColors.tomato : .clear, lineWidth: 2)
         )
+    }
+
+    // MARK: - Diff Section
+
+    private var diffSection: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            // Section header
+            HStack {
+                Image(systemName: "doc.text.magnifyingglass")
+                    .font(.system(size: 14))
+                    .foregroundStyle(HeirloomColors.tomato)
+
+                Text("Changes from \(parentNode?.contributor?.displayName ?? "Original")")
+                    .font(HeirloomFonts.caption1Bold)
+                    .foregroundStyle(HeirloomColors.primaryText)
+
+                Spacer()
+            }
+
+            // Inline diff view comparing this node to its parent
+            if let currentVersion = node.version,
+               let parentVersion = parentNode?.version {
+                RecipeDiffView(
+                    currentVersion: currentVersion,
+                    comparedVersion: parentVersion
+                )
+            }
+
+            // View Recipe button
+            if node.isCurrentUser {
+                Button {
+                    onTapRecipe?()
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.right.circle.fill")
+                        Text("View Recipe")
+                    }
+                    .font(HeirloomFonts.caption1Bold)
+                    .foregroundStyle(HeirloomColors.tomato)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, HeirloomSpacing.sm)
+                    .background(HeirloomColors.tomato.opacity(0.1))
+                    .cornerRadius(8)
+                }
+            }
+        }
+        .padding(HeirloomSpacing.md)
+        .padding(.top, 0)
+        .background(
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                .fill(HeirloomColors.cream)
+        )
+        .padding(.top, -4) // Tuck under the card
     }
 
     @ViewBuilder
@@ -351,6 +427,7 @@ struct LineageContainerView: View {
     @State private var errorMessage: String?
     @State private var selectedContributor: ContributorInfo? // Phase 8
     @State private var showContributorProfile = false // Phase 8
+    @State private var viewMode: LineageViewMode = .timeline
 
     private var lineageService: RecipeLineageService { ServiceContainer.shared.resolve(RecipeLineageService.self) }
     private var analytics: AnalyticsService { ServiceContainer.shared.resolve(AnalyticsService.self) }
@@ -363,19 +440,34 @@ struct LineageContainerView: View {
             } else if let error = errorMessage {
                 errorView(error)
             } else if let tree = tree {
-                // Always show timeline view
-                LineageTimelineView(
-                    tree: tree,
-                    onTapRecipe: onTapRecipe,
-                    onTapContributor: { contributor in
-                        selectedContributor = contributor
-                        showContributorProfile = true
-                    }
-                )
+                switch viewMode {
+                case .timeline:
+                    LineageTimelineView(
+                        tree: tree,
+                        onTapRecipe: onTapRecipe,
+                        onTapContributor: { contributor in
+                            selectedContributor = contributor
+                            showContributorProfile = true
+                        }
+                    )
+                case .graph:
+                    LineageGraphView(tree: tree, onTapNode: onTapRecipe)
+                }
             }
         }
         .navigationTitle("Recipe Lineage")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("View", selection: $viewMode) {
+                    ForEach(LineageViewMode.allCases, id: \.self) { mode in
+                        Label(mode.displayName, systemImage: mode.icon).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 180)
+            }
+        }
         .sheet(isPresented: $showContributorProfile) {
             if let contributor = selectedContributor {
                 LineageContributorSheet(contributor: contributor)

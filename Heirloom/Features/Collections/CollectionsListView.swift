@@ -122,6 +122,7 @@ struct CollectionsListView: View {
                 collection.type == .videoImports ||
                 collection.type == .webImports ||
                 collection.type == .photoImports ||
+                collection.type == .readRecipes ||
                 collection.type == .cookbook ||
                 collection.type == .userCreated
             }
@@ -1454,6 +1455,14 @@ struct CollectionsListView: View {
     }
 
     private func navigateToGeneratedRecipe(for job: RecipeGenerationJob) {
+        // Handle failed jobs by retrying
+        if job.status == .failed {
+            let service = ServiceContainer.shared.resolve(RecipeGenerationService.self)
+            service.retryJob(job, context: modelContext)
+            toastManager.success(title: "Retrying", message: "Regenerating \(job.dishName)...")
+            return
+        }
+
         // Only handle completed jobs with a recipe
         guard job.status == .completed,
               let recipeId = job.placeholderRecipeId else {
@@ -1637,7 +1646,7 @@ struct CollectionsListView: View {
     /// Check if collection should have AI background auto-generated (Task #2)
     private func shouldAutoGenerateBackground(for collection: RecipeCollection) -> Bool {
         // Skip collections that have preset backgrounds - use the hardcoded assets instead
-        let typesWithPresetBackgrounds: [CollectionType] = [.cookbook, .videoImports, .fromFriends, .webImports, .photoImports]
+        let typesWithPresetBackgrounds: [CollectionType] = [.cookbook, .videoImports, .fromFriends, .webImports, .photoImports, .readRecipes]
         if typesWithPresetBackgrounds.contains(collection.type) {
             return false
         }

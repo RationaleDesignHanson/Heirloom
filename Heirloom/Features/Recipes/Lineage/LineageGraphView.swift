@@ -10,43 +10,43 @@ struct LineageGraphView: View {
     @State private var offset: CGSize = .zero
     @State private var nodePositions: [UUID: CGPoint] = [:]
     @State private var selectedNodeID: UUID?
+    @State private var lastDragValue: CGSize = .zero
 
-    private let nodeRadius: CGFloat = 40
+    private let nodeCardWidth: CGFloat = 110
+    private let nodeCardHeight: CGFloat = 90
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Background
-                Color.white
+                HeirloomColors.appBackground
                     .ignoresSafeArea()
 
-                // Graph canvas
+                // Canvas for edges only
                 Canvas { context, size in
-                    // Apply transformations
                     context.translateBy(x: offset.width, y: offset.height)
                     context.scaleBy(x: scale, y: scale)
-
-                    // Draw edges first (so they appear behind nodes)
                     drawEdges(context: context, size: size)
-
-                    // Draw nodes
-                    drawNodes(context: context, size: size)
                 }
-                .gesture(
-                    SimultaneousGesture(
-                        MagnificationGesture()
-                            .onChanged { value in
-                                scale = min(max(value, 0.5), 3.0)
-                            },
-                        DragGesture()
-                            .onChanged { value in
-                                offset = CGSize(
-                                    width: offset.width + value.translation.width,
-                                    height: offset.height + value.translation.height
-                                )
+
+                // SwiftUI node cards overlay
+                ForEach(tree.nodes, id: \.id) { node in
+                    if let pos = nodePositions[node.recipe.id] {
+                        LineageNodeCard(
+                            node: node,
+                            isSelected: node.recipe.id == selectedNodeID
+                        )
+                        .position(
+                            x: pos.x * scale + offset.width,
+                            y: pos.y * scale + offset.height
+                        )
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.3)) {
+                                selectedNodeID = node.recipe.id
                             }
-                    )
-                )
+                            onTapNode(node.recipe)
+                        }
+                    }
+                }
 
                 // Controls overlay
                 VStack {
@@ -65,11 +65,32 @@ struct LineageGraphView: View {
                 }
                 .padding()
             }
+            .contentShape(Rectangle())
+            .gesture(
+                SimultaneousGesture(
+                    MagnificationGesture()
+                        .onChanged { value in
+                            scale = min(max(value, 0.5), 3.0)
+                        },
+                    DragGesture()
+                        .onChanged { value in
+                            offset = CGSize(
+                                width: lastDragValue.width + value.translation.width,
+                                height: lastDragValue.height + value.translation.height
+                            )
+                        }
+                        .onEnded { _ in
+                            lastDragValue = offset
+                        }
+                )
+            )
             .onAppear {
                 calculateLayout(in: geometry.size)
             }
             .onChange(of: layoutAlgorithm) { _, _ in
-                calculateLayout(in: geometry.size)
+                withAnimation(.spring(response: 0.4)) {
+                    calculateLayout(in: geometry.size)
+                }
             }
         }
     }
@@ -91,6 +112,7 @@ struct LineageGraphView: View {
                 withAnimation(.spring()) {
                     scale = 1.0
                     offset = .zero
+                    lastDragValue = .zero
                 }
             } label: {
                 Label("Reset View", systemImage: "arrow.counterclockwise")
@@ -115,14 +137,37 @@ struct LineageGraphView: View {
             if let selectedNode = tree.nodes.first(where: { $0.recipe.id == selectedNodeID }) {
                 Divider()
 
-                Text(selectedNode.recipe.title)
-                    .font(HeirloomFonts.bodyBold)
-                    .foregroundStyle(HeirloomColors.primaryText)
-                    .lineLimit(1)
+                HStack(spacing: HeirloomSpacing.sm) {
+                    AsyncRecipeImage(
+                        imageFileName: selectedNode.recipe.imageFileName,
+                        firebaseImageURL: selectedNode.recipe.firebaseImageURL,
+                        placeholder: selectedNode.recipe.sourceType?.iconName ?? "fork.knife"
+                    )
+                    .frame(width: 40, height: 40)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
 
-                Text(selectedNode.generationBadge)
-                    .font(HeirloomFonts.caption2)
-                    .foregroundStyle(selectedNode.generationColor)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(selectedNode.recipe.title)
+                            .font(HeirloomFonts.bodyBold)
+                            .foregroundStyle(HeirloomColors.primaryText)
+                            .lineLimit(1)
+
+                        Text(selectedNode.generationBadge)
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(selectedNode.generationColor)
+                    }
+                }
+
+                if let contributor = selectedNode.contributor {
+                    HStack(spacing: HeirloomSpacing.xs) {
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                        Text(contributor.displayName)
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+                }
 
                 Text(selectedNode.stats.displayStats)
                     .font(HeirloomFonts.caption2)
@@ -137,7 +182,7 @@ struct LineageGraphView: View {
         )
     }
 
-    // MARK: - Drawing
+    // MARK: - Edge Drawing
 
     private func drawEdges(context: GraphicsContext, size: CGSize) {
         for edge in tree.edges {
@@ -146,42 +191,47 @@ struct LineageGraphView: View {
                 continue
             }
 
-            // Draw line
+            // Draw curved line
             var path = Path()
             path.move(to: fromPos)
-            path.addLine(to: toPos)
+
+            // Use a quadratic curve for nicer visual
+            let midY = (fromPos.y + toPos.y) / 2
+            path.addCurve(
+                to: toPos,
+                control1: CGPoint(x: fromPos.x, y: midY),
+                control2: CGPoint(x: toPos.x, y: midY)
+            )
 
             context.stroke(
                 path,
-                with: .color(edge.edgeType.color.opacity(0.5)),
-                lineWidth: 2
+                with: .color(edge.edgeType.color.opacity(0.4)),
+                lineWidth: 2.5
             )
 
-            // Draw arrow
+            // Draw arrow near target
             drawArrow(context: context, from: fromPos, to: toPos, color: edge.edgeType.color)
         }
     }
 
     private func drawArrow(context: GraphicsContext, from: CGPoint, to: CGPoint, color: Color) {
         let arrowSize: CGFloat = 8
-
-        // Calculate arrow position (slightly before the target node)
         let dx = to.x - from.x
         let dy = to.y - from.y
         let distance = sqrt(dx * dx + dy * dy)
 
         guard distance > 0 else { return }
 
-        let ratio = (distance - nodeRadius - 5) / distance
+        // Stop arrow before the node card edge
+        let stopDistance = nodeCardHeight / 2 + 5
+        let ratio = (distance - stopDistance) / distance
         let arrowPos = CGPoint(
             x: from.x + dx * ratio,
             y: from.y + dy * ratio
         )
 
-        // Calculate arrow angle
         let angle = atan2(dy, dx)
 
-        // Draw arrowhead
         var arrowPath = Path()
         arrowPath.move(to: arrowPos)
         arrowPath.addLine(to: CGPoint(
@@ -194,46 +244,7 @@ struct LineageGraphView: View {
             y: arrowPos.y - arrowSize * sin(angle + .pi / 6)
         ))
 
-        context.stroke(arrowPath, with: .color(color.opacity(0.7)), lineWidth: 2)
-    }
-
-    private func drawNodes(context: GraphicsContext, size: CGSize) {
-        for node in tree.nodes {
-            guard let position = nodePositions[node.recipe.id] else { continue }
-
-            let isSelected = node.recipe.id == selectedNodeID
-
-            // Draw node circle
-            let circlePath = Path(ellipseIn: CGRect(
-                x: position.x - nodeRadius,
-                y: position.y - nodeRadius,
-                width: nodeRadius * 2,
-                height: nodeRadius * 2
-            ))
-
-            // Fill
-            context.fill(
-                circlePath,
-                with: .color(node.generationColor.opacity(isSelected ? 1.0 : 0.8))
-            )
-
-            // Border
-            context.stroke(
-                circlePath,
-                with: .color(isSelected ? HeirloomColors.charcoal : .white),
-                lineWidth: isSelected ? 3 : 2
-            )
-
-            // Draw generation badge
-            let badgeText = Text(node.generationBadge)
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(HeirloomColors.buttonTextLight)
-
-            context.draw(badgeText, at: position, anchor: .center)
-
-            // Draw title below node (skip for now - complex text rendering)
-            // TODO: Add title rendering if needed
-        }
+        context.stroke(arrowPath, with: .color(color.opacity(0.6)), lineWidth: 2)
     }
 
     // MARK: - Layout Calculation
@@ -245,8 +256,65 @@ struct LineageGraphView: View {
         case .timeline:
             nodePositions = LineageLayoutEngine.timelineLayout(tree: tree, in: size)
         case .force:
-            nodePositions = LineageLayoutEngine.hierarchicalLayout(tree: tree, in: size) // Fallback
+            nodePositions = LineageLayoutEngine.hierarchicalLayout(tree: tree, in: size)
         }
+    }
+}
+
+// MARK: - Node Card View
+
+private struct LineageNodeCard: View {
+    let node: LineageNode
+    let isSelected: Bool
+
+    var body: some View {
+        VStack(spacing: 4) {
+            // Recipe image or contributor initials
+            AsyncRecipeImage(
+                imageFileName: node.recipe.imageFileName,
+                firebaseImageURL: node.recipe.firebaseImageURL,
+                placeholder: node.recipe.sourceType?.iconName ?? "fork.knife"
+            )
+            .frame(width: 32, height: 32)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+
+            // Recipe title
+            Text(node.recipe.title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(HeirloomColors.primaryText)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity)
+
+            // Contributor name
+            if let contributor = node.contributor {
+                Text(contributor.displayName)
+                    .font(.system(size: 9))
+                    .foregroundStyle(HeirloomColors.secondaryText)
+                    .lineLimit(1)
+            }
+
+            // Generation badge pill
+            Text(node.generationBadge)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(
+                    Capsule().fill(node.generationColor)
+                )
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .frame(width: 110)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(.white)
+                .shadow(color: isSelected ? HeirloomColors.tomato.opacity(0.3) : .black.opacity(0.08), radius: isSelected ? 8 : 4, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(isSelected ? HeirloomColors.tomato : .clear, lineWidth: 2.5)
+        )
     }
 }
 

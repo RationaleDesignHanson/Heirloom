@@ -693,6 +693,15 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             // Clean up old tombstones after successful sync
             cleanupOldTombstones(context: context)
 
+            // Clear any remaining loading states — all downloads are complete at this point
+            if !loadingCollectionIds.isEmpty {
+                Log.info("Clearing stale loading states after sync", category: .sync, metadata: [
+                    "collections": loadingCollectionIds.count
+                ])
+                loadingCollectionIds.removeAll()
+                syncProgress.removeAll()
+            }
+
         } catch {
             DeviceLogger.shared.log("❌ [Firebase] Sync failed: \(error.localizedDescription)", level: .error)
             logger.error("❌ [Firebase] Sync failed: \(error.localizedDescription)")
@@ -1384,7 +1393,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         let allLocalCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
         var localCollectionsByNameAndType: [String: RecipeCollection] = [:]
         for local in allLocalCollections {
-            let key = "\(local.name)|\(local.collectionType ?? "")"
+            let key = "\(local.name)|\(local.collectionType)"
             localCollectionsByNameAndType[key] = local
         }
 
@@ -1620,6 +1629,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             ("From Videos", "videoImports", "from-videos-bg"),
             ("From Photos", "photoImports", "from-photos-bg"),
             ("From Friends", "fromFriends", "from-friends-bg"),
+            ("Read Recipes", "readRecipes", "read-recipes-bg"),
         ]
 
         for collection in allCollections {

@@ -163,11 +163,13 @@ struct AsyncRecipeImage: View {
     let imageFileName: String?
     let firebaseImageURL: String?  // NEW: Firebase Storage URL
     let placeholder: String
+    let isGenerating: Bool
 
-    init(imageFileName: String?, firebaseImageURL: String? = nil, placeholder: String = "photo") {
+    init(imageFileName: String?, firebaseImageURL: String? = nil, placeholder: String = "photo", isGenerating: Bool = false) {
         self.imageFileName = imageFileName
         self.firebaseImageURL = firebaseImageURL
         self.placeholder = placeholder
+        self.isGenerating = isGenerating
     }
 
     // Using concrete type for image storage
@@ -188,6 +190,20 @@ struct AsyncRecipeImage: View {
                 } else if isLoading {
                     SkeletonView(cornerRadius: 0)
                         .frame(width: geometry.size.width, height: geometry.size.height)
+                } else if isGenerating {
+                    // Image being generated in background
+                    Rectangle()
+                        .fill(HeirloomColors.warmGray.opacity(0.15))
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .overlay {
+                            VStack(spacing: 8) {
+                                ProgressView()
+                                    .tint(HeirloomColors.warmGray)
+                                Text("Generating image...")
+                                    .font(.caption2)
+                                    .foregroundStyle(HeirloomColors.warmGray)
+                            }
+                        }
                 } else {
                     // Fallback placeholder
                     Rectangle()
