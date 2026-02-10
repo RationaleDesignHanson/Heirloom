@@ -132,21 +132,21 @@ struct PaywallView: View {
                     if !subscriptionManager.canUpgrade {
                         planOption(
                             productID: .annual,
-                            price: "$29.99/year",
+                            price: "$39.99/year",
                             trial: "14-day free trial",
                             badge: "BEST VALUE"
                         )
 
                         planOption(
                             productID: .monthly,
-                            price: "$4.99/month",
+                            price: "$6.99/month",
                             trial: "7-day free trial",
                             badge: nil
                         )
 
                         planOption(
                             productID: .lifetime,
-                            price: "$99 once",
+                            price: "$149 once",
                             trial: "No subscription",
                             badge: "FOUNDING MEMBER • LIMITED"
                         )
@@ -154,14 +154,14 @@ struct PaywallView: View {
                         // Upgrading from Monthly to Annual
                         planOption(
                             productID: .annual,
-                            price: "$29.99/year",
+                            price: "$39.99/year",
                             trial: "Save over 50%",
                             badge: "RECOMMENDED"
                         )
 
                         planOption(
                             productID: .lifetime,
-                            price: "$99 once",
+                            price: "$149 once",
                             trial: "No subscription",
                             badge: "ONE-TIME PAYMENT"
                         )

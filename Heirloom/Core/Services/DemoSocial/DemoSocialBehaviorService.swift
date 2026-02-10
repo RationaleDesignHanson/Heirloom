@@ -56,6 +56,15 @@ final class DemoSocialBehaviorService: ObservableObject {
     /// Connection IDs we're watching for recipe sharing
     private var pendingRecipeShares: Set<String> = []
 
+    /// UserDefaults key for tracking whether proactive demo request was sent
+    private static let proactiveRequestSentKey = "demo_social_proactive_request_sent"
+
+    /// Whether we've already sent a proactive demo request for this user
+    private var hasSentProactiveRequest: Bool {
+        get { UserDefaults.standard.bool(forKey: Self.proactiveRequestSentKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.proactiveRequestSentKey) }
+    }
+
     // MARK: - Demo User Data
 
     /// List of demo user IDs
@@ -65,7 +74,8 @@ final class DemoSocialBehaviorService: ObservableObject {
         "demo_chef_maria",
         "demo_fitfoodie",
         "demo_bakingbelle",
-        "demo_grillmaster"
+        "demo_grillmaster",
+        "demo_bigshare"
     ]
 
     /// Demo user display info for creating connections/shares
@@ -94,6 +104,10 @@ final class DemoSocialBehaviorService: ObservableObject {
             displayName: "Marcus Johnson",
             photoURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_grillmaster-avatar.webp"
         ),
+        "demo_bigshare": (
+            displayName: "Big Share",
+            photoURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_bigshare-avatar.webp"
+        ),
     ]
 
     /// Demo recipe details for sharing (includes preview metadata)
@@ -107,6 +121,28 @@ final class DemoSocialBehaviorService: ObservableObject {
         let ingredientCount: Int
         let instructionCount: Int
         let imageURL: String
+        // Lineage override fields (nil = recipe is root, existing behavior)
+        let rootRecipeId: String?
+        let rootOwnerId: String?
+        let shareGeneration: Int  // Generation the RECIPIENT gets (default 1)
+
+        init(recipeId: String, title: String, message: String, servings: String,
+             prepTime: String, cookTime: String, ingredientCount: Int, instructionCount: Int,
+             imageURL: String, rootRecipeId: String? = nil, rootOwnerId: String? = nil,
+             shareGeneration: Int = 1) {
+            self.recipeId = recipeId
+            self.title = title
+            self.message = message
+            self.servings = servings
+            self.prepTime = prepTime
+            self.cookTime = cookTime
+            self.ingredientCount = ingredientCount
+            self.instructionCount = instructionCount
+            self.imageURL = imageURL
+            self.rootRecipeId = rootRecipeId
+            self.rootOwnerId = rootOwnerId
+            self.shareGeneration = shareGeneration
+        }
     }
 
     /// Recommended recipes to share per demo user (UUIDs from seed data)
@@ -176,6 +212,20 @@ final class DemoSocialBehaviorService: ObservableObject {
             ingredientCount: 8,
             instructionCount: 7,
             imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_grillmaster_smash_burgers-image.webp"
+        ),
+        "demo_bigshare": DemoRecipeDetails(
+            recipeId: "E5F6A7B8-C9D0-1234-EFAB-345678901234",
+            title: "The Traveling Bolognese",
+            message: "This recipe started with Grandmazing in Vermont and has traveled through 5 kitchens — each person added their own twist. Accept it and check the Family Tree to see how it evolved!",
+            servings: "6 servings",
+            prepTime: "20 min",
+            cookTime: "4 hours",
+            ingredientCount: 14,
+            instructionCount: 8,
+            imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_bigshare_bolognese-image.webp",
+            rootRecipeId: "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+            rootOwnerId: "demo_grandmazing",
+            shareGeneration: 2
         ),
     ]
 
@@ -355,11 +405,18 @@ final class DemoSocialBehaviorService: ObservableObject {
     private func scheduleProactiveDemoRequest() {
         guard let auth = auth, let userId = auth.currentUser?.uid else { return }
 
+        // Fast local check — prevent duplicate requests across app launches
+        if hasSentProactiveRequest {
+            Log.debug("Proactive demo request already sent (UserDefaults), skipping", category: .social)
+            return
+        }
+
         // Check if user already has a demo connection (don't spam)
         Task {
             let hasExistingDemo = await checkIfUserHasDemoConnection(userId: userId)
             if hasExistingDemo {
                 Log.debug("User already has demo connection, skipping proactive request", category: .social)
+                hasSentProactiveRequest = true  // Mark so we don't re-check next launch
                 return
             }
 
@@ -446,6 +503,9 @@ final class DemoSocialBehaviorService: ObservableObject {
                 .collection("connections")
                 .document(connectionId)
                 .setData(userConnection)
+
+            // Mark as sent so we never duplicate on subsequent launches
+            hasSentProactiveRequest = true
 
             Log.info("Demo user sent proactive connection request", category: .social, metadata: [
                 "demoUserId": demoUserId,
@@ -552,6 +612,24 @@ final class DemoSocialBehaviorService: ObservableObject {
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
         guard let welcomeRecipe = Self.demoUserWelcomeRecipes[demoUserId] else { return }
 
+        // Check if we already sent a welcome share from this demo user to this user
+        do {
+            let existingShares = try await db.collection("shares")
+                .whereField("ownerId", isEqualTo: demoUserId)
+                .whereField("recipeId", isEqualTo: welcomeRecipe.recipeId)
+                .whereField("recipientUserIds", arrayContains: userId)
+                .getDocuments()
+
+            if !existingShares.documents.isEmpty {
+                Log.debug("Welcome share already exists, skipping duplicate", category: .social, metadata: [
+                    "demoUserId": demoUserId
+                ])
+                return
+            }
+        } catch {
+            Log.warning("Failed to check existing welcome shares, proceeding anyway", category: .social)
+        }
+
         let shareId = UUID().uuidString
         let now = Date()
         let expiresAt = Calendar.current.date(byAdding: .day, value: 7, to: now)!
@@ -576,9 +654,9 @@ final class DemoSocialBehaviorService: ObservableObject {
             "includeStickers": true,
             "personalMessage": welcomeRecipe.message,
             "allowReSharing": true,
-            "generation": 1,
-            "rootRecipeId": welcomeRecipe.recipeId,
-            "rootOwnerId": demoUserId,
+            "generation": welcomeRecipe.shareGeneration,
+            "rootRecipeId": welcomeRecipe.rootRecipeId ?? welcomeRecipe.recipeId,
+            "rootOwnerId": welcomeRecipe.rootOwnerId ?? demoUserId,
             "recipientUserIds": [userId],
             "isDirectShare": true,
             "sharedWithCount": 1,
@@ -697,6 +775,25 @@ final class DemoSocialBehaviorService: ObservableObject {
         guard let welcomeRecipe = Self.demoUserWelcomeRecipes[demoUserId] else { return }
         guard let demoInfo = Self.demoUserInfo[demoUserId] else { return }
 
+        // Check if we already shared this recipe to this user
+        do {
+            let existingShares = try await db.collection("shares")
+                .whereField("ownerId", isEqualTo: demoUserId)
+                .whereField("recipeId", isEqualTo: welcomeRecipe.recipeId)
+                .whereField("recipientUserIds", arrayContains: userId)
+                .getDocuments()
+
+            if !existingShares.documents.isEmpty {
+                Log.debug("Demo share already exists, skipping duplicate", category: .social, metadata: [
+                    "demoUserId": demoUserId,
+                    "existingShareCount": existingShares.documents.count
+                ])
+                return
+            }
+        } catch {
+            Log.warning("Failed to check existing shares, proceeding anyway", category: .social)
+        }
+
         // Check if the connection is still active
         do {
             let connectionDoc = try await db.collection("users")
@@ -738,9 +835,9 @@ final class DemoSocialBehaviorService: ObservableObject {
             "includeStickers": true,
             "personalMessage": welcomeRecipe.message,
             "allowReSharing": true,
-            "generation": 1,
-            "rootRecipeId": welcomeRecipe.recipeId,
-            "rootOwnerId": demoUserId,
+            "generation": welcomeRecipe.shareGeneration,
+            "rootRecipeId": welcomeRecipe.rootRecipeId ?? welcomeRecipe.recipeId,
+            "rootOwnerId": welcomeRecipe.rootOwnerId ?? demoUserId,
             "recipientUserIds": [userId],
             "isDirectShare": true,
             "sharedWithCount": 1,

@@ -70,8 +70,12 @@ final class IngredientFormatter {
             }
         }
 
-        // Add name
-        parts.append(ingredient.name)
+        // Add name (with embedded quantities scaled if present)
+        if scaleFactor != 1.0 {
+            parts.append(scaleEmbeddedQuantities(in: ingredient.name, scaleFactor: scaleFactor))
+        } else {
+            parts.append(ingredient.name)
+        }
 
         // Add preparation
         if let prep = ingredient.preparation {
@@ -237,5 +241,100 @@ final class IngredientFormatter {
 
         // If not in our mapping, return as-is
         return unit
+    }
+
+    // MARK: - Embedded Quantity Scaling
+
+    /// Scale any embedded quantities found in text (e.g., "plus 1 tablespoon" in ingredient names)
+    /// Handles compound ingredients like "1/4 cup + 1 tablespoon butter, divided"
+    /// where the parser only extracted the first quantity and the rest is in the name.
+    private nonisolated func scaleEmbeddedQuantities(in text: String, scaleFactor: Double) -> String {
+        let units = [
+            "cups?", "tablespoons?", "tbsp", "teaspoons?", "tsp",
+            "ounces?", "oz", "pounds?", "lbs?", "grams?",
+            "ml", "liters?", "pinch(?:es)?", "dash(?:es)?",
+            "cloves?", "sticks?", "pieces?", "slices?"
+        ]
+        let unitPattern = "(?:" + units.joined(separator: "|") + ")"
+
+        // Quantity: mixed number "1 1/2", slash fraction "1/4", decimal "1.5",
+        // whole + unicode "2½", standalone unicode "½", or plain integer "2"
+        let qtyPattern = "(\\d+\\s+\\d+/\\d+|\\d+/\\d+|\\d+\\.\\d+|\\d+\\s*[\u{00BD}\u{00BC}\u{00BE}\u{2153}\u{2154}\u{215B}\u{215C}\u{215D}\u{215E}]|[\u{00BD}\u{00BC}\u{00BE}\u{2153}\u{2154}\u{215B}\u{215C}\u{215D}\u{215E}]|\\d+)"
+        let fullPattern = qtyPattern + "(\\s+)" + "(" + unitPattern + ")"
+
+        guard let regex = try? NSRegularExpression(pattern: fullPattern, options: .caseInsensitive) else {
+            return text
+        }
+
+        var result = text as NSString
+        let matches = regex.matches(in: text, range: NSRange(location: 0, length: result.length))
+
+        // Process in reverse to preserve string positions
+        for match in matches.reversed() {
+            let qtyString = result.substring(with: match.range(at: 1))
+            let unitString = result.substring(with: match.range(at: 3))
+
+            if let qty = parseEmbeddedQuantity(qtyString) {
+                let scaled = qty * scaleFactor
+                let formatted = formatQuantity(scaled, unit: unitString)
+                result = result.replacingCharacters(in: match.range(at: 1), with: formatted) as NSString
+            }
+        }
+
+        return result as String
+    }
+
+    /// Parse a quantity string that may contain fractions or unicode fractions
+    private nonisolated func parseEmbeddedQuantity(_ str: String) -> Double? {
+        let trimmed = str.trimmingCharacters(in: .whitespaces)
+
+        let unicodeFractions: [Character: Double] = [
+            "\u{00BD}": 0.5, "\u{00BC}": 0.25, "\u{00BE}": 0.75,
+            "\u{2153}": 1.0/3.0, "\u{2154}": 2.0/3.0,
+            "\u{215B}": 0.125, "\u{215C}": 0.375, "\u{215D}": 0.625, "\u{215E}": 0.875
+        ]
+
+        // Single unicode fraction
+        if trimmed.count == 1, let ch = trimmed.first, let val = unicodeFractions[ch] {
+            return val
+        }
+
+        // Whole number + unicode fraction (e.g., "2½" or "2 ½")
+        for (char, val) in unicodeFractions {
+            if trimmed.contains(char) {
+                let parts = trimmed.split(separator: char)
+                if let wholePart = parts.first,
+                   let whole = Double(wholePart.trimmingCharacters(in: .whitespaces)) {
+                    return whole + val
+                }
+            }
+        }
+
+        // Mixed number with slash fraction (e.g., "1 1/4")
+        let components = trimmed.split(separator: " ")
+        if components.count == 2, let whole = Double(components[0]) {
+            let fracStr = String(components[1])
+            if fracStr.contains("/") {
+                let fracParts = fracStr.split(separator: "/")
+                if fracParts.count == 2,
+                   let num = Double(fracParts[0]),
+                   let den = Double(fracParts[1]), den != 0 {
+                    return whole + (num / den)
+                }
+            }
+        }
+
+        // Slash fraction (e.g., "1/4")
+        if trimmed.contains("/") {
+            let parts = trimmed.split(separator: "/")
+            if parts.count == 2,
+               let num = Double(parts[0].trimmingCharacters(in: .whitespaces)),
+               let den = Double(parts[1].trimmingCharacters(in: .whitespaces)), den != 0 {
+                return num / den
+            }
+        }
+
+        // Plain number
+        return Double(trimmed)
     }
 }

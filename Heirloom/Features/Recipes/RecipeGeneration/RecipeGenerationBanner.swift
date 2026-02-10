@@ -159,11 +159,13 @@ struct RecipeGenerationBanner: View {
         let imageGenerator = ServiceContainer.shared.resolve(RecipeImageGeneratorProtocol.self)
         let aiService = ServiceContainer.shared.resolve(AIServiceProtocol.self)
         let aiConfiguration = ServiceContainer.shared.resolve(AIConfigurationProtocol.self)
+        let imageGenerationQueue = ServiceContainer.shared.resolve(ImageGenerationQueue.self)
         let service = RecipeGenerationService(
             aiGenerator: aiGenerator,
             imageGenerator: imageGenerator,
             aiService: aiService,
-            aiConfiguration: aiConfiguration
+            aiConfiguration: aiConfiguration,
+            imageGenerationQueue: imageGenerationQueue
         )
         return service
     }()

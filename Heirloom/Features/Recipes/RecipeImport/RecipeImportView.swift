@@ -300,7 +300,7 @@ struct RecipeImportView: View {
                                         .foregroundStyle(HeirloomColors.tomato)
                                         .padding(.top, 6)
 
-                                    Text(ingredient)
+                                    Text(formatIngredientPreview(ingredient))
                                         .font(HeirloomFonts.body)
                                         .foregroundStyle(HeirloomColors.primaryText)
                                 }
@@ -338,6 +338,38 @@ struct RecipeImportView: View {
             .padding(HeirloomSpacing.lg)
         }
         .background(HeirloomColors.appBackground)
+    }
+
+    /// Replace leading decimal quantities with Unicode fractions for display
+    private func formatIngredientPreview(_ text: String) -> String {
+        let fractions: [(String, String)] = [
+            ("0.125", "⅛"), ("0.25", "¼"), ("0.333", "⅓"), ("0.33", "⅓"),
+            ("0.5", "½"), ("0.667", "⅔"), ("0.67", "⅔"), ("0.75", "¾")
+        ]
+
+        // Match a leading decimal like "0.75 cup" or "1.5 cups"
+        // Pattern: optional whole number + decimal fraction at the start
+        guard let match = text.range(of: #"^(\d+)?\.(\d+)"#, options: .regularExpression) else {
+            return text
+        }
+
+        let decimalStr = String(text[match])
+        guard let value = Double(decimalStr) else { return text }
+
+        let whole = Int(value)
+        let fractional = value - Double(whole)
+
+        // Try to match the fractional part to a Unicode fraction
+        for (_, (threshold, symbol)) in fractions.enumerated() {
+            guard let thresholdVal = Double(threshold) else { continue }
+            if abs(fractional - thresholdVal) < 0.02 {
+                let formatted = whole > 0 ? "\(whole) \(symbol)" : symbol
+                return text.replacingCharacters(in: match, with: formatted)
+            }
+        }
+
+        // No fraction match — return as-is
+        return text
     }
 
     // MARK: - Actions
@@ -573,6 +605,18 @@ struct RecipeImportView: View {
                 message: error.localizedDescription
             )
             return
+        }
+
+        // Attribute source
+        if let urlString = recipe.sourceURL {
+            let domain = KnownSource.extractDomain(from: urlString)
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: domain ?? "Unknown Website",
+                kind: .website,
+                domain: domain,
+                discoveryMethod: "url_import",
+                recipe: recipe
+            )
         }
 
         // Show success and dismiss immediately

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftData
 import UIKit
 
 /// Protocol for recipe image generation service
@@ -111,10 +112,125 @@ class RecipeImageGenerator: RecipeImageGeneratorProtocol {
 
         // Combine with style modifier
         let subject = promptParts.joined(separator: ", ")
-        let prompt = "\(subject), \(selectedStyle.promptModifier)"
+        let prompt = "\(subject), \(selectedStyle.promptModifier), no people no hands no humans no fingers"
 
         return prompt
     }
 }
 
 // Note: DALLEResponse, DALLEImage, and ImageGenerationError are defined in CollectionImageGenerator.swift
+
+// MARK: - Image Generation Queue
+
+/// Serial background queue for AI image generation with throttling and retry.
+/// Decouples image generation from recipe creation so recipes appear immediately
+/// while images generate one-at-a-time in the background.
+@MainActor
+class ImageGenerationQueue: ObservableObject {
+    private let imageGenerator: RecipeImageGeneratorProtocol
+    private var isProcessing = false
+
+    /// Currently processing recipe ID (for UI indicators)
+    @Published var processingRecipeId: UUID?
+
+    /// Delay between consecutive image generation requests (3 seconds)
+    static let delayBetweenRequests: UInt64 = 3_000_000_000
+
+    /// Base retry delay (15 seconds, doubles with each attempt)
+    static let retryDelay: UInt64 = 15_000_000_000
+
+    /// Maximum generation attempts per recipe before giving up
+    static let maxAttempts = 3
+
+    /// ModelContext for querying recipes needing images
+    var context: ModelContext?
+
+    init(imageGenerator: RecipeImageGeneratorProtocol) {
+        self.imageGenerator = imageGenerator
+    }
+
+    /// Mark a recipe as needing AI image generation and start processing
+    func enqueue(_ recipe: Recipe) {
+        recipe.needsAIImage = true
+        try? context?.save()
+        startProcessingIfNeeded()
+    }
+
+    /// Start the processing loop if not already running
+    func startProcessingIfNeeded() {
+        guard !isProcessing else { return }
+        isProcessing = true
+        Task {
+            await processQueue()
+        }
+    }
+
+    // MARK: - Private
+
+    private func processQueue() async {
+        while true {
+            guard let recipe = fetchNextRecipeNeedingImage() else {
+                isProcessing = false
+                processingRecipeId = nil
+                return
+            }
+
+            processingRecipeId = recipe.id
+
+            var succeeded = false
+            for attempt in 0..<Self.maxAttempts {
+                do {
+                    try await imageGenerator.generateAndSaveImage(for: recipe)
+                    recipe.needsAIImage = false
+                    try? context?.save()
+                    succeeded = true
+                    Log.info("Background image generation succeeded", category: .general, metadata: [
+                        "title": recipe.title,
+                        "attempt": attempt + 1
+                    ])
+                    break
+                } catch {
+                    Log.warning("Background image generation attempt failed", category: .general, metadata: [
+                        "title": recipe.title,
+                        "attempt": attempt + 1,
+                        "maxAttempts": Self.maxAttempts,
+                        "error": error.localizedDescription
+                    ])
+
+                    if attempt < Self.maxAttempts - 1 {
+                        // Exponential backoff: 15s, 30s, 60s
+                        let delay = Self.retryDelay * UInt64(pow(2.0, Double(attempt)))
+                        try? await Task.sleep(nanoseconds: delay)
+                    }
+                }
+            }
+
+            if !succeeded {
+                // Give up after max attempts — clear the flag so user sees placeholder
+                recipe.needsAIImage = false
+                try? context?.save()
+                Log.warning("Image generation failed after all retries, giving up", category: .general, metadata: [
+                    "title": recipe.title,
+                    "recipeId": recipe.id.uuidString
+                ])
+            }
+
+            processingRecipeId = nil
+
+            // Throttle between recipes
+            try? await Task.sleep(nanoseconds: Self.delayBetweenRequests)
+        }
+    }
+
+    /// Fetch the next recipe that needs an AI-generated image
+    private func fetchNextRecipeNeedingImage() -> Recipe? {
+        guard let context else { return nil }
+
+        let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { $0.needsAIImage == true },
+            sortBy: [SortDescriptor(\.dateAdded, order: .forward)]
+        )
+
+        return try? context.fetch(descriptor).first
+    }
+}

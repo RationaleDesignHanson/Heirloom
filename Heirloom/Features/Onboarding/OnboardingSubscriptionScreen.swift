@@ -57,7 +57,8 @@ struct OnboardingSubscriptionScreen: View {
                     .padding(.bottom, 8)
 
                 // Scrollable content
-                ScrollView {
+                GeometryReader { geometry in
+                    ScrollView {
                     VStack(spacing: 24) {
                         // Header
                         VStack(spacing: 12) {
@@ -119,8 +120,24 @@ struct OnboardingSubscriptionScreen: View {
                         .background(HeirloomColors.tomato.opacity(0.08))
                         .cornerRadius(12)
                         .padding(.horizontal, 24)
+
+                        // Pricing options (minimal, non-overwhelming)
+                        VStack(spacing: 8) {
+                            Text("After your trial")
+                                .font(HeirloomFonts.caption1)
+                                .foregroundColor(HeirloomColors.secondaryText)
+
+                            HStack(spacing: 16) {
+                                pricingPill("$6.99/mo")
+                                pricingPill("$39.99/yr", highlight: true)
+                                pricingPill("$149 once")
+                            }
+                        }
+                        .padding(.top, 8)
                     }
                     .padding(.bottom, 16)
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+                    }
                 }
 
                 // Fixed bottom CTAs
@@ -226,6 +243,19 @@ struct OnboardingSubscriptionScreen: View {
                 isLoadingProducts = false
             }
         }
+    }
+
+    // MARK: - Pricing Pill
+
+    @ViewBuilder
+    private func pricingPill(_ text: String, highlight: Bool = false) -> some View {
+        Text(text)
+            .font(HeirloomFonts.caption2)
+            .foregroundColor(highlight ? HeirloomColors.tomato : HeirloomColors.secondaryText)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(highlight ? HeirloomColors.tomato.opacity(0.1) : Color.clear)
+            .cornerRadius(12)
     }
 
     // MARK: - Actions

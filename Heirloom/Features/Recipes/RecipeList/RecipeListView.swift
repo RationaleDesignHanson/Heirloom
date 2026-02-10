@@ -170,6 +170,7 @@ struct RecipeListView: View {
     @State private var recipeToDelete: Recipe?
     @State private var showDeleteConfirmation = false
     @StateObject private var undoService = ServiceContainer.shared.resolve(UndoService.self)
+    @StateObject private var videoJobManager = ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
     @State private var isSyncing = false
 
     // Multi-select mode
@@ -200,6 +201,7 @@ struct RecipeListView: View {
 
     // Settings sheet
     @State private var showSettings = false
+    @State private var showProcessingQueue = false
 
     var body: some View {
         NavigationStack {
@@ -221,6 +223,13 @@ struct RecipeListView: View {
                     NavigationStack {
                         SettingsView()
                     }
+                }
+                .sheet(isPresented: $showProcessingQueue) {
+                    UnifiedProcessingQueueView(
+                        onVideoJobTap: { _ in showProcessingQueue = false },
+                        onImportJobTap: { _ in showProcessingQueue = false },
+                        onGenerationJobTap: { _ in showProcessingQueue = false }
+                    )
                 }
                 // TODO: Re-enable for Phase A3
                 // .sheet(isPresented: $showHeritageUnlock) {
@@ -343,6 +352,7 @@ struct RecipeListView: View {
                 isSelectionMode: isSelectionMode,
                 selectedCount: selectedRecipeIds.count,
                 filteredCount: filteredRecipes.count,
+                isVideoProcessing: videoJobManager.isProcessing,
                 onSelectAllToggle: selectAllToggle,
                 onGenerateRecipe: {
                     tabCoordinator.willCreateRecipe(from: .collectionsTab)
@@ -372,7 +382,8 @@ struct RecipeListView: View {
                     tabCoordinator.willCreateCollection(from: .collectionsTab)
                     showCreateCollection = true
                 },
-                onCollectionSettings: nil // Not applicable in main recipe list
+                onCollectionSettings: nil, // Not applicable in main recipe list
+                onProcessingQueue: { showProcessingQueue = true }
             )
         }
     }
@@ -1516,7 +1527,8 @@ struct RecipeCardView: View {
                 AsyncRecipeImage(
                     imageFileName: recipe.imageFileName,
                     firebaseImageURL: recipe.firebaseImageURL,
-                    placeholder: placeholderIcon
+                    placeholder: placeholderIcon,
+                    isGenerating: recipe.needsAIImage
                 )
                 .frame(maxWidth: .infinity)
                 .aspectRatio(3/2, contentMode: .fill)

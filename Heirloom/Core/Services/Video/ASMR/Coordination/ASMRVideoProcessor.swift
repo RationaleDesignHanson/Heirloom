@@ -86,19 +86,23 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         userCaption: String,
         videoHash: String?,
         skipSoundAnalysis: Bool = false,
-        dishNameHint: String? = nil
+        dishNameHint: String? = nil,
+        creditsPreCharged: Bool = false
     ) async throws -> ASMRRecipeExtraction {
 
-        // Check credit availability
-        guard usageManager.canStartExtraction() else {
-            throw ASMRUsageError.insufficientCredits(
-                needed: 5,
-                available: usageManager.creditsRemaining
-            )
-        }
+        // Skip credit check if credits were already deducted at confirmation time
+        if !creditsPreCharged {
+            // Check credit availability
+            guard usageManager.canStartExtraction() else {
+                throw ASMRUsageError.insufficientCredits(
+                    needed: 5,
+                    available: usageManager.creditsRemaining
+                )
+            }
 
-        // Deduct credits upfront
-        try usageManager.startExtraction()
+            // Deduct credits upfront
+            try usageManager.startExtraction()
+        }
 
         do {
             let result = try await processInternal(
@@ -112,8 +116,10 @@ class ASMRVideoProcessor: ObservableObject, ASMRProcessorProtocol {
         } catch {
             // Disable keep-alive on error
             await disableKeepAlive()
-            // Refund credits on failure
-            usageManager.refundExtraction()
+            // Refund credits on failure (only if we charged them here)
+            if !creditsPreCharged {
+                usageManager.refundExtraction()
+            }
             throw error
         }
     }

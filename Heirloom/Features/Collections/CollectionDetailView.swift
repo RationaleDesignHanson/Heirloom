@@ -43,6 +43,7 @@ struct CollectionDetailView: View {
     @State private var showCollectionEditor = false
     @State private var existingCollectionIDs: Set<UUID> = []
     @State private var showBatchDeleteConfirmation = false
+    @State private var showProcessingQueue = false
 
     @Query private var allRecipes: [Recipe]
     @Query private var allCollections: [RecipeCollection]
@@ -330,7 +331,8 @@ struct CollectionDetailView: View {
                     onAddCollection: {}, // Not applicable within a collection detail view
                     onCollectionSettings: {
                         showCollectionSettings = true
-                    }
+                    },
+                    onProcessingQueue: { showProcessingQueue = true }
                 )
             }
         }
@@ -496,6 +498,13 @@ struct CollectionDetailView: View {
                 SettingsView()
                     .environmentObject(tabCoordinator)
             }
+        }
+        .sheet(isPresented: $showProcessingQueue) {
+            UnifiedProcessingQueueView(
+                onVideoJobTap: { _ in showProcessingQueue = false },
+                onImportJobTap: { _ in showProcessingQueue = false },
+                onGenerationJobTap: { _ in showProcessingQueue = false }
+            )
         }
         .confirmationDialog(
             "Add Recipe",
@@ -685,34 +694,34 @@ struct CollectionDetailView: View {
     // MARK: - Collection Header
 
     private var collectionHeader: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            HStack {
-                Image(systemName: collection.iconName)
-                    .font(.largeTitle)
-                    .foregroundStyle(collection.swiftUIColor)
+        HStack(spacing: HeirloomSpacing.sm) {
+            Image(systemName: collection.iconName)
+                .font(.title2)
+                .foregroundStyle(collection.swiftUIColor)
 
-                Spacer()
-
-                if collection.isHeritageCollection {
-                    Text("HERITAGE")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(collection.swiftUIColor)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(collection.swiftUIColor.opacity(0.15))
-                        .cornerRadius(6)
+            VStack(alignment: .leading, spacing: 2) {
+                if let description = collection.desc {
+                    Text(description)
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
                 }
-            }
 
-            if let description = collection.desc {
-                Text(description)
-                    .font(HeirloomFonts.body)
+                Text("\(recipes.count) recipe\(recipes.count == 1 ? "" : "s")")
+                    .font(HeirloomFonts.caption1)
                     .foregroundStyle(HeirloomColors.secondaryText)
             }
 
-            Text("\(recipes.count) recipe\(recipes.count == 1 ? "" : "s")")
-                .font(HeirloomFonts.caption1)
-                .foregroundStyle(HeirloomColors.secondaryText)
+            Spacer()
+
+            if collection.isHeritageCollection {
+                Text("HERITAGE")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(collection.swiftUIColor)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(collection.swiftUIColor.opacity(0.15))
+                    .cornerRadius(6)
+            }
         }
         .padding(.horizontal, HeirloomSpacing.md)
     }

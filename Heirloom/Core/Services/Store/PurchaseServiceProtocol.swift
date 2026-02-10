@@ -11,65 +11,9 @@ import StoreKit
 
 // MARK: - Shared Types
 
-/// Product identifiers for Heirloom subscriptions
-enum ProductIdentifier: String, CaseIterable {
-    case monthly = "com.rationalestudio.heirloom.monthly"
-    case annual = "com.rationalestudio.heirloom.annual"
-    case lifetime = "com.rationalestudio.heirloom.lifetime"
-
-    var displayName: String {
-        switch self {
-        case .monthly: return "Monthly"
-        case .annual: return "Annual"
-        case .lifetime: return "Lifetime"
-        }
-    }
-
-    var isSubscription: Bool {
-        switch self {
-        case .monthly, .annual: return true
-        case .lifetime: return false
-        }
-    }
-}
-
-/// Errors that can occur during StoreKit operations
-enum StoreError: LocalizedError {
-    case productNotFound(ProductIdentifier)
-    case purchaseFailed(String)
-    case purchaseCancelled
-    case verificationFailed
-    case networkUnavailable
-    case notImplemented(String)
-    case unknownError(Error)
-
-    var errorDescription: String? {
-        switch self {
-        case .productNotFound(let id):
-            return "Product '\(id.displayName)' not found in App Store"
-        case .purchaseFailed(let reason):
-            return "Purchase failed: \(reason)"
-        case .purchaseCancelled:
-            return "Purchase was cancelled"
-        case .verificationFailed:
-            return "Could not verify purchase"
-        case .networkUnavailable:
-            return "Network connection required"
-        case .notImplemented(let feature):
-            return "\(feature) is not yet implemented"
-        case .unknownError(let error):
-            return "An unexpected error occurred: \(error.localizedDescription)"
-        }
-    }
-}
-
-/// Purchase result with detailed status
-enum PurchaseResult {
-    case success(Transaction)
-    case cancelled
-    case pending
-    case failed(StoreError)
-}
+// MARK: - Shared Types
+// Note: ProductIdentifier, StoreError, and PurchaseResult are defined in StoreManager.swift
+// They are re-used here via the protocol's type references.
 
 // MARK: - Protocol
 

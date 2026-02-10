@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-/// Simple input form for AI recipe generation
+/// Input form for AI recipe generation or manual recipe entry
 struct RecipeGeneratorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -24,6 +24,14 @@ struct RecipeGeneratorView: View {
     @State private var ingredients: String = ""
     @State private var errorMessage: String?
     @State private var useManualEntry: Bool = false
+
+    // Manual entry fields
+    @State private var servings: String = ""
+    @State private var prepTime: String = ""
+    @State private var cookTime: String = ""
+    @State private var ingredientInputs: [String] = [""]
+    @State private var instructions: [String] = [""]
+    @State private var notes: String = ""
 
     private var generationService: RecipeGenerationService {
         ServiceContainer.shared.resolve(RecipeGenerationService.self)
@@ -41,7 +49,7 @@ struct RecipeGeneratorView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Manual Entry")
                                 .font(HeirloomFonts.body)
-                            Text(useManualEntry ? "Create a blank recipe to fill in yourself" : "AI will generate a complete recipe")
+                            Text(useManualEntry ? "Enter your recipe details below" : "AI will generate a complete recipe")
                                 .font(HeirloomFonts.caption1)
                                 .foregroundStyle(HeirloomColors.secondaryText)
                         }
@@ -49,17 +57,23 @@ struct RecipeGeneratorView: View {
                     .tint(HeirloomColors.tomato)
                 }
 
+                // Title section
                 Section {
                     TextField("Dish name (e.g., Chicken Parmesan)", text: $dishName)
                         .textContentType(.none)
                         .autocapitalization(.words)
                 } header: {
-                    Text("What would you like to make?")
+                    Text(useManualEntry ? "Recipe Title" : "What would you like to make?")
                 } footer: {
-                    Text(useManualEntry ? "This will be the title of your recipe" : "Enter the name of a dish you want to create")
+                    if !useManualEntry {
+                        Text("Enter the name of a dish you want to create")
+                    }
                 }
 
-                if !useManualEntry {
+                if useManualEntry {
+                    manualEntryFields
+                } else {
+                    // AI generation: optional ingredients hint
                     Section {
                         TextEditor(text: $ingredients)
                             .frame(minHeight: 100)
@@ -94,15 +108,12 @@ struct RecipeGeneratorView: View {
                 }
 
                 ToolbarItem(placement: .primaryAction) {
-                    // For manual entry: require dish name
-                    // For AI generation: Easter egg - button looks inactive when fields are empty,
-                    // but tapping it still works and generates a random "silly" recipe.
                     let hasInput = !dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
                                    !ingredients.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
                     Button {
                         if useManualEntry {
-                            createBlankRecipe()
+                            createManualRecipe()
                         } else {
                             startBackgroundGeneration()
                         }
@@ -111,25 +122,169 @@ struct RecipeGeneratorView: View {
                             .fontWeight(.semibold)
                             .foregroundStyle(hasInput || !useManualEntry ? HeirloomColors.familyGreen : HeirloomColors.secondaryText.opacity(0.5))
                     }
-                    // For manual entry, disabled without dish name
-                    // For AI generation, never actually disabled - easter egg always works
                     .disabled(useManualEntry && dishName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
     }
 
+    // MARK: - Manual Entry Fields
+
+    @ViewBuilder
+    private var manualEntryFields: some View {
+        // Cooking info
+        Section("Cooking Info") {
+            HStack {
+                Text("Servings")
+                    .font(HeirloomFonts.body)
+                Spacer()
+                TextField("4", text: $servings)
+                    .font(HeirloomFonts.body)
+                    .multilineTextAlignment(.trailing)
+                    .keyboardType(.numberPad)
+                    .frame(width: 100)
+            }
+
+            HStack {
+                Text("Prep Time")
+                    .font(HeirloomFonts.body)
+                Spacer()
+                TextField("15 min", text: $prepTime)
+                    .font(HeirloomFonts.body)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 100)
+            }
+
+            HStack {
+                Text("Cook Time")
+                    .font(HeirloomFonts.body)
+                Spacer()
+                TextField("30 min", text: $cookTime)
+                    .font(HeirloomFonts.body)
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 100)
+            }
+        }
+
+        // Ingredients
+        Section {
+            ForEach(ingredientInputs.indices, id: \.self) { index in
+                TextField("e.g., 2 cups flour", text: $ingredientInputs[index])
+                    .font(HeirloomFonts.body)
+                    .autocapitalization(.none)
+                    .onSubmit {
+                        if index == ingredientInputs.count - 1 {
+                            ingredientInputs.append("")
+                        }
+                    }
+            }
+            .onDelete { indexSet in
+                guard ingredientInputs.count > 1 else { return }
+                ingredientInputs.remove(atOffsets: indexSet)
+            }
+
+            Button {
+                ingredientInputs.append("")
+            } label: {
+                Label("Add Ingredient", systemImage: "plus.circle.fill")
+                    .font(HeirloomFonts.body)
+            }
+        } header: {
+            Text("Ingredients")
+        }
+
+        // Instructions
+        Section {
+            ForEach(instructions.indices, id: \.self) { index in
+                HStack(alignment: .top) {
+                    Text("\(index + 1).")
+                        .font(HeirloomFonts.bodyBold)
+                        .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
+                        .frame(width: 25, alignment: .leading)
+
+                    TextField("Step description", text: $instructions[index], axis: .vertical)
+                        .font(HeirloomFonts.body)
+                        .lineLimit(3...10)
+                        .onSubmit {
+                            if index == instructions.count - 1 {
+                                instructions.append("")
+                            }
+                        }
+                }
+            }
+            .onDelete { indexSet in
+                guard instructions.count > 1 else { return }
+                instructions.remove(atOffsets: indexSet)
+            }
+
+            Button {
+                instructions.append("")
+            } label: {
+                Label("Add Step", systemImage: "plus.circle.fill")
+                    .font(HeirloomFonts.body)
+            }
+        } header: {
+            Text("Instructions")
+        }
+
+        // Notes
+        Section("Notes") {
+            TextField("Add any notes or tips...", text: $notes, axis: .vertical)
+                .font(HeirloomFonts.body)
+                .lineLimit(3...10)
+        }
+    }
+
     // MARK: - Manual Entry
 
-    private func createBlankRecipe() {
+    private func createManualRecipe() {
         let recipeDishName = dishName.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // Create a blank recipe with just the title
+        // Filter empty entries
+        let filteredInstructions = instructions
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        let filteredIngredientTexts = ingredientInputs
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        // Create recipe with all fields
         let recipe = Recipe(
             title: recipeDishName.isEmpty ? "New Recipe" : recipeDishName,
             sourceType: .manual,
-            instructions: []
+            instructions: filteredInstructions
         )
+
+        // Set optional fields
+        let trimmedServings = servings.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedServings.isEmpty { recipe.servings = trimmedServings }
+
+        let trimmedPrep = prepTime.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedPrep.isEmpty { recipe.prepTime = trimmedPrep }
+
+        let trimmedCook = cookTime.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedCook.isEmpty { recipe.cookTime = trimmedCook }
+
+        let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedNotes.isEmpty { recipe.setNotes(trimmedNotes) }
+
+        // Parse ingredients
+        if !filteredIngredientTexts.isEmpty {
+            var parsedIngredients: [Ingredient] = []
+            for (index, text) in filteredIngredientTexts.enumerated() {
+                let parsed = IngredientParser.parse(text)
+                let ingredient = Ingredient(
+                    originalText: text,
+                    name: parsed.name,
+                    quantity: parsed.quantity,
+                    unit: parsed.unit,
+                    orderIndex: index
+                )
+                ingredient.quantityMax = parsed.quantityMax
+                parsedIngredients.append(ingredient)
+            }
+            recipe.ingredients = parsedIngredients
+        }
 
         // Insert into context
         modelContext.insert(recipe)
@@ -143,13 +298,14 @@ struct RecipeGeneratorView: View {
         // Save
         do {
             try modelContext.save()
+            let hasContent = !filteredIngredientTexts.isEmpty || !filteredInstructions.isEmpty
             toastManager.success(
                 title: "Recipe created",
-                message: "Tap to add ingredients and instructions"
+                message: hasContent ? nil : "Tap to add more details"
             )
         } catch {
             toastManager.error(title: "Failed to create recipe")
-            Log.error("Failed to create blank recipe", category: .general, error: error)
+            Log.error("Failed to create manual recipe", category: .general, error: error)
         }
 
         dismiss()

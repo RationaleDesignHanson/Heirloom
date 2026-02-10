@@ -27,6 +27,10 @@ final class ImportJobManager: ObservableObject {
     private var shouldPauseForBackground = false
     private var activeContext: ModelContext? // Store context for background saves
 
+    /// Cache for Vision-based source attribution per job (avoids redundant API calls)
+    /// Maps jobID -> extracted source name (nil = already checked, no source found)
+    private var jobSourceAttributionCache: [UUID: String?] = [:]
+
     // MARK: - Dependencies
     private let importService: RecipeImportService
     private let aiRecipeExtractor: AIRecipeExtractor
@@ -244,6 +248,7 @@ final class ImportJobManager: ObservableObject {
         pdfURLs: [URL],
         jobName: String,
         cookbookName: String?,
+        cookbookAuthor: String? = nil,
         collectionType: CollectionType? = nil,
         context: ModelContext,
         costBreakdown: PDFCostCalculator.CostBreakdown? = nil,
@@ -256,6 +261,7 @@ final class ImportJobManager: ObservableObject {
         job.phaseProgress = 0.0
         job.totalItems = 0 // Will be updated as we discover recipes
         job.cookbookName = cookbookName
+        job.cookbookAuthor = cookbookAuthor  // Store author for recipe attribution
         job.collectionType = collectionType
         job.pdfURL = pdfURLs.first?.absoluteString // Store for resume detection
         job.shouldGenerateAIImages = generateAIImages
@@ -311,11 +317,12 @@ final class ImportJobManager: ObservableObject {
             totalPagesAcrossAllPDFs += pdfDocument.pageCount
         }
 
-        // Process each PDF (using stable copies, but original URLs for classification lookup)
+        // Process each PDF (using stable copies, but original URLs for metadata + classification lookup)
         for (originalURL, pdfURL) in pdfURLMapping {
             // Extract cookbook metadata from front matter
+            // Use originalURL for filename-based metadata (avoids "0_" prefix from stable copy)
             let metadataExtractor = PDFMetadataExtractor()
-            let cookbookMetadata = await metadataExtractor.extractMetadata(from: pdfURL)
+            let cookbookMetadata = await metadataExtractor.extractMetadata(from: pdfURL, originalURL: originalURL)
 
             if let metadata = cookbookMetadata {
                 Log.info("Extracted cookbook metadata", category: .import, metadata: [
@@ -448,11 +455,20 @@ final class ImportJobManager: ObservableObject {
         job.items = allItems
         job.totalItems = allItems.count
         job.phaseProgress = 1.0
+
+        // Update cookbookName to reflect actual collection routing
+        // (single/loose recipes go to "Cookbook Pages", not their own collection)
+        // Note: Use allItems.count directly since items haven't been extracted yet (no .success status)
+        if allItems.count <= 2 {
+            job.cookbookName = "Cookbook Pages"
+        }
+
         try context.save()
 
         Log.info("PDF analysis complete - job ready for extraction", category: .import, metadata: [
             "pdf_count": pdfURLs.count,
-            "recipe_count": allItems.count
+            "recipe_count": allItems.count,
+            "collection": job.cookbookName ?? "nil"
         ])
 
         return job
@@ -576,6 +592,7 @@ final class ImportJobManager: ObservableObject {
                 item.preExtractedPrepTime = recipe.prepTime
                 item.preExtractedCookTime = recipe.cookTime
                 item.preExtractedNotes = recipe.notes
+                item.preExtractedSource = recipe.source
             }
 
             // Apply cookbook metadata
@@ -1257,8 +1274,10 @@ final class ImportJobManager: ObservableObject {
         placeholder.notes = extractedRecipe.notes
         placeholder.sourceType = extractedRecipe.sourceType
         placeholder.sourceURL = extractedRecipe.sourceURL
-        placeholder.sourceBookTitle = extractedRecipe.sourceBookTitle ?? item.cookbookTitle
-        placeholder.sourceBookAuthor = extractedRecipe.sourceBookAuthor ?? item.cookbookAuthor
+        // Copy source info from the processed recipe (cookbook metadata was already
+        // properly applied with duplicate checking and filtering in processImportItem)
+        placeholder.sourceBookTitle = extractedRecipe.sourceBookTitle
+        placeholder.sourceBookAuthor = extractedRecipe.sourceBookAuthor
 
         // Transfer ingredients
         if let extractedIngredients = extractedRecipe.ingredients {
@@ -1373,11 +1392,23 @@ final class ImportJobManager: ObservableObject {
             var skippedDuplicates: [(Recipe, [DuplicateDetectionService.DuplicateMatch])] = []
 
             for (index, recipe) in recipes.enumerated() {
-                // Cookbook metadata
-                if let cookbookTitle = item.cookbookTitle {
-                    recipe.sourceBookTitle = cookbookTitle
+                // Cookbook metadata (only set if not already populated by AI extraction,
+                // which may have found better values from visual content like logos/headers)
+                // Also skip if AI already extracted a recipe-level source (e.g., "The Flavor Labs")
+                // because sourceBookTitle takes display priority over sourceBookAuthor
+                if recipe.sourceBookTitle == nil, recipe.sourceBookAuthor == nil, let cookbookTitle = item.cookbookTitle {
+                    // Skip if metadata "title" overlaps significantly with the recipe title
+                    // (common for single-recipe PDFs where filename/doc title ≈ recipe name)
+                    let cleanedCookbookTitle = cookbookTitle
+                        .replacingOccurrences(of: "+", with: " ")
+                        .replacingOccurrences(of: "%20", with: " ")
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    let isDuplicate = titlesOverlap(cleanedCookbookTitle, recipe.title)
+                    if !isDuplicate {
+                        recipe.sourceBookTitle = cleanedCookbookTitle
+                    }
                 }
-                if let cookbookAuthor = item.cookbookAuthor {
+                if recipe.sourceBookAuthor == nil, let cookbookAuthor = item.cookbookAuthor {
                     recipe.sourceBookAuthor = cookbookAuthor
                 }
 
@@ -1400,22 +1431,28 @@ final class ImportJobManager: ObservableObject {
 
                         if !exactMatches.isEmpty {
                             // Exact duplicate (content hash match) - skip insertion
+                            // But transfer source attribution if the new extraction found one the existing lacks
+                            let existingRecipe = exactMatches[0].recipe
+                            transferAttributionIfMissing(from: recipe, to: existingRecipe)
                             Log.warning("⚠️ Skipping exact duplicate recipe", category: .import, metadata: [
                                 "title": recipe.title,
                                 "content_hash": recipe.contentHash ?? "none",
-                                "duplicate_id": exactMatches[0].recipe.id.uuidString,
-                                "duplicate_title": exactMatches[0].recipe.title
+                                "duplicate_id": existingRecipe.id.uuidString,
+                                "duplicate_title": existingRecipe.title
                             ])
                             skippedDuplicates.append((recipe, duplicates))
                             continue
                         } else if !nearPerfectMatches.isEmpty {
                             // Near-perfect title/content match (>=0.95 similarity) - skip insertion
+                            // But transfer source attribution if the new extraction found one the existing lacks
+                            let existingRecipe = nearPerfectMatches[0].recipe
+                            transferAttributionIfMissing(from: recipe, to: existingRecipe)
                             Log.warning("⚠️ Skipping near-identical duplicate recipe", category: .import, metadata: [
                                 "title": recipe.title,
                                 "similarity_score": nearPerfectMatches[0].similarityScore,
                                 "match_type": "\(nearPerfectMatches[0].matchType)",
-                                "duplicate_id": nearPerfectMatches[0].recipe.id.uuidString,
-                                "duplicate_title": nearPerfectMatches[0].recipe.title
+                                "duplicate_id": existingRecipe.id.uuidString,
+                                "duplicate_title": existingRecipe.title
                             ])
                             skippedDuplicates.append((recipe, duplicates))
                             continue
@@ -1737,6 +1774,22 @@ final class ImportJobManager: ObservableObject {
             }
         }
 
+        // Register source attribution
+        let domain = KnownSource.extractDomain(from: urlString)
+        ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+            name: domain ?? "Unknown Website",
+            kind: .website,
+            domain: domain,
+            discoveryMethod: "url_metadata",
+            recipe: recipe
+        )
+
+        // Parse ingredients immediately to enable automatic scaling
+        await parseIngredientsImmediately(for: recipe)
+
+        // Augment ingredients with AI-inferred quantities (for missing quantities)
+        await augmentScannedIngredients(for: recipe)
+
         return recipe
     }
 
@@ -1761,11 +1814,36 @@ final class ImportJobManager: ObservableObject {
             if let imageData = item.imageData,
                let image = UIImage(data: imageData) {
                 await extractFoodImage(from: image, for: recipe)
+
+                // If text pipeline didn't find source attribution (e.g., brand logos are images),
+                // try Vision-based extraction (cached per job to avoid redundant calls)
+                if recipe.sourceBookAuthor == nil {
+                    if let source = await extractSourceAttribution(from: image, jobID: item.job?.id) {
+                        recipe.sourceBookAuthor = source
+                        // Update provenance with the newly discovered source
+                        recipe.provenance = ProvenanceMetadata(
+                            sourceType: .imported,
+                            sourceURL: item.pdfURL,
+                            sourceAttribution: source,
+                            generation: 0,
+                            sharedByName: nil,
+                            createdAt: Date()
+                        )
+                        // Register the Vision-discovered source
+                        ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                            name: source,
+                            kind: .brand,
+                            discoveryMethod: "pdf_vision",
+                            recipe: recipe
+                        )
+                    }
+                }
             }
 
             Log.info("✅ Recipe created from pre-extracted data", category: .import, metadata: [
                 "item_id": item.id.uuidString,
-                "title": recipe.title
+                "title": recipe.title,
+                "source": recipe.sourceBookAuthor ?? "nil"
             ])
 
             return [recipe]
@@ -1833,6 +1911,35 @@ final class ImportJobManager: ObservableObject {
             await extractFoodImage(from: image, for: recipe)
         }
 
+        // Set author attribution and provenance (slow path/Vision API)
+        // Only set cookbook-level author if AI extraction didn't find a recipe-level source
+        let author = item.job?.cookbookAuthor ?? item.cookbookAuthor
+        for recipe in recipes {
+            if recipe.sourceBookAuthor == nil, let author = author, !author.isEmpty {
+                recipe.sourceBookAuthor = author
+            }
+
+            // Set provenance metadata with best available attribution
+            recipe.provenance = ProvenanceMetadata(
+                sourceType: .imported,
+                sourceURL: item.pdfURL,
+                sourceAttribution: recipe.sourceBookAuthor ?? author,
+                generation: 0,
+                sharedByName: nil,
+                createdAt: Date()
+            )
+
+            // Register source attribution
+            if let sourceName = recipe.sourceBookAuthor ?? author, !sourceName.isEmpty {
+                ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                    name: sourceName,
+                    kind: .cookbook,
+                    discoveryMethod: "pdf_vision",
+                    recipe: recipe
+                )
+            }
+        }
+
         // Log if multiple recipes were detected on PDF page
         if recipes.count > 1 {
             Log.info("Multiple recipes detected on PDF page", category: .import, metadata: [
@@ -1882,6 +1989,36 @@ final class ImportJobManager: ObservableObject {
         // Add notes if present
         if let notes = item.preExtractedNotes, !notes.isEmpty {
             recipe.setNotes(notes)
+        }
+
+        // Set author attribution: prefer recipe-level source (e.g., "The Flavor Labs" from header)
+        // over cookbook-level metadata (from PDF properties/filename)
+        let source = item.preExtractedSource
+        let author = item.job?.cookbookAuthor ?? item.cookbookAuthor
+        if let source = source, !source.isEmpty {
+            recipe.sourceBookAuthor = source
+        } else if let author = author, !author.isEmpty {
+            recipe.sourceBookAuthor = author
+        }
+
+        // Set provenance with best available attribution
+        recipe.provenance = ProvenanceMetadata(
+            sourceType: .imported,
+            sourceURL: item.pdfURL,
+            sourceAttribution: recipe.sourceBookAuthor ?? author,
+            generation: 0,
+            sharedByName: nil,
+            createdAt: Date()
+        )
+
+        // Register source attribution
+        if let sourceName = recipe.sourceBookAuthor ?? author, !sourceName.isEmpty {
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: sourceName,
+                kind: .cookbook,
+                discoveryMethod: "pdf_metadata",
+                recipe: recipe
+            )
         }
 
         // Generate content hash for duplicate detection
@@ -1964,10 +2101,27 @@ final class ImportJobManager: ObservableObject {
             createRecipe(from: extractedRecipe, sourceImage: image, sourceType: sourceType)
         }
 
+        // Register source attribution — camera/scan imports attributed to current user
+        let authService = ServiceContainer.shared.resolve(FirebaseAuthService.self)
+        let userName = authService.currentUser?.displayName ?? "Me"
+        for recipe in recipes {
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: userName,
+                kind: .person,
+                discoveryMethod: "scan_ocr",
+                recipe: recipe
+            )
+        }
+
         // CRITICAL: Parse ingredients immediately to enable automatic scaling
         // This prevents the need for warning symbols and "Fix" buttons
         for recipe in recipes {
             await parseIngredientsImmediately(for: recipe)
+        }
+
+        // Augment ingredients with AI-inferred quantities (for missing quantities from OCR)
+        for recipe in recipes {
+            await augmentScannedIngredients(for: recipe)
         }
 
         // Log if multiple recipes were detected
@@ -2047,6 +2201,52 @@ final class ImportJobManager: ObservableObject {
     }
 
     /// Check if text is a bracketed section header like [Asparagus], [Main], [Vegetables]*
+    /// Check if a metadata title significantly overlaps with a recipe title
+    /// e.g., "Online Class - Chocolate Chip Cookies" vs "Chewy Chocolate Chip Cookies"
+    /// Transfer source attribution from a new extraction to an existing duplicate recipe
+    /// when the existing recipe is missing attribution (e.g., imported before attribution system)
+    private func transferAttributionIfMissing(from newRecipe: Recipe, to existingRecipe: Recipe) {
+        // Transfer sourceBookAuthor
+        if existingRecipe.sourceBookAuthor == nil, let source = newRecipe.sourceBookAuthor, !source.isEmpty {
+            existingRecipe.sourceBookAuthor = source
+            Log.info("📋 Transferred source attribution to existing duplicate", category: .import, metadata: [
+                "title": existingRecipe.title,
+                "source": source,
+                "existingId": existingRecipe.id.uuidString
+            ])
+        }
+
+        // Transfer knownSource relationship
+        if existingRecipe.knownSource == nil, let knownSource = newRecipe.knownSource {
+            existingRecipe.knownSource = knownSource
+        }
+
+        // Transfer provenance if missing
+        if existingRecipe.provenance == nil, let provenance = newRecipe.provenance {
+            existingRecipe.provenance = provenance
+        }
+    }
+
+    private func titlesOverlap(_ metadataTitle: String, _ recipeTitle: String) -> Bool {
+        let a = metadataTitle.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        let b = recipeTitle.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Exact or substring match
+        if a == b || a.contains(b) || b.contains(a) { return true }
+
+        // Word overlap: if most words from the recipe title appear in the metadata title
+        let stopWords: Set<String> = ["the", "a", "an", "and", "or", "of", "with", "for", "in", "on", "-"]
+        let metadataWords = Set(a.split(separator: " ").map(String.init)).subtracting(stopWords)
+        let recipeWords = Set(b.split(separator: " ").map(String.init)).subtracting(stopWords)
+
+        guard !recipeWords.isEmpty else { return false }
+
+        let overlap = metadataWords.intersection(recipeWords).count
+        let overlapRatio = Double(overlap) / Double(recipeWords.count)
+        // If 60%+ of recipe title words appear in metadata title, it's a duplicate
+        return overlapRatio >= 0.6
+    }
+
     private func isBracketedSectionHeader(_ text: String) -> Bool {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         // Check for [Text] or [Text]*
@@ -2107,6 +2307,218 @@ final class ImportJobManager: ObservableObject {
                 "error": error.localizedDescription
             ])
             // Continue without parsed ingredients - they will remain as placeholders
+        }
+    }
+
+    /// Augment scanned recipe ingredients with AI-inferred quantities
+    /// Uses RecipeAugmentationService to fill in missing quantities from OCR extraction
+    private func augmentScannedIngredients(for recipe: Recipe) async {
+        guard let ingredients = recipe.ingredients, !ingredients.isEmpty else { return }
+
+        // Skip if all ingredients already have quantities
+        let missingQuantities = ingredients.filter { $0.quantity == nil && !$0.isFlexibleQuantity }
+        guard !missingQuantities.isEmpty else {
+            Log.debug("All ingredients have quantities, skipping augmentation", category: .import, metadata: [
+                "recipeId": recipe.id.uuidString
+            ])
+            return
+        }
+
+        Log.info("Augmenting scanned recipe ingredients", category: .import, metadata: [
+            "recipeId": recipe.id.uuidString,
+            "total": ingredients.count,
+            "missingQuantities": missingQuantities.count
+        ])
+
+        guard let aiService = ServiceContainer.shared.resolveOptional((any AIServiceProtocol).self) else {
+            Log.warning("AI service unavailable, skipping ingredient augmentation", category: .import)
+            return
+        }
+
+        do {
+            // Convert Ingredient models to ExtractedIngredient for the augmentation service
+            let extractedIngredients = ingredients.map { ingredient in
+                ExtractedIngredient(
+                    originalText: ingredient.originalText,
+                    item: ingredient.name,
+                    quantity: ingredient.quantity.map { String($0) },
+                    unit: ingredient.unit,
+                    preparation: ingredient.preparation,
+                    confidence: ingredient.quantity == nil ? .unknown : .explicit
+                )
+            }
+
+            // Build StructuredRecipe wrapper
+            let structuredRecipe = StructuredRecipe(
+                title: recipe.title,
+                description: nil,
+                servings: recipe.servings,
+                prepTime: nil,
+                cookTime: nil,
+                ingredients: extractedIngredients,
+                steps: [],
+                overallConfidence: 0.7,
+                warnings: []
+            )
+
+            // Call augmentation service with empty similar/web recipes (rely on Claude's culinary knowledge)
+            let augmentationService = RecipeAugmentationService(aiService: aiService)
+            let augmented = try await augmentationService.augment(
+                structuredRecipe,
+                similarRecipes: [],
+                webRecipes: []
+            )
+
+            // Map augmented results back onto Ingredient models
+            var updatedCount = 0
+            for augmentedIngredient in augmented.augmentedIngredients {
+                // Skip low-confidence and unknown inferences
+                guard augmentedIngredient.inferredConfidence == .high ||
+                      augmentedIngredient.inferredConfidence == .medium else { continue }
+
+                // Find matching ingredient by original text
+                guard let ingredient = ingredients.first(where: {
+                    $0.originalText == augmentedIngredient.originalIngredient.originalText
+                }) else { continue }
+
+                // Only fill nil quantities — never overwrite existing parsed values
+                guard ingredient.quantity == nil else { continue }
+
+                // Parse inferred quantity string to Double
+                if let quantityStr = augmentedIngredient.inferredQuantity,
+                   let quantity = parseFractionString(quantityStr) {
+                    ingredient.quantity = quantity
+                    updatedCount += 1
+                }
+
+                // Fill in unit if missing
+                if ingredient.unit == nil, let inferredUnit = augmentedIngredient.inferredUnit {
+                    ingredient.unit = inferredUnit
+                    ingredient.normalizedUnit = inferredUnit.lowercased()
+                        .replacingOccurrences(of: "s$", with: "", options: .regularExpression)
+                }
+            }
+
+            Log.info("Augmented scanned recipe ingredients", category: .import, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "title": recipe.title,
+                "updatedCount": updatedCount,
+                "totalMissing": missingQuantities.count,
+                "confidence": augmented.metadata.averageConfidence.shortDisplayText
+            ])
+        } catch {
+            Log.warning("Ingredient augmentation failed (non-fatal)", category: .import, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "error": error.localizedDescription
+            ])
+            // Augmentation is optional — import continues without it
+        }
+    }
+
+    /// Parse a fraction or decimal string to Double
+    /// Handles: "2", "1.5", "1/4", "1 1/2", "0.25"
+    private func parseFractionString(_ text: String) -> Double? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        // Try simple Double first (handles "2", "1.5", "0.25")
+        if let value = Double(trimmed) {
+            return value
+        }
+
+        // Handle mixed numbers like "1 1/2"
+        let parts = trimmed.split(separator: " ")
+        if parts.count == 2,
+           let whole = Double(parts[0]),
+           let fraction = parseSingleFraction(String(parts[1])) {
+            return whole + fraction
+        }
+
+        // Handle simple fractions like "1/4"
+        if let fraction = parseSingleFraction(trimmed) {
+            return fraction
+        }
+
+        return nil
+    }
+
+    /// Parse a single fraction like "1/4" or "3/8" to Double
+    private func parseSingleFraction(_ text: String) -> Double? {
+        let parts = text.split(separator: "/")
+        guard parts.count == 2,
+              let numerator = Double(parts[0]),
+              let denominator = Double(parts[1]),
+              denominator != 0 else {
+            return nil
+        }
+        return numerator / denominator
+    }
+
+    /// Extract source/brand attribution from a page image using Vision API
+    /// Cached per job to avoid redundant calls for multi-recipe imports
+    private func extractSourceAttribution(from image: UIImage, jobID: UUID?) async -> String? {
+        // Check cache first
+        if let jobID = jobID, let cached = jobSourceAttributionCache[jobID] {
+            Log.debug("Using cached source attribution for job", category: .import, metadata: [
+                "job_id": jobID.uuidString,
+                "cached_source": cached ?? "nil"
+            ])
+            return cached
+        }
+
+        guard let aiService = ServiceContainer.shared.resolveOptional((any AIServiceProtocol).self) else {
+            return nil
+        }
+
+        struct SourceResponse: Codable {
+            let source: String?
+        }
+
+        do {
+            let response = try await aiService.completeWithVisionStructured(
+                image: image,
+                prompt: """
+                Look at this recipe page image. Is there a brand name, website, blog name, \
+                or company/organization name shown in the header, footer, logo, or watermark?
+
+                Return JSON: {"source": "Brand Name"} or {"source": null} if none found.
+
+                Only return a real brand/company/website name. Do NOT return:
+                - The recipe title
+                - Generic words like "recipe", "cookbook", "homemade"
+                - The author's personal name unless it's clearly a brand
+                """,
+                schema: SourceResponse.self,
+                options: AICompletionOptions(
+                    temperature: 0.1,
+                    maxTokens: 100
+                ),
+                useCase: .ocr
+            )
+
+            let source = response.source
+            // Cache for this job
+            if let jobID = jobID {
+                jobSourceAttributionCache[jobID] = source
+            }
+
+            if let source = source {
+                Log.info("Vision extracted source attribution", category: .import, metadata: [
+                    "source": source,
+                    "job_id": jobID?.uuidString ?? "nil"
+                ])
+            }
+
+            return source
+        } catch {
+            Log.warning("Vision source attribution extraction failed", category: .import, metadata: [
+                "error": error.localizedDescription
+            ])
+            // Cache nil to avoid retrying
+            if let jobID = jobID {
+                jobSourceAttributionCache[jobID] = nil
+            }
+            return nil
         }
     }
 
@@ -2311,8 +2723,8 @@ final class ImportJobManager: ObservableObject {
             return
         }
 
-        // Skip if collection already has a cover
-        if collection.cookbookCoverImagePath != nil || collection.generatedBackgroundImagePath != nil {
+        // Skip if collection already has a cover (including preset backgrounds)
+        if collection.cookbookCoverImagePath != nil || collection.generatedBackgroundImagePath != nil || collection.customBackgroundImagePath != nil {
             Log.info("Collection already has cover image, skipping AI generation", category: .import)
             return
         }
@@ -2419,6 +2831,7 @@ final class ImportJobManager: ObservableObject {
         job.completedAt = Date()
         isProcessing = false
         activeContext = nil // Clear stored context
+        jobSourceAttributionCache.removeValue(forKey: job.id) // Clean up cache
 
         // Schedule system notification for backgrounded/closed app
         scheduleImportCompletionNotification(job: job)
@@ -2451,6 +2864,9 @@ final class ImportJobManager: ObservableObject {
                 job: job,
                 context: context
             )
+        } else if job.items?.first?.source == .url {
+            // URL imports go to "From Web" via routeURLImport
+            await routeURLImportsToWebCollection(job: job, context: context)
         } else {
             Log.warning("Skipping collection creation - cookbook name is empty or nil", category: .import, metadata: [
                 "jobId": job.id.uuidString,
@@ -2553,6 +2969,44 @@ final class ImportJobManager: ObservableObject {
         }
     }
 
+    /// Route URL import recipes to "From Web" collection
+    private func routeURLImportsToWebCollection(job: ImportJob, context: ModelContext) async {
+        guard let items = job.items else { return }
+
+        let successfulRecipeIDs = items
+            .filter { $0.status == .success }
+            .flatMap { $0.recipeIDs }
+
+        guard !successfulRecipeIDs.isEmpty else { return }
+
+        let recipeDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { recipe in
+                successfulRecipeIDs.contains(recipe.id)
+            }
+        )
+
+        guard let recipes = try? context.fetch(recipeDescriptor) else {
+            Log.error("Failed to fetch recipes for URL collection routing", category: .import)
+            return
+        }
+
+        let router = CollectionRouter(modelContext: context)
+
+        for recipe in recipes {
+            if let urlString = recipe.sourceURL, let url = URL(string: urlString) {
+                router.routeURLImport(recipe, sourceURL: url)
+            } else {
+                // Fallback: route with a placeholder URL
+                router.routeURLImport(recipe, sourceURL: URL(string: "https://unknown")!)
+            }
+        }
+
+        Log.info("Routed bulk URL imports to From Web", category: .import, metadata: [
+            "count": recipes.count,
+            "jobId": job.id.uuidString
+        ])
+    }
+
     /// Clear the active job (called from UI when user dismisses)
     func clearActiveJob() {
         activeJob = nil
@@ -2617,35 +3071,50 @@ final class ImportJobManager: ObservableObject {
     // MARK: - Collection Name Logic
 
     /// Determine the effective collection name based on import type
-    /// - Camera/photo imports without names → "Cookbook Pages"
-    /// - PDFs with custom names → use custom name (even if single-page)
-    /// - PDFs without names → "Cookbook Pages"
+    /// - Camera/photo imports → "Cookbook Pages"
+    /// - Single-page/loose PDFs → "Cookbook Pages" (not their own collection)
+    /// - Multi-page cookbook PDFs → use cookbook name for their own collection
     private func determineCollectionName(for job: ImportJob) -> String? {
         let isSinglePage = isSinglePageImport(job: job)
-        let hasCustomName = job.cookbookName != nil && !job.cookbookName!.isEmpty
         let isPDF = job.items?.first?.source == .pdf
 
-        // PDFs with custom names always use their name, even if single-page
-        if isPDF && hasCustomName {
-            Log.info("Routing PDF to named collection", category: .import, metadata: [
+        // Single-page PDF imports go to "Cookbook Pages" (not their own collection)
+        // These are loose recipes, not cookbooks
+        if isPDF && isSinglePage {
+            Log.info("Routing single-page PDF to Cookbook Pages", category: .import, metadata: [
                 "jobId": job.id.uuidString,
-                "cookbookName": job.cookbookName ?? "nil",
-                "isSinglePage": isSinglePage
+                "originalCookbookName": job.cookbookName ?? "nil"
+            ])
+            return "Cookbook Pages"
+        }
+
+        // Multi-page PDFs (actual cookbooks) get their own named collection
+        if isPDF {
+            Log.info("Routing multi-page PDF cookbook to named collection", category: .import, metadata: [
+                "jobId": job.id.uuidString,
+                "cookbookName": job.cookbookName ?? "nil"
             ])
             return job.cookbookName
         }
 
-        // Single-page imports without custom names go to "Cookbook Pages"
+        // URL imports are routed separately via routeURLImport — return nil to skip cookbook routing
+        if job.items?.first?.source == .url {
+            Log.info("URL import — skipping cookbook routing (handled separately)", category: .import, metadata: [
+                "jobId": job.id.uuidString
+            ])
+            return nil
+        }
+
+        // Camera/photo library imports go to "Cookbook Pages"
         if isSinglePage {
-            Log.info("Routing single-page import to Cookbook Pages", category: .import, metadata: [
+            Log.info("Routing single-page camera/photo import to Cookbook Pages", category: .import, metadata: [
                 "jobId": job.id.uuidString,
-                "originalCookbookName": job.cookbookName ?? "nil",
                 "source": job.items?.first?.source.rawValue ?? "unknown"
             ])
             return "Cookbook Pages"
         }
 
-        // Multi-page imports use original cookbook name
+        // Fallback for any other multi-page imports
         Log.info("Routing multi-page import to named collection", category: .import, metadata: [
             "jobId": job.id.uuidString,
             "cookbookName": job.cookbookName ?? "nil",
@@ -2654,10 +3123,13 @@ final class ImportJobManager: ObservableObject {
         return job.cookbookName
     }
 
-    /// Check if this job represents a single-page import
+    /// Check if this job represents loose recipe imports (should go to "Cookbook Pages")
     /// Returns true if:
-    /// - Job has camera/photo library items (always single-page)
-    /// - Job has PDF items that are ALL single-page recipes
+    /// - Job has camera/photo library items (always loose)
+    /// - Job has multiple separate PDF files (each is a loose recipe)
+    /// - Job has a PDF with only 1-2 recipes (a loose recipe, even if multi-page)
+    /// Returns false if:
+    /// - Job has one PDF with 3+ recipes (an actual cookbook)
     private func isSinglePageImport(job: ImportJob) -> Bool {
         guard let items = job.items?.filter({ $0.status == .success }), !items.isEmpty else {
             // No successful items - default to single-page (safer for camera imports)
@@ -2669,29 +3141,41 @@ final class ImportJobManager: ObservableObject {
 
         switch firstItem.source {
         case .camera, .photoLibrary:
-            // Camera and photo library imports are always treated as single-page
+            // Camera and photo library imports are always treated as loose recipes
             return true
 
         case .pdf:
-            // For PDFs, check if ALL items are single-page recipes
-            let allSinglePage = items.allSatisfy { item in
-                let isSinglePage = !(item.isMultiPageRecipe ?? false)
-                let totalPages = item.totalPages ?? 1
-                return isSinglePage && totalPages == 1
+            // Count distinct PDF files in this job
+            let distinctPDFUrls = Set(items.compactMap { $0.pdfURL })
+            let isMultipleSeparatePDFs = distinctPDFUrls.count > 1
+
+            // If multiple separate PDF files, treat as loose recipes → "Cookbook Pages"
+            if isMultipleSeparatePDFs {
+                Log.info("Multiple separate PDF files detected - treating as loose recipes", category: .import, metadata: [
+                    "jobId": job.id.uuidString,
+                    "distinctPDFCount": distinctPDFUrls.count,
+                    "totalItems": items.count
+                ])
+                return true
             }
 
-            Log.info("PDF import page analysis", category: .import, metadata: [
+            // Single PDF file - check recipe count to distinguish loose recipes from cookbooks.
+            // A PDF with 1-2 recipes is a loose recipe (even if spanning multiple pages).
+            // A PDF with 3+ recipes is an actual cookbook that gets its own collection.
+            let isLooseRecipe = items.count <= 2
+
+            Log.info("Single PDF file analysis", category: .import, metadata: [
                 "jobId": job.id.uuidString,
                 "totalItems": items.count,
-                "allSinglePage": allSinglePage,
+                "isLooseRecipe": isLooseRecipe,
                 "sampleItem_isMultiPage": items.first?.isMultiPageRecipe ?? false,
                 "sampleItem_totalPages": items.first?.totalPages ?? 1
             ])
 
-            return allSinglePage
+            return isLooseRecipe
 
         case .url:
-            // URL imports are treated as single-page
+            // URL imports are treated as loose recipes
             return true
         }
     }

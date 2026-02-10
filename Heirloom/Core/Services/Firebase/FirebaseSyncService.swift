@@ -54,6 +54,8 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
     internal var modelContext: ModelContext?
     private var isAutoSyncEnabled = false
+    /// UUID remapping from downloadAllCollections: maps Firebase UUID → local UUID for merged collections
+    internal var collectionUUIDRemapping: [String: UUID] = [:]
 
     // MARK: - Initialization
 
@@ -162,7 +164,12 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
         // Tags and Collections
         data["tagIds"] = recipe.tags?.map { $0.id.uuidString } ?? []
-        data["collectionIds"] = recipe.collections?.map { $0.id.uuidString } ?? []
+        // Only include collectionIds if the recipe actually has collections loaded.
+        // This prevents wiping existing collectionIds in Firebase when a fresh device
+        // uploads a recipe before its collections are downloaded.
+        if let collections = recipe.collections, !collections.isEmpty {
+            data["collectionIds"] = collections.map { $0.id.uuidString }
+        }
 
         // Sync metadata
         data["lastSyncedAt"] = Timestamp(date: Date())
@@ -690,6 +697,15 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
             // Clean up old tombstones after successful sync
             cleanupOldTombstones(context: context)
+
+            // Clear any remaining loading states — all downloads are complete at this point
+            if !loadingCollectionIds.isEmpty {
+                Log.info("Clearing stale loading states after sync", category: .sync, metadata: [
+                    "collections": loadingCollectionIds.count
+                ])
+                loadingCollectionIds.removeAll()
+                syncProgress.removeAll()
+            }
 
         } catch {
             DeviceLogger.shared.log("❌ [Firebase] Sync failed: \(error.localizedDescription)", level: .error)
@@ -1342,7 +1358,12 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         data["name"] = collection.name
         data["desc"] = collection.desc as Any
         data["createdDate"] = Timestamp(date: collection.createdDate)
-        data["recipeIds"] = collection.recipes?.map { $0.id.uuidString } ?? []
+        // Only include recipeIds if the collection actually has recipes loaded.
+        // Using merge: true ensures we never wipe existing recipeIds in Firebase
+        // when a fresh device uploads a collection before its recipes are downloaded.
+        if let recipes = collection.recipes, !recipes.isEmpty {
+            data["recipeIds"] = recipes.map { $0.id.uuidString }
+        }
 
         // Theme-specific fields
         // TODO: Update for theme system in Phase A3
@@ -1354,7 +1375,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         data["isAllRecipes"] = collection.isAllRecipes
         data["isDemoSeed"] = collection.isDemoSeed
 
-        try await collectionRef.setData(data)
+        try await collectionRef.setData(data, merge: true)
         logger.log("Collection uploaded", category: .sync, level: .info, metadata: nil)
     }
 
@@ -1370,6 +1391,19 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         let snapshot = try await collectionsRef.getDocuments()
 
         var collections: [RecipeCollection] = []
+
+        // Pre-build name-based lookup for system-like collections to prevent UUID mismatch duplication.
+        // When a fresh device creates "Generated Recipes" with UUID-A, and Firebase has it with UUID-B
+        // from another device, we merge into the local one instead of creating a duplicate.
+        let allLocalCollections = try context.fetch(FetchDescriptor<RecipeCollection>())
+        var localCollectionsByNameAndType: [String: RecipeCollection] = [:]
+        for local in allLocalCollections {
+            let key = "\(local.name)|\(local.collectionType)"
+            localCollectionsByNameAndType[key] = local
+        }
+
+        // Track UUID remapping when Firebase UUID differs from local UUID (for relinking later)
+        var uuidRemapping: [String: UUID] = [:]
 
         for doc in snapshot.documents {
             let data = doc.data()
@@ -1398,7 +1432,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 continue // Skip this collection, it was deleted locally
             }
 
-            // Check if collection already exists locally
+            // Check if collection already exists locally by UUID
             let descriptor = FetchDescriptor<RecipeCollection>(
                 predicate: #Predicate { collection in
                     collection.id == collectionId
@@ -1426,28 +1460,47 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
                 collection = existing
             } else {
-                // Create new collection
-                collection = RecipeCollection(
-                    name: data["name"] as? String ?? "Untitled",
-                    description: data["desc"] as? String,
-                    iconName: data["iconName"] as? String ?? "folder.fill",
-                    color: data["color"] as? String ?? "#FF6B6B"
-                )
-                collection.id = collectionId
-                if let createdDate = (data["createdDate"] as? Timestamp)?.dateValue() {
-                    collection.createdDate = createdDate
-                }
+                // UUID not found locally — check if a local collection with the same name+type
+                // already exists (e.g., "Generated Recipes" created at startup with a different UUID).
+                // Merge into the local one to prevent duplication and preserve preset backgrounds.
+                let firebaseName = data["name"] as? String ?? ""
+                let firebaseType = data["collectionType"] as? String ?? ""
+                let lookupKey = "\(firebaseName)|\(firebaseType)"
 
-                // Set theme-specific fields
-                // TODO: Update for theme system in Phase A3
-                if let collectionTypeStr = data["collectionType"] as? String {
-                    collection.collectionType = collectionTypeStr
-                }
-                collection.isSystemCollection = data["isSystemCollection"] as? Bool ?? false
-                collection.isAllRecipes = data["isAllRecipes"] as? Bool ?? false
-                collection.isDemoSeed = data["isDemoSeed"] as? Bool ?? false
+                if let localMatch = localCollectionsByNameAndType[lookupKey],
+                   localMatch.id != collectionId {
+                    // Merge into existing local collection (keep local UUID, keep presets)
+                    Log.info("Merging Firebase collection into existing local by name", category: .sync, metadata: [
+                        "name": firebaseName,
+                        "firebaseUUID": collectionId.uuidString,
+                        "localUUID": localMatch.id.uuidString
+                    ])
+                    uuidRemapping[collectionId.uuidString.lowercased()] = localMatch.id
+                    collection = localMatch
+                } else {
+                    // Create new collection (no local match by UUID or name)
+                    collection = RecipeCollection(
+                        name: data["name"] as? String ?? "Untitled",
+                        description: data["desc"] as? String,
+                        iconName: data["iconName"] as? String ?? "folder.fill",
+                        color: data["color"] as? String ?? "#FF6B6B"
+                    )
+                    collection.id = collectionId
+                    if let createdDate = (data["createdDate"] as? Timestamp)?.dateValue() {
+                        collection.createdDate = createdDate
+                    }
 
-                context.insert(collection)
+                    // Set theme-specific fields
+                    // TODO: Update for theme system in Phase A3
+                    if let collectionTypeStr = data["collectionType"] as? String {
+                        collection.collectionType = collectionTypeStr
+                    }
+                    collection.isSystemCollection = data["isSystemCollection"] as? Bool ?? false
+                    collection.isAllRecipes = data["isAllRecipes"] as? Bool ?? false
+                    collection.isDemoSeed = data["isDemoSeed"] as? Bool ?? false
+
+                    context.insert(collection)
+                }
             }
 
             // Restore recipe relationships and track loading state
@@ -1468,7 +1521,22 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                     }
                 }
 
-                collection.recipes = linkedRecipes
+                // MERGE Firebase recipes into existing local recipes rather than replacing.
+                // This prevents wiping locally-seeded relationships when Firebase recipeIds
+                // are empty (e.g., corrupted by a prior sync from a fresh device).
+                let existingRecipes = collection.recipes ?? []
+                if !linkedRecipes.isEmpty {
+                    // Merge: add any Firebase recipes not already linked locally
+                    var merged = existingRecipes
+                    let existingIds = Set(existingRecipes.map { $0.id })
+                    for recipe in linkedRecipes {
+                        if !existingIds.contains(recipe.id) {
+                            merged.append(recipe)
+                        }
+                    }
+                    collection.recipes = merged
+                }
+                // If Firebase recipeIds is empty, keep existing local recipes untouched
 
                 // Track loading state for collections with missing recipes (10+ threshold)
                 let missingRecipeCount = expectedRecipeCount - linkedRecipes.count
@@ -1534,10 +1602,65 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             ])
         }
 
+        // Restore preset backgrounds for all system/import collections after download+dedup.
+        // Firebase doesn't sync background fields, so downloaded collections lose their presets.
+        restoreCollectionPresets(collections: collections, context: context)
+
+        // Store UUID remapping for relinkRecipesToCollections
+        self.collectionUUIDRemapping = uuidRemapping
+
         try context.save()
         Log.info("Downloaded collections from Firebase", category: .sync, metadata: ["count": collections.count])
 
         return collections
+    }
+
+    /// Restore preset backgrounds for collections that have hardcoded assets.
+    /// Called after Firebase download since background fields aren't synced.
+    private func restoreCollectionPresets(collections: [RecipeCollection], context: ModelContext) {
+        // Also check ALL local collections, not just downloaded ones
+        let allCollections: [RecipeCollection]
+        if let fetched = try? context.fetch(FetchDescriptor<RecipeCollection>()) {
+            allCollections = fetched
+        } else {
+            allCollections = collections
+        }
+
+        let presetMap: [(String, String?, String)] = [
+            // (name, collectionType, assetName)
+            ("Generated Recipes", nil, "generated-recipes-bg"),
+            ("Cookbook Pages", "cookbook", "cookbook-pages-bg"),
+            ("From Web", "webImports", "from-web-bg"),
+            ("From Videos", "videoImports", "from-videos-bg"),
+            ("From Photos", "photoImports", "from-photos-bg"),
+            ("From Friends", "fromFriends", "from-friends-bg"),
+            ("Read Recipes", "readRecipes", "read-recipes-bg"),
+        ]
+
+        for collection in allCollections {
+            // Check if this collection matches any preset
+            for (name, collectionType, assetName) in presetMap {
+                let nameMatch = collection.name == name
+                let typeMatch = collectionType == nil || collection.collectionType == collectionType
+                guard nameMatch && typeMatch else { continue }
+
+                // Only apply if no custom background is set, or if preset was cleared
+                let hasPreset = collection.customBackgroundImagePath?.hasPrefix("preset-") == true
+                if !hasPreset, UIImage(named: assetName) != nil {
+                    collection.customBackgroundImagePath = "preset-\(assetName)"
+                    collection.useCustomBackground = true
+                    // Clear any stale AI-generated background
+                    if collection.generatedBackgroundImagePath != nil {
+                        collection.generatedBackgroundImagePath = nil
+                    }
+                    Log.info("Restored preset background after sync", category: .sync, metadata: [
+                        "collection": collection.name,
+                        "preset": assetName
+                    ])
+                }
+                break
+            }
+        }
     }
 
     /// Delete collection from Firebase

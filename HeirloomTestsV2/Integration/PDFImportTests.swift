@@ -29,7 +29,7 @@ final class PDFImportTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         env = try await TestEnvironment.create(authenticated: true, credits: 25)
-        userCredits = env.createUserCredits(purchasedCredits: 0, dailyQuotaUsed: 0)
+        userCredits = env.createUserCredits(purchasedCredits: 0, tierCreditsUsed: 0)
         try env.save()
     }
 
@@ -103,7 +103,7 @@ final class PDFImportTests: XCTestCase {
     /// Test 7: Can afford with purchased credits when quota exhausted
     func test_canAfford_withPurchasedCredits_afterQuotaExhausted() throws {
         // GIVEN: Exhausted quota but has purchased credits
-        userCredits.dailyQuotaUsed = 25 // Quota exhausted
+        userCredits.tierCreditsUsed = 25 // Quota exhausted
         userCredits.creditsBalance = 50 // Has purchased credits
 
         // WHEN: Checking affordability for scanned PDF
@@ -152,7 +152,7 @@ final class PDFImportTests: XCTestCase {
     /// Test 11: Insufficient credits throws error
     func test_deductCredits_insufficient_throwsError() throws {
         // GIVEN: No credits available
-        userCredits.dailyQuotaUsed = 25
+        userCredits.tierCreditsUsed = 25
         userCredits.creditsBalance = 0
         XCTAssertEqual(userCredits.availableToday, 0)
 
@@ -232,7 +232,7 @@ final class PDFImportTests: XCTestCase {
         // THEN: Credits should persist
         let fetchedCredits = try env.fetchUserCredits()
         XCTAssertNotNil(fetchedCredits)
-        XCTAssertEqual(fetchedCredits?.dailyQuotaUsed, 5)
+        XCTAssertEqual(fetchedCredits?.tierCreditsUsed, 5)
     }
 
     // MARK: - AI Image Generation Credit Tests
@@ -279,14 +279,14 @@ final class PDFImportTests: XCTestCase {
     /// Test 20: Credits deducted from quota first, then purchased
     func test_creditsDeduction_usesQuotaFirstThenPurchased() throws {
         // GIVEN: Some quota used, and purchased credits
-        userCredits.dailyQuotaUsed = 20 // 5 quota remaining
+        userCredits.tierCreditsUsed = 20 // 5 quota remaining
         userCredits.creditsBalance = 50
 
         // WHEN: Deducting 10 credits (more than quota remaining)
         try userCredits.deductCredits(10)
 
         // THEN: Should use remaining quota (5) + purchased (5)
-        XCTAssertEqual(userCredits.dailyQuotaUsed, 25) // Quota exhausted
+        XCTAssertEqual(userCredits.tierCreditsUsed, 25) // Quota exhausted
         XCTAssertEqual(userCredits.creditsBalance, 45) // 5 deducted from purchased
     }
 }

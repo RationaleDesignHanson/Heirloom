@@ -82,10 +82,30 @@ protocol ASMRProcessorProtocol: AnyObject {
         userCaption: String,
         videoHash: String?,
         skipSoundAnalysis: Bool,
-        dishNameHint: String?
+        dishNameHint: String?,
+        creditsPreCharged: Bool
     ) async throws -> ASMRRecipeExtraction
 
     func cancel()
+}
+
+extension ASMRProcessorProtocol {
+    func process(
+        videoURL: URL,
+        userCaption: String,
+        videoHash: String?,
+        skipSoundAnalysis: Bool = false,
+        dishNameHint: String? = nil
+    ) async throws -> ASMRRecipeExtraction {
+        try await process(
+            videoURL: videoURL,
+            userCaption: userCaption,
+            videoHash: videoHash,
+            skipSoundAnalysis: skipSoundAnalysis,
+            dishNameHint: dishNameHint,
+            creditsPreCharged: false
+        )
+    }
 }
 
 // MARK: - Pass Result

@@ -454,6 +454,7 @@ final class CookbookBatchAnalyzer {
 
         Extract and return JSON with:
         - title: Recipe name (use "\(expectedTitle)" if unclear)
+        - source: Website, blog, or brand name if visible (e.g., "The Flavor Labs", "AllRecipes") - null if not found
         - servings: How many servings (e.g., "4", "6-8 servings", null if not found)
         - prep_time: Preparation time (e.g., "15 minutes", null if not found)
         - cook_time: Cooking time (e.g., "30 minutes", null if not found)

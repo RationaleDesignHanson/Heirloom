@@ -23,6 +23,7 @@ final class RecipeGenerationService: ObservableObject {
     private let imageGenerator: RecipeImageGeneratorProtocol
     private let aiService: AIServiceProtocol
     private let aiConfiguration: AIConfigurationProtocol
+    private let imageGenerationQueue: ImageGenerationQueue
     internal var context: ModelContext?
 
     // MARK: - Initialization
@@ -31,12 +32,14 @@ final class RecipeGenerationService: ObservableObject {
         aiGenerator: AIRecipeGeneratorProtocol,
         imageGenerator: RecipeImageGeneratorProtocol,
         aiService: AIServiceProtocol,
-        aiConfiguration: AIConfigurationProtocol
+        aiConfiguration: AIConfigurationProtocol,
+        imageGenerationQueue: ImageGenerationQueue
     ) {
         self.aiGenerator = aiGenerator
         self.imageGenerator = imageGenerator
         self.aiService = aiService
         self.aiConfiguration = aiConfiguration
+        self.imageGenerationQueue = imageGenerationQueue
     }
 
     // MARK: - Public API
@@ -356,18 +359,6 @@ final class RecipeGenerationService: ObservableObject {
                 }
             }
 
-            // Generate image for placeholder (blocking, soft failure)
-            // Now has access to ingredients for better image prompts
-            do {
-                try await self.imageGenerator.generateAndSaveImage(for: placeholder)
-                Log.info("Recipe image generated successfully", category: .general)
-            } catch {
-                Log.error("Failed to generate image for recipe", category: .general, metadata: [
-                    "error": error.localizedDescription
-                ])
-                // Continue without image
-            }
-
             // UNIFIED UX: Update placeholder with generated recipe data
             placeholder.updateFromProcessingResult(
                 title: generatedRecipe.title,
@@ -376,11 +367,23 @@ final class RecipeGenerationService: ObservableObject {
                 prepTime: generatedRecipe.prepTime,
                 cookTime: generatedRecipe.cookTime,
                 notes: generatedRecipe.notes,
-                imageFileName: placeholder.imageFileName  // Keep the generated image
+                imageFileName: placeholder.imageFileName
             )
+
+            // Enqueue image generation for background processing (non-blocking)
+            imageGenerationQueue.context = context
+            imageGenerationQueue.enqueue(placeholder)
 
             // Mark as AI generated
             placeholder.aiGenerated = true
+
+            // Register source attribution
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: "AI Generated",
+                kind: .aiGenerated,
+                discoveryMethod: "ai_generation",
+                recipe: placeholder
+            )
 
             // Add to target collection if not already added, or default "Generated Recipes"
             await addToCollection(placeholder, context: context, targetCollectionId: job.targetCollectionId)
@@ -503,18 +506,6 @@ final class RecipeGenerationService: ObservableObject {
                 }
             }
 
-            // Generate image for placeholder (blocking, soft failure)
-            // Now has access to ingredients for better image prompts
-            do {
-                try await self.imageGenerator.generateAndSaveImage(for: placeholder)
-                Log.info("Voice recipe image generated successfully", category: .general)
-            } catch {
-                Log.error("Failed to generate image", category: .general, metadata: [
-                    "error": error.localizedDescription
-                ])
-                // Continue without image
-            }
-
             // UNIFIED UX: Update placeholder with generated recipe data
             placeholder.updateFromProcessingResult(
                 title: generatedRecipe.title,
@@ -526,12 +517,26 @@ final class RecipeGenerationService: ObservableObject {
                 imageFileName: placeholder.imageFileName
             )
 
-            // Mark as voice dictated
-            placeholder.aiGenerated = true
-            placeholder.voiceDictated = true
+            // Enqueue image generation for background processing (non-blocking)
+            imageGenerationQueue.context = context
+            imageGenerationQueue.enqueue(placeholder)
 
-            // Add to "Generated Recipes" collection
-            await addToCollection(placeholder, context: context)
+            // Mark as voice-dictated read recipe (user read a real recipe, AI structured it)
+            placeholder.aiGenerated = false
+            placeholder.voiceDictated = true
+            placeholder.sourceType = .readRecipe
+
+            // Register source attribution — the source is the user themselves
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: "Read Recipe",
+                kind: .person,
+                discoveryMethod: "voice_dictation",
+                recipe: placeholder
+            )
+
+            // Route to "Read Recipes" collection (not Generated Recipes)
+            let collectionRouter = CollectionRouter(modelContext: context)
+            collectionRouter.routeReadRecipe(placeholder)
 
             // Delete temporary generated recipe
             context.delete(generatedRecipe)
@@ -565,6 +570,70 @@ final class RecipeGenerationService: ObservableObject {
             ])
 
             self.activeJob = nil
+        }
+    }
+
+    // MARK: - Job Retry
+
+    /// Retry a failed generation job by resetting its state and re-processing
+    func retryJob(_ job: RecipeGenerationJob, context: ModelContext) {
+        self.context = context
+        let isVoice = job.transcript != nil
+
+        // Find the placeholder recipe
+        let placeholderID = job.placeholderRecipeId
+        var placeholder: Recipe?
+        if let placeholderID {
+            let descriptor = FetchDescriptor<Recipe>(predicate: #Predicate { $0.id == placeholderID })
+            placeholder = try? context.fetch(descriptor).first
+        }
+
+        // If placeholder is gone (deleted), create a new one
+        if placeholder == nil {
+            let newPlaceholder = Recipe.createGenerationPlaceholder(
+                jobId: job.id,
+                dishName: job.dishName,
+                isVoiceDictation: isVoice,
+                isSillyRecipe: job.isSillyRecipe
+            )
+            context.insert(newPlaceholder)
+            job.placeholderRecipeId = newPlaceholder.id
+            placeholder = newPlaceholder
+        }
+
+        guard let placeholder else { return }
+
+        // Reset placeholder state
+        placeholder.processingStatus = .processing
+        placeholder.processingProgress = 0.0
+        placeholder.processingErrorMessage = nil
+        placeholder.linkedProcessingJobId = job.id
+        placeholder.linkedProcessingJobType = "generation"
+        placeholder.title = isVoice ? "Transcribing Recipe..." : "Generating \(job.dishName)..."
+
+        // Reset job state
+        job.status = .pending
+        job.error = nil
+        job.currentPhase = .analyzing
+        try? context.save()
+
+        self.activeJob = job
+
+        Log.info("Retrying generation job", category: .general, metadata: [
+            "jobId": job.id.uuidString,
+            "dishName": job.dishName,
+            "isVoice": isVoice
+        ])
+
+        // Re-dispatch to the appropriate processor
+        if isVoice {
+            Task.detached { @MainActor in
+                await self.processVoiceJob(job, placeholder: placeholder)
+            }
+        } else {
+            Task.detached { @MainActor in
+                await self.processJob(job, placeholder: placeholder)
+            }
         }
     }
 
@@ -653,12 +722,22 @@ final class RecipeGenerationService: ObservableObject {
         Analyze this voice transcript from someone describing a recipe they want to make.
         Extract structured information about the dish they're describing.
 
+        IMPORTANT — Regional & cultural dish naming:
+        If the user mentions a location, country, region, or cuisine (e.g., "I'm in France",
+        "this Italian place", "Korean street food"), identify the specific regional dish name
+        rather than a generic description. For example:
+        - "sandwich with ham and cheese and béchamel in France" → "Croque Monsieur"
+        - "Korean spicy rice cakes" → "Tteokbokki"
+        - "Japanese pancake with cabbage" → "Okonomiyaki"
+        - "Indian flatbread with potato filling" → "Aloo Paratha"
+        Use the authentic name in dishName and note the cuisine in cuisineHints.
+
         Transcript: "\(transcript)"
 
         Return JSON with:
-        - dishName (string): The primary dish name
+        - dishName (string): The specific dish name — use the authentic regional name when identifiable
         - ingredients (array of strings, optional): Specific ingredients mentioned
-        - cuisineHints (array of strings, optional): Cuisine or regional style hints (e.g., "Southern", "Italian")
+        - cuisineHints (array of strings, optional): Cuisine or regional style hints (e.g., "French", "Korean", "Southern")
         - descriptions (array of strings, optional): Descriptive qualities (e.g., "creamy", "crispy", "light")
         - techniquePreferences (array of strings, optional): Cooking techniques mentioned (e.g., "slow-cooked", "grilled")
         - servingSize (string, optional): Serving size if mentioned (e.g., "6 people")
@@ -671,7 +750,10 @@ final class RecipeGenerationService: ObservableObject {
             temperature: 0.3,
             maxTokens: 512,
             systemMessage: """
-            You are a precise transcript parser. Extract structured recipe information from voice transcripts.
+            You are a precise transcript parser with deep knowledge of world cuisines.
+            Extract structured recipe information from voice transcripts.
+            When the user mentions a region, country, or cuisine, identify the authentic regional dish name
+            rather than a generic description (e.g., "Croque Monsieur" not "French ham and cheese sandwich").
             Return ONLY valid JSON matching the exact schema. Do not wrap in markdown code blocks.
             If the transcript is unclear or garbled, set confidence low and extract what you can.
             """

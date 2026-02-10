@@ -73,6 +73,10 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
     }
 
     private var isRecording = false
+    /// Accumulated transcript from completed recognition segments
+    private var accumulatedTranscript = ""
+    /// Current partial transcript from the active recognition task
+    private var currentSegmentTranscript = ""
 
     // MARK: - Initialization
 
@@ -84,6 +88,9 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
     // MARK: - Authorization
 
     func requestAuthorization() async -> Bool {
+        Log.info("🎙️ requestAuthorization() called", category: .general)
+        Log.info("🎙️ Current speech status: \(SFSpeechRecognizer.authorizationStatus().rawValue)", category: .general)
+
         // Request speech recognition authorization
         let speechStatus = await withCheckedContinuation { continuation in
             SFSpeechRecognizer.requestAuthorization { status in
@@ -91,12 +98,15 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
             }
         }
 
+        Log.info("🎙️ Speech auth result: \(speechStatus.rawValue) (0=notDetermined, 1=denied, 2=restricted, 3=authorized)", category: .general)
+
         guard speechStatus == .authorized else {
             return false
         }
 
         // Request microphone authorization
         let micStatus = await AVAudioApplication.requestRecordPermission()
+        Log.info("🎙️ Mic auth result: \(micStatus)", category: .general)
         return micStatus
     }
 
@@ -122,25 +132,17 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
         recognitionTask?.cancel()
         recognitionTask = nil
 
+        // Reset transcript state
+        accumulatedTranscript = ""
+        currentSegmentTranscript = ""
+        transcriptionSubject.send("")
+
         // Configure audio session
         let audioSession = AVAudioSession.sharedInstance()
         try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
         try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
 
-        // Create recognition request
-        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
-        guard let recognitionRequest = recognitionRequest else {
-            throw VoiceDictationError.recognitionFailed("Unable to create recognition request")
-        }
-
-        recognitionRequest.shouldReportPartialResults = true
-
-        // If device supports on-device recognition, use it
-        if #available(iOS 13, *), speechRecognizer?.supportsOnDeviceRecognition == true {
-            recognitionRequest.requiresOnDeviceRecognition = true
-        }
-
-        // Configure audio engine
+        // Configure audio engine — install tap once, it feeds whatever recognitionRequest is current
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
@@ -150,39 +152,106 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
         audioEngine.prepare()
         try audioEngine.start()
 
-        // Start recognition task
-        recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
-            guard let self = self else { return }
-
-            if let result = result {
-                let transcription = result.bestTranscription.formattedString
-                Task { @MainActor in
-                    self.transcriptionSubject.send(transcription)
-                }
-            }
-
-            if error != nil || result?.isFinal == true {
-                Task { @MainActor in
-                    self.stopAudioEngine()
-                }
-            }
-        }
-
         isRecording = true
+
+        // Start first recognition task
+        startRecognitionTask()
     }
 
     func stopDictation() -> String {
         stopAudioEngine()
-        let finalTranscript = transcriptionSubject.value
+        // Combine accumulated segments with any current partial
+        let finalTranscript = buildFullTranscript()
+        accumulatedTranscript = ""
+        currentSegmentTranscript = ""
         return finalTranscript
     }
 
     func cancelDictation() {
         stopAudioEngine()
+        accumulatedTranscript = ""
+        currentSegmentTranscript = ""
         transcriptionSubject.send("")
     }
 
     // MARK: - Private Helpers
+
+    /// Start (or restart) a recognition task on the running audio engine.
+    /// Called initially and again each time the recognizer finalizes a segment (e.g. after silence).
+    private func startRecognitionTask() {
+        // End previous request/task without stopping the audio engine
+        recognitionRequest?.endAudio()
+        recognitionTask?.cancel()
+
+        // Create a fresh recognition request — the existing tap feeds recognitionRequest via weak self
+        let request = SFSpeechAudioBufferRecognitionRequest()
+        request.shouldReportPartialResults = true
+        if #available(iOS 13, *), speechRecognizer?.supportsOnDeviceRecognition == true {
+            request.requiresOnDeviceRecognition = true
+        }
+        self.recognitionRequest = request
+
+        recognitionTask = speechRecognizer?.recognitionTask(with: request) { [weak self] result, error in
+            guard let self = self else { return }
+
+            if let result = result {
+                let segmentText = result.bestTranscription.formattedString
+                Task { @MainActor in
+                    self.currentSegmentTranscript = segmentText
+                    self.transcriptionSubject.send(self.buildFullTranscript())
+                }
+
+                // When the recognizer finalizes (silence/time limit), save and chain a new task
+                if result.isFinal {
+                    Task { @MainActor in
+                        // Accumulate the finalized segment
+                        if !segmentText.isEmpty {
+                            if self.accumulatedTranscript.isEmpty {
+                                self.accumulatedTranscript = segmentText
+                            } else {
+                                self.accumulatedTranscript += " " + segmentText
+                            }
+                        }
+                        self.currentSegmentTranscript = ""
+
+                        // Chain a new recognition task if still recording
+                        if self.isRecording {
+                            Log.info("🎙️ Recognition segment finalized, chaining new task", category: .general)
+                            self.startRecognitionTask()
+                        }
+                    }
+                }
+            }
+
+            // Only stop on actual errors (not on isFinal)
+            if let error = error {
+                let nsError = error as NSError
+                // Error code 216 = "request was canceled" (happens during normal chaining) — ignore it
+                if nsError.domain == "kAFAssistantErrorDomain" && nsError.code == 216 {
+                    return
+                }
+                Log.warning("🎙️ Recognition error: \(error.localizedDescription)", category: .general)
+                Task { @MainActor in
+                    // Don't stop for transient errors if we still have a good transcript
+                    if self.isRecording && !self.buildFullTranscript().isEmpty {
+                        Log.info("🎙️ Attempting to recover from recognition error", category: .general)
+                        self.startRecognitionTask()
+                    }
+                }
+            }
+        }
+    }
+
+    /// Build the full transcript from accumulated segments + current partial
+    private func buildFullTranscript() -> String {
+        if currentSegmentTranscript.isEmpty {
+            return accumulatedTranscript
+        }
+        if accumulatedTranscript.isEmpty {
+            return currentSegmentTranscript
+        }
+        return accumulatedTranscript + " " + currentSegmentTranscript
+    }
 
     private func stopAudioEngine() {
         audioEngine.stop()

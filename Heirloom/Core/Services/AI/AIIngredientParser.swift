@@ -57,6 +57,7 @@ class AIIngredientParser: AIIngredientParserProtocol {
             quantity: tuple.quantity,
             unit: tuple.unit
         )
+        ingredient.quantityMax = tuple.quantityMax
         ingredient.preparation = tuple.preparation
         return ingredient
     }
@@ -73,6 +74,7 @@ class AIIngredientParser: AIIngredientParserProtocol {
                 quantity: tuple.quantity,
                 unit: tuple.unit
             )
+            ingredient.quantityMax = tuple.quantityMax
             ingredient.preparation = tuple.preparation
             return ingredient
         }
@@ -161,7 +163,16 @@ class AIIngredientParser: AIIngredientParserProtocol {
 
         Guidelines:
         - Convert fractions to decimals: "1/2" → 0.5, "1/4" → 0.25, "3/4" → 0.75
-        - Simplify units: "tbsp" → "tablespoon", "oz" → "ounce", "c" → "cup"
+        - IMPORTANT: Expand ALL unit abbreviations to full words:
+          - "C" or "c" → "cup"
+          - "T" or "Tbsp" or "tbsp" or "tbs" → "tablespoon"
+          - "t" or "tsp" → "teaspoon"
+          - "oz" → "ounce"
+          - "lb" or "lbs" → "pound"
+          - "g" → "gram"
+          - "kg" → "kilogram"
+          - "ml" → "milliliter"
+          - "L" → "liter"
         - Handle mixed numbers: "2 1/2" → 2.5
         - Handle ranges: "2-3" → quantity=2, quantity_max=3
         - Handle "to" ranges: "2 to 3" → quantity=2, quantity_max=3
@@ -169,6 +180,12 @@ class AIIngredientParser: AIIngredientParserProtocol {
         - Common preparations: "diced", "chopped", "minced", "sliced", "grated", "shredded", "melted", "softened", "beaten", "sifted"
         - Handle no quantity: "salt to taste" → quantity=null, name="salt", preparation=null
         - Handle parenthetical notes: "1 cup (2 sticks) butter" → quantity=1, unit="cup", name="butter"
+        - IMPORTANT: For count-based items (tortillas, eggs, slices, pieces, steaks), the item name is NOT a unit.
+          "8 corn tortillas" → quantity=8, unit=null, name="corn tortillas"
+          "4 flour tortillas" → quantity=4, unit=null, name="flour tortillas"
+          "3 eggs" → quantity=3, unit=null, name="eggs"
+          "2 slices bread" → quantity=2, unit="slice", name="bread"
+        - Do NOT duplicate the ingredient name in the unit field (e.g., never output unit="tortillas" name="corn tortillas")
 
         Return ONLY valid JSON:
         {
@@ -198,6 +215,15 @@ class AIIngredientParser: AIIngredientParserProtocol {
 
         Input: "Salt and pepper to taste"
         Output: {"quantity": null, "quantity_max": null, "unit": null, "name": "salt and pepper", "preparation": null}
+
+        Input: "8 corn tortillas"
+        Output: {"quantity": 8.0, "quantity_max": null, "unit": null, "name": "corn tortillas", "preparation": null}
+
+        Input: "4 flour tortillas"
+        Output: {"quantity": 4.0, "quantity_max": null, "unit": null, "name": "flour tortillas", "preparation": null}
+
+        Input: "3 large eggs"
+        Output: {"quantity": 3.0, "quantity_max": null, "unit": null, "name": "large eggs", "preparation": null}
 
         Now parse: "\(text)"
         """
@@ -295,7 +321,9 @@ class AIIngredientParser: AIIngredientParserProtocol {
         For each ingredient, extract:
         - quantity: Numeric amount (convert fractions to decimals)
         - quantity_max: For ranges only (e.g., "2-3" → quantity=2, quantity_max=3)
-        - unit: Measurement unit (simplify abbreviations)
+        - unit: Measurement unit - EXPAND ALL abbreviations to full words:
+          "C" or "c" → "cup", "T"/"Tbsp"/"tbsp" → "tablespoon", "t"/"tsp" → "teaspoon",
+          "oz" → "ounce", "lb"/"lbs" → "pound", "g" → "gram", "ml" → "milliliter"
         - name: Ingredient name only (no quantity/unit/preparation)
         - preparation: How to prepare (e.g., "thinly sliced", "diced", "minced", "chopped"). Null if none.
 

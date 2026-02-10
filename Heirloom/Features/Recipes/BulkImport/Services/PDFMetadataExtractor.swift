@@ -47,15 +47,17 @@ class PDFMetadataExtractor {
     /// Extract cookbook metadata from a PDF file
     /// - Parameters:
     ///   - pdfURL: URL to the PDF file
+    ///   - originalURL: Optional original URL before stable copy (avoids index prefix in filename)
     ///   - useVisionFallback: Whether to use AI vision if other methods disagree (default: true)
     /// - Returns: CookbookMetadata if found, nil otherwise
-    func extractMetadata(from pdfURL: URL, useVisionFallback: Bool = true) async -> CookbookMetadata? {
+    func extractMetadata(from pdfURL: URL, originalURL: URL? = nil, useVisionFallback: Bool = true) async -> CookbookMetadata? {
         guard let pdfDocument = PDFDocument(url: pdfURL) else {
             Log.warning("Failed to open PDF for metadata extraction", category: .import)
             return nil
         }
 
-        return await extractMetadata(from: pdfDocument, pdfURL: pdfURL, useVisionFallback: useVisionFallback)
+        // Use originalURL for filename extraction (avoids "0_" prefix from stable copy)
+        return await extractMetadata(from: pdfDocument, pdfURL: originalURL ?? pdfURL, useVisionFallback: useVisionFallback)
     }
 
     /// Extract cookbook metadata from a PDFDocument
@@ -145,7 +147,8 @@ class PDFMetadataExtractor {
         guard let attributes = pdfDocument.documentAttributes else { return nil }
 
         let title = attributes[PDFDocumentAttribute.titleAttribute] as? String
-        let author = attributes[PDFDocumentAttribute.authorAttribute] as? String
+        let rawAuthor = attributes[PDFDocumentAttribute.authorAttribute] as? String
+        let author = rawAuthor.flatMap { isToolGeneratedAuthor($0) ? nil : $0 }
 
         // Validate: must have title with reasonable length
         guard let validTitle = title, !validTitle.isEmpty, validTitle.count > 3, validTitle.count < 150 else {
@@ -158,13 +161,24 @@ class PDFMetadataExtractor {
             return nil
         }
 
+        // Strip tool-generated prefixes (e.g., "Microsoft Word - Online Class - Chocolate Chip Cookies")
+        var cleanedTitle = validTitle
+        let toolPrefixes = ["Microsoft Word - ", "Microsoft Word -", "Pages - ", "LibreOffice - "]
+        for prefix in toolPrefixes {
+            if cleanedTitle.hasPrefix(prefix) {
+                cleanedTitle = String(cleanedTitle.dropFirst(prefix.count))
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                break
+            }
+        }
+
         Log.debug("Found embedded PDF metadata", category: .import, metadata: [
-            "title": validTitle,
+            "title": cleanedTitle,
             "author": author ?? "nil"
         ])
 
         return MetadataCandidate(
-            title: validTitle,
+            title: cleanedTitle,
             author: author?.isEmpty == false ? author : nil,
             source: .embedded,
             confidence: 0.9 // Embedded metadata is highly reliable
@@ -228,13 +242,16 @@ class PDFMetadataExtractor {
                 .replacingOccurrences(of: "_", with: " ")
                 .replacingOccurrences(of: "-", with: " ")
 
-            // Remove common suffixes like "(1)", "copy", "final", etc.
+            // Remove common suffixes like "(1)", "copy", "final", "pdf", etc.
             let suffixPatterns = [
                 "\\s*\\(\\d+\\)$",
                 "\\s*copy\\s*\\d*$",
                 "\\s*final$",
                 "\\s*v\\d+$",
-                "\\s*\\d{4}$" // Year at end
+                "\\s*\\d{4}$", // Year at end
+                "\\s+pdf$",    // File extension leaked into title
+                "\\s+doc$",
+                "\\s+docx$"
             ]
             for pattern in suffixPatterns {
                 if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
@@ -266,6 +283,18 @@ class PDFMetadataExtractor {
             source: .filename,
             confidence: confidence
         )
+    }
+
+    /// Check if an author string looks like a PDF creation tool rather than a person/brand
+    private func isToolGeneratedAuthor(_ author: String) -> Bool {
+        let lowercased = author.lowercased()
+        let toolPatterns = [
+            "acrobat", "pdfmaker", "microsoft word", "microsoft office",
+            "libreoffice", "openoffice", "google docs", "pages",
+            "latex", "tex", "ghostscript", "prince", "wkhtmltopdf",
+            "chrome", "firefox", "safari", "webkit"
+        ]
+        return toolPatterns.contains { lowercased.contains($0) }
     }
 
     private func cleanFilenameComponent(_ component: String) -> String {
@@ -601,7 +630,12 @@ class PDFMetadataExtractor {
             // Group similar titles (fuzzy matching)
             let titleGroups = groupSimilarStrings(titles)
             if let largestGroup = titleGroups.max(by: { $0.count < $1.count }) {
-                bestTitle = largestGroup.first
+                // When multiple sources agree, prefer AI vision's cleaner title
+                let priorityOrder: [MetadataCandidate.MetadataSource] = [.aiVision, .embedded, .textParsing, .filename]
+                let preferredTitle = priorityOrder.lazy
+                    .compactMap { source in candidates.first(where: { $0.source == source && $0.title != nil && largestGroup.contains($0.title!) })?.title }
+                    .first
+                bestTitle = preferredTitle ?? largestGroup.first
                 // Higher confidence if multiple sources agree
                 titleConfidence = largestGroup.count >= 2 ? 0.9 : 0.6
             }

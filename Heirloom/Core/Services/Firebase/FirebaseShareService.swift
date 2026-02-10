@@ -581,10 +581,14 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             }
         }
 
-        // 9. Download image if available
+        // 9. Download image if available (non-fatal — recipe is still usable without image)
         if let firebaseImageURL = shareData["firebaseImageURL"] as? String {
             sharedRecipe.firebaseImageURL = firebaseImageURL
-            try await firebaseSync.downloadImage(for: sharedRecipe)
+            do {
+                try await firebaseSync.downloadImage(for: sharedRecipe)
+            } catch {
+                Log.warning("Image download failed during share accept, continuing without image", category: .firebase, metadata: ["url": firebaseImageURL, "error": error.localizedDescription])
+            }
         }
 
         // 10. Update provenance

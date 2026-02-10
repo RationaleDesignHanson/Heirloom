@@ -319,6 +319,12 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
             creatorName: creatorProfile.displayName
         )
 
+        // Extract source attribution from KnownSource registry
+        let knownSource = recipe.knownSource
+        let sourceKind = knownSource?.sourceKind
+        let sourceConfidence = knownSource?.confidence
+        let sourceCatalogId = knownSource?.firebaseCatalogId
+
         return PublicRecipe(
             id: publicRecipeId,
             sourceRecipeId: recipe.id.uuidString,
@@ -337,6 +343,9 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
             creatorName: creatorProfile.displayName,
             creatorPhotoURL: creatorProfile.photoURL,
             creatorProfileSlug: creatorProfile.publicProfileSlug,
+            sourceKind: sourceKind,
+            sourceConfidence: sourceConfidence,
+            sourceCatalogId: sourceCatalogId,
             viewCount: 0,
             saveCount: 0,
             searchKeywords: searchKeywords,

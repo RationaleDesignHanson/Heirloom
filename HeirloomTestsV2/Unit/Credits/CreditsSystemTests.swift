@@ -30,7 +30,7 @@ final class CreditsSystemTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         env = try await TestEnvironment.create(authenticated: true, credits: 25)
-        userCredits = env.createUserCredits(purchasedCredits: 0, dailyQuotaUsed: 0)
+        userCredits = env.createUserCredits(purchasedCredits: 0, tierCreditsUsed: 0)
         try env.save()
     }
 
@@ -46,7 +46,7 @@ final class CreditsSystemTests: XCTestCase {
     /// Test 1: Fresh user has full daily quota
     func test_freshUser_hasFull25DailyQuota() throws {
         // GIVEN: A fresh user with no activity
-        XCTAssertEqual(userCredits.dailyQuotaUsed, 0)
+        XCTAssertEqual(userCredits.tierCreditsUsed, 0)
 
         // WHEN: Checking available credits
         let available = userCredits.availableToday
@@ -67,36 +67,36 @@ final class CreditsSystemTests: XCTestCase {
 
         // THEN: Quota remaining should decrease
         XCTAssertEqual(userCredits.quotaRemaining, 20)
-        XCTAssertEqual(userCredits.dailyQuotaUsed, 5)
+        XCTAssertEqual(userCredits.tierCreditsUsed, 5)
     }
 
     /// Test 3: Daily quota resets at midnight
     func test_dailyQuotaReset_resetsAtMidnight() throws {
         // GIVEN: User who used all quota yesterday
-        userCredits.dailyQuotaUsed = 25
-        userCredits.dailyQuotaResetDate = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+        userCredits.tierCreditsUsed = 25
+        userCredits.tierCreditResetDate = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
 
         // WHEN: Accessing quota today
         let wasReset = userCredits.resetDailyQuotaIfNeeded()
 
         // THEN: Quota should be reset
         XCTAssertTrue(wasReset, "Quota should reset on new day")
-        XCTAssertEqual(userCredits.dailyQuotaUsed, 0, "Used quota should be zero after reset")
+        XCTAssertEqual(userCredits.tierCreditsUsed, 0, "Used quota should be zero after reset")
         XCTAssertEqual(userCredits.quotaRemaining, 25, "Full quota should be available")
     }
 
     /// Test 4: Quota does not reset on same day
     func test_dailyQuotaReset_doesNotResetOnSameDay() throws {
         // GIVEN: User who used some quota today
-        userCredits.dailyQuotaUsed = 10
-        userCredits.dailyQuotaResetDate = Date()
+        userCredits.tierCreditsUsed = 10
+        userCredits.tierCreditResetDate = Date()
 
         // WHEN: Checking if reset needed
         let wasReset = userCredits.resetDailyQuotaIfNeeded()
 
         // THEN: Should not reset
         XCTAssertFalse(wasReset, "Quota should not reset on same day")
-        XCTAssertEqual(userCredits.dailyQuotaUsed, 10, "Used quota should remain unchanged")
+        XCTAssertEqual(userCredits.tierCreditsUsed, 10, "Used quota should remain unchanged")
     }
 
     // MARK: - Credit Priority Tests (Quota First)
@@ -112,7 +112,7 @@ final class CreditsSystemTests: XCTestCase {
         try userCredits.deductCredits(10)
 
         // THEN: Should deduct from quota first, purchased unchanged
-        XCTAssertEqual(userCredits.dailyQuotaUsed, 10, "Should use daily quota first")
+        XCTAssertEqual(userCredits.tierCreditsUsed, 10, "Should use daily quota first")
         XCTAssertEqual(userCredits.creditsBalance, 50, "Purchased credits should be unchanged")
         XCTAssertEqual(userCredits.quotaRemaining, 15)
     }
@@ -120,7 +120,7 @@ final class CreditsSystemTests: XCTestCase {
     /// Test 6: Deduction uses purchased credits when quota exhausted
     func test_deductCredits_usesPurchasedWhenQuotaExhausted() throws {
         // GIVEN: User with 5 quota remaining and 50 purchased
-        userCredits.dailyQuotaUsed = 20
+        userCredits.tierCreditsUsed = 20
         userCredits.creditsBalance = 50
         XCTAssertEqual(userCredits.quotaRemaining, 5)
 
@@ -128,14 +128,14 @@ final class CreditsSystemTests: XCTestCase {
         try userCredits.deductCredits(15)
 
         // THEN: Should use remaining quota (5) + purchased (10)
-        XCTAssertEqual(userCredits.dailyQuotaUsed, 25, "Should exhaust daily quota")
+        XCTAssertEqual(userCredits.tierCreditsUsed, 25, "Should exhaust daily quota")
         XCTAssertEqual(userCredits.creditsBalance, 40, "Should deduct 10 from purchased")
     }
 
     /// Test 7: Available today combines quota and purchased
     func test_availableToday_combinesQuotaAndPurchased() throws {
         // GIVEN: User with 10 quota remaining and 30 purchased
-        userCredits.dailyQuotaUsed = 15
+        userCredits.tierCreditsUsed = 15
         userCredits.creditsBalance = 30
 
         // WHEN: Checking available
@@ -150,7 +150,7 @@ final class CreditsSystemTests: XCTestCase {
     /// Test 8: Throws error when insufficient credits
     func test_deductCredits_throwsWhenInsufficient() throws {
         // GIVEN: User with only 5 total credits
-        userCredits.dailyQuotaUsed = 20
+        userCredits.tierCreditsUsed = 20
         userCredits.creditsBalance = 0
         XCTAssertEqual(userCredits.availableToday, 5)
 
@@ -179,7 +179,7 @@ final class CreditsSystemTests: XCTestCase {
     /// Test 10: Can afford returns false when insufficient
     func test_canAfford_returnsFalseWhenInsufficient() throws {
         // GIVEN: User with 0 credits (quota exhausted, no purchased)
-        userCredits.dailyQuotaUsed = 25
+        userCredits.tierCreditsUsed = 25
         userCredits.creditsBalance = 0
 
         // WHEN/THEN: Should not afford any credits
@@ -220,8 +220,8 @@ final class CreditsSystemTests: XCTestCase {
     func test_purchasedCredits_persistAcrossQuotaReset() throws {
         // GIVEN: User with purchased credits who used all quota
         userCredits.creditsBalance = 100
-        userCredits.dailyQuotaUsed = 25
-        userCredits.dailyQuotaResetDate = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+        userCredits.tierCreditsUsed = 25
+        userCredits.tierCreditResetDate = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
 
         // WHEN: Quota resets
         userCredits.resetDailyQuotaIfNeeded()
@@ -273,7 +273,7 @@ final class CreditsSystemTests: XCTestCase {
 
         // THEN: Should succeed, leaving 0
         XCTAssertEqual(userCredits.availableToday, 0)
-        XCTAssertEqual(userCredits.dailyQuotaUsed, 25)
+        XCTAssertEqual(userCredits.tierCreditsUsed, 25)
     }
 
     /// Test 18: Large purchase amount works
@@ -306,7 +306,7 @@ final class CreditsSystemTests: XCTestCase {
     /// Test 20: Error message contains needed and available
     func test_creditError_containsUsefulInfo() throws {
         // GIVEN: User with limited credits
-        userCredits.dailyQuotaUsed = 20
+        userCredits.tierCreditsUsed = 20
         userCredits.creditsBalance = 0 // Only 5 available
 
         // WHEN: Attempting to deduct too many

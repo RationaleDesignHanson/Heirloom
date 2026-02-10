@@ -235,14 +235,14 @@ struct HeirloomApp: App {
         print("💾 [INIT] Starting SwiftData configuration...")
 
         do {
-            print("💾 [INIT] Getting SchemaV2.schema...")
-            DeviceLogger.shared.log("🔧 [Heirloom] Configuring SwiftData schema (V2 - Multilingual Support)...")
-            logger.info("🔧 [Heirloom] Configuring SwiftData schema (V2 - Multilingual Support)...")
+            print("💾 [INIT] Getting SchemaV3.schema...")
+            DeviceLogger.shared.log("🔧 [Heirloom] Configuring SwiftData schema (V3 - Source Attribution Registry)...")
+            logger.info("🔧 [Heirloom] Configuring SwiftData schema (V3 - Source Attribution Registry)...")
 
-            // Use SchemaV2 with migration plan from V1 → V2
-            // V2 adds optional multilingual fields without breaking existing data
-            let schema = SchemaV2.schema
-            print("✅ [INIT] Got SchemaV2.schema successfully")
+            // Use SchemaV3 with migration plan from V1 → V2 → V3
+            // V3 adds KnownSource model for source attribution registry
+            let schema = SchemaV3.schema
+            print("✅ [INIT] Got SchemaV3.schema successfully")
 
             // Configure for LOCAL ONLY storage
             // Firebase handles sync separately - no CloudKit integration
@@ -483,6 +483,29 @@ struct HeirloomApp: App {
                 }
             } catch {
                 DeviceLogger.shared.log("⚠️ [Migration] Community recipe migration failed: \(error)")
+            }
+
+            // Run source attribution migration (seeds KnownSource registry from existing recipes)
+            do {
+                let firebaseConfig = serviceContainer.resolve(FirebaseConfiguration.self)
+                let attributionService = SourceAttributionService(
+                    modelContext: container.mainContext,
+                    firebaseConfig: firebaseConfig
+                )
+                serviceContainer.register(SourceAttributionService.self, instance: attributionService)
+
+                let seededCount = try SourceAttributionMigration.run(
+                    context: container.mainContext,
+                    attributionService: attributionService
+                )
+                if seededCount > 0 {
+                    DeviceLogger.shared.log("✅ [Migration] Seeded \(seededCount) known sources from existing recipes")
+                }
+
+                // DEBUG: Dump graph state on every launch for testing
+                attributionService.dumpStats()
+            } catch {
+                DeviceLogger.shared.log("⚠️ [Migration] Source attribution migration failed: \(error)")
             }
 
             // Create system collections on first launch (synchronous - must complete before UI renders)
@@ -1150,10 +1173,15 @@ struct RootView: View {
                     // This ensures recipes are seeded before creating the unlock schedule
                 }
 
-                // When user signs out, stop listeners and clear badges
+                // When user signs out, stop listeners, sync, and clear badges
                 if oldValue && !newValue {
-                    Log.info("User signed out - stopping listeners", category: .auth)
-                    DeviceLogger.shared.log("✅ [Auth] User signed out - stopping listeners")
+                    Log.info("User signed out - stopping listeners and sync", category: .auth)
+                    DeviceLogger.shared.log("✅ [Auth] User signed out - stopping listeners and sync")
+
+                    // Stop automatic sync so it can restart on next sign-in
+                    let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+                    syncService.stopAutomaticSync()
+                    Log.info("Stopped automatic sync on sign out", category: .sync)
 
                     // Phase 9: Stop badge listener and clear badge
                     let badgeService = ServiceContainer.shared.resolve(BadgeService.self)

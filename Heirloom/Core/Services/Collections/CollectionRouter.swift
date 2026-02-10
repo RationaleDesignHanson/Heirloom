@@ -138,6 +138,29 @@ class CollectionRouter {
         ])
     }
 
+    /// Route a recipe read aloud via voice dictation
+    func routeReadRecipe(_ recipe: Recipe) {
+        routeReadRecipe([recipe])
+    }
+
+    /// Route multiple recipes read aloud via voice dictation
+    func routeReadRecipe(_ recipes: [Recipe], jobID: UUID? = nil) {
+        let collection = findOrCreateCollectionWithJobTracking(
+            name: "Read Recipes",
+            type: .readRecipes,
+            iconName: "text.book.closed",
+            jobID: jobID
+        )
+
+        for recipe in recipes {
+            addRecipeToCollection(recipe, collection: collection)
+        }
+
+        Log.info("Routed read recipe(s) to Read Recipes", category: .collections, metadata: [
+            "recipe_count": recipes.count
+        ])
+    }
+
     /// Route recipes imported from a cookbook with enhanced consolidation logic
     func routeCookbookImport(
         _ recipes: [Recipe],
@@ -159,15 +182,19 @@ class CollectionRouter {
             coverImagePath: coverImagePath
         )
 
-        collection.sourceCookbook = cookbookName
+        // Only set sourceCookbook for actual named cookbooks, not the "Cookbook Pages" catch-all
+        let isCatchAll = cleanName == "Cookbook Pages"
+        if !isCatchAll {
+            collection.sourceCookbook = cookbookName
+        }
 
         // Set author if provided (from PDF metadata)
-        if let author = authorName, !author.isEmpty {
+        if let author = authorName, !author.isEmpty, !isCatchAll {
             collection.sourceAuthor = author
         }
 
         for recipe in recipes {
-            recipe.sourceCookbook = cookbookName
+            recipe.sourceCookbook = isCatchAll ? nil : cookbookName
             addRecipeToCollection(recipe, collection: collection)
         }
 
@@ -246,9 +273,6 @@ class CollectionRouter {
 
     /// Apply preset background image for specific collection types
     private func applyPresetBackgroundIfNeeded(to collection: RecipeCollection, type: CollectionType) {
-        // Skip if collection already has a custom background
-        guard collection.customBackgroundImagePath == nil else { return }
-
         // Map collection types to preset asset names
         let presetAssetName: String? = switch type {
         case .fromFriends:
@@ -259,13 +283,33 @@ class CollectionRouter {
             "from-web-bg"
         case .photoImports:
             "from-photos-bg"
+        case .cookbook:
+            "cookbook-pages-bg"
+        case .readRecipes:
+            "read-recipes-bg"
         default:
             nil
         }
 
-        // Check if bundled preset exists and apply
+        // If this collection type has a preset, always use it (overrides AI-generated)
         if let assetName = presetAssetName, UIImage(named: assetName) != nil {
-            collection.customBackgroundImagePath = "preset-\(assetName)"
+            let presetPath = "preset-\(assetName)"
+
+            // Skip if already using this preset
+            if collection.customBackgroundImagePath == presetPath {
+                return
+            }
+
+            // Clear any AI-generated background in favor of preset
+            if collection.generatedBackgroundImagePath != nil {
+                collection.generatedBackgroundImagePath = nil
+                Log.info("Cleared AI background in favor of preset", category: .collections, metadata: [
+                    "collection": collection.name,
+                    "preset": assetName
+                ])
+            }
+
+            collection.customBackgroundImagePath = presetPath
             collection.useCustomBackground = true
             Log.info("Applied preset background to collection", category: .collections, metadata: [
                 "collection": collection.name,
@@ -368,8 +412,6 @@ class CollectionRouter {
         let collection: RecipeCollection
         if let existing = existingCollection {
             collection = existing
-            // Ensure preset background is applied if missing (for upgrades)
-            applyPDFImportsPresetIfNeeded(to: collection, name: name)
         } else {
             // Create new collection
             collection = RecipeCollection(
@@ -389,17 +431,20 @@ class CollectionRouter {
                 ])
             }
 
-            // Apply preset background for "PDF Imports" collection
-            applyPDFImportsPresetIfNeeded(to: collection, name: name)
-
             collection.createdDate = Date()
             modelContext.insert(collection)
+
+            // Apply preset background for cookbook collections
+            applyPresetBackgroundIfNeeded(to: collection, type: .cookbook)
 
             Log.info("Created new cookbook collection", category: .collections, metadata: [
                 "name": name,
                 "collection_id": collection.id.uuidString
             ])
         }
+
+        // Ensure existing collections also have the preset background
+        applyPresetBackgroundIfNeeded(to: collection, type: .cookbook)
 
         // Cache for this job
         if let jobID = jobID {
@@ -424,24 +469,6 @@ class CollectionRouter {
         }
 
         try? modelContext.save()
-    }
-
-    /// Apply preset background for "PDF Imports" collection
-    private func applyPDFImportsPresetIfNeeded(to collection: RecipeCollection, name: String) {
-        // Only apply to "PDF Imports" collection
-        guard name == "PDF Imports" else { return }
-
-        // Skip if collection already has a custom or generated background
-        guard collection.customBackgroundImagePath == nil,
-              collection.generatedBackgroundImagePath == nil,
-              collection.cookbookCoverImagePath == nil else { return }
-
-        // Check if bundled preset exists and apply
-        if UIImage(named: "pdf-imports-bg") != nil {
-            collection.customBackgroundImagePath = "preset-pdf-imports-bg"
-            collection.useCustomBackground = true
-            Log.info("Applied preset background to PDF Imports collection", category: .collections)
-        }
     }
 
     /// Clean up cookbook name for display

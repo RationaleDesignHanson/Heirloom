@@ -106,8 +106,14 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
 
     private var systemPrompt: String {
         """
-        You are a professional recipe developer. Generate complete, well-structured recipes
-        that are practical and easy to follow.
+        You are a professional recipe developer with deep knowledge of world cuisines.
+        Generate complete, well-structured recipes that are practical and easy to follow.
+
+        IMPORTANT — Regional & cultural authenticity:
+        When a cuisine or region is specified, use the authentic dish name and traditional techniques.
+        For example, title the recipe "Croque Monsieur" (not "French Ham and Cheese Sandwich"),
+        "Tteokbokki" (not "Korean Spicy Rice Cakes"), or "Okonomiyaki" (not "Japanese Cabbage Pancake").
+        Include the English description in the summary field for accessibility.
 
         CRITICAL: You MUST return ONLY valid JSON matching the exact schema provided.
         Do not wrap the JSON in markdown code blocks.
@@ -138,6 +144,7 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
         if let ctx = transcriptContext {
             if let hints = ctx.cuisineHints, !hints.isEmpty {
                 prompt += "Cuisine/regional style: \(hints.joined(separator: ", "))\n"
+                prompt += "IMPORTANT: Use the authentic regional dish name as the title (not a generic English description).\n"
             }
             if let descriptions = ctx.descriptions, !descriptions.isEmpty {
                 prompt += "The dish should be: \(descriptions.joined(separator: ", "))\n"

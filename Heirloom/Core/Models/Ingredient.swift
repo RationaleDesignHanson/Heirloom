@@ -101,7 +101,15 @@ extension Ingredient {
         }
 
         if let unit = unit {
-            parts.append(unit)
+            // Skip unit if the name already contains it (e.g., unit="tortillas", name="flour tortillas")
+            let unitLower = unit.lowercased()
+            let nameLower = name.lowercased()
+            let unitSingular = unitLower.hasSuffix("s") ? String(unitLower.dropLast()) : unitLower
+            let nameContainsUnit = nameLower.range(of: "\\b\(NSRegularExpression.escapedPattern(for: unitLower))\\b", options: .regularExpression) != nil ||
+                                   nameLower.range(of: "\\b\(NSRegularExpression.escapedPattern(for: unitSingular))\\b", options: .regularExpression) != nil
+            if !nameContainsUnit {
+                parts.append(unit)
+            }
         }
 
         parts.append(name)

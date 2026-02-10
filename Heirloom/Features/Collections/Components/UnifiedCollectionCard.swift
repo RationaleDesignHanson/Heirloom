@@ -217,13 +217,6 @@ struct UnifiedCollectionCard: View {
                 .frame(height: 180)
                 // Use top corners matching card radius (20), bottom corners 0 since info bar is below
                 .clipShape(UnevenRoundedRectangle(topLeadingRadius: 20, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 20, style: .continuous))
-                .overlay(alignment: .topLeading) {
-                    // NEW badge (when collection has new recipes)
-                    if collection.hasNewRecipes {
-                        newBadge
-                            .padding(HeirloomSpacing.sm)
-                    }
-                }
                 .overlay(alignment: .topTrailing) {
                     // Status badge (themed only)
                     if case .themed = variant {
@@ -298,7 +291,16 @@ struct UnifiedCollectionCard: View {
                 allRecipesPlaceholderView
             }
         }
-        // Priority 1: Cookbook cover image (for cookbook collections)
+        // Priority 0.75: Preset background (system collections like Cookbook Pages, From Videos, etc.)
+        else if hasPresetBackground,
+                let presetPath = collection.customBackgroundImagePath {
+            AsyncRecipeImage(
+                imageFileName: presetPath,
+                firebaseImageURL: nil,
+                placeholder: collection.iconName
+            )
+        }
+        // Priority 1: Cookbook cover image (for cookbook collections without preset)
         else if let coverPath = collection.cookbookCoverImagePath {
             AsyncRecipeImage(
                 imageFileName: coverPath,
@@ -571,32 +573,38 @@ struct UnifiedCollectionCard: View {
     private var infoBadge: some View {
         switch variant {
         case .standard:
-            // Recipe count badge with loading indicator
-            HStack(spacing: 4) {
-                // Show loading spinner if collection is syncing
-                if syncService.loadingCollectionIds.contains(collection.id) {
+            // Show loading indicator during sync, or new recipe count badge
+            if syncService.loadingCollectionIds.contains(collection.id) {
+                HStack(spacing: 4) {
                     ProgressView()
                         .scaleEffect(0.7)
-                } else {
-                    Image(systemName: "doc.text")
-                        .font(.caption)
+
+                    if let progress = syncService.syncProgress[collection.id] {
+                        Text("\(progress.loadedRecipes)/\(progress.totalRecipes)")
+                            .font(HeirloomFonts.caption2)
+                    }
                 }
+                .foregroundStyle(HeirloomColors.secondaryText)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(HeirloomColors.warmGray.opacity(0.1))
+                .cornerRadius(8)
+            } else if collection.hasNewRecipes {
+                // New recipe count badge
+                HStack(spacing: 4) {
+                    Image(systemName: "sparkle")
+                        .font(.system(size: 10, weight: .semibold))
 
-                Text("\(recipeCount)")
-                    .font(HeirloomFonts.caption1)
-
-                // Show progress fraction if loading
-                if let progress = syncService.syncProgress[collection.id] {
-                    Text("/\(progress.totalRecipes)")
+                    Text("\(collection.newRecipeCount) new")
                         .font(HeirloomFonts.caption2)
-                        .foregroundStyle(HeirloomColors.secondaryText.opacity(0.7))
+                        .fontWeight(.medium)
                 }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(HeirloomColors.tomato)
+                .cornerRadius(8)
             }
-            .foregroundStyle(HeirloomColors.secondaryText)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(HeirloomColors.warmGray.opacity(0.1))
-            .cornerRadius(8)
 
         case .themed:
             // Just show checkmark when complete, nothing when in progress

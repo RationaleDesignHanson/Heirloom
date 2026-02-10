@@ -55,20 +55,20 @@ struct ThemeSelectionScreen: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        VStack(spacing: HeirloomSpacing.xs) {
+        VStack(spacing: HeirloomSpacing.sm) {
             Text("Preserve culinary heritage")
                 .font(HeirloomFonts.title1)
                 .foregroundStyle(HeirloomColors.primaryText)
                 .multilineTextAlignment(.center)
 
             Text("Choose \(minSelections)-\(maxSelections) heritage themes to explore.")
-                .font(HeirloomFonts.subheadline)
+                .font(HeirloomFonts.body)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, HeirloomSpacing.lg)
         }
-        .padding(.top, HeirloomSpacing.md)
-        .padding(.bottom, HeirloomSpacing.sm)
+        .padding(.top, HeirloomSpacing.lg)
+        .padding(.bottom, HeirloomSpacing.md)
     }
 
     // MARK: - Themes
@@ -142,19 +142,9 @@ struct ThemeSelectionScreen: View {
             }
             .disabled(!canContinue || isLoading)
 
-            // Skip button
-            Button {
-                skipSelection()
-            } label: {
-                Text("Skip for now")
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-            }
-            .disabled(isLoading)
-
             // Helper text
             if selectedThemeIds.count < minSelections {
-                Text("Select at least \(minSelections - selectedThemeIds.count) more, or skip")
+                Text("Select at least \(minSelections - selectedThemeIds.count) more")
                     .font(HeirloomFonts.caption2)
                     .foregroundStyle(HeirloomColors.secondaryText)
             } else if selectedThemeIds.count == maxSelections {
@@ -196,10 +186,6 @@ struct ThemeSelectionScreen: View {
         }
     }
 
-    private func skipSelection() {
-        // User chose to skip theme selection - complete with empty array
-        onComplete([])
-    }
 }
 
 // MARK: - Preview

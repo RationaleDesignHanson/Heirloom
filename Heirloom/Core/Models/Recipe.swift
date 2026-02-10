@@ -39,6 +39,9 @@ final class Recipe {
     /// Firebase Storage URL for synced images
     var firebaseImageURL: String?
 
+    /// Whether this recipe needs an AI-generated image (pending background generation)
+    var needsAIImage: Bool = false
+
     // MARK: - Theme Collections (Collections 2.1)
     /// Flag indicating this is a theme recipe from curated collections
     var isThemeRecipe: Bool = false
@@ -183,6 +186,9 @@ final class Recipe {
     /// Comprehensive provenance and lineage tracking
     /// Replaces legacy fields above (maintained for backward compatibility)
     var provenance: ProvenanceMetadata?
+
+    // MARK: - Source Attribution Registry
+    var knownSource: KnownSource?
 
     // MARK: - Social Features (Comments & Card Back)
     @Relationship(deleteRule: .cascade, inverse: \RecipeComment.recipe)
@@ -360,6 +366,7 @@ final class Recipe {
             case .heritage: return .imported
             case .video: return .video
             case .generated: return .ai
+            case .readRecipe: return .userCreated
             }
         }()
 
@@ -393,6 +400,8 @@ extension Recipe {
                     return "\(title), p. \(page)"
                 }
                 return title
+            } else if let author = sourceBookAuthor, !author.isEmpty {
+                return author
             }
             return "Cookbook"
         case .family:
@@ -410,8 +419,10 @@ extension Recipe {
                     return "\(title), p. \(page)"
                 }
                 return title
+            } else if let author = sourceBookAuthor, !author.isEmpty {
+                return author
             }
-            return "Scanned Recipe"
+            return Recipe.currentUserDisplayName()
         case .manual:
             return Recipe.currentUserDisplayName()
         case .heritage:
@@ -436,6 +447,8 @@ extension Recipe {
             return "Video Recipe"
         case .generated:
             return "AI Generated"
+        case .readRecipe:
+            return Recipe.currentUserDisplayName()
         }
     }
 
@@ -456,26 +469,40 @@ extension Recipe {
             return nil
         }
 
-        // Try to construct platform-specific URL
-        // Check sourceURL for platform hints or construct generic search
+        // Clean username (remove @, trim whitespace)
+        let cleanUsername = creatorName
+            .replacingOccurrences(of: "@", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let encodedUsername = cleanUsername.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              !encodedUsername.isEmpty else {
+            return nil
+        }
+
+        // Try to construct platform-specific HTTPS URL
+        // Use web URLs (not deep links) for reliable navigation
         if let sourceURL = provenance?.sourceURL, !sourceURL.isEmpty {
             if sourceURL.contains("tiktok.com") {
-                // Use TikTok deep link scheme for proper in-app navigation
-                // Format: tiktok://user/profile?username=creatorname (without @)
-                let cleanUsername = creatorName.replacingOccurrences(of: "@", with: "")
-                guard let encodedUsername = cleanUsername.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
-                    return nil
-                }
-                return URL(string: "tiktok://user/profile?username=\(encodedUsername)")
+                return URL(string: "https://www.tiktok.com/@\(encodedUsername)")
             } else if sourceURL.contains("youtube.com") || sourceURL.contains("youtu.be") {
-                return URL(string: "https://www.youtube.com/@\(creatorName)")
+                return URL(string: "https://www.youtube.com/@\(encodedUsername)")
             } else if sourceURL.contains("instagram.com") {
-                return URL(string: "https://www.instagram.com/\(creatorName)")
+                return URL(string: "https://www.instagram.com/\(encodedUsername)")
+            }
+        }
+
+        // Check KnownSource platform for better routing
+        if let platform = knownSource?.socialPlatform {
+            switch platform {
+            case .tiktok: return URL(string: "https://www.tiktok.com/@\(encodedUsername)")
+            case .instagram: return URL(string: "https://www.instagram.com/\(encodedUsername)")
+            case .youtube: return URL(string: "https://www.youtube.com/@\(encodedUsername)")
+            default: break
             }
         }
 
         // Default: TikTok format (most common for cooking videos)
-        return URL(string: "https://www.tiktok.com/@\(creatorName)")
+        return URL(string: "https://www.tiktok.com/@\(encodedUsername)")
     }
 
     /// Get the current user's display name for recipe attribution
@@ -890,6 +917,8 @@ extension Recipe {
                 sourceTypeEnum = .shared
             case .generated:
                 sourceTypeEnum = .ai
+            case .readRecipe:
+                sourceTypeEnum = .userCreated
             case .none:
                 sourceTypeEnum = .userCreated
             }
@@ -1009,6 +1038,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
     case heritage = "heritage"
     case video = "video"
     case generated = "generated"
+    case readRecipe = "readRecipe"
 
     var iconName: String {
         switch self {
@@ -1020,6 +1050,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .heritage: return "book.pages.fill"
         case .video: return "video.circle.fill"
         case .generated: return "sparkles"
+        case .readRecipe: return "text.book.closed"
         }
     }
 
@@ -1033,6 +1064,7 @@ enum RecipeSourceType: String, Codable, CaseIterable {
         case .heritage: return "Theme Collection"
         case .video: return "Video Import"
         case .generated: return "AI Generated"
+        case .readRecipe: return "Read Recipe"
         }
     }
 
@@ -1053,6 +1085,8 @@ enum RecipeSourceType: String, Codable, CaseIterable {
             return "Recipes you've received from others can only be shared privately."
         case .generated:
             return "AI-generated recipes can only be shared privately with friends and family. Public sharing is reserved for real family recipes."
+        case .readRecipe:
+            return nil  // Read recipes are the user's own — publishable
         }
     }
 
@@ -1075,6 +1109,8 @@ enum RecipeSourceType: String, Codable, CaseIterable {
             return .video
         case .generated:
             return .ai
+        case .readRecipe:
+            return .userCreated
         }
     }
 }
@@ -1628,14 +1664,17 @@ extension Recipe {
             return false
         }
 
-        // Check source type - only camera/scan sources are eligible
-        guard let sourceType = sourceType, sourceType == .scan else {
+        // Check source type - only camera/scan and read recipe sources are eligible
+        guard let sourceType = sourceType,
+              sourceType == .scan || sourceType == .readRecipe else {
             return false
         }
 
-        // Check camera origin confidence - must not be screenshot/download
-        guard cameraOriginConfidence != .definitelyNotCamera else {
-            return false
+        // Check camera origin confidence for scans - must not be screenshot/download
+        if sourceType == .scan {
+            guard cameraOriginConfidence != .definitelyNotCamera else {
+                return false
+            }
         }
 
         return true
@@ -1658,13 +1697,13 @@ extension Recipe {
             return "Sample recipes can't be shared - everyone already has this recipe."
         }
 
-        // Check source type
-        if let sourceType = sourceType, sourceType != .scan {
+        // Check source type — scan and readRecipe are eligible
+        if let sourceType = sourceType, sourceType != .scan && sourceType != .readRecipe {
             return sourceType.publicSharingBlockedReason
         }
 
-        // Check camera origin confidence
-        if cameraOriginConfidence == .definitelyNotCamera {
+        // Check camera origin confidence (only applies to scans, not read recipes)
+        if sourceType == .scan && cameraOriginConfidence == .definitelyNotCamera {
             return cameraOriginConfidence.publicSharingBlockedReason
         }
 

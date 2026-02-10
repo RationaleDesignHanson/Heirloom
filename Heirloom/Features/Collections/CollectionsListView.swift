@@ -48,6 +48,7 @@ struct CollectionsListView: View {
     @State private var selectedImportJobForReview: ImportJob?
     @State private var videoReviewData: VideoReviewData?
     @State private var jobForConfirmation: VideoProcessingJob?
+    @State private var showProcessingQueue = false
 
     /// Combined state for video review sheet to avoid timing issues
     struct VideoReviewData: Identifiable {
@@ -121,6 +122,7 @@ struct CollectionsListView: View {
                 collection.type == .videoImports ||
                 collection.type == .webImports ||
                 collection.type == .photoImports ||
+                collection.type == .readRecipes ||
                 collection.type == .cookbook ||
                 collection.type == .userCreated
             }
@@ -340,6 +342,28 @@ struct CollectionsListView: View {
                 .environmentObject(notificationService)
                 .environmentObject(tabCoordinator)
             }
+            .sheet(isPresented: $showProcessingQueue) {
+                UnifiedProcessingQueueView(
+                    onVideoJobTap: { job in
+                        showProcessingQueue = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            openVideoReviewScreen(for: job)
+                        }
+                    },
+                    onImportJobTap: { job in
+                        showProcessingQueue = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            selectedImportJobForReview = job
+                        }
+                    },
+                    onGenerationJobTap: { job in
+                        showProcessingQueue = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            navigateToGeneratedRecipe(for: job)
+                        }
+                    }
+                )
+            }
             .sheet(isPresented: $showCollectionPicker) {
                 if let recipe = generatedRecipe {
                     TagCollectionPickerView(recipe: recipe)
@@ -471,6 +495,10 @@ struct CollectionsListView: View {
 
                 Button("Video Import") {
                     handleVideoImport()
+                }
+
+                Button("Processing Queue") {
+                    showProcessingQueue = true
                 }
 
                 Button("Cancel", role: .cancel) {}
@@ -844,11 +872,19 @@ struct CollectionsListView: View {
             }
 
             Button {
-                showCreateCollection = true
+                Task {
+                    await refreshRecipesFromFirebase()
+                }
             } label: {
                 HStack {
-                    Image(systemName: "plus")
-                    Text("Create Collection")
+                    if isRefreshingRecipes {
+                        ProgressView()
+                            .tint(.white)
+                            .scaleEffect(0.8)
+                    } else {
+                        Image(systemName: "icloud.and.arrow.down")
+                    }
+                    Text(isRefreshingRecipes ? "Restoring..." : "Restore from Cloud")
                 }
                 .font(HeirloomFonts.bodyBold)
                 .padding(.horizontal, HeirloomSpacing.lg)
@@ -857,20 +893,14 @@ struct CollectionsListView: View {
                 .foregroundStyle(.white)
                 .cornerRadius(HeirloomSpacing.cardCornerRadius)
             }
+            .disabled(isRefreshingRecipes)
 
             Button {
-                Task {
-                    await refreshRecipesFromFirebase()
-                }
+                showCreateCollection = true
             } label: {
                 HStack {
-                    if isRefreshingRecipes {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    Text(isRefreshingRecipes ? "Replacing..." : "Replace Discovery Collections")
+                    Image(systemName: "plus")
+                    Text("Create Collection")
                 }
                 .font(HeirloomFonts.body)
                 .padding(.horizontal, HeirloomSpacing.lg)
@@ -882,7 +912,6 @@ struct CollectionsListView: View {
                         .stroke(HeirloomColors.tomato, lineWidth: 2)
                 )
             }
-            .disabled(isRefreshingRecipes)
 
             Button {
                 showRestoreFromFile = true
@@ -969,7 +998,8 @@ struct CollectionsListView: View {
                 onVideoImport: handleVideoImport,
                 onReadRecipe: handleReadRecipe,
                 onAddCollection: handleAddCollection,
-                onCollectionSettings: nil // Not applicable in collections list view
+                onCollectionSettings: nil, // Not applicable in collections list view
+                onProcessingQueue: { showProcessingQueue = true }
             )
         }
     }
@@ -1359,6 +1389,31 @@ struct CollectionsListView: View {
             return
         }
 
+        // Handle failed jobs — retry if possible
+        if job.status == .failed {
+            if job.canRetry {
+                Task {
+                    do {
+                        let jobManager = ServiceContainer.shared.resolve(VideoProcessingJobManager.self)
+                        try await jobManager.retryJob(job, context: modelContext)
+                        ServiceContainer.shared.resolve(ToastManager.self).success(title: "Retrying video")
+                    } catch {
+                        Log.error("Failed to retry job", category: .video, error: error)
+                        ServiceContainer.shared.resolve(ToastManager.self).error(
+                            title: "Cannot Retry",
+                            message: error.localizedDescription
+                        )
+                    }
+                }
+            } else {
+                ServiceContainer.shared.resolve(ToastManager.self).error(
+                    title: "Cannot Retry",
+                    message: "Maximum retries exceeded. Please delete and re-import."
+                )
+            }
+            return
+        }
+
         // Allow .completed jobs OR orphaned .saved jobs (auto-dismissed but never reviewed)
         let needsReview = job.status == .completed || (job.status == .saved && job.recipeID == nil)
         guard needsReview,
@@ -1401,6 +1456,14 @@ struct CollectionsListView: View {
     }
 
     private func navigateToGeneratedRecipe(for job: RecipeGenerationJob) {
+        // Handle failed jobs by retrying
+        if job.status == .failed {
+            let service = ServiceContainer.shared.resolve(RecipeGenerationService.self)
+            service.retryJob(job, context: modelContext)
+            toastManager.success(title: "Retrying", message: "Regenerating \(job.dishName)...")
+            return
+        }
+
         // Only handle completed jobs with a recipe
         guard job.status == .completed,
               let recipeId = job.placeholderRecipeId else {
@@ -1583,6 +1646,17 @@ struct CollectionsListView: View {
 
     /// Check if collection should have AI background auto-generated (Task #2)
     private func shouldAutoGenerateBackground(for collection: RecipeCollection) -> Bool {
+        // Skip collections that have preset backgrounds - use the hardcoded assets instead
+        let typesWithPresetBackgrounds: [CollectionType] = [.cookbook, .videoImports, .fromFriends, .webImports, .photoImports, .readRecipes]
+        if typesWithPresetBackgrounds.contains(collection.type) {
+            return false
+        }
+
+        // Skip "Generated Recipes" collection - it has a bundled preset background
+        if collection.name == "Generated Recipes" {
+            return false
+        }
+
         let recipeCount = collection.recipes?.count ?? 0
 
         // Must have exactly 1 recipe
@@ -1637,7 +1711,7 @@ struct CollectionsListView: View {
 
         await MainActor.run {
             isRefreshingRecipes = true
-            toastManager.info(title: "Replacing Collections", message: "Re-downloading your discovery collections...")
+            toastManager.info(title: "Restoring from Cloud", message: "Downloading your recipes and collections...")
         }
 
         do {
@@ -1668,14 +1742,14 @@ struct CollectionsListView: View {
 
             await MainActor.run {
                 isRefreshingRecipes = false
-                toastManager.success(title: "Collections Replaced", message: "Your discovery collections have been restored")
+                toastManager.success(title: "Restored", message: "Your recipes and collections have been restored from the cloud")
             }
 
             Log.info("Recipes refreshed from Firebase", category: .collections)
         } catch {
             await MainActor.run {
                 isRefreshingRecipes = false
-                toastManager.error(title: "Replace Failed", message: error.localizedDescription)
+                toastManager.error(title: "Restore Failed", message: error.localizedDescription)
             }
 
             Log.error("Failed to refresh recipes from Firebase", category: .collections, error: error)

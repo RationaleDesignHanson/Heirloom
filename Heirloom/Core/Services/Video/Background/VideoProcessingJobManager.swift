@@ -584,7 +584,7 @@ final class VideoProcessingJobManager: ObservableObject {
         }
 
         // Process based on video type
-        let enhanced: VideoRecipeExtraction.Enhanced
+        var enhanced: VideoRecipeExtraction.Enhanced
 
         if job.videoType == .standard {
             enhanced = try await processStandardVideo(
@@ -594,6 +594,45 @@ final class VideoProcessingJobManager: ObservableObject {
                 resumePhase: resumePhase,
                 context: context
             )
+
+            // Lyrics detection: if standard processing got very low confidence,
+            // check if transcript is mostly music/lyrics and fall back to ASMR (visual) path
+            let recipe = enhanced.augmentedRecipe?.original ?? enhanced.original.structuredRecipe
+            if recipe.overallConfidence <= 0.2 && looksLikeLyrics(enhanced.original.transcript.text) {
+                // Extract any usable hints from the low-confidence standard extraction
+                // The transcript may contain real recipe narration mixed with lyrics
+                let dishHint = recipe.title.isEmpty ? nil : recipe.title
+                let ingredientNames = recipe.ingredients.prefix(8).map { $0.item }
+                let captionHint = ingredientNames.isEmpty ? "" :
+                    "Possible ingredients: \(ingredientNames.joined(separator: ", "))"
+
+                Log.info("🎵 Lyrics detected in transcript — switching to ASMR (visual) path", category: .video, metadata: [
+                    "jobId": job.id.uuidString,
+                    "originalConfidence": "\(recipe.overallConfidence)",
+                    "dishHint": dishHint ?? "none",
+                    "ingredientHints": "\(ingredientNames.count)"
+                ])
+
+                // Pass standard extraction hints to ASMR so it doesn't lose partial data
+                if job.dishNameHint == nil, let hint = dishHint {
+                    job.dishNameHint = hint
+                }
+                if let existingCaption = job.userCaption, !existingCaption.isEmpty {
+                    job.userCaption = existingCaption + ". " + captionHint
+                } else {
+                    job.userCaption = captionHint
+                }
+
+                job.videoType = .asmr
+                try context.save()
+                enhanced = try await processASMRVideo(
+                    videoURL: videoURL,
+                    job: job,
+                    checkpoint: checkpoint,
+                    resumePhase: .analyzingFrames,
+                    context: context
+                )
+            }
         } else {
             enhanced = try await processASMRVideo(
                 videoURL: videoURL,
@@ -611,7 +650,8 @@ final class VideoProcessingJobManager: ObservableObject {
         // Validate extraction has required content
         // Check augmented recipe first (if augmentation filled in missing content), then fall back to original
         let recipe = enhanced.augmentedRecipe?.original ?? enhanced.original.structuredRecipe
-        guard recipe.isComplete else {
+        let hasAugmentedContent = enhanced.augmentedRecipe?.hasAugmentations == true
+        guard recipe.isComplete || hasAugmentedContent else {
             // Build descriptive error message
             var missingParts: [String] = []
             if recipe.ingredients.isEmpty { missingParts.append("ingredients") }
@@ -812,11 +852,14 @@ final class VideoProcessingJobManager: ObservableObject {
         try context.save()
 
         // Process through ASMR pipeline
+        // Credits are already deducted at confirmation time (confirmAndStartProcessing),
+        // so skip the ASMRUsageManager credit check in the processor
         let extraction = try await processor.process(
             videoURL: videoURL,
             userCaption: job.userCaption ?? "",
             videoHash: nil,
-            dishNameHint: job.dishNameHint
+            dishNameHint: job.dishNameHint,
+            creditsPreCharged: job.creditsCharged > 0
         )
 
         // Return enhanced extraction with augmentation data
@@ -1174,12 +1217,11 @@ final class VideoProcessingJobManager: ObservableObject {
         ])
 
         // Trigger queue processing in background (don't block the caller)
+        // Uses Task (not .detached) to stay on MainActor — startNextJob's guard
+        // provides atomic serialization, preventing two jobs from racing
         refreshQueue(context: context)
-        Task.detached { [weak self] in
-            guard let self = self else { return }
-            if await !self.isProcessing {
-                try? await self.startNextJob(context: context)
-            }
+        Task { [weak self] in
+            try? await self?.startNextJob(context: context)
         }
     }
 
@@ -1374,14 +1416,44 @@ final class VideoProcessingJobManager: ObservableObject {
         recipe.linkedProcessingJobType = nil
 
         // STEP 6: Set provenance metadata
+        let creatorAttribution = job.sourceAttribution ?? extraction.metadata.attribution.creatorName
         recipe.provenance = ProvenanceMetadata(
             sourceType: .video,
             sourceURL: job.sourceURL,
-            sourceAttribution: job.sourceAttribution ?? extraction.metadata.attribution.creatorName,
+            sourceAttribution: creatorAttribution,
             generation: 0,
             sharedByName: nil,
             createdAt: Date()
         )
+
+        // Register source attribution
+        if let creator = creatorAttribution, !creator.isEmpty, creator != "Unknown" {
+            // Detect platform from extraction metadata first, then fall back to URL
+            var platform: SocialPlatform? = nil
+            if let videoPlatform = extraction.metadata.attribution.platform {
+                switch videoPlatform {
+                case .tiktok: platform = .tiktok
+                case .instagram: platform = .instagram
+                case .youtube: platform = .youtube
+                case .facebook: platform = .facebook
+                default: break
+                }
+            }
+            if platform == nil, let url = job.sourceURL {
+                let lower = url.lowercased()
+                if lower.contains("tiktok.com") { platform = .tiktok }
+                else if lower.contains("instagram.com") { platform = .instagram }
+                else if lower.contains("youtube.com") || lower.contains("youtu.be") { platform = .youtube }
+            }
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: creator,
+                kind: .socialCreator,
+                platform: platform,
+                platformUsername: creator,
+                discoveryMethod: "video_watermark",
+                recipe: recipe
+            )
+        }
 
         // STEP 7: Update ingredients (remove old ones first, then add new)
         // Clear existing ingredients
@@ -1441,6 +1513,44 @@ final class VideoProcessingJobManager: ObservableObject {
         )
 
         return recipe
+    }
+
+    /// Detect if a transcript is mostly music/lyrics rather than recipe narration.
+    /// Uses heuristics: musical notation symbols, repetitive patterns, low recipe keyword density.
+    private func looksLikeLyrics(_ transcript: String) -> Bool {
+        let text = transcript.lowercased()
+        let wordCount = text.split(separator: " ").count
+        guard wordCount > 10 else { return false }
+
+        var score = 0
+
+        // Musical notation symbols (♪, ♫, 🎵)
+        let musicalChars = text.filter { "♪♫🎵🎶".contains($0) }.count
+        if musicalChars > 0 { score += 3 }
+
+        // Recipe keywords that indicate actual cooking narration
+        let recipeKeywords = ["ingredient", "tablespoon", "teaspoon", "cup", "ounce", "gram",
+                              "preheat", "oven", "stir", "mix", "chop", "dice", "slice",
+                              "minutes", "degrees", "bake", "cook", "boil", "simmer",
+                              "add the", "then add", "season with", "serve with"]
+        let recipeHits = recipeKeywords.filter { text.contains($0) }.count
+
+        // Lyrics indicators
+        let lyricsIndicators = ["♪", "yeah", "baby", "oh ", "la la", "na na",
+                                "uh ", "woo", "hey ", "ooh"]
+        let lyricsHits = lyricsIndicators.filter { text.contains($0) }.count
+
+        if lyricsHits >= 3 { score += 2 }
+        if recipeHits <= 1 { score += 2 }
+
+        // Repetitive patterns (lyrics often repeat phrases)
+        let sentences = text.components(separatedBy: ". ")
+        let uniqueSentences = Set(sentences.map { $0.trimmingCharacters(in: .whitespaces) })
+        let repetitionRatio = sentences.count > 3 ? Double(uniqueSentences.count) / Double(sentences.count) : 1.0
+        if repetitionRatio < 0.5 { score += 2 }
+
+        // Score >= 4 indicates likely lyrics
+        return score >= 4
     }
 
     /// Parse string quantity to Double, handling fractions like "1/4", "1 1/2", "¼"
@@ -1531,6 +1641,35 @@ final class VideoProcessingJobManager: ObservableObject {
             sharedByName: nil,
             createdAt: Date()
         )
+
+        // Register source attribution
+        if let creator = creatorName, !creator.isEmpty, creator != "Unknown" {
+            // Detect platform from extraction metadata first, then fall back to URL
+            var platform: SocialPlatform? = nil
+            if let videoPlatform = reviewedExtraction.metadata.attribution.platform {
+                switch videoPlatform {
+                case .tiktok: platform = .tiktok
+                case .instagram: platform = .instagram
+                case .youtube: platform = .youtube
+                case .facebook: platform = .facebook
+                default: break
+                }
+            }
+            if platform == nil, let url = job.sourceURL {
+                let lower = url.lowercased()
+                if lower.contains("tiktok.com") { platform = .tiktok }
+                else if lower.contains("instagram.com") { platform = .instagram }
+                else if lower.contains("youtube.com") || lower.contains("youtu.be") { platform = .youtube }
+            }
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: creator,
+                kind: .socialCreator,
+                platform: platform,
+                platformUsername: creator,
+                discoveryMethod: "video_watermark",
+                recipe: placeholder
+            )
+        }
 
         // Route to "From Videos" collection
         let router = CollectionRouter(modelContext: context)
@@ -1806,6 +1945,35 @@ final class VideoProcessingJobManager: ObservableObject {
             sharedByName: nil,
             createdAt: Date()
         )
+
+        // Register source attribution
+        if let creator = creatorName, !creator.isEmpty, creator != "Unknown" {
+            // Detect platform from extraction metadata first, then fall back to URL
+            var platform: SocialPlatform? = nil
+            if let videoPlatform = extraction.metadata.attribution.platform {
+                switch videoPlatform {
+                case .tiktok: platform = .tiktok
+                case .instagram: platform = .instagram
+                case .youtube: platform = .youtube
+                case .facebook: platform = .facebook
+                default: break
+                }
+            }
+            if platform == nil, let url = job.sourceURL {
+                let lower = url.lowercased()
+                if lower.contains("tiktok.com") { platform = .tiktok }
+                else if lower.contains("instagram.com") { platform = .instagram }
+                else if lower.contains("youtube.com") || lower.contains("youtu.be") { platform = .youtube }
+            }
+            ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                name: creator,
+                kind: .socialCreator,
+                platform: platform,
+                platformUsername: creator,
+                discoveryMethod: "video_watermark",
+                recipe: placeholder
+            )
+        }
 
         // Route to "From Videos" collection
         let router = CollectionRouter(modelContext: context)

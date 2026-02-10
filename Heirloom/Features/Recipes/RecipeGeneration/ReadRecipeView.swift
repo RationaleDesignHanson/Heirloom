@@ -189,6 +189,13 @@ struct ReadRecipeView: View {
             }
             .onAppear {
                 setupTranscriptionPublisher()
+                // Request permissions on appear so OS prompts fire immediately
+                Log.info("🎙️ ReadRecipeView.onAppear — isAvailable=\(dictationService.isAvailable)", category: .general)
+                Task {
+                    Log.info("🎙️ Requesting authorization...", category: .general)
+                    let result = await dictationService.requestAuthorization()
+                    Log.info("🎙️ Authorization result: \(result)", category: .general)
+                }
             }
         }
     }

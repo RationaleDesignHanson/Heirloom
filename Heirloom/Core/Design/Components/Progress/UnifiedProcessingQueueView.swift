@@ -191,6 +191,17 @@ struct UnifiedProcessingQueueView: View {
 
                     Spacer()
 
+                    if section == .readyToReview || section == .recent {
+                        Button {
+                            clearSection(section)
+                        } label: {
+                            Text("Clear")
+                                .font(HeirloomFonts.caption1Bold)
+                                .foregroundStyle(HeirloomColors.secondaryText)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
                     if section == .recent {
                         Image(systemName: isRecentCollapsed ? "chevron.down" : "chevron.up")
                             .font(.system(size: 12, weight: .semibold))
@@ -388,7 +399,8 @@ struct UnifiedProcessingQueueView: View {
             guard let videoJob = videoJobs.first(where: { $0.id == job.id }) else { return false }
             return videoJob.canResume || videoJob.appearsStuck
         case .generation:
-            return false
+            guard let genJob = generationJobs.first(where: { $0.id == job.id }) else { return false }
+            return genJob.status == .failed
         }
     }
 
@@ -426,7 +438,22 @@ struct UnifiedProcessingQueueView: View {
                 }
             }
         case .generation:
-            break // Generation jobs don't support resume
+            guard let genJob = generationJobs.first(where: { $0.id == job.id }) else { return }
+            let service = ServiceContainer.shared.resolve(RecipeGenerationService.self)
+            service.retryJob(genJob, context: modelContext)
+            Log.info("Retried generation job from queue", category: .general, metadata: [
+                "job_id": genJob.id.uuidString
+            ])
+        }
+    }
+
+    /// Clear all jobs in a section
+    private func clearSection(_ section: QueueSection) {
+        let jobs = jobsFor(section: section)
+        withAnimation(.easeOut(duration: 0.25)) {
+            for job in jobs {
+                dismissJob(job)
+            }
         }
     }
 
@@ -436,12 +463,15 @@ struct UnifiedProcessingQueueView: View {
             switch job.jobType {
             case .video:
                 if let videoJob = videoJobs.first(where: { $0.id == job.id }) {
-                    // For completed jobs without a recipe, or orphaned saved jobs, delete them
-                    // For other jobs, mark as saved/cancelled to remove from banner
-                    if videoJob.status == .completed || (videoJob.status == .saved && videoJob.recipeID == nil) {
+                    // Delete terminal jobs: completed, failed, cancelled, saved (with or without recipe)
+                    if videoJob.status == .completed ||
+                       videoJob.status == .failed ||
+                       videoJob.status == .cancelled ||
+                       videoJob.status == .saved {
                         modelContext.delete(videoJob)
                     } else {
-                        videoJob.status = .saved
+                        // For active/pending jobs, mark as cancelled
+                        videoJob.status = .cancelled
                     }
                 }
             case .importJob:

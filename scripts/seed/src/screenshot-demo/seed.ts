@@ -961,6 +961,7 @@ async function seedScreenshotDemoForUser(userId: string): Promise<void> {
         visibility: 'private',
         isArchived: false,
         isDemoSeed: true, // Mark for preservation during reset
+        collectionIds: [collectionId], // Link recipe to its collection for sync relink
       };
 
       await recipeRef.set(recipeData);

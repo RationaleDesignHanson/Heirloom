@@ -62,6 +62,14 @@ enum UserDefaultsKeys {
     /// Whether to hide user-created demo seed collections for screen recordings (defaults to false = show)
     static let hideDemoSeedCollections = "hide_demo_seed_collections_for_recording"
 
+    // MARK: - Migrations
+
+    /// Version of community recipe ingredient migration that was last run
+    static let communityIngredientMigrationVersion = "community_ingredient_migration_version"
+
+    /// Version of source attribution migration that was last run
+    static let sourceAttributionMigrationVersion = "source_attribution_migration_version"
+
     // MARK: - Paywall
 
     /// Number of times user has dismissed soft-wall paywalls

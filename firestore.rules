@@ -85,6 +85,14 @@ service cloud.firestore {
     }
 
     // ========================================
+    // RECIPE SHARES (User-Scoped)
+    // ========================================
+    match /users/{userId}/recipeShares/{shareId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+
+    // ========================================
     // RECIPE VERSIONS (User-Scoped)
     // ========================================
     match /users/{userId}/recipeVersions/{versionId} {
@@ -136,9 +144,11 @@ service cloud.firestore {
         )
       );
 
-      // Only owner can delete
+      // Owner can delete, OR recipients can delete demo/welcome shares (for reset cleanup)
       allow delete: if isAuthenticated() &&
-                       request.auth.uid == resource.data.ownerId;
+                       (request.auth.uid == resource.data.ownerId ||
+                        (request.auth.uid in resource.data.recipientUserIds &&
+                         resource.data.isDemoShare == true));
     }
 
     // ========================================
@@ -498,6 +508,25 @@ service cloud.firestore {
       allow update: if false;
 
       // Only moderators/admins can delete (via Cloud Functions)
+      allow delete: if false;
+    }
+
+    // ========================================
+    // SOURCE CATALOG (Crowdsourced Source Registry)
+    // Shared catalog of recipe sources (websites, cookbooks, creators)
+    // Stored at: source_catalog/{sourceId}
+    // ========================================
+    match /source_catalog/{sourceId} {
+      // Any authenticated user can read the catalog
+      allow read: if isAuthenticated();
+
+      // Any authenticated user can contribute to the catalog
+      allow create: if isAuthenticated();
+
+      // Any authenticated user can update (increment counts, add aliases)
+      allow update: if isAuthenticated();
+
+      // No deletion (catalog entries are permanent)
       allow delete: if false;
     }
 

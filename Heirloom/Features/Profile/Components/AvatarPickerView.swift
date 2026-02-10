@@ -111,28 +111,41 @@ struct AvatarPickerView: View {
         isProcessingImage = true
         defer { isProcessingImage = false }
 
-        do {
-            // Load the image data
-            guard let data = try await item.loadTransferable(type: Data.self),
-                  let uiImage = UIImage(data: data) else {
-                errorMessage = "Failed to load image"
-                showError = true
+        // Retry logic for transient Photos library errors (e.g., helper process unavailable)
+        var lastError: Error?
+        let maxAttempts = 2
+
+        for attempt in 1...maxAttempts {
+            do {
+                // Load the image data
+                guard let data = try await item.loadTransferable(type: Data.self),
+                      let uiImage = UIImage(data: data) else {
+                    errorMessage = "Failed to load image"
+                    showError = true
+                    return
+                }
+
+                // Validate image size (max 10MB)
+                if data.count > 10 * 1024 * 1024 {
+                    errorMessage = "Image too large. Please select an image under 10MB."
+                    showError = true
+                    return
+                }
+
+                await MainActor.run {
+                    onPhotoSelected(uiImage)
+                }
                 return
+            } catch {
+                lastError = error
+                if attempt < maxAttempts {
+                    try? await Task.sleep(for: .milliseconds(500))
+                }
             }
+        }
 
-            // Validate image size (max 10MB)
-            if data.count > 10 * 1024 * 1024 {
-                errorMessage = "Image too large. Please select an image under 10MB."
-                showError = true
-                return
-            }
-
-            await MainActor.run {
-                onPhotoSelected(uiImage)
-            }
-
-        } catch {
-            errorMessage = "Failed to process image: \(error.localizedDescription)"
+        if let lastError {
+            errorMessage = "Failed to process image: \(lastError.localizedDescription)"
             showError = true
         }
     }

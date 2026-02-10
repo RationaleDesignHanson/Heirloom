@@ -151,6 +151,7 @@ struct PDFImportView: View {
     @State private var showCookbookNamePrompt = false
     @State private var cookbookNameInput = ""
     @State private var pendingValidPDFs: [URL] = []
+    @State private var pendingAuthor: String?
 
     // Credits system state
     @State private var showCostSheet = false
@@ -631,6 +632,9 @@ struct PDFImportView: View {
         let metadataExtractor = PDFMetadataExtractor()
         let firstPDFMetadata = await metadataExtractor.extractMetadata(from: validPDFs[0])
 
+        // Capture author for provenance/attribution
+        let author = firstPDFMetadata?.author
+
         let cookbookName: String?
         if let extractedTitle = firstPDFMetadata?.title, !extractedTitle.isEmpty {
             cookbookName = extractedTitle
@@ -638,6 +642,7 @@ struct PDFImportView: View {
             // Single PDF with no title - prompt user
             await MainActor.run {
                 cookbookNameInput = ""
+                pendingAuthor = author  // Store author for when user confirms cookbook name
                 showCookbookNamePrompt = true
             }
             return
@@ -645,7 +650,7 @@ struct PDFImportView: View {
             cookbookName = nil
         }
 
-        await startImportJob(validPDFs: validPDFs, cookbookName: cookbookName)
+        await startImportJob(validPDFs: validPDFs, cookbookName: cookbookName, author: author)
     }
 
     /// Queue PDFs for tomorrow when quota is available
@@ -666,7 +671,7 @@ struct PDFImportView: View {
     }
 
     /// Start the actual import job
-    private func startImportJob(validPDFs: [URL], cookbookName: String?) async {
+    private func startImportJob(validPDFs: [URL], cookbookName: String?, author: String? = nil) async {
         let jobName = validPDFs.count == 1
             ? "Import \(validPDFs[0].lastPathComponent)"
             : "Import \(validPDFs.count) PDFs"
@@ -696,6 +701,7 @@ struct PDFImportView: View {
                     pdfURLs: validPDFs,
                     jobName: jobName,
                     cookbookName: cookbookName,
+                    cookbookAuthor: author,
                     collectionType: .cookbook,
                     context: modelContext,
                     costBreakdown: costBreakdown,  // Pass cost breakdown for credit deduction
@@ -740,8 +746,10 @@ struct PDFImportView: View {
 
         await startImportJob(
             validPDFs: pendingValidPDFs,
-            cookbookName: cookbookName.isEmpty ? nil : cookbookName
+            cookbookName: cookbookName.isEmpty ? nil : cookbookName,
+            author: pendingAuthor
         )
+        pendingAuthor = nil  // Clear after use
     }
 }
 

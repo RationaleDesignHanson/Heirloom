@@ -129,6 +129,15 @@ class CollectionImageRefreshTask {
     }
 
     private func shouldRefresh(_ collection: RecipeCollection) -> Bool {
+        // Skip collections with preset backgrounds
+        let typesWithPresetBackgrounds: [CollectionType] = [.cookbook, .videoImports, .fromFriends, .webImports, .photoImports, .readRecipes]
+        if typesWithPresetBackgrounds.contains(collection.type) {
+            return false
+        }
+        if collection.name == "Generated Recipes" {
+            return false
+        }
+
         // No existing AI-generated image
         if collection.generatedBackgroundImagePath == nil {
             return true

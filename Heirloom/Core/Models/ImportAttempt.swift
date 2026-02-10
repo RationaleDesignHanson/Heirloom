@@ -166,6 +166,11 @@ extension ImportResponse {
             finalInstructions = filteredInstructions
         }
 
+        // Filter out navigation/UI elements that were incorrectly scraped as ingredients
+        let filteredIngredients = recipe.ingredients.filter { ingredient in
+            Self.looksLikeIngredient(ingredient)
+        }
+
         return ImportedRecipe(
             title: recipe.title,
             description: recipe.description,
@@ -175,7 +180,7 @@ extension ImportResponse {
             servings: recipe.servings,
             prepTime: recipe.prepTime,
             cookTime: recipe.cookTime,
-            ingredients: recipe.ingredients,
+            ingredients: filteredIngredients.isEmpty ? recipe.ingredients : filteredIngredients,
             instructions: finalInstructions
         )
     }
@@ -255,5 +260,55 @@ extension ImportResponse {
         let hasTimeOrTemp = lowercased.range(of: #"(\d+\s*(minute|hour|second|degree|°f|°c|fahrenheit|celsius))"#, options: .regularExpression) != nil
 
         return hasTimeOrTemp
+    }
+
+    /// Check if text looks like a real ingredient (not a navigation element or UI text)
+    private static func looksLikeIngredient(_ text: String) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lowercased = trimmed.lowercased()
+
+        // Skip empty or very short strings
+        guard trimmed.count >= 3 else { return false }
+
+        // Filter out navigation/UI elements commonly scraped from recipe sites
+        // These are category filters, nav links, and UI controls
+        let navPatterns = [
+            "view all", "see all", "show all", "load more",
+            "jump to recipe", "print recipe", "save recipe",
+            "rate this", "leave a review", "log in",
+            "sign up", "subscribe", "newsletter",
+            "advertisement", "sponsored"
+        ]
+        for pattern in navPatterns {
+            if lowercased == pattern || lowercased.hasPrefix(pattern) {
+                return false
+            }
+        }
+
+        // Filter out strings ending with "*" that are single/double words
+        // (e.g., "Vegetables*", "Seafood*" — AllRecipes category filter labels)
+        if trimmed.hasSuffix("*") {
+            let wordCount = trimmed.components(separatedBy: .whitespaces)
+                .filter { !$0.isEmpty }.count
+            if wordCount <= 2 {
+                return false
+            }
+        }
+
+        // Filter out single-word food category names (AllRecipes nav filters without asterisks)
+        let words = trimmed.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+        if words.count == 1 {
+            let categoryNames: Set<String> = [
+                "vegetables", "fruits", "seafood", "meat", "poultry", "pasta",
+                "desserts", "breakfast", "lunch", "dinner", "appetizers",
+                "salads", "soups", "beverages", "breads", "grains",
+                "snacks", "sides", "condiments", "sauces"
+            ]
+            if categoryNames.contains(lowercased) {
+                return false
+            }
+        }
+
+        return true
     }
 }

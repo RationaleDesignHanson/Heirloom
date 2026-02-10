@@ -57,6 +57,7 @@ struct LineageNode: Identifiable {
     let stats: NodeStats
     let isCurrentUser: Bool // Whether this is the user's version
     let contributor: ContributorInfo? // Phase 8: Who shared/created this version
+    var version: RecipeLineageVersion? = nil // For diff view support
 
     /// Display label for the node
     var displayLabel: String {
