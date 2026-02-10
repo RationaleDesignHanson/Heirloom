@@ -164,7 +164,12 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
         // Tags and Collections
         data["tagIds"] = recipe.tags?.map { $0.id.uuidString } ?? []
-        data["collectionIds"] = recipe.collections?.map { $0.id.uuidString } ?? []
+        // Only include collectionIds if the recipe actually has collections loaded.
+        // This prevents wiping existing collectionIds in Firebase when a fresh device
+        // uploads a recipe before its collections are downloaded.
+        if let collections = recipe.collections, !collections.isEmpty {
+            data["collectionIds"] = collections.map { $0.id.uuidString }
+        }
 
         // Sync metadata
         data["lastSyncedAt"] = Timestamp(date: Date())

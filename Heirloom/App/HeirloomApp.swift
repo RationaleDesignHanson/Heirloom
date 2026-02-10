@@ -1173,10 +1173,15 @@ struct RootView: View {
                     // This ensures recipes are seeded before creating the unlock schedule
                 }
 
-                // When user signs out, stop listeners and clear badges
+                // When user signs out, stop listeners, sync, and clear badges
                 if oldValue && !newValue {
-                    Log.info("User signed out - stopping listeners", category: .auth)
-                    DeviceLogger.shared.log("✅ [Auth] User signed out - stopping listeners")
+                    Log.info("User signed out - stopping listeners and sync", category: .auth)
+                    DeviceLogger.shared.log("✅ [Auth] User signed out - stopping listeners and sync")
+
+                    // Stop automatic sync so it can restart on next sign-in
+                    let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+                    syncService.stopAutomaticSync()
+                    Log.info("Stopped automatic sync on sign out", category: .sync)
 
                     // Phase 9: Stop badge listener and clear badge
                     let badgeService = ServiceContainer.shared.resolve(BadgeService.self)

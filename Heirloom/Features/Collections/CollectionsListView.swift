@@ -872,11 +872,19 @@ struct CollectionsListView: View {
             }
 
             Button {
-                showCreateCollection = true
+                Task {
+                    await refreshRecipesFromFirebase()
+                }
             } label: {
                 HStack {
-                    Image(systemName: "plus")
-                    Text("Create Collection")
+                    if isRefreshingRecipes {
+                        ProgressView()
+                            .tint(.white)
+                            .scaleEffect(0.8)
+                    } else {
+                        Image(systemName: "icloud.and.arrow.down")
+                    }
+                    Text(isRefreshingRecipes ? "Restoring..." : "Restore from Cloud")
                 }
                 .font(HeirloomFonts.bodyBold)
                 .padding(.horizontal, HeirloomSpacing.lg)
@@ -885,20 +893,14 @@ struct CollectionsListView: View {
                 .foregroundStyle(.white)
                 .cornerRadius(HeirloomSpacing.cardCornerRadius)
             }
+            .disabled(isRefreshingRecipes)
 
             Button {
-                Task {
-                    await refreshRecipesFromFirebase()
-                }
+                showCreateCollection = true
             } label: {
                 HStack {
-                    if isRefreshingRecipes {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    Text(isRefreshingRecipes ? "Replacing..." : "Replace Discovery Collections")
+                    Image(systemName: "plus")
+                    Text("Create Collection")
                 }
                 .font(HeirloomFonts.body)
                 .padding(.horizontal, HeirloomSpacing.lg)
@@ -910,7 +912,6 @@ struct CollectionsListView: View {
                         .stroke(HeirloomColors.tomato, lineWidth: 2)
                 )
             }
-            .disabled(isRefreshingRecipes)
 
             Button {
                 showRestoreFromFile = true
@@ -1710,7 +1711,7 @@ struct CollectionsListView: View {
 
         await MainActor.run {
             isRefreshingRecipes = true
-            toastManager.info(title: "Replacing Collections", message: "Re-downloading your discovery collections...")
+            toastManager.info(title: "Restoring from Cloud", message: "Downloading your recipes and collections...")
         }
 
         do {
@@ -1741,14 +1742,14 @@ struct CollectionsListView: View {
 
             await MainActor.run {
                 isRefreshingRecipes = false
-                toastManager.success(title: "Collections Replaced", message: "Your discovery collections have been restored")
+                toastManager.success(title: "Restored", message: "Your recipes and collections have been restored from the cloud")
             }
 
             Log.info("Recipes refreshed from Firebase", category: .collections)
         } catch {
             await MainActor.run {
                 isRefreshingRecipes = false
-                toastManager.error(title: "Replace Failed", message: error.localizedDescription)
+                toastManager.error(title: "Restore Failed", message: error.localizedDescription)
             }
 
             Log.error("Failed to refresh recipes from Firebase", category: .collections, error: error)

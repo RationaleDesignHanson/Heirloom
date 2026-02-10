@@ -118,63 +118,86 @@ final class ScreenRecordingResetService: ObservableObject {
         Log.info("Reset: Stopped demo social behavior service", category: .general)
 
         // Step 1: Get demo seed IDs to preserve (before clearing anything)
+        // IMPORTANT: All IDs are lowercased for case-insensitive comparison.
+        // Firestore document IDs may be lowercase while SwiftData UUID strings are uppercase.
+
+        // 1a. Find demo seed collections from local SwiftData
         let demoSeedCollectionDescriptor = FetchDescriptor<RecipeCollection>(
             predicate: #Predicate { $0.isDemoSeed }
         )
         let demoSeedCollections = try context.fetch(demoSeedCollectionDescriptor)
-        let demoSeedCollectionIds = Set(demoSeedCollections.map { $0.id.uuidString })
+        var demoSeedCollectionIds = Set(demoSeedCollections.map { $0.id.uuidString.lowercased() })
 
-        // Get recipe IDs in demo seed collections from SwiftData relationships
+        // 1b. Get recipe IDs in demo seed collections from SwiftData relationships
         var demoSeedRecipeIds = Set<String>()
         for collection in demoSeedCollections {
             if let recipes = collection.recipes {
                 for recipe in recipes {
-                    demoSeedRecipeIds.insert(recipe.id.uuidString)
+                    demoSeedRecipeIds.insert(recipe.id.uuidString.lowercased())
                 }
             }
         }
 
-        // ALSO get recipe IDs from Firestore — two strategies for reliability:
-        // 1. Collection docs' recipeIds arrays (fast but may be empty if sync didn't populate them)
-        // 2. Direct recipe query for isDemoSeed: true (most reliable, catches all seed recipes)
+        // 1c. ALSO get IDs from Firestore for reliability
         if let db = db {
-            // Strategy 1: Collection doc recipeIds
-            for collectionId in demoSeedCollectionIds {
-                do {
-                    let collectionDoc = try await db.collection("users").document(userId)
-                        .collection("collections").document(collectionId).getDocument()
-                    if let data = collectionDoc.data(),
-                       let recipeIds = data["recipeIds"] as? [String] {
+            // Query Firebase for isDemoSeed collections (may exist on Firebase but not locally)
+            do {
+                let seedCollSnapshot = try await db.collection("users").document(userId)
+                    .collection("collections")
+                    .whereField("isDemoSeed", isEqualTo: true)
+                    .getDocuments()
+                for doc in seedCollSnapshot.documents {
+                    demoSeedCollectionIds.insert(doc.documentID.lowercased())
+                    // Also get recipeIds from these Firebase collection docs
+                    if let recipeIds = doc.data()["recipeIds"] as? [String] {
                         for recipeId in recipeIds {
-                            demoSeedRecipeIds.insert(recipeId)
+                            demoSeedRecipeIds.insert(recipeId.lowercased())
                         }
                     }
-                } catch {
-                    Log.warning("Could not fetch Firestore collection for seed recipe IDs", category: .general, metadata: [
-                        "collectionId": collectionId,
-                        "error": error.localizedDescription
-                    ])
                 }
+                Log.info("Found seed collections via isDemoSeed query", category: .general, metadata: [
+                    "count": seedCollSnapshot.documents.count
+                ])
+            } catch {
+                Log.warning("Could not query isDemoSeed collections", category: .general, metadata: [
+                    "error": error.localizedDescription
+                ])
             }
 
-            // Strategy 2: Query recipes marked as isDemoSeed directly
-            // This is the most reliable fallback — the seed script marks each recipe with isDemoSeed: true
+            // Query Firebase for isDemoSeed recipes (most reliable for recipe IDs)
             do {
                 let seedRecipesSnapshot = try await db.collection("users").document(userId)
                     .collection("recipes")
                     .whereField("isDemoSeed", isEqualTo: true)
                     .getDocuments()
-                let firestoreSeedCount = seedRecipesSnapshot.documents.count
                 for doc in seedRecipesSnapshot.documents {
-                    demoSeedRecipeIds.insert(doc.documentID)
+                    demoSeedRecipeIds.insert(doc.documentID.lowercased())
                 }
                 Log.info("Found seed recipes via isDemoSeed query", category: .general, metadata: [
-                    "count": firestoreSeedCount
+                    "count": seedRecipesSnapshot.documents.count
                 ])
             } catch {
                 Log.warning("Could not query isDemoSeed recipes", category: .general, metadata: [
                     "error": error.localizedDescription
                 ])
+            }
+        }
+
+        // 1d. Also preserve any local collection that CONTAINS demo seed recipes,
+        // even if the collection itself isn't marked isDemoSeed. This handles cases
+        // where seed collections lost their isDemoSeed flag during sync.
+        let allCollDescriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate { !$0.isSystemCollection && !$0.isAllRecipes }
+        )
+        let allLocalCollections = try context.fetch(allCollDescriptor)
+        for collection in allLocalCollections {
+            if let recipes = collection.recipes {
+                let hasPreservedRecipe = recipes.contains { recipe in
+                    demoSeedRecipeIds.contains(recipe.id.uuidString.lowercased())
+                }
+                if hasPreservedRecipe {
+                    demoSeedCollectionIds.insert(collection.id.uuidString.lowercased())
+                }
             }
         }
 
@@ -185,7 +208,7 @@ final class ScreenRecordingResetService: ObservableObject {
 
         // Step 2: Clear local SwiftData
         resetProgress = "Clearing local data..."
-        let (localRecipesDeleted, localCollectionsDeleted, themeCount, demoSeedCount) = try await clearLocalData(context: context, preserveRecipeIds: demoSeedRecipeIds)
+        let (localRecipesDeleted, localCollectionsDeleted, themeCount, demoSeedCount) = try await clearLocalData(context: context, preserveRecipeIds: demoSeedRecipeIds, preserveCollectionIds: demoSeedCollectionIds)
         Log.info("Local data cleared", category: .general, metadata: [
             "recipes_deleted": localRecipesDeleted,
             "collections_deleted": localCollectionsDeleted,
@@ -273,6 +296,79 @@ final class ScreenRecordingResetService: ObservableObject {
         try context.save()
         Log.info("System collections recreated", category: .general)
 
+        // Step 7b: Clear all collection tombstones — a full reset is a clean slate.
+        // Tombstones created in clearLocalData() would block Firebase collection re-download
+        // on the next sync, causing recipes to lose their collection relationships.
+        let tombstoneDescriptor = FetchDescriptor<DeletedCollectionRecord>()
+        let tombstones = try context.fetch(tombstoneDescriptor)
+        if !tombstones.isEmpty {
+            for tombstone in tombstones {
+                context.delete(tombstone)
+            }
+            try context.save()
+            Log.info("Cleared collection tombstones after reset", category: .general, metadata: [
+                "count": tombstones.count
+            ])
+        }
+
+        // Step 7c: Re-route preserved demo seed recipes to source-type collections.
+        // The reset deleted From Web, From Videos, Cookbook Pages, From Friends, etc.
+        // Recreate them based on each recipe's sourceType so the collections page isn't empty.
+        resetProgress = "Restoring collection assignments..."
+        let router = CollectionRouter(modelContext: context)
+        let preservedRecipeDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { !$0.isThemeRecipe }
+        )
+        let preservedRecipes = try context.fetch(preservedRecipeDescriptor)
+        var relinkedCount = 0
+
+        for recipe in preservedRecipes {
+            guard let sourceType = recipe.sourceType else { continue }
+
+            let targetCollection: RecipeCollection?
+            switch sourceType {
+            case .url:
+                targetCollection = router.findOrCreateCollection(name: "From Web", type: .webImports, iconName: "link")
+            case .video:
+                targetCollection = router.findOrCreateCollection(name: "From Videos", type: .videoImports, iconName: "video.fill")
+            case .cookbook:
+                let cookbookName = recipe.sourceCookbook ?? "Cookbook Pages"
+                targetCollection = router.findOrCreateCollection(name: cookbookName, type: .cookbook, iconName: "book.closed.fill")
+            case .scan:
+                targetCollection = router.findOrCreateCollection(name: "From Photos", type: .photoImports, iconName: "photo.fill")
+            case .readRecipe:
+                targetCollection = router.findOrCreateCollection(name: "Read Recipes", type: .readRecipes, iconName: "text.book.closed")
+            case .family:
+                targetCollection = router.findOrCreateCollection(name: "From Friends", type: .fromFriends, iconName: "person.2.fill")
+            default:
+                targetCollection = nil
+            }
+
+            if let collection = targetCollection {
+                if recipe.collections == nil {
+                    recipe.collections = []
+                }
+                if !(recipe.collections?.contains(where: { $0.id == collection.id }) ?? false) {
+                    recipe.collections?.append(collection)
+                    relinkedCount += 1
+                }
+            }
+        }
+
+        if relinkedCount > 0 {
+            try context.save()
+        }
+        Log.info("Re-routed preserved recipes to source-type collections", category: .general, metadata: [
+            "relinked": relinkedCount,
+            "totalPreserved": preservedRecipes.count
+        ])
+
+        // Step 7d: Stop automatic sync so it restarts cleanly on next app launch.
+        // Without this, the sync timer could fire immediately after reset completes
+        // (isResetInProgress becomes false in defer) and upload empty collections to Firebase.
+        syncService.stopAutomaticSync()
+        Log.info("Reset: Stopped automatic sync for clean restart", category: .general)
+
         // Step 8: Verify reset
         resetProgress = "Verifying reset..."
         let verification = try await verifyReset(
@@ -290,17 +386,7 @@ final class ScreenRecordingResetService: ObservableObject {
 
     // MARK: - Clear Local Data
 
-    private func clearLocalData(context: ModelContext, preserveRecipeIds: Set<String>) async throws -> (recipesDeleted: Int, collectionsDeleted: Int, themePreserved: Int, demoSeedPreserved: Int) {
-        // First, identify demo seed collection IDs to preserve
-        let demoSeedCollectionDescriptor = FetchDescriptor<RecipeCollection>(
-            predicate: #Predicate { $0.isDemoSeed }
-        )
-        let demoSeedCollections = try context.fetch(demoSeedCollectionDescriptor)
-        let demoSeedPreservedCount = demoSeedCollections.count
-
-        Log.info("Preserving demo seed collections during reset", category: .general, metadata: [
-            "count": demoSeedPreservedCount
-        ])
+    private func clearLocalData(context: ModelContext, preserveRecipeIds: Set<String>, preserveCollectionIds: Set<String>) async throws -> (recipesDeleted: Int, collectionsDeleted: Int, themePreserved: Int, demoSeedPreserved: Int) {
 
         // Fetch all non-theme recipes
         let recipeDescriptor = FetchDescriptor<Recipe>(
@@ -318,7 +404,8 @@ final class ScreenRecordingResetService: ObservableObject {
             _ = recipe.tags
 
             // Check if recipe is a preserved seed recipe (using the reliable ID set from Firestore)
-            if preserveRecipeIds.contains(recipe.id.uuidString) {
+            // Note: preserveRecipeIds are lowercased, so we must lowercase the comparison
+            if preserveRecipeIds.contains(recipe.id.uuidString.lowercased()) {
                 Log.debug("Preserving recipe in demo seed collection", category: .general, metadata: ["title": recipe.title])
                 continue
             }
@@ -333,18 +420,35 @@ final class ScreenRecordingResetService: ObservableObject {
         )
         let collections = try context.fetch(collectionDescriptor)
 
-        // Delete non-theme, non-demo-seed collections
+        // Delete non-theme, non-preserved collections
+        // preserveCollectionIds includes isDemoSeed collections AND collections containing demo seed recipes
         var collectionsDeleted = 0
+        var demoSeedPreservedCount = 0
         for collection in collections {
-            // Skip theme collections and demo seed collections
-            if collection.sourceTheme == nil && !collection.isDemoSeed {
-                // Create tombstone for sync
-                let tombstone = DeletedCollectionRecord(collectionId: collection.id)
-                context.insert(tombstone)
-                context.delete(collection)
-                collectionsDeleted += 1
+            // Skip theme collections
+            guard collection.sourceTheme == nil else { continue }
+
+            // Skip collections in the preserve set (isDemoSeed or contains demo seed recipes)
+            if preserveCollectionIds.contains(collection.id.uuidString.lowercased()) {
+                demoSeedPreservedCount += 1
+                Log.debug("Preserving collection during reset", category: .general, metadata: [
+                    "name": collection.name,
+                    "isDemoSeed": collection.isDemoSeed
+                ])
+                continue
             }
+
+            // Create tombstone for sync
+            let tombstone = DeletedCollectionRecord(collectionId: collection.id)
+            context.insert(tombstone)
+            context.delete(collection)
+            collectionsDeleted += 1
         }
+
+        Log.info("Collections preserved during reset", category: .general, metadata: [
+            "preserved": demoSeedPreservedCount,
+            "deleted": collectionsDeleted
+        ])
 
         // Count preserved theme recipes
         let themeDescriptor = FetchDescriptor<Recipe>(
@@ -370,9 +474,9 @@ final class ScreenRecordingResetService: ObservableObject {
         let recipesRef = db.collection("users").document(userId).collection("recipes")
         let recipesSnapshot = try await recipesRef.getDocuments()
 
-        // Filter out recipes to preserve
+        // Filter out recipes to preserve (lowercase for case-insensitive comparison)
         let recipesToDelete = recipesSnapshot.documents.filter { doc in
-            !preserveRecipeIds.contains(doc.documentID)
+            !preserveRecipeIds.contains(doc.documentID.lowercased())
         }
 
         // Delete subcollections first (they're separate from the batch)
@@ -391,9 +495,9 @@ final class ScreenRecordingResetService: ObservableObject {
         let collectionsRef = db.collection("users").document(userId).collection("collections")
         let collectionsSnapshot = try await collectionsRef.getDocuments()
 
-        // Filter out collections to preserve
+        // Filter out collections to preserve (lowercase for case-insensitive comparison)
         let collectionsToDelete = collectionsSnapshot.documents.filter { doc in
-            !preserveCollectionIds.contains(doc.documentID)
+            !preserveCollectionIds.contains(doc.documentID.lowercased())
         }
 
         try await deleteDocumentsInBatches(
@@ -614,7 +718,7 @@ final class ScreenRecordingResetService: ObservableObject {
 
         // Delete recipe subfolders, but skip preserved recipe IDs
         for prefix in result.prefixes {
-            if preserveRecipeIds.contains(prefix.name) {
+            if preserveRecipeIds.contains(prefix.name.lowercased()) {
                 Log.debug("Preserving storage for demo seed recipe", category: .general, metadata: ["recipeId": prefix.name])
                 continue
             }
