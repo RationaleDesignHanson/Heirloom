@@ -4,7 +4,7 @@
 //
 //  Created by Claude Code on 2026-01-23.
 //  Updated for new 5-screen onboarding flow on 2026-02-01
-//  Task 2: Credit system visualization
+//  Redesigned with plan selection cards on 2026-02-10
 //
 
 import SwiftUI
@@ -12,7 +12,7 @@ import UIKit
 import StoreKit
 
 /// Premium trial screen - Screen 2 of 5
-/// Shows the credit system with visual meter and example costs
+/// Plan selection cards with dynamic CTA and subscribe flourish
 struct OnboardingSubscriptionScreen: View {
 
     // MARK: - Environment
@@ -26,6 +26,10 @@ struct OnboardingSubscriptionScreen: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var isLoadingProducts = true
+    @State private var selectedPlan: ProductIdentifier = .annual
+    @State private var showSuccessFlourish = false
+    @State private var flourishScale: CGFloat = 0.5
+    @State private var flourishOpacity: Double = 0
 
     // MARK: - Callbacks
 
@@ -62,78 +66,43 @@ struct OnboardingSubscriptionScreen: View {
                     VStack(spacing: 24) {
                         // Header
                         VStack(spacing: 12) {
-                            Text("Save recipes for free")
+                            Text("Choose your plan")
                                 .font(HeirloomFonts.title1Elevated)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(2)
                                 .kerning(-0.5)
 
-                            Text("Most features are free. Credits power video imports and large cookbooks.")
+                            Text("Start with a free trial. Cancel anytime.")
                                 .font(HeirloomFonts.body)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(HeirloomColors.secondaryText)
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.horizontal, 24)
                         .padding(.top, 8)
 
-                        // What's free section
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Always free")
-                                .font(HeirloomFonts.bodyBold)
-                                .foregroundColor(HeirloomColors.primaryText)
-
-                            FreeFeatureRow(icon: "link", label: "Save from any link")
-                            FreeFeatureRow(icon: "camera", label: "Scan a recipe card")
-                            FreeFeatureRow(icon: "sparkles", label: "Generate with AI")
-                            FreeFeatureRow(icon: "folder", label: "Organize collections")
+                        // Plan selection cards
+                        VStack(spacing: 10) {
+                            planCard(
+                                plan: .annual,
+                                badge: "BEST VALUE",
+                                badgeColor: HeirloomColors.tomato
+                            )
+                            planCard(
+                                plan: .monthly,
+                                badge: nil,
+                                badgeColor: .clear
+                            )
+                            planCard(
+                                plan: .lifetime,
+                                badge: "ONE-TIME",
+                                badgeColor: HeirloomColors.tomato
+                            )
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(16)
-                        .background(HeirloomColors.familyGreen.opacity(0.1))
-                        .cornerRadius(12)
                         .padding(.horizontal, 24)
 
-                        // Premium features
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "star.fill")
-                                    .foregroundColor(HeirloomColors.tomato)
-                                Text("Premium unlocks")
-                                    .font(HeirloomFonts.bodyBold)
-                                    .foregroundColor(HeirloomColors.primaryText)
-                            }
-
-                            VStack(alignment: .leading, spacing: 10) {
-                                PremiumFeatureRow(icon: "person.2.fill", label: "Share with friends & family")
-                                PremiumFeatureRow(icon: "globe", label: "Publish to Discover")
-                                PremiumFeatureRow(icon: "video.fill", label: "Import from videos")
-                                PremiumFeatureRow(icon: "book.fill", label: "Bulk cookbook scans")
-                            }
-
-                            Text("Your free trial includes 50 credits. Premium subscribers get 100 credits each month. You'll always see costs before confirming.")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundColor(HeirloomColors.secondaryText)
-                                .padding(.top, 4)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(16)
-                        .background(HeirloomColors.tomato.opacity(0.08))
-                        .cornerRadius(12)
-                        .padding(.horizontal, 24)
-
-                        // Pricing options (minimal, non-overwhelming)
-                        VStack(spacing: 8) {
-                            Text("After your trial")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundColor(HeirloomColors.secondaryText)
-
-                            HStack(spacing: 16) {
-                                pricingPill("$6.99/mo")
-                                pricingPill("$39.99/yr", highlight: true)
-                                pricingPill("$149 once")
-                            }
-                        }
-                        .padding(.top, 8)
+                        // Compact feature comparison
+                        featureComparison
+                            .padding(.horizontal, 24)
                     }
                     .padding(.bottom, 16)
                     .frame(maxWidth: .infinity, minHeight: geometry.size.height)
@@ -142,10 +111,10 @@ struct OnboardingSubscriptionScreen: View {
 
                 // Fixed bottom CTAs
                 VStack(spacing: 12) {
-                    // Start Free Trial Button - PRIMARY (always show)
+                    // Dynamic CTA Button
                     Button(action: {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        startTrial()
+                        purchaseSelectedPlan()
                     }) {
                         VStack(spacing: 4) {
                             if isLoading {
@@ -153,15 +122,11 @@ struct OnboardingSubscriptionScreen: View {
                                     .progressViewStyle(.circular)
                                     .tint(.white)
                             } else {
-                                Text("Start free trial")
+                                Text(ctaTitle)
                                     .font(.headline)
                                     .fontWeight(.bold)
-                                if let annualProduct = storeManager.products[ProductIdentifier.annual] {
-                                    Text("Then \(annualProduct.displayPrice)/year")
-                                        .font(.caption)
-                                        .opacity(0.9)
-                                } else {
-                                    Text("7 days free")
+                                if let subtitle = ctaSubtitle {
+                                    Text(subtitle)
                                         .font(.caption)
                                         .opacity(0.9)
                                 }
@@ -224,6 +189,26 @@ struct OnboardingSubscriptionScreen: View {
                     )
                 )
             }
+
+            // Success flourish overlay
+            if showSuccessFlourish {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+
+                VStack(spacing: 16) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 72))
+                        .foregroundColor(HeirloomColors.familyGreen)
+                        .scaleEffect(flourishScale)
+
+                    Text("Welcome to Heirloom!")
+                        .font(HeirloomFonts.title2)
+                        .foregroundColor(.white)
+                }
+                .opacity(flourishOpacity)
+                .transition(.opacity)
+            }
         }
         .task {
             // Load products when screen appears
@@ -245,22 +230,182 @@ struct OnboardingSubscriptionScreen: View {
         }
     }
 
-    // MARK: - Pricing Pill
+    // MARK: - Plan Card
 
-    @ViewBuilder
-    private func pricingPill(_ text: String, highlight: Bool = false) -> some View {
-        Text(text)
-            .font(HeirloomFonts.caption2)
-            .foregroundColor(highlight ? HeirloomColors.tomato : HeirloomColors.secondaryText)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(highlight ? HeirloomColors.tomato.opacity(0.1) : Color.clear)
+    private func planCard(plan: ProductIdentifier, badge: String?, badgeColor: Color) -> some View {
+        let isSelected = selectedPlan == plan
+
+        return Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                selectedPlan = plan
+            }
+        } label: {
+            HStack(spacing: 12) {
+                // Radio button
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundColor(isSelected ? HeirloomColors.tomato : Color.gray.opacity(0.4))
+
+                // Plan details
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 8) {
+                        Text(plan.displayName)
+                            .font(HeirloomFonts.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(HeirloomColors.primaryText)
+
+                        if let badge = badge {
+                            Text(badge)
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(badgeColor)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(badgeColor.opacity(0.1))
+                                .cornerRadius(4)
+                        }
+                    }
+
+                    Text(planTrialText(for: plan))
+                        .font(HeirloomFonts.caption1)
+                        .foregroundColor(HeirloomColors.secondaryText)
+
+                    HStack(spacing: 4) {
+                        Text(planPriceText(for: plan))
+                            .font(HeirloomFonts.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(HeirloomColors.primaryText)
+
+                        if plan == .annual {
+                            Text("Save 52% vs monthly")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(HeirloomColors.familyGreen)
+                        }
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(14)
+            .background(Color.white)
             .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? HeirloomColors.tomato : Color.gray.opacity(0.2), lineWidth: isSelected ? 2 : 1)
+            )
+            .shadow(color: .black.opacity(isSelected ? 0.08 : 0.04), radius: isSelected ? 8 : 4, y: 2)
+        }
+    }
+
+    // MARK: - Plan Helpers
+
+    private func planTrialText(for plan: ProductIdentifier) -> String {
+        switch plan {
+        case .annual, .monthly:
+            return "7-day free trial"
+        case .lifetime:
+            return "No subscription"
+        }
+    }
+
+    private func planPriceText(for plan: ProductIdentifier) -> String {
+        switch plan {
+        case .annual:
+            if let product = storeManager.products[.annual] {
+                return "\(product.displayPrice)/year ($3.33/mo)"
+            }
+            return "$39.99/year ($3.33/mo)"
+        case .monthly:
+            if let product = storeManager.products[.monthly] {
+                return "\(product.displayPrice)/month"
+            }
+            return "$6.99/month"
+        case .lifetime:
+            if let product = storeManager.products[.lifetime] {
+                return product.displayPrice
+            }
+            return "$149"
+        }
+    }
+
+    // MARK: - Feature Comparison
+
+    private var featureComparison: some View {
+        HStack(alignment: .top, spacing: 24) {
+            // Free column
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Free")
+                    .font(HeirloomFonts.caption1)
+                    .fontWeight(.semibold)
+                    .foregroundColor(HeirloomColors.primaryText)
+
+                comparisonRow(icon: "checkmark", iconColor: HeirloomColors.familyGreen, text: "Save from links")
+                comparisonRow(icon: "checkmark", iconColor: HeirloomColors.familyGreen, text: "Scan recipe cards")
+                comparisonRow(icon: "checkmark", iconColor: HeirloomColors.familyGreen, text: "AI generation")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Premium column
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Premium adds")
+                    .font(HeirloomFonts.caption1)
+                    .fontWeight(.semibold)
+                    .foregroundColor(HeirloomColors.primaryText)
+
+                comparisonRow(icon: "star.fill", iconColor: HeirloomColors.tomato, text: "Share with family")
+                comparisonRow(icon: "star.fill", iconColor: HeirloomColors.tomato, text: "Import from videos")
+                comparisonRow(icon: "star.fill", iconColor: HeirloomColors.tomato, text: "Bulk cookbook scans")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(16)
+        .background(Color.white.opacity(0.6))
+        .cornerRadius(12)
+    }
+
+    private func comparisonRow(icon: String, iconColor: Color, text: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(iconColor)
+                .frame(width: 14)
+
+            Text(text)
+                .font(HeirloomFonts.caption1)
+                .foregroundColor(HeirloomColors.secondaryText)
+        }
+    }
+
+    // MARK: - Dynamic CTA
+
+    private var ctaTitle: String {
+        switch selectedPlan {
+        case .annual, .monthly:
+            return "Start free trial"
+        case .lifetime:
+            return "Buy lifetime access"
+        }
+    }
+
+    private var ctaSubtitle: String? {
+        switch selectedPlan {
+        case .annual:
+            if let product = storeManager.products[.annual] {
+                return "Then \(product.displayPrice)/year"
+            }
+            return "Then $39.99/year"
+        case .monthly:
+            if let product = storeManager.products[.monthly] {
+                return "Then \(product.displayPrice)/month"
+            }
+            return "Then $6.99/month"
+        case .lifetime:
+            return nil
+        }
     }
 
     // MARK: - Actions
 
-    private func startTrial() {
+    private func purchaseSelectedPlan() {
         isLoading = true
         errorMessage = nil
 
@@ -268,133 +413,57 @@ struct OnboardingSubscriptionScreen: View {
             // Track analytics
             let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
             analytics.track(event: .appLaunched, properties: [
-                "location": "onboarding_trial_started"
+                "location": "onboarding_plan_selected",
+                "plan": selectedPlan.rawValue
             ])
 
-            // Attempt purchase
-            let result = await storeManager.purchase(.annual)
+            // Attempt purchase of selected plan
+            let result = await storeManager.purchase(selectedPlan)
 
             switch result {
             case .success:
-                // Trial started successfully
-                Log.info("Trial started from onboarding", category: .store)
+                Log.info("Subscription started from onboarding", category: .store)
+                await showFlourish()
                 onStartTrial()
 
             case .cancelled:
-                // User cancelled - treat as skip
-                Log.info("Trial cancelled during onboarding", category: .store)
+                Log.info("Purchase cancelled during onboarding", category: .store)
                 isLoading = false
                 onSkip()
 
             case .pending:
-                // Purchase pending - treat as success
-                Log.info("Trial purchase pending", category: .store)
+                Log.info("Purchase pending", category: .store)
+                await showFlourish()
                 onStartTrial()
 
             case .failed(let error):
-                // Show error but allow continuing
                 errorMessage = error.errorDescription
                 isLoading = false
-                Log.error("Trial purchase failed during onboarding", category: .store, metadata: [
+                Log.error("Purchase failed during onboarding", category: .store, metadata: [
                     "error": error.errorDescription ?? "unknown"
                 ])
 
                 analytics.track(event: .appLaunched, properties: [
-                    "action": "onboarding_trial_failed",
+                    "action": "onboarding_purchase_failed",
                     "error": error.errorDescription ?? "unknown"
                 ])
             }
         }
     }
 
-    private func subscribeNow() {
-        isLoading = true
-        errorMessage = nil
+    @MainActor
+    private func showFlourish() async {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
 
-        Task {
-            // Track analytics
-            let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
-            analytics.track(event: .appLaunched, properties: [
-                "location": "onboarding_subscribe_now"
-            ])
-
-            // Purchase annual subscription immediately (no trial)
-            let result = await storeManager.purchase(.annual)
-
-            switch result {
-            case .success:
-                // Subscription successful
-                Log.info("Direct subscription from onboarding", category: .store)
-                onStartTrial() // Same callback - user is subscribed
-
-            case .cancelled:
-                // User cancelled - just stop loading
-                Log.info("Direct subscription cancelled during onboarding", category: .store)
-                isLoading = false
-
-            case .pending:
-                // Purchase pending - treat as success
-                Log.info("Direct subscription pending", category: .store)
-                onStartTrial()
-
-            case .failed(let error):
-                // Show error but allow continuing
-                errorMessage = error.errorDescription
-                isLoading = false
-                Log.error("Direct subscription failed during onboarding", category: .store, metadata: [
-                    "error": error.errorDescription ?? "unknown"
-                ])
-
-                analytics.track(event: .appLaunched, properties: [
-                    "action": "onboarding_subscribe_failed",
-                    "error": error.errorDescription ?? "unknown"
-                ])
-            }
+        withAnimation(.easeOut(duration: 0.2)) {
+            showSuccessFlourish = true
         }
-    }
-}
-
-// MARK: - Free Feature Row
-
-private struct FreeFeatureRow: View {
-    let icon: String
-    let label: String
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "checkmark")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(HeirloomColors.familyGreen)
-
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(HeirloomColors.primaryText)
-                .frame(width: 20)
-
-            Text(label)
-                .font(HeirloomFonts.body)
-                .foregroundColor(HeirloomColors.primaryText)
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
+            flourishScale = 1.0
+            flourishOpacity = 1.0
         }
-    }
-}
 
-// MARK: - Premium Feature Row
-
-private struct PremiumFeatureRow: View {
-    let icon: String
-    let label: String
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(HeirloomColors.tomato)
-                .frame(width: 20)
-
-            Text(label)
-                .font(HeirloomFonts.body)
-                .foregroundColor(HeirloomColors.primaryText)
-        }
+        try? await Task.sleep(nanoseconds: 1_200_000_000) // 1.2s
     }
 }
 

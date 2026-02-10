@@ -75,7 +75,7 @@ struct OnboardingDiscoverScreen: View {
 
                             Text("Your recipes are yours. Share only what you choose.")
                                 .font(HeirloomFonts.body)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(HeirloomColors.secondaryText)
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.horizontal, 24)

@@ -624,13 +624,39 @@ struct CookbookScannerView: View {
             "count": items.count
         ])
 
-        // Load all images first
+        // Load all images with retry for iCloud failures
         var images: [UIImage] = []
+        var failedLoadCount = 0
+        let maxRetries = 2
 
-        for item in items {
-            if let data = try? await item.loadTransferable(type: Data.self),
-               let image = UIImage(data: data) {
-                images.append(image)
+        for (index, item) in items.enumerated() {
+            var loaded = false
+            var lastError: Error?
+
+            for attempt in 0...maxRetries {
+                do {
+                    if let data = try await item.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data) {
+                        images.append(image)
+                        loaded = true
+                        break
+                    }
+                } catch {
+                    lastError = error
+                    Log.warning("Failed to load photo \(index + 1), attempt \(attempt + 1)/\(maxRetries + 1)", category: .import, metadata: [
+                        "error": error.localizedDescription
+                    ])
+                    if attempt < maxRetries {
+                        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+                    }
+                }
+            }
+
+            if !loaded {
+                failedLoadCount += 1
+                Log.warning("Permanently failed to load photo \(index + 1) after \(maxRetries + 1) attempts", category: .import, metadata: [
+                    "error": lastError?.localizedDescription ?? "Unknown error (nil data or invalid image)"
+                ])
             }
         }
 
@@ -639,6 +665,16 @@ struct CookbookScannerView: View {
                 errorMessage = "Failed to load images from photo library"
             }
             return
+        }
+
+        // Show warning toast if some images failed to load
+        if failedLoadCount > 0 {
+            await MainActor.run {
+                toastManager.warning(
+                    title: "\(failedLoadCount) photo\(failedLoadCount == 1 ? "" : "s") couldn't be loaded",
+                    message: "This can happen with iCloud photos. Proceeding with \(images.count) photo\(images.count == 1 ? "" : "s")."
+                )
+            }
         }
 
         do {
@@ -650,34 +686,50 @@ struct CookbookScannerView: View {
                 context: modelContext
             )
 
-            Log.info("Starting photo library import job", category: .import, metadata: [
+            Log.info("Photo library import job created, dismissing sheet", category: .import, metadata: [
                 "jobId": job.id.uuidString,
-                "imageCount": images.count
+                "imageCount": images.count,
+                "failedLoadCount": failedLoadCount
             ])
 
-            // Start processing
-            try await importManager.startJob(job, context: modelContext)
-
+            // Dismiss immediately and show toast (matches PDFImportView pattern)
             await MainActor.run {
                 selectedPhotoItems = []
 
-                // Dismiss the scanner view after starting batch import
-                dismiss()
+                if failedLoadCount == 0 {
+                    toastManager.success(
+                        title: "Import started",
+                        message: "Processing \(images.count) photo\(images.count == 1 ? "" : "s") in the background"
+                    )
+                }
 
                 // Track analytics
                 analytics.track(event: .recipeImported, properties: [
                     "source": "cookbook_scan_batch_queue",
-                    "batch_size": images.count
+                    "batch_size": images.count,
+                    "failed_loads": failedLoadCount
                 ])
 
-                Log.info("Photo library batch import job started successfully", category: .import)
+                dismiss()
+            }
+
+            // Fire-and-forget: start processing in background after dismiss
+            Task {
+                do {
+                    try await importManager.startJob(job, context: modelContext)
+                    Log.info("Photo library batch import job completed", category: .import)
+                } catch {
+                    Log.error("Photo library batch import failed during processing", category: .import, metadata: [
+                        "error": error.localizedDescription
+                    ])
+                }
             }
 
         } catch {
             await MainActor.run {
                 errorMessage = error.localizedDescription
 
-                Log.error("Photo library batch import failed", category: .import, metadata: [
+                Log.error("Photo library batch import failed to create job", category: .import, metadata: [
                     "error": error.localizedDescription
                 ])
             }

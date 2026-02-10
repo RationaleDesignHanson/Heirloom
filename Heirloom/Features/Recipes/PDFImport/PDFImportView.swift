@@ -171,7 +171,7 @@ struct PDFImportView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: HeirloomSpacing.xl) {
+                VStack(spacing: HeirloomSpacing.lg) {
                     // Header
                     headerSection
 
@@ -192,7 +192,7 @@ struct PDFImportView: View {
                 .padding(HeirloomSpacing.lg)
             }
             .navigationTitle("Import PDFs")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showDocumentPicker) {
                 PDFDocumentPicker(selectedPDFs: $selectedPDFs)
             }
@@ -300,7 +300,7 @@ struct PDFImportView: View {
                 modelContext: modelContext,
                 userId: userId
             )
-            CreditsStoreView(storeManager: storeManager)
+            CreditsStoreView(storeManager: storeManager, userCredits: userCredits)
         }
     }
 
@@ -308,16 +308,27 @@ struct PDFImportView: View {
 
     private var headerSection: some View {
         VStack(spacing: HeirloomSpacing.md) {
-            Image(systemName: "doc.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(HeirloomColors.tomato)
+            Image("pdf-imports-bg")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(height: 180)
+                .clipped()
+                .overlay(
+                    LinearGradient(
+                        colors: [.clear, Color(.systemBackground).opacity(0.8)],
+                        startPoint: .center,
+                        endPoint: .bottom
+                    )
+                )
+                .cornerRadius(16)
+                .heirloomShadow(HeirloomShadows.card)
 
-            Text("Import PDF Recipes")
+            Text("Import from PDF")
                 .font(HeirloomFonts.title2)
                 .fontWeight(.bold)
                 .foregroundStyle(HeirloomColors.primaryText)
 
-            Text("Select up to 20 PDF files from cookbook scans or recipe collections. We'll automatically detect recipes and handle multi-page recipes.")
+            Text("Select cookbook scans or recipe PDFs and we'll extract every recipe.")
                 .font(HeirloomFonts.body)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .multilineTextAlignment(.center)
@@ -331,16 +342,17 @@ struct PDFImportView: View {
             showDocumentPicker = true
         } label: {
             HStack {
-                Image(systemName: "folder")
+                Image(systemName: "doc.badge.plus")
                 Text("Select PDF Files")
-                    .fontWeight(.semibold)
+                    .font(HeirloomFonts.bodyBold)
             }
             .frame(maxWidth: .infinity)
-            .padding()
+            .frame(height: 56)
             .background(HeirloomColors.tomato)
             .foregroundStyle(HeirloomColors.buttonTextLight)
-            .cornerRadius(12)
+            .cornerRadius(16)
         }
+        .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
     }
 
     // MARK: - Selected PDFs List
@@ -492,35 +504,31 @@ struct PDFImportView: View {
     // MARK: - Info Cards
 
     private var infoCardsSection: some View {
-        VStack(spacing: HeirloomSpacing.md) {
-            InfoCard(
-                icon: "checkmark.circle.fill",
-                iconColor: .green,
-                title: "Supported PDFs",
-                description: "Scanned cookbooks, recipe cards, or any PDF with recipe text and images"
-            )
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            HStack(spacing: 8) {
+                Image(systemName: "lightbulb.fill")
+                    .foregroundStyle(.orange)
+                    .font(.system(size: 14))
 
-            InfoCard(
-                icon: "sparkles",
-                iconColor: .purple,
-                title: "Smart Multi-Page Detection",
-                description: "Automatically detects recipes spanning multiple pages and groups them together"
-            )
+                Text("Tips")
+                    .font(HeirloomFonts.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(HeirloomColors.primaryText)
+            }
 
-            InfoCard(
-                icon: "crown.fill",
-                iconColor: .orange,
-                title: "Premium for Large PDFs",
-                description: "PDFs with 50+ pages require premium subscription. Hard limit of 250 pages per PDF."
-            )
-
-            InfoCard(
-                icon: "lock.shield.fill",
-                iconColor: .blue,
-                title: "Maximum 20 PDFs",
-                description: "Select up to 20 PDF files per import session for optimal processing"
-            )
+            VStack(alignment: .leading, spacing: 6) {
+                Text("\u{2713} Scanned cookbooks, recipe cards, and text PDFs")
+                Text("\u{2726} Multi-page recipes grouped automatically")
+                Text("\u{265B} 50+ pages require premium (250 max)")
+                Text("\u{25CE} Up to 20 PDFs per import")
+            }
+            .font(HeirloomFonts.caption1)
+            .foregroundStyle(HeirloomColors.secondaryText)
         }
+        .padding(HeirloomSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.08))
+        .cornerRadius(12)
     }
 
     // MARK: - Processing
@@ -750,39 +758,6 @@ struct PDFImportView: View {
             author: pendingAuthor
         )
         pendingAuthor = nil  // Clear after use
-    }
-}
-
-// MARK: - Info Card Component
-
-struct InfoCard: View {
-    let icon: String
-    let iconColor: Color
-    let title: String
-    let description: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: HeirloomSpacing.md) {
-            Image(systemName: icon)
-                .foregroundStyle(iconColor)
-                .font(.system(size: 24))
-                .frame(width: 32)
-
-            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
-                Text(title)
-                    .font(HeirloomFonts.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(HeirloomColors.primaryText)
-
-                Text(description)
-                    .font(HeirloomFonts.caption1)
-                    .foregroundStyle(HeirloomColors.secondaryText)
-            }
-        }
-        .padding(HeirloomSpacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HeirloomColors.cardBackground)
-        .cornerRadius(8)
     }
 }
 

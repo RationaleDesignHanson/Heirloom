@@ -443,6 +443,8 @@
 		C5EF777C2F305DA80097779E /* VoiceDictationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF777B2F305DA80097779E /* VoiceDictationService.swift */; };
 		C5EF777D2F305DA80097779E /* ReadRecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF777A2F305DA80097779E /* ReadRecipeView.swift */; };
 		C5EF777E2F305DA80097779E /* ReadRecipePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77792F305DA80097779E /* ReadRecipePreviewView.swift */; };
+		847E92ACA7EC56EF0494A58F /* AudioReactiveMicButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2E03DEDE10FF021D1D18055 /* AudioReactiveMicButton.swift */; };
+		60D9DE97D1BF7E9BC58D12AF /* TranscriptionAreaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4B9BA2CD4AC499E947D9A9D /* TranscriptionAreaView.swift */; };
 		C5EF77802F30F10E0097779E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C5EF777F2F30F10E0097779E /* PrivacyInfo.xcprivacy */; };
 		C5EF77822F312EC30097779E /* RecipeGenerationJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77812F312EC30097779E /* RecipeGenerationJob.swift */; };
 		C5EF77842F312ED40097779E /* RecipeGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5EF77832F312ED40097779E /* RecipeGenerationService.swift */; };
@@ -928,6 +930,8 @@
 		C5EF77792F305DA80097779E /* ReadRecipePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadRecipePreviewView.swift; sourceTree = "<group>"; };
 		C5EF777A2F305DA80097779E /* ReadRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadRecipeView.swift; sourceTree = "<group>"; };
 		C5EF777B2F305DA80097779E /* VoiceDictationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceDictationService.swift; sourceTree = "<group>"; };
+		E2E03DEDE10FF021D1D18055 /* AudioReactiveMicButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioReactiveMicButton.swift; sourceTree = "<group>"; };
+		C4B9BA2CD4AC499E947D9A9D /* TranscriptionAreaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionAreaView.swift; sourceTree = "<group>"; };
 		C5EF777F2F30F10E0097779E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C5EF77812F312EC30097779E /* RecipeGenerationJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenerationJob.swift; sourceTree = "<group>"; };
 		C5EF77832F312ED40097779E /* RecipeGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeGenerationService.swift; sourceTree = "<group>"; };
@@ -2386,6 +2390,8 @@
 				C5EF77792F305DA80097779E /* ReadRecipePreviewView.swift */,
 				C5EF777A2F305DA80097779E /* ReadRecipeView.swift */,
 				C5EF777B2F305DA80097779E /* VoiceDictationService.swift */,
+				E2E03DEDE10FF021D1D18055 /* AudioReactiveMicButton.swift */,
+				C4B9BA2CD4AC499E947D9A9D /* TranscriptionAreaView.swift */,
 				C5EF77742F3057190097779E /* GeneratedRecipePreviewView.swift */,
 				C5EF77752F3057190097779E /* RecipeGeneratorView.swift */,
 			);
@@ -3049,6 +3055,8 @@
 				C5EF777C2F305DA80097779E /* VoiceDictationService.swift in Sources */,
 				C5EF777D2F305DA80097779E /* ReadRecipeView.swift in Sources */,
 				C5EF777E2F305DA80097779E /* ReadRecipePreviewView.swift in Sources */,
+				847E92ACA7EC56EF0494A58F /* AudioReactiveMicButton.swift in Sources */,
+				60D9DE97D1BF7E9BC58D12AF /* TranscriptionAreaView.swift in Sources */,
 				C5CE3F242F2CFAE000A2E62F /* ConnectionRow.swift in Sources */,
 				C5CE3F252F2CFAE000A2E62F /* ConnectionRequestCard.swift in Sources */,
 				C5CE3F262F2CFAE000A2E62F /* InviteConnectionView.swift in Sources */,

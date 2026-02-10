@@ -183,7 +183,7 @@ struct CreditsTestView: View {
                 refreshTrigger += 1
             }) {
                 if let storeManager = storeManager {
-                    CreditsStoreView(storeManager: storeManager)
+                    CreditsStoreView(storeManager: storeManager, userCredits: userCredits)
                 }
             }
             .sheet(isPresented: $showCostSheet) {

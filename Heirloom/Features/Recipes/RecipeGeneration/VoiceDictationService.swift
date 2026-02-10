@@ -36,6 +36,9 @@ protocol VoiceDictationServiceProtocol {
     /// Publisher for real-time transcription updates
     var transcriptionPublisher: AnyPublisher<String, Never> { get }
 
+    /// Publisher for real-time audio level (0.0–1.0), throttled to ~20fps
+    var audioLevelPublisher: AnyPublisher<Float, Never> { get }
+
     /// Check if speech recognition is available
     var isAvailable: Bool { get }
 
@@ -52,6 +55,14 @@ protocol VoiceDictationServiceProtocol {
     func cancelDictation()
 }
 
+// MARK: - Protocol Defaults
+
+extension VoiceDictationServiceProtocol {
+    var audioLevelPublisher: AnyPublisher<Float, Never> {
+        Empty().eraseToAnyPublisher()
+    }
+}
+
 /// Service for voice dictation using SFSpeechRecognizer
 @MainActor
 class VoiceDictationService: VoiceDictationServiceProtocol {
@@ -66,6 +77,13 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
     private let transcriptionSubject = CurrentValueSubject<String, Never>("")
     var transcriptionPublisher: AnyPublisher<String, Never> {
         transcriptionSubject.eraseToAnyPublisher()
+    }
+
+    private let audioLevelSubject = CurrentValueSubject<Float, Never>(0.0)
+    var audioLevelPublisher: AnyPublisher<Float, Never> {
+        audioLevelSubject
+            .throttle(for: .milliseconds(50), scheduler: DispatchQueue.main, latest: true)
+            .eraseToAnyPublisher()
     }
 
     var isAvailable: Bool {
@@ -147,6 +165,23 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
             self?.recognitionRequest?.append(buffer)
+
+            // Extract RMS audio level for reactive UI
+            guard let channelData = buffer.floatChannelData?[0] else { return }
+            let frameLength = Int(buffer.frameLength)
+            guard frameLength > 0 else { return }
+
+            var sumOfSquares: Float = 0
+            for i in 0..<frameLength {
+                let sample = channelData[i]
+                sumOfSquares += sample * sample
+            }
+            let rms = sqrtf(sumOfSquares / Float(frameLength))
+            let normalized = min(rms / 0.15, 1.0)
+
+            DispatchQueue.main.async {
+                self?.audioLevelSubject.send(normalized)
+            }
         }
 
         audioEngine.prepare()
@@ -172,6 +207,7 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
         accumulatedTranscript = ""
         currentSegmentTranscript = ""
         transcriptionSubject.send("")
+        audioLevelSubject.send(0.0)
     }
 
     // MARK: - Private Helpers
@@ -261,5 +297,6 @@ class VoiceDictationService: VoiceDictationServiceProtocol {
         recognitionTask?.cancel()
         recognitionTask = nil
         isRecording = false
+        audioLevelSubject.send(0.0)
     }
 }

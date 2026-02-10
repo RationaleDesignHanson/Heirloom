@@ -24,7 +24,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>$(MARKETING_VERSION)</string>
+	<string>2.5.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -49,7 +49,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<string>28</string>
 	<key>CKSharingSupported</key>
 	<true/>
 	<key>DEFAULT_ANTHROPIC_KEY</key>
@@ -60,14 +60,14 @@
 	<string>$(DEFAULT_OPENAI_KEY)</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Heirloom needs camera access to photograph recipe cards from your cookbooks.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Heirloom needs microphone access to record your recipe dictation.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Heirloom saves recipe images to your photo library when you share styled recipe cards.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Heirloom needs photo library access to import recipe images.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
 	<string>Heirloom exports your shopping list to Reminders so you can check off items while shopping.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Heirloom needs microphone access to record your recipe dictation.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Heirloom uses speech recognition to transcribe your dictated recipes.</string>
 	<key>UIBackgroundModes</key>

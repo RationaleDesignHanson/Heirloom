@@ -839,6 +839,9 @@ final class ScreenRecordingResetService: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "demo_social_welcome_shares_sent")
         UserDefaults.standard.removeObject(forKey: "demo_social_proactive_request_sent")
 
+        // Hide demo seed collections so they don't appear during fresh onboarding
+        hideDemoSeedCollections = true
+
         Log.info("Onboarding state reset", category: .general)
     }
 

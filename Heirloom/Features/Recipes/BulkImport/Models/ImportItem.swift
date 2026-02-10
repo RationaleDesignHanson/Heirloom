@@ -63,8 +63,8 @@ enum ImportPhase: String, Codable, CaseIterable {
     /// Display name for UI
     var displayName: String {
         switch self {
-        case .validation: return "Validating PDFs..."
-        case .analysis: return "Analyzing pages..."
+        case .validation: return "Validating..."
+        case .analysis: return "Analyzing..."
         case .extraction: return "Extracting recipes..."
         case .imageGeneration: return "Generating images..."
         case .completed: return "Import complete"

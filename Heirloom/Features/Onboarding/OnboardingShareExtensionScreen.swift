@@ -39,7 +39,7 @@ struct OnboardingShareExtensionScreen: View {
                 // Scrollable content
                 GeometryReader { geometry in
                     ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 24) {
                         // Header
                         VStack(spacing: 12) {
                             Text("Save from anywhere")
@@ -50,7 +50,7 @@ struct OnboardingShareExtensionScreen: View {
 
                             Text("See a recipe? Share it to Heirloom.")
                                 .font(HeirloomFonts.body)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(HeirloomColors.secondaryText)
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.horizontal, 24)
@@ -153,12 +153,12 @@ struct OnboardingShareExtensionScreen: View {
         Image(imageName)
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.black.opacity(0.12), lineWidth: 1)
-            )
+            .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
+            .padding(5)
+            .background(Color(white: 0.17))
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
+            .frame(maxWidth: 155)
     }
 
     // MARK: - Coach Mark Tip

@@ -21,6 +21,8 @@ struct ReadRecipeView: View {
     @State private var errorMessage: String?
     @State private var showingPermissionAlert: Bool = false
     @State private var cancellables = Set<AnyCancellable>()
+    @State private var audioLevel: CGFloat = 0
+    @State private var audioLevelCancellable: AnyCancellable?
 
     private let dictationService: VoiceDictationServiceProtocol
     private var generationService: RecipeGenerationService {
@@ -34,127 +36,66 @@ struct ReadRecipeView: View {
         self.dictationService = dictationService
     }
 
+    // MARK: - View State
+
+    private enum ViewState {
+        case idle
+        case recording
+        case done
+    }
+
+    private var viewState: ViewState {
+        if isRecording {
+            return .recording
+        } else if !transcribedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return .done
+        } else {
+            return .idle
+        }
+    }
+
+    private var micState: AudioReactiveMicButton.MicState {
+        switch viewState {
+        case .idle: return .idle
+        case .recording: return .recording
+        case .done: return .done
+        }
+    }
+
+    // MARK: - Body
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                // Title and instructions
-                VStack(spacing: 8) {
-                    Text(isRecording ? "Listening..." : "Ready to Record")
-                        .font(HeirloomFonts.title2)
-                        .fontWeight(.semibold)
+            VStack(spacing: 0) {
+                // Header
+                headerSection
+                    .padding(.top, 12)
+                    .padding(.bottom, 12)
 
-                    if !isRecording && transcribedText.isEmpty {
-                        if dictationService.isAvailable {
-                            Text("Tap the microphone and dictate your recipe")
-                                .font(HeirloomFonts.body)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                        } else {
-                            Text("Please enable permissions below to record")
-                                .font(HeirloomFonts.body)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                    }
-                }
-                .padding(.top, 32)
+                // Transcription area — hero section
+                TranscriptionAreaView(
+                    text: transcribedText,
+                    isRecording: isRecording
+                )
+                .padding(.horizontal)
 
-                Spacer()
-
-                // Microphone button
-                VStack(spacing: 16) {
-                    Button {
-                        if isRecording {
-                            stopRecording()
-                        } else {
-                            startRecording()
-                        }
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(isRecording ? Color.red : (dictationService.isAvailable ? Color.accentColor : Color.gray.opacity(0.5)))
-                                .frame(width: 120, height: 120)
-
-                            Image(systemName: isRecording ? "stop.fill" : "mic.fill")
-                                .font(.system(size: 48))
-                                .foregroundStyle(.white)
-                        }
-                    }
-                    .disabled(!dictationService.isAvailable && !isRecording)
-                    .scaleEffect(isRecording ? 1.1 : 1.0)
-                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isRecording)
-
-                    // Recording duration
-                    if isRecording {
-                        Text(formatDuration(recordingDuration))
-                            .font(HeirloomFonts.title3)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.red)
-                    }
-                }
-
-                Spacer()
-
-                // Transcription display
-                if !transcribedText.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Transcription")
-                            .font(HeirloomFonts.caption1)
-                            .foregroundStyle(.secondary)
-
-                        ScrollView {
-                            Text(transcribedText)
-                                .font(HeirloomFonts.body)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
-                        .frame(maxHeight: 200)
-                    }
-                    .padding(.horizontal)
-                }
-
-                // Error message or permissions prompt
+                // Compact permission/error bar
                 if !dictationService.isAvailable {
-                    VStack(spacing: 12) {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.red)
-                            Text("Microphone or speech recognition permission not granted.")
-                                .font(HeirloomFonts.body)
-                                .foregroundStyle(.red)
-                        }
-
-                        Button {
-                            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                                UIApplication.shared.open(settingsURL)
-                            }
-                        } label: {
-                            Label("Open Settings", systemImage: "gear")
-                                .font(HeirloomFonts.bodyBold)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 12)
-                                .background(HeirloomColors.tomato)
-                                .cornerRadius(12)
-                        }
-                    }
-                    .padding()
+                    permissionBar
+                        .padding(.horizontal)
+                        .padding(.top, 8)
                 } else if let errorMessage = errorMessage {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.red)
-                        Text(errorMessage)
-                            .font(HeirloomFonts.body)
-                            .foregroundStyle(.red)
-                    }
-                    .padding()
+                    errorBar(errorMessage)
+                        .padding(.horizontal)
+                        .padding(.top, 8)
                 }
 
-                Spacer()
+                // Bottom section: timer + mic button
+                bottomSection
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
             }
-            .padding()
+            .padding(.horizontal, 4)
             .navigationTitle("Read Recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -173,6 +114,11 @@ struct ReadRecipeView: View {
                     } label: {
                         Text("Done")
                             .fontWeight(.semibold)
+                            .foregroundStyle(
+                                viewState == .done
+                                    ? HeirloomColors.tomato
+                                    : Color.secondary
+                            )
                     }
                     .disabled(transcribedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isRecording)
                 }
@@ -189,7 +135,7 @@ struct ReadRecipeView: View {
             }
             .onAppear {
                 setupTranscriptionPublisher()
-                // Request permissions on appear so OS prompts fire immediately
+                setupAudioLevelPublisher()
                 Log.info("🎙️ ReadRecipeView.onAppear — isAvailable=\(dictationService.isAvailable)", category: .general)
                 Task {
                     Log.info("🎙️ Requesting authorization...", category: .general)
@@ -197,7 +143,118 @@ struct ReadRecipeView: View {
                     Log.info("🎙️ Authorization result: \(result)", category: .general)
                 }
             }
+            .onDisappear {
+                audioLevelCancellable?.cancel()
+            }
         }
+    }
+
+    // MARK: - Header
+
+    private var headerSection: some View {
+        VStack(spacing: 4) {
+            Text(headerTitle)
+                .font(HeirloomFonts.title3)
+                .foregroundStyle(HeirloomColors.primaryText)
+
+            if viewState == .idle {
+                Text("Read your recipe aloud")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.warmGray)
+            }
+        }
+    }
+
+    private var headerTitle: String {
+        switch viewState {
+        case .idle: return "Ready to Record"
+        case .recording: return "Listening..."
+        case .done: return "Recording Complete"
+        }
+    }
+
+    // MARK: - Bottom Section
+
+    private var bottomSection: some View {
+        VStack(spacing: 4) {
+            // Duration timer (recording only)
+            if viewState == .recording {
+                Text(formatDuration(recordingDuration))
+                    .font(HeirloomFonts.caption1Bold)
+                    .foregroundStyle(HeirloomColors.tomato)
+                    .transition(.opacity)
+            }
+
+            AudioReactiveMicButton(
+                state: micState,
+                audioLevel: audioLevel,
+                isAvailable: dictationService.isAvailable
+            ) {
+                if isRecording {
+                    stopRecording()
+                } else if viewState == .idle {
+                    startRecording()
+                }
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: viewState == .recording)
+    }
+
+    // MARK: - Compact Permission/Error Bars
+
+    private var permissionBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.caption)
+                .foregroundStyle(HeirloomColors.tomato)
+
+            Text("Permissions required")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.tomato)
+
+            Spacer()
+
+            Button {
+                if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsURL)
+                }
+            } label: {
+                Text("Open Settings")
+                    .font(HeirloomFonts.caption1Bold)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(HeirloomColors.tomato)
+                    .clipShape(Capsule())
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(HeirloomColors.tomato.opacity(0.08))
+        )
+    }
+
+    private func errorBar(_ message: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.caption)
+                .foregroundStyle(HeirloomColors.tomato)
+
+            Text(message)
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.tomato)
+                .lineLimit(2)
+
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(HeirloomColors.tomato.opacity(0.08))
+        )
     }
 
     // MARK: - Recording
@@ -206,7 +263,6 @@ struct ReadRecipeView: View {
         errorMessage = nil
 
         Task {
-            // Request authorization if needed
             if !dictationService.isAvailable {
                 let authorized = await dictationService.requestAuthorization()
                 if !authorized {
@@ -253,7 +309,7 @@ struct ReadRecipeView: View {
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
-    // MARK: - Transcription
+    // MARK: - Subscriptions
 
     private func setupTranscriptionPublisher() {
         dictationService.transcriptionPublisher
@@ -266,24 +322,27 @@ struct ReadRecipeView: View {
             .store(in: &cancellables)
     }
 
+    private func setupAudioLevelPublisher() {
+        audioLevelCancellable = dictationService.audioLevelPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [self] level in
+                audioLevel = CGFloat(level)
+            }
+    }
+
     // MARK: - Processing
 
     private func startBackgroundProcessing() {
         let transcription = transcribedText
 
-        // Dismiss immediately (cookbook scan pattern)
         dismiss()
 
         Task { @MainActor in
             do {
-                // Start voice generation (shows banner automatically)
                 try await generationService.generateFromVoice(
                     transcript: transcription,
                     context: modelContext
                 )
-
-                // Progress UI shows automatically via bottom banner
-
             } catch {
                 toastManager.error(title: "Failed to start voice generation")
                 Log.error("Failed to create voice generation job", category: .general, error: error)

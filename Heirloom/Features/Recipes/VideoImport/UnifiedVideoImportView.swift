@@ -732,6 +732,10 @@ struct UnifiedVideoImportView: View {
     // MARK: - Processing
 
     private func processSelectedVideo(_ item: PhotosPickerItem) {
+        // Prevent re-trigger from PhotosPicker and hide the picker button
+        selectedItem = nil
+        importState = .analyzing(stage: "Loading video...")
+
         Task { @MainActor in
             do {
                 // Load video using VideoPickerView's transferable

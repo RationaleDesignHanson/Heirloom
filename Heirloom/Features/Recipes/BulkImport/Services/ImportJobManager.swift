@@ -186,6 +186,7 @@ final class ImportJobManager: ObservableObject {
         // Create job
         let job = ImportJob(jobName: jobName)
         job.status = .processing  // Set to processing immediately so banner shows it
+        job.phase = .extraction   // URL imports skip validation/analysis phases
         job.cookbookName = collectionName
         job.collectionType = collectionType
 
@@ -1991,28 +1992,26 @@ final class ImportJobManager: ObservableObject {
             recipe.setNotes(notes)
         }
 
-        // Set author attribution: prefer recipe-level source (e.g., "The Flavor Labs" from header)
-        // over cookbook-level metadata (from PDF properties/filename)
+        // Set author attribution: only use AI text extraction result here.
+        // Metadata author (cookbookAuthor) is deferred to processItem (line ~1411)
+        // so Vision-based extraction at line ~1820 can try first.
         let source = item.preExtractedSource
-        let author = item.job?.cookbookAuthor ?? item.cookbookAuthor
         if let source = source, !source.isEmpty {
             recipe.sourceBookAuthor = source
-        } else if let author = author, !author.isEmpty {
-            recipe.sourceBookAuthor = author
         }
 
         // Set provenance with best available attribution
         recipe.provenance = ProvenanceMetadata(
             sourceType: .imported,
             sourceURL: item.pdfURL,
-            sourceAttribution: recipe.sourceBookAuthor ?? author,
+            sourceAttribution: recipe.sourceBookAuthor,
             generation: 0,
             sharedByName: nil,
             createdAt: Date()
         )
 
-        // Register source attribution
-        if let sourceName = recipe.sourceBookAuthor ?? author, !sourceName.isEmpty {
+        // Register source attribution (only if text pipeline found one)
+        if let sourceName = recipe.sourceBookAuthor, !sourceName.isEmpty {
             ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
                 name: sourceName,
                 kind: .cookbook,
@@ -2259,6 +2258,49 @@ final class ImportJobManager: ObservableObject {
         return false
     }
 
+    /// Normalize ingredients in "Name (qty unit)" format to "qty unit Name"
+    /// e.g., "Brown Sugar (1 C, packed)" → "1 C Brown Sugar, packed"
+    /// e.g., "Chocolate Chips (1 1/2 C)" → "1 1/2 C Chocolate Chips"
+    /// e.g., "Vanilla Extract (2t)" → "2t Vanilla Extract"
+    static func normalizeParentheticalIngredient(_ text: String) -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Pattern: Name (quantity unit[, prep])[*]
+        // Quantity starts with a digit, may include fractions/unicode fractions
+        let pattern = #"^(.+?)\s*\((\d[\d\s/½¼¾⅓⅔⅛⅜⅝⅞]*\s*[A-Za-z]+(?:\s+plus\s+\d+\s*[A-Za-z]+)?(?:,\s*.+)?)\)(\*?)$"#
+
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)),
+              match.numberOfRanges >= 3 else {
+            return text
+        }
+
+        guard let nameRange = Range(match.range(at: 1), in: trimmed),
+              let qtyRange = Range(match.range(at: 2), in: trimmed) else {
+            return text
+        }
+
+        let name = String(trimmed[nameRange]).trimmingCharacters(in: .whitespaces)
+        let qtyAndRest = String(trimmed[qtyRange])
+
+        // Check if there's a trailing asterisk
+        let asterisk: String
+        if match.numberOfRanges >= 4, let astRange = Range(match.range(at: 3), in: trimmed) {
+            asterisk = String(trimmed[astRange])
+        } else {
+            asterisk = ""
+        }
+
+        // Split qty portion into "qty unit" and optional ", prep"
+        if let commaIndex = qtyAndRest.firstIndex(of: ",") {
+            let qtyUnit = String(qtyAndRest[qtyAndRest.startIndex..<commaIndex]).trimmingCharacters(in: .whitespaces)
+            let prep = String(qtyAndRest[qtyAndRest.index(after: commaIndex)...]).trimmingCharacters(in: .whitespaces)
+            return "\(qtyUnit) \(name), \(prep)\(asterisk)"
+        } else {
+            return "\(qtyAndRest) \(name)\(asterisk)"
+        }
+    }
+
     /// Parse ingredients immediately to enable automatic scaling
     /// This matches the behavior of web imports and prevents warning symbols
     private func parseIngredientsImmediately(for recipe: Recipe) async {
@@ -2267,8 +2309,12 @@ final class ImportJobManager: ObservableObject {
             return
         }
 
-        // Extract ingredient texts
-        let ingredientTexts = ingredients.map { $0.originalText }
+        // Extract ingredient texts, normalizing parenthetical format
+        // e.g., "Brown Sugar (1 C, packed)" → "1 C Brown Sugar, packed"
+        let ingredientTexts = ingredients.map { ingredient -> String in
+            let text = ingredient.originalText
+            return Self.normalizeParentheticalIngredient(text)
+        }
 
         Log.info("Parsing ingredients immediately for scaling", category: .import, metadata: [
             "recipeId": recipe.id.uuidString,

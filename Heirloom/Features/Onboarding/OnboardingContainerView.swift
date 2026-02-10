@@ -48,15 +48,6 @@ struct OnboardingContainerView: View {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             currentScreen = .premiumTrial
                         }
-                    },
-                    onSkip: {
-                        // User chose to skip entire onboarding - go to completing state
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            currentScreen = .completing
-                        }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                            showThemeSelection = true
-                        }
                     }
                 )
                 .transition(.asymmetric(
@@ -135,14 +126,6 @@ struct OnboardingContainerView: View {
                             currentScreen = .completing
                         }
                         // Show theme selection after transitioning to completing screen
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                            showThemeSelection = true
-                        }
-                    },
-                    onSkip: {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            currentScreen = .completing
-                        }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                             showThemeSelection = true
                         }

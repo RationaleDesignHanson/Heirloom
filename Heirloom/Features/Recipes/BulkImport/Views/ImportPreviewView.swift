@@ -9,6 +9,7 @@ struct ImportPreviewView: View {
     @State private var editableURLs: [EditableURL]
     @State private var showingDeleteConfirmation = false
     @State private var urlToDelete: EditableURL?
+    @State private var isImporting = false
 
     init(urls: [String], onConfirm: @escaping ([String]) -> Void, onCancel: @escaping () -> Void) {
         self.urls = urls
@@ -66,20 +67,28 @@ struct ImportPreviewView: View {
             // Bottom Actions
             VStack(spacing: HeirloomSpacing.md) {
                 Button {
+                    isImporting = true
                     onConfirm(validURLs)
                 } label: {
                     HStack {
-                        Image(systemName: "arrow.down.circle.fill")
-                        Text("Import \(validURLs.count) Recipes")
-                            .fontWeight(.semibold)
+                        if isImporting {
+                            ProgressView()
+                                .tint(HeirloomColors.buttonTextLight)
+                            Text("Importing...")
+                                .fontWeight(.semibold)
+                        } else {
+                            Image(systemName: "arrow.down.circle.fill")
+                            Text("Import \(validURLs.count) Recipes")
+                                .fontWeight(.semibold)
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(validURLs.isEmpty ? HeirloomColors.warmGray : HeirloomColors.tomato)
+                    .background(validURLs.isEmpty || isImporting ? HeirloomColors.warmGray : HeirloomColors.tomato)
                     .foregroundStyle(HeirloomColors.buttonTextLight)
                     .cornerRadius(12)
                 }
-                .disabled(validURLs.isEmpty)
+                .disabled(validURLs.isEmpty || isImporting)
 
                 Button("Cancel") {
                     onCancel()

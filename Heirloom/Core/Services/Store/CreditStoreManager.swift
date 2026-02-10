@@ -370,6 +370,7 @@ final class CreditStoreManager {
         logger.log("Credits added to account", category: .store, level: .info, metadata: [
             "amount": amount,
             "newBalance": userCredits.creditsBalance,
+            "totalAvailable": userCredits.availableCredits,
             "transactionId": transaction?.id ?? "none"
         ])
 

@@ -298,7 +298,15 @@ struct RecipeGeneratorView: View {
         // Save
         do {
             try modelContext.save()
+
+            // Enqueue AI image generation if recipe has enough content
             let hasContent = !filteredIngredientTexts.isEmpty || !filteredInstructions.isEmpty
+            if hasContent {
+                let imageQueue = ServiceContainer.shared.resolve(ImageGenerationQueue.self)
+                imageQueue.context = modelContext
+                imageQueue.enqueue(recipe)
+            }
+
             toastManager.success(
                 title: "Recipe created",
                 message: hasContent ? nil : "Tap to add more details"

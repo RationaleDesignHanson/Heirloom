@@ -118,8 +118,9 @@ final class RecipeOperation: Codable, Identifiable {
 
     /// Check if this operation conflicts with another
     func conflicts(with other: RecipeOperation) -> Bool {
-        // Same field, concurrent vector clocks = conflict
+        // Same field, different devices, concurrent vector clocks = conflict
         guard fieldPath == other.fieldPath else { return false }
+        guard deviceId != other.deviceId else { return false }
         return vectorClock.isConcurrent(with: other.vectorClock)
     }
 

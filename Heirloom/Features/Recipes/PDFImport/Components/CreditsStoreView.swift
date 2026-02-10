@@ -17,6 +17,7 @@ struct CreditsStoreView: View {
     // MARK: - Properties
 
     @State private var storeManager: CreditStoreManager
+    let userCredits: UserCredits?
     @Environment(\.dismiss) private var dismiss
 
     @State private var isProcessing = false
@@ -26,8 +27,9 @@ struct CreditsStoreView: View {
 
     // MARK: - Initialization
 
-    init(storeManager: CreditStoreManager) {
+    init(storeManager: CreditStoreManager, userCredits: UserCredits? = nil) {
         _storeManager = State(initialValue: storeManager)
+        self.userCredits = userCredits
     }
 
     // MARK: - Body
@@ -48,7 +50,7 @@ struct CreditsStoreView: View {
                         Text("Purchase Credits")
                             .font(.title.bold())
 
-                        Text("Import more cookbooks without waiting for your daily quota to reset")
+                        Text("Import more cookbooks without waiting for your monthly tier credits to reset")
                             .font(.body)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -56,7 +58,7 @@ struct CreditsStoreView: View {
                     }
 
                     // Current Balance Card
-                    CurrentBalanceCard(balance: storeManager.products.isEmpty ? 0 : 25)
+                    CurrentBalanceCard(balance: userCredits?.availableCredits ?? 0)
 
                     // Purchase Options
                     VStack(spacing: 16) {

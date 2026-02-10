@@ -13,7 +13,6 @@ import SwiftUI
 /// Shows the "3 inputs → 1 recipe" transformation visual
 struct OnboardingWelcomeScreen: View {
     let onContinue: () -> Void
-    let onSkip: () -> Void
 
     @State private var showSources = false
     @State private var showArrow = false
@@ -55,7 +54,7 @@ struct OnboardingWelcomeScreen: View {
 
                             Text("Save from links, videos, cookbooks, and photos—all in one tap.")
                                 .font(HeirloomFonts.body)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(HeirloomColors.secondaryText)
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.horizontal, 24)
@@ -86,16 +85,6 @@ struct OnboardingWelcomeScreen: View {
                             .cornerRadius(16)
                             .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
                     }
-
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        onSkip()
-                    }) {
-                        Text("Skip")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.bottom, 4)
 
                     // Microcopy
                     Text("Private by default")
@@ -273,7 +262,6 @@ struct OnboardingWelcomeScreen: View {
 
 #Preview {
     OnboardingWelcomeScreen(
-        onContinue: { print("Continue tapped") },
-        onSkip: { print("Skip tapped") }
+        onContinue: { print("Continue tapped") }
     )
 }

@@ -22,7 +22,6 @@ struct OnboardingProfileData {
 /// Allows user to set display name, bio, location, cuisine interests, and optional photo
 struct OnboardingProfileSetupScreen: View {
     let onContinue: (OnboardingProfileData) -> Void
-    let onSkip: () -> Void
 
     @Environment(\.firebaseAuth) private var firebaseAuth
     @State private var displayName: String = ""
@@ -152,15 +151,6 @@ struct OnboardingProfileSetupScreen: View {
             }
             .disabled(!isContinueEnabled)
 
-            Button(action: {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                onSkip()
-            }) {
-                Text("Skip for now")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.bottom, 4)
         }
         .padding(.horizontal, 24)
         .padding(.top, 12)
@@ -395,9 +385,6 @@ struct OnboardingProfileSetupScreen: View {
     OnboardingProfileSetupScreen(
         onContinue: { profileData in
             print("Continue with name: \(profileData.displayName), bio: \(profileData.bio ?? "none"), cuisines: \(profileData.cuisines)")
-        },
-        onSkip: {
-            print("Skip tapped")
         }
     )
 }
