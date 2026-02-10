@@ -113,7 +113,18 @@ struct RecipeIngredientsSection: View {
     private func scaledIngredientText(_ ingredient: Ingredient) -> String {
         // Check if quantity exists
         guard ingredient.quantity != nil else {
-            // Show original text with asterisk when quantity missing (footnote explains)
+            // Convert word numbers (e.g., "Two large eggs" → "2 large eggs")
+            let converted = formatter.convertWordNumbers(ingredient.originalText)
+            // If word number was converted, the quantity is effectively known — scale and no asterisk
+            if converted != ingredient.originalText {
+                let originalServings = recipe.parsedServingCount
+                let scaleFactor = Double(targetServings) / Double(originalServings)
+                if scaleFactor != 1.0 {
+                    return formatter.scaleLeadingNumber(in: converted, scaleFactor: scaleFactor)
+                }
+                return converted
+            }
+            // Show original text with asterisk when quantity truly missing (footnote explains)
             return "\(ingredient.originalText)*"
         }
 

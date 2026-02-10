@@ -217,17 +217,15 @@ struct BulkImportView: View {
                 context: modelContext
             )
 
-            // Navigate to progress view
-            showingPreview = false
-
-            // Start processing
-            try await manager.startJob(job, context: modelContext)
-
-            // Notify coordinator of recipe creation for cross-tab navigation
+            // Dismiss sheet immediately — processing continues in background
             tabCoordinator.didCreateRecipe()
-
-            // When complete, show review
             dismiss()
+
+            // Start processing in the background (non-blocking)
+            let ctx = modelContext
+            Task {
+                try? await manager.startJob(job, context: ctx)
+            }
 
         } catch {
             errorMessage = error.localizedDescription

@@ -146,6 +146,13 @@ struct ProvenanceMetadata: Codable, Hashable {
         }
 
         if let attribution = sourceAttribution {
+            // Title-case plain names (e.g., "casey" → "Casey")
+            // but preserve usernames that start with "@"
+            if !attribution.hasPrefix("@") && attribution == attribution.lowercased() {
+                return attribution.split(separator: " ")
+                    .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+                    .joined(separator: " ")
+            }
             return attribution
         }
 

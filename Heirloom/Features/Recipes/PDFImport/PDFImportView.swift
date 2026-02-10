@@ -643,20 +643,8 @@ struct PDFImportView: View {
         // Capture author for provenance/attribution
         let author = firstPDFMetadata?.author
 
-        let cookbookName: String?
-        if let extractedTitle = firstPDFMetadata?.title, !extractedTitle.isEmpty {
-            cookbookName = extractedTitle
-        } else if validPDFs.count == 1 {
-            // Single PDF with no title - prompt user
-            await MainActor.run {
-                cookbookNameInput = ""
-                pendingAuthor = author  // Store author for when user confirms cookbook name
-                showCookbookNamePrompt = true
-            }
-            return
-        } else {
-            cookbookName = nil
-        }
+        // Use extracted title if available; otherwise let Vision handle it automatically
+        let cookbookName = firstPDFMetadata?.title
 
         await startImportJob(validPDFs: validPDFs, cookbookName: cookbookName, author: author)
     }

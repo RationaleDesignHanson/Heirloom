@@ -37,7 +37,12 @@ final class IngredientFormatter {
     ) -> String {
         // Fallback to originalText if name is empty
         if ingredient.name.isEmpty && !ingredient.originalText.isEmpty {
-            return ingredient.originalText
+            var processed = convertWordNumbers(ingredient.originalText)
+            processed = expandUnitAbbreviationsInText(processed)
+            if scaleFactor != 1.0 {
+                return scaleEmbeddedQuantities(in: processed, scaleFactor: scaleFactor)
+            }
+            return processed
         }
 
         var parts: [String] = []
@@ -70,11 +75,12 @@ final class IngredientFormatter {
             }
         }
 
-        // Add name (with embedded quantities scaled if present)
+        // Add name (expand abbreviations first, then scale embedded quantities)
+        let expandedName = expandUnitAbbreviationsInText(ingredient.name)
         if scaleFactor != 1.0 {
-            parts.append(scaleEmbeddedQuantities(in: ingredient.name, scaleFactor: scaleFactor))
+            parts.append(scaleEmbeddedQuantities(in: expandedName, scaleFactor: scaleFactor))
         } else {
-            parts.append(ingredient.name)
+            parts.append(expandedName)
         }
 
         // Add preparation
@@ -191,12 +197,15 @@ final class IngredientFormatter {
     ///   - quantity: The quantity value
     /// - Returns: Singular or plural unit as appropriate
     private nonisolated func singularizeUnit(_ unit: String, quantity: Double) -> String {
+        // First, expand common abbreviations to full unit names
+        let expandedUnit = expandAbbreviation(unit)
+
         // Only singularize if quantity <= 1
         guard quantity <= 1.0 else {
-            return unit
+            return expandedUnit
         }
 
-        let lowerUnit = unit.lowercased()
+        let lowerUnit = expandedUnit.lowercased()
 
         // Common plural → singular mappings
         let pluralMappings: [String: String] = [
@@ -240,7 +249,85 @@ final class IngredientFormatter {
         }
 
         // If not in our mapping, return as-is
-        return unit
+        return expandedUnit
+    }
+
+    private nonisolated func expandAbbreviation(_ unit: String) -> String {
+        unit.expandedUnitAbbreviation
+    }
+
+    // MARK: - Word Number Conversion
+
+    /// Scale the leading number in text (e.g., "2 large eggs" × 2 → "4 large eggs")
+    nonisolated func scaleLeadingNumber(in text: String, scaleFactor: Double) -> String {
+        guard let regex = try? NSRegularExpression(pattern: "^(\\d+\\.?\\d*)(\\s+.+)?$", options: []) else {
+            return text
+        }
+        let nsText = text as NSString
+        guard let match = regex.firstMatch(in: text, range: NSRange(location: 0, length: nsText.length)),
+              let number = Double(nsText.substring(with: match.range(at: 1))) else {
+            return text
+        }
+        let scaled = number * scaleFactor
+        let formatted = formatQuantity(scaled)
+        let rest = match.range(at: 2).location != NSNotFound ? nsText.substring(with: match.range(at: 2)) : ""
+        return formatted + rest
+    }
+
+    /// Convert leading word numbers to digits (e.g., "Two large eggs" → "2 large eggs")
+    nonisolated func convertWordNumbers(_ text: String) -> String {
+        let wordToNumber: [String: String] = [
+            "one": "1", "two": "2", "three": "3", "four": "4", "five": "5",
+            "six": "6", "seven": "7", "eight": "8", "nine": "9", "ten": "10",
+            "eleven": "11", "twelve": "12",
+        ]
+        let words = text.split(separator: " ", maxSplits: 1)
+        guard let first = words.first,
+              let digit = wordToNumber[first.lowercased()] else {
+            return text
+        }
+        let rest = words.count > 1 ? " " + words[1] : ""
+        return digit + rest
+    }
+
+    // MARK: - Unit Abbreviation Expansion in Text
+
+    /// Expand unit abbreviations embedded in text (e.g., "2T" → "2 tablespoon", "3C" → "3 cup").
+    /// Case-sensitive for T/C/t to distinguish tablespoon/cup/teaspoon.
+    /// After expansion, scaleEmbeddedQuantities can match the full unit names for scaling.
+    private nonisolated func expandUnitAbbreviationsInText(_ text: String) -> String {
+        // Phase 1: Expand "digit+abbreviation" patterns (e.g., "2T" → "2 tablespoon")
+        let abbreviations = ["tbsp", "tbs", "tsp", "oz", "lb", "T", "C", "t"]
+        let pattern = "(\\d+\\.?\\d*)\\s*(" + abbreviations.map { NSRegularExpression.escapedPattern(for: $0) }.joined(separator: "|") + ")\\b"
+
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return text }
+
+        var result = text as NSString
+        let matches = regex.matches(in: text, range: NSRange(location: 0, length: result.length))
+
+        for match in matches.reversed() {
+            let number = result.substring(with: match.range(at: 1))
+            let abbrev = result.substring(with: match.range(at: 2))
+            let expanded = abbrev.expandedUnitAbbreviation
+            if expanded != abbrev {
+                result = result.replacingCharacters(in: match.range, with: "\(number) \(expanded)") as NSString
+            }
+        }
+
+        // Phase 2: Expand a leading standalone abbreviation (e.g., name="C plus..." → "cup plus...")
+        // Handles cases where the parser put the unit in the name field instead of the unit field
+        let resultStr = result as String
+        let words = resultStr.split(separator: " ", maxSplits: 1)
+        if let firstWord = words.first {
+            let word = String(firstWord)
+            let expanded = word.expandedUnitAbbreviation
+            if expanded != word {
+                let rest = words.count > 1 ? " " + words[1] : ""
+                return expanded + rest
+            }
+        }
+
+        return resultStr
     }
 
     // MARK: - Embedded Quantity Scaling
@@ -337,4 +424,50 @@ final class IngredientFormatter {
         // Plain number
         return Double(trimmed)
     }
+}
+
+// MARK: - Unit Abbreviation Expansion
+
+extension String {
+    /// Expand common unit abbreviations to full names.
+    /// Handles case-sensitive abbreviations (e.g., "t" = teaspoon, "T" = tablespoon, "C" = cup).
+    var expandedUnitAbbreviation: String {
+        // Case-sensitive abbreviations first
+        let caseSensitiveMappings: [String: String] = [
+            "t": "teaspoon",
+            "T": "tablespoon",
+            "C": "cup",
+            "oz": "ounce",
+            "lb": "pound",
+            "pt": "pint",
+            "qt": "quart",
+            "gal": "gallon",
+            "g": "gram",
+            "kg": "kilogram",
+            "ml": "ml",
+            "l": "liter",
+        ]
+
+        if let expanded = caseSensitiveMappings[self] {
+            return expanded
+        }
+
+        // Case-insensitive abbreviations
+        let caseInsensitiveMappings: [String: String] = [
+            "tsp": "teaspoon",
+            "tbsp": "tablespoon",
+            "tbs": "tablespoon",
+            "ozs": "ounces",
+            "lbs": "pounds",
+            "pts": "pints",
+            "qts": "quarts",
+        ]
+
+        if let expanded = caseInsensitiveMappings[self.lowercased()] {
+            return expanded
+        }
+
+        return self
+    }
+
 }

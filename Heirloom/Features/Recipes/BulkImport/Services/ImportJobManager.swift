@@ -1409,7 +1409,9 @@ final class ImportJobManager: ObservableObject {
                         recipe.sourceBookTitle = cleanedCookbookTitle
                     }
                 }
-                if recipe.sourceBookAuthor == nil, let cookbookAuthor = item.cookbookAuthor {
+                // PDF metadata author is lowest priority fallback (often an OS username).
+                // Only use if nothing better was found (Vision brand > AI text > PDF metadata)
+                if recipe.sourceBookAuthor == nil, let cookbookAuthor = item.cookbookAuthor, !cookbookAuthor.isEmpty {
                     recipe.sourceBookAuthor = cookbookAuthor
                 }
 
@@ -1816,28 +1818,27 @@ final class ImportJobManager: ObservableObject {
                let image = UIImage(data: imageData) {
                 await extractFoodImage(from: image, for: recipe)
 
-                // If text pipeline didn't find source attribution (e.g., brand logos are images),
-                // try Vision-based extraction (cached per job to avoid redundant calls)
-                if recipe.sourceBookAuthor == nil {
-                    if let source = await extractSourceAttribution(from: image, jobID: item.job?.id) {
-                        recipe.sourceBookAuthor = source
-                        // Update provenance with the newly discovered source
-                        recipe.provenance = ProvenanceMetadata(
-                            sourceType: .imported,
-                            sourceURL: item.pdfURL,
-                            sourceAttribution: source,
-                            generation: 0,
-                            sharedByName: nil,
-                            createdAt: Date()
-                        )
-                        // Register the Vision-discovered source
-                        ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
-                            name: source,
-                            kind: .brand,
-                            discoveryMethod: "pdf_vision",
-                            recipe: recipe
-                        )
-                    }
+                // Always try Vision-based brand extraction (cached per job).
+                // Vision finds real brand/company names from logos/headers and is more
+                // reliable than PDF embedded metadata (which is often an OS username).
+                if let source = await extractSourceAttribution(from: image, jobID: item.job?.id) {
+                    recipe.sourceBookAuthor = source
+                    // Update provenance with the Vision-discovered source
+                    recipe.provenance = ProvenanceMetadata(
+                        sourceType: .imported,
+                        sourceURL: item.pdfURL,
+                        sourceAttribution: source,
+                        generation: 0,
+                        sharedByName: nil,
+                        createdAt: Date()
+                    )
+                    // Register the Vision-discovered source
+                    ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
+                        name: source,
+                        kind: .brand,
+                        discoveryMethod: "pdf_vision",
+                        recipe: recipe
+                    )
                 }
             }
 
@@ -1912,30 +1913,36 @@ final class ImportJobManager: ObservableObject {
             await extractFoodImage(from: image, for: recipe)
         }
 
+        // Try Vision-based brand extraction (cached per job, so only one AI call)
+        let visionSource = await extractSourceAttribution(from: image, jobID: item.job?.id)
+
         // Set author attribution and provenance (slow path/Vision API)
-        // Only set cookbook-level author if AI extraction didn't find a recipe-level source
-        let author = item.job?.cookbookAuthor ?? item.cookbookAuthor
+        let fallbackAuthor = item.job?.cookbookAuthor ?? item.cookbookAuthor
         for recipe in recipes {
-            if recipe.sourceBookAuthor == nil, let author = author, !author.isEmpty {
-                recipe.sourceBookAuthor = author
+            // Vision brand > cookbook-level metadata author > existing
+            if let visionSource = visionSource {
+                recipe.sourceBookAuthor = visionSource
+            } else if recipe.sourceBookAuthor == nil, let fallbackAuthor = fallbackAuthor, !fallbackAuthor.isEmpty {
+                recipe.sourceBookAuthor = fallbackAuthor
             }
 
             // Set provenance metadata with best available attribution
             recipe.provenance = ProvenanceMetadata(
                 sourceType: .imported,
                 sourceURL: item.pdfURL,
-                sourceAttribution: recipe.sourceBookAuthor ?? author,
+                sourceAttribution: recipe.sourceBookAuthor ?? fallbackAuthor,
                 generation: 0,
                 sharedByName: nil,
                 createdAt: Date()
             )
 
             // Register source attribution
-            if let sourceName = recipe.sourceBookAuthor ?? author, !sourceName.isEmpty {
+            let kind: SourceKind = visionSource != nil ? .brand : .cookbook
+            if let sourceName = recipe.sourceBookAuthor ?? fallbackAuthor, !sourceName.isEmpty {
                 ServiceContainer.shared.resolve(SourceAttributionService.self).registerSource(
                     name: sourceName,
-                    kind: .cookbook,
-                    discoveryMethod: "pdf_vision",
+                    kind: kind,
+                    discoveryMethod: visionSource != nil ? "pdf_vision" : "pdf_metadata",
                     recipe: recipe
                 )
             }
@@ -2205,8 +2212,8 @@ final class ImportJobManager: ObservableObject {
     /// Transfer source attribution from a new extraction to an existing duplicate recipe
     /// when the existing recipe is missing attribution (e.g., imported before attribution system)
     private func transferAttributionIfMissing(from newRecipe: Recipe, to existingRecipe: Recipe) {
-        // Transfer sourceBookAuthor
-        if existingRecipe.sourceBookAuthor == nil, let source = newRecipe.sourceBookAuthor, !source.isEmpty {
+        // Transfer sourceBookAuthor — always upgrade if new extraction found one
+        if let source = newRecipe.sourceBookAuthor, !source.isEmpty {
             existingRecipe.sourceBookAuthor = source
             Log.info("📋 Transferred source attribution to existing duplicate", category: .import, metadata: [
                 "title": existingRecipe.title,
@@ -2215,13 +2222,13 @@ final class ImportJobManager: ObservableObject {
             ])
         }
 
-        // Transfer knownSource relationship
-        if existingRecipe.knownSource == nil, let knownSource = newRecipe.knownSource {
+        // Transfer knownSource relationship — always upgrade
+        if let knownSource = newRecipe.knownSource {
             existingRecipe.knownSource = knownSource
         }
 
-        // Transfer provenance if missing
-        if existingRecipe.provenance == nil, let provenance = newRecipe.provenance {
+        // Transfer provenance — always upgrade with better data
+        if let provenance = newRecipe.provenance {
             existingRecipe.provenance = provenance
         }
     }

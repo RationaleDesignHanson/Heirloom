@@ -192,6 +192,7 @@ extension Ingredient {
 
         return metricUnits.contains(unit)
     }
+
 }
 
 // MARK: - Scaling Support

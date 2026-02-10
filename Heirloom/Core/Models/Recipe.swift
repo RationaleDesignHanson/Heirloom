@@ -943,6 +943,11 @@ extension Recipe {
 
     /// Display source for UI (provenance-aware)
     var displaySource: String {
+        // For scanned/cookbook recipes, prefer book author or title over raw provenance attribution
+        if sourceType == .scan || sourceType == .cookbook {
+            if let author = sourceBookAuthor, !author.isEmpty { return author }
+            if let title = sourceBookTitle, !title.isEmpty { return title }
+        }
         if let prov = provenance {
             return prov.displaySource
         }

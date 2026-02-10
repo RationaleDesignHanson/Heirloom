@@ -874,6 +874,20 @@ final class ScreenRecordingResetService: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "demo_social_welcome_shares_sent")
         UserDefaults.standard.removeObject(forKey: "demo_social_proactive_request_sent")
 
+        // Clear subscription cache so stale "Premium" status doesn't persist.
+        // Without this, the cached tier causes UserCredits to be set to .premium/.expired
+        // instead of .trial, giving 0 credits after the trial check finds no real subscription.
+        UserDefaults.standard.removeObject(forKey: "subscription_status")
+        UserDefaults.standard.removeObject(forKey: "first_launch_date")
+        UserDefaults.standard.removeObject(forKey: "trial_expiry_date")
+        UserDefaults.standard.removeObject(forKey: "subscription_expiry_date")
+        UserDefaults.standard.removeObject(forKey: "last_subscription_status_refresh")
+        UserDefaults.standard.removeObject(forKey: "cached_product_id")
+
+        // Reset SubscriptionManager in-memory state so it re-initializes trial on next launch
+        let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+        subscriptionManager.clearCache()
+
         // Hide demo seed collections so they don't appear during fresh onboarding
         hideDemoSeedCollections = true
 
