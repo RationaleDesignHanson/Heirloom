@@ -30,7 +30,7 @@ final class VideoImportTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         env = try await TestEnvironment.create(authenticated: true, credits: 25)
-        userCredits = env.createUserCredits(purchasedCredits: 0, dailyQuotaUsed: 0)
+        userCredits = env.createUserCredits(purchasedCredits: 0, tierCreditsUsed: 0)
         try env.save()
     }
 
@@ -134,7 +134,7 @@ final class VideoImportTests: XCTestCase {
     /// Test 9: Insufficient credits for ASMR throws error
     func test_deductCredits_insufficientForASMR_throwsError() throws {
         // GIVEN: Only 3 credits available
-        userCredits.dailyQuotaUsed = 22 // 3 remaining from daily
+        userCredits.tierCreditsUsed = 22 // 3 remaining from daily
         userCredits.creditsBalance = 0
 
         // WHEN/THEN: Deducting for ASMR should throw
@@ -312,7 +312,7 @@ final class VideoImportTests: XCTestCase {
     /// Test 22: Video credits persist after deduction
     func test_videoCredits_persistAfterDeduction() throws {
         // GIVEN: Initial state
-        XCTAssertEqual(userCredits.dailyQuotaUsed, 0)
+        XCTAssertEqual(userCredits.tierCreditsUsed, 0)
 
         // WHEN: Deducting credits and saving
         try userCredits.deductCredits(UserCredits.VideoCreditCost.asmr.rawValue)
@@ -321,13 +321,13 @@ final class VideoImportTests: XCTestCase {
         // THEN: Credits should persist
         let fetchedCredits = try env.fetchUserCredits()
         XCTAssertNotNil(fetchedCredits)
-        XCTAssertEqual(fetchedCredits?.dailyQuotaUsed, 5)
+        XCTAssertEqual(fetchedCredits?.tierCreditsUsed, 5)
     }
 
     /// Test 23: Can afford with purchased credits after quota exhausted
     func test_canAfford_asmrWithPurchased_afterQuotaExhausted() throws {
         // GIVEN: Exhausted quota but has purchased credits
-        userCredits.dailyQuotaUsed = 25 // Quota exhausted
+        userCredits.tierCreditsUsed = 25 // Quota exhausted
         userCredits.creditsBalance = 10 // Has purchased credits
 
         // WHEN: Checking affordability for ASMR video

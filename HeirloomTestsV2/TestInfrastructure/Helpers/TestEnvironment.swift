@@ -131,11 +131,11 @@ struct TestEnvironment {
     func createUserCredits(
         userId: String = "test-user-123",
         purchasedCredits: Int = 0,
-        dailyQuotaUsed: Int = 0
+        tierCreditsUsed: Int = 0
     ) -> UserCredits {
         let credits = UserCredits(userId: userId)
         credits.creditsBalance = purchasedCredits
-        credits.dailyQuotaUsed = dailyQuotaUsed
+        credits.tierCreditsUsed = tierCreditsUsed
         modelContext.insert(credits)
         return credits
     }
