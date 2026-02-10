@@ -1206,6 +1206,17 @@ struct RootView: View {
             Log.info("🧹 Received user data clear notification - clearing SwiftData", category: .auth)
             DeviceLogger.shared.log("🧹 [Auth] Clearing all SwiftData (user switch detected)")
 
+            // Skip if we're inside a reset flow — the reset handles its own data clearing.
+            // This check must be synchronous (not inside Task) because the defer block
+            // in resetToFirstTimeUser sets isResetInProgress=false after return.
+            let shouldSkip = MainActor.assumeIsolated {
+                ScreenRecordingResetService.shared.isResetInProgress
+            }
+            if shouldSkip {
+                Log.info("Skipping ClearAllUserData — reset flow handles its own cleanup", category: .auth)
+                return
+            }
+
             Task { @MainActor in
                 do {
                     let modelContext = container.mainContext

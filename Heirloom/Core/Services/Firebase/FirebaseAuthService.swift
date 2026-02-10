@@ -387,6 +387,16 @@ class FirebaseAuthService: NSObject, ObservableObject, FirebaseAuthServiceProtoc
     /// confirms the user is signed out OR when a different user signs in.
     @MainActor
     private func clearAllUserData() async {
+        // Skip during reset flow — the reset handles its own data clearing
+        // and carefully preserves demo seed data. The auth state listener
+        // fires asynchronously after signOut() in a Task { @MainActor in },
+        // which runs after the reset's defer clears isResetInProgress.
+        // suppressDataClear stays true long enough for this check.
+        if ScreenRecordingResetService.shared.suppressDataClear {
+            logger.log("Skipping clearAllUserData — reset flow handles its own cleanup", category: .auth, level: .info, metadata: nil)
+            return
+        }
+
         logger.log("🧹 Clearing all local user data", category: .auth, level: .info, metadata: nil)
 
         // Clear UserDefaults

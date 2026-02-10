@@ -30,6 +30,12 @@ final class ScreenRecordingResetService: ObservableObject {
     /// FirebaseSyncService checks this before syncing
     @Published var isResetInProgress = false
 
+    /// Flag to suppress the auth state listener's clearAllUserData call.
+    /// Set before sign-out, cleared after a delay so the async auth listener
+    /// Task has time to check it. Separate from isResetInProgress which is
+    /// cleared in the defer block before the auth listener Task runs.
+    var suppressDataClear = false
+
     /// Toggle to hide theme/heritage collections for screen recordings
     /// When true, CollectionsListView will not show theme collections
     @Published var hideThemeCollections: Bool {
@@ -108,10 +114,10 @@ final class ScreenRecordingResetService: ObservableObject {
         // Stop any ongoing sync to prevent race conditions
         let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
         await syncService.cancelSync()
-        // CRITICAL: Also reset the in-memory lastSyncDate so the CRDT sync path
-        // fetches ALL remote recipes (not just those modified after the old sync timestamp)
-        syncService.lastSyncDate = nil
-        Log.info("Reset: Stopped any ongoing sync operations and cleared lastSyncDate", category: .general)
+        // CRITICAL: Set lastSyncDate to NOW so any post-reset sync only fetches
+        // recipes created after this point (not the ones we just deleted)
+        syncService.lastSyncDate = Date()
+        Log.info("Reset: Stopped any ongoing sync operations and set lastSyncDate to now", category: .general)
 
         // Stop demo social behaviors to prevent them from interfering during reset
         DemoSocialBehaviorService.shared.stop()
@@ -381,6 +387,32 @@ final class ScreenRecordingResetService: ObservableObject {
         )
 
         lastResetVerification = verification
+
+        // Step 9: Sign out to force re-authentication on next launch.
+        // This prevents auto-sync from re-downloading deleted recipes
+        // (Firestore eventual consistency means batch deletes may not
+        // be visible yet when sync runs on the next app launch).
+        //
+        // suppressDataClear prevents the auth state listener's async
+        // clearAllUserData() from nuking the data we carefully preserved.
+        // The listener fires in a Task { @MainActor in } which runs after
+        // the defer block clears isResetInProgress.
+        resetProgress = "Signing out..."
+        suppressDataClear = true
+        do {
+            let authService = ServiceContainer.shared.resolve(FirebaseAuthService.self)
+            try authService.signOut()
+            Log.info("Reset: Signed out successfully", category: .general)
+        } catch {
+            // Non-fatal — the lastSyncDate=NOW safety net still prevents recipe re-download
+            Log.error("Reset: Failed to sign out", category: .general, metadata: ["error": error.localizedDescription])
+        }
+
+        // Give the auth state listener's async Task time to run and see
+        // suppressDataClear=true before we clear it.
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        suppressDataClear = false
+
         return verification
     }
 
@@ -829,11 +861,14 @@ final class ScreenRecordingResetService: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "hasSeenAddRecipeBanner")
         UserDefaults.standard.removeObject(forKey: "addRecipeBannerDismissCount")
 
-        // Clear any cached sync state
-        // CRITICAL: Clear BOTH sync keys - FirebaseSyncService uses "firebase_lastSyncDate"
+        // Set sync date to NOW (not nil) so post-reset sync won't re-download deleted recipes.
+        // Setting to nil causes sync to fetch everything since 2020-01-01, racing with
+        // Firestore eventual consistency on the batch deletes.
+        // CRITICAL: Set BOTH sync keys - FirebaseSyncService uses "firebase_lastSyncDate"
         // The old key "lastFirebaseSyncDate" is kept for backwards compatibility
-        UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
-        UserDefaults.standard.removeObject(forKey: "lastFirebaseSyncDate")
+        let resetTime = Date()
+        UserDefaults.standard.set(resetTime, forKey: "firebase_lastSyncDate")
+        UserDefaults.standard.set(resetTime, forKey: "lastFirebaseSyncDate")
 
         // Clear demo social state flags
         UserDefaults.standard.removeObject(forKey: "demo_social_welcome_shares_sent")
