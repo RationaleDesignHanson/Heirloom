@@ -142,6 +142,7 @@ struct PublishRecipeSheet: View {
                 previewItem(icon: "text.quote", text: "Recipe title")
                 previewItem(icon: "photo", text: "Photo")
                 previewItem(icon: "list.bullet", text: "Ingredient list")
+                previewItem(icon: "list.number", text: "Step-by-step instructions")
                 previewItem(icon: "person.circle", text: "Your name")
 
                 if recipe.servings != nil || recipe.prepTime != nil || recipe.cookTime != nil {
@@ -161,7 +162,6 @@ struct PublishRecipeSheet: View {
                 .foregroundStyle(HeirloomColors.primaryText)
 
             VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-                notSharedItem(icon: "lock.fill", text: "Step-by-step instructions")
                 notSharedItem(icon: "note.text", text: "Personal notes")
                 notSharedItem(icon: "clock.arrow.circlepath", text: "Cooking history")
             }

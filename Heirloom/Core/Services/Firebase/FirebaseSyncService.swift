@@ -420,8 +420,10 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 let recipeRef = try self.recipeDocument(id: recipeId)
 
                 // Step 1: Upload recipe document
+                // Use merge:true to preserve fields not present in the upload
+                // (e.g. collectionIds when recipe.collections isn't loaded yet)
                 let recipeData = convertToFirestoreData(recipe)
-                try await recipeRef.setData(recipeData)
+                try await recipeRef.setData(recipeData, merge: true)
 
             logger.log("✅ [Firebase] Uploaded recipe: \(recipe.title)", category: .sync, level: .info, metadata: nil)
             logger.log("Recipe uploaded successfully", category: .sync, level: .info, metadata: nil)

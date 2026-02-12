@@ -71,7 +71,7 @@ class AIRecipeGenerator: AIRecipeGeneratorProtocol {
         // Call AI service with structured response
         let options = AICompletionOptions(
             model: configuration.model(for: .parsing),
-            temperature: 0.8, // Higher creativity for recipe generation
+            temperature: 0.6, // Balanced: creative recipes with reliable JSON output
             maxTokens: 3072, // Increased from 2048 to avoid truncation for complex recipes
             systemMessage: systemPrompt
         )

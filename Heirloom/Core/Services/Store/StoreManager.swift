@@ -11,9 +11,9 @@ import Observation
 
 /// Product identifiers for Heirloom subscriptions
 enum ProductIdentifier: String, CaseIterable {
-    case monthly = "com.rationalestudio.heirloom.premium.monthly"
-    case annual = "com.rationalestudio.heirloom.premium.annual"
-    case lifetime = "com.rationalestudio.heirloom.premium.lifetime"
+    case monthly = "com.rationaledesign.heirloom.premium.monthly.v2"
+    case annual = "com.rationaledesign.heirloom.premium.annual.v2"
+    case lifetime = "com.rationaledesign.heirloom.premium.lifetime.v2"
 
     var displayName: String {
         switch self {

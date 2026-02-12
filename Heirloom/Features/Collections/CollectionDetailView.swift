@@ -47,6 +47,7 @@ struct CollectionDetailView: View {
 
     @Query private var allRecipes: [Recipe]
     @Query private var allCollections: [RecipeCollection]
+    @ObservedObject private var screenRecordingService = ScreenRecordingResetService.shared
 
     init(collection: RecipeCollection) {
         self.collection = collection
@@ -83,10 +84,18 @@ struct CollectionDetailView: View {
     // Recipes in this collection
     var recipes: [Recipe] {
         // "All Recipes" collection shows all recipes, but filters out locked theme recipes
+        // and demo seed recipes when collections are hidden
         if collection.isAllRecipes {
+            let demoSeedIds = Set(allCollections.filter { $0.isDemoSeed }.map { $0.id })
             return allRecipes.filter { recipe in
-                guard recipe.isThemeRecipe else { return true }
-                return unlockTracker.isUnlocked(recipe)
+                if recipe.isThemeRecipe && !unlockTracker.isUnlocked(recipe) {
+                    return false
+                }
+                if screenRecordingService.hideDemoSeedCollections {
+                    let isInDemoSeed = recipe.collections?.contains { demoSeedIds.contains($0.id) } ?? false
+                    if isInDemoSeed { return false }
+                }
+                return true
             }
         }
 
@@ -266,7 +275,7 @@ struct CollectionDetailView: View {
         } else {
             LazyVGrid(columns: [
                 GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing),
-                GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
+                GridItem(.flexible())
             ], spacing: HeirloomSpacing.gridSpacing) {
                 ForEach(recipes, id: \.id) { recipe in
                     recipeCard(for: recipe)

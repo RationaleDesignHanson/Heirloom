@@ -114,7 +114,7 @@ extension FirebaseSyncService {
 
         // Wrap Firestore uploads with timeout protection (30 seconds standard)
         try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseStandard) {
-            try await recipeRef.setData(recipeData)
+            try await recipeRef.setData(recipeData, merge: true)
 
             // Upload operation log to subcollection
             let operationsRef = recipeRef.collection("operations")
@@ -496,6 +496,10 @@ extension FirebaseSyncService {
         Log.info("Re-linking recipes to collections", category: .sync)
         try await relinkRecipesToCollections(context: context)
 
+        // Step 5b: Repair orphaned recipes (no collection membership after relink)
+        // This catches recipes whose collectionIds were wiped from Firebase by prior setData calls
+        repairOrphanedRecipes(context: context)
+
         // Step 6: On first sync, upload collections NOW (after relinking so recipeIds are populated)
         if isFirstSync && !userCreatedCollections.isEmpty {
             // Re-fetch collections since relinking may have added recipes
@@ -641,6 +645,71 @@ extension FirebaseSyncService {
             Log.info("Re-linked recipes to collections", category: .sync, metadata: ["linkedCount": linkedCount])
         } else {
             Log.warning("Relink completed with 0 links - collections may appear empty", category: .sync)
+        }
+    }
+
+    /// Repair recipes that have no collection membership after sync/relink.
+    /// This catches recipes whose collectionIds were wiped from Firebase
+    /// (e.g. by prior setData calls that omitted the field).
+    private func repairOrphanedRecipes(context: ModelContext) {
+        do {
+            let allRecipes = try context.fetch(FetchDescriptor<Recipe>())
+            let orphaned = allRecipes.filter { recipe in
+                // Skip heritage recipes (they don't need collections)
+                guard recipe.sourceType != .heritage else { return false }
+                // Orphan = no collections or empty collections
+                return recipe.collections == nil || recipe.collections!.isEmpty
+            }
+
+            guard !orphaned.isEmpty else { return }
+
+            Log.warning("Found orphaned recipes after relink", category: .sync, metadata: ["count": orphaned.count])
+
+            let router = CollectionRouter(modelContext: context)
+
+            for recipe in orphaned {
+                let sourceType = recipe.sourceType ?? .manual
+                switch sourceType {
+                case .generated:
+                    let collection = router.findOrCreateCollection(
+                        name: "Generated Recipes", type: .userCreated, iconName: "wand.and.stars"
+                    )
+                    router.routeToSpecificCollection(recipe, collection: collection)
+                case .url:
+                    let collection = router.findOrCreateCollection(
+                        name: "From the Web", type: .webImports, iconName: "globe"
+                    )
+                    router.routeToSpecificCollection(recipe, collection: collection)
+                case .scan:
+                    let collection = router.findOrCreateCollection(
+                        name: "Scanned Recipes", type: .photoImports, iconName: "camera.fill"
+                    )
+                    router.routeToSpecificCollection(recipe, collection: collection)
+                case .cookbook:
+                    let collection = router.findOrCreateCollection(
+                        name: "Cookbook Pages", type: .cookbook, iconName: "book.closed.fill"
+                    )
+                    router.routeToSpecificCollection(recipe, collection: collection)
+                case .video:
+                    let collection = router.findOrCreateCollection(
+                        name: "From Videos", type: .videoImports, iconName: "video.fill"
+                    )
+                    router.routeToSpecificCollection(recipe, collection: collection)
+                case .readRecipe:
+                    let collection = router.findOrCreateCollection(
+                        name: "Read Recipes", type: .readRecipes, iconName: "mic.fill"
+                    )
+                    router.routeToSpecificCollection(recipe, collection: collection)
+                default:
+                    // manual, family, heritage — leave in All Recipes
+                    break
+                }
+            }
+
+            try? context.save()
+            Log.info("Repaired orphaned recipes", category: .sync, metadata: ["count": orphaned.count])
+        } catch {
+            Log.error("Failed to repair orphaned recipes", category: .sync, metadata: ["error": error.localizedDescription])
         }
     }
 }

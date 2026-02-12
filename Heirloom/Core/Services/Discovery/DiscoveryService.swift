@@ -104,20 +104,10 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
 
     // MARK: - Filtering
 
-    /// Filter out current user's own recipes and hidden/moderated recipes from discovery results
-    /// Users should not discover their own recipes or content that has been hidden by moderation
+    /// Filter out hidden/moderated recipes from discovery results
     private func filterOutOwnRecipes(_ recipes: [PublicRecipe]) -> [PublicRecipe] {
-        var filtered = recipes
-
-        // Filter out hidden/moderated recipes
-        filtered = filtered.filter { !$0.isHidden }
-
-        // Filter out current user's own recipes
-        if let userId = currentUserId {
-            filtered = filtered.filter { $0.ownerId != userId }
-        }
-
-        return filtered
+        // Filter out hidden/moderated recipes only — users should see their own published recipes
+        return recipes.filter { !$0.isHidden }
     }
 
     // MARK: - Initialization

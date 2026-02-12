@@ -291,6 +291,11 @@ class CollectionRouter {
             nil
         }
 
+        // For cookbook collections, skip preset if a PDF cover was already extracted
+        if type == .cookbook && collection.cookbookCoverImagePath != nil {
+            return
+        }
+
         // If this collection type has a preset, always use it (overrides AI-generated)
         if let assetName = presetAssetName, UIImage(named: assetName) != nil {
             let presetPath = "preset-\(assetName)"

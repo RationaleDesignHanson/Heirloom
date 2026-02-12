@@ -682,7 +682,7 @@ struct CollectionsListView: View {
             } else {
                 LazyVGrid(columns: [
                     GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing),
-                    GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
+                    GridItem(.flexible())
                 ], spacing: HeirloomSpacing.gridSpacing) {
                     ForEach(searchResults, id: \.id) { recipe in
                         NavigationLink {

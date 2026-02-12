@@ -330,7 +330,7 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
             sourceRecipeId: recipe.id.uuidString,
             ownerId: ownerId,
             title: recipe.title,
-            description: recipe.notes,
+            description: nil,
             imageURL: imageURL,
             ingredients: ingredientNames,
             instructions: recipe.instructions,

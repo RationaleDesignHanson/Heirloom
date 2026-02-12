@@ -12,8 +12,8 @@ import SwiftData
 
 /// Product identifiers for Heirloom credit purchases
 enum CreditProductIdentifier: String, CaseIterable {
-    case credits25 = "com.rationalestudio.heirloom.credits.small"
-    case credits100 = "com.rationalestudio.heirloom.credits.large"
+    case credits25 = "com.rationaledesign.heirloom.credits.small.v2"
+    case credits100 = "com.rationaledesign.heirloom.credits.large.v2"
 
     var displayName: String {
         switch self {

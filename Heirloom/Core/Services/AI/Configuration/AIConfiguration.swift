@@ -262,7 +262,7 @@ class AIConfiguration: ObservableObject, AIConfigurationProtocol {
     func model(for task: AITask) -> String {
         switch (selectedProvider, task) {
         case (.anthropic, .parsing), (.anthropic, .categorization):
-            return "claude-3-haiku-20240307" // Fast, cheap for simple tasks
+            return "claude-haiku-4-5-20251001" // Fast, cheap, reliable JSON output
 
         // PDF tasks - use Claude Sonnet 4.5 (latest, best quality)
         case (.anthropic, .pdfVision), (.anthropic, .pdfEnhancement):

@@ -144,7 +144,7 @@ Your response must be parseable by JSON.parse() without any modifications.`;
         if (provider === 'anthropic') {
             const anthropic = getAnthropicClient();
             response = await completeWithAnthropic(anthropic, structuredPrompt, {
-                model: model || 'claude-3-haiku-20240307',
+                model: model || 'claude-haiku-4-5-20251001',
                 temperature: temperature || 0.3,
                 maxTokens: maxTokens || 1024,
                 systemMessage,
@@ -160,26 +160,61 @@ Your response must be parseable by JSON.parse() without any modifications.`;
             });
         }
         // Clean JSON from markdown if present
-        const cleanedJSON = cleanJSONFromMarkdown(response.content);
+        let cleanedJSON = cleanJSONFromMarkdown(response.content);
         // VALIDATE JSON on server before sending to client
         try {
             JSON.parse(cleanedJSON);
             firebase_functions_1.logger.info('JSON validation successful', { userId, jsonLength: cleanedJSON.length });
         }
         catch (parseError) {
-            firebase_functions_1.logger.error('Invalid JSON from AI', {
+            firebase_functions_1.logger.warn('Invalid JSON from AI, retrying with lower temperature', {
                 userId,
                 provider,
                 model: response.model,
                 error: parseError.message,
                 rawContent: response.content.substring(0, 500),
-                cleanedContent: cleanedJSON.substring(0, 500),
             });
-            // Return user-friendly error message
-            throw new https_1.HttpsError('invalid-argument', 'The AI returned invalid data. Please try again. If this persists, try simplifying your request.', {
-                technicalDetails: parseError.message,
-                hint: 'JSON parsing failed',
-            });
+            // Retry once with lower temperature for more deterministic output
+            try {
+                const retryTemp = Math.min(temperature || 0.3, 0.2);
+                let retryResponse;
+                if (provider === 'anthropic') {
+                    const anthropic = getAnthropicClient();
+                    retryResponse = await completeWithAnthropic(anthropic, structuredPrompt, {
+                        model: model || 'claude-haiku-4-5-20251001',
+                        temperature: retryTemp,
+                        maxTokens: maxTokens || 1024,
+                        systemMessage,
+                    });
+                }
+                else {
+                    const openai = getOpenAIClient();
+                    retryResponse = await completeWithOpenAI(openai, structuredPrompt, {
+                        model: model || 'gpt-4o-mini',
+                        temperature: retryTemp,
+                        maxTokens: maxTokens || 1024,
+                        systemMessage,
+                    });
+                }
+                cleanedJSON = cleanJSONFromMarkdown(retryResponse.content);
+                JSON.parse(cleanedJSON); // Validate retry result
+                response = retryResponse;
+                firebase_functions_1.logger.info('JSON retry successful', { userId, jsonLength: cleanedJSON.length });
+            }
+            catch (retryError) {
+                firebase_functions_1.logger.error('Invalid JSON from AI after retry', {
+                    userId,
+                    provider,
+                    model: response.model,
+                    error: retryError.message,
+                    rawContent: response.content.substring(0, 500),
+                    cleanedContent: cleanedJSON.substring(0, 500),
+                });
+                throw new https_1.HttpsError('invalid-argument', 'The AI returned invalid data. Please try again. If this persists, try simplifying your request.', {
+                    technicalDetails: retryError.message,
+                    hint: 'JSON parsing failed after retry',
+                });
+            }
         }
         // Log usage
         try {

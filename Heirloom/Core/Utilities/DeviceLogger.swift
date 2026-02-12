@@ -44,17 +44,15 @@ class DeviceLogger {
         print(logMessage.trimmingCharacters(in: .newlines))
 
         // Write to file
-        guard let url = logFileURL else { return }
+        guard let url = logFileURL, let data = logMessage.data(using: .utf8) else { return }
 
         do {
             let fileHandle = try FileHandle(forWritingTo: url)
-            fileHandle.seekToEndOfFile()
-            if let data = logMessage.data(using: .utf8) {
-                fileHandle.write(data)
-            }
-            fileHandle.closeFile()
+            defer { try? fileHandle.close() }
+            try fileHandle.seekToEnd()
+            try fileHandle.write(contentsOf: data)
         } catch {
-            // If file doesn't exist, create it
+            // If file doesn't exist or handle is invalid, recreate it
             try? logMessage.write(to: url, atomically: true, encoding: .utf8)
         }
         #else

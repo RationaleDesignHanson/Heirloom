@@ -7,6 +7,7 @@ import os.log
 import FirebaseCore
 import FirebaseFirestore
 import FirebaseCrashlytics
+import RevenueCat
 
 // Device-visible logging
 private let logger = Logger(subsystem: "com.rationaledesign.heirloom", category: "App")
@@ -220,6 +221,15 @@ struct HeirloomApp: App {
             DeviceLogger.shared.log("🧪 [Heirloom] Test environment detected - skipping Firebase initialization")
             logger.info("🧪 [Heirloom] Test environment detected - skipping Firebase initialization")
             Log.info("Test environment detected - skipping Firebase initialization", category: .general)
+        }
+
+        // MARK: - RevenueCat Configuration
+        if !isRunningTests {
+            DeviceLogger.shared.log("💰 [Heirloom] Configuring RevenueCat...")
+            Purchases.logLevel = .debug  // Set to .info or .warn for production
+            Purchases.configure(withAPIKey: "test_RefGbqhSIbSECFNGUGbUDnNRRNw")
+            DeviceLogger.shared.log("✅ [Heirloom] RevenueCat configured")
+            Log.info("RevenueCat initialized", category: .store)
         }
 
         // Log active backend

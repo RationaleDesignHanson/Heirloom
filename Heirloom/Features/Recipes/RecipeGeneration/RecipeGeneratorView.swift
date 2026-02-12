@@ -293,6 +293,8 @@ struct RecipeGeneratorView: View {
         let router = CollectionRouter(modelContext: modelContext)
         if let collection = targetCollection {
             router.routeToSpecificCollection(recipe, collection: collection)
+        } else {
+            router.routeReadRecipe(recipe)
         }
 
         // Save

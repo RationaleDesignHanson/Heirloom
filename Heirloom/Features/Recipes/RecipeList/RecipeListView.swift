@@ -452,7 +452,7 @@ struct RecipeListView: View {
         LazyVGrid(
             columns: [
                 GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing),
-                GridItem(.flexible(), spacing: HeirloomSpacing.gridSpacing)
+                GridItem(.flexible())
             ],
             spacing: HeirloomSpacing.gridSpacing
         ) {
