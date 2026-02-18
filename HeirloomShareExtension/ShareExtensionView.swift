@@ -361,6 +361,18 @@ struct ShareExtensionView: View {
 
             // Accept http/https URLs (web pages)
             if url.scheme == "http" || url.scheme == "https" {
+                // Check if same attachment also has plain text (common for Notes shares).
+                // May contain additional URLs or recipe content that would be lost.
+                if itemProvider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) {
+                    if let text = try? await loadText(from: itemProvider) {
+                        let analysis = NotesContentAnalyzer.analyze(text)
+                        if analysis.shouldUseBulkImport {
+                            return .bulkContent(urls: analysis.urls, text: analysis.plainText, hasRecipe: analysis.hasRecipeContent)
+                        } else if analysis.shouldUseTextImport {
+                            return .bulkContent(urls: [url.absoluteString], text: analysis.plainText, hasRecipe: true)
+                        }
+                    }
+                }
                 return .url(url)
             }
 

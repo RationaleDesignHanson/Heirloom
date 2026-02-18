@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import UIKit
 import AuthenticationServices
 
 struct FirebaseSignInView: View {
@@ -28,155 +29,161 @@ struct FirebaseSignInView: View {
             HeirloomColors.appBackground
                 .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                Spacer()
-                    .frame(minHeight: 40, maxHeight: 60)
+            GeometryReader { geometry in
+                let compact = geometry.size.height < 700
+                let imageSize: CGFloat = compact ? 120 : 240
 
-                // App Icon/Logo (smaller on iPad)
-                Image("ceramic-hero-book")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 240, height: 240)
-                    .shadow(color: Color(red: 0.2, green: 0.15, blue: 0.1).opacity(0.3), radius: 12, x: 0, y: 6)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
 
-                // Title
-                VStack(spacing: HeirloomSpacing.sm) {
-                    Text("Welcome to Heirloom")
-                        .font(HeirloomFonts.title1)
-                        .foregroundColor(HeirloomColors.primaryText)
+                    // App Icon/Logo
+                    Image("ceramic-hero-book")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: imageSize, height: imageSize)
+                        .shadow(color: Color(red: 0.2, green: 0.15, blue: 0.1).opacity(0.3), radius: 12, x: 0, y: 6)
 
-                    Text("Preserve the recipes you love — save from anywhere, share with people you trust.")
-                        .font(HeirloomFonts.body)
-                        .foregroundColor(HeirloomColors.secondaryText)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, 20)
+                    // Title
+                    VStack(spacing: HeirloomSpacing.sm) {
+                        Text("Welcome to Heirloom")
+                            .font(HeirloomFonts.title1)
+                            .foregroundColor(HeirloomColors.primaryText)
 
-                // Features list (more compact)
-                VStack(alignment: .leading, spacing: 12) {
-                    featureRow(icon: "icloud", text: "Automatic cloud sync")
-                    featureRow(icon: "arrow.triangle.2.circlepath", text: "Share recipes with family")
-                    featureRow(icon: "shield.checkered", text: "Secure and private")
-                }
-                .padding(.horizontal, 40)
-                .padding(.top, 32)
+                        Text("Preserve the recipes you love — save from anywhere, share with people you trust.")
+                            .font(HeirloomFonts.body)
+                            .foregroundColor(HeirloomColors.secondaryText)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.top, compact ? 12 : 20)
 
-                Spacer()
-                    .frame(minHeight: 20, maxHeight: 40)
-
-                // Sign in buttons
-                if authService.isAuthenticating {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: HeirloomColors.tomato))
-                        .scaleEffect(1.5)
-                        .frame(height: 50)
-                } else if showEmailSignIn {
-                    emailSignInView
-                } else {
-                    VStack(spacing: 12) {
-                        // Sign in with Apple button
-                        Button {
-                            guard !hasAttemptedSignIn else { return }
-                            hasAttemptedSignIn = true
-
-                            Task {
-                                do {
-                                    try await authService.signInWithApple()
-                                    dismiss()
-                                } catch {
-                                    hasAttemptedSignIn = false
-                                    showError = true
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Image(systemName: "applelogo")
-                                    .font(HeirloomFonts.title2)
-                                Text("Sign in with Apple")
-                                    .font(HeirloomFonts.bodyBold)
-                            }
-                            .foregroundStyle(HeirloomColors.buttonTextLight)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(Color.black)
-                            .cornerRadius(HeirloomSpacing.cardCornerRadius)
-                        }
-
-                        // Sign in with Google button
-                        Button {
-                            guard !hasAttemptedSignIn else { return }
-                            hasAttemptedSignIn = true
-
-                            Task {
-                                do {
-                                    try await authService.signInWithGoogle()
-                                    dismiss()
-                                } catch {
-                                    hasAttemptedSignIn = false
-                                    showError = true
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Image(systemName: "g.circle.fill")
-                                    .font(HeirloomFonts.title2)
-                                Text("Sign in with Google")
-                                    .font(HeirloomFonts.bodyBold)
-                            }
-                            .foregroundStyle(HeirloomColors.buttonTextLight)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color(red: 0.26, green: 0.52, blue: 0.96), Color(red: 0.22, green: 0.45, blue: 0.85)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(HeirloomSpacing.cardCornerRadius)
-                        }
-
-                        // Divider
-                        HStack {
-                            Rectangle()
-                                .fill(HeirloomColors.charcoal.opacity(0.2))
-                                .frame(height: 1)
-                            Text("or")
-                                .font(HeirloomFonts.caption1)
-                                .foregroundColor(HeirloomColors.secondaryText)
-                                .padding(.horizontal, 8)
-                            Rectangle()
-                                .fill(HeirloomColors.charcoal.opacity(0.2))
-                                .frame(height: 1)
-                        }
-                        .padding(.vertical, 4)
-
-                        // Sign in with Email button
-                        Button {
-                            showEmailSignIn = true
-                        } label: {
-                            HStack {
-                                Image(systemName: "envelope.fill")
-                                    .font(HeirloomFonts.title2)
-                                Text("Sign in with Email")
-                                    .font(HeirloomFonts.bodyBold)
-                            }
-                            .foregroundColor(HeirloomColors.tomato)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(HeirloomColors.tomato.opacity(0.1))
-                            .cornerRadius(HeirloomSpacing.cardCornerRadius)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
-                                    .strokeBorder(HeirloomColors.tomato, lineWidth: 1.5)
-                            )
-                        }
+                    // Features list
+                    VStack(alignment: .leading, spacing: compact ? 6 : 12) {
+                        featureRow(icon: "icloud", text: "Automatic cloud sync")
+                        featureRow(icon: "arrow.triangle.2.circlepath", text: "Share recipes with family")
+                        featureRow(icon: "shield.checkered", text: "Secure and private")
                     }
                     .padding(.horizontal, 40)
-                }
+                    .padding(.top, compact ? 16 : 32)
 
-                Spacer()
-                    .frame(minHeight: 30, maxHeight: 50)
+                    Spacer(minLength: compact ? 8 : 16)
+
+                    // Sign in buttons
+                    if authService.isAuthenticating {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: HeirloomColors.tomato))
+                            .scaleEffect(1.5)
+                            .frame(height: 50)
+                    } else if showEmailSignIn {
+                        emailSignInView
+                    } else {
+                        let buttonHeight: CGFloat = compact ? 44 : 50
+
+                        VStack(spacing: compact ? 8 : 12) {
+                            // Sign in with Apple button
+                            Button {
+                                guard !hasAttemptedSignIn else { return }
+                                hasAttemptedSignIn = true
+
+                                Task {
+                                    do {
+                                        try await authService.signInWithApple()
+                                        dismiss()
+                                    } catch {
+                                        hasAttemptedSignIn = false
+                                        showError = true
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Image(systemName: "applelogo")
+                                        .font(HeirloomFonts.title2)
+                                    Text("Sign in with Apple")
+                                        .font(HeirloomFonts.bodyBold)
+                                }
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: buttonHeight)
+                                .background(Color.black)
+                                .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                            }
+
+                            // Sign in with Google button
+                            Button {
+                                guard !hasAttemptedSignIn else { return }
+                                hasAttemptedSignIn = true
+
+                                Task {
+                                    do {
+                                        try await authService.signInWithGoogle()
+                                        dismiss()
+                                    } catch {
+                                        hasAttemptedSignIn = false
+                                        showError = true
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Image(systemName: "g.circle.fill")
+                                        .font(HeirloomFonts.title2)
+                                    Text("Sign in with Google")
+                                        .font(HeirloomFonts.bodyBold)
+                                }
+                                .foregroundStyle(HeirloomColors.buttonTextLight)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: buttonHeight)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color(red: 0.26, green: 0.52, blue: 0.96), Color(red: 0.22, green: 0.45, blue: 0.85)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                            }
+
+                            // Divider
+                            HStack {
+                                Rectangle()
+                                    .fill(HeirloomColors.charcoal.opacity(0.2))
+                                    .frame(height: 1)
+                                Text("or")
+                                    .font(HeirloomFonts.caption1)
+                                    .foregroundColor(HeirloomColors.secondaryText)
+                                    .padding(.horizontal, 8)
+                                Rectangle()
+                                    .fill(HeirloomColors.charcoal.opacity(0.2))
+                                    .frame(height: 1)
+                            }
+                            .padding(.vertical, compact ? 2 : 4)
+
+                            // Sign in with Email button
+                            Button {
+                                showEmailSignIn = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "envelope.fill")
+                                        .font(HeirloomFonts.title2)
+                                    Text("Sign in with Email")
+                                        .font(HeirloomFonts.bodyBold)
+                                }
+                                .foregroundColor(HeirloomColors.tomato)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: buttonHeight)
+                                .background(HeirloomColors.tomato.opacity(0.1))
+                                .cornerRadius(HeirloomSpacing.cardCornerRadius)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                                        .strokeBorder(HeirloomColors.tomato, lineWidth: 1.5)
+                                )
+                            }
+                        }
+                        .padding(.horizontal, 40)
+                    }
+
+                    Spacer(minLength: 0)
+                        .frame(maxHeight: compact ? 16 : 40)
+                }
+                .frame(height: geometry.size.height)
             }
         }
         .alert("Sign In Error", isPresented: $showError) {

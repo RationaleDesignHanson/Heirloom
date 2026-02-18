@@ -925,6 +925,7 @@ private struct RecipeDetailModifiers: ViewModifier {
         }
         .sheet(isPresented: $showFirebaseSignIn) {
             FirebaseSignInView()
+                .presentationDetents([.large])
         }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe, targetServings: targetServings)

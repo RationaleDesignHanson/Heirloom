@@ -677,7 +677,7 @@ extension FirebaseSyncService {
                     router.routeToSpecificCollection(recipe, collection: collection)
                 case .url:
                     let collection = router.findOrCreateCollection(
-                        name: "From the Web", type: .webImports, iconName: "globe"
+                        name: "From Web", type: .webImports, iconName: "link"
                     )
                     router.routeToSpecificCollection(recipe, collection: collection)
                 case .scan:

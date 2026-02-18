@@ -215,6 +215,7 @@ struct PDFImportView: View {
             }
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
+                    .presentationDetents([.large])
             }
             .alert("Cookbook Name", isPresented: $showCookbookNamePrompt) {
                 TextField("Enter cookbook name", text: $cookbookNameInput)

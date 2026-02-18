@@ -425,7 +425,7 @@ class DeepLinkHandler: ObservableObject {
 
         // Load the pending import to determine if it's a video or URL
         Task {
-            let pendingImport = await PendingImportManager.shared.load(id: importID)
+            let pendingImport = await PendingImportManager.shared.loadAndDelete(id: importID)
 
             guard let importData = pendingImport else {
                 // File not found - implement retry logic with exponential backoff
@@ -489,10 +489,15 @@ class DeepLinkHandler: ObservableObject {
                         Log.info("Bulk URL import job created", category: .general, metadata: ["jobId": job.id.uuidString])
                         DeviceLogger.shared.log("✅ [DeepLink] Bulk URL import job created: \(job.id.uuidString)")
 
-                        // Show import progress sheet
-                        await MainActor.run {
-                            pendingImportJobID = job.id
-                            showImportProgressSheet = true
+                        // Only show import progress sheet if there are NO text recipes to process.
+                        // When there ARE text recipes, the text recipe selection sheet takes priority
+                        // (SwiftUI only allows one sheet at a time). The bottom banner handles URL progress.
+                        let hasTextRecipes = bulkContent.hasRecipeText && bulkContent.plainText != nil
+                        if !hasTextRecipes {
+                            await MainActor.run {
+                                pendingImportJobID = job.id
+                                showImportProgressSheet = true
+                            }
                         }
 
                         // Start the job (background task)
@@ -562,9 +567,6 @@ class DeepLinkHandler: ObservableObject {
                     }
                 }
 
-                // Clean up the pending import after processing
-                await PendingImportManager.shared.delete(id: importID)
-
             } else if let fileURL = importData.localVideoURL {
                 // Check source type to determine how to handle the file
                 switch importData.sourceType {
@@ -598,9 +600,6 @@ class DeepLinkHandler: ObservableObject {
                         let descriptor = FetchDescriptor<VideoProcessingJob>()
                         let allJobs = (try? context.fetch(descriptor)) ?? []
                         let queueCount = allJobs.filter { $0.status == .pending || $0.status == .processing }.count
-
-                        // Clean up the pending import
-                        await PendingImportManager.shared.delete(id: importID)
 
                         Log.info("Video processing job created", category: .general, metadata: ["jobId": job.id.uuidString])
                         DeviceLogger.shared.log("✅ [DeepLink] Video job created: \(job.id.uuidString)")
@@ -679,9 +678,6 @@ class DeepLinkHandler: ObservableObject {
                             detectedRecipes: detected
                         )
 
-                        // Clean up the pending import
-                        await PendingImportManager.shared.delete(id: importID)
-
                         Log.info("Recipe extraction complete", category: .general, metadata: ["count": result.recipes.count])
                         DeviceLogger.shared.log("✅ [DeepLink] Extracted \(result.recipes.count) recipe(s)")
 
@@ -708,7 +704,6 @@ class DeepLinkHandler: ObservableObject {
                     guard let imageURLs = importData.imageURLs, !imageURLs.isEmpty else {
                         Log.error("Image batch has no URLs", category: .general)
                         DeviceLogger.shared.log("❌ [DeepLink] Image batch has no URLs")
-                        await PendingImportManager.shared.delete(id: importID)
                         return
                     }
 
@@ -755,9 +750,6 @@ class DeepLinkHandler: ObservableObject {
                         // Start processing
                         try await importManager.startJob(job, context: context)
 
-                        // Clean up the pending import
-                        await PendingImportManager.shared.delete(id: importID)
-
                         Log.info("Image batch import job started successfully", category: .general)
                         DeviceLogger.shared.log("✅ [DeepLink] Image batch import started successfully")
 
@@ -790,7 +782,6 @@ class DeepLinkHandler: ObservableObject {
                         )
 
                         try context.save()
-                        await PendingImportManager.shared.delete(id: importID)
 
                         Log.info("Video processing job created", category: .general, metadata: ["jobId": job.id.uuidString])
                         DeviceLogger.shared.log("✅ [DeepLink] Video job created: \(job.id.uuidString)")
@@ -809,8 +800,6 @@ class DeepLinkHandler: ObservableObject {
                     showURLImportSheet = true
                 }
 
-                // Clean up the pending import since we've extracted the URL
-                await PendingImportManager.shared.delete(id: importID)
             } else {
                 Log.error("Invalid pending import - no video or URL", category: .general)
                 DeviceLogger.shared.log("❌ [DeepLink] Invalid pending import - no video or URL")

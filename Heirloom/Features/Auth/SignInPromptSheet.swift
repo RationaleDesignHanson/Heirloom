@@ -104,6 +104,7 @@ struct SignInPromptSheet: View {
         .background(HeirloomColors.cream)
         .sheet(isPresented: $showSignInFlow) {
             FirebaseSignInView()
+                .presentationDetents([.large])
         }
     }
 

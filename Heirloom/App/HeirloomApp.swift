@@ -202,7 +202,7 @@ struct HeirloomApp: App {
                 // CRITICAL: Configure Firestore settings IMMEDIATELY after first configuration
                 DeviceLogger.shared.log("⚙️ [Heirloom] Configuring Firestore settings...")
                 let settings = FirestoreSettings()
-                settings.cacheSettings = PersistentCacheSettings()  // Unlimited offline cache
+                settings.cacheSettings = PersistentCacheSettings(sizeBytes: NSNumber(value: 100 * 1024 * 1024))  // 100MB cache (~10k+ recipes)
 
                 DeviceLogger.shared.log("📝 [Heirloom] Getting Firestore instance...")
                 let firestore = Firestore.firestore()
@@ -1709,6 +1709,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showSignInSheet) {
             FirebaseSignInView()
+                .presentationDetents([.large])
         }
         .onAppear {
             // CRITICAL: On first launch, require sign-in before onboarding

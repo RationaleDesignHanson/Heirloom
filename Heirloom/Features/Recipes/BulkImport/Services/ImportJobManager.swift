@@ -730,6 +730,7 @@ final class ImportJobManager: ObservableObject {
         ])
         context.insert(job)
 
+        var items: [ImportItem] = []
         for image in images {
             guard let imageData = image.jpegData(compressionQuality: 0.9) else {
                 continue
@@ -744,8 +745,10 @@ final class ImportJobManager: ObservableObject {
 
             // Create placeholder recipe for progressive enhancement (immediate UI feedback)
             createPlaceholderRecipe(for: item, job: job, context: context)
+            items.append(item)
         }
 
+        job.items = items
         try context.save()
         return job
     }
@@ -771,6 +774,7 @@ final class ImportJobManager: ObservableObject {
         job.collectionType = collectionType
         context.insert(job)
 
+        var items: [ImportItem] = []
         for image in images {
             guard let imageData = image.jpegData(compressionQuality: 0.9) else {
                 continue
@@ -785,8 +789,10 @@ final class ImportJobManager: ObservableObject {
 
             // Create placeholder recipe for progressive enhancement (immediate UI feedback)
             createPlaceholderRecipe(for: item, job: job, context: context)
+            items.append(item)
         }
 
+        job.items = items
         try context.save()
         return job
     }
@@ -798,19 +804,19 @@ final class ImportJobManager: ObservableObject {
     ///   - job: The ImportJob to process
     ///   - context: SwiftData ModelContext for persistence
     func startJob(_ job: ImportJob, context: ModelContext) async throws {
-        guard !isProcessing else {
-            throw ImportJobError.alreadyProcessing
-        }
-
-        // Clear any stale completed job before starting new one
-        // This prevents UI from briefly showing old completion screen
-        if let oldJob = activeJob, oldJob.isComplete {
-            Log.info("Clearing completed job before starting new one", category: .import, metadata: [
+        // Clear stale processing state if the active job already completed
+        if isProcessing, let oldJob = activeJob, oldJob.isComplete {
+            Log.info("Clearing stale isProcessing from completed job", category: .import, metadata: [
                 "old_job_id": oldJob.id.uuidString,
                 "new_job_id": job.id.uuidString
             ])
+            isProcessing = false
             activeJob = nil
             activeContext = nil
+        }
+
+        guard !isProcessing else {
+            throw ImportJobError.alreadyProcessing
         }
 
         activeJob = job
@@ -1472,14 +1478,15 @@ final class ImportJobManager: ObservableObject {
 
                     // No exact duplicates - proceed with insertion or placeholder update
                     if index == 0, let placeholder = placeholder {
+                        // Capture ingredients BEFORE transfer (relationship change may clear source)
+                        let ingredientsToInsert = recipe.ingredients ?? []
+
                         // First recipe uses the placeholder (progressive enhancement)
                         updatePlaceholderWithExtraction(placeholder, from: recipe, item: item)
                         recipesToInsert.append(placeholder)
-                        // Transfer ingredients to placeholder's context
-                        if let ingredients = recipe.ingredients {
-                            for ingredient in ingredients {
-                                context.insert(ingredient)
-                            }
+                        // Insert captured ingredients into context
+                        for ingredient in ingredientsToInsert {
+                            context.insert(ingredient)
                         }
                         Log.info("✅ Updated placeholder with first recipe", category: .import, metadata: [
                             "placeholder_id": placeholder.id.uuidString,
@@ -1497,13 +1504,14 @@ final class ImportJobManager: ObservableObject {
                         "error": error.localizedDescription
                     ])
                     if index == 0, let placeholder = placeholder {
+                        // Capture ingredients BEFORE transfer (relationship change may clear source)
+                        let ingredientsToInsert = recipe.ingredients ?? []
+
                         // Use placeholder even if duplicate detection failed
                         updatePlaceholderWithExtraction(placeholder, from: recipe, item: item)
                         recipesToInsert.append(placeholder)
-                        if let ingredients = recipe.ingredients {
-                            for ingredient in ingredients {
-                                context.insert(ingredient)
-                            }
+                        for ingredient in ingredientsToInsert {
+                            context.insert(ingredient)
                         }
                     } else {
                         recipesToInsert.append(recipe)

@@ -325,6 +325,7 @@ struct RecipeEditorView: View {
             }
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
+                    .presentationDetents([.large])
             }
             .onChange(of: focusedIngredientIndex) { oldIndex, newIndex in
                 // When focus changes, parse the ingredient that just lost focus

@@ -129,6 +129,7 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showSignIn) {
                 FirebaseSignInView()
+                    .presentationDetents([.large])
             }
             .onChange(of: firebaseAuth.isAuthenticated) { _, _ in
                 // Toggle state to force view refresh when auth state changes
