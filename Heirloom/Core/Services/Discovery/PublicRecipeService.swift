@@ -128,7 +128,7 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
         // Upload image to Firebase Storage
         let imageURL: String
         do {
-            imageURL = try await uploadRecipeImage(recipeId: recipe.id.uuidString, fileName: imageFileName)
+            imageURL = try await uploadRecipeImage(recipeId: recipe.id.firebaseString, fileName: imageFileName)
         } catch {
             Log.error("Image upload failed", category: .social, metadata: [
                 "recipeId": recipe.id.uuidString,
@@ -141,7 +141,7 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
         let profile = try await profileService.fetchCurrentUserProfile()
 
         // Create PublicRecipe document
-        let publicRecipeId = UUID().uuidString
+        let publicRecipeId = UUID().uuidString.lowercased()
         let publicRecipe = createPublicRecipe(
             from: recipe,
             publicRecipeId: publicRecipeId,
@@ -327,7 +327,7 @@ class FirebasePublicRecipeService: PublicRecipeServiceProtocol {
 
         return PublicRecipe(
             id: publicRecipeId,
-            sourceRecipeId: recipe.id.uuidString,
+            sourceRecipeId: recipe.id.firebaseString,
             ownerId: ownerId,
             title: recipe.title,
             description: nil,

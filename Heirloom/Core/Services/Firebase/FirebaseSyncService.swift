@@ -119,7 +119,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         var data: [String: Any] = [:]
 
         // Identity
-        data["id"] = recipe.id.uuidString
+        data["id"] = recipe.id.firebaseString
         data["title"] = recipe.title
 
         // Source information
@@ -163,12 +163,12 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         }
 
         // Tags and Collections
-        data["tagIds"] = recipe.tags?.map { $0.id.uuidString } ?? []
+        data["tagIds"] = recipe.tags?.map { $0.id.firebaseString } ?? []
         // Only include collectionIds if the recipe actually has collections loaded.
         // This prevents wiping existing collectionIds in Firebase when a fresh device
         // uploads a recipe before its collections are downloaded.
         if let collections = recipe.collections, !collections.isEmpty {
-            data["collectionIds"] = collections.map { $0.id.uuidString }
+            data["collectionIds"] = collections.map { $0.id.firebaseString }
         }
 
         // Sync metadata
@@ -256,7 +256,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
     func convertIngredientToFirestoreData(_ ingredient: Ingredient) -> [String: Any] {
         var data: [String: Any] = [:]
 
-        data["id"] = ingredient.id.uuidString
+        data["id"] = ingredient.id.firebaseString
         data["originalText"] = ingredient.originalText
         data["name"] = ingredient.name
         data["quantity"] = ingredient.quantity as Any
@@ -307,7 +307,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
     func convertCommentToFirestoreData(_ comment: RecipeComment) -> [String: Any] {
         var data: [String: Any] = [:]
 
-        data["id"] = comment.id.uuidString
+        data["id"] = comment.id.firebaseString
         data["text"] = comment.text
         data["authorName"] = comment.authorName as Any
         data["createdAt"] = Timestamp(date: comment.createdAt)
@@ -416,7 +416,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         do {
             // Wrap all Firestore operations in timeout protection
             try await TaskTimeout.withTimeout(seconds: TaskTimeout.firebaseStandard) { [self] in
-                let recipeId = recipe.id.uuidString
+                let recipeId = recipe.id.firebaseString
                 let recipeRef = try self.recipeDocument(id: recipeId)
 
                 // Step 1: Upload recipe document
@@ -451,7 +451,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 // Batch write for efficiency
                 let batch = db.batch()
                 for ingredient in ingredients {
-                    let ingredientRef = ingredientsRef.document(ingredient.id.uuidString)
+                    let ingredientRef = ingredientsRef.document(ingredient.id.firebaseString)
                     let ingredientData = convertIngredientToFirestoreData(ingredient)
                     batch.setData(ingredientData, forDocument: ingredientRef)
                 }
@@ -470,7 +470,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 let commentsRef = recipeRef.collection("comments")
                 let batch = db.batch()
                 for comment in comments {
-                    let commentRef = commentsRef.document(comment.id.uuidString)
+                    let commentRef = commentsRef.document(comment.id.firebaseString)
                     let commentData = convertCommentToFirestoreData(comment)
                     batch.setData(commentData, forDocument: commentRef)
                 }
@@ -535,7 +535,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         } catch {
             DeviceLogger.shared.log("❌ [Firebase] Upload failed: \(error.localizedDescription)", level: .error)
             logger.error("❌ [Firebase] Upload failed: \(error.localizedDescription)")
-            Log.error("Recipe upload failed", category: .firebase, error: error, metadata: ["recipeId": recipe.id.uuidString])
+            Log.error("Recipe upload failed", category: .firebase, error: error, metadata: ["recipeId": recipe.id.firebaseString])
             throw SyncError.uploadFailed(error)
         }
     }
@@ -741,7 +741,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         // Check if recipe exists locally
         let descriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { recipe in
-                recipe.id.uuidString == documentId
+                recipe.id.firebaseString == documentId
             }
         )
 
@@ -1122,7 +1122,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             return nil
         }
 
-        let recipeId = recipe.id.uuidString
+        let recipeId = recipe.id.firebaseString
         let storagePath = "users/\(userId)/recipes/\(recipeId)/image.jpg"
         let storageRef = Storage.storage().reference().child(storagePath)
 
@@ -1201,7 +1201,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let storagePath = "users/\(userId)/recipes/\(recipeId.uuidString)/image.jpg"
+        let storagePath = "users/\(userId)/recipes/\(recipeId.firebaseString)/image.jpg"
         let storageRef = Storage.storage().reference().child(storagePath)
 
         Log.info("Deleting image from Storage", category: .storage, metadata: ["path": storagePath])
@@ -1261,7 +1261,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let recipeIdString = recipeId.uuidString
+        let recipeIdString = recipeId.firebaseString
         let recipeRef = try recipeDocument(id: recipeIdString)
 
         logger.log("Deleting recipe", category: .sync, level: .info, metadata: nil)
@@ -1296,8 +1296,8 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
 
     /// Delete individual comment
     func deleteComment(_ commentId: UUID, from recipeId: UUID) async throws {
-        let recipeIdString = recipeId.uuidString
-        let commentIdString = commentId.uuidString
+        let recipeIdString = recipeId.firebaseString
+        let commentIdString = commentId.firebaseString
 
         let commentRef = try recipeDocument(id: recipeIdString)
             .collection("comments")
@@ -1313,8 +1313,8 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let recipeIdString = recipeId.uuidString
-        let commentIdString = comment.id.uuidString
+        let recipeIdString = recipeId.firebaseString
+        let commentIdString = comment.id.firebaseString
 
         let commentRef = try recipeDocument(id: recipeIdString)
             .collection("comments")
@@ -1332,8 +1332,8 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let recipeIdString = recipeId.uuidString
-        let cardBackIdString = cardBack.id.uuidString
+        let recipeIdString = recipeId.firebaseString
+        let cardBackIdString = cardBack.id.firebaseString
 
         let cardBackRef = try recipeDocument(id: recipeIdString)
             .collection("cardBack")
@@ -1353,10 +1353,10 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let collectionRef = db.collection("users/\(userId)/collections").document(collection.id.uuidString)
+        let collectionRef = db.collection("users/\(userId)/collections").document(collection.id.firebaseString)
 
         var data: [String: Any] = [:]
-        data["id"] = collection.id.uuidString
+        data["id"] = collection.id.firebaseString
         data["name"] = collection.name
         data["desc"] = collection.desc as Any
         data["createdDate"] = Timestamp(date: collection.createdDate)
@@ -1364,7 +1364,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
         // Using merge: true ensures we never wipe existing recipeIds in Firebase
         // when a fresh device uploads a collection before its recipes are downloaded.
         if let recipes = collection.recipes, !recipes.isEmpty {
-            data["recipeIds"] = recipes.map { $0.id.uuidString }
+            data["recipeIds"] = recipes.map { $0.id.firebaseString }
         }
 
         // Theme-specific fields
@@ -1475,7 +1475,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                     Log.info("Merging Firebase collection into existing local by name", category: .sync, metadata: [
                         "name": firebaseName,
                         "firebaseUUID": collectionId.uuidString,
-                        "localUUID": localMatch.id.uuidString
+                        "localUUID": localMatch.id.firebaseString
                     ])
                     uuidRemapping[collectionId.uuidString.lowercased()] = localMatch.id
                     collection = localMatch
@@ -1562,16 +1562,19 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             collections.append(collection)
         }
 
-        // Deduplicate "Generated Recipes" collections that may have different UUIDs
-        // (local createSystemCollections checks by name, but download checks by UUID)
-        let generatedRecipesCollections = collections.filter { $0.name == "Generated Recipes" }
-        if generatedRecipesCollections.count > 1 {
-            Log.warning("Found duplicate Generated Recipes collections after download", category: .sync, metadata: [
-                "count": generatedRecipesCollections.count
+        // Deduplicate collections with the same name
+        // Only deduplicate locally - do NOT delete from Firestore during download
+        let collectionsByName = Dictionary(grouping: collections, by: { $0.name })
+        for (name, group) in collectionsByName {
+            guard group.count > 1 else { continue }
+
+            Log.warning("Found duplicate collections with same name after download", category: .sync, metadata: [
+                "name": name,
+                "count": group.count
             ])
 
-            // Keep the one with the most recipes
-            let sorted = generatedRecipesCollections.sorted { ($0.recipes?.count ?? 0) > ($1.recipes?.count ?? 0) }
+            // Keep the one with the most recipes (likely the more established one)
+            let sorted = group.sorted { ($0.recipes?.count ?? 0) > ($1.recipes?.count ?? 0) }
             let primary = sorted[0]
             let duplicates = sorted.dropFirst()
 
@@ -1587,20 +1590,16 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                     }
                 }
 
-                // Delete duplicate from SwiftData
+                // Delete duplicate from SwiftData ONLY (not Firestore)
+                // Firestore cleanup happens during upload phase
                 context.delete(duplicate)
                 collections.removeAll { $0.id == duplicate.id }
-
-                // Delete duplicate from Firestore
-                if let userId = currentUserId {
-                    let dupeRef = db.collection("users/\(userId)/collections").document(duplicate.id.uuidString)
-                    try? await dupeRef.delete()
-                }
             }
 
-            Log.info("Deduplicated Generated Recipes collections after download", category: .sync, metadata: [
-                "kept": primary.id.uuidString,
-                "deleted": duplicates.count
+            Log.info("Deduplicated collections locally", category: .sync, metadata: [
+                "name": name,
+                "kept": primary.id.firebaseString,
+                "merged": duplicates.count
             ])
         }
 
@@ -1671,7 +1670,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let collectionRef = db.collection("users/\(userId)/collections").document(collectionId.uuidString)
+        let collectionRef = db.collection("users/\(userId)/collections").document(collectionId.firebaseString)
         try await collectionRef.delete()
 
         logger.log("Collection deleted", category: .sync, level: .info, metadata: nil)
@@ -1741,7 +1740,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                         loadingCollectionIds.remove(collection.id)
                         syncProgress.removeValue(forKey: collection.id)
                         Log.info("Collection finished loading", category: .sync, metadata: [
-                            "collectionId": collection.id.uuidString,
+                            "collectionId": collection.id.firebaseString,
                             "recipeCount": currentRecipeCount
                         ])
                     }
@@ -1756,13 +1755,13 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let tagRef = db.collection("users/\(userId)/tags").document(tag.id.uuidString)
+        let tagRef = db.collection("users/\(userId)/tags").document(tag.id.firebaseString)
 
         var data: [String: Any] = [:]
-        data["id"] = tag.id.uuidString
+        data["id"] = tag.id.firebaseString
         data["name"] = tag.name
         data["color"] = tag.color
-        data["recipeIds"] = tag.recipes?.map { $0.id.uuidString } ?? []
+        data["recipeIds"] = tag.recipes?.map { $0.id.firebaseString } ?? []
 
         try await tagRef.setData(data)
         logger.log("Tag uploaded", category: .sync, level: .info, metadata: nil)
@@ -1774,7 +1773,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let tagRef = db.collection("users/\(userId)/tags").document(tagId.uuidString)
+        let tagRef = db.collection("users/\(userId)/tags").document(tagId.firebaseString)
         try await tagRef.delete()
 
         logger.log("Tag deleted", category: .sync, level: .info, metadata: nil)
@@ -1788,11 +1787,11 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let cartRef = db.collection("users/\(userId)/shoppingCart").document(cartRecipe.id.uuidString)
+        let cartRef = db.collection("users/\(userId)/shoppingCart").document(cartRecipe.id.firebaseString)
 
         var data: [String: Any] = [:]
-        data["id"] = cartRecipe.id.uuidString
-        data["recipeId"] = cartRecipe.recipe?.id.uuidString as Any
+        data["id"] = cartRecipe.id.firebaseString
+        data["recipeId"] = cartRecipe.recipe?.id.firebaseString as Any
         data["targetServings"] = cartRecipe.targetServings
         data["dateAdded"] = Timestamp(date: cartRecipe.dateAdded)
 
@@ -1806,7 +1805,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let cartRef = db.collection("users/\(userId)/shoppingCart").document(cartRecipeId.uuidString)
+        let cartRef = db.collection("users/\(userId)/shoppingCart").document(cartRecipeId.firebaseString)
         try await cartRef.delete()
 
         logger.log("Shopping cart recipe deleted", category: .sync, level: .info, metadata: nil)
@@ -1820,15 +1819,15 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let partyRef = db.collection("users/\(userId)/dinnerParties").document(party.id.uuidString)
+        let partyRef = db.collection("users/\(userId)/dinnerParties").document(party.id.firebaseString)
 
         var data: [String: Any] = [:]
-        data["id"] = party.id.uuidString
+        data["id"] = party.id.firebaseString
         data["name"] = party.name
         data["mealTime"] = Timestamp(date: party.mealTime)
         data["guestCount"] = party.guestCount
         data["desc"] = party.desc as Any
-        data["recipeIds"] = party.recipes?.map { $0.id.uuidString } ?? []
+        data["recipeIds"] = party.recipes?.map { $0.id.firebaseString } ?? []
         data["createdDate"] = Timestamp(date: party.createdDate)
 
         try await partyRef.setData(data)
@@ -1841,7 +1840,7 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
             throw SyncError.notAuthenticated
         }
 
-        let partyRef = db.collection("users/\(userId)/dinnerParties").document(partyId.uuidString)
+        let partyRef = db.collection("users/\(userId)/dinnerParties").document(partyId.firebaseString)
         try await partyRef.delete()
 
         logger.log("Meal plan deleted", category: .sync, level: .info, metadata: nil)

@@ -213,7 +213,7 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
 
         // Query Firebase for all lineage records with this root
         let snapshot = try await db.collection("lineages")
-            .whereField("rootRecipeId", isEqualTo: rootRecipeId.uuidString)
+            .whereField("rootRecipeId", isEqualTo: rootRecipeId.firebaseString)
             .whereField("rootOwnerId", isEqualTo: userId)
             .getDocuments()
 
@@ -256,10 +256,10 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
         }
 
         let lineageData: [String: Any] = [
-            "id": lineage.id.uuidString,
-            "rootRecipeId": lineage.rootRecipeId.uuidString,
-            "parentRecipeId": lineage.parentRecipeId?.uuidString as Any,
-            "currentRecipeId": lineage.currentRecipeId.uuidString,
+            "id": lineage.id.firebaseString,
+            "rootRecipeId": lineage.rootRecipeId.firebaseString,
+            "parentRecipeId": lineage.parentRecipeId?.firebaseString as Any,
+            "currentRecipeId": lineage.currentRecipeId.firebaseString,
             "ownerId": lineage.ownerId,
             "rootOwnerId": lineage.rootOwnerId,
             "generation": lineage.generation,
@@ -272,11 +272,11 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
         ]
 
         // Store in user's lineages collection
-        let docRef = db.collection("users/\(userId)/lineages").document(lineage.id.uuidString)
+        let docRef = db.collection("users/\(userId)/lineages").document(lineage.id.firebaseString)
         try await docRef.setData(lineageData, merge: true)
 
         // Also store in global lineages index for cross-user queries
-        let globalRef = db.collection("lineages").document(lineage.id.uuidString)
+        let globalRef = db.collection("lineages").document(lineage.id.firebaseString)
         try await globalRef.setData(lineageData, merge: true)
 
         // Update local sync timestamp
@@ -295,7 +295,7 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
         // Update lineage document with new modification
         let modificationData = modificationToDict(modification)
 
-        let docRef = db.collection("users/\(userId)/lineages").document(lineage.id.uuidString)
+        let docRef = db.collection("users/\(userId)/lineages").document(lineage.id.firebaseString)
         try await docRef.updateData([
             "modifications": FieldValue.arrayUnion([modificationData]),
             "lastModified": Timestamp(date: modification.timestamp),
@@ -303,7 +303,7 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
         ])
 
         // Also update global index
-        let globalRef = db.collection("lineages").document(lineage.id.uuidString)
+        let globalRef = db.collection("lineages").document(lineage.id.firebaseString)
         try await globalRef.updateData([
             "modifications": FieldValue.arrayUnion([modificationData]),
             "lastModified": Timestamp(date: modification.timestamp),
@@ -337,7 +337,7 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
         // Query for ALL lineage records with same root (entire network)
         // Removed generation filter - notify everyone, not just ancestors
         let snapshot = try await db.collection("lineages")
-            .whereField("rootRecipeId", isEqualTo: lineage.rootRecipeId.uuidString)
+            .whereField("rootRecipeId", isEqualTo: lineage.rootRecipeId.firebaseString)
             .getDocuments()
 
         Log.debug("Found network members to notify", category: .firebase, metadata: [
@@ -404,7 +404,7 @@ class FirebaseLineageService: ObservableObject, FirebaseLineageServiceProtocol {
 
     private func modificationToDict(_ modification: ModificationRecord) -> [String: Any] {
         return [
-            "id": modification.id.uuidString,
+            "id": modification.id.firebaseString,
             "timestamp": Timestamp(date: modification.timestamp),
             "modifiedBy": modification.modifiedBy,
             "modifiedByName": modification.modifiedByName as Any,

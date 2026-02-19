@@ -212,7 +212,7 @@ final class RecipeLineageService {
     ) async throws -> [String: Any] {
         // Use .server source to get fresh data
         let doc = try await db.collection("users/\(ownerId)/recipes")
-            .document(recipeId.uuidString)
+            .document(recipeId.firebaseString)
             .getDocument(source: .server)
 
         guard doc.exists, var data = doc.data() else {
@@ -223,7 +223,7 @@ final class RecipeLineageService {
 
         // Fetch ingredients subcollection
         let ingredientsSnapshot = try await db.collection("users/\(ownerId)/recipes")
-            .document(recipeId.uuidString)
+            .document(recipeId.firebaseString)
             .collection("ingredients")
             .getDocuments(source: .server)
 

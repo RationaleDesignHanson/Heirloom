@@ -62,7 +62,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
 
             let uploadBatch = configuration.db.batch()
             for ingredient in ingredients {
-                let ingredientRef = ingredientsRef.document(ingredient.id.uuidString)
+                let ingredientRef = ingredientsRef.document(ingredient.id.firebaseString)
                 let ingredientData = FirebaseRecordConverter.convertIngredientToFirestoreData(ingredient)
                 uploadBatch.setData(ingredientData, forDocument: ingredientRef)
             }
@@ -124,7 +124,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
         if !comments.isEmpty {
             let uploadBatch = configuration.db.batch()
             for comment in comments {
-                let commentRef = commentsRef.document(comment.id.uuidString)
+                let commentRef = commentsRef.document(comment.id.firebaseString)
                 let commentData = FirebaseRecordConverter.convertCommentToFirestoreData(comment)
                 uploadBatch.setData(commentData, forDocument: commentRef)
             }
@@ -203,14 +203,14 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             throw FirebaseError.notAuthenticated
         }
 
-        let collectionRef = try configuration.collectionsCollection().document(collection.id.uuidString)
+        let collectionRef = try configuration.collectionsCollection().document(collection.id.firebaseString)
 
         var data: [String: Any] = [:]
-        data["id"] = collection.id.uuidString
+        data["id"] = collection.id.firebaseString
         data["name"] = collection.name
         data["desc"] = collection.desc as Any
         data["createdDate"] = Timestamp(date: collection.createdDate)
-        data["recipeIds"] = collection.recipes?.map { $0.id.uuidString } ?? []
+        data["recipeIds"] = collection.recipes?.map { $0.id.firebaseString } ?? []
 
         try await collectionRef.setData(data)
         logger.log("Collection uploaded successfully", category: .sync, level: .info, metadata: nil)
@@ -224,7 +224,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             throw FirebaseError.notAuthenticated
         }
 
-        let collectionRef = try configuration.collectionsCollection().document(collectionId.uuidString)
+        let collectionRef = try configuration.collectionsCollection().document(collectionId.firebaseString)
         try await collectionRef.delete()
 
         logger.log("Collection deleted successfully", category: .sync, level: .info, metadata: nil)
@@ -240,13 +240,13 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             throw FirebaseError.notAuthenticated
         }
 
-        let tagRef = try configuration.tagsCollection().document(tag.id.uuidString)
+        let tagRef = try configuration.tagsCollection().document(tag.id.firebaseString)
 
         var data: [String: Any] = [:]
-        data["id"] = tag.id.uuidString
+        data["id"] = tag.id.firebaseString
         data["name"] = tag.name
         data["color"] = tag.color
-        data["recipeIds"] = tag.recipes?.map { $0.id.uuidString } ?? []
+        data["recipeIds"] = tag.recipes?.map { $0.id.firebaseString } ?? []
 
         try await tagRef.setData(data)
         logger.log("Tag uploaded successfully", category: .sync, level: .info, metadata: nil)
@@ -260,7 +260,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             throw FirebaseError.notAuthenticated
         }
 
-        let tagRef = try configuration.tagsCollection().document(tagId.uuidString)
+        let tagRef = try configuration.tagsCollection().document(tagId.firebaseString)
         try await tagRef.delete()
 
         logger.log("Tag deleted successfully", category: .sync, level: .info, metadata: nil)
@@ -276,11 +276,11 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             throw FirebaseError.notAuthenticated
         }
 
-        let cartRef = try configuration.shoppingCartCollection().document(cartRecipe.id.uuidString)
+        let cartRef = try configuration.shoppingCartCollection().document(cartRecipe.id.firebaseString)
 
         var data: [String: Any] = [:]
-        data["id"] = cartRecipe.id.uuidString
-        data["recipeId"] = cartRecipe.recipe?.id.uuidString as Any
+        data["id"] = cartRecipe.id.firebaseString
+        data["recipeId"] = cartRecipe.recipe?.id.firebaseString as Any
         data["targetServings"] = cartRecipe.targetServings
         data["dateAdded"] = Timestamp(date: cartRecipe.dateAdded)
 
@@ -296,7 +296,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             throw FirebaseError.notAuthenticated
         }
 
-        let cartRef = try configuration.shoppingCartCollection().document(cartRecipeId.uuidString)
+        let cartRef = try configuration.shoppingCartCollection().document(cartRecipeId.firebaseString)
         try await cartRef.delete()
 
         logger.log("Shopping cart recipe deleted successfully", category: .sync, level: .info, metadata: nil)
@@ -312,15 +312,15 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             throw FirebaseError.notAuthenticated
         }
 
-        let partyRef = try configuration.dinnerPartiesCollection().document(party.id.uuidString)
+        let partyRef = try configuration.dinnerPartiesCollection().document(party.id.firebaseString)
 
         var data: [String: Any] = [:]
-        data["id"] = party.id.uuidString
+        data["id"] = party.id.firebaseString
         data["name"] = party.name
         data["mealTime"] = Timestamp(date: party.mealTime)
         data["guestCount"] = party.guestCount
         data["desc"] = party.desc as Any
-        data["recipeIds"] = party.recipes?.map { $0.id.uuidString } ?? []
+        data["recipeIds"] = party.recipes?.map { $0.id.firebaseString } ?? []
         data["createdDate"] = Timestamp(date: party.createdDate)
 
         try await partyRef.setData(data)
@@ -335,7 +335,7 @@ class FirebaseCollectionSync: FirebaseCollectionSyncProtocol {
             throw FirebaseError.notAuthenticated
         }
 
-        let partyRef = try configuration.dinnerPartiesCollection().document(partyId.uuidString)
+        let partyRef = try configuration.dinnerPartiesCollection().document(partyId.firebaseString)
         try await partyRef.delete()
 
         logger.log("Meal plan deleted successfully", category: .sync, level: .info, metadata: nil)

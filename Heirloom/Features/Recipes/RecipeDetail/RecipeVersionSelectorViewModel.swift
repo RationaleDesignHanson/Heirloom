@@ -458,7 +458,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         // CRITICAL: Use .server source to get fresh data, not stale cache
         // This ensures we see the latest edits from other devices
         let doc = try await db.collection("users/\(ownerId)/recipes")
-            .document(recipeId.uuidString)
+            .document(recipeId.firebaseString)
             .getDocument(source: .server)
 
         guard doc.exists, var data = doc.data() else {
@@ -469,7 +469,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
 
         // Fetch ingredients subcollection (also from server, not cache)
         let ingredientsSnapshot = try await db.collection("users/\(ownerId)/recipes")
-            .document(recipeId.uuidString)
+            .document(recipeId.firebaseString)
             .collection("ingredients")
             .getDocuments(source: .server)
 
