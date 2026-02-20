@@ -127,13 +127,23 @@ final class RecipeCollection {
         set { collectionType = newValue.rawValue }
     }
 
+    /// Whether this is the Favorites system collection
+    var isFavorites: Bool {
+        name == "Favorites" && isSystemCollection
+    }
+
     var isVisibleInMainList: Bool {
         // "All Recipes" only visible once it has recipes (appears after first user-added recipe)
         if isAllRecipes {
             return recipeCount > 0
         }
 
-        // Other system collections are hidden (Favorites, Quick Meals, Meal Prep)
+        // Favorites visible when it has recipes
+        if isFavorites {
+            return recipeCount > 0
+        }
+
+        // Other system collections are hidden (Quick Meals, Meal Prep)
         if isSystemCollection {
             return false
         }

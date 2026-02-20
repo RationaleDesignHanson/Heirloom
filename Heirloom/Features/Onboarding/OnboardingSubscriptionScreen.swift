@@ -53,7 +53,7 @@ struct OnboardingSubscriptionScreen: View {
 
             VStack(spacing: 0) {
                 // Progress indicator
-                Text("2/5")
+                Text("5/6")
                     .font(HeirloomFonts.caption1)
                     .foregroundColor(HeirloomColors.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -61,11 +61,10 @@ struct OnboardingSubscriptionScreen: View {
                     .padding(.bottom, 8)
 
                 // Scrollable content
-                GeometryReader { geometry in
-                    ScrollView {
-                    VStack(spacing: 24) {
+                ScrollView {
+                    VStack(spacing: 20) {
                         // Header
-                        VStack(spacing: 12) {
+                        VStack(spacing: 10) {
                             Text("Choose your plan")
                                 .font(HeirloomFonts.title1Elevated)
                                 .multilineTextAlignment(.center)
@@ -78,7 +77,6 @@ struct OnboardingSubscriptionScreen: View {
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.horizontal, 24)
-                        .padding(.top, 8)
 
                         // Plan selection cards
                         VStack(spacing: 10) {
@@ -104,54 +102,70 @@ struct OnboardingSubscriptionScreen: View {
                         featureComparison
                             .padding(.horizontal, 24)
                     }
+                    .padding(.top, 8)
                     .padding(.bottom, 16)
-                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
-                    }
                 }
 
-                // Fixed bottom CTAs
+                // Fixed bottom CTAs - Split button layout
                 VStack(spacing: 12) {
-                    // Dynamic CTA Button
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        purchaseSelectedPlan()
-                    }) {
-                        VStack(spacing: 4) {
-                            if isLoading {
-                                ProgressView()
-                                    .progressViewStyle(.circular)
-                                    .tint(.white)
-                            } else {
-                                Text(ctaTitle)
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                if let subtitle = ctaSubtitle {
-                                    Text(subtitle)
-                                        .font(.caption)
-                                        .opacity(0.9)
+                    // Split buttons: Trial on left, Free on right
+                    HStack(spacing: 12) {
+                        // Start Free Trial Button (Left)
+                        Button(action: {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            purchaseSelectedPlan()
+                        }) {
+                            VStack(spacing: 3) {
+                                if isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                        .tint(.white)
+                                } else {
+                                    Text(ctaTitle)
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                    if let subtitle = ctaSubtitle {
+                                        Text(subtitle)
+                                            .font(.caption2)
+                                            .opacity(0.85)
+                                    }
                                 }
                             }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(HeirloomColors.tomato)
+                            .foregroundColor(.white)
+                            .cornerRadius(14)
+                            .shadow(color: HeirloomColors.tomato.opacity(0.25), radius: 8, y: 4)
                         }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(HeirloomColors.tomato)
-                        .foregroundColor(.white)
-                        .cornerRadius(16)
-                        .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
-                    }
-                    .disabled(isLoading)
+                        .disabled(isLoading)
 
-                    // Continue Free Button
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        onSkip()
-                    }) {
-                        Text("Continue free")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                        // Continue Free Button (Right)
+                        Button(action: {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            onSkip()
+                        }) {
+                            VStack(spacing: 3) {
+                                Text("Continue")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                Text("Free")
+                                    .font(.caption2)
+                                    .opacity(0.8)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.white)
+                            .foregroundColor(HeirloomColors.primaryText)
+                            .cornerRadius(14)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                            .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
+                        }
+                        .disabled(isLoading)
                     }
-                    .disabled(isLoading)
-                    .padding(.bottom, 4)
 
                     // Error Message
                     if let error = errorMessage {
@@ -408,6 +422,10 @@ struct OnboardingSubscriptionScreen: View {
     private func purchaseSelectedPlan() {
         isLoading = true
         errorMessage = nil
+
+        // Mark that user is initiating a purchase (for demo account handling)
+        // Pass the product ID so we can distinguish from background transactions for other products
+        subscriptionManager.markPurchaseStarted(for: selectedPlan)
 
         Task {
             // Track analytics

@@ -224,13 +224,26 @@ struct HeirloomApp: App {
         }
 
         // MARK: - RevenueCat Configuration
+        // NOTE: Test API key only works in DEBUG builds
+        // For production, configure with production API key from RevenueCat dashboard
+        #if DEBUG
         if !isRunningTests {
-            DeviceLogger.shared.log("💰 [Heirloom] Configuring RevenueCat...")
-            Purchases.logLevel = .debug  // Set to .info or .warn for production
+            DeviceLogger.shared.log("💰 [Heirloom] Configuring RevenueCat (DEBUG)...")
+            Purchases.logLevel = .debug
             Purchases.configure(withAPIKey: "test_RefGbqhSIbSECFNGUGbUDnNRRNw")
             DeviceLogger.shared.log("✅ [Heirloom] RevenueCat configured")
             Log.info("RevenueCat initialized", category: .store)
         }
+        #else
+        // Release builds use production RevenueCat API key
+        if !isRunningTests {
+            DeviceLogger.shared.log("💰 [Heirloom] Configuring RevenueCat (RELEASE)...")
+            Purchases.logLevel = .error  // Minimal logging in production
+            Purchases.configure(withAPIKey: "appl_OobJujIDPRIrgfkTuTZvuJpMZSc")
+            DeviceLogger.shared.log("✅ [Heirloom] RevenueCat configured (production)")
+            Log.info("RevenueCat initialized (production)", category: .store)
+        }
+        #endif
 
         // Log active backend
         DeviceLogger.shared.log("🔧 [Heirloom] Active backend: Firebase")
@@ -1155,8 +1168,37 @@ struct RootView: View {
                     let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
                     syncService.startAutomaticSync()
 
+                    // Configure deletion test account themes on launch (not just sign-in)
+                    let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+                    if subscriptionManager.isDeletionTestAccount(email: authService.currentUserEmail) {
+                        Log.info("Deletion test account detected on launch - configuring themes", category: .theme)
+                        let themeTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+                        themeTracker.configureForDeletionTest()
+
+                        // Re-download theme recipes if missing (happens after sign-out clears local data)
+                        let context = modelContainer.mainContext
+                        Task { @MainActor in
+                            let selectedThemes = themeTracker.selectedThemeIds
+                            guard !selectedThemes.isEmpty else { return }
+
+                            let descriptor = FetchDescriptor<Recipe>(
+                                predicate: #Predicate { $0.isThemeRecipe == true }
+                            )
+                            let existingCount = (try? context.fetch(descriptor).count) ?? 0
+                            if existingCount > 0 { return }
+
+                            Log.info("Theme recipes missing - re-downloading for deletion test", category: .theme)
+                            let themeRecipeService = ThemeRecipeService()
+                            if let recipes = try? await themeRecipeService.downloadRecipes(for: selectedThemes, into: context) {
+                                try? context.save()
+                                Log.info("Re-downloaded \(recipes.count) theme recipes", category: .theme)
+                            }
+                        }
+                    }
+
                     // Heritage sync moved to AFTER recipe seeding (in ContentView and OnboardingContainerView)
                     // This ensures recipes are seeded before creating the unlock schedule
+                    // Theme sync is handled in ContentView.onAppear via syncThemeDataOnLogin()
                 }
             }
             .onChange(of: authService.isAuthenticated) { oldValue, newValue in
@@ -1177,10 +1219,464 @@ struct RootView: View {
                     // Cloud sync is now available to all users
                     // Resolve sync service now (after Firebase is initialized)
                     let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+
+                    // CRITICAL: Clear lastSyncDate to force full sync on sign-in
+                    // This ensures all user data is downloaded, not just changes since last sync
+                    UserDefaults.standard.removeObject(forKey: "firebase_lastSyncDate")
+                    syncService.lastSyncDate = nil
+                    Log.info("Cleared lastSyncDate for fresh full sync on sign-in", category: .sync)
+
                     syncService.startAutomaticSync()
 
                     // Heritage sync moved to AFTER recipe seeding (in ContentView and OnboardingContainerView)
                     // This ensures recipes are seeded before creating the unlock schedule
+
+                    // App Store Review: Configure demo account for Apple's review
+                    // - Expires any active trial so Apple sees the paywall
+                    // - Zeros out credits so Apple can test credit purchases
+                    // - Configures themes at day 3 so Apple can see theme content
+                    let subscriptionManager = ServiceContainer.shared.resolve(SubscriptionManager.self)
+                    if subscriptionManager.isDemoAccount(email: authService.currentUserEmail) {
+                        Log.info("Demo account detected - configuring for App Store Review", category: .store)
+                        DeviceLogger.shared.log("🍎 [AppStoreReview] Demo account sign-in - configuring for review")
+
+                        // CRITICAL: Always skip onboarding for demo account (App Store Review)
+                        // Apple reviewers should see content immediately, not onboarding
+                        // Use UserDefaults directly since we're in RootView, not ContentView
+                        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+
+                        // Check if this is a session restoration (already configured) vs fresh sign-in
+                        // If already configured AND user has purchased, don't reset - preserve purchase state
+                        // This handles the case where Firebase auth state fires again during a session
+                        if subscriptionManager.isDemoAccountConfigured && subscriptionManager.demoAccountHasPurchased {
+                            Log.info("Demo account already configured with purchase - preserving state", category: .store)
+                            DeviceLogger.shared.log("🍎 [AppStoreReview] Session restore - preserving purchase state", level: .info)
+                            // Skip reset and reconfiguration - user is actively using the app
+                        } else {
+                            // Fresh sign-in or no purchase yet - reset for clean testing
+                            subscriptionManager.resetDemoAccountPurchaseFlag()
+                            subscriptionManager.configureForAppStoreReview()
+                        }
+
+                        // Configure themes at day 3 so Apple can see theme content
+                        let themeTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+                        themeTracker.configureForDemoAccount()
+                        DeviceLogger.shared.log("🍎 [AppStoreReview] Theme trial set to day 3 with demo themes", level: .info)
+
+                        // Set up theme collections and recipes for demo account
+                        let context = modelContainer.mainContext
+                        Task { @MainActor in
+                            let selectedThemeIds = themeTracker.selectedThemeIds
+                            guard !selectedThemeIds.isEmpty else { return }
+
+                            // Check if theme recipes already exist
+                            let recipeDescriptor = FetchDescriptor<Recipe>(
+                                predicate: #Predicate { $0.isThemeRecipe == true }
+                            )
+                            let existingRecipeCount = (try? context.fetch(recipeDescriptor).count) ?? 0
+
+                            if existingRecipeCount > 0 {
+                                DeviceLogger.shared.log("🍎 [AppStoreReview] Theme recipes already exist (\(existingRecipeCount)), skipping setup", level: .info)
+                                return
+                            }
+
+                            // Load themes from Firebase to get their metadata
+                            Log.info("Loading themes from Firebase for demo account", category: .theme)
+                            let themeLoader = ThemeLoader()
+                            guard let themes = try? await themeLoader.loadThemes(into: context) else {
+                                Log.error("Failed to load themes for demo account", category: .theme)
+                                return
+                            }
+
+                            // Create theme collections for selected themes
+                            let selectedThemes = themes.filter { selectedThemeIds.contains($0.firebaseId) }
+                            for theme in selectedThemes {
+                                // Check if collection already exists
+                                let themeName = theme.name
+                                let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+                                    predicate: #Predicate<RecipeCollection> { collection in
+                                        collection.name == themeName && collection.collectionType == "theme"
+                                    }
+                                )
+
+                                if let existing = try? context.fetch(collectionDescriptor).first {
+                                    existing.sourceTheme = theme
+                                    existing.sourceThemeId = theme.firebaseId
+                                    theme.collection = existing
+                                } else {
+                                    let collection = RecipeCollection(
+                                        name: theme.name,
+                                        iconName: theme.iconName,
+                                        collectionType: .theme
+                                    )
+                                    collection.sourceTheme = theme
+                                    collection.sourceThemeId = theme.firebaseId
+                                    theme.collection = collection
+                                    context.insert(collection)
+                                }
+                            }
+                            try? context.save()
+                            DeviceLogger.shared.log("🍎 [AppStoreReview] Created \(selectedThemes.count) theme collections", level: .info)
+
+                            // Download theme recipes (will link to collections)
+                            Log.info("Downloading theme recipes for demo account", category: .theme)
+                            let themeRecipeService = ThemeRecipeService()
+                            if let recipes = try? await themeRecipeService.downloadRecipes(for: selectedThemeIds, into: context) {
+                                try? context.save()
+                                Log.info("Downloaded \(recipes.count) theme recipes for demo account", category: .theme)
+                                DeviceLogger.shared.log("🍎 [AppStoreReview] Downloaded \(recipes.count) theme recipes", level: .info)
+                            }
+
+                            // Ensure Favorites collection exists for demo account
+                            let favoritesDescriptor = FetchDescriptor<RecipeCollection>(
+                                predicate: #Predicate<RecipeCollection> { $0.name == "Favorites" }
+                            )
+                            if (try? context.fetch(favoritesDescriptor).first) == nil {
+                                let favorites = RecipeCollection(name: "Favorites", iconName: "heart.fill", collectionType: .system)
+                                context.insert(favorites)
+                                try? context.save()
+                                DeviceLogger.shared.log("🍎 [AppStoreReview] Created Favorites collection", level: .info)
+                            }
+
+                            // Trigger UI refresh after theme content setup (collections + recipes as a package)
+                            NotificationCenter.default.post(name: .themeContentReady, object: nil)
+                            DeviceLogger.shared.log("🍎 [AppStoreReview] Posted themeContentReady notification", level: .info)
+                        }
+
+                        // Zero out credits so Apple can test credit purchases
+                        Task { @MainActor in
+                            do {
+                                let modelContext = modelContainer.mainContext
+                                if let userId = authService.currentUser?.uid {
+                                    var descriptor = FetchDescriptor<UserCredits>()
+                                    descriptor.predicate = #Predicate<UserCredits> { credits in
+                                        credits.userId == userId
+                                    }
+
+                                    let userCredits: UserCredits
+                                    if let existing = try modelContext.fetch(descriptor).first {
+                                        userCredits = existing
+                                        DeviceLogger.shared.log("🍎 [AppStoreReview] Found existing UserCredits record", level: .info)
+                                    } else {
+                                        // Create new record for demo account
+                                        userCredits = UserCredits(userId: userId)
+                                        modelContext.insert(userCredits)
+                                        DeviceLogger.shared.log("🍎 [AppStoreReview] Created new UserCredits record for demo", level: .info)
+                                    }
+
+                                    // Zero out both tier and purchased credits
+                                    // Set tier to expired FIRST so allocation is 0
+                                    userCredits.tierType = "expired"
+                                    userCredits.tierCreditsUsed = 0  // No tier credits used (allocation is 0 anyway)
+                                    userCredits.creditsBalance = 0   // No purchased credits
+                                    try modelContext.save()
+
+                                    DeviceLogger.shared.log("🍎 [AppStoreReview] Credits zeroed: tier=expired, tierUsed=0, purchased=0, total=\(userCredits.availableCredits)", level: .info)
+                                    Log.info("Credits zeroed for App Store Review demo account", category: .store)
+                                }
+                            } catch {
+                                DeviceLogger.shared.log("🍎 [AppStoreReview] ERROR zeroing credits: \(error.localizedDescription)", level: .error)
+                                Log.error("Failed to zero credits for demo account: \(error.localizedDescription)", category: .store)
+                            }
+                        }
+
+                        // Profile seeding for demo account (with avatar)
+                        Task { @MainActor in
+                            let profileService = ServiceContainer.shared.resolve(FirebaseProfileService.self)
+                            do {
+                                var profile = try await profileService.fetchCurrentUserProfile()
+
+                                // Demo account avatar - a friendly chef icon
+                                // Using a stable placeholder that works for App Store Review
+                                let demoAvatarURL = "https://api.dicebear.com/7.x/avataaars/png?seed=ApplePurchaseDemo&backgroundColor=b6e3f4"
+
+                                // Update if display name or photo doesn't match expected demo values
+                                var needsUpdate = false
+                                if profile.displayName != "ApplePurchaseDemo" {
+                                    profile.displayName = "ApplePurchaseDemo"
+                                    needsUpdate = true
+                                }
+                                if profile.photoURL != demoAvatarURL {
+                                    profile.photoURL = demoAvatarURL
+                                    needsUpdate = true
+                                }
+
+                                if needsUpdate {
+                                    try await profileService.updateProfile(profile)
+                                    DeviceLogger.shared.log("🍎 [AppStoreReview] Profile seeded: displayName=ApplePurchaseDemo, avatar=set", level: .info)
+                                    Log.info("Demo account profile seeded with display name and avatar", category: .auth)
+                                } else {
+                                    DeviceLogger.shared.log("🍎 [AppStoreReview] Profile already configured", level: .info)
+                                }
+                            } catch {
+                                DeviceLogger.shared.log("🍎 [AppStoreReview] ERROR seeding profile: \(error.localizedDescription)", level: .error)
+                                Log.error("Failed to seed demo account profile: \(error.localizedDescription)", category: .auth)
+                            }
+                        }
+                    } else if subscriptionManager.isDeletionTestAccount(email: authService.currentUserEmail) {
+                        // Deletion test account: Configure for self-healing after account re-creation
+                        // This allows Apple to test: delete account → re-create → see content immediately
+                        Log.info("Deletion test account detected - configuring for self-healing", category: .theme)
+                        DeviceLogger.shared.log("🧪 [DeletionTest] Deletion test account sign-in - self-healing")
+
+                        // CRITICAL: Skip onboarding for deletion test account (self-heal)
+                        // After account deletion and re-creation, we want to immediately show content
+                        // Use UserDefaults directly since we're in RootView, not ContentView
+                        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+
+                        let themeTracker = ServiceContainer.shared.resolve(ThemeUnlockTracker.self)
+                        themeTracker.configureForDeletionTest()
+
+                        // Set up theme collections and recipes for deletion test account
+                        let context = modelContainer.mainContext
+                        Task { @MainActor in
+                            let selectedThemeIds = themeTracker.selectedThemeIds
+                            guard !selectedThemeIds.isEmpty else { return }
+
+                            // Check if theme collections already exist
+                            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+                                predicate: #Predicate<RecipeCollection> { $0.collectionType == "theme" }
+                            )
+                            let existingCollections = (try? context.fetch(collectionDescriptor)) ?? []
+
+                            // Only set up if collections are missing
+                            if existingCollections.isEmpty {
+                                // Load themes from Firebase to get their metadata
+                                Log.info("Loading themes from Firebase for deletion test account", category: .theme)
+                                let themeLoader = ThemeLoader()
+                                guard let themes = try? await themeLoader.loadThemes(into: context) else {
+                                    Log.error("Failed to load themes for deletion test account", category: .theme)
+                                    return
+                                }
+
+                                // Create theme collections for selected themes
+                                let selectedThemes = themes.filter { selectedThemeIds.contains($0.firebaseId) }
+                                for theme in selectedThemes {
+                                    let themeName = theme.name
+                                    let existingDescriptor = FetchDescriptor<RecipeCollection>(
+                                        predicate: #Predicate<RecipeCollection> { collection in
+                                            collection.name == themeName && collection.collectionType == "theme"
+                                        }
+                                    )
+
+                                    if let existing = try? context.fetch(existingDescriptor).first {
+                                        existing.sourceTheme = theme
+                                        existing.sourceThemeId = theme.firebaseId
+                                        theme.collection = existing
+                                    } else {
+                                        let collection = RecipeCollection(
+                                            name: theme.name,
+                                            iconName: theme.iconName,
+                                            collectionType: .theme
+                                        )
+                                        collection.sourceTheme = theme
+                                        collection.sourceThemeId = theme.firebaseId
+                                        theme.collection = collection
+                                        context.insert(collection)
+                                    }
+                                }
+                                try? context.save()
+                                DeviceLogger.shared.log("🧪 [DeletionTest] Created \(selectedThemes.count) theme collections", level: .info)
+
+                                // Download theme recipes (will link to collections)
+                                let recipeDescriptor = FetchDescriptor<Recipe>(
+                                    predicate: #Predicate { $0.isThemeRecipe == true }
+                                )
+                                let existingRecipeCount = (try? context.fetch(recipeDescriptor).count) ?? 0
+
+                                if existingRecipeCount == 0 {
+                                    Log.info("Theme recipes missing - downloading for deletion test account", category: .theme)
+                                    let themeRecipeService = ThemeRecipeService()
+                                    if let recipes = try? await themeRecipeService.downloadRecipes(for: selectedThemeIds, into: context) {
+                                        try? context.save()
+                                        Log.info("Downloaded \(recipes.count) theme recipes for deletion test account", category: .theme)
+                                        DeviceLogger.shared.log("🧪 [DeletionTest] Downloaded \(recipes.count) theme recipes", level: .info)
+                                    }
+                                }
+
+                                // Trigger UI refresh after theme content setup (collections + recipes as a package)
+                                NotificationCenter.default.post(name: .themeContentReady, object: nil)
+                                DeviceLogger.shared.log("🧪 [DeletionTest] Posted themeContentReady notification", level: .info)
+                            } else {
+                                DeviceLogger.shared.log("🧪 [DeletionTest] Theme collections already exist (\(existingCollections.count)), skipping setup", level: .info)
+                                // Still notify in case UI needs to refresh
+                                NotificationCenter.default.post(name: .themeContentReady, object: nil)
+                            }
+
+                            // Clean up any orphaned recipes (recipes synced from Firebase without local collections)
+                            // This can happen if previous test sessions left data in Firebase
+                            // Note: Can't use complex predicates with optionals, so fetch all non-theme recipes and filter
+                            let allRecipesDescriptor = FetchDescriptor<Recipe>(
+                                predicate: #Predicate<Recipe> { recipe in
+                                    recipe.isThemeRecipe == false
+                                }
+                            )
+                            if let allNonThemeRecipes = try? context.fetch(allRecipesDescriptor) {
+                                let orphanedRecipes = allNonThemeRecipes.filter { ($0.collections ?? []).isEmpty }
+                                if !orphanedRecipes.isEmpty {
+                                    DeviceLogger.shared.log("🧪 [DeletionTest] Found \(orphanedRecipes.count) orphaned recipes - cleaning up", level: .warning)
+                                    for recipe in orphanedRecipes {
+                                        context.delete(recipe)
+                                    }
+                                    try? context.save()
+                                    DeviceLogger.shared.log("🧪 [DeletionTest] Cleaned up orphaned recipes", level: .info)
+                                }
+                            }
+                        }
+
+                        DeviceLogger.shared.log("🧪 [DeletionTest] Theme trial set to day 3 with default themes", level: .info)
+
+                        // Profile seeding for deletion test account with incrementing display name and avatar
+                        // AppleDeleteDemo01, AppleDeleteDemo02, etc. on each re-creation
+                        // Track respawn count in UserDefaults (persists across account deletions)
+                        Task { @MainActor in
+                            let profileService = ServiceContainer.shared.resolve(FirebaseProfileService.self)
+                            do {
+                                var profile = try await profileService.fetchCurrentUserProfile()
+
+                                let deleteDemoPrefix = "AppleDeleteDemo"
+                                let respawnCountKey = "deletionTestRespawnCount"
+
+                                // Check if profile already has the expected format
+                                // If it does, this is a regular sign-in (not a respawn)
+                                if profile.displayName.hasPrefix(deleteDemoPrefix) {
+                                    // Ensure avatar is set even on regular sign-in
+                                    let expectedAvatar = "https://api.dicebear.com/7.x/avataaars/png?seed=\(profile.displayName)&backgroundColor=ffd5dc"
+                                    if profile.photoURL != expectedAvatar {
+                                        profile.photoURL = expectedAvatar
+                                        try await profileService.updateProfile(profile)
+                                        DeviceLogger.shared.log("🧪 [DeletionTest] Avatar updated for: \(profile.displayName)", level: .info)
+                                    } else {
+                                        DeviceLogger.shared.log("🧪 [DeletionTest] Profile already configured: \(profile.displayName)", level: .info)
+                                    }
+                                } else {
+                                    // This is a respawn (new account after deletion)
+                                    // Increment the respawn counter
+                                    let currentCount = UserDefaults.standard.integer(forKey: respawnCountKey)
+                                    let newCount = currentCount + 1
+                                    UserDefaults.standard.set(newCount, forKey: respawnCountKey)
+
+                                    let newDisplayName = String(format: "%@%02d", deleteDemoPrefix, newCount)
+                                    profile.displayName = newDisplayName
+                                    // Use display name as seed for consistent avatar across respawns
+                                    profile.photoURL = "https://api.dicebear.com/7.x/avataaars/png?seed=\(newDisplayName)&backgroundColor=ffd5dc"
+                                    try await profileService.updateProfile(profile)
+                                    DeviceLogger.shared.log("🧪 [DeletionTest] Profile seeded on respawn #\(newCount): displayName=\(profile.displayName), avatar=set", level: .info)
+                                    Log.info("Deletion test profile seeded with avatar: \(profile.displayName)", category: .auth)
+
+                                    // Trigger full sync to pull down recipes and collections from Firebase
+                                    // This ensures content appears immediately after account recreation
+                                    //
+                                    // IMPORTANT: The Cloud Function onUserCreated seeds the account data.
+                                    // We need to wait for it to complete before syncing.
+                                    // Cloud Functions typically complete within 2-3 seconds.
+                                    let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
+                                    syncService.hasCompletedInitialSync = false // Force loader to show
+
+                                    DeviceLogger.shared.log("🧪 [DeletionTest] Waiting for Cloud Function to seed data...", level: .info)
+                                    try await Task.sleep(nanoseconds: 3_000_000_000) // 3 second delay
+
+                                    DeviceLogger.shared.log("🧪 [DeletionTest] Triggering full sync for respawn", level: .info)
+                                    try await syncService.syncChanges()
+
+                                    // After sync, check if we have data. If not, wait and retry.
+                                    let descriptor = FetchDescriptor<Recipe>()
+                                    let recipeCount = (try? context.fetch(descriptor))?.count ?? 0
+
+                                    if recipeCount == 0 {
+                                        DeviceLogger.shared.log("🧪 [DeletionTest] No recipes found, retrying sync in 2 seconds...", level: .warning)
+                                        try await Task.sleep(nanoseconds: 2_000_000_000) // 2 second retry delay
+                                        try await syncService.syncChanges()
+                                    }
+
+                                    DeviceLogger.shared.log("🧪 [DeletionTest] Full sync completed", level: .info)
+                                }
+                            } catch {
+                                DeviceLogger.shared.log("🧪 [DeletionTest] ERROR seeding profile: \(error.localizedDescription)", level: .error)
+                                Log.error("Failed to seed deletion test profile: \(error.localizedDescription)", category: .auth)
+                            }
+                        }
+                    } else if subscriptionManager.isTesterAccount(email: authService.currentUserEmail) {
+                        // Tester account: Configure for fresh user experience
+                        // This account should go through full onboarding and start as a trial user
+                        // Ignores sandbox subscription data from shared Apple ID
+                        Log.info("Tester account detected - configuring for fresh user experience", category: .store)
+                        DeviceLogger.shared.log("🧪 [Tester] Tester account sign-in - fresh user flow")
+
+                        // DON'T skip onboarding for tester account - they should experience full onboarding
+                        // Only clear demo/deletion test flags
+                        subscriptionManager.clearDemoAccountConfiguration()
+
+                        // Configure tester account (forces trial status, ignores sandbox subscription)
+                        subscriptionManager.configureForTesterAccount()
+
+                        // Create UserCredits for tester account so trial credits show immediately
+                        if let userId = authService.currentUserId {
+                            Task { @MainActor in
+                                do {
+                                    let modelContext = modelContainer.mainContext
+                                    var descriptor = FetchDescriptor<UserCredits>()
+                                    descriptor.predicate = #Predicate<UserCredits> { credits in
+                                        credits.userId == userId
+                                    }
+
+                                    if try modelContext.fetch(descriptor).first == nil {
+                                        let newCredits = UserCredits(userId: userId)
+                                        // Trial tier is default, which gives 50 credits
+                                        modelContext.insert(newCredits)
+                                        try modelContext.save()
+                                        Log.info("Created UserCredits for tester account", category: .store, metadata: [
+                                            "userId": userId,
+                                            "tierType": newCredits.tierType,
+                                            "availableCredits": newCredits.availableCredits
+                                        ])
+                                        DeviceLogger.shared.log("🧪 [Tester] Created UserCredits with \(newCredits.availableCredits) trial credits", level: .info)
+                                    }
+                                } catch {
+                                    Log.error("Failed to create UserCredits for tester account: \(error)", category: .store)
+                                }
+                            }
+                        }
+
+                        DeviceLogger.shared.log("🧪 [Tester] Configured: trial status, full onboarding", level: .info)
+                    } else {
+                        // Non-demo user: clear any demo/tester account configuration
+                        // This restores normal trial behavior if device was previously used for App Store Review testing
+                        if subscriptionManager.isDemoAccountConfigured {
+                            subscriptionManager.clearDemoAccountConfiguration()
+                            DeviceLogger.shared.log("🔄 [Auth] Cleared demo account config for non-demo user", level: .info)
+                        }
+                        if subscriptionManager.isTesterAccountConfigured {
+                            subscriptionManager.clearTesterAccountConfiguration()
+                            DeviceLogger.shared.log("🔄 [Auth] Cleared tester account config for non-tester user", level: .info)
+                        }
+
+                        // Create UserCredits for regular users on sign-in
+                        if let userId = authService.currentUserId {
+                            Task { @MainActor in
+                                do {
+                                    let modelContext = modelContainer.mainContext
+                                    var descriptor = FetchDescriptor<UserCredits>()
+                                    descriptor.predicate = #Predicate<UserCredits> { credits in
+                                        credits.userId == userId
+                                    }
+
+                                    if try modelContext.fetch(descriptor).first == nil {
+                                        let newCredits = UserCredits(userId: userId)
+                                        modelContext.insert(newCredits)
+                                        try modelContext.save()
+                                        Log.info("Created UserCredits on sign-in", category: .store, metadata: [
+                                            "userId": userId,
+                                            "tierType": newCredits.tierType,
+                                            "availableCredits": newCredits.availableCredits
+                                        ])
+                                    }
+                                } catch {
+                                    Log.error("Failed to create UserCredits on sign-in: \(error)", category: .store)
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // When user signs out, stop listeners, sync, and clear badges
@@ -1191,12 +1687,20 @@ struct RootView: View {
                     // Stop automatic sync so it can restart on next sign-in
                     let syncService = ServiceContainer.shared.resolve(FirebaseSyncService.self)
                     syncService.stopAutomaticSync()
-                    Log.info("Stopped automatic sync on sign out", category: .sync)
+                    // Reset initial sync flag so loader shows on next login
+                    syncService.hasCompletedInitialSync = false
+                    Log.info("Stopped automatic sync and reset initial sync flag on sign out", category: .sync)
 
                     // Phase 9: Stop badge listener and clear badge
                     let badgeService = ServiceContainer.shared.resolve(BadgeService.self)
                     badgeService.clearBadge()
                     Log.info("Cleared badge and stopped listener on sign out", category: .social)
+
+                    // Clear demo/tester account configuration so next login starts fresh
+                    let subscriptionMgr = ServiceContainer.shared.resolve(SubscriptionManager.self)
+                    subscriptionMgr.clearDemoAccountConfiguration()
+                    subscriptionMgr.clearTesterAccountConfiguration()
+                    Log.info("Cleared demo/tester account configuration on sign out", category: .store)
                 }
             }
     }
@@ -1258,6 +1762,11 @@ struct RootView: View {
                     // Save changes
                     try modelContext.save()
 
+                    // Recreate system collections (All Recipes, Generated Recipes)
+                    // These are local-only and never synced to Firebase
+                    RecipeCollection.createSystemCollections(context: modelContext)
+                    try modelContext.save()
+
                     Log.info("✅ Successfully cleared all user data from SwiftData", category: .auth)
                     DeviceLogger.shared.log("✅ [Auth] All user data cleared from local storage")
 
@@ -1296,12 +1805,34 @@ struct RootView: View {
             Task { @MainActor in
                 do {
                     let modelContext = container.mainContext
+                    let firebaseAuth = ServiceContainer.shared.resolve(FirebaseAuthService.self)
 
-                    // Fetch user credits
-                    let descriptor = FetchDescriptor<UserCredits>()
-                    guard let userCredits = try modelContext.fetch(descriptor).first else {
-                        Log.warning("No UserCredits found for tier update", category: .store)
+                    // Get current user ID
+                    guard let userId = firebaseAuth.currentUserId else {
+                        Log.warning("No user ID found for tier update", category: .store)
                         return
+                    }
+
+                    // Fetch user credits, create if doesn't exist
+                    var descriptor = FetchDescriptor<UserCredits>()
+                    descriptor.predicate = #Predicate<UserCredits> { credits in
+                        credits.userId == userId
+                    }
+
+                    let userCredits: UserCredits
+                    if let existing = try modelContext.fetch(descriptor).first {
+                        userCredits = existing
+                    } else {
+                        // Create new UserCredits for this user
+                        let newCredits = UserCredits(userId: userId)
+                        modelContext.insert(newCredits)
+                        try modelContext.save()
+                        userCredits = newCredits
+                        Log.info("Created UserCredits for tier update", category: .store, metadata: [
+                            "userId": userId,
+                            "initialTier": newCredits.tierType,
+                            "initialCredits": newCredits.availableCredits
+                        ])
                     }
 
                     // Determine new tier type based on subscription status
@@ -1718,6 +2249,30 @@ struct ContentView: View {
                 needsHeritageSeeding = true
             }
 
+            // CRITICAL: Handle authenticated user with cleared onboarding state
+            // This happens when: user signs out (clears state), then signs back in (auto-authenticated)
+            // We need to check if they're a returning user with existing data
+            if !hasCompletedOnboarding && firebaseAuth.isAuthenticated {
+                Task { @MainActor in
+                    let isReturningUser = await checkForExistingUserData()
+                    if isReturningUser {
+                        Log.info("Returning user detected on appear - skipping onboarding", category: .auth)
+                        hasCompletedOnboarding = true
+
+                        // Sync theme data for returning users
+                        await syncThemeDataOnLogin()
+
+                        // Start services for existing users
+                        DemoSocialBehaviorService.shared.start()
+                        DemoSocialBehaviorService.shared.onOnboardingComplete()
+                    } else {
+                        // User is authenticated but has no data - show onboarding
+                        Log.info("Authenticated user with no data - showing onboarding", category: .auth)
+                        needsHeritageSeeding = true
+                    }
+                }
+            }
+
             // CRITICAL: Auto-recover Heritage recipes on every app launch if user is already authenticated
             // This handles case where recipes were lost between sessions (SwiftData WAL not checkpointed)
             if firebaseAuth.isAuthenticated && hasCompletedOnboarding {
@@ -1737,15 +2292,56 @@ struct ContentView: View {
             }
         }
         .onChange(of: firebaseAuth.isAuthenticated) { oldValue, newValue in
+            // Sign-IN handling
             if newValue && needsHeritageSeeding {
-                // CRITICAL: Download Heritage recipes BEFORE allowing access to main app
-                // This ensures recipes persist because download completes before user can quit
+                // CRITICAL: Check if this is a returning user on a new device
+                // If they have existing data in Firebase, skip onboarding
                 isDownloadingHeritageAfterSignIn = true
                 Task { @MainActor in
-                    await seedHeritageRecipesAfterAuth()
-                    needsHeritageSeeding = false
-                    isDownloadingHeritageAfterSignIn = false
+                    // Check for existing user data before showing onboarding
+                    let isReturningUser = await checkForExistingUserData()
+                    if isReturningUser {
+                        Log.info("Returning user detected - skipping onboarding", category: .auth)
+                        hasCompletedOnboarding = true
+                        needsHeritageSeeding = false
+
+                        // CRITICAL: Sync theme data for returning users (same as new users in onboarding)
+                        // This ensures theme collections appear after login without manual reload
+                        await syncThemeDataOnLogin()
+
+                        isDownloadingHeritageAfterSignIn = false
+                        // Start services for existing users
+                        DemoSocialBehaviorService.shared.start()
+                        DemoSocialBehaviorService.shared.onOnboardingComplete()
+                    } else {
+                        // New user - proceed with normal onboarding flow
+                        await seedHeritageRecipesAfterAuth()
+                        needsHeritageSeeding = false
+                        isDownloadingHeritageAfterSignIn = false
+                    }
                 }
+            }
+
+            // CRITICAL: Handle case where hasCompletedOnboarding is true but user has no Firebase data
+            // This happens when: user completed onboarding, signed out, Firebase data was deleted
+            // (e.g., for testing), but UserDefaults still has hasCompletedOnboarding = true.
+            // On sign-in, we need to check if they actually have data or need re-onboarding.
+            if newValue && hasCompletedOnboarding && !needsHeritageSeeding {
+                Task { @MainActor in
+                    let hasData = await checkForExistingUserData()
+                    if !hasData {
+                        Log.info("User marked as onboarded but has no Firebase data - resetting for re-onboarding", category: .auth)
+                        hasCompletedOnboarding = false
+                        needsHeritageSeeding = true
+                        showSignInSheet = false // Already signed in, will show onboarding
+                    }
+                }
+            }
+
+            // Sign-OUT handling - show login sheet so user can sign back in
+            if oldValue && !newValue {
+                Log.info("User signed out - showing sign-in sheet", category: .auth)
+                showSignInSheet = true
             }
         }
         .overlay {
@@ -2087,6 +2683,89 @@ struct ContentView: View {
         // // Analytics tracking for theme setup
         // let analytics = ServiceContainer.shared.resolve(AnalyticsService.self)
         // analytics.track(event: .appLaunched, properties: ["theme_setup": "collections_created"])
+    }
+
+    /// Sync theme data on login for returning users
+    /// This loads RecipeTheme objects from Firebase and downloads theme recipes
+    /// so that theme collections appear automatically without requiring UI interaction
+    private func syncThemeDataOnLogin() async {
+        guard let modelContainer = ServiceContainer.shared.resolveOptional(ModelContainer.self) else {
+            Log.warning("ModelContainer not available for theme sync", category: .theme)
+            return
+        }
+
+        let modelContext = modelContainer.mainContext
+
+        do {
+            // Step 1: Load RecipeTheme objects from Firebase into SwiftData
+            // (same as done during onboarding in OnboardingContainerView)
+            let loader = ThemeLoader()
+            let themes = try await loader.loadThemes(into: modelContext)
+            Log.info("Loaded themes from Firebase on login", category: .theme, metadata: [
+                "themeCount": themes.count
+            ])
+
+            // Step 2: Download theme recipes for selected themes
+            // selectedThemeIds comes from local UserDefaults via ThemeUnlockTracker
+            let selectedThemeIds = themeUnlockTracker.selectedThemeIds
+
+            guard !selectedThemeIds.isEmpty else {
+                Log.info("No selected themes - skipping recipe download", category: .theme)
+                return
+            }
+
+            Log.info("Downloading theme recipes for selected themes", category: .theme, metadata: [
+                "selectedThemes": selectedThemeIds.count
+            ])
+
+            let recipeService = ThemeRecipeService()
+            let recipes = try await recipeService.downloadRecipes(for: selectedThemeIds, into: modelContext)
+
+            try modelContext.save()
+
+            Log.info("Theme sync complete on login", category: .theme, metadata: [
+                "themesLoaded": themes.count,
+                "recipesDownloaded": recipes.count
+            ])
+
+        } catch {
+            Log.error("Failed to sync themes on login", category: .theme, error: error)
+        }
+    }
+
+    /// Check if user has existing data in Firebase (returning user on new device)
+    /// Returns true if user has recipes or collections, indicating they should skip onboarding
+    private func checkForExistingUserData() async -> Bool {
+        guard let userId = firebaseAuth.currentUserId else {
+            return false
+        }
+
+        let db = Firestore.firestore()
+
+        do {
+            // Check for existing recipes ONLY - if user has any, they're a returning user
+            // NOTE: We don't check collections because:
+            // 1. Empty system collections (Favorites, etc.) may exist without recipes
+            // 2. Test accounts (tester01@) may have leftover empty collections
+            // 3. The presence of recipes is the true indicator of prior app usage
+            let recipesQuery = db.collection("users").document(userId).collection("recipes").limit(to: 1)
+            let recipesSnapshot = try await recipesQuery.getDocuments()
+
+            if !recipesSnapshot.isEmpty {
+                Log.info("Found existing recipes for user - returning user detected", category: .auth, metadata: [
+                    "userId": userId
+                ])
+                return true
+            }
+
+            Log.info("No existing recipes found - new user (will show onboarding)", category: .auth, metadata: ["userId": userId])
+            return false
+
+        } catch {
+            Log.error("Failed to check for existing user data", category: .auth, error: error)
+            // On error, assume new user to be safe (don't skip onboarding)
+            return false
+        }
     }
 
     /// Check Firebase heritageState and recreate collections if already downloaded on another device

@@ -6,6 +6,7 @@ import FirebaseFirestore
 /// Main Collections tab view showing heritage and user collections
 struct CollectionsListView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.firebaseAuth) private var firebaseAuth
     @EnvironmentObject private var notificationService: FirebaseNotificationService
     @EnvironmentObject private var tabCoordinator: TabNavigationCoordinator
     @EnvironmentObject private var themeUnlockTracker: ThemeUnlockTracker
@@ -14,6 +15,7 @@ struct CollectionsListView: View {
     @Query(sort: \RecipeCollection.createdDate) private var allCollections: [RecipeCollection]
     @Query(sort: \Recipe.dateAdded, order: .reverse) private var allRecipes: [Recipe]
     @Query(sort: \RecipeTheme.sortOrder) private var allThemes: [RecipeTheme]
+    @Query private var allUserCredits: [UserCredits]
 
     // Global recipe search state
     @State private var searchText = ""
@@ -49,6 +51,25 @@ struct CollectionsListView: View {
     @State private var videoReviewData: VideoReviewData?
     @State private var jobForConfirmation: VideoProcessingJob?
     @State private var showProcessingQueue = false
+    @State private var showNeedCreditsSheet = false
+    @State private var showCreditsStore = false
+    @State private var showPaywall = false
+    @State private var pendingGenerationCollection: RecipeCollection?
+
+    /// Cost for generating one AI background image
+    private let aiBackgroundCost = 1
+
+    /// Current user's credits
+    private var userCredits: UserCredits? {
+        guard let userId = firebaseAuth.currentUserId else { return nil }
+        return allUserCredits.first { $0.userId == userId }
+    }
+
+    /// Whether user can afford AI background generation
+    private var canAffordAIGeneration: Bool {
+        guard let credits = userCredits else { return false }
+        return credits.availableCredits >= aiBackgroundCost
+    }
 
     /// Combined state for video review sheet to avoid timing issues
     struct VideoReviewData: Identifiable {
@@ -98,9 +119,29 @@ struct CollectionsListView: View {
         // Hide theme collections for screen recording mode
         guard !screenRecordingService.hideThemeCollections else { return [] }
 
+        let selectedIds = themeUnlockTracker.selectedThemeIds
+
         return visibleCollections.filter { collection in
-            collection.type == .theme &&
-            themeUnlockTracker.selectedThemeIds.contains(collection.sourceTheme?.firebaseId ?? "")
+            guard collection.type == .theme else { return false }
+
+            // Check if this theme collection matches a selected theme:
+            // 1. Via sourceTheme relationship (preferred)
+            if let firebaseId = collection.sourceTheme?.firebaseId, selectedIds.contains(firebaseId) {
+                return true
+            }
+            // 2. Via sourceThemeId property (backup if relationship not set after sync)
+            if let themeId = collection.sourceThemeId, selectedIds.contains(themeId) {
+                return true
+            }
+            // 3. Via name matching against loaded themes (fallback for synced collections)
+            if let matchingTheme = allThemes.first(where: { $0.name == collection.name && selectedIds.contains($0.firebaseId) }) {
+                // Link the theme relationship for future use
+                collection.sourceTheme = matchingTheme
+                collection.sourceThemeId = matchingTheme.firebaseId
+                return true
+            }
+
+            return false
         }
     }
 
@@ -117,6 +158,7 @@ struct CollectionsListView: View {
                 }
 
                 return collection.isAllRecipes || // Shows when it has recipes (isVisibleInMainList controls this)
+                collection.isFavorites || // System collection but should show in My Collections
                 collection.type == .communityRecipes ||
                 collection.type == .fromFriends ||
                 collection.type == .videoImports ||
@@ -130,6 +172,9 @@ struct CollectionsListView: View {
                 // "All Recipes" always goes last
                 if lhs.isAllRecipes { return false }
                 if rhs.isAllRecipes { return true }
+                // Favorites goes first
+                if lhs.isFavorites { return true }
+                if rhs.isFavorites { return false }
                 // Otherwise maintain existing order (by type priority, then creation date)
                 return false
             }
@@ -280,21 +325,49 @@ struct CollectionsListView: View {
                 )
 
                 // Scrollable content below
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // Content: Search results or collections
-                        if !searchText.isEmpty {
-                            // Global recipe search results
-                            searchResultsSection
+                ZStack {
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            // Content: Search results or collections
+                            if !searchText.isEmpty {
+                                // Global recipe search results
+                                searchResultsSection
+                                    .padding(.vertical, HeirloomSpacing.lg)
+                            } else {
+                                // Normal collections content
+                                VStack(spacing: HeirloomSpacing.xl) {
+                                    // Unified Collections Section
+                                    unifiedCollectionsSection
+                                }
                                 .padding(.vertical, HeirloomSpacing.lg)
-                        } else {
-                            // Normal collections content
-                            VStack(spacing: HeirloomSpacing.xl) {
-                                // Unified Collections Section
-                                unifiedCollectionsSection
                             }
-                            .padding(.vertical, HeirloomSpacing.lg)
                         }
+                    }
+                    .refreshable {
+                        await performPullToRefresh()
+                    }
+
+                    // Loading overlay when syncing (first sync or refresh with empty data)
+                    if syncService.isSyncing && !syncService.hasCompletedInitialSync {
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Loading your recipes...")
+                                .font(HeirloomFonts.body)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color(.systemBackground).opacity(0.9))
+                    } else if isRefreshingRecipes && allRecipes.isEmpty {
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Restoring from cloud...")
+                                .font(HeirloomFonts.body)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color(.systemBackground).opacity(0.9))
                     }
                 }
             }
@@ -435,6 +508,49 @@ struct CollectionsListView: View {
                         }
                     }
             }
+            .sheet(isPresented: $showNeedCreditsSheet) {
+                NeedCreditsSheet(
+                    creditsNeeded: aiBackgroundCost,
+                    currentCredits: userCredits?.availableCredits ?? 0,
+                    featureName: "AI Background Generation",
+                    onBuyCredits: {
+                        showNeedCreditsSheet = false
+                        showCreditsStore = true
+                    },
+                    onCancel: {
+                        showNeedCreditsSheet = false
+                        pendingGenerationCollection = nil
+                    },
+                    onViewSubscription: {
+                        showNeedCreditsSheet = false
+                        showPaywall = true
+                    }
+                )
+                .presentationDetents([.medium])
+            }
+            .sheet(isPresented: $showCreditsStore, onDismiss: {
+                // User might have purchased credits - UI will auto-update via @Query
+                // If they now have credits and had a pending collection, generate
+                if canAffordAIGeneration, let collection = pendingGenerationCollection {
+                    Task {
+                        await generateBackgroundForCollection(collection)
+                    }
+                    pendingGenerationCollection = nil
+                }
+            }) {
+                if let userId = firebaseAuth.currentUserId {
+                    let storeManager = CreditStoreManager(
+                        logger: ServiceContainer.shared.resolve(LoggingService.self),
+                        analytics: ServiceContainer.shared.resolve(AnalyticsService.self),
+                        modelContext: modelContext,
+                        userId: userId
+                    )
+                    CreditsStoreView(storeManager: storeManager, userCredits: userCredits)
+                }
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView(trigger: .urlImport)
+            }
             .navigationDestination(for: RecipeCollection.self) { collection in
                 CollectionDetailView(collection: collection)
                     .environmentObject(notificationService)
@@ -458,6 +574,12 @@ struct CollectionsListView: View {
                         }
                     }
                 }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .themeContentReady)) { _ in
+                // Theme collections and recipes are ready (test account setup completed)
+                // Ensure theme collection relationships are properly linked
+                Log.info("Theme content ready notification received - refreshing collections", category: .ui)
+                ensureThemeCollectionRelationships()
             }
             .overlay {
                 coachMarkOverlay
@@ -517,6 +639,113 @@ struct CollectionsListView: View {
                 }
             }
             .onAppear(perform: handleOnAppear)
+            .onChange(of: syncService.hasCompletedInitialSync) { _, hasCompleted in
+                // When sync completes:
+                // 1. Ensure theme collections have their relationships set
+                // 2. Create theme collections if missing (for fresh logins)
+                if hasCompleted {
+                    Log.info("Sync completed - ensuring theme collection relationships", category: .collections)
+                    ensureThemeCollectionRelationships()
+
+                    // After sync, check if ANY selected theme is missing its collection
+                    // This handles fresh login where sync downloads recipes but theme collections don't exist yet
+                    // Note: themeCollections.isEmpty isn't enough - we need to check if ALL selected themes have collections
+                    let selectedIds = Set(themeUnlockTracker.selectedThemeIds)
+                    let existingThemeIds = Set(themeCollections.compactMap { $0.sourceThemeId })
+                    let missingThemeIds = selectedIds.subtracting(existingThemeIds)
+
+                    if !missingThemeIds.isEmpty {
+                        Log.info("Sync completed - some theme collections missing, creating now", category: .collections, metadata: [
+                            "selectedCount": selectedIds.count,
+                            "existingCount": existingThemeIds.count,
+                            "missingCount": missingThemeIds.count,
+                            "missing": Array(missingThemeIds).joined(separator: ", ")
+                        ])
+                        recreateThemeCollections()
+                    }
+                }
+            }
+        }
+    }
+
+    /// Ensure all theme-type collections have their sourceTheme relationship established
+    /// This is needed after Firebase sync downloads collections without the SwiftData relationship
+    private func ensureThemeCollectionRelationships() {
+        var needsSave = false
+
+        for collection in allCollections where collection.type == .theme {
+            // Skip if already linked
+            if collection.sourceTheme != nil { continue }
+
+            // Try to find matching theme by name
+            if let matchingTheme = allThemes.first(where: { $0.name == collection.name }) {
+                collection.sourceTheme = matchingTheme
+                collection.sourceThemeId = matchingTheme.firebaseId
+                matchingTheme.collection = collection
+                needsSave = true
+                Log.info("Linked theme collection after sync", category: .collections, metadata: [
+                    "collection": collection.name,
+                    "themeId": matchingTheme.firebaseId
+                ])
+            }
+        }
+
+        if needsSave {
+            do {
+                try modelContext.save()
+                Log.info("Saved theme collection relationships", category: .collections)
+            } catch {
+                Log.error("Failed to save theme collection relationships", category: .collections, error: error)
+            }
+        }
+
+        // After ensuring relationships, link recipes to collections
+        linkThemeRecipesToCollections()
+    }
+
+    /// Link theme recipes to their theme collections based on matching sourceThemeId
+    /// This ensures theme collections display their recipes after Firebase sync
+    private func linkThemeRecipesToCollections() {
+        var needsSave = false
+        var linkedCount = 0
+
+        // Fetch all theme recipes
+        let themeRecipeDescriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate { $0.isThemeRecipe }
+        )
+        guard let themeRecipes = try? modelContext.fetch(themeRecipeDescriptor) else {
+            Log.warning("Could not fetch theme recipes for linking", category: .collections)
+            return
+        }
+
+        // For each theme collection, find and link matching recipes
+        for collection in allCollections where collection.type == .theme {
+            guard let themeId = collection.sourceThemeId else { continue }
+
+            // Find recipes that belong to this theme
+            let matchingRecipes = themeRecipes.filter { $0.sourceThemeId == themeId }
+
+            // Link recipes to collection if not already linked
+            for recipe in matchingRecipes {
+                let alreadyLinked = collection.recipes?.contains(where: { $0.id == recipe.id }) ?? false
+                if !alreadyLinked {
+                    if collection.recipes == nil { collection.recipes = [] }
+                    collection.recipes?.append(recipe)
+                    linkedCount += 1
+                    needsSave = true
+                }
+            }
+        }
+
+        if needsSave {
+            do {
+                try modelContext.save()
+                Log.info("Linked theme recipes to collections", category: .collections, metadata: [
+                    "linkedCount": linkedCount
+                ])
+            } catch {
+                Log.error("Failed to link theme recipes to collections", category: .collections, error: error)
+            }
         }
     }
 
@@ -714,11 +943,9 @@ struct CollectionsListView: View {
             }
 
             // Theme collections section (THIRD - appears below My Collections)
+            // Themes sync automatically on login, so no empty state needed
             if !themeCollections.isEmpty {
                 themeSection
-            } else if !myCollections.isEmpty {
-                // Show empty theme section with restore button when user has other collections
-                emptyThemeSection
             }
 
             // Empty state (only if NO collections at all)
@@ -769,13 +996,19 @@ struct CollectionsListView: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .contentShape(Rectangle())
                 .contextMenu {
                     Button {
-                        Task {
-                            await generateBackgroundForCollection(collection)
+                        if canAffordAIGeneration {
+                            Task {
+                                await generateBackgroundForCollection(collection)
+                            }
+                        } else {
+                            pendingGenerationCollection = collection
+                            showNeedCreditsSheet = true
                         }
                     } label: {
-                        Label("Generate with AI", systemImage: "sparkles")
+                        Label("Generate with AI (\(aiBackgroundCost) credit)", systemImage: "sparkles")
                     }
                     .disabled(isGeneratingBackground)
 
@@ -820,13 +1053,19 @@ struct CollectionsListView: View {
                     // Auto-generate AI thumbnail for single-recipe collections (Task #2)
                     await autoGenerateBackgroundIfNeeded(for: collection)
                 }
+                .contentShape(Rectangle())
                 .contextMenu {
                     Button {
-                        Task {
-                            await generateBackgroundForCollection(collection)
+                        if canAffordAIGeneration {
+                            Task {
+                                await generateBackgroundForCollection(collection)
+                            }
+                        } else {
+                            pendingGenerationCollection = collection
+                            showNeedCreditsSheet = true
                         }
                     } label: {
-                        Label("Generate with AI", systemImage: "sparkles")
+                        Label("Generate with AI (\(aiBackgroundCost) credit)", systemImage: "sparkles")
                     }
                     .disabled(isGeneratingBackground)
 
@@ -1093,6 +1332,28 @@ struct CollectionsListView: View {
         // CRITICAL: Verify Heritage recipes exist if they should
         verifyHeritageRecipes()
 
+        // Recreate theme collections if missing (can happen after account creation/deletion)
+        // IMPORTANT: Wait for sync to complete first to avoid race condition where we create
+        // empty theme collections before Firebase sync downloads recipes and links them.
+        // This prevents the "0 recipes linked" issue seen in logs.
+        // Only check theme collections if initial sync has ALREADY completed (from a previous session)
+        // For fresh logins, the onChange(of: hasCompletedInitialSync) handler will create them after sync
+        if syncService.hasCompletedInitialSync {
+            // Check if ANY selected theme is missing its collection
+            let selectedIds = Set(themeUnlockTracker.selectedThemeIds)
+            let existingThemeIds = Set(themeCollections.compactMap { $0.sourceThemeId })
+            let missingThemeIds = selectedIds.subtracting(existingThemeIds)
+
+            if !missingThemeIds.isEmpty {
+                Log.info("Sync already complete - some theme collections missing, recreating", category: .collections, metadata: [
+                    "missing": Array(missingThemeIds).joined(separator: ", ")
+                ])
+                recreateThemeCollections()
+            }
+        } else {
+            Log.info("Initial sync not complete - deferring theme collection check to onChange handler", category: .collections)
+        }
+
         // TODO: Re-enable coach marks after redesign
         // Show coach mark after 10 seconds if not seen before
         // if !UserDefaults.standard.bool(forKey: UserDefaultsKeys.hasSeenRecipeCoachMark) {
@@ -1215,54 +1476,6 @@ struct CollectionsListView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var emptyThemeSection: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
-            // Empty state card
-            VStack(spacing: HeirloomSpacing.md) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 40))
-                    .foregroundStyle(HeirloomColors.tomato.opacity(0.6))
-
-                VStack(spacing: HeirloomSpacing.xs) {
-                    Text("No Discovery Collections")
-                        .font(HeirloomFonts.bodyBold)
-                        .foregroundStyle(HeirloomColors.primaryText)
-
-                    Text("Restore your themed collections from onboarding")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .multilineTextAlignment(.center)
-                }
-
-                Button {
-                    Task {
-                        await refreshRecipesFromFirebase()
-                    }
-                } label: {
-                    HStack {
-                        if isRefreshingRecipes {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                        } else {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                        Text(isRefreshingRecipes ? "Restoring..." : "Restore Discovery Collections")
-                    }
-                    .font(HeirloomFonts.body)
-                    .foregroundStyle(HeirloomColors.buttonTextLight)
-                    .padding(.horizontal, HeirloomSpacing.lg)
-                    .padding(.vertical, HeirloomSpacing.sm)
-                    .background(HeirloomColors.tomato)
-                    .cornerRadius(HeirloomSpacing.cardCornerRadius)
-                }
-                .disabled(isRefreshingRecipes)
-            }
-            .padding(HeirloomSpacing.xl)
-            .frame(maxWidth: .infinity)
-            .background(HeirloomColors.cream)
-            .cornerRadius(HeirloomSpacing.cardCornerRadius)
-        }
-    }
 
     // MARK: - Delete Actions
 
@@ -1613,6 +1826,17 @@ struct CollectionsListView: View {
                 collection.lastImageGenerationDate = Date()
                 collection.lastRecipeCountAtGeneration = collection.recipes?.count ?? 0
                 collection.useCustomBackground = true
+
+                // Deduct credits for successful generation
+                if let credits = userCredits {
+                    do {
+                        try credits.deductCredits(aiBackgroundCost)
+                        DeviceLogger.shared.log("💳 [Credits] Deducted \(aiBackgroundCost) credit for AI background generation", level: .info)
+                    } catch {
+                        DeviceLogger.shared.log("💳 [Credits] Failed to deduct credits: \(error.localizedDescription)", level: .error)
+                    }
+                }
+
                 try? modelContext.save()
 
                 isGeneratingBackground = false
@@ -1692,7 +1916,13 @@ struct CollectionsListView: View {
     }
 
     /// Auto-generate AI background for qualifying collections (Task #2)
+    /// Only auto-generates for users with available credits
     private func autoGenerateBackgroundIfNeeded(for collection: RecipeCollection) async {
+        // Don't auto-generate if user doesn't have credits
+        guard canAffordAIGeneration else {
+            return
+        }
+
         guard shouldAutoGenerateBackground(for: collection) else {
             return
         }
@@ -1707,27 +1937,36 @@ struct CollectionsListView: View {
     }
 
     private func refreshRecipesFromFirebase() async {
-        guard !isRefreshingRecipes else { return }
+        guard !isRefreshingRecipes else {
+            DeviceLogger.shared.log("🔄 [Collections] refreshRecipesFromFirebase skipped - already in progress", level: .info)
+            return
+        }
 
         await MainActor.run {
             isRefreshingRecipes = true
             toastManager.info(title: "Restoring from Cloud", message: "Downloading your recipes and collections...")
+            DeviceLogger.shared.log("🔄 [Collections] Starting restore from cloud...", level: .info)
         }
 
         do {
             // 1. Trigger Firebase sync to download user recipes and collections
+            DeviceLogger.shared.log("🔄 [Collections] Step 1: Syncing with Firebase CRDT...", level: .info)
             try await syncService.syncChangesWithCRDT()
+            DeviceLogger.shared.log("🔄 [Collections] Step 1 complete: Firebase CRDT sync done", level: .info)
 
             // 2. Recreate theme collections based on user's selected themes
+            DeviceLogger.shared.log("🔄 [Collections] Step 2: Recreating theme collections...", level: .info)
             await MainActor.run {
                 recreateThemeCollections()
             }
+            DeviceLogger.shared.log("🔄 [Collections] Step 2 complete: Theme collections recreated", level: .info)
 
             // 3. Re-download theme recipes from central database
             let selectedThemeIds = await MainActor.run {
                 Array(themeUnlockTracker.selectedThemeIds)
             }
 
+            DeviceLogger.shared.log("🔄 [Collections] Step 3: Re-downloading theme recipes (themes: \(selectedThemeIds.count))...", level: .info)
             if !selectedThemeIds.isEmpty {
                 // CRITICAL: ThemeRecipeService is @MainActor and uses modelContext
                 // We must await the download to ensure it completes before showing success
@@ -1736,12 +1975,17 @@ struct CollectionsListView: View {
 
                 await MainActor.run {
                     try? modelContext.save()
+                    DeviceLogger.shared.log("🔄 [Collections] Step 3 complete: Downloaded \(recipes.count) theme recipes", level: .info)
                     Log.info("Re-downloaded \(recipes.count) theme recipes", category: .collections)
                 }
+            } else {
+                DeviceLogger.shared.log("🔄 [Collections] Step 3 skipped: No selected themes", level: .info)
             }
 
             await MainActor.run {
                 isRefreshingRecipes = false
+                let finalCount = allRecipes.count
+                DeviceLogger.shared.log("🔄 [Collections] Restore complete! Final recipe count: \(finalCount)", level: .info)
                 toastManager.success(title: "Restored", message: "Your recipes and collections have been restored from the cloud")
             }
 
@@ -1749,11 +1993,19 @@ struct CollectionsListView: View {
         } catch {
             await MainActor.run {
                 isRefreshingRecipes = false
+                DeviceLogger.shared.log("🔄 [Collections] Restore FAILED: \(error.localizedDescription)", level: .error)
                 toastManager.error(title: "Restore Failed", message: error.localizedDescription)
             }
 
             Log.error("Failed to refresh recipes from Firebase", category: .collections, error: error)
         }
+    }
+
+    /// Pull-to-refresh handler - syncs with Firebase
+    private func performPullToRefresh() async {
+        DeviceLogger.shared.log("🔄 [Collections] Pull-to-refresh triggered - current recipe count: \(allRecipes.count)", level: .info)
+        await refreshRecipesFromFirebase()
+        DeviceLogger.shared.log("🔄 [Collections] Pull-to-refresh completed - final recipe count: \(allRecipes.count)", level: .info)
     }
 
     private func recreateThemeCollections() {
@@ -1804,6 +2056,9 @@ struct CollectionsListView: View {
         } catch {
             Log.error("Failed to recreate theme collections", category: .collections, error: error)
         }
+
+        // After creating collections, link recipes to them
+        linkThemeRecipesToCollections()
     }
 
     // MARK: - Restore from File

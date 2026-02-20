@@ -5,12 +5,15 @@
 
 import {onRequest, Request} from 'firebase-functions/v2/https';
 import {onSchedule} from 'firebase-functions/v2/scheduler';
+import * as functionsV1 from 'firebase-functions/v1';
 import {Response} from 'express';
 import * as admin from 'firebase-admin';
+import {UserRecord} from 'firebase-admin/auth';
 import {RecipeImporter} from './services/recipeImporter';
 import {AnalyticsService} from './services/analyticsService';
 import {URLShortenerService} from './services/urlShortenerService';
 import {LanguageService} from './services/languageService';
+import {DeletionTestSeeder} from './services/deletionTestSeeder';
 import {
   ImportRequest,
   FeedbackRequest,
@@ -30,6 +33,9 @@ const urlShortener = new URLShortenerService(db);
 // Initialize language service (API key from environment variable)
 const claudeApiKey = process.env.CLAUDE_API_KEY || '';
 const languageService = new LanguageService(claudeApiKey);
+
+// Initialize deletion test seeder
+const deletionTestSeeder = new DeletionTestSeeder(db);
 
 /**
  * Main recipe import endpoint
@@ -503,3 +509,29 @@ export const translateText = onRequest(
       }
     }
 );
+
+/**
+ * Auth trigger: Auto-seed deletion test account on creation
+ * Fires when a new user is created in Firebase Auth
+ * If the email is deletetest@heirloomrecipebox.app, auto-populates with test data
+ */
+export const onUserCreated = functionsV1.auth.user().onCreate(async (user: UserRecord) => {
+  const DELETION_TEST_EMAIL = 'deletetest@heirloomrecipebox.app';
+
+  if (user.email !== DELETION_TEST_EMAIL) {
+    return; // Not the deletion test account, skip
+  }
+
+  console.log('🧪 Deletion test account created, auto-seeding data...');
+  console.log(`   User ID: ${user.uid}`);
+  console.log(`   Email: ${user.email}`);
+
+  try {
+    await deletionTestSeeder.seedAccount(user.uid, user.email);
+    console.log('✅ Deletion test account seeded successfully');
+  } catch (error) {
+    console.error('❌ Failed to seed deletion test account:', error);
+    // Don't throw - let the user creation succeed even if seeding fails
+    // They can re-seed manually via the seed script
+  }
+});

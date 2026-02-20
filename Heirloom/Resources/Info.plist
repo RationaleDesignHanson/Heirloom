@@ -24,7 +24,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.6.1</string>
+	<string>2.6.2</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -49,13 +49,13 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>31</string>
+	<string>32</string>
 	<key>CKSharingSupported</key>
 	<true/>
 	<key>DEFAULT_ANTHROPIC_KEY</key>
 	<string>$(DEFAULT_ANTHROPIC_KEY)</string>
 	<key>DEFAULT_GOOGLE_VISION_KEY</key>
-	<string>AIzaSyA2UAepQ0-4kR8rqxQEqFM8mZhOfJBdsnA</string>
+	<string>REMOVED_USE_CLOUD_FUNCTION</string>
 	<key>DEFAULT_OPENAI_KEY</key>
 	<string>$(DEFAULT_OPENAI_KEY)</string>
 	<key>NSCameraUsageDescription</key>

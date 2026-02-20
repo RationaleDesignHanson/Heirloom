@@ -22,6 +22,11 @@ struct FirebaseSignInView: View {
     @State private var showForgotPassword = false
     @State private var resetEmail = ""
     @State private var showResetSuccess = false
+    @FocusState private var focusedField: Field?
+
+    enum Field {
+        case email, password, resetEmail
+    }
 
     var body: some View {
         ZStack {
@@ -90,6 +95,10 @@ struct FirebaseSignInView: View {
                                         dismiss()
                                     } catch {
                                         hasAttemptedSignIn = false
+                                        // Don't show error for user cancellation
+                                        if let asError = error as? ASAuthorizationError, asError.code == .canceled {
+                                            return
+                                        }
                                         showError = true
                                     }
                                 }
@@ -191,16 +200,24 @@ struct FirebaseSignInView: View {
                 hasAttemptedSignIn = false
             }
         } message: {
-            if let error = authService.authError {
-                Text(error.localizedDescription)
-            } else {
-                Text("An error occurred during sign in. Please try again.")
-            }
+            Text(userFriendlyErrorMessage(for: authService.authError))
         }
         .onChange(of: authService.isAuthenticating) { _, isAuthenticating in
             // Reset hasAttemptedSignIn when authentication completes (success, error, or cancellation)
             if !isAuthenticating {
                 hasAttemptedSignIn = false
+            }
+        }
+        .onChange(of: password) { oldValue, newValue in
+            // Auto-dismiss keyboard when auto-fill completes (password populated while email exists)
+            // Auto-fill sets multiple characters at once, so check that more than 1 char was added
+            // This prevents dismissing keyboard when user types the first character manually
+            let charsAdded = newValue.count - oldValue.count
+            if charsAdded > 1 && !email.isEmpty && focusedField != nil {
+                // Small delay to let auto-fill animation complete
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    focusedField = nil
+                }
             }
         }
     }
@@ -259,6 +276,10 @@ struct FirebaseSignInView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.emailAddress)
+                    .textContentType(.username)
+                    .focused($focusedField, equals: .email)
+                    .submitLabel(.next)
+                    .onSubmit { focusedField = .password }
                     .padding()
                     .background(Color(hex: "#F8F8F8"))
                     .cornerRadius(12)
@@ -272,6 +293,16 @@ struct FirebaseSignInView: View {
                 SecureField("Password", text: $password)
                     .textFieldStyle(.plain)
                     .font(HeirloomFonts.body)
+                    .textContentType(.password)
+                    .focused($focusedField, equals: .password)
+                    .submitLabel(.go)
+                    .onSubmit {
+                        focusedField = nil
+                        // Auto-submit if valid
+                        if !email.isEmpty && !password.isEmpty && password.count >= 6 {
+                            performSignIn()
+                        }
+                    }
                     .padding()
                     .background(Color(hex: "#F8F8F8"))
                     .cornerRadius(12)
@@ -293,29 +324,19 @@ struct FirebaseSignInView: View {
 
             // Submit button
             Button {
-                Task {
-                    do {
-                        if isCreatingAccount {
-                            try await authService.createAccountWithEmail(email: email, password: password)
-                        } else {
-                            try await authService.signInWithEmail(email: email, password: password)
-                        }
-                        dismiss()
-                    } catch {
-                        showError = true
-                    }
-                }
+                performSignIn()
             } label: {
                 Text(isCreatingAccount ? "Create Account" : "Sign In")
                     .font(HeirloomFonts.bodyBold)
                     .foregroundStyle(HeirloomColors.buttonTextLight)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(HeirloomColors.tomato)
+                    .background(isCreatingAccount ? HeirloomColors.familyGreen : HeirloomColors.tomato)
                     .cornerRadius(12)
             }
             .disabled(email.isEmpty || password.isEmpty || password.count < 6)
             .opacity((email.isEmpty || password.isEmpty || password.count < 6) ? 0.5 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isCreatingAccount)
 
             // Toggle create/sign in
             Button {
@@ -323,12 +344,37 @@ struct FirebaseSignInView: View {
             } label: {
                 Text(isCreatingAccount ? "Already have an account? Sign in" : "Don't have an account? Create one")
                     .font(HeirloomFonts.caption1)
-                    .foregroundColor(HeirloomColors.secondaryText)
+                    .foregroundColor(isCreatingAccount ? HeirloomColors.familyGreen : HeirloomColors.tomato)
             }
         }
         .padding(.horizontal, 40)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            // Dismiss keyboard when tapping outside text fields
+            focusedField = nil
+        }
         .sheet(isPresented: $showForgotPassword) {
             forgotPasswordView
+        }
+    }
+
+    // MARK: - Sign In Action
+
+    private func performSignIn() {
+        // Dismiss keyboard first
+        focusedField = nil
+
+        Task {
+            do {
+                if isCreatingAccount {
+                    try await authService.createAccountWithEmail(email: email, password: password)
+                } else {
+                    try await authService.signInWithEmail(email: email, password: password)
+                }
+                dismiss()
+            } catch {
+                showError = true
+            }
         }
     }
 
@@ -350,6 +396,12 @@ struct FirebaseSignInView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.emailAddress)
+                    .textContentType(.emailAddress)
+                    .focused($focusedField, equals: .resetEmail)
+                    .submitLabel(.send)
+                    .onSubmit {
+                        focusedField = nil
+                    }
                     .padding()
                     .background(Color(hex: "#F8F8F8"))
                     .cornerRadius(12)
@@ -394,6 +446,38 @@ struct FirebaseSignInView: View {
             Button("OK") {}
         } message: {
             Text("Check your email for a link to reset your password.")
+        }
+    }
+
+    // MARK: - Error Handling
+
+    /// Convert Firebase auth errors to user-friendly messages
+    private func userFriendlyErrorMessage(for error: Error?) -> String {
+        guard let error = error else {
+            return "An error occurred during sign in. Please try again."
+        }
+
+        let nsError = error as NSError
+
+        // Check Firebase Auth error codes
+        switch nsError.code {
+        case 17011: // userNotFound
+            return "This account doesn't exist. It may have been deleted. Please create a new account to continue."
+        case 17009: // wrongPassword
+            return "Incorrect password. Please try again or reset your password."
+        case 17008: // invalidEmail
+            return "Please enter a valid email address."
+        case 17007: // emailAlreadyInUse
+            return "An account with this email already exists. Try signing in instead."
+        case 17020: // networkError
+            return "Unable to connect. Please check your internet connection and try again."
+        case 17010: // userDisabled
+            return "This account has been disabled. Please contact support for assistance."
+        case 17026: // requiresRecentLogin
+            return "For security, please sign in again to complete this action."
+        default:
+            // Return the original error message for unhandled cases
+            return error.localizedDescription
         }
     }
 }

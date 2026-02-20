@@ -121,6 +121,8 @@ final class Recipe {
 
     // MARK: - Organization
     var tags: [Tag]?
+
+    @Relationship(deleteRule: .nullify)
     var collections: [RecipeCollection]?
 
     // MARK: - Dinner Party Integration
@@ -986,18 +988,24 @@ extension Recipe {
     }
 
     /// Trending status from cached metrics
+    /// Note: Uses guard pattern to avoid SwiftData keypath crash with optional chaining
     var isTrending: Bool {
-        provenance?.cachedMetrics.isTrending ?? false
+        guard let prov = provenance else { return false }
+        return prov.cachedMetrics.isTrending
     }
 
     /// Total shares from metrics
+    /// Note: Uses guard pattern to avoid SwiftData keypath crash with optional chaining
     var totalShares: Int {
-        provenance?.cachedMetrics.totalShares ?? 0
+        guard let prov = provenance else { return 0 }
+        return prov.cachedMetrics.totalShares
     }
 
     /// Share count display text
+    /// Note: Uses guard pattern to avoid SwiftData keypath crash with optional chaining
     var shareCountDisplay: String {
-        provenance?.cachedMetrics.displayShareCount ?? ""
+        guard let prov = provenance else { return "" }
+        return prov.cachedMetrics.displayShareCount
     }
 }
 
