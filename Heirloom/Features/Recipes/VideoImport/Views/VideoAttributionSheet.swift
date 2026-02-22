@@ -29,9 +29,9 @@ struct VideoAttributionSheet: View {
         self.onSave = onSave
 
         // Initialize with existing attribution if available
-        _creatorName = State(initialValue: recipe.provenance?.sourceAttribution ?? "")
+        _creatorName = State(initialValue: recipe.provenance.sourceAttribution ?? "")
         _videoTitle = State(initialValue: "")
-        _sourceURL = State(initialValue: recipe.provenance?.sourceURL ?? "")
+        _sourceURL = State(initialValue: recipe.provenance.sourceURL ?? "")
         _notes = State(initialValue: "")
         _selectedPlatform = State(initialValue: nil)
     }
@@ -131,19 +131,8 @@ struct VideoAttributionSheet: View {
 
     private func saveAttribution() {
         // Update recipe provenance with attribution
-        if recipe.provenance == nil {
-            recipe.provenance = ProvenanceMetadata(
-                sourceType: .imported,
-                sourceURL: sourceURL.isEmpty ? nil : sourceURL,
-                sourceAttribution: creatorName.trimmingCharacters(in: .whitespaces),
-                generation: 0,
-                sharedByName: nil,
-                createdAt: Date()
-            )
-        } else {
-            recipe.provenance?.sourceAttribution = creatorName.trimmingCharacters(in: .whitespaces)
-            recipe.provenance?.sourceURL = sourceURL.isEmpty ? nil : sourceURL
-        }
+        recipe.provenance.sourceAttribution = creatorName.trimmingCharacters(in: .whitespaces)
+        recipe.provenance.sourceURL = sourceURL.isEmpty ? nil : sourceURL
 
         recipe.lastModified = Date()
 

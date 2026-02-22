@@ -78,7 +78,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         var recipeToShare: Recipe
         if recipe.isThemeRecipe {
             Log.info("Heritage recipe detected - creating user copy before sharing", category: .firebase, metadata: [
-                "originalRecipeId": recipe.id.uuidString,
+                "originalRecipeId": recipe.id.firebaseString,
                 "title": recipe.title
             ])
 
@@ -89,8 +89,8 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             try context.save()
 
             Log.info("User copy created for heritage recipe share", category: .firebase, metadata: [
-                "originalRecipeId": recipe.id.uuidString,
-                "copyRecipeId": userCopy.id.uuidString,
+                "originalRecipeId": recipe.id.firebaseString,
+                "copyRecipeId": userCopy.id.firebaseString,
                 "hasCardBack": userCopy.cardBack != nil
             ])
 
@@ -98,7 +98,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             recipeToShare = userCopy
         } else if recipe.isSampleRecipe {
             Log.info("Sample recipe detected - creating user copy before sharing", category: .firebase, metadata: [
-                "originalRecipeId": recipe.id.uuidString,
+                "originalRecipeId": recipe.id.firebaseString,
                 "title": recipe.title
             ])
 
@@ -109,8 +109,8 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             try context.save()
 
             Log.info("User copy created for sample recipe share", category: .firebase, metadata: [
-                "originalRecipeId": recipe.id.uuidString,
-                "copyRecipeId": userCopy.id.uuidString
+                "originalRecipeId": recipe.id.firebaseString,
+                "copyRecipeId": userCopy.id.firebaseString
             ])
 
             // Use the copy for sharing
@@ -120,17 +120,17 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             recipeToShare = recipe
         }
 
-        // Initialize provenance for the original recipe if not set
+        // Ensure provenance is properly set for the original recipe
         // This ensures the original owner sees "Original" badge
-        if recipeToShare.provenance == nil {
+        if recipeToShare.provenance.sourceType == .userCreated && recipeToShare.provenance.sourceURL == nil && recipeToShare.sourceURL != nil {
             let provenanceSource = recipeToShare.sourceType?.toProvenanceSourceType() ?? .userCreated
             recipeToShare.provenance = ProvenanceMetadata(
                 sourceType: provenanceSource,
                 sourceURL: recipeToShare.sourceURL,
                 generation: 0  // Original recipe
             )
-            Log.info("Initialized provenance for original recipe", category: .firebase, metadata: [
-                "recipeId": recipeToShare.id.uuidString,
+            Log.info("Updated provenance for original recipe", category: .firebase, metadata: [
+                "recipeId": recipeToShare.id.firebaseString,
                 "title": recipeToShare.title
             ])
         }
@@ -161,7 +161,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
                 category: .firebase,
                 level: .warning,
                 metadata: [
-                    "recipeId": recipeToShare.id.uuidString,
+                    "recipeId": recipeToShare.id.firebaseString,
                     "imageFileName": recipeToShare.imageFileName ?? "nil"
                 ]
             )
@@ -185,10 +185,10 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         }
 
         // 2. Create share document
-        let shareId = UUID().uuidString
+        let shareId = UUID().uuidString.lowercased()
         var shareData: [String: Any] = [
             "shareId": shareId,
-            "recipeId": recipeToShare.id.uuidString,
+            "recipeId": recipeToShare.id.firebaseString,
             "ownerId": userId,
             "ownerName": options.sharerName ?? "Someone",
             "recipeTitle": recipeToShare.title,
@@ -208,7 +208,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             "allowReSharing": options.allowReSharing,
 
             // Metadata
-            "generation": recipeToShare.provenance?.generation ?? 0,
+            "generation": recipeToShare.provenance.generation,
             "servings": recipeToShare.servings as Any,
             "prepTime": recipeToShare.prepTime as Any,
             "cookTime": recipeToShare.cookTime as Any,
@@ -225,7 +225,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             "firebaseImageURL": recipeToShare.firebaseImageURL as Any,
 
             // Lineage tracking (for heirloom shares)
-            "rootRecipeId": lineage?.rootRecipeId.uuidString ?? recipeToShare.id.uuidString,
+            "rootRecipeId": lineage?.rootRecipeId.firebaseString ?? recipeToShare.id.firebaseString,
             "rootOwnerId": lineage?.rootOwnerId ?? userId,
 
             // Acceptance tracking
@@ -316,7 +316,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
                 let notificationData: [String: Any] = [
                     "type": "connectionSharedRecipe",
                     "shareId": shareId,
-                    "recipeId": recipe.id.uuidString,
+                    "recipeId": recipe.id.firebaseString,
                     "recipeTitle": recipe.title,
                     "recipeImageURL": recipe.firebaseImageURL as Any,
                     "actorUserId": currentUserId,
@@ -328,7 +328,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
                 ]
 
                 try await db.collection("users/\(recipientId)/notifications")
-                    .document(UUID().uuidString)
+                    .document(UUID().uuidString.lowercased())
                     .setData(notificationData)
 
                 logger.log("Notification sent to recipient", category: .firebase, level: .info, metadata: ["recipientId": recipientId])
@@ -374,7 +374,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
                 if DemoSocialBehaviorService.demoUserIds.contains(recipientId) {
                     DemoSocialBehaviorService.shared.onRecipeSharedWithDemoUser(
                         shareId: shareId,
-                        recipeId: recipe.id.uuidString,
+                        recipeId: recipe.id.firebaseString,
                         recipeTitle: recipe.title,
                         demoUserId: recipientId
                     )
@@ -637,13 +637,13 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
                 context.insert(sharedRecipe)
 
                 Log.info("Inserted new recipe with new ID (sample collision avoided)", category: .firebase, metadata: [
-                    "newRecipeId": sharedRecipe.id.uuidString
+                    "newRecipeId": sharedRecipe.id.firebaseString
                 ])
             } else {
                 // Recipe already exists (not a sample) - merge/update instead of insert
                 // This handles re-accepting the same share
                 Log.info("Recipe already exists locally (not sample), updating instead of inserting", category: .firebase, metadata: [
-                    "recipeId": existingRecipe.id.uuidString
+                    "recipeId": existingRecipe.id.firebaseString
                 ])
                 existingRecipe.title = sharedRecipe.title
                 existingRecipe.instructions = sharedRecipe.instructions
@@ -680,7 +680,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             Log.info("Creating lineage for heirloom share", category: .firebase, metadata: [
                 "rootRecipeIdString": rootRecipeIdString,
                 "parentRecipeId": recipeId,
-                "currentRecipeId": sharedRecipe.id.uuidString,
+                "currentRecipeId": sharedRecipe.id.firebaseString,
                 "rootOwnerId": rootOwnerId,
                 "generation": generation
             ])
@@ -816,7 +816,7 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         }
 
         let snapshot = try await db.collection("shares")
-            .whereField("recipeId", isEqualTo: recipe.id.uuidString)
+            .whereField("recipeId", isEqualTo: recipe.id.firebaseString)
             .whereField("ownerId", isEqualTo: userId)
             .getDocuments()
 

@@ -559,7 +559,9 @@ class UndoService: ObservableObject {
         restoredRecipe.sourcePublicRecipeStillAvailable = data.sourcePublicRecipeStillAvailable
 
         // Provenance
-        restoredRecipe.provenance = data.provenance
+        if let provenance = data.provenance {
+            restoredRecipe.provenance = provenance
+        }
 
         // Sync Metadata
         restoredRecipe.cloudKitRecordID = data.cloudKitRecordID
@@ -1110,7 +1112,9 @@ class UndoService: ObservableObject {
         recipe.sourcePublicRecipeStillAvailable = data.sourcePublicRecipeStillAvailable
 
         // Provenance
-        recipe.provenance = data.provenance
+        if let provenance = data.provenance {
+            recipe.provenance = provenance
+        }
 
         // Sync Metadata
         recipe.cloudKitRecordID = data.cloudKitRecordID

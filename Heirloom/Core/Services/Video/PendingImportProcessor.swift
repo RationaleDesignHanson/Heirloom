@@ -219,7 +219,9 @@ actor PendingImportProcessor {
         }
 
         // Set provenance metadata for attribution
-        recipe.provenance = provenanceMetadata
+        if let provenance = provenanceMetadata {
+            recipe.provenance = provenance
+        }
 
         // Add extraction metadata to notes if there are warnings
         if !structured.warnings.isEmpty {

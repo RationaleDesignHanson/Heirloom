@@ -187,7 +187,8 @@ final class Recipe {
     // MARK: - Provenance Tracking (Phase 2A)
     /// Comprehensive provenance and lineage tracking
     /// Replaces legacy fields above (maintained for backward compatibility)
-    var provenance: ProvenanceMetadata?
+    /// NOTE: Non-optional to avoid SwiftData keypath crash with optional chaining
+    var provenance: ProvenanceMetadata = ProvenanceMetadata()
 
     // MARK: - Source Attribution Registry
     var knownSource: KnownSource?
@@ -436,7 +437,7 @@ extension Recipe {
             return "Theme Collection"
         case .video:
             // For video imports, extract creator name from sourceAttribution
-            if let attribution = provenance?.sourceAttribution,
+            if let attribution = provenance.sourceAttribution,
                !attribution.isEmpty {
                 // Extract creator name (format: "creatorName - videoTitle" or just "creatorName")
                 let parts = attribution.components(separatedBy: " - ")
@@ -459,7 +460,7 @@ extension Recipe {
         guard sourceType == .video else { return nil }
 
         // Extract creator name from sourceAttribution
-        guard let attribution = provenance?.sourceAttribution,
+        guard let attribution = provenance.sourceAttribution,
               !attribution.isEmpty else {
             return nil
         }
@@ -483,7 +484,7 @@ extension Recipe {
 
         // Try to construct platform-specific HTTPS URL
         // Use web URLs (not deep links) for reliable navigation
-        if let sourceURL = provenance?.sourceURL, !sourceURL.isEmpty {
+        if let sourceURL = provenance.sourceURL, !sourceURL.isEmpty {
             if sourceURL.contains("tiktok.com") {
                 return URL(string: "https://www.tiktok.com/@\(encodedUsername)")
             } else if sourceURL.contains("youtube.com") || sourceURL.contains("youtu.be") {
@@ -897,50 +898,61 @@ extension Recipe {
 
 // MARK: - Provenance Helpers
 extension Recipe {
-    /// Ensure provenance metadata exists, creating it if needed
+    /// Update provenance from legacy fields if needed (migration path)
+    /// Since provenance is now non-optional, this updates the existing default provenance
+    /// with meaningful values from legacy fields
     func ensureProvenance() {
-        if provenance == nil {
-            // Create provenance from existing fields (migration path)
-            let sourceTypeEnum: ProvenanceMetadata.SourceType
-            switch sourceType {
-            case .manual:
-                sourceTypeEnum = .userCreated
-            case .url:
-                sourceTypeEnum = .imported
-            case .family:
-                sourceTypeEnum = sharedBy != nil ? .shared : .userCreated
-            case .cookbook:
-                sourceTypeEnum = .scanned
-            case .scan:
-                sourceTypeEnum = .scanned
-            case .video:
-                sourceTypeEnum = .video
-            case .heritage:
-                sourceTypeEnum = .shared
-            case .generated:
-                sourceTypeEnum = .ai
-            case .readRecipe:
-                sourceTypeEnum = .userCreated
-            case .none:
-                sourceTypeEnum = .userCreated
-            }
-
-            let generation = generationCount > 0 ? generationCount - 1 : 0
-
-            provenance = ProvenanceMetadata(
-                sourceType: sourceTypeEnum,
-                sourceURL: sourceURL,
-                sourceAttribution: sourceAttribution,
-                generation: generation,
-                sharedByName: sharedBy ?? passedDownBy,
-                createdAt: dateAdded
-            )
+        // Only update if provenance is in default state (userCreated with no attribution)
+        guard provenance.sourceType == .userCreated && provenance.sourceAttribution == nil else {
+            return
         }
+
+        // Check if we have legacy data to migrate
+        let hasLegacyData = sourceURL != nil || sharedBy != nil || passedDownBy != nil || sourcePerson != nil
+        guard hasLegacyData else {
+            return
+        }
+
+        // Create provenance from existing fields (migration path)
+        let sourceTypeEnum: ProvenanceMetadata.SourceType
+        switch sourceType {
+        case .manual:
+            sourceTypeEnum = .userCreated
+        case .url:
+            sourceTypeEnum = .imported
+        case .family:
+            sourceTypeEnum = sharedBy != nil ? .shared : .userCreated
+        case .cookbook:
+            sourceTypeEnum = .scanned
+        case .scan:
+            sourceTypeEnum = .scanned
+        case .video:
+            sourceTypeEnum = .video
+        case .heritage:
+            sourceTypeEnum = .shared
+        case .generated:
+            sourceTypeEnum = .ai
+        case .readRecipe:
+            sourceTypeEnum = .userCreated
+        case .none:
+            sourceTypeEnum = .userCreated
+        }
+
+        let generation = generationCount > 0 ? generationCount - 1 : 0
+
+        provenance = ProvenanceMetadata(
+            sourceType: sourceTypeEnum,
+            sourceURL: sourceURL,
+            sourceAttribution: sourceAttribution,
+            generation: generation,
+            sharedByName: sharedBy ?? passedDownBy,
+            createdAt: dateAdded
+        )
     }
 
     /// Attribution text for display (uses provenance if available, falls back to legacy fields)
     var sourceAttribution: String? {
-        provenance?.sourceAttribution ?? sourcePerson ?? sourceBookTitle
+        provenance.sourceAttribution ?? sourcePerson ?? sourceBookTitle
     }
 
     /// Display source for UI (provenance-aware)
@@ -950,33 +962,30 @@ extension Recipe {
             if let author = sourceBookAuthor, !author.isEmpty { return author }
             if let title = sourceBookTitle, !title.isEmpty { return title }
         }
-        if let prov = provenance {
-            return prov.displaySource
-        }
-        return sourceDisplayName
+        return provenance.displaySource
     }
 
     /// Whether this recipe is original (generation 0)
     var isOriginalRecipe: Bool {
-        provenance?.isOriginal ?? (generationCount <= 1)
+        provenance.isOriginal
     }
 
     /// Whether this recipe was shared/received
     var isSharedRecipe: Bool {
-        provenance?.isShared ?? (sharedBy != nil || passedDownBy != nil)
+        provenance.isShared
     }
 
     /// Display-friendly generation info
     var generationDisplayText: String? {
-        if let prov = provenance, prov.generation > 0 {
-            if prov.generation == 1 {
+        if provenance.generation > 0 {
+            if provenance.generation == 1 {
                 return "1st Generation"
-            } else if prov.generation == 2 {
+            } else if provenance.generation == 2 {
                 return "2nd Generation"
-            } else if prov.generation == 3 {
+            } else if provenance.generation == 3 {
                 return "3rd Generation"
             } else {
-                return "\(prov.generation)th Generation"
+                return "\(provenance.generation)th Generation"
             }
         }
 
@@ -987,25 +996,26 @@ extension Recipe {
         return nil
     }
 
+}
+
+// MARK: - Provenance Metrics Extension
+// NOTE: These properties MUST be in an extension outside the @Model class
+// to avoid SwiftData keypath observation crash with optional chaining
+
+extension Recipe {
     /// Trending status from cached metrics
-    /// Note: Uses guard pattern to avoid SwiftData keypath crash with optional chaining
     var isTrending: Bool {
-        guard let prov = provenance else { return false }
-        return prov.cachedMetrics.isTrending
+        provenance.cachedMetrics.getIsTrending()
     }
 
     /// Total shares from metrics
-    /// Note: Uses guard pattern to avoid SwiftData keypath crash with optional chaining
     var totalShares: Int {
-        guard let prov = provenance else { return 0 }
-        return prov.cachedMetrics.totalShares
+        provenance.cachedMetrics.totalShares
     }
 
     /// Share count display text
-    /// Note: Uses guard pattern to avoid SwiftData keypath crash with optional chaining
     var shareCountDisplay: String {
-        guard let prov = provenance else { return "" }
-        return prov.cachedMetrics.displayShareCount
+        provenance.cachedMetrics.getDisplayShareCount()
     }
 }
 
@@ -1386,15 +1396,13 @@ extension Recipe {
             copy.historicalContext = historicalContext
 
             // Update provenance to show it's derived from theme collection
-            if let originalProvenance = provenance {
-                copy.provenance = ProvenanceMetadata(
-                    sourceType: .shared,  // Mark as derived from theme
-                    sourceURL: originalProvenance.sourceURL,
-                    sourceAttribution: originalProvenance.sourceAttribution,
-                    generation: originalProvenance.generation + 1,
-                    createdAt: originalProvenance.createdAt
-                )
-            }
+            copy.provenance = ProvenanceMetadata(
+                sourceType: .shared,  // Mark as derived from theme
+                sourceURL: provenance.sourceURL,
+                sourceAttribution: provenance.sourceAttribution,
+                generation: provenance.generation + 1,
+                createdAt: provenance.createdAt
+            )
         } else {
             copy.provenance = provenance
         }
@@ -1630,7 +1638,7 @@ extension Recipe {
         if isThemeRecipe {
             // We don't track original theme titles, but if user created this
             // as a personal copy, provenance will show it
-            if let provenance = provenance, provenance.sourceType == .imported {
+            if provenance.sourceType == .imported {
                 // This is the original theme recipe, not a copy
                 return false
             }
@@ -1826,7 +1834,7 @@ extension Recipe {
     var isShared: Bool {
         // Check if recipe has been shared
         return sharedBy != nil ||
-               provenance?.sourceType == .shared ||
+               provenance.sourceType == .shared ||
                !(versions?.isEmpty ?? true)
     }
 

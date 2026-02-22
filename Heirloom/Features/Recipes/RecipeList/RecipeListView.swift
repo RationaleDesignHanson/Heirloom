@@ -203,6 +203,26 @@ struct RecipeListView: View {
     @State private var showSettings = false
     @State private var showProcessingQueue = false
 
+    // AI image generation credits
+    @Query private var allUserCredits: [UserCredits]
+    @State private var showNeedCreditsSheet = false
+    @State private var showCreditsStore = false
+    @State private var showPaywall = false
+    @State private var pendingImageRecipe: Recipe?
+    private let aiImageCost = 1
+
+    /// Current user's credits
+    private var userCredits: UserCredits? {
+        guard let userId = firebaseAuth.currentUserId else { return nil }
+        return allUserCredits.first { $0.userId == userId }
+    }
+
+    /// Whether user can afford AI image generation
+    private var canAffordAIGeneration: Bool {
+        guard let credits = userCredits else { return false }
+        return credits.availableCredits >= aiImageCost
+    }
+
     var body: some View {
         NavigationStack {
             mainContent
@@ -230,6 +250,46 @@ struct RecipeListView: View {
                         onImportJobTap: { _ in showProcessingQueue = false },
                         onGenerationJobTap: { _ in showProcessingQueue = false }
                     )
+                }
+                .sheet(isPresented: $showNeedCreditsSheet) {
+                    NeedCreditsSheet(
+                        creditsNeeded: aiImageCost,
+                        currentCredits: userCredits?.availableCredits ?? 0,
+                        featureName: "AI Image Generation",
+                        onBuyCredits: {
+                            showNeedCreditsSheet = false
+                            showCreditsStore = true
+                        },
+                        onCancel: {
+                            showNeedCreditsSheet = false
+                            pendingImageRecipe = nil
+                        },
+                        onViewSubscription: {
+                            showNeedCreditsSheet = false
+                            showPaywall = true
+                        }
+                    )
+                    .presentationDetents([.medium])
+                }
+                .sheet(isPresented: $showCreditsStore, onDismiss: {
+                    // User might have purchased credits - if they now have credits and had a pending recipe, generate
+                    if canAffordAIGeneration, let recipe = pendingImageRecipe {
+                        generateAIImage(for: recipe)
+                        pendingImageRecipe = nil
+                    }
+                }) {
+                    if let userId = firebaseAuth.currentUserId {
+                        let storeManager = CreditStoreManager(
+                            logger: ServiceContainer.shared.resolve(LoggingService.self),
+                            analytics: ServiceContainer.shared.resolve(AnalyticsService.self),
+                            modelContext: modelContext,
+                            userId: userId
+                        )
+                        CreditsStoreView(storeManager: storeManager, userCredits: userCredits)
+                    }
+                }
+                .sheet(isPresented: $showPaywall) {
+                    PaywallView(trigger: .urlImport)
                 }
                 // TODO: Re-enable for Phase A3
                 // .sheet(isPresented: $showHeritageUnlock) {
@@ -491,6 +551,7 @@ struct RecipeListView: View {
                 .id(recipe.id)
                 .accessibilityLabel("\(recipe.title), \(recipe.sourceDisplayName)")
                 .accessibilityHint(isSelectionMode ? (selectedRecipeIds.contains(recipe.id) ? "Deselect recipe" : "Select recipe") : "Opens recipe details")
+                .contentShape(Rectangle())
                 .contextMenu {
                     // Processing placeholders have limited context menu
                     if recipe.isProcessing {
@@ -541,9 +602,14 @@ struct RecipeListView: View {
                         Divider()
 
                         Button {
-                            generateAIImage(for: recipe)
+                            if canAffordAIGeneration {
+                                generateAIImage(for: recipe)
+                            } else {
+                                pendingImageRecipe = recipe
+                                showNeedCreditsSheet = true
+                            }
                         } label: {
-                            Label("Generate AI Image", systemImage: "sparkles")
+                            Label("Generate AI Image (\(aiImageCost) credit)", systemImage: "sparkles")
                         }
 
                         Divider()
@@ -980,6 +1046,18 @@ struct RecipeListView: View {
         Task {
             do {
                 try await recipeImageGenerator.generateAndSaveImage(for: recipe)
+
+                // Deduct credits for successful generation
+                if let credits = userCredits {
+                    do {
+                        try credits.deductCredits(aiImageCost)
+                        try? modelContext.save()
+                        DeviceLogger.shared.log("💳 [Credits] Deducted \(aiImageCost) credit for AI recipe image generation", level: .info)
+                    } catch {
+                        DeviceLogger.shared.log("💳 [Credits] Failed to deduct credits: \(error.localizedDescription)", level: .error)
+                    }
+                }
+
                 toastManager.success(title: "Image Generated", message: recipe.title)
             } catch {
                 toastManager.error(title: "Generation Failed", message: error.localizedDescription)
@@ -1683,7 +1761,8 @@ struct RecipeCardView: View {
                     Spacer()
 
                     // Generation badge for lineage
-                    if let generation = recipe.provenance?.generation, generation > 0 {
+                    if recipe.provenance.generation > 0 {
+                        let generation = recipe.provenance.generation
                         HStack(spacing: 2) {
                             Image(systemName: "circle.fill")
                                 .font(.system(size: 6))

@@ -269,8 +269,19 @@ final class HeirloomDataExporter {
             }
         }
 
-        // Save context
-        try context.save()
+        // Save context - wrapped to handle potential SwiftData keypath issues
+        do {
+            try context.save()
+        } catch {
+            // SwiftData can crash on complex keypaths during save
+            // Log the error but continue if recipes were imported
+            Log.error("Context save failed during import", category: .storage, error: error)
+            errors.append(HeirloomImportError(
+                type: .parseError,
+                itemId: nil,
+                message: "Some data may not have saved: \(error.localizedDescription)"
+            ))
+        }
 
         let result = HeirloomImportResult(
             version: exportWrapper.version,
@@ -299,8 +310,14 @@ final class HeirloomDataExporter {
     ) throws {
         // Check if recipe already exists
         if mergeMode {
+            // Convert string ID to UUID for comparison
+            // NOTE: Cannot use computed properties (like uuidString) in SwiftData predicates
+            guard let recipeUUID = UUID(uuidString: data.id) else {
+                Log.warning("Invalid recipe ID in import data", category: .storage, metadata: ["id": data.id])
+                return
+            }
             let descriptor = FetchDescriptor<Recipe>(
-                predicate: #Predicate { $0.id.uuidString == data.id }
+                predicate: #Predicate { $0.id == recipeUUID }
             )
             let existing = try context.fetch(descriptor)
             if !existing.isEmpty {
@@ -320,6 +337,11 @@ final class HeirloomDataExporter {
             cookTime: data.cookTime
         )
 
+        // Restore original ID if valid
+        if let originalUUID = UUID(uuidString: data.id) {
+            recipe.id = originalUUID
+        }
+
         recipe.notes = data.notes
         recipe.sourcePerson = data.sourcePerson
         recipe.sourceBookTitle = data.sourceBookTitle
@@ -331,16 +353,42 @@ final class HeirloomDataExporter {
         recipe.historicalText = data.historicalText
         recipe.historicalContext = data.historicalContext
 
-        // V2 social fields (TODO: Add these fields to Recipe model in future phase)
-        // recipe.sharedBy = data.sharedBy
-        // recipe.generation = data.generation ?? 0
-        // recipe.rootRecipeId = data.rootRecipeId
-        // recipe.cardBackText = data.cardBackText
+        // V2 social fields
+        recipe.sharedBy = data.sharedBy
 
-        // TODO: Parse ingredients from joined string when Recipe model supports it
-        // For now, ingredients will need to be re-parsed
+        // Parse ingredients from joined string
+        if !data.ingredients.isEmpty {
+            recipe.ingredients = data.ingredients.map { ingredientText in
+                let ingredient = Ingredient()
+                ingredient.originalText = ingredientText
+                ingredient.name = ingredientText
+                return ingredient
+            }
+        }
 
         context.insert(recipe)
+
+        // Link to collections by name
+        if let collectionNames = data.collections, !collectionNames.isEmpty {
+            for collectionName in collectionNames {
+                // Find or create collection
+                let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+                    predicate: #Predicate { $0.name == collectionName }
+                )
+                if let existingCollection = try? context.fetch(collectionDescriptor).first {
+                    // Add recipe to existing collection
+                    if existingCollection.recipes == nil {
+                        existingCollection.recipes = []
+                    }
+                    existingCollection.recipes?.append(recipe)
+                } else {
+                    // Create new collection
+                    let newCollection = RecipeCollection(name: collectionName)
+                    newCollection.recipes = [recipe]
+                    context.insert(newCollection)
+                }
+            }
+        }
     }
 
     private func importPrivacySettings(_ data: PrivacySettingsExportData) async throws {
@@ -458,6 +506,29 @@ final class HeirloomDataExporter {
     // MARK: - Conversion Helpers
 
     private func convertToRecipeExportDataV2(_ recipe: Recipe) -> RecipeExportDataV2 {
+        // Convert comments to export format
+        let commentsData: [CommentExportData]? = recipe.comments?.map { comment in
+            CommentExportData(
+                id: comment.id.uuidString,
+                text: comment.text,
+                authorUserId: "", // Not tracked locally
+                authorDisplayName: comment.authorName ?? "Unknown",
+                createdAt: comment.createdAt.iso8601
+            )
+        }
+
+        // Extract card back text (personal tips combined)
+        let cardBackText: String? = recipe.cardBack.flatMap { cardBack in
+            var parts: [String] = []
+            if let note = cardBack.noteToFriends, !note.isEmpty {
+                parts.append(note)
+            }
+            if !cardBack.personalTips.isEmpty {
+                parts.append(contentsOf: cardBack.personalTips)
+            }
+            return parts.isEmpty ? nil : parts.joined(separator: "\n")
+        }
+
         return RecipeExportDataV2(
             id: recipe.id.uuidString,
             title: recipe.title,
@@ -481,17 +552,17 @@ final class HeirloomDataExporter {
             sourceThemeId: recipe.sourceThemeId,
             historicalText: recipe.historicalText,
             historicalContext: recipe.historicalContext,
-            // V2 additions (TODO: Add these fields to Recipe model in future phase)
-            sharedBy: nil, // recipe.sharedBy,
-            sharedDate: nil, // recipe.sharedDate?.iso8601,
-            generation: nil, // recipe.generation > 0 ? recipe.generation : nil,
-            rootRecipeId: nil, // recipe.rootRecipeId,
-            heritageChain: nil, // Not yet tracked
-            tags: nil, // Not yet implemented
+            // V2 social/sharing fields
+            sharedBy: recipe.sharedBy,
+            sharedDate: recipe.sharedDate?.iso8601,
+            generation: recipe.generationCount > 0 ? recipe.generationCount : nil,
+            rootRecipeId: nil, // Would need lineage lookup
+            heritageChain: nil, // Would need lineage lookup
+            tags: recipe.tags?.map { $0.name },
             collections: recipe.collections?.map { $0.name },
-            cardBackText: nil, // recipe.cardBackText,
-            comments: nil, // Not yet implemented
-            annotations: nil // Not yet implemented
+            cardBackText: cardBackText,
+            comments: commentsData,
+            annotations: nil // Annotations not yet tracked on Recipe model
         )
     }
 

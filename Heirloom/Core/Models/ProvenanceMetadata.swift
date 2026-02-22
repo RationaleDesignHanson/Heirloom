@@ -92,6 +92,23 @@ struct ProvenanceMetadata: Codable, Hashable {
 
     // MARK: - Initialization
 
+    /// Default initializer for SwiftData compatibility
+    /// NOTE: This default init is required to make Recipe.provenance non-optional,
+    /// which fixes the SwiftData keypath crash with optional chaining
+    init() {
+        self.sourceType = .userCreated
+        self.sourceURL = nil
+        self.sourceAttribution = nil
+        self.rootProvenanceHash = Self.generateProvenanceHash()
+        self.generation = 0
+        self.parentShareID = nil
+        self.sharedByName = nil
+        self.createdAt = Date()
+        self.cloudKitRecordID = nil
+        self.lastSyncedAt = nil
+        self.cachedMetrics = AggregatedMetrics()
+    }
+
     init(
         sourceType: SourceType,
         sourceURL: String? = nil,
@@ -239,12 +256,15 @@ struct AggregatedMetrics: Codable, Hashable {
     var lastUpdated: Date?
 
     /// Whether this recipe is currently trending
-    var isTrending: Bool {
+    /// NOTE: This is a function (not computed property) to avoid SwiftData keypath crash
+    /// when Recipe.provenance?.cachedMetrics is accessed during sync/import
+    func getIsTrending() -> Bool {
         trendingScore > 10.0 && totalShares > 5
     }
 
     /// Display-friendly share count
-    var displayShareCount: String {
+    /// NOTE: This is a function (not computed property) to avoid SwiftData keypath crash
+    func getDisplayShareCount() -> String {
         if totalShares == 0 { return "" }
         if totalShares == 1 { return "1 share" }
         if totalShares < 100 { return "\(totalShares) shares" }

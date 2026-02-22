@@ -198,39 +198,33 @@ struct RecipeEditorView: View {
         }
 
         // Check provenance metadata for ownership
-        if let provenance = recipe.provenance {
-            if provenance.isOriginal {
-                // User created this recipe - full edit permission
-                hasEditPermission = true
-                permissionCheckReason = nil
-                Log.info("Edit permission granted: recipe owner", category: .auth, metadata: [
-                    "recipeId": recipe.id.uuidString,
-                    "generation": provenance.generation
-                ])
-                return
-            } else if provenance.isShared {
-                // Recipe was shared to this user
-                // TODO: Check shareType in provenance to distinguish heirloom (editable) vs generic (read-only)
-                // For now, assume all shared recipes are heirloom (editable) to match current behavior
-                hasEditPermission = true
-                permissionCheckReason = "Shared recipe (assumed heirloom)"
-                Log.warning("Edit permission granted: shared recipe (TODO: check shareType)", category: .auth, metadata: [
-                    "recipeId": recipe.id.uuidString,
-                    "generation": provenance.generation,
-                    "sharedBy": provenance.sharedByName ?? "unknown"
-                ])
-                return
-            }
+        let provenance = recipe.provenance
+        if provenance.isOriginal {
+            // User created this recipe - full edit permission
+            hasEditPermission = true
+            permissionCheckReason = nil
+            Log.info("Edit permission granted: recipe owner", category: .auth, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "generation": provenance.generation
+            ])
+            return
+        } else if provenance.isShared {
+            // Recipe was shared to this user
+            // TODO: Check shareType in provenance to distinguish heirloom (editable) vs generic (read-only)
+            // For now, assume all shared recipes are heirloom (editable) to match current behavior
+            hasEditPermission = true
+            permissionCheckReason = "Shared recipe (assumed heirloom)"
+            Log.warning("Edit permission granted: shared recipe (TODO: check shareType)", category: .auth, metadata: [
+                "recipeId": recipe.id.uuidString,
+                "generation": provenance.generation,
+                "sharedBy": provenance.sharedByName ?? "unknown"
+            ])
+            return
         }
 
-        // Legacy recipes without provenance - allow editing for backward compatibility
-        // TODO: Consider adding provenance to all existing recipes during migration
+        // Default: allow editing (non-shared, non-original implies user-created)
         hasEditPermission = true
-        permissionCheckReason = "Legacy recipe (no provenance)"
-        Log.warning("Edit permission granted: legacy recipe without provenance", category: .auth, metadata: [
-            "recipeId": recipe.id.uuidString,
-            "hasSharedBy": recipe.sharedBy != nil
-        ])
+        permissionCheckReason = nil
     }
 
     var body: some View {
@@ -1190,39 +1184,37 @@ struct RecipeEditorView: View {
             if isNewRecipe {
                 recipe.dateAdded = Date()
 
-                // Initialize provenance metadata for new recipes
-                if recipe.provenance == nil {
-                    let provenanceSourceType: ProvenanceMetadata.SourceType
+                // Configure provenance metadata for new recipes
+                let provenanceSourceType: ProvenanceMetadata.SourceType
 
-                    // Map RecipeSourceType to ProvenanceMetadata.SourceType
-                    switch sourceType {
-                    case .manual:
-                        provenanceSourceType = .userCreated
-                    case .url:
-                        provenanceSourceType = .imported
-                    case .cookbook:
-                        provenanceSourceType = .userCreated
-                    case .family:
-                        provenanceSourceType = .shared
-                    case .scan:
-                        provenanceSourceType = .scanned
-                    case .heritage:
-                        provenanceSourceType = .imported
-                    case .video:
-                        provenanceSourceType = .video
-                    case .generated:
-                        provenanceSourceType = .ai
-                    case .readRecipe:
-                        provenanceSourceType = .userCreated
-                    }
-
-                    recipe.provenance = ProvenanceMetadata(
-                        sourceType: provenanceSourceType,
-                        sourceURL: sourceURL.isEmpty ? nil : sourceURL,
-                        sourceAttribution: nil,
-                        generation: 0
-                    )
+                // Map RecipeSourceType to ProvenanceMetadata.SourceType
+                switch sourceType {
+                case .manual:
+                    provenanceSourceType = .userCreated
+                case .url:
+                    provenanceSourceType = .imported
+                case .cookbook:
+                    provenanceSourceType = .userCreated
+                case .family:
+                    provenanceSourceType = .shared
+                case .scan:
+                    provenanceSourceType = .scanned
+                case .heritage:
+                    provenanceSourceType = .imported
+                case .video:
+                    provenanceSourceType = .video
+                case .generated:
+                    provenanceSourceType = .ai
+                case .readRecipe:
+                    provenanceSourceType = .userCreated
                 }
+
+                recipe.provenance = ProvenanceMetadata(
+                    sourceType: provenanceSourceType,
+                    sourceURL: sourceURL.isEmpty ? nil : sourceURL,
+                    sourceAttribution: nil,
+                    generation: 0
+                )
 
                 modelContext.insert(recipe)
 

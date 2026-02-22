@@ -358,9 +358,10 @@ final class RecipeVersionService {
         if let snapshot = recipe.originalSnapshot, recipe.baseVersion == nil {
             // Transition from lightweight tracking to full versioning
             // Create base version from original import snapshot
+            let displaySource = recipe.provenance.displaySource
             let baseVersion = RecipeVersion(
                 creatorUserID: "original-import",
-                creatorDisplayName: recipe.provenance?.displaySource ?? "Original Import",
+                creatorDisplayName: displaySource.isEmpty ? "Original Import" : displaySource,
                 creationYear: String(Calendar.current.component(.year, from: snapshot.snapshotDate)),
                 isBaseVersion: true
             )

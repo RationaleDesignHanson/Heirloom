@@ -2236,8 +2236,9 @@ final class ImportJobManager: ObservableObject {
         }
 
         // Transfer provenance — always upgrade with better data
-        if let provenance = newRecipe.provenance {
-            existingRecipe.provenance = provenance
+        // provenance is non-optional, so always transfer if it has meaningful data
+        if newRecipe.provenance.sourceType != .userCreated || newRecipe.provenance.sourceURL != nil {
+            existingRecipe.provenance = newRecipe.provenance
         }
     }
 
