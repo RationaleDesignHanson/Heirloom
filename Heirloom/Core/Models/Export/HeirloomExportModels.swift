@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import SwiftData
 
 // MARK: - Export Wrapper (v2)
 
@@ -253,6 +254,12 @@ struct AnnotationExportData: Codable {
 
 // MARK: - Import Models
 
+/// Info about an image that needs to be restored
+struct ImageRestoreInfo {
+    let recipe: Recipe
+    let firebaseURL: String
+}
+
 /// Result of importing an Heirloom export file
 struct HeirloomImportResult {
     let version: Int
@@ -260,6 +267,8 @@ struct HeirloomImportResult {
     let connectionsImported: Int?
     let kitchenTablesImported: Int?
     let errors: [HeirloomImportError]
+    /// Images that need restoration (if skipImageRestoration was true)
+    var imagesToRestore: [ImageRestoreInfo] = []
 
     var isSuccessful: Bool {
         return recipesImported > 0 && errors.isEmpty

@@ -658,6 +658,12 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
         let currentUserName = auth.currentUser?.displayName ?? "You"
         sharedRecipe.heritageChainNames = inheritedChainNames + [currentUserName]
 
+        Log.info("Built heritage chain for sharedRecipe", category: .firebase, metadata: [
+            "inheritedChainCount": inheritedChain.count,
+            "finalChainCount": sharedRecipe.heritageChain?.count ?? -1,
+            "finalChainNames": sharedRecipe.heritageChainNames?.joined(separator: ", ") ?? "nil"
+        ])
+
         // Mark demo recipes - they cannot be shared (onboarding only)
         let isDemoShare = shareData["isDemoShare"] as? Bool ?? false
         sharedRecipe.isDemoRecipe = isDemoShare
@@ -712,6 +718,18 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
                 existingRecipe.generationCount = generation + 1
                 existingRecipe.modifiedAt = Date()
                 existingRecipe.dateAdded = Date() // Update so recipe appears at top of list
+
+                // Copy heritage chain fields (needed for offline lineage download affordance)
+                existingRecipe.heritageChain = sharedRecipe.heritageChain
+                existingRecipe.heritageChainNames = sharedRecipe.heritageChainNames
+                existingRecipe.sharedByUserId = sharedRecipe.sharedByUserId
+                existingRecipe.sharedFromRecipeId = sharedRecipe.sharedFromRecipeId
+
+                Log.info("Copied heritage chain to existing recipe", category: .firebase, metadata: [
+                    "heritageChainCount": existingRecipe.heritageChain?.count ?? -1,
+                    "heritageChainNames": existingRecipe.heritageChainNames?.joined(separator: ", ") ?? "nil",
+                    "sharedByUserId": existingRecipe.sharedByUserId ?? "nil"
+                ])
 
                 sharedRecipe = existingRecipe // Use existing recipe for subsequent operations
             }

@@ -689,9 +689,14 @@ struct CollectionsListView: View {
 
     /// Link theme recipes to their theme collections based on matching sourceThemeId
     /// This ensures theme collections display their recipes after Firebase sync
+    /// IMPORTANT: Only links UNLOCKED recipes based on current trial day to prevent showing future recipes
     private func linkThemeRecipesToCollections() {
         var needsSave = false
         var linkedCount = 0
+        var unlinkedCount = 0
+
+        // Get current trial day for unlock filtering
+        let currentDay = themeUnlockTracker.currentTrialDay
 
         // Fetch all theme recipes
         let themeRecipeDescriptor = FetchDescriptor<Recipe>(
@@ -706,10 +711,17 @@ struct CollectionsListView: View {
         for collection in allCollections where collection.type == .theme {
             guard let themeId = collection.sourceThemeId else { continue }
 
-            // Find recipes that belong to this theme
-            let matchingRecipes = themeRecipes.filter { $0.sourceThemeId == themeId }
+            // Find recipes that belong to this theme AND are unlocked
+            let matchingRecipes = themeRecipes.filter { recipe in
+                guard recipe.sourceThemeId == themeId else { return false }
+                // Only include recipes that are unlocked based on current trial day
+                return themeUnlockTracker.isUnlocked(recipe)
+            }
 
-            // Link recipes to collection if not already linked
+            // Get all recipes for this theme (including locked) for unlinking
+            let allThemeRecipes = themeRecipes.filter { $0.sourceThemeId == themeId }
+
+            // Link unlocked recipes to collection if not already linked
             for recipe in matchingRecipes {
                 let alreadyLinked = collection.recipes?.contains(where: { $0.id == recipe.id }) ?? false
                 if !alreadyLinked {
@@ -719,13 +731,26 @@ struct CollectionsListView: View {
                     needsSave = true
                 }
             }
+
+            // IMPORTANT: Unlink locked recipes that may have been incorrectly linked
+            // This handles the case where all recipes were linked before unlock day filtering was added
+            let lockedRecipes = allThemeRecipes.filter { !themeUnlockTracker.isUnlocked($0) }
+            for recipe in lockedRecipes {
+                if let index = collection.recipes?.firstIndex(where: { $0.id == recipe.id }) {
+                    collection.recipes?.remove(at: index)
+                    unlinkedCount += 1
+                    needsSave = true
+                }
+            }
         }
 
         if needsSave {
             do {
                 try modelContext.save()
                 Log.info("Linked theme recipes to collections", category: .collections, metadata: [
-                    "linkedCount": linkedCount
+                    "linkedCount": linkedCount,
+                    "unlinkedCount": unlinkedCount,
+                    "currentDay": currentDay
                 ])
             } catch {
                 Log.error("Failed to link theme recipes to collections", category: .collections, error: error)

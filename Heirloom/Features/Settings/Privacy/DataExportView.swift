@@ -13,6 +13,7 @@ struct DataExportView: View {
     @State private var exportComplete = false
     @State private var exportError: String?
     @State private var exportURL: URL?
+    @State private var showShareSheet = false
     @State private var showImportPicker = false
     @State private var showImportPreview = false
     @State private var importFileURL: URL?
@@ -102,6 +103,11 @@ struct DataExportView: View {
                         fileURL: fileURL,
                         modelContext: modelContext
                     )
+                }
+            }
+            .sheet(isPresented: $showShareSheet) {
+                if let url = exportURL {
+                    ActivityViewController(activityItems: [url])
                 }
             }
         }
@@ -300,8 +306,10 @@ struct DataExportView: View {
                     .foregroundStyle(HeirloomColors.primaryText)
             }
 
-            if let url = exportURL {
-                ShareLink(item: url) {
+            if exportURL != nil {
+                Button {
+                    showShareSheet = true
+                } label: {
                     HStack {
                         Image(systemName: "square.and.arrow.up")
                         Text("Share Export File")
@@ -541,6 +549,7 @@ struct ImportPreviewData {
     let hasPrivacySettings: Bool
     let warnings: [String]
 }
+
 
 // MARK: - Preview
 

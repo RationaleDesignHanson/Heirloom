@@ -116,19 +116,21 @@ final class RecipeLineageService {
             "rootRecipeId": rootRecipeId.uuidString
         ])
 
-        // Get allowed owners from heritage chain (used to filter out sanitized demo users)
-        // When a recipe is shared to real users, demo users are removed from heritageChain
-        // We should only show nodes from users in the heritage chain
-        // IMPORTANT: Also include the current user - they won't be in their own heritage chain
+        // Heritage chain filtering for demo user sanitization ONLY
+        // The heritageChain is frozen at share acceptance time and only contains ancestors.
+        // For real-user chains, we query Firebase by rootRecipeId to show ALL nodes (ancestors + descendants).
+        // We only apply the heritageChain filter if it contains demo users that need to be hidden.
         let originalHeritageChain = recipe.heritageChain ?? []
-        let hasHeritageChainFilter = !originalHeritageChain.isEmpty
-        var allowedOwnerIds = Set(originalHeritageChain)
-        if let currentUserId = Auth.auth().currentUser?.uid {
-            allowedOwnerIds.insert(currentUserId)
-        }
+        let containsDemoUsers = originalHeritageChain.contains { $0.hasPrefix("demo_") }
+        let hasHeritageChainFilter = containsDemoUsers && !originalHeritageChain.isEmpty
+        var allowedOwnerIds: Set<String>? = nil
         if hasHeritageChainFilter {
-            Log.info("Heritage chain filter active for lineage tree", category: .firebase, metadata: [
-                "allowedOwners": allowedOwnerIds.count,
+            allowedOwnerIds = Set(originalHeritageChain)
+            if let currentUserId = Auth.auth().currentUser?.uid {
+                allowedOwnerIds?.insert(currentUserId)
+            }
+            Log.info("Heritage chain filter active for lineage tree (demo sanitization)", category: .firebase, metadata: [
+                "allowedOwners": allowedOwnerIds?.count ?? 0,
                 "heritageChain": originalHeritageChain.joined(separator: ", ")
             ])
         }
@@ -147,11 +149,11 @@ final class RecipeLineageService {
 
             guard let recipeIdUUID = UUID(uuidString: recipeIdString) else { continue }
 
-            // Filter by heritage chain if provided (sanitization filter)
+            // Filter by heritage chain ONLY for demo user sanitization
             // When a recipe is shared to real users, demo users are removed from heritageChain
-            // We only show nodes from users that are in the recipient's heritage chain
-            if hasHeritageChainFilter && !allowedOwnerIds.contains(ownerId) {
-                Log.debug("Filtering out lineage node not in heritage chain", category: .firebase, metadata: [
+            // For real-user chains, allowedOwnerIds is nil and we show all nodes from Firebase
+            if let allowedOwnerIds = allowedOwnerIds, !allowedOwnerIds.contains(ownerId) {
+                Log.debug("Filtering out lineage node not in heritage chain (demo sanitization)", category: .firebase, metadata: [
                     "ownerId": ownerId,
                     "generation": generation,
                     "reason": "owner not in sanitized heritage chain"

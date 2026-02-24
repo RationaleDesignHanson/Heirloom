@@ -174,10 +174,12 @@ struct AsyncRecipeImage: View {
 
     // Using concrete type for image storage
     private var imageStorageService: ImageStorageService { ServiceContainer.shared.resolve(ImageStorageService.self) }
+    private var networkMonitor: NetworkMonitor { ServiceContainer.shared.resolve(NetworkMonitor.self) }
 
     @State private var loadedImage: UIImage?
     @State private var isLoading = true
     @State private var hasAttemptedLoad = false
+    @State private var failedDueToNetwork = false  // Track if failure was network-related
 
     var body: some View {
         GeometryReader { geometry in
@@ -203,6 +205,23 @@ struct AsyncRecipeImage: View {
                                     .font(.caption2)
                                     .foregroundStyle(HeirloomColors.warmGray)
                             }
+                        }
+                } else if failedDueToNetwork && !networkMonitor.isConnected {
+                    // Offline placeholder with message
+                    Rectangle()
+                        .fill(HeirloomColors.warmGray.opacity(0.15))
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .overlay {
+                            VStack(spacing: 6) {
+                                Image(systemName: "wifi.slash")
+                                    .font(.system(size: 28))
+                                    .foregroundStyle(HeirloomColors.warmGray)
+                                Text("Images unavailable offline")
+                                    .font(.caption2)
+                                    .foregroundStyle(HeirloomColors.warmGray)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(.horizontal, 8)
                         }
                 } else {
                     // Fallback placeholder
@@ -259,6 +278,12 @@ struct AsyncRecipeImage: View {
                 Task {
                     await loadImage()
                 }
+            }
+        }
+        .onChange(of: networkMonitor.isConnected) { _, isConnected in
+            // Retry loading when network comes back online
+            if isConnected {
+                retryLoadIfNeeded()
             }
         }
         .transaction { transaction in
@@ -319,6 +344,12 @@ struct AsyncRecipeImage: View {
                 Log.warning("AsyncRecipeImage: Failed to load from Firebase URL", category: .storage, metadata: [
                     "error": error.localizedDescription
                 ])
+                // Track if failure was due to network (for offline message)
+                if !networkMonitor.isConnected {
+                    await MainActor.run {
+                        failedDueToNetwork = true
+                    }
+                }
             }
         }
 
@@ -326,6 +357,17 @@ struct AsyncRecipeImage: View {
         Log.debug("AsyncRecipeImage: No image source available, showing placeholder", category: .storage)
         await MainActor.run {
             isLoading = false
+        }
+    }
+
+    /// Retry loading when network comes back online
+    private func retryLoadIfNeeded() {
+        guard failedDueToNetwork && networkMonitor.isConnected else { return }
+        Log.debug("AsyncRecipeImage: Network restored, retrying image load", category: .storage)
+        failedDueToNetwork = false
+        isLoading = true
+        Task {
+            await loadImage()
         }
     }
 }

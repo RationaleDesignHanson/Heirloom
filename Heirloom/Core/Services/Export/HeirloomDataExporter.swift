@@ -42,6 +42,7 @@ struct HeirloomImportOptions {
     var restoreKitchenTables: Bool = true
     var restorePrivacySettings: Bool = true
     var generateMissingImages: Bool = false // Generate AI images for recipes without photos
+    var skipImageRestoration: Bool = false // If true, returns image info but doesn't restore (caller can do it with progress)
 
     static var mergeAll: HeirloomImportOptions {
         return HeirloomImportOptions()
@@ -96,14 +97,25 @@ final class HeirloomDataExporter {
             "includeConnections": options.includeConnections
         ])
 
-        // Fetch all recipes
+        // Fetch user recipes only (exclude theme recipes - they come from JSON files)
         let descriptor = FetchDescriptor<Recipe>(
+            predicate: #Predicate<Recipe> { $0.isThemeRecipe == false },
             sortBy: [SortDescriptor(\.dateAdded, order: .reverse)]
         )
         let recipes = try context.fetch(descriptor)
 
-        guard !recipes.isEmpty else {
-            throw RecipeExportError.noRecipesToExport
+        // Theme recipes aren't user data, so only fail if there are no user recipes
+        // and the user has some recipes (all are theme recipes)
+        if recipes.isEmpty {
+            // Check if there are any recipes at all
+            let allDescriptor = FetchDescriptor<Recipe>()
+            let allRecipes = try context.fetch(allDescriptor)
+            if allRecipes.isEmpty {
+                throw RecipeExportError.noRecipesToExport
+            }
+            // User only has theme recipes - that's OK, we'll export an empty recipe list
+            // but still include profile, connections, theme progress, etc.
+            Log.info("No user recipes to export (only theme recipes exist)", category: .storage)
         }
 
         // Convert recipes to v2 format
@@ -307,13 +319,25 @@ final class HeirloomDataExporter {
             ))
         }
 
-        // Restore images from preserved Firebase URLs (runs asynchronously)
+        // Build list of images needing restoration
+        var imagesToRestore: [ImageRestoreInfo] = []
+
+        // Handle image restoration based on options
         if !recipesNeedingImageRestore.isEmpty {
-            Log.info("Starting image restoration for imported recipes", category: .storage, metadata: [
-                "count": recipesNeedingImageRestore.count
-            ])
-            Task {
-                await restoreImages(for: recipesNeedingImageRestore, context: context)
+            if options.skipImageRestoration {
+                // Return image info for caller to restore with progress tracking
+                imagesToRestore = recipesNeedingImageRestore.map { ImageRestoreInfo(recipe: $0.recipe, firebaseURL: $0.firebaseURL) }
+                Log.info("Skipping async image restoration - returning image list for caller", category: .storage, metadata: [
+                    "count": imagesToRestore.count
+                ])
+            } else {
+                // Restore images asynchronously (legacy behavior)
+                Log.info("Starting image restoration for imported recipes", category: .storage, metadata: [
+                    "count": recipesNeedingImageRestore.count
+                ])
+                Task {
+                    await restoreImages(for: recipesNeedingImageRestore, context: context)
+                }
             }
         }
 
@@ -324,13 +348,14 @@ final class HeirloomDataExporter {
             }
         }
 
-        let result = HeirloomImportResult(
+        var result = HeirloomImportResult(
             version: exportWrapper.version,
             recipesImported: recipesImported,
             connectionsImported: connectionsImported > 0 ? connectionsImported : nil,
             kitchenTablesImported: kitchenTablesImported > 0 ? kitchenTablesImported : nil,
             errors: errors
         )
+        result.imagesToRestore = imagesToRestore
 
         Log.info("Heirloom import completed", category: .storage, metadata: [
             "version": exportWrapper.version,
@@ -352,6 +377,13 @@ final class HeirloomDataExporter {
         context: ModelContext,
         mergeMode: Bool
     ) throws -> Recipe? {
+        // Skip theme recipes - they come from JSON files, not user data
+        // This handles old exports that may have included theme recipes
+        if data.isThemeRecipe {
+            Log.debug("Skipping theme recipe import", category: .storage, metadata: ["id": data.id, "title": data.title])
+            return nil
+        }
+
         // Check if recipe already exists
         if mergeMode {
             // Convert string ID to UUID for comparison
@@ -423,21 +455,30 @@ final class HeirloomDataExporter {
 
         context.insert(recipe)
 
-        // Link to collections by name
+        // Link to collections by name (user-created collections only)
         if let collectionNames = data.collections, !collectionNames.isEmpty {
             for collectionName in collectionNames {
-                // Find or create collection
+                // Find existing collection
                 let collectionDescriptor = FetchDescriptor<RecipeCollection>(
                     predicate: #Predicate { $0.name == collectionName }
                 )
                 if let existingCollection = try? context.fetch(collectionDescriptor).first {
-                    // Add recipe to existing collection
+                    // Skip theme/system collections - user recipes shouldn't be in theme collections
+                    // This handles old exports that may have exported theme collection names
+                    if existingCollection.type == .theme || existingCollection.type == .system {
+                        Log.debug("Skipping theme/system collection link", category: .storage, metadata: [
+                            "collection": collectionName,
+                            "recipe": recipe.title
+                        ])
+                        continue
+                    }
+                    // Add recipe to existing user collection
                     if existingCollection.recipes == nil {
                         existingCollection.recipes = []
                     }
                     existingCollection.recipes?.append(recipe)
                 } else {
-                    // Create new collection
+                    // Create new user-created collection
                     let newCollection = RecipeCollection(name: collectionName)
                     newCollection.recipes = [recipe]
                     context.insert(newCollection)
@@ -516,8 +557,8 @@ final class HeirloomDataExporter {
         ])
     }
 
-    /// Restore a single image from preserved Firebase URL
-    private func restoreImage(firebaseURL: String, for recipe: Recipe) async throws {
+    /// Restore a single image from preserved Firebase URL (public for progress tracking)
+    func restoreImage(firebaseURL: String, for recipe: Recipe) async throws {
         guard let url = URL(string: firebaseURL) else {
             throw HeirloomImportError(type: .imageMissing, itemId: recipe.id.uuidString, message: "Invalid image URL")
         }
@@ -728,7 +769,8 @@ final class HeirloomDataExporter {
             heritageChainNames: recipe.heritageChainNames, // Display names for offline heritage view
             isDemoRecipe: recipe.isDemoRecipe ? true : nil, // Only export if true (demo recipes cannot be shared)
             tags: recipe.tags?.map { $0.name },
-            collections: recipe.collections?.map { $0.name },
+            // Only export user-created collections (exclude theme/system collections that are recreated on restore)
+            collections: recipe.collections?.compactMap { $0.type == .userCreated ? $0.name : nil },
             cardBackText: cardBackText,
             comments: commentsData,
             annotations: nil, // Annotations not yet tracked on Recipe model

@@ -32,6 +32,11 @@ struct ImportPreviewSheet: View {
     @State private var showSharedRecipePrompt = false
     @State private var isCheckingSharedUpdates = false
 
+    // Image restoration progress
+    @State private var isRestoringImages = false
+    @State private var imageRestoreProgress: Int = 0
+    @State private var imageRestoreTotal: Int = 0
+
     private var exporter: HeirloomDataExporter {
         let profileService: ProfileServiceProtocol = ServiceContainer.shared.resolve(ProfileServiceProtocol.self)
         let connectionService: ConnectionServiceProtocol = ServiceContainer.shared.resolve(ConnectionServiceProtocol.self)
@@ -325,6 +330,11 @@ struct ImportPreviewSheet: View {
             // Import Statistics
             statisticsSection(result)
 
+            // Image restoration progress
+            if isRestoringImages {
+                imageRestorationProgressSection
+            }
+
             // Shared recipe update prompt
             if sharedRecipeCount > 0 && !isCheckingSharedUpdates {
                 sharedRecipeUpdateSection
@@ -340,6 +350,49 @@ struct ImportPreviewSheet: View {
                 errorsSection(result)
             }
         }
+    }
+
+    private var imageRestorationProgressSection: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+            HStack(spacing: HeirloomSpacing.sm) {
+                ProgressView()
+                    .tint(HeirloomColors.familyGreen)
+
+                Text("Restoring images...")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.primaryText)
+
+                Spacer()
+
+                Text("\(imageRestoreProgress) of \(imageRestoreTotal)")
+                    .font(HeirloomFonts.caption1)
+                    .foregroundStyle(HeirloomColors.secondaryText)
+            }
+
+            // Progress bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(HeirloomColors.warmGray.opacity(0.3))
+                        .frame(height: 4)
+                        .cornerRadius(2)
+
+                    Rectangle()
+                        .fill(HeirloomColors.familyGreen)
+                        .frame(width: geometry.size.width * CGFloat(imageRestoreProgress) / max(CGFloat(imageRestoreTotal), 1), height: 4)
+                        .cornerRadius(2)
+                        .animation(.easeInOut(duration: 0.3), value: imageRestoreProgress)
+                }
+            }
+            .frame(height: 4)
+
+            Text("Downloading and saving recipe photos")
+                .font(HeirloomFonts.caption2)
+                .foregroundStyle(HeirloomColors.secondaryText)
+        }
+        .padding(HeirloomSpacing.md)
+        .background(HeirloomColors.cardBackground)
+        .cornerRadius(12)
     }
 
     private var sharedRecipeUpdateSection: some View {
@@ -557,6 +610,8 @@ struct ImportPreviewSheet: View {
                 options.mergeRecipes = false // Replace, don't merge
                 options.restorePrivacySettings = true
             }
+            // Skip async image restoration - we'll do it with progress tracking
+            options.skipImageRestoration = true
 
             let result = try await exporter.importData(
                 from: fileURL,
@@ -574,8 +629,25 @@ struct ImportPreviewSheet: View {
                 "version": result.version,
                 "recipesImported": result.recipesImported,
                 "errorCount": result.errors.count,
-                "cleanRestore": cleanRestore
+                "cleanRestore": cleanRestore,
+                "imagesToRestore": result.imagesToRestore.count
             ])
+
+            // Restore images with progress tracking
+            if !result.imagesToRestore.isEmpty {
+                await restoreImagesWithProgress(result.imagesToRestore)
+            }
+
+            // IMPORTANT: Recreate system collections after clean restore
+            // System collections (All Recipes, Generated Recipes) are deleted during cleanExistingData()
+            // and must be recreated for the UI to function properly
+            if cleanRestore {
+                await MainActor.run {
+                    RecipeCollection.createSystemCollections(context: modelContext)
+                    try? modelContext.save()
+                    Log.info("Recreated system collections after restore", category: .storage)
+                }
+            }
 
             // Refresh theme recipes from Firebase to get any updates
             // (preserves user modifications like favorites, cook count, etc.)
@@ -636,43 +708,35 @@ struct ImportPreviewSheet: View {
         Log.info("Clean restore: existing data deleted", category: .storage)
     }
 
-    /// Refresh theme recipes from Firebase to get any updates since backup
-    /// Preserves user modifications (favorites, cook count, notes added by user, etc.)
+    /// Download theme recipes from Firebase based on restored theme progress
+    /// Theme recipes are NOT stored in backups - they come from Firebase/JSON
+    /// This recreates theme recipes and collections based on the selectedThemeIds restored from backup
     private func refreshThemeRecipesFromFirebase() async {
-        // Get unique theme IDs from restored recipes
-        let themeRecipeDescriptor = FetchDescriptor<Recipe>(
-            predicate: #Predicate<Recipe> { $0.isThemeRecipe == true }
-        )
+        // Get selected theme IDs from UserDefaults (restored from backup's themeProgress)
+        let selectedThemeIds = UserDefaults.standard.stringArray(forKey: "selected_theme_ids") ?? []
 
-        guard let themeRecipes = try? modelContext.fetch(themeRecipeDescriptor) else {
-            Log.warning("No theme recipes found to refresh", category: .storage)
+        guard !selectedThemeIds.isEmpty else {
+            Log.info("No selected themes to download - user may not have selected themes yet", category: .storage)
             return
         }
 
-        let themeIds = Set(themeRecipes.compactMap { $0.sourceThemeId })
-
-        guard !themeIds.isEmpty else {
-            Log.info("No theme IDs to refresh", category: .storage)
-            return
-        }
-
-        Log.info("Refreshing theme recipes from Firebase", category: .storage, metadata: [
-            "themeCount": themeIds.count,
-            "recipeCount": themeRecipes.count
+        Log.info("Downloading theme recipes for restored theme selection", category: .storage, metadata: [
+            "themeCount": selectedThemeIds.count,
+            "themeIds": selectedThemeIds
         ])
 
-        // ThemeRecipeService.downloadRecipesForTheme already handles:
-        // - Checking if recipe exists by themeRecipeId
-        // - Updating content (title, ingredients, instructions, images)
-        // - Preserving user fields (isFavorite, timesCooked, lastCooked, cardBack tips)
         let themeService = ThemeRecipeService()
 
-        for themeId in themeIds {
+        for themeId in selectedThemeIds {
             do {
-                _ = try await themeService.downloadRecipesForTheme(themeId: themeId, into: modelContext)
-                Log.info("Refreshed theme recipes", category: .storage, metadata: ["themeId": themeId])
+                // Download recipes for this theme (creates recipes with unlockDay set)
+                let recipes = try await themeService.downloadRecipesForTheme(themeId: themeId, into: modelContext)
+                Log.info("Downloaded theme recipes", category: .storage, metadata: [
+                    "themeId": themeId,
+                    "count": recipes.count
+                ])
             } catch {
-                Log.warning("Failed to refresh theme recipes", category: .storage, metadata: [
+                Log.warning("Failed to download theme recipes", category: .storage, metadata: [
                     "themeId": themeId,
                     "error": error.localizedDescription
                 ])
@@ -681,7 +745,121 @@ struct ImportPreviewSheet: View {
         }
 
         try? modelContext.save()
-        Log.info("Theme recipe refresh complete", category: .storage)
+
+        // Now create theme collections and link recipes
+        // This is normally done in CollectionsListView but we need to do it here for restore
+        await createThemeCollectionsAfterRestore(themeIds: selectedThemeIds)
+
+        Log.info("Theme recipe download complete", category: .storage)
+    }
+
+    /// Create theme collections and link unlocked recipes after restore
+    private func createThemeCollectionsAfterRestore(themeIds: [String]) async {
+        Log.info("Creating theme collections after restore", category: .storage)
+
+        // Fetch all themes from database
+        let themeDescriptor = FetchDescriptor<RecipeTheme>()
+        guard let allThemes = try? modelContext.fetch(themeDescriptor) else {
+            Log.warning("No themes found in database", category: .storage)
+            return
+        }
+
+        let themeUnlockTracker = ThemeUnlockTracker()
+
+        for themeId in themeIds {
+            guard let theme = allThemes.first(where: { $0.firebaseId == themeId }) else {
+                Log.warning("Theme not found for collection creation", category: .storage, metadata: ["themeId": themeId])
+                continue
+            }
+
+            // Check if collection already exists
+            let collectionDescriptor = FetchDescriptor<RecipeCollection>(
+                predicate: #Predicate<RecipeCollection> { $0.sourceThemeId == themeId }
+            )
+
+            if let existing = try? modelContext.fetch(collectionDescriptor), !existing.isEmpty {
+                Log.debug("Theme collection already exists", category: .storage, metadata: ["themeId": themeId])
+                continue
+            }
+
+            // Create theme collection
+            let collection = RecipeCollection(name: theme.name)
+            collection.collectionType = CollectionType.theme.rawValue
+            collection.sourceTheme = theme
+            collection.sourceThemeId = theme.firebaseId
+            collection.recipes = []
+            modelContext.insert(collection)
+
+            // Link only unlocked recipes
+            let recipeDescriptor = FetchDescriptor<Recipe>(
+                predicate: #Predicate<Recipe> { $0.sourceThemeId == themeId }
+            )
+
+            if let themeRecipes = try? modelContext.fetch(recipeDescriptor) {
+                for recipe in themeRecipes {
+                    if themeUnlockTracker.isUnlocked(recipe) {
+                        collection.recipes?.append(recipe)
+                    }
+                }
+
+                Log.info("Created theme collection", category: .storage, metadata: [
+                    "themeId": themeId,
+                    "themeName": theme.name,
+                    "linkedRecipes": collection.recipes?.count ?? 0,
+                    "totalRecipes": themeRecipes.count
+                ])
+            }
+        }
+
+        try? modelContext.save()
+    }
+
+    /// Restore images with progress tracking
+    /// This provides visual feedback during the ~2 minute image restoration process
+    private func restoreImagesWithProgress(_ imagesToRestore: [ImageRestoreInfo]) async {
+        guard !imagesToRestore.isEmpty else { return }
+
+        await MainActor.run {
+            self.isRestoringImages = true
+            self.imageRestoreTotal = imagesToRestore.count
+            self.imageRestoreProgress = 0
+        }
+
+        Log.info("Starting image restoration with progress", category: .storage, metadata: [
+            "total": imagesToRestore.count
+        ])
+
+        var restored = 0
+        var failed = 0
+
+        for imageInfo in imagesToRestore {
+            do {
+                try await exporter.restoreImage(firebaseURL: imageInfo.firebaseURL, for: imageInfo.recipe)
+                restored += 1
+            } catch {
+                failed += 1
+                Log.warning("Image restore failed", category: .storage, metadata: [
+                    "recipeId": imageInfo.recipe.id.uuidString,
+                    "error": error.localizedDescription
+                ])
+            }
+
+            await MainActor.run {
+                self.imageRestoreProgress = restored + failed
+            }
+        }
+
+        // Save after all restorations
+        try? modelContext.save()
+
+        await MainActor.run {
+            self.isRestoringImages = false
+        }
+
+        Log.info("Image restoration with progress complete", category: .storage, metadata: [
+            "restored": restored,
+            "failed": failed
+        ])
     }
 
     /// Count shared recipes after import for update prompt

@@ -79,13 +79,6 @@ struct RecipeDetailView: View {
 
     private var lineageService: RecipeLineageService { ServiceContainer.shared.resolve(RecipeLineageService.self) }
 
-    // Lineage download state
-    @State private var isDownloadingLineage = false
-
-    // Offline download education modal
-    @State private var showOfflineEducationModal = false
-    @AppStorage("hasSeenOfflineDownloadEducation") private var hasSeenOfflineEducation = false
-
     // MARK: - Computed Display Properties
 
     /// The title to display (from selected version or base recipe)
@@ -101,11 +94,11 @@ struct RecipeDetailView: View {
     private var displayIngredients: [Ingredient]? {
         // If viewing a non-current version, try to get its ingredients
         if let selected = selectedVersion, !selected.isCurrent {
-            // Try local recipe first
+            // Try local recipe first (for versions that have a full Recipe object)
             if let versionRecipe = selected.recipe {
                 return versionRecipe.ingredients
             }
-            // Fall back to parsing Firebase data
+            // Try parsing Firebase data
             if let recipeData = selected.recipeData,
                let ingredientsData = recipeData["ingredients"] as? [[String: Any]] {
                 // Convert Firebase ingredient data to Ingredient objects for display
@@ -139,7 +132,7 @@ struct RecipeDetailView: View {
     private var displayInstructions: [String] {
         // If viewing a non-current version, get its instructions
         if let selected = selectedVersion, !selected.isCurrent {
-            // Try local recipe first
+            // Try local recipe first (for versions that have a full Recipe object)
             if let versionRecipe = selected.recipe {
                 // Show original language if toggle is on and available
                 if showOriginalLanguage, let originalInstructions = versionRecipe.originalInstructions {
@@ -147,7 +140,7 @@ struct RecipeDetailView: View {
                 }
                 return versionRecipe.instructions
             }
-            // Fall back to Firebase data
+            // Try Firebase data
             if let recipeData = selected.recipeData,
                let instructions = recipeData["instructions"] as? [String] {
                 return instructions
@@ -506,9 +499,6 @@ struct RecipeDetailView: View {
                 showOwnershipVerification: $showOwnershipVerification,
                 showPublishSheet: $showPublishSheet,
                 showUnpublishConfirmation: $showUnpublishConfirmation,
-                showOfflineEducationModal: $showOfflineEducationModal,
-                hasSeenOfflineEducation: $hasSeenOfflineEducation,
-                downloadLineageForOffline: downloadLineageForOffline,
                 handleShareTapped: handleShareTapped,
                 handleEditTapped: handleEditTapped,
                 duplicateRecipe: duplicateRecipe,
@@ -625,8 +615,7 @@ struct RecipeDetailView: View {
         .background(HeirloomColors.cream)
         .navigationBarTitleDisplayMode(.inline)
         .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
-            // Poll the main NetworkMonitor's isConnected property
-            // The main monitor is already running and tracking state changes
+            // Poll the NetworkMonitor's isConnected property for reliable UI updates
             let currentlyOffline = !networkMonitor.isConnected
             if isOffline != currentlyOffline {
                 isOffline = currentlyOffline
@@ -636,7 +625,7 @@ struct RecipeDetailView: View {
             }
         }
         .onAppear {
-            // Initialize from main NetworkMonitor
+            // Initialize from NetworkMonitor
             isOffline = !networkMonitor.isConnected
         }
     }
@@ -675,9 +664,6 @@ private struct RecipeDetailModifiers: ViewModifier {
     @Binding var showOwnershipVerification: Bool
     @Binding var showPublishSheet: Bool
     @Binding var showUnpublishConfirmation: Bool
-    @Binding var showOfflineEducationModal: Bool
-    @Binding var hasSeenOfflineEducation: Bool
-    let downloadLineageForOffline: () -> Void
 
     let handleShareTapped: () -> Void
     let handleEditTapped: () -> Void
@@ -959,20 +945,6 @@ private struct RecipeDetailModifiers: ViewModifier {
             FirebaseSignInView()
                 .presentationDetents([.large])
         }
-        .sheet(isPresented: $showOfflineEducationModal) {
-            OfflineDownloadEducationView(
-                onDismiss: {
-                    showOfflineEducationModal = false
-                    hasSeenOfflineEducation = true
-                },
-                onDownloadNow: {
-                    showOfflineEducationModal = false
-                    hasSeenOfflineEducation = true
-                    downloadLineageForOffline()
-                }
-            )
-            .presentationDetents([.medium])
-        }
         .fullScreenCover(isPresented: $showCookingMode) {
             CookingModeView(recipe: recipe, targetServings: targetServings)
         }
@@ -1216,74 +1188,6 @@ extension RecipeDetailView {
         }
     }
 
-    // MARK: - Header Section
-    private var headerSection: some View {
-        VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
-            // Title with offline download affordance
-            HStack(alignment: .top, spacing: HeirloomSpacing.sm) {
-                // Download for offline button (only show for shared recipes with lineage)
-                if recipe.heritageChain != nil || recipe.sharedBy != nil {
-                    Button {
-                        downloadLineageForOffline()
-                    } label: {
-                        if isDownloadingLineage {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                                .frame(width: 20, height: 20)
-                        } else {
-                            Image(systemName: recipe.lineageCachedAt != nil ? "checkmark.circle.fill" : "arrow.down.circle")
-                                .font(.system(size: 20))
-                                .foregroundStyle(recipe.lineageCachedAt != nil ? HeirloomColors.familyGreen : HeirloomColors.warmGray)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(isDownloadingLineage)
-                    .accessibilityLabel(recipe.lineageCachedAt != nil ? "Lineage saved offline" : "Save lineage for offline")
-                }
-
-                Text(displayTitle)
-                    .font(HeirloomFonts.title1)
-                    .foregroundStyle(HeirloomColors.charcoal)
-            }
-
-            // Source Badge
-            HStack(spacing: HeirloomSpacing.xs) {
-                Image(systemName: recipe.sourceType?.iconName ?? "square.and.pencil")
-                    .font(HeirloomFonts.caption1)
-                Text(recipe.sourceDisplayName)
-                    .font(HeirloomFonts.caption1)
-            }
-            .foregroundStyle(HeirloomColors.charcoal.opacity(0.6))
-
-            // Action Buttons
-            HStack(spacing: HeirloomSpacing.md) {
-                // Favorite Button
-                Button {
-                    toggleFavorite()
-                } label: {
-                    Label(
-                        recipe.isFavorite ? "Favorited" : "Favorite",
-                        systemImage: recipe.isFavorite ? "heart.fill" : "heart"
-                    )
-                    .font(HeirloomFonts.bodyBold)
-                }
-                .buttonStyle(SecondaryButtonStyle())
-
-                // Add to Shopping List Button
-                Button {
-                    addToShoppingList()
-                } label: {
-                    Label(
-                        isInShoppingCart ? "In List" : "Shopping List",
-                        systemImage: isInShoppingCart ? "checkmark.circle.fill" : "cart"
-                    )
-                    .font(HeirloomFonts.bodyBold)
-                }
-                .buttonStyle(SecondaryButtonStyle())
-            }
-        }
-    }
-
     // MARK: - Tags and Collections Section
     private var tagsAndCollectionsSection: some View {
         VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
@@ -1515,9 +1419,6 @@ extension RecipeDetailView {
     // MARK: - Start Cooking Button
     private var startCookingButton: some View {
         Button {
-            // Show offline education on first cook (if applicable)
-            showOfflineEducationIfNeeded()
-
             showCookingMode = true
             analytics.track(event: .cookingStarted, properties: [
                 "recipe_id": recipe.id.uuidString,
@@ -2291,146 +2192,9 @@ extension RecipeDetailView {
         ])
     }
 
-    // MARK: - Lineage Download (Netflix-style offline)
-
-    private func downloadLineageForOffline() {
-        // If already cached, offer to remove
-        if recipe.lineageCachedAt != nil {
-            recipe.lineageCachedAt = nil
-            recipe.cachedLineageJSON = nil
-            try? modelContext.save()
-            toastManager.success(title: "Offline lineage removed")
-            return
-        }
-
-        // Download and cache
-        isDownloadingLineage = true
-        Task {
-            do {
-                let tree = try await lineageService.fetchLineageTree(
-                    for: recipe,
-                    context: modelContext
-                )
-
-                // Serialize tree to JSON for offline storage
-                let cacheData = CachedLineageData(
-                    recipeId: recipe.id,
-                    cachedAt: Date(),
-                    nodes: tree.nodes.map { node in
-                        CachedLineageNode(
-                            recipeId: node.recipe.id,
-                            title: node.recipe.title,
-                            generation: node.generation,
-                            contributorName: node.contributor?.displayName,
-                            contributorId: node.contributor?.userId,
-                            isCurrentUser: node.isCurrentUser,
-                            cookCount: node.stats.cookCount,
-                            shareCount: node.stats.shareCount
-                        )
-                    },
-                    edges: tree.edges.map { edge in
-                        CachedLineageEdge(
-                            fromId: edge.fromID,
-                            toId: edge.toID,
-                            createdAt: edge.createdAt
-                        )
-                    }
-                )
-
-                let encoder = JSONEncoder()
-                encoder.dateEncodingStrategy = .iso8601
-                let jsonData = try encoder.encode(cacheData)
-                let jsonString = String(data: jsonData, encoding: .utf8)
-
-                await MainActor.run {
-                    recipe.cachedLineageJSON = jsonString
-                    recipe.lineageCachedAt = Date()
-                    try? modelContext.save()
-                    isDownloadingLineage = false
-                    toastManager.success(title: "Lineage saved for offline")
-
-                    analytics.track(event: .featureUsed, properties: [
-                        "feature": "lineage_download",
-                        "recipe_id": recipe.id.uuidString,
-                        "node_count": tree.nodes.count
-                    ])
-                }
-
-                // Fire-and-forget: increment global download counter
-                await incrementGlobalDownloadCount(for: recipe)
-            } catch {
-                await MainActor.run {
-                    isDownloadingLineage = false
-                    toastManager.error(
-                        title: "Couldn't download lineage",
-                        message: "Please check your connection and try again"
-                    )
-                }
-                Log.error("Failed to download lineage for offline", category: .firebase, metadata: [
-                    "error": error.localizedDescription,
-                    "recipeId": recipe.id.uuidString
-                ])
-            }
-        }
-    }
-
-    /// Show offline download education modal if user hasn't seen it and recipe has heritage
-    private func showOfflineEducationIfNeeded() {
-        // Only show for recipes with heritage/sharing data
-        guard recipe.heritageChain != nil || recipe.sharedBy != nil else { return }
-        // Only show once
-        guard !hasSeenOfflineEducation else { return }
-        // Don't show if already cached
-        guard recipe.lineageCachedAt == nil else { return }
-
-        showOfflineEducationModal = true
-    }
-
-    /// Fire-and-forget increment of global download counter for popularity tracking
-    private func incrementGlobalDownloadCount(for recipe: Recipe) async {
-        let endpoint = "https://us-central1-heirloom-ios-prod.cloudfunctions.net/incrementDownloadCount"
-        guard let url = URL(string: endpoint) else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        // Use source recipe ID for tracking:
-        // - themeRecipeId for theme recipes (e.g., "automat-001")
-        // - sharedFromRecipeId for shared recipes
-        // - recipe.id for user-created recipes
-        let sourceId = recipe.themeRecipeId ?? recipe.sharedFromRecipeId ?? recipe.id.uuidString
-
-        let body: [String: Any] = [
-            "recipeId": recipe.id.uuidString,
-            "sourceRecipeId": sourceId
-        ]
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            let (_, response) = try await URLSession.shared.data(for: request)
-
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                Log.debug("Global download count incremented", category: .firebase, metadata: [
-                    "recipeId": recipe.id.uuidString
-                ])
-            }
-        } catch {
-            // Fail silently - this is a non-critical analytics operation
-            Log.debug("Failed to increment global download count", category: .firebase, metadata: [
-                "error": error.localizedDescription
-            ])
-        }
-    }
-
     private func toggleFavorite() {
         recipe.isFavorite.toggle()
         recipe.lastModified = Date()
-
-        // Show offline education on first favorite (if applicable)
-        if recipe.isFavorite {
-            showOfflineEducationIfNeeded()
-        }
 
         // Sync with Favorites collection
         syncFavoritesCollection()
@@ -2555,9 +2319,6 @@ extension RecipeDetailView {
                 )
             }
         } else {
-            // Show offline education on first add to shopping list (if applicable)
-            showOfflineEducationIfNeeded()
-
             // Add to cart with current target servings
             let cartRecipe = ShoppingCartRecipe(recipe: recipe, targetServings: targetServings)
             modelContext.insert(cartRecipe)

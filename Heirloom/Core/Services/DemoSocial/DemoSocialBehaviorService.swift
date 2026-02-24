@@ -56,14 +56,10 @@ final class DemoSocialBehaviorService: ObservableObject {
     /// Connection IDs we're watching for recipe sharing
     private var pendingRecipeShares: Set<String> = []
 
-    /// UserDefaults key for tracking whether proactive demo request was sent
-    private static let proactiveRequestSentKey = "demo_social_proactive_request_sent"
-
-    /// Whether we've already sent a proactive demo request for this user
-    private var hasSentProactiveRequest: Bool {
-        get { UserDefaults.standard.bool(forKey: Self.proactiveRequestSentKey) }
-        set { UserDefaults.standard.set(newValue, forKey: Self.proactiveRequestSentKey) }
-    }
+    /// Track whether we've already sent a proactive request THIS SESSION
+    /// This prevents duplicate sends if onOnboardingComplete is called multiple times
+    /// Firebase is the source of truth for whether user has a demo connection
+    private var hasSentProactiveRequestThisSession = false
 
     // MARK: - Demo User Data
 
@@ -125,11 +121,14 @@ final class DemoSocialBehaviorService: ObservableObject {
         let rootRecipeId: String?
         let rootOwnerId: String?
         let shareGeneration: Int  // Generation the RECIPIENT gets (default 1)
+        // Full heritage chain for multi-gen recipes (nil = use default [rootOwnerId, sharerId])
+        let heritageChainIds: [String]?
+        let heritageChainNames: [String]?
 
         init(recipeId: String, title: String, message: String, servings: String,
              prepTime: String, cookTime: String, ingredientCount: Int, instructionCount: Int,
              imageURL: String, rootRecipeId: String? = nil, rootOwnerId: String? = nil,
-             shareGeneration: Int = 1) {
+             shareGeneration: Int = 1, heritageChainIds: [String]? = nil, heritageChainNames: [String]? = nil) {
             self.recipeId = recipeId
             self.title = title
             self.message = message
@@ -142,6 +141,8 @@ final class DemoSocialBehaviorService: ObservableObject {
             self.rootRecipeId = rootRecipeId
             self.rootOwnerId = rootOwnerId
             self.shareGeneration = shareGeneration
+            self.heritageChainIds = heritageChainIds
+            self.heritageChainNames = heritageChainNames
         }
     }
 
@@ -226,7 +227,12 @@ final class DemoSocialBehaviorService: ObservableObject {
             imageURL: "https://storage.googleapis.com/heirloom-ios-prod.firebasestorage.app/seed/demo/demo_bigshare_bolognese-image.webp",
             rootRecipeId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
             rootOwnerId: "demo_grandmazing",
-            shareGeneration: 2
+            shareGeneration: 3,  // Recipient becomes Gen 3
+            // Include ALL demo users in the tree so version selector doesn't filter them out
+            // Direct chain: Grandmazing → Phillip Fry → Big Share
+            // Other branch: Grandmazing → Maria Santos → Marcus Johnson
+            heritageChainIds: ["demo_grandmazing", "demo_phillipfry", "demo_chef_maria", "demo_bigshare", "demo_grillmaster"],
+            heritageChainNames: ["Grandmazing", "Phillip Fry", "Maria Santos", "Big Share", "Marcus Johnson"]
         ),
     ]
 
@@ -303,7 +309,17 @@ final class DemoSocialBehaviorService: ObservableObject {
     /// Call this when user completes onboarding to trigger proactive demo request
     /// Flow: Friend request first → User accepts → Then demo user shares a recipe
     func onOnboardingComplete() {
-        guard gate.isEnabled else { return }
+        Log.info("onOnboardingComplete called", category: .social, metadata: [
+            "gateEnabled": gate.isEnabled,
+            "gateDebugStatus": gate.debugStatus
+        ])
+
+        guard gate.isEnabled else {
+            Log.warning("Demo social gate is disabled, skipping proactive request", category: .social, metadata: [
+                "debugStatus": gate.debugStatus
+            ])
+            return
+        }
 
         // Only schedule the proactive friend request
         // Recipe sharing happens AFTER user accepts (via onDemoConnectionAccepted)
@@ -403,21 +419,37 @@ final class DemoSocialBehaviorService: ObservableObject {
     // MARK: - Proactive Request Logic
 
     /// Schedule a demo user to send a connection request to the new user
+    /// Called when user completes onboarding - checks Firebase for existing demo connection
     private func scheduleProactiveDemoRequest() {
-        guard let auth = auth, let userId = auth.currentUser?.uid else { return }
+        Log.info("scheduleProactiveDemoRequest called", category: .social, metadata: [
+            "hasAuth": auth != nil,
+            "hasUserId": auth?.currentUser?.uid != nil
+        ])
 
-        // Fast local check — prevent duplicate requests across app launches
-        if hasSentProactiveRequest {
-            Log.debug("Proactive demo request already sent (UserDefaults), skipping", category: .social)
+        guard let auth = auth, let userId = auth.currentUser?.uid else {
+            Log.warning("scheduleProactiveDemoRequest: No auth or userId available", category: .social)
             return
         }
 
-        // Check if user already has a demo connection (don't spam)
+        // Prevent duplicate sends if called multiple times in same session
+        if hasSentProactiveRequestThisSession {
+            Log.debug("Proactive demo request already sent this session, skipping", category: .social)
+            return
+        }
+
+        Log.info("scheduleProactiveDemoRequest: Starting Firebase check for existing demo connections", category: .social, metadata: [
+            "userId": userId
+        ])
+
         Task {
+            // Check Firebase (source of truth) - does user already have a demo connection?
             let hasExistingDemo = await checkIfUserHasDemoConnection(userId: userId)
+            Log.info("scheduleProactiveDemoRequest: Firebase check complete", category: .social, metadata: [
+                "hasExistingDemo": hasExistingDemo
+            ])
+
             if hasExistingDemo {
                 Log.debug("User already has demo connection, skipping proactive request", category: .social)
-                hasSentProactiveRequest = true  // Mark so we don't re-check next launch
                 return
             }
 
@@ -505,8 +537,8 @@ final class DemoSocialBehaviorService: ObservableObject {
                 .document(connectionId)
                 .setData(userConnection)
 
-            // Mark as sent so we never duplicate on subsequent launches
-            hasSentProactiveRequest = true
+            // Mark as sent for this session (Firebase is source of truth for future sessions)
+            hasSentProactiveRequestThisSession = true
 
             Log.info("Demo user sent proactive connection request", category: .social, metadata: [
                 "demoUserId": demoUserId,
@@ -927,25 +959,31 @@ final class DemoSocialBehaviorService: ObservableObject {
     }
 
     /// Build heritage chain (user IDs) for demo recipe
-    /// Includes root owner and current sharer for multi-gen demos
+    /// Uses explicit chain if provided, otherwise falls back to [rootOwnerId, sharerId]
     private func buildHeritageChain(for recipe: DemoRecipeDetails, sharerId: String) -> [String] {
+        // Use explicit heritage chain if provided (for multi-gen recipes like Traveling Bolognese)
+        if let explicitChain = recipe.heritageChainIds {
+            return explicitChain
+        }
+        // Fallback: root owner → sharer
         if let rootOwnerId = recipe.rootOwnerId, rootOwnerId != sharerId {
-            // Multi-gen recipe: root owner → sharer
             return [rootOwnerId, sharerId]
         } else {
-            // Single owner recipe
             return [sharerId]
         }
     }
 
     /// Build heritage chain names (display names) for demo recipe
-    /// Parallel to buildHeritageChain - same order, display names instead of IDs
+    /// Uses explicit chain if provided, otherwise falls back to [rootOwnerName, sharerName]
     private func buildHeritageChainNames(for recipe: DemoRecipeDetails, sharerName: String) -> [String] {
+        // Use explicit heritage chain names if provided
+        if let explicitNames = recipe.heritageChainNames {
+            return explicitNames
+        }
+        // Fallback: root owner name → sharer name
         if let rootOwnerId = recipe.rootOwnerId, let rootOwnerInfo = Self.demoUserInfo[rootOwnerId] {
-            // Multi-gen recipe: root owner name → sharer name
             return [rootOwnerInfo.displayName, sharerName]
         } else {
-            // Single owner recipe
             return [sharerName]
         }
     }

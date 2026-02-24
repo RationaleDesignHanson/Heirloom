@@ -39,19 +39,21 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                 Log.debug("Found lineage in local SwiftData", category: .firebase)
             }
 
-            // Get the allowed owners from heritage chain (used to filter out sanitized demo users)
-            // When a recipe is shared to real users, demo users are removed from heritageChain
-            // We should only show versions from users in the heritage chain
-            // IMPORTANT: Also include the current user - they won't be in their own heritage chain
+            // Heritage chain filtering for demo user sanitization ONLY
+            // The heritageChain is frozen at share acceptance time and only contains ancestors.
+            // For real-user chains, we query Firebase by rootRecipeId to show ALL versions (ancestors + descendants).
+            // We only apply the heritageChain filter if it contains demo users that need to be hidden.
             let originalHeritageChain = recipe.heritageChain ?? []
-            let hasHeritageChainFilter = !originalHeritageChain.isEmpty
-            var allowedOwnerIds = Set(originalHeritageChain)
-            if let currentUserId = Auth.auth().currentUser?.uid {
-                allowedOwnerIds.insert(currentUserId)
-            }
+            let containsDemoUsers = originalHeritageChain.contains { $0.hasPrefix("demo_") }
+            let hasHeritageChainFilter = containsDemoUsers && !originalHeritageChain.isEmpty
+            var allowedOwnerIds: Set<String>? = nil
             if hasHeritageChainFilter {
-                Log.debug("Heritage chain filter active", category: .firebase, metadata: [
-                    "allowedOwners": allowedOwnerIds.count
+                allowedOwnerIds = Set(originalHeritageChain)
+                if let currentUserId = Auth.auth().currentUser?.uid {
+                    allowedOwnerIds?.insert(currentUserId)
+                }
+                Log.debug("Heritage chain filter active (demo sanitization)", category: .firebase, metadata: [
+                    "allowedOwners": allowedOwnerIds?.count ?? 0
                 ])
             }
 
@@ -154,11 +156,11 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             allVersions.append(currentVersion)
 
             // 3. Fetch all other versions from the lineage tree
-            // Pass allowed owners to filter out sanitized demo users
+            // Pass allowed owners to filter out demo users (only when demo users are present)
             let otherVersions = try await fetchOtherVersions(
                 rootRecipeId: lineage.rootRecipeId,
                 currentRecipeId: recipe.id,
-                allowedOwnerIds: hasHeritageChainFilter ? allowedOwnerIds : nil
+                allowedOwnerIds: allowedOwnerIds
             )
 
             // 3.5. Deduplicate - filter out versions that match current recipe
