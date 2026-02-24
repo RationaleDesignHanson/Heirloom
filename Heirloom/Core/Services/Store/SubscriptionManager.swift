@@ -316,17 +316,28 @@ final class SubscriptionManager {
         // UNLESS the user has purchased this session
         // This allows Apple to see the paywall, but honors purchases when made
         if isDemoAccountConfigured {
-            // Primary check: if we have a cached product ID, the user has purchased
+            // CRITICAL: During active purchase window, prefer pendingPurchaseProductID
+            // This prevents race conditions where stale cache returns the OLD product
+            // while the new purchase is being processed
+            let effectiveProduct: ProductIdentifier?
+            if isInActivePurchaseWindow, let pending = pendingPurchaseProductID {
+                effectiveProduct = pending
+                logger.log("Demo account in active purchase - using pending product: \(pending.displayName)", category: .store, level: .info, metadata: nil)
+            } else {
+                effectiveProduct = currentProductID
+            }
+
+            // Primary check: if we have a product ID, the user has purchased
             // This is more reliable than the flag since it's set directly during purchase
-            if let cachedProduct = currentProductID {
+            if let cachedProduct = effectiveProduct {
                 let cachedStatus: HeirloomSubscriptionStatus
                 switch cachedProduct {
                 case .monthly: cachedStatus = .monthly
                 case .annual: cachedStatus = .annual
                 case .lifetime: cachedStatus = .lifetime
                 }
-                logger.log("Demo account has purchased - using cached product: \(cachedProduct.displayName)", category: .store, level: .info, metadata: nil)
-                DeviceLogger.shared.log("🍎 [Demo] Using cached product: \(cachedProduct.displayName)", level: .info)
+                logger.log("Demo account has purchased - using product: \(cachedProduct.displayName)", category: .store, level: .info, metadata: nil)
+                DeviceLogger.shared.log("🍎 [Demo] Using product: \(cachedProduct.displayName)", level: .info)
 
                 // Ensure flag is set for consistency
                 if !demoAccountHasPurchased {

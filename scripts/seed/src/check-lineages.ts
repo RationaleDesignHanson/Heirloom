@@ -1,29 +1,43 @@
 import * as admin from 'firebase-admin';
 import * as path from 'path';
-import * as dotenv from 'dotenv';
 
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
-const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || path.resolve(__dirname, '../../../service-account-key.json');
 if (!admin.apps.length) {
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccountPath) });
+  const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+    path.resolve(__dirname, '../../../service-account-key.json');
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccountPath),
+  });
 }
 
 const db = admin.firestore();
 
 async function checkLineages() {
-  const lineages = await db.collection('globalLineages').get();
-  console.log('Global lineages found:', lineages.size);
-  
-  for (const doc of lineages.docs) {
+  const cookiesRootId = '5e13b837-1a80-4d22-af8a-c474a6ea5c35';
+
+  console.log('=== Lineages for cookies (rootRecipeId: ' + cookiesRootId + ') ===\n');
+
+  const snapshot = await db.collection('lineages')
+    .where('rootRecipeId', '==', cookiesRootId)
+    .get();
+
+  console.log('Found ' + snapshot.docs.length + ' lineages:\n');
+
+  for (const doc of snapshot.docs) {
     const data = doc.data();
-    console.log('---');
-    console.log('Recipe:', data.recipeTitle || data.title || 'unknown');
-    console.log('Generation:', data.generation || 0);
-    if (data.heritageChainNames) {
-      console.log('Chain:', data.heritageChainNames.join(' → '));
-    }
+    console.log('ID: ' + doc.id);
+    console.log('  ownerId: ' + data.ownerId);
+    console.log('  generation: ' + data.generation);
+    console.log('');
+  }
+
+  console.log('\n=== ALL global lineages ===\n');
+  const allSnapshot = await db.collection('lineages').get();
+  console.log('Total: ' + allSnapshot.docs.length + '\n');
+
+  for (const doc of allSnapshot.docs) {
+    const data = doc.data();
+    console.log(doc.id.substring(0,20) + '... | root: ' + (data.rootRecipeId || '').substring(0,8) + ' | owner: ' + data.ownerId + ' | gen: ' + data.generation);
   }
 }
 
-checkLineages();
+checkLineages().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); });

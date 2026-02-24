@@ -434,6 +434,10 @@ class FirebaseRecipeSync: ObservableObject, FirebaseRecipeSyncProtocol {
         recipe.passedDownMessage = data["passedDownMessage"] as? String
         recipe.generationCount = data["generationCount"] as? Int ?? 0
 
+        // Update lineage/heritage fields (critical for version selector filtering)
+        recipe.heritageChain = data["heritageChain"] as? [String]
+        recipe.heritageChainNames = data["heritageChainNames"] as? [String]
+
         // Update provenance
         if let provenanceJSON = data["provenanceJSON"] as? String,
            let provenanceData = provenanceJSON.data(using: .utf8),

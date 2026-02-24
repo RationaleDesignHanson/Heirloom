@@ -1586,8 +1586,29 @@ class FirebaseSyncService: ObservableObject, FirebaseSyncServiceProtocol {
                 "count": group.count
             ])
 
-            // Keep the one with the most recipes (likely the more established one)
-            let sorted = group.sorted { ($0.recipes?.count ?? 0) > ($1.recipes?.count ?? 0) }
+            // Keep the best collection using multiple criteria:
+            // 1. Most recipes (likely more established)
+            // 2. Prefer older collections (earlier createdDate = likely from Firebase seed)
+            // 3. Prefer collections with system/import types over userCreated
+            // This ensures Firebase collections are preferred over empty local ones created at app startup
+            let sorted = group.sorted { a, b in
+                let aRecipeCount = a.recipes?.count ?? 0
+                let bRecipeCount = b.recipes?.count ?? 0
+                if aRecipeCount != bRecipeCount {
+                    return aRecipeCount > bRecipeCount
+                }
+                // If recipe counts are equal, prefer older collections
+                // Firebase collections are seeded with earlier dates than app-created ones
+                let aDate = a.createdDate
+                let bDate = b.createdDate
+                if aDate != bDate {
+                    return aDate < bDate
+                }
+                // Final tiebreaker: prefer system/import types over userCreated
+                let aIsSystem = a.isSystemCollection || a.collectionType != "userCreated"
+                let bIsSystem = b.isSystemCollection || b.collectionType != "userCreated"
+                return aIsSystem && !bIsSystem
+            }
             let primary = sorted[0]
             let duplicates = sorted.dropFirst()
 

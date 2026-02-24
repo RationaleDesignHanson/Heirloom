@@ -260,27 +260,65 @@ struct CurrentBalanceCard: View {
     var subscriptionCredits: Int = 0
     var purchasedCredits: Int = 0
 
-    var body: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("BALANCE")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+    /// Show breakdown only when there are both types of credits
+    private var showBreakdown: Bool {
+        subscriptionCredits > 0 || purchasedCredits > 0
+    }
 
-                HStack(spacing: 6) {
-                    Text("\(balance)")
-                        .font(.system(size: 32, weight: .bold))
-                    Text("credits")
-                        .font(.subheadline)
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("BALANCE")
+                        .font(.caption2)
                         .foregroundColor(.secondary)
+
+                    HStack(spacing: 6) {
+                        Text("\(balance)")
+                            .font(.system(size: 32, weight: .bold))
+                        Text("credits")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                 }
+
+                Spacer()
+
+                Image(systemName: "giftcard.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(HeirloomColors.familyGreen)
             }
 
-            Spacer()
+            // Breakdown of credit sources
+            if showBreakdown {
+                Divider()
 
-            Image(systemName: "giftcard.fill")
-                .font(.system(size: 28))
-                .foregroundColor(HeirloomColors.familyGreen)
+                HStack(spacing: 16) {
+                    if subscriptionCredits > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "crown.fill")
+                                .font(.caption)
+                                .foregroundColor(HeirloomColors.tomato)
+                            Text("\(subscriptionCredits) subscription")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    if purchasedCredits > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bag.fill")
+                                .font(.caption)
+                                .foregroundColor(HeirloomColors.familyGreen)
+                            Text("\(purchasedCredits) purchased")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    Spacer()
+                }
+            }
         }
         .padding()
         .frame(maxWidth: .infinity)
