@@ -219,7 +219,7 @@ struct AboutView: View {
                 }
             }
 
-            Text("© 2024 Heirloom. All rights reserved.")
+            Text("© 2025 Heirloom. All rights reserved.")
                 .font(HeirloomFonts.caption1)
                 .foregroundStyle(HeirloomColors.secondaryText)
                 .padding(.top, HeirloomSpacing.sm)

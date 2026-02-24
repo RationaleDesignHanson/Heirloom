@@ -29,6 +29,9 @@ protocol DiscoveryServiceProtocol {
     /// Search recipes by keywords
     func search(query: String, limit: Int, lastDocument: DocumentSnapshot?) async throws -> (recipes: [PublicRecipe], lastDoc: DocumentSnapshot?)
 
+    /// Fetch public recipes by a specific user
+    func fetchByUser(userId: String, limit: Int, lastDocument: DocumentSnapshot?) async throws -> (recipes: [PublicRecipe], lastDoc: DocumentSnapshot?)
+
     /// Fetch a single public recipe by ID
     func fetchPublicRecipe(id: String) async throws -> PublicRecipe?
 
@@ -364,6 +367,36 @@ class FirebaseDiscoveryService: DiscoveryServiceProtocol {
 
         recipes = filterOutOwnRecipes(recipes)
         recipes = Array(recipes.prefix(limit))
+
+        return (recipes, snapshot.documents.last)
+    }
+
+    /// Fetch public recipes by a specific user
+    /// Used for public profile pages to show a user's published recipes
+    func fetchByUser(userId: String, limit: Int = 20, lastDocument: DocumentSnapshot? = nil) async throws -> (recipes: [PublicRecipe], lastDoc: DocumentSnapshot?) {
+        var query = db.collection("publicRecipes")
+            .whereField("ownerId", isEqualTo: userId)
+            .order(by: "publishedAt", descending: true)
+            .limit(to: limit)
+
+        if let lastDoc = lastDocument {
+            query = query.start(afterDocument: lastDoc)
+        }
+
+        let snapshot = try await query.getDocuments()
+        var recipes = try snapshot.documents.compactMap { doc -> PublicRecipe? in
+            try PublicRecipe(from: doc)
+        }
+
+        // Filter out hidden recipes (unless current user is the owner)
+        if userId != currentUserId {
+            recipes = recipes.filter { !$0.isHidden }
+        }
+
+        Log.debug("Fetched public recipes by user", category: .social, metadata: [
+            "userId": userId,
+            "count": recipes.count
+        ])
 
         return (recipes, snapshot.documents.last)
     }

@@ -66,6 +66,7 @@ struct OnboardingWelcomeScreen: View {
                                 .font(HeirloomFonts.body)
                                 .foregroundColor(HeirloomColors.secondaryText)
                                 .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         .padding(.horizontal, 24)
                         .padding(.top, 8)
@@ -96,20 +97,28 @@ struct OnboardingWelcomeScreen: View {
                             .shadow(color: HeirloomColors.tomato.opacity(0.3), radius: 12, y: 6)
                     }
 
-                    // Restore from backup option
+                    // Restore from backup option - prominent styling to match Continue button
                     if onRestoreFromBackup != nil {
                         Button(action: {
                             showRestoreFilePicker = true
                         }) {
-                            HStack(spacing: 6) {
+                            HStack(spacing: 8) {
                                 Image(systemName: "arrow.counterclockwise")
-                                    .font(.system(size: 14))
+                                    .font(.system(size: 16, weight: .medium))
                                 Text("Restore from Backup")
-                                    .font(HeirloomFonts.subheadline)
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
                             }
-                            .foregroundColor(HeirloomColors.secondaryText)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.white)
+                            .foregroundColor(HeirloomColors.primaryText)
+                            .cornerRadius(16)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+                            )
                         }
-                        .padding(.top, 4)
                     }
 
                     // Microcopy

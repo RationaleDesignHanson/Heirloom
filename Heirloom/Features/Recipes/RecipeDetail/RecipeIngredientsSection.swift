@@ -135,14 +135,9 @@ struct RecipeIngredientsSection: View {
         // Use IngredientFormatter to format with scaling and unit conversion
         let scaled = formatter.format(ingredient, scaleFactor: scaleFactor, convertUnits: true)
 
-        // Log successful scaling attempt
-        if targetServings != originalServings {
-            ScalingDiagnostics.shared.logScalingAttempt(
-                recipe: recipe,
-                targetServings: targetServings,
-                success: true
-            )
-        }
+        // Note: Scaling diagnostics logging removed here to prevent log spam
+        // (was logging once per ingredient per render). Diagnostics should be
+        // logged at a higher level (e.g., when scaling factor changes).
 
         return scaled
     }

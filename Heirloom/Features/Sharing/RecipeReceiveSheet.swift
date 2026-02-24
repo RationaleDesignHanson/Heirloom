@@ -97,15 +97,14 @@ struct RecipeReceiveSheet: View {
                 // Share Attribution
                 attributionCard(preview: preview)
 
+                // Action Buttons (moved up - side by side)
+                HStack(spacing: HeirloomSpacing.md) {
+                    declineButton
+                    acceptButton
+                }
+
                 // Recipe Preview
                 recipePreviewCard(preview: preview)
-
-                // Action Buttons
-                VStack(spacing: HeirloomSpacing.md) {
-                    acceptButton
-                    declineButton
-                }
-                .padding(.top, HeirloomSpacing.md)
             }
             .padding(HeirloomSpacing.lg)
         }

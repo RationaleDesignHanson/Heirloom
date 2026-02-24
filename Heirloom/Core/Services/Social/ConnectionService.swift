@@ -181,14 +181,29 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             )
         }
 
-        // Check if connection already exists
-        let existingConnections = try await fetchConnections(status: nil)
-        if existingConnections.contains(where: { $0.connectedUserId == targetUserId }) {
+        // Check if an ACTIVE connection already exists (connected or pending)
+        // Rejected connections should NOT block reconnection attempts
+        let existingConnections = try await fetchConnections(status: nil, forceRefresh: true)
+        if existingConnections.contains(where: {
+            $0.connectedUserId == targetUserId &&
+            ($0.status == .connected || $0.status == .pending)
+        }) {
             throw NSError(
                 domain: "ConnectionService",
                 code: 409,
                 userInfo: [NSLocalizedDescriptionKey: "Connection already exists"]
             )
+        }
+
+        // If a rejected connection exists, delete it to allow fresh reconnection
+        if let rejectedConnection = existingConnections.first(where: {
+            $0.connectedUserId == targetUserId && $0.status == .rejected
+        }) {
+            try await removeConnection(connectionId: rejectedConnection.id)
+            Log.info("Removed rejected connection to allow reconnection", category: .social, metadata: [
+                "connectionId": rejectedConnection.id,
+                "targetUserId": targetUserId
+            ])
         }
 
         // Check if target user has blocked current user
@@ -347,15 +362,29 @@ class FirebaseConnectionService: ConnectionServiceProtocol {
             )
         }
 
-        // Check if connection already exists in current user's collection
-        // (We can only read our own connections)
-        let existingConnections = try await fetchConnections(status: nil)
-        if existingConnections.contains(where: { $0.connectedUserId == inviterUserId }) {
+        // Check if an ACTIVE connection already exists (connected or pending)
+        // Rejected connections should NOT block reconnection
+        let existingConnections = try await fetchConnections(status: nil, forceRefresh: true)
+        if existingConnections.contains(where: {
+            $0.connectedUserId == inviterUserId &&
+            ($0.status == .connected || $0.status == .pending)
+        }) {
             throw NSError(
                 domain: "ConnectionService",
                 code: 409,
                 userInfo: [NSLocalizedDescriptionKey: "Connection already exists"]
             )
+        }
+
+        // If a rejected connection exists, delete it to allow fresh connection via invite
+        if let rejectedConnection = existingConnections.first(where: {
+            $0.connectedUserId == inviterUserId && $0.status == .rejected
+        }) {
+            try await removeConnection(connectionId: rejectedConnection.id)
+            Log.info("Removed rejected connection to allow connection via invite", category: .social, metadata: [
+                "connectionId": rejectedConnection.id,
+                "inviterUserId": inviterUserId
+            ])
         }
 
         // Fetch inviter's display name from Firebase Auth

@@ -178,16 +178,15 @@ struct CookingModeView: View {
             VStack(alignment: .leading, spacing: HeirloomSpacing.lg) {
                 // Step Number & Completion Toggle
                 HStack(alignment: .center) {
-                    // Elegant step number badge
+                    // Elegant step number badge (more compact)
                     ZStack {
                         Circle()
                             .fill(HeirloomColors.tomato.opacity(0.1))
-                            .frame(width: 72, height: 72)
+                            .frame(width: 56, height: 56)
 
                         Text("\(currentStep + 1)")
-                            .font(.system(size: 80, weight: .bold, design: .rounded))
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
                             .foregroundStyle(HeirloomColors.tomato)
-                            .offset(y: -4)
                     }
 
                     Spacer()
@@ -689,10 +688,17 @@ struct CookingModeView: View {
     // MARK: - Actions
 
     private func toggleStepComplete() {
-        if completedSteps.contains(currentStep) {
-            completedSteps.remove(currentStep)
-        } else {
-            completedSteps.insert(currentStep)
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+
+        // Update state with animation to ensure UI refreshes
+        withAnimation(.easeInOut(duration: 0.2)) {
+            if completedSteps.contains(currentStep) {
+                completedSteps.remove(currentStep)
+            } else {
+                completedSteps.insert(currentStep)
+            }
         }
     }
 

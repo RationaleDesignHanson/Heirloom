@@ -209,12 +209,10 @@ struct RecipeEditorView: View {
             ])
             return
         } else if provenance.isShared {
-            // Recipe was shared to this user
-            // TODO: Check shareType in provenance to distinguish heirloom (editable) vs generic (read-only)
-            // For now, assume all shared recipes are heirloom (editable) to match current behavior
+            // Recipe was shared to this user - all shared recipes are currently editable (heirloom behavior)
             hasEditPermission = true
-            permissionCheckReason = "Shared recipe (assumed heirloom)"
-            Log.warning("Edit permission granted: shared recipe (TODO: check shareType)", category: .auth, metadata: [
+            permissionCheckReason = "Shared recipe (heirloom)"
+            Log.info("Edit permission granted: shared recipe", category: .auth, metadata: [
                 "recipeId": recipe.id.uuidString,
                 "generation": provenance.generation,
                 "sharedBy": provenance.sharedByName ?? "unknown"
@@ -270,11 +268,16 @@ struct RecipeEditorView: View {
                     .disabled(title.isEmpty || isSaving)
                 }
 
-                // Keyboard toolbar for number pad fields (servings, times)
+                // Keyboard toolbar for number pad fields only (servings, times)
+                // Number pads don't have a return key, so we provide a Done button
+                // Only show when a number pad field is focused to avoid duplicating
+                // the automatic Done button that SwiftUI shows for text fields
                 ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") {
-                        focusedField = nil
+                    if focusedField != nil {
+                        Spacer()
+                        Button("Done") {
+                            focusedField = nil
+                        }
                     }
                 }
             }
@@ -1068,19 +1071,61 @@ struct RecipeEditorView: View {
                         category: .database,
                         metadata: ["count": filteredIngredients.count, "recipeId": recipe.id.uuidString])
 
+                // Phase 2.5: Pre-parse any uncached ingredients IN PARALLEL for better performance
+                // This avoids sequential AI calls during the main loop
+                let uncachedIndices = filteredIngredients.enumerated().compactMap { (index, _) -> Int? in
+                    parsedIngredients[index] == nil ? index : nil
+                }
+
+                if !uncachedIndices.isEmpty {
+                    Log.info("Parsing \(uncachedIndices.count) uncached ingredients in parallel", category: .ai)
+
+                    // Parse all uncached ingredients in parallel using TaskGroup
+                    await withTaskGroup(of: (Int, Ingredient?).self) { group in
+                        for index in uncachedIndices {
+                            let text = filteredIngredients[index]
+                            group.addTask {
+                                do {
+                                    let parsed = try await self.aiIngredientParser.parse(text)
+                                    return (index, parsed)
+                                } catch {
+                                    Log.warning("Parallel AI parse failed for index \(index)", category: .ai)
+                                    return (index, nil)
+                                }
+                            }
+                        }
+
+                        // Collect results into parsedIngredients cache
+                        for await (index, parsed) in group {
+                            if let parsed = parsed {
+                                parsedIngredients[index] = parsed
+                            }
+                        }
+                    }
+                }
+
                 var newIngredients: [Ingredient] = []
 
-                // Phase 3: Create new ingredient models
+                // Phase 3: Create new ingredient models (all should be cached now)
                 for (index, ingredientText) in filteredIngredients.enumerated() {
-                    // Use cached AI-parsed ingredient if available (from blur), otherwise parse now
+                    // Use cached AI-parsed ingredient (pre-parsed above), fallback to regex parser
                     let parsed: Ingredient
                     if let cachedParsed = parsedIngredients[index] {
                         parsed = cachedParsed
                         Log.debug("Using cached AI parse", category: .ai, metadata: ["index": index])
                     } else {
-                        // Parse now with AI
-                        parsed = try await aiIngredientParser.parse(ingredientText)
-                        Log.debug("Parsing on save", category: .ai, metadata: ["index": index])
+                        // Fallback to regex parser if AI parse failed
+                        let regexParsed = IngredientParser.parse(ingredientText)
+                        parsed = Ingredient(
+                            originalText: ingredientText,
+                            name: regexParsed.name.isEmpty ? ingredientText : regexParsed.name,
+                            quantity: regexParsed.quantity,
+                            unit: regexParsed.unit,
+                            category: .other,
+                            orderIndex: index
+                        )
+                        parsed.quantityMax = regexParsed.quantityMax
+                        Log.debug("Using regex fallback parse", category: .ai, metadata: ["index": index])
                     }
 
                     // Categorize based on ingredient name

@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
 
 struct PublicProfileSheet: View {
     let userId: String
@@ -25,10 +26,16 @@ struct PublicProfileSheet: View {
         ServiceContainer.shared.resolve(ToastManager.self)
     }
 
+    private var discoveryService: DiscoveryServiceProtocol {
+        ServiceContainer.shared.resolve((any DiscoveryServiceProtocol).self)
+    }
+
     @State private var displayName: String?
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var connectionStatus: ConnectionStatus = .none
+    @State private var publicRecipes: [PublicRecipe] = []
+    @State private var isLoadingRecipes = false
 
     enum ConnectionStatus {
         case none          // Not connected
@@ -96,10 +103,134 @@ struct PublicProfileSheet: View {
                 // Connect Button
                 connectionButton
                     .padding(.horizontal, HeirloomSpacing.md)
+
+                // Public Recipes Section
+                publicRecipesSection
             }
             .padding(.bottom, HeirloomSpacing.xl)
         }
         .background(HeirloomColors.appBackground)
+    }
+
+    // MARK: - Public Recipes Section
+
+    @ViewBuilder
+    private var publicRecipesSection: some View {
+        VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+            // Section Header
+            HStack {
+                Text("Public Recipes")
+                    .font(HeirloomFonts.title3)
+                    .foregroundStyle(HeirloomColors.primaryText)
+
+                Spacer()
+
+                if isLoadingRecipes {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+            }
+            .padding(.horizontal, HeirloomSpacing.md)
+
+            if publicRecipes.isEmpty && !isLoadingRecipes {
+                // Empty state
+                VStack(spacing: HeirloomSpacing.sm) {
+                    Image(systemName: "doc.text")
+                        .font(.system(size: 32))
+                        .foregroundStyle(HeirloomColors.warmGray.opacity(0.5))
+
+                    Text("No public recipes")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, HeirloomSpacing.xl)
+            } else {
+                // Recipe Grid
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: HeirloomSpacing.md),
+                    GridItem(.flexible(), spacing: HeirloomSpacing.md)
+                ], spacing: HeirloomSpacing.md) {
+                    ForEach(publicRecipes) { recipe in
+                        PublicRecipeCard(recipe: recipe)
+                    }
+                }
+                .padding(.horizontal, HeirloomSpacing.md)
+            }
+        }
+    }
+
+    // MARK: - Public Recipe Card
+
+    private struct PublicRecipeCard: View {
+        let recipe: PublicRecipe
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                // Image
+                if let imageURL = recipe.imageURL {
+                    AsyncImage(url: URL(string: imageURL)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        case .failure:
+                            recipePlaceholder
+                        case .empty:
+                            ProgressView()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        @unknown default:
+                            recipePlaceholder
+                        }
+                    }
+                    .frame(height: 120)
+                    .clipped()
+                    .cornerRadius(8)
+                } else {
+                    recipePlaceholder
+                        .frame(height: 120)
+                        .cornerRadius(8)
+                }
+
+                // Title
+                Text(recipe.title)
+                    .font(HeirloomFonts.bodyBold)
+                    .foregroundStyle(HeirloomColors.primaryText)
+                    .lineLimit(2)
+
+                // Stats
+                HStack(spacing: HeirloomSpacing.sm) {
+                    HStack(spacing: 2) {
+                        Image(systemName: "eye.fill")
+                            .font(.system(size: 10))
+                        Text("\(recipe.viewCount)")
+                    }
+
+                    HStack(spacing: 2) {
+                        Image(systemName: "arrow.down.circle")
+                            .font(.system(size: 10))
+                        Text("\(recipe.saveCount)")
+                    }
+                }
+                .font(HeirloomFonts.caption2)
+                .foregroundStyle(HeirloomColors.secondaryText)
+            }
+            .padding(HeirloomSpacing.sm)
+            .background(HeirloomColors.cardBackground)
+            .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+        }
+
+        private var recipePlaceholder: some View {
+            Rectangle()
+                .fill(HeirloomColors.warmGray.opacity(0.2))
+                .overlay(
+                    Image(systemName: "photo")
+                        .font(.system(size: 24))
+                        .foregroundStyle(HeirloomColors.warmGray.opacity(0.5))
+                )
+        }
     }
 
     // MARK: - Connection Button
@@ -254,11 +385,44 @@ struct PublicProfileSheet: View {
             }
 
             Log.info("Public profile loaded successfully", category: .social, metadata: ["userId": userId])
+
+            // Fetch public recipes (non-blocking)
+            await loadPublicRecipes()
         } catch {
             Log.error("Failed to load public profile", category: .social, error: error)
             await MainActor.run {
                 errorMessage = error.localizedDescription
                 isLoading = false
+            }
+        }
+    }
+
+    private func loadPublicRecipes() async {
+        await MainActor.run {
+            isLoadingRecipes = true
+        }
+
+        do {
+            // Fetch public recipes by this user from Discovery service
+            let result = try await discoveryService.fetchByUser(userId: userId, limit: 20, lastDocument: nil)
+
+            await MainActor.run {
+                publicRecipes = result.recipes
+                isLoadingRecipes = false
+            }
+
+            Log.info("Loaded public recipes for profile", category: .social, metadata: [
+                "userId": userId,
+                "count": result.recipes.count
+            ])
+        } catch {
+            Log.warning("Failed to load public recipes for profile", category: .social, metadata: [
+                "userId": userId,
+                "error": error.localizedDescription
+            ])
+
+            await MainActor.run {
+                isLoadingRecipes = false
             }
         }
     }

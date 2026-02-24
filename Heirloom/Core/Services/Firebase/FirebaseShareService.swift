@@ -208,7 +208,9 @@ class FirebaseShareService: ObservableObject, FirebaseShareServiceProtocol {
             "allowReSharing": options.allowReSharing,
 
             // Metadata
-            "generation": recipeToShare.provenance.generation,
+            // Use heritage chain length as source of truth for generation
+            // heritageChain excludes current user, so it directly represents the generation number
+            "generation": (recipeToShare.heritageChain ?? []).count,
             "servings": recipeToShare.servings as Any,
             "prepTime": recipeToShare.prepTime as Any,
             "cookTime": recipeToShare.cookTime as Any,

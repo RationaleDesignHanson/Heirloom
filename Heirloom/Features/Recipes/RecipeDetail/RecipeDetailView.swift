@@ -2156,8 +2156,8 @@ extension RecipeDetailView {
 
         if recipe.isDemoRecipe {
             toastManager.info(
-                title: "Demo recipes can't be shared",
-                message: "This is a demo recipe for learning. Create your own recipe to share with friends!"
+                title: "Demo recipe",
+                message: "Create your own to share"
             )
             return
         }

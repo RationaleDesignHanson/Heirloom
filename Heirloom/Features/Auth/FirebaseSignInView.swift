@@ -22,10 +22,11 @@ struct FirebaseSignInView: View {
     @State private var showForgotPassword = false
     @State private var resetEmail = ""
     @State private var showResetSuccess = false
+    @State private var confirmPassword = ""
     @FocusState private var focusedField: Field?
 
     enum Field {
-        case email, password, resetEmail
+        case email, password, confirmPassword, resetEmail
     }
 
     var body: some View {
@@ -238,6 +239,19 @@ struct FirebaseSignInView: View {
         }
     }
 
+    // MARK: - Validation
+
+    /// Check if form can be submitted
+    private var canSubmit: Bool {
+        if email.isEmpty || password.isEmpty || password.count < 6 {
+            return false
+        }
+        if isCreatingAccount {
+            return password == confirmPassword && !confirmPassword.isEmpty
+        }
+        return true
+    }
+
     // MARK: - Email Sign In View
 
     private var emailSignInView: some View {
@@ -248,6 +262,8 @@ struct FirebaseSignInView: View {
                     showEmailSignIn = false
                     email = ""
                     password = ""
+                    confirmPassword = ""
+                    isCreatingAccount = false
                 } label: {
                     HStack(spacing: HeirloomSpacing.xs) {
                         Image(systemName: "chevron.left")
@@ -293,19 +309,55 @@ struct FirebaseSignInView: View {
                 SecureField("Password", text: $password)
                     .textFieldStyle(.plain)
                     .font(HeirloomFonts.body)
-                    .textContentType(.password)
+                    .textContentType(isCreatingAccount ? .newPassword : .password)
                     .focused($focusedField, equals: .password)
-                    .submitLabel(.go)
+                    .submitLabel(isCreatingAccount ? .next : .go)
                     .onSubmit {
-                        focusedField = nil
-                        // Auto-submit if valid
-                        if !email.isEmpty && !password.isEmpty && password.count >= 6 {
-                            performSignIn()
+                        if isCreatingAccount {
+                            focusedField = .confirmPassword
+                        } else {
+                            focusedField = nil
+                            // Auto-submit if valid
+                            if !email.isEmpty && !password.isEmpty && password.count >= 6 {
+                                performSignIn()
+                            }
                         }
                     }
                     .padding()
                     .background(Color(hex: "#F8F8F8"))
                     .cornerRadius(12)
+            }
+
+            // Confirm password field (only for account creation)
+            if isCreatingAccount {
+                VStack(alignment: .leading, spacing: HeirloomSpacing.sm) {
+                    Text("Confirm Password")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundColor(HeirloomColors.secondaryText)
+                    SecureField("Confirm Password", text: $confirmPassword)
+                        .textFieldStyle(.plain)
+                        .font(HeirloomFonts.body)
+                        .textContentType(.newPassword)
+                        .focused($focusedField, equals: .confirmPassword)
+                        .submitLabel(.go)
+                        .onSubmit {
+                            focusedField = nil
+                            // Auto-submit if valid
+                            if canSubmit {
+                                performSignIn()
+                            }
+                        }
+                        .padding()
+                        .background(Color(hex: "#F8F8F8"))
+                        .cornerRadius(12)
+
+                    // Password mismatch warning
+                    if !confirmPassword.isEmpty && password != confirmPassword {
+                        Text("Passwords don't match")
+                            .font(HeirloomFonts.caption2)
+                            .foregroundColor(HeirloomColors.tomato)
+                    }
+                }
             }
 
             // Forgot password
@@ -334,13 +386,15 @@ struct FirebaseSignInView: View {
                     .background(isCreatingAccount ? HeirloomColors.familyGreen : HeirloomColors.tomato)
                     .cornerRadius(12)
             }
-            .disabled(email.isEmpty || password.isEmpty || password.count < 6)
-            .opacity((email.isEmpty || password.isEmpty || password.count < 6) ? 0.5 : 1.0)
+            .disabled(!canSubmit)
+            .opacity(canSubmit ? 1.0 : 0.5)
             .animation(.easeInOut(duration: 0.2), value: isCreatingAccount)
 
             // Toggle create/sign in
             Button {
                 isCreatingAccount.toggle()
+                // Clear confirm password when switching modes
+                confirmPassword = ""
             } label: {
                 Text(isCreatingAccount ? "Already have an account? Sign in" : "Don't have an account? Create one")
                     .font(HeirloomFonts.caption1)

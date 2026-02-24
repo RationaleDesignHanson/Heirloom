@@ -134,25 +134,6 @@ struct EditProfileView: View {
                     Text("Link to your blog, Instagram, or other social media")
                 }
 
-                // Save Button
-                Section {
-                    Button {
-                        Task {
-                            await saveProfile()
-                        }
-                    } label: {
-                        HStack {
-                            Spacer()
-                            if isSaving {
-                                ProgressView()
-                                    .padding(.trailing, HeirloomSpacing.xs)
-                            }
-                            Text(isSaving ? "Saving..." : "Save Changes")
-                            Spacer()
-                        }
-                    }
-                    .disabled(isSaving || displayName.isEmpty)
-                }
             }
             .navigationTitle("Edit Profile")
             .navigationBarTitleDisplayMode(.inline)
@@ -161,6 +142,21 @@ struct EditProfileView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        Task {
+                            await saveProfile()
+                        }
+                    } label: {
+                        if isSaving {
+                            ProgressView()
+                        } else {
+                            Text("Done")
+                        }
+                    }
+                    .disabled(isSaving || displayName.isEmpty)
                 }
             }
         }
@@ -173,12 +169,26 @@ struct EditProfileView: View {
         defer { isUploadingAvatar = false }
 
         do {
-            let photoPath = try await profileService.uploadAvatar(image)
+            let photoURL = try await profileService.uploadAvatar(image)
+
+            // Update local profile with new photo URL
             await MainActor.run {
-                profile.photoURL = photoPath
+                profile.photoURL = photoURL
+            }
+
+            // Persist the profile update to Firestore immediately
+            var updatedProfile = profile
+            updatedProfile.photoURL = photoURL
+            updatedProfile.updatedAt = Date()
+            try await profileService.updateProfile(updatedProfile)
+
+            // Notify observers so other views can update
+            await MainActor.run {
+                NotificationCenter.default.post(name: .userProfileDidUpdate, object: nil)
                 toastManager.success(title: "Avatar uploaded")
             }
-            Log.info("Avatar uploaded successfully", category: .social)
+
+            Log.info("Avatar uploaded and profile updated", category: .social)
         } catch {
             Log.error("Failed to upload avatar", category: .social, error: error)
             await MainActor.run {

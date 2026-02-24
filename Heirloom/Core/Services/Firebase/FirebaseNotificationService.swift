@@ -180,25 +180,44 @@ class FirebaseNotificationService: ObservableObject, FirebaseNotificationService
     private func parseNotification(_ doc: QueryDocumentSnapshot) -> LineageNotification? {
         let data = doc.data()
 
-        guard
-            let type = data["type"] as? String,
-            type == "lineage_modification",
-            let recipeIdString = data["recipeId"] as? String,
-            let recipeId = UUID(uuidString: recipeIdString),
-            let rootRecipeIdString = data["rootRecipeId"] as? String,
-            let rootRecipeId = UUID(uuidString: rootRecipeIdString),
-            let generation = data["generation"] as? Int,
-            let modifiedBy = data["modifiedBy"] as? String,
-            let changeType = data["changeType"] as? String,
-            let changeDescription = data["changeDescription"] as? String,
-            let timestamp = (data["timestamp"] as? Timestamp)?.dateValue()
-        else {
-            Log.warning("Failed to parse notification document", category: .firebase, metadata: ["documentId": doc.documentID])
+        // Only parse lineage_modification notifications (skip connection requests, etc.)
+        guard let type = data["type"] as? String, type == "lineage_modification" else {
+            // Skip non-lineage notifications silently (they're handled elsewhere)
             return nil
         }
 
-        let read = data["read"] as? Bool ?? false
-        let modifiedByName = data["modifiedByName"] as? String
+        // Parse required fields with fallbacks for malformed data
+        let recipeIdString = data["recipeId"] as? String ?? ""
+        let rootRecipeIdString = data["rootRecipeId"] as? String ?? recipeIdString
+        let generation = data["generation"] as? Int ?? 0
+        let modifiedBy = data["modifiedBy"] as? String ?? "unknown"
+        let changeType = data["changeType"] as? String ?? "modified"
+        let changeDescription = data["changeDescription"] as? String ?? "Recipe was modified"
+
+        // Timestamp: try Timestamp first, then Date, then use current date
+        let timestamp: Date
+        if let ts = data["timestamp"] as? Timestamp {
+            timestamp = ts.dateValue()
+        } else if let createdAt = data["createdAt"] as? Timestamp {
+            timestamp = createdAt.dateValue()
+        } else {
+            timestamp = Date()
+        }
+
+        // Try to parse UUIDs - skip notification if recipe IDs are invalid
+        guard let recipeId = UUID(uuidString: recipeIdString) else {
+            Log.debug("Skipping notification with invalid recipeId", category: .firebase, metadata: [
+                "documentId": doc.documentID,
+                "recipeIdString": recipeIdString
+            ])
+            return nil
+        }
+
+        // Root recipe ID can fall back to recipe ID if not present
+        let rootRecipeId = UUID(uuidString: rootRecipeIdString) ?? recipeId
+
+        let read = data["read"] as? Bool ?? data["isRead"] as? Bool ?? false
+        let modifiedByName = data["modifiedByName"] as? String ?? data["actorDisplayName"] as? String
 
         return LineageNotification(
             id: doc.documentID,

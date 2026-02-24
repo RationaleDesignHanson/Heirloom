@@ -225,6 +225,12 @@ struct KitchenTableView: View {
                     await loadPendingSharesCount()
                 }
             }
+            .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { _ in
+                // Periodically refresh pending shares count while viewing Kitchen Table
+                Task {
+                    await loadPendingSharesCount()
+                }
+            }
         }
     }
 

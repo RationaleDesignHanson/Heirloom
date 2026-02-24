@@ -65,9 +65,6 @@ struct SettingsView: View {
                 // User Experience Section (moved UP - user preferences)
                 userExperienceSection
 
-                // AI Features Section
-                aiSection
-
                 // Data Management Section
                 dataManagementSection
 
@@ -378,6 +375,22 @@ struct SettingsView: View {
 
     private var developerSection: some View {
         Section {
+            // AI Features (moved from main settings for power users)
+            NavigationLink {
+                AISettingsView()
+            } label: {
+                HStack {
+                    Image(systemName: "brain")
+                        .foregroundStyle(HeirloomColors.tomato)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("AI Features")
+                        Text(aiConfig.isConfigured(provider: .anthropic) ? "Configured" : "Not Set")
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+                }
+            }
+
             NavigationLink {
                 DeveloperSettingsView()
             } label: {
@@ -511,7 +524,7 @@ extension SettingsView {
 
             Button {
                 analytics.track(event: .contactSupportTapped, properties: nil)
-                if let url = URL(string: "https://discord.gg/tfrMzefJFj") {
+                if let url = URL(string: "https://discord.gg/nZeX7cfBqj") {
                     UIApplication.shared.open(url)
                 }
             } label: {
@@ -521,7 +534,7 @@ extension SettingsView {
 
             Button {
                 analytics.track(event: .bugReportSubmitted, properties: nil)
-                if let url = URL(string: "https://discord.gg/tfrMzefJFj") {
+                if let url = URL(string: "https://discord.gg/JXDPWp3sCy") {
                     UIApplication.shared.open(url)
                 }
             } label: {
@@ -531,7 +544,7 @@ extension SettingsView {
 
             Button {
                 analytics.track(event: .featureRequestSubmitted, properties: nil)
-                if let url = URL(string: "https://discord.gg/tfrMzefJFj") {
+                if let url = URL(string: "https://discord.gg/xVUCgT4c4W") {
                     UIApplication.shared.open(url)
                 }
             } label: {
