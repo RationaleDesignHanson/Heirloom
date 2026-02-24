@@ -1489,6 +1489,10 @@ final class ImportJobManager: ObservableObject {
                         for ingredient in ingredientsToInsert {
                             context.insert(ingredient)
                         }
+
+                        // Delete the temporary extracted recipe (data was transferred to placeholder)
+                        context.delete(recipe)
+
                         Log.info("✅ Updated placeholder with first recipe", category: .import, metadata: [
                             "placeholder_id": placeholder.id.uuidString,
                             "title": recipe.title
@@ -1514,6 +1518,9 @@ final class ImportJobManager: ObservableObject {
                         for ingredient in ingredientsToInsert {
                             context.insert(ingredient)
                         }
+
+                        // Delete the temporary extracted recipe (data was transferred to placeholder)
+                        context.delete(recipe)
                     } else {
                         recipesToInsert.append(recipe)
                         context.insert(recipe)
