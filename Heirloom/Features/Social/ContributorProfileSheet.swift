@@ -48,6 +48,13 @@ struct ContributorProfileSheet: View {
     @State private var sharedByThem: [SharedRecipeInfo] = []
     @State private var isLoadingShares = true
 
+    // Connected user's profile data (fetched from Firestore)
+    @State private var connectedUserBio: String?
+    @State private var connectedUserLocation: String?
+    @State private var connectedUserSpecialties: [String]?
+    @State private var connectedUserWebsiteURL: String?
+    @State private var isLoadingProfile = true
+
     var body: some View {
         NavigationStack {
             profileContent
@@ -107,6 +114,9 @@ struct ContributorProfileSheet: View {
                     }
                 }
                 .padding(.top, HeirloomSpacing.lg)
+
+                // Profile info section (bio, location, specialties, website)
+                profileInfoSection
 
                 // Connection status badge
                 connectionStatusBadge
@@ -208,6 +218,7 @@ struct ContributorProfileSheet: View {
                 .padding(.top, HeirloomSpacing.lg)
             }
             .task {
+                await loadConnectedUserProfile()
                 await loadSharedRecipes()
             }
             .padding(.bottom, HeirloomSpacing.xl)
@@ -270,6 +281,102 @@ struct ContributorProfileSheet: View {
         .padding(.vertical, HeirloomSpacing.xs)
         .background(HeirloomColors.tomato)
         .cornerRadius(20)
+    }
+
+    // MARK: - Profile Info Section
+
+    @ViewBuilder
+    private var profileInfoSection: some View {
+        // Only show if we have at least one piece of profile info
+        let hasBio = connectedUserBio != nil && !connectedUserBio!.isEmpty
+        let hasLocation = connectedUserLocation != nil && !connectedUserLocation!.isEmpty
+        let hasSpecialties = connectedUserSpecialties != nil && !connectedUserSpecialties!.isEmpty
+        let hasWebsite = connectedUserWebsiteURL != nil && !connectedUserWebsiteURL!.isEmpty
+
+        if isLoadingProfile {
+            // Show loading state
+            ProgressView()
+                .scaleEffect(0.8)
+                .padding(.vertical, HeirloomSpacing.sm)
+        } else if hasBio || hasLocation || hasSpecialties || hasWebsite {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.md) {
+                // Bio
+                if let bio = connectedUserBio, !bio.isEmpty {
+                    Text(bio)
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.primaryText)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                }
+
+                // Location
+                if let location = connectedUserLocation, !location.isEmpty {
+                    HStack(spacing: HeirloomSpacing.xs) {
+                        Image(systemName: "location.fill")
+                            .font(.caption)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                        Text(location)
+                            .font(HeirloomFonts.caption1)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+
+                // Cooking interests/specialties
+                if let specialties = connectedUserSpecialties, !specialties.isEmpty {
+                    VStack(spacing: HeirloomSpacing.xs) {
+                        Text("Cooking Interests")
+                            .font(HeirloomFonts.caption2)
+                            .foregroundStyle(HeirloomColors.secondaryText)
+
+                        // Display specialties as horizontally scrollable tags
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                ForEach(specialties, id: \.self) { specialty in
+                                    Text(specialty)
+                                        .font(HeirloomFonts.caption1)
+                                        .foregroundStyle(HeirloomColors.primaryText)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 4)
+                                        .background(HeirloomColors.warmGray.opacity(0.1))
+                                        .cornerRadius(12)
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+
+                // Website
+                if let websiteURL = connectedUserWebsiteURL, !websiteURL.isEmpty,
+                   let url = URL(string: websiteURL.hasPrefix("http") ? websiteURL : "https://\(websiteURL)") {
+                    Link(destination: url) {
+                        HStack(spacing: HeirloomSpacing.xs) {
+                            Image(systemName: "link")
+                                .font(.caption)
+                            Text(formatWebsiteDisplay(websiteURL))
+                                .font(HeirloomFonts.caption1)
+                                .lineLimit(1)
+                        }
+                        .foregroundStyle(HeirloomColors.tomato)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.horizontal, HeirloomSpacing.md)
+        }
+    }
+
+    /// Format website URL for display (strip protocol, www, trailing slash)
+    private func formatWebsiteDisplay(_ url: String) -> String {
+        var display = url
+        display = display.replacingOccurrences(of: "https://", with: "")
+        display = display.replacingOccurrences(of: "http://", with: "")
+        display = display.replacingOccurrences(of: "www.", with: "")
+        if display.hasSuffix("/") {
+            display = String(display.dropLast())
+        }
+        return display
     }
 
     private func statCard(value: String, label: String) -> some View {
@@ -370,6 +477,48 @@ struct ContributorProfileSheet: View {
         .padding(.horizontal, HeirloomSpacing.md)
         .padding(.vertical, HeirloomSpacing.sm)
         .background(HeirloomColors.cardBackground)
+    }
+
+    // MARK: - Load Connected User Profile
+
+    private func loadConnectedUserProfile() async {
+        let db = Firestore.firestore()
+        let connectedUserId = connection.connectedUserId
+
+        do {
+            // Fetch from the user's profile document
+            let docRef = db.collection("users").document(connectedUserId)
+                .collection("profile").document("data")
+            let snapshot = try await docRef.getDocument()
+
+            if snapshot.exists, let data = snapshot.data() {
+                await MainActor.run {
+                    self.connectedUserBio = data["bio"] as? String
+                    self.connectedUserLocation = data["location"] as? String
+                    self.connectedUserSpecialties = data["specialties"] as? [String]
+                    self.connectedUserWebsiteURL = data["websiteURL"] as? String
+                    self.isLoadingProfile = false
+                }
+
+                Log.info("Loaded connected user profile", category: .social, metadata: [
+                    "userId": connectedUserId,
+                    "hasBio": (data["bio"] as? String) != nil,
+                    "hasLocation": (data["location"] as? String) != nil,
+                    "hasSpecialties": (data["specialties"] as? [String]) != nil,
+                    "hasWebsite": (data["websiteURL"] as? String) != nil
+                ])
+            } else {
+                await MainActor.run {
+                    self.isLoadingProfile = false
+                }
+                Log.info("No profile data for connected user", category: .social, metadata: ["userId": connectedUserId])
+            }
+        } catch {
+            await MainActor.run {
+                self.isLoadingProfile = false
+            }
+            Log.error("Failed to load connected user profile", category: .social, error: error)
+        }
     }
 
     // MARK: - Load Shared Recipes

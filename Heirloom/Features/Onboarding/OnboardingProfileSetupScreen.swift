@@ -14,6 +14,7 @@ struct OnboardingProfileData {
     var displayName: String
     var bio: String?
     var location: String?
+    var websiteURL: String?
     var cuisines: [String]
     var avatarImage: UIImage?
 }
@@ -27,6 +28,7 @@ struct OnboardingProfileSetupScreen: View {
     @State private var displayName: String = ""
     @State private var bio: String = ""
     @State private var location: String = ""
+    @State private var websiteURL: String = ""
     @State private var selectedCuisines: [String] = []
     @State private var selectedImage: UIImage?
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -90,6 +92,9 @@ struct OnboardingProfileSetupScreen: View {
                             // Location field
                             locationField
 
+                            // Website field
+                            websiteField
+
                             // Cuisine interests
                             cuisineSection
                         }
@@ -134,6 +139,7 @@ struct OnboardingProfileSetupScreen: View {
                     displayName: displayName.trimmingCharacters(in: .whitespacesAndNewlines),
                     bio: bio.isEmpty ? nil : bio.trimmingCharacters(in: .whitespacesAndNewlines),
                     location: location.isEmpty ? nil : location.trimmingCharacters(in: .whitespacesAndNewlines),
+                    websiteURL: websiteURL.isEmpty ? nil : websiteURL.trimmingCharacters(in: .whitespacesAndNewlines),
                     cuisines: selectedCuisines,
                     avatarImage: selectedImage
                 )
@@ -307,6 +313,30 @@ struct OnboardingProfileSetupScreen: View {
 
             TextField("City, state, or country", text: $location)
                 .font(HeirloomFonts.body)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(Color.white)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(HeirloomColors.warmGray.opacity(0.3), lineWidth: 1)
+                )
+        }
+    }
+
+    // MARK: - Website Field
+
+    private var websiteField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Website (optional)")
+                .font(HeirloomFonts.caption1)
+                .foregroundColor(HeirloomColors.secondaryText)
+
+            TextField("Blog, Instagram, or social link", text: $websiteURL)
+                .font(HeirloomFonts.body)
+                .textInputAutocapitalization(.never)
+                .keyboardType(.URL)
+                .autocorrectionDisabled()
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
                 .background(Color.white)

@@ -40,7 +40,9 @@ struct ThemeCollectionCard: View {
     }
 
     private var isComplete: Bool {
-        unlockProgress.unlocked >= unlockProgress.total
+        // Only complete if there are recipes and all are unlocked
+        // This prevents showing "Complete" while recipes are still loading (0/0)
+        unlockProgress.total > 0 && unlockProgress.unlocked >= unlockProgress.total
     }
 
     private var subtitleText: String {

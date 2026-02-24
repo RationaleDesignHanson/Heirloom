@@ -246,6 +246,7 @@ struct OnboardingContainerView: View {
             profile.displayName = profileData.displayName
             profile.bio = profileData.bio
             profile.location = profileData.location
+            profile.websiteURL = profileData.websiteURL
             profile.specialties = profileData.cuisines.isEmpty ? nil : profileData.cuisines
 
             // Save profile immediately without waiting for avatar upload
@@ -254,6 +255,7 @@ struct OnboardingContainerView: View {
                 "displayName": profileData.displayName,
                 "hasBio": profileData.bio != nil,
                 "hasLocation": profileData.location != nil,
+                "hasWebsite": profileData.websiteURL != nil,
                 "cuisineCount": profileData.cuisines.count
             ])
 

@@ -76,11 +76,7 @@ struct SettingsProfileRow: View {
                 .cornerRadius(12)
             }
             .buttonStyle(.plain)
-
-            // Chevron
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(HeirloomColors.secondaryText)
+            // Note: Chevron removed - NavigationLink handles disclosure indicator
         }
         .padding(.vertical, HeirloomSpacing.xs)
         .task {
