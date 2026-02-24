@@ -37,6 +37,9 @@ struct CookingModeView: View {
     // Version selection
     @State private var selectedVersionID: UUID?
 
+    // Ingredients display state
+    @State private var isIngredientsExpanded = true
+
     // MARK: - Computed Properties
 
     /// Get instructions from active version
@@ -254,42 +257,83 @@ struct CookingModeView: View {
 
     // MARK: - Ingredients Section
 
-    private func ingredientsSection(ingredients: [Ingredient]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Header
-            HStack(spacing: 6) {
-                Image(systemName: "list.bullet")
-                    .font(.system(size: 14))
-                    .foregroundColor(HeirloomColors.tomato.opacity(0.7))
+    /// Check if an ingredient is mentioned in the current step
+    private func isIngredientInCurrentStep(_ ingredient: Ingredient) -> Bool {
+        let stepText = currentStepText.lowercased()
+        let ingredientName = ingredient.name.lowercased()
 
-                Text("INGREDIENTS")
-                    .font(.system(size: 12, weight: .semibold))
-                    .tracking(0.8)
-                    .foregroundStyle(HeirloomColors.secondaryText)
+        // Check for exact word match or partial match
+        // Split ingredient name into words for matching (e.g., "olive oil" matches "oil")
+        let ingredientWords = ingredientName.components(separatedBy: .whitespaces)
+
+        // Check if any significant word from ingredient appears in step
+        for word in ingredientWords {
+            // Skip very short words that might cause false positives
+            guard word.count > 2 else { continue }
+            if stepText.contains(word) {
+                return true
             }
+        }
 
-            // Ingredients list with elegant styling
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(ingredients.prefix(4)) { ingredient in
-                    HStack(alignment: .center, spacing: 10) {
-                        Circle()
-                            .fill(HeirloomColors.tomato.opacity(0.2))
-                            .frame(width: 6, height: 6)
+        // Also check full ingredient name
+        return stepText.contains(ingredientName)
+    }
 
-                        Text(scaledIngredientText(ingredient))
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundStyle(HeirloomColors.primaryText)
-                            .lineLimit(2)
+    /// Sort ingredients so that those used in current step appear first
+    private func sortedIngredients(_ ingredients: [Ingredient]) -> [Ingredient] {
+        let active = ingredients.filter { isIngredientInCurrentStep($0) }
+        let inactive = ingredients.filter { !isIngredientInCurrentStep($0) }
+        return active + inactive
+    }
+
+    private func ingredientsSection(ingredients: [Ingredient]) -> some View {
+        let sorted = sortedIngredients(ingredients)
+
+        return VStack(alignment: .leading, spacing: 12) {
+            // Header with collapse/expand toggle
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isIngredientsExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "list.bullet")
+                        .font(.system(size: 14))
+                        .foregroundColor(HeirloomColors.tomato.opacity(0.7))
+
+                    Text("INGREDIENTS")
+                        .font(.system(size: 12, weight: .semibold))
+                        .tracking(0.8)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+
+                    Spacer()
+
+                    Image(systemName: isIngredientsExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+            }
+            .buttonStyle(.plain)
+
+            // Ingredients list (collapsible)
+            if isIngredientsExpanded {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(sorted) { ingredient in
+                        let isActive = isIngredientInCurrentStep(ingredient)
+
+                        HStack(alignment: .center, spacing: 10) {
+                            Circle()
+                                .fill(isActive ? HeirloomColors.familyGreen : HeirloomColors.tomato.opacity(0.2))
+                                .frame(width: 6, height: 6)
+
+                            Text(scaledIngredientText(ingredient))
+                                .font(.system(size: 18, weight: isActive ? .semibold : .medium))
+                                .foregroundStyle(isActive ? HeirloomColors.familyGreen : HeirloomColors.primaryText)
+                                .lineLimit(2)
+                        }
                     }
                 }
-
-                if ingredients.count > 4 {
-                    Text("+ \(ingredients.count - 4) more ingredients")
-                        .font(HeirloomFonts.caption1)
-                        .foregroundStyle(HeirloomColors.secondaryText)
-                        .padding(.leading, 16)
-                        .padding(.top, 2)
-                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .padding(16)

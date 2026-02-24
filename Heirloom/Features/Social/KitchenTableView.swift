@@ -347,14 +347,14 @@ struct KitchenTableView: View {
                 // Badge
                 Text("\(badgeService.pendingRequestCount)")
                     .font(HeirloomFonts.caption1Bold)
-                    .foregroundStyle(HeirloomColors.tomato)
+                    .foregroundStyle(HeirloomColors.warning)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(.white)
                     .cornerRadius(12)
             }
             .padding(HeirloomSpacing.md)
-            .background(HeirloomColors.tomato)
+            .background(HeirloomColors.warning)
             .cornerRadius(12)
         }
         .buttonStyle(.plain)

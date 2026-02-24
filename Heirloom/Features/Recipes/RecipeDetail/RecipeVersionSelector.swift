@@ -207,7 +207,7 @@ struct RecipeVersionSelector: View {
         .alert("Offline Mode", isPresented: $showOfflineHelp) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("Version history requires an internet connection.\n\nTip: Tap the download arrow (↓) next to the recipe title to save this recipe for offline viewing.")
+            Text("Version history requires an internet connection.")
         }
     }
 }
