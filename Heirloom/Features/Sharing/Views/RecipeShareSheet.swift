@@ -24,6 +24,20 @@ struct RecipeShareSheet: View {
     @State private var shareMethod: ShareMethod = .link
     @State private var selectedConnectionIds: Set<String> = []
 
+    // Demo user sanitization (always auto-sanitize)
+    @State private var lineageVersionOwnerIds: [String] = []
+
+    /// Whether recipe has demo users in its lineage (heritage chain OR version owners)
+    private var hasDemoUsersInLineage: Bool {
+        // Check heritage chain (for recipes received from others)
+        let inHeritageChain = recipe.heritageChain?.contains(where: { DemoSocialBehaviorService.isDemoUser($0) }) ?? false
+
+        // Check lineage version owners (for recipes you created that others modified)
+        let inVersionOwners = lineageVersionOwnerIds.contains(where: { DemoSocialBehaviorService.isDemoUser($0) })
+
+        return inHeritageChain || inVersionOwners
+    }
+
     /// Share method selection
     enum ShareMethod {
         case link        // Creates generic public link
@@ -35,6 +49,11 @@ struct RecipeShareSheet: View {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(spacing: HeirloomSpacing.lg) {
+                        // Demo users info banner
+                        if hasDemoUsersInLineage {
+                            demoUsersInfoBanner
+                        }
+
                         // Share type selector (PROMINENT)
                         shareTypeSelector
                             .zIndex(0)
@@ -97,6 +116,28 @@ struct RecipeShareSheet: View {
         .onAppear {
             setupDefaultOptions()
         }
+    }
+
+    // MARK: - Demo Users Info Banner
+
+    private var demoUsersInfoBanner: some View {
+        HStack(spacing: HeirloomSpacing.sm) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 16))
+                .foregroundStyle(HeirloomColors.familyGreen)
+
+            Text("Demo contributors automatically removed")
+                .font(HeirloomFonts.caption1)
+                .foregroundStyle(HeirloomColors.secondaryText)
+
+            Spacer()
+        }
+        .padding(HeirloomSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(HeirloomColors.familyGreen.opacity(0.1))
+        )
+        .padding(.horizontal)
     }
 
     // MARK: - Share Type Selector (Prominent)
@@ -460,9 +501,12 @@ struct RecipeShareSheet: View {
 
         await MainActor.run {
             versionCount = viewModel.versions.count
+            // Collect owner IDs from all versions to check for demo users
+            lineageVersionOwnerIds = viewModel.versions.compactMap { $0.modifiedBy }
             Log.debug("Loaded version count for share sheet", category: .firebase, metadata: [
                 "recipeTitle": recipe.title,
-                "versionCount": versionCount
+                "versionCount": versionCount,
+                "hasDemoInLineage": hasDemoUsersInLineage
             ])
         }
     }
@@ -480,6 +524,14 @@ struct RecipeShareSheet: View {
             return
         }
 
+        // Always auto-sanitize demo users from lineage
+        var shareOptions = options
+        shareOptions.sanitizeDemoUsers = hasDemoUsersInLineage
+
+        performShare(with: shareOptions)
+    }
+
+    private func performShare(with shareOptions: ShareOptions) {
         Task {
             isSharing = true
             errorMessage = nil
@@ -493,7 +545,7 @@ struct RecipeShareSheet: View {
                     // EXISTING PATH: Generic link share
                     (shareId, url) = try await firebaseShare.createShare(
                         for: recipe,
-                        options: options,
+                        options: shareOptions,
                         recipientUserIds: nil,
                         context: modelContext
                     )
@@ -508,9 +560,17 @@ struct RecipeShareSheet: View {
                         )
                     }
 
+                    // Sanitize demo users from heritage chain when sharing to real users
+                    // Demo users are for onboarding - real recipients shouldn't see them in lineage
+                    let hasRealRecipients = selectedConnectionIds.contains { !DemoSocialBehaviorService.isDemoUser($0) }
+                    var finalShareOptions = shareOptions
+                    if hasRealRecipients {
+                        finalShareOptions.sanitizeDemoUsers = true
+                    }
+
                     (shareId, url) = try await firebaseShare.createDirectShare(
                         for: recipe,
-                        options: options,
+                        options: finalShareOptions,
                         recipientUserIds: Array(selectedConnectionIds),
                         context: modelContext
                     )

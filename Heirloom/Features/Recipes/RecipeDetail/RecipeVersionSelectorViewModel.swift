@@ -39,25 +39,84 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                 Log.debug("Found lineage in local SwiftData", category: .firebase)
             }
 
+            // Get the allowed owners from heritage chain (used to filter out sanitized demo users)
+            // When a recipe is shared to real users, demo users are removed from heritageChain
+            // We should only show versions from users in the heritage chain
+            // IMPORTANT: Also include the current user - they won't be in their own heritage chain
+            let originalHeritageChain = recipe.heritageChain ?? []
+            let hasHeritageChainFilter = !originalHeritageChain.isEmpty
+            var allowedOwnerIds = Set(originalHeritageChain)
+            if let currentUserId = Auth.auth().currentUser?.uid {
+                allowedOwnerIds.insert(currentUserId)
+            }
+            if hasHeritageChainFilter {
+                Log.debug("Heritage chain filter active", category: .firebase, metadata: [
+                    "allowedOwners": allowedOwnerIds.count
+                ])
+            }
+
             // 2. If no local lineage, try Firebase
             var lineage = localLineage
             if lineage == nil {
                 lineage = try? await fetchLineage(for: recipe.id)
             }
 
-            guard let lineage = lineage else {
-                // No lineage tracking - this is a standalone recipe
-                Log.debug("No lineage found (checked local SwiftData and Firebase)", category: .firebase)
+            if lineage == nil {
+                // No lineage tracking for THIS recipe - but there might be descendants
+                // (e.g., user created recipe, shared it, and someone modified it)
+                Log.debug("No lineage found for current recipe, checking for descendants", category: .firebase)
+
+                // Check if there are any descendants (lineage records where rootRecipeId = this recipe)
+                let descendants = try await fetchDescendants(for: recipe.id)
+
+                if descendants.isEmpty {
+                    // Truly standalone recipe with no lineage
+                    Log.debug("No descendants found either - standalone recipe", category: .firebase)
+                    let currentVersion = RecipeLineageVersion(
+                        recipe: recipe,
+                        generation: 0,
+                        modifiedBy: nil,
+                        modifiedByName: nil,
+                        modifiedAt: recipe.lastModified,
+                        isCurrent: true
+                    )
+                    versions = [currentVersion]
+                    selectedVersion = currentVersion
+                    isLoading = false
+                    return
+                }
+
+                // This is a Gen 0 recipe with descendants - show them all
+                Log.debug("Found descendants for Gen 0 recipe", category: .firebase, metadata: ["count": descendants.count])
+
+                // Get current user's display name for Gen 0
+                guard let userId = Auth.auth().currentUser?.uid else {
+                    isLoading = false
+                    return
+                }
+                let ownerDisplayName = try? await userProfileService.fetchDisplayName(for: userId)
+
                 let currentVersion = RecipeLineageVersion(
                     recipe: recipe,
                     generation: 0,
-                    modifiedBy: nil,
-                    modifiedByName: nil,
+                    modifiedBy: userId,
+                    modifiedByName: ownerDisplayName ?? "Original",
                     modifiedAt: recipe.lastModified,
                     isCurrent: true
                 )
-                versions = [currentVersion]
+
+                var allVersions = [currentVersion]
+                allVersions.append(contentsOf: descendants)
+                allVersions.sort { $0.generation < $1.generation }
+
+                versions = allVersions
                 selectedVersion = currentVersion
+                isLoading = false
+                return
+            }
+
+            guard let lineage = lineage else {
+                // This shouldn't happen after the check above, but satisfy the compiler
                 isLoading = false
                 return
             }
@@ -95,9 +154,11 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             allVersions.append(currentVersion)
 
             // 3. Fetch all other versions from the lineage tree
+            // Pass allowed owners to filter out sanitized demo users
             let otherVersions = try await fetchOtherVersions(
                 rootRecipeId: lineage.rootRecipeId,
-                currentRecipeId: recipe.id
+                currentRecipeId: recipe.id,
+                allowedOwnerIds: hasHeritageChainFilter ? allowedOwnerIds : nil
             )
 
             // 3.5. Deduplicate - filter out versions that match current recipe
@@ -145,6 +206,17 @@ class RecipeVersionSelectorViewModel: ObservableObject {
 
     // MARK: - Private Helpers
 
+    /// Get display name for an owner, handling demo users specially
+    private func getDisplayName(for ownerId: String) async -> String? {
+        // Handle demo users - use hardcoded display names
+        if ownerId.hasPrefix("demo_"),
+           let demoInfo = DemoSocialBehaviorService.demoUserInfo[ownerId] {
+            return demoInfo.displayName
+        }
+        // For real users, fetch from Firebase
+        return try? await userProfileService.fetchDisplayName(for: ownerId)
+    }
+
     /// Batch fetch display names for multiple owner IDs
     /// Uses concurrent fetching for performance
     private func fetchDisplayNames(for ownerIds: Set<String>) async -> [String: String] {
@@ -179,8 +251,9 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         Log.debug("Fetching lineage for recipe", category: .firebase, metadata: ["recipeId": recipeId.uuidString])
 
         // First try: User's own lineages collection
+        // IMPORTANT: Use firebaseString (lowercase) to match document field values
         let userSnapshot = try await db.collection("users/\(userId)/lineages")
-            .whereField("currentRecipeId", isEqualTo: recipeId.uuidString)
+            .whereField("currentRecipeId", isEqualTo: recipeId.firebaseString)
             .limit(to: 1)
             .getDocuments()
 
@@ -192,7 +265,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             // Second try: Global lineages index
             Log.debug("Checking global lineages collection", category: .firebase)
             let globalSnapshot = try await db.collection("lineages")
-                .whereField("currentRecipeId", isEqualTo: recipeId.uuidString)
+                .whereField("currentRecipeId", isEqualTo: recipeId.firebaseString)
                 .limit(to: 1)
                 .getDocuments()
             doc = globalSnapshot.documents.first
@@ -224,22 +297,85 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         return lineage
     }
 
+    /// Fetch descendants of a recipe (lineage records where this recipe is the root)
+    /// Used when viewing a Gen 0 recipe to find modifications made by recipients
+    private func fetchDescendants(for recipeId: UUID) async throws -> [RecipeLineageVersion] {
+        Log.debug("Fetching descendants for recipe", category: .firebase, metadata: ["recipeId": recipeId.uuidString])
+
+        // Query global lineages where rootRecipeId matches this recipe
+        // This finds all recipes that descend from this one
+        let snapshot = try await db.collection("lineages")
+            .whereField("rootRecipeId", isEqualTo: recipeId.firebaseString)
+            .getDocuments()
+
+        Log.debug("Descendants query result", category: .firebase, metadata: ["count": snapshot.documents.count])
+
+        var versions: [RecipeLineageVersion] = []
+
+        for doc in snapshot.documents {
+            let data = doc.data()
+            let descendantRecipeIdString = data["currentRecipeId"] as? String ?? ""
+            let ownerId = data["ownerId"] as? String ?? ""
+            let generation = data["generation"] as? Int ?? 0
+
+            guard let descendantRecipeId = UUID(uuidString: descendantRecipeIdString) else { continue }
+
+            // Skip if this is pointing to the same recipe (Gen 0 lineage shouldn't exist, but just in case)
+            guard descendantRecipeId != recipeId || generation > 0 else { continue }
+
+            Log.debug("Processing descendant", category: .firebase, metadata: [
+                "ownerId": ownerId,
+                "recipeId": descendantRecipeIdString,
+                "generation": generation
+            ])
+
+            // Fetch the actual recipe data from Firebase
+            if let recipeData = try? await fetchRecipeFromFirebase(ownerId: ownerId, recipeId: descendantRecipeId) {
+                let ownerDisplayName = await getDisplayName(for: ownerId)
+
+                let version = RecipeLineageVersion(
+                    recipeData: recipeData,
+                    generation: generation,
+                    modifiedBy: ownerId,
+                    modifiedByName: ownerDisplayName ?? "Someone",
+                    modifiedAt: (data["lastModified"] as? Timestamp)?.dateValue() ?? Date(),
+                    isCurrent: false
+                )
+                versions.append(version)
+                Log.debug("Added descendant version", category: .firebase, metadata: [
+                    "generation": generation,
+                    "ownerId": ownerId
+                ])
+            } else {
+                Log.warning("Failed to fetch descendant recipe data", category: .firebase, metadata: [
+                    "ownerId": ownerId,
+                    "recipeId": descendantRecipeIdString
+                ])
+            }
+        }
+
+        return versions
+    }
+
     private func fetchOtherVersions(
         rootRecipeId: UUID,
-        currentRecipeId: UUID
+        currentRecipeId: UUID,
+        allowedOwnerIds: Set<String>? = nil
     ) async throws -> [RecipeLineageVersion] {
         guard let userId = Auth.auth().currentUser?.uid else { return [] }
 
         Log.debug("Fetching versions for root recipe", category: .firebase, metadata: [
             "rootRecipeId": rootRecipeId.uuidString,
             "currentRecipeId": currentRecipeId.uuidString,
-            "userId": userId
+            "userId": userId,
+            "allowedOwnerIdsCount": allowedOwnerIds?.count ?? -1
         ])
 
         // Try both global lineages and user-specific lineages
         // First query: Global lineages collection
+        // IMPORTANT: Use firebaseString (lowercase) to match document field values
         let globalSnapshot = try await db.collection("lineages")
-            .whereField("rootRecipeId", isEqualTo: rootRecipeId.uuidString)
+            .whereField("rootRecipeId", isEqualTo: rootRecipeId.firebaseString)
             .getDocuments()
 
         Log.debug("Global lineages query result", category: .firebase, metadata: [
@@ -249,7 +385,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         // Second query: Check if root owner has their lineage in users collection
         // We need to get the rootOwnerId first from our own lineage
         let ownLineageSnapshot = try await db.collection("users/\(userId)/lineages")
-            .whereField("currentRecipeId", isEqualTo: currentRecipeId.uuidString)
+            .whereField("currentRecipeId", isEqualTo: currentRecipeId.firebaseString)
             .limit(to: 1)
             .getDocuments()
 
@@ -268,7 +404,7 @@ class RecipeVersionSelectorViewModel: ObservableObject {
         if let rootOwnerId = rootOwnerId {
             rootOwnerSnapshot = try? await db.collection("lineages")
                 .whereField("ownerId", isEqualTo: rootOwnerId)
-                .whereField("currentRecipeId", isEqualTo: rootRecipeId.uuidString)
+                .whereField("currentRecipeId", isEqualTo: rootRecipeId.firebaseString)
                 .limit(to: 1)
                 .getDocuments()
 
@@ -293,6 +429,18 @@ class RecipeVersionSelectorViewModel: ObservableObject {
             // Multi-generation chains can circle back to the same user (Gen 0 → Gen 1 → Gen 2 back to Gen 0's owner)
             // We want to show ALL generations in the version dropdown
             guard let recipeId = UUID(uuidString: recipeIdString) else { continue }
+
+            // Filter by heritage chain if provided (sanitization filter)
+            // When a recipe is shared to real users, demo users are removed from heritageChain
+            // We only show versions from users that are in the recipient's heritage chain
+            if let allowedOwnerIds = allowedOwnerIds, !allowedOwnerIds.contains(ownerId) {
+                Log.debug("Filtering out version not in heritage chain", category: .firebase, metadata: [
+                    "ownerId": ownerId,
+                    "generation": generation,
+                    "reason": "owner not in sanitized heritage chain"
+                ])
+                continue
+            }
 
             // Create unique key to prevent duplicates (ownerId + recipeId + generation)
             let versionKey = "\(ownerId)_\(recipeId.uuidString)_\(generation)"
@@ -322,21 +470,12 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                 let ingredientTexts = ingredientsData.compactMap { $0["originalText"] as? String }
 
                 // Fetch correct display name for owner (not sharedByName which is the previous sharer)
-                let ownerDisplayName: String?
-                do {
-                    ownerDisplayName = try await userProfileService.fetchDisplayName(for: ownerId)
-                    if ownerDisplayName == nil {
-                        Log.warning("No display name found for owner", category: .firebase, metadata: [
-                            "ownerId": ownerId,
-                            "generation": generation
-                        ])
-                    }
-                } catch {
-                    Log.error("Failed to fetch display name", category: .firebase, metadata: [
+                let ownerDisplayName = await getDisplayName(for: ownerId)
+                if ownerDisplayName == nil {
+                    Log.warning("No display name found for owner", category: .firebase, metadata: [
                         "ownerId": ownerId,
-                        "error": error.localizedDescription
+                        "generation": generation
                     ])
-                    ownerDisplayName = nil
                 }
 
                 let version = RecipeLineageVersion(
@@ -374,6 +513,16 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                 // FIXED: Show all generations regardless of ownership
                 guard let recipeId = UUID(uuidString: recipeIdString) else { continue }
 
+                // Filter by heritage chain if provided (sanitization filter)
+                if let allowedOwnerIds = allowedOwnerIds, !allowedOwnerIds.contains(ownerId) {
+                    Log.debug("Filtering out root owner version not in heritage chain", category: .firebase, metadata: [
+                        "ownerId": ownerId,
+                        "generation": generation,
+                        "reason": "owner not in sanitized heritage chain"
+                    ])
+                    continue
+                }
+
                 // Only include if this is the root recipe (generation 0)
                 guard recipeId == rootRecipeId else {
                     Log.debug("Skipping non-root recipe", category: .firebase, metadata: [
@@ -406,22 +555,13 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                     ownerId: ownerId,
                     recipeId: recipeId
                 ) {
-                    // Fetch correct display name for owner (not sharedByName which is the previous sharer)
-                    let ownerDisplayName: String?
-                    do {
-                        ownerDisplayName = try await userProfileService.fetchDisplayName(for: ownerId)
-                        if ownerDisplayName == nil {
-                            Log.warning("No display name found for root owner", category: .firebase, metadata: [
-                                "ownerId": ownerId,
-                                "generation": generation
-                            ])
-                        }
-                    } catch {
-                        Log.error("Failed to fetch root owner display name", category: .firebase, metadata: [
+                        // Fetch correct display name for owner (not sharedByName which is the previous sharer)
+                    let ownerDisplayName = await getDisplayName(for: ownerId)
+                    if ownerDisplayName == nil {
+                        Log.warning("No display name found for root owner", category: .firebase, metadata: [
                             "ownerId": ownerId,
-                            "error": error.localizedDescription
+                            "generation": generation
                         ])
-                        ownerDisplayName = nil
                     }
 
                     let version = RecipeLineageVersion(

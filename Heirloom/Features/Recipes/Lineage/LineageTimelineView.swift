@@ -246,6 +246,8 @@ private struct TimelineItemView: View {
                 Text(node.recipe.dateAdded.formatted(date: .abbreviated, time: .omitted))
                     .font(HeirloomFonts.caption2)
                     .foregroundStyle(HeirloomColors.secondaryText)
+                    .lineLimit(1)
+                    .fixedSize()
             }
         }
         .padding(HeirloomSpacing.md)
@@ -328,6 +330,7 @@ private struct TimelineItemView: View {
                 .font(HeirloomFonts.caption2)
                 .foregroundStyle(HeirloomColors.secondaryText)
         }
+        .fixedSize() // Prevent text wrapping within stat items
     }
 
     // MARK: - Phase 8: Contributor Row
@@ -364,6 +367,17 @@ private struct TimelineItemView: View {
                 Text(contributor.displayName)
                     .font(HeirloomFonts.caption1)
                     .foregroundStyle(contributor.hasAccount ? HeirloomColors.tomato : HeirloomColors.secondaryText)
+
+                // Demo user badge
+                if DemoSocialBehaviorService.isDemoUser(contributor.userId) {
+                    Text("Demo")
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
+                        .background(HeirloomColors.warmGray)
+                        .clipShape(Capsule())
+                }
 
                 // Connection indicator
                 if contributor.isConnected {
@@ -408,7 +422,7 @@ enum TimelineSortOrder: String, CaseIterable {
     var icon: String {
         switch self {
         case .chronological: return "calendar"
-        case .generation: return "chart.tree"
+        case .generation: return "rectangle.3.group"
         case .popularity: return "star.fill"
         }
     }
@@ -435,8 +449,19 @@ struct LineageContainerView: View {
     var body: some View {
         Group {
             if isLoading {
-                ProgressView("Building lineage tree...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(spacing: HeirloomSpacing.md) {
+                    ProgressView()
+                        .scaleEffect(1.2)
+
+                    Text("Loading family tree...")
+                        .font(HeirloomFonts.body)
+                        .foregroundStyle(HeirloomColors.primaryText)
+
+                    Text("This may take a moment if you're offline")
+                        .font(HeirloomFonts.caption1)
+                        .foregroundStyle(HeirloomColors.secondaryText)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = errorMessage {
                 errorView(error)
             } else if let tree = tree {
@@ -482,6 +507,12 @@ struct LineageContainerView: View {
 
     @ViewBuilder
     private func errorView(_ message: String) -> some View {
+        genericErrorView(message: message)
+    }
+
+    /// Generic error view for load failures
+    @ViewBuilder
+    private func genericErrorView(message: String) -> some View {
         VStack(spacing: HeirloomSpacing.md) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 48))
@@ -521,10 +552,42 @@ struct LineageContainerView: View {
         errorMessage = nil
 
         do {
-            let loadedTree = try await lineageService.fetchLineageTree(
-                for: recipe,
-                context: modelContext
-            )
+            // Capture values before task group to satisfy Swift 6 Sendable requirements
+            let recipeToLoad = recipe
+            let contextToUse = modelContext
+            let service = lineageService
+
+            // Race pattern: first to complete wins
+            let loadedTree = try await withThrowingTaskGroup(of: LineageTree?.self) { group in
+                // Fetch task - run on MainActor since Recipe/ModelContext aren't Sendable
+                group.addTask { @MainActor in
+                    try await service.fetchLineageTree(
+                        for: recipeToLoad,
+                        context: contextToUse
+                    )
+                }
+
+                // Timeout task - returns nil after 5 seconds, then throws
+                group.addTask {
+                    try await Task.sleep(nanoseconds: 5_000_000_000)
+                    return nil // Signal timeout
+                }
+
+                // Wait for first result
+                while let result = try await group.next() {
+                    if let tree = result {
+                        // Got a real result - cancel remaining tasks and return
+                        group.cancelAll()
+                        return tree
+                    } else {
+                        // Timeout hit (nil result) - cancel fetch and throw
+                        group.cancelAll()
+                        throw URLError(.timedOut)
+                    }
+                }
+
+                throw URLError(.timedOut)
+            }
 
             await MainActor.run {
                 tree = loadedTree
@@ -535,16 +598,102 @@ struct LineageContainerView: View {
             analytics.track(event: .lineageViewed, properties: [
                 "recipe_id": recipe.id.uuidString,
                 "total_nodes": loadedTree.nodes.count,
-                "max_generation": loadedTree.maxGeneration
+                "max_generation": loadedTree.maxGeneration,
+                "source": "firebase"
             ])
 
         } catch {
-            await MainActor.run {
-                errorMessage = error.localizedDescription
-                isLoading = false
+            // Try loading from cache if available
+            if let cachedTree = loadCachedLineageTree() {
+                await MainActor.run {
+                    tree = cachedTree
+                    isLoading = false
+                }
+
+                analytics.track(event: .lineageViewed, properties: [
+                    "recipe_id": recipe.id.uuidString,
+                    "total_nodes": cachedTree.nodes.count,
+                    "max_generation": cachedTree.maxGeneration,
+                    "source": "cache"
+                ])
+
+                Log.info("Loaded lineage from cache", category: .general, metadata: ["recipeId": recipe.id.uuidString])
+            } else {
+                await MainActor.run {
+                    // Show offline heritage fallback if available
+                    errorMessage = error.localizedDescription
+                    isLoading = false
+                }
+
+                Log.error("Failed to load lineage tree", category: .general, metadata: ["error": error.localizedDescription, "recipeId": recipe.id.uuidString])
+            }
+        }
+    }
+
+    /// Load lineage tree from cached JSON data
+    private func loadCachedLineageTree() -> LineageTree? {
+        guard let jsonString = recipe.cachedLineageJSON,
+              let jsonData = jsonString.data(using: .utf8) else {
+            return nil
+        }
+
+        do {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let cachedData = try decoder.decode(CachedLineageData.self, from: jsonData)
+
+            // Convert cached nodes to LineageNodes
+            let nodes = cachedData.nodes.map { cachedNode -> LineageNode in
+                // Create a lightweight recipe for display
+                let displayRecipe = Recipe(title: cachedNode.title, sourceType: .family, instructions: [])
+                displayRecipe.id = cachedNode.recipeId
+
+                let contributor: ContributorInfo?
+                if let name = cachedNode.contributorName {
+                    if let userId = cachedNode.contributorId, !userId.isEmpty {
+                        contributor = ContributorInfo(userId: userId, displayName: name, avatarURL: nil, isConnected: false)
+                    } else {
+                        contributor = ContributorInfo(displayName: name)
+                    }
+                } else {
+                    contributor = nil
+                }
+
+                return LineageNode(
+                    recipe: displayRecipe,
+                    generation: cachedNode.generation,
+                    position: .zero,
+                    stats: NodeStats(
+                        cookCount: cachedNode.cookCount,
+                        shareCount: cachedNode.shareCount,
+                        viewCount: 0,
+                        rating: nil
+                    ),
+                    isCurrentUser: cachedNode.isCurrentUser,
+                    contributor: contributor
+                )
             }
 
-            Log.error("Failed to load lineage tree", category: .general, metadata: ["error": error.localizedDescription, "recipeId": recipe.id.uuidString])
+            // Convert cached edges to LineageEdges
+            let edges = cachedData.edges.map { cachedEdge in
+                LineageEdge(
+                    fromID: cachedEdge.fromId,
+                    toID: cachedEdge.toId,
+                    label: nil,
+                    createdAt: cachedEdge.createdAt
+                )
+            }
+
+            // Find root recipe
+            guard let rootNode = nodes.first(where: { $0.generation == 0 }) else {
+                return nil
+            }
+
+            return LineageTree(root: rootNode.recipe, nodes: nodes, edges: edges)
+
+        } catch {
+            Log.warning("Failed to decode cached lineage", category: .general, metadata: ["error": error.localizedDescription])
+            return nil
         }
     }
 }

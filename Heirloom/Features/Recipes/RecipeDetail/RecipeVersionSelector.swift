@@ -9,10 +9,27 @@ struct RecipeVersionSelector: View {
     let changeSummary: String?
     let originalVersion: RecipeLineageVersion?
 
+    /// Heritage chain count for offline fallback display
+    var heritageChainCount: Int = 0
+
+    /// Real-time network status from NetworkMonitor
+    var isOffline: Bool = false
+
+    @State private var showOfflineHelp = false
+
+    /// Whether we have lineage data to show (either loaded versions or heritage chain)
+    private var hasLineageData: Bool {
+        viewModel.versions.count > 1 || heritageChainCount > 1
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Only show if we have multiple versions
-            if viewModel.versions.count > 1 {
+            // Show offline indicator if offline and we have lineage data
+            if isOffline && hasLineageData {
+                offlineVersionIndicator
+            }
+            // Show full selector if we have multiple loaded versions and online
+            else if viewModel.versions.count > 1 && !isOffline {
                 VStack(alignment: .leading, spacing: 0) {
                     // Badge + Version Selector Row
                     HStack(spacing: HeirloomSpacing.sm) {
@@ -141,6 +158,56 @@ struct RecipeVersionSelector: View {
                     .font(HeirloomFonts.caption1)
                     .foregroundStyle(.red)
             }
+        }
+    }
+
+    // MARK: - Offline Version Indicator
+
+    private var offlineVersionIndicator: some View {
+        HStack(spacing: HeirloomSpacing.sm) {
+            VStack(alignment: .leading, spacing: HeirloomSpacing.xs) {
+                Text("Versions")
+                    .font(HeirloomFonts.caption2)
+                    .foregroundStyle(HeirloomColors.warmGray)
+
+                HStack(spacing: HeirloomSpacing.xs) {
+                    Image(systemName: "arrow.triangle.branch")
+                        .font(HeirloomFonts.caption1)
+
+                    Text("\(max(viewModel.versions.count, heritageChainCount)) versions (offline)")
+                        .font(HeirloomFonts.bodyBold)
+
+                    Image(systemName: "wifi.slash")
+                        .font(HeirloomFonts.caption2)
+                }
+                .foregroundStyle(HeirloomColors.warmGray)
+            }
+
+            Spacer()
+
+            // Help button
+            Button {
+                showOfflineHelp = true
+            } label: {
+                Image(systemName: "questionmark.circle")
+                    .font(HeirloomFonts.body)
+                    .foregroundStyle(HeirloomColors.warmGray)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(HeirloomSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                .fill(HeirloomColors.cream.opacity(0.5))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HeirloomSpacing.cardCornerRadius)
+                .strokeBorder(HeirloomColors.warmGray.opacity(0.2), lineWidth: 1)
+        )
+        .alert("Offline Mode", isPresented: $showOfflineHelp) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Version history requires an internet connection.\n\nTip: Tap the download arrow (↓) next to the recipe title to save this recipe for offline viewing.")
         }
     }
 }

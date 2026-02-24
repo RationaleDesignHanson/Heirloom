@@ -40,54 +40,98 @@ final class RecipeLineageService {
     ) async throws -> LineageTree {
         Log.debug("Fetching lineage tree", category: .general, metadata: ["title": recipe.title, "maxDepth": maxDepth])
 
-        // 1. Get lineage for current recipe
+        // 1. Get lineage for current recipe - first try local, then Firebase
         let recipeId = recipe.id
         let descriptor = FetchDescriptor<RecipeLineage>(
             predicate: #Predicate { $0.currentRecipeId == recipeId }
         )
         let localLineage = try? context.fetch(descriptor).first
 
-        guard let lineage = localLineage else {
-            // No lineage - this is a standalone recipe
-            Log.debug("No lineage found for recipe", category: .general)
+        // 2. Determine rootRecipeId - from local lineage or Firebase lookup
+        let rootRecipeId: UUID
 
-            // Fetch contributor if recipe has sharedBy
-            var contributorInfo: ContributorInfo?
-            if let sharedBy = recipe.sharedBy, !sharedBy.isEmpty {
-                // Legacy: sharedBy is just a name, not a userId
-                contributorInfo = ContributorInfo(displayName: sharedBy)
+        if let lineage = localLineage {
+            rootRecipeId = lineage.rootRecipeId
+            Log.debug("Found local lineage", category: .general, metadata: [
+                "rootRecipeId": rootRecipeId.uuidString
+            ])
+        } else {
+            // No local lineage - try Firebase directly
+            // This can happen if the lineage wasn't properly created during share acceptance
+            Log.debug("No local lineage, checking Firebase", category: .firebase)
+
+            let firebaseLineage = try await db.collection("lineages")
+                .whereField("currentRecipeId", isEqualTo: recipeId.firebaseString)
+                .limit(to: 1)
+                .getDocuments()
+
+            if let doc = firebaseLineage.documents.first,
+               let rootRecipeIdString = doc.data()["rootRecipeId"] as? String,
+               let fetchedRootId = UUID(uuidString: rootRecipeIdString) {
+                rootRecipeId = fetchedRootId
+                Log.info("Found lineage in Firebase (missing locally)", category: .firebase, metadata: [
+                    "rootRecipeId": rootRecipeIdString
+                ])
+            } else {
+                // No lineage anywhere - this is a standalone recipe
+                Log.debug("No lineage found for recipe", category: .general)
+
+                // Fetch contributor if recipe has sharedBy
+                var contributorInfo: ContributorInfo?
+                if let sharedBy = recipe.sharedBy, !sharedBy.isEmpty {
+                    // Legacy: sharedBy is just a name, not a userId
+                    contributorInfo = ContributorInfo(displayName: sharedBy)
+                }
+
+                let node = LineageNode(
+                    recipe: recipe,
+                    generation: 0,
+                    position: .zero,
+                    stats: NodeStats(
+                        cookCount: recipe.timesCooked,
+                        shareCount: recipe.totalShares,
+                        viewCount: 0,
+                        rating: nil
+                    ),
+                    isCurrentUser: true,
+                    contributor: contributorInfo
+                )
+                return LineageTree(root: recipe, nodes: [node], edges: [])
             }
-
-            let node = LineageNode(
-                recipe: recipe,
-                generation: 0,
-                position: .zero,
-                stats: NodeStats(
-                    cookCount: recipe.timesCooked,
-                    shareCount: recipe.totalShares,
-                    viewCount: 0,
-                    rating: nil
-                ),
-                isCurrentUser: true,
-                contributor: contributorInfo
-            )
-            return LineageTree(root: recipe, nodes: [node], edges: [])
         }
 
-        // 2. Query Firebase for all recipes in this lineage tree
-        let rootRecipeId = lineage.rootRecipeId
+        // 3. Query Firebase for all recipes in this lineage tree (by rootRecipeId)
         Log.debug("Querying Firebase for lineage tree", category: .firebase, metadata: [
             "rootRecipeId": rootRecipeId.uuidString
         ])
 
         // Query global lineages collection
+        // IMPORTANT: Use firebaseString (lowercase) to match document field values
         let snapshot = try await db.collection("lineages")
-            .whereField("rootRecipeId", isEqualTo: rootRecipeId.uuidString)
+            .whereField("rootRecipeId", isEqualTo: rootRecipeId.firebaseString)
             .getDocuments()
 
-        Log.debug("Found lineages in Firebase", category: .firebase, metadata: [
-            "count": snapshot.documents.count
+        Log.info("Found lineages in Firebase for family tree", category: .firebase, metadata: [
+            "count": snapshot.documents.count,
+            "rootRecipeId": rootRecipeId.uuidString
         ])
+
+        // Get allowed owners from heritage chain (used to filter out sanitized demo users)
+        // When a recipe is shared to real users, demo users are removed from heritageChain
+        // We should only show nodes from users in the heritage chain
+        // IMPORTANT: Also include the current user - they won't be in their own heritage chain
+        let originalHeritageChain = recipe.heritageChain ?? []
+        let hasHeritageChainFilter = !originalHeritageChain.isEmpty
+        var allowedOwnerIds = Set(originalHeritageChain)
+        if let currentUserId = Auth.auth().currentUser?.uid {
+            allowedOwnerIds.insert(currentUserId)
+        }
+        if hasHeritageChainFilter {
+            Log.info("Heritage chain filter active for lineage tree", category: .firebase, metadata: [
+                "allowedOwners": allowedOwnerIds.count,
+                "heritageChain": originalHeritageChain.joined(separator: ", ")
+            ])
+        }
 
         // 3. Build nodes and edges from lineage data
         var nodes: [LineageNode] = []
@@ -102,6 +146,18 @@ final class RecipeLineageService {
             let parentRecipeIdString = data["parentRecipeId"] as? String
 
             guard let recipeIdUUID = UUID(uuidString: recipeIdString) else { continue }
+
+            // Filter by heritage chain if provided (sanitization filter)
+            // When a recipe is shared to real users, demo users are removed from heritageChain
+            // We only show nodes from users that are in the recipient's heritage chain
+            if hasHeritageChainFilter && !allowedOwnerIds.contains(ownerId) {
+                Log.debug("Filtering out lineage node not in heritage chain", category: .firebase, metadata: [
+                    "ownerId": ownerId,
+                    "generation": generation,
+                    "reason": "owner not in sanitized heritage chain"
+                ])
+                continue
+            }
 
             // Fetch recipe data from Firebase
             guard let recipeData = try? await fetchRecipeFromFirebase(
@@ -300,6 +356,25 @@ final class RecipeLineageService {
     /// Fetch contributor information including profile and connection status
     private func fetchContributorInfo(userId: String) async -> ContributorInfo? {
         guard !userId.isEmpty else { return nil }
+
+        // Handle demo users - use hardcoded info
+        if userId.hasPrefix("demo_") {
+            if let demoInfo = DemoSocialBehaviorService.demoUserInfo[userId] {
+                Log.debug("Using hardcoded demo user info for contributor", category: .firebase, metadata: [
+                    "userId": userId,
+                    "displayName": demoInfo.displayName
+                ])
+                return ContributorInfo(
+                    userId: userId,
+                    displayName: demoInfo.displayName,
+                    avatarURL: demoInfo.photoURL,
+                    isConnected: true // Demo users are always "connected"
+                )
+            } else {
+                Log.warning("Demo user not found in hardcoded data", category: .firebase, metadata: ["userId": userId])
+                return nil
+            }
+        }
 
         do {
             // Fetch display name from user profile service
