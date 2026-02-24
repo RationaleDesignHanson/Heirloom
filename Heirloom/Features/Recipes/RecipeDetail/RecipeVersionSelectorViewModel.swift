@@ -163,13 +163,21 @@ class RecipeVersionSelectorViewModel: ObservableObject {
                 allowedOwnerIds: allowedOwnerIds
             )
 
-            // 3.5. Deduplicate - filter out versions that match current recipe
-            // This prevents showing duplicate "Original" entries when the current recipe
-            // is Gen 0 and also exists in the Firebase lineage records
-            // Compare by generation + modifiedBy (owner ID) since that combo is unique
+            // 3.5. Deduplicate - filter out versions that match current user
+            // This prevents showing duplicate entries when the current user's version
+            // also exists in Firebase lineage records (possibly with different generation
+            // due to local vs Firebase data discrepancy)
+            // A user can only have ONE version of a recipe, so filter by owner ID alone
+            let currentUserId = Auth.auth().currentUser?.uid
             let filteredOtherVersions = otherVersions.filter { version in
-                !(version.modifiedBy == currentVersion.modifiedBy &&
-                  version.generation == currentVersion.generation)
+                // If this version belongs to the current user, filter it out
+                // (the current user's version is already shown as currentVersion)
+                if let userId = currentUserId, version.modifiedBy == userId {
+                    return false
+                }
+                // Also filter out exact duplicates (same owner + same generation)
+                return !(version.modifiedBy == currentVersion.modifiedBy &&
+                         version.generation == currentVersion.generation)
             }
 
             let removedCount = otherVersions.count - filteredOtherVersions.count

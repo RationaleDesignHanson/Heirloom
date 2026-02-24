@@ -1307,6 +1307,11 @@ struct RootView: View {
                                 if let existing = try? context.fetch(collectionDescriptor).first {
                                     existing.sourceTheme = theme
                                     existing.sourceThemeId = theme.firebaseId
+                                    // Set theme cover image as collection background
+                                    if let coverImageURL = theme.coverImageURL {
+                                        existing.generatedBackgroundImagePath = coverImageURL
+                                        existing.useCustomBackground = true
+                                    }
                                     theme.collection = existing
                                 } else {
                                     let collection = RecipeCollection(
@@ -1316,6 +1321,11 @@ struct RootView: View {
                                     )
                                     collection.sourceTheme = theme
                                     collection.sourceThemeId = theme.firebaseId
+                                    // Set theme cover image as collection background
+                                    if let coverImageURL = theme.coverImageURL {
+                                        collection.generatedBackgroundImagePath = coverImageURL
+                                        collection.useCustomBackground = true
+                                    }
                                     theme.collection = collection
                                     context.insert(collection)
                                 }
@@ -1467,6 +1477,11 @@ struct RootView: View {
                                     if let existing = try? context.fetch(existingDescriptor).first {
                                         existing.sourceTheme = theme
                                         existing.sourceThemeId = theme.firebaseId
+                                        // Set theme cover image as collection background
+                                        if let coverImageURL = theme.coverImageURL {
+                                            existing.generatedBackgroundImagePath = coverImageURL
+                                            existing.useCustomBackground = true
+                                        }
                                         theme.collection = existing
                                     } else {
                                         let collection = RecipeCollection(
@@ -1476,6 +1491,11 @@ struct RootView: View {
                                         )
                                         collection.sourceTheme = theme
                                         collection.sourceThemeId = theme.firebaseId
+                                        // Set theme cover image as collection background
+                                        if let coverImageURL = theme.coverImageURL {
+                                            collection.generatedBackgroundImagePath = coverImageURL
+                                            collection.useCustomBackground = true
+                                        }
                                         theme.collection = collection
                                         context.insert(collection)
                                     }
@@ -1508,25 +1528,21 @@ struct RootView: View {
                                 NotificationCenter.default.post(name: .themeContentReady, object: nil)
                             }
 
-                            // Clean up any orphaned recipes (recipes synced from Firebase without local collections)
-                            // This can happen if previous test sessions left data in Firebase
-                            // Note: Can't use complex predicates with optionals, so fetch all non-theme recipes and filter
-                            let allRecipesDescriptor = FetchDescriptor<Recipe>(
-                                predicate: #Predicate<Recipe> { recipe in
-                                    recipe.isThemeRecipe == false
-                                }
+                            // Ensure Favorites collection exists for deletion test account
+                            let favoritesDescriptor = FetchDescriptor<RecipeCollection>(
+                                predicate: #Predicate<RecipeCollection> { $0.name == "Favorites" }
                             )
-                            if let allNonThemeRecipes = try? context.fetch(allRecipesDescriptor) {
-                                let orphanedRecipes = allNonThemeRecipes.filter { ($0.collections ?? []).isEmpty }
-                                if !orphanedRecipes.isEmpty {
-                                    DeviceLogger.shared.log("🧪 [DeletionTest] Found \(orphanedRecipes.count) orphaned recipes - cleaning up", level: .warning)
-                                    for recipe in orphanedRecipes {
-                                        context.delete(recipe)
-                                    }
-                                    try? context.save()
-                                    DeviceLogger.shared.log("🧪 [DeletionTest] Cleaned up orphaned recipes", level: .info)
-                                }
+                            if (try? context.fetch(favoritesDescriptor).first) == nil {
+                                let favorites = RecipeCollection(name: "Favorites", iconName: "heart.fill", collectionType: .system)
+                                context.insert(favorites)
+                                try? context.save()
+                                DeviceLogger.shared.log("🧪 [DeletionTest] Created Favorites collection", level: .info)
                             }
+
+                            // NOTE: Do NOT clean up "orphaned" recipes here!
+                            // Seeded recipes from Firebase have collectionIds but their local collections
+                            // relationship is nil until the sync service's relinkRecipesToCollections runs.
+                            // Deleting them here would remove all seeded content before it can be linked.
                         }
 
                         DeviceLogger.shared.log("🧪 [DeletionTest] Theme trial set to day 3 with default themes", level: .info)

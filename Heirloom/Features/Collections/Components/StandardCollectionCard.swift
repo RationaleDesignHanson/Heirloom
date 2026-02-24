@@ -110,11 +110,20 @@ struct StandardCollectionCard: View {
         // Priority 1: AI-generated background (if enabled)
         if collection.useCustomBackground,
            let generatedPath = collection.generatedBackgroundImagePath {
-            AsyncRecipeImage(
-                imageFileName: generatedPath,
-                firebaseImageURL: nil,
-                placeholder: collection.iconName
-            )
+            // generatedPath can be a local file name OR a URL (for theme cover images)
+            if generatedPath.hasPrefix("http") {
+                AsyncRecipeImage(
+                    imageFileName: nil,
+                    firebaseImageURL: generatedPath,
+                    placeholder: collection.iconName
+                )
+            } else {
+                AsyncRecipeImage(
+                    imageFileName: generatedPath,
+                    firebaseImageURL: nil,
+                    placeholder: collection.iconName
+                )
+            }
         }
         // Priority 2: Custom user-selected background (if enabled)
         else if collection.useCustomBackground,

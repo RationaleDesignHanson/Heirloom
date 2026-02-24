@@ -641,6 +641,33 @@ extension FirebaseSyncService {
             "totalRecipeDocs": recipeSnapshot.documents.count
         ])
 
+        // ---- Pass 3: Favorites-centric (link isFavorite recipes to Favorites collection) ----
+        // Firebase stores isFavorite on recipes, but the app expects them in a Favorites collection.
+        // Find or create Favorites collection and link all recipes with isFavorite: true.
+        let favoritesDescriptor = FetchDescriptor<RecipeCollection>(
+            predicate: #Predicate<RecipeCollection> { $0.name == "Favorites" && $0.isSystemCollection == true }
+        )
+        let favoritesCollection = try? context.fetch(favoritesDescriptor).first
+
+        if let favorites = favoritesCollection {
+            var favoritesLinked = 0
+            for doc in recipeSnapshot.documents {
+                let data = doc.data()
+                let recipeIdString = doc.documentID
+                let isFavorite = data["isFavorite"] as? Bool ?? false
+
+                if isFavorite, let recipe = recipeLookup[recipeIdString.lowercased()] {
+                    linkIfNeeded(recipe: recipe, collection: favorites)
+                    favoritesLinked += 1
+                }
+            }
+            if favoritesLinked > 0 {
+                Log.info("Relink pass 3 (favorites)", category: .sync, metadata: ["favoritesLinked": favoritesLinked])
+            }
+        }
+
+        let pass3Count = linkedCount - pass1Count - pass2Count
+
         if linkedCount > 0 {
             try? context.save()
             Log.info("Re-linked recipes to collections", category: .sync, metadata: ["linkedCount": linkedCount])
